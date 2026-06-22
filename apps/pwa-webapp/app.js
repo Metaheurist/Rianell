@@ -92,11 +92,71 @@ function getApexLineChartTheme() {
     mode: light ? 'light' : 'dark',
     tooltipTheme: light ? 'light' : 'dark',
     text: light ? '#1b5e20' : '#e0f2f1',
-    gridBorder: light ? '#81c784' : '#374151',
+    gridBorder: light ? getThemeAccentSoft('#81c784') : '#374151',
     legendColor: light ? '#1b5e20' : '#e0f2f1',
     crosshair: light ? '#546e7a' : '#b0bec5',
     tooltipDescription: light ? '#4a6358' : '#b0bec5'
   };
+}
+
+/** Read active theme accent from CSS tokens (updates when globalTheme changes). */
+function getThemePrimaryColor(fallback) {
+  try {
+    if (typeof document !== 'undefined') {
+      var el = document.body || document.documentElement;
+      var v = getComputedStyle(el).getPropertyValue('--primary-color').trim();
+      if (v) return v;
+    }
+  } catch (e) {}
+  return fallback || '#7bdf8c';
+}
+
+function getThemeAccentSoft(fallback) {
+  try {
+    if (typeof document !== 'undefined') {
+      var el = document.body || document.documentElement;
+      var v = getComputedStyle(el).getPropertyValue('--accent-soft').trim();
+      if (v) return v;
+    }
+  } catch (e) {}
+  return getThemePrimaryColor(fallback);
+}
+
+function themePrimaryRgba(alpha) {
+  var hex = getThemePrimaryColor('#7bdf8c').replace('#', '');
+  if (hex.length !== 6) return 'rgba(123, 223, 140, ' + alpha + ')';
+  var r = parseInt(hex.slice(0, 2), 16);
+  var g = parseInt(hex.slice(2, 4), 16);
+  var b = parseInt(hex.slice(4, 6), 16);
+  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+}
+
+/** Convert rgb/rgba/hex chart color to rgba with given alpha. */
+function colorToRgba(input, alpha) {
+  if (!input) return themePrimaryRgba(alpha);
+  if (input.indexOf('rgba(') === 0) {
+    var rgbaParts = input.replace(/rgba?\(|\)|\s/g, '').split(',');
+    if (rgbaParts.length >= 3) return 'rgba(' + rgbaParts[0] + ', ' + rgbaParts[1] + ', ' + rgbaParts[2] + ', ' + alpha + ')';
+  }
+  if (input.indexOf('rgb(') === 0) {
+    var rgbParts = input.replace(/rgb\(|\)|\s/g, '').split(',');
+    if (rgbParts.length >= 3) return 'rgba(' + rgbParts[0] + ', ' + rgbParts[1] + ', ' + rgbParts[2] + ', ' + alpha + ')';
+  }
+  if (input.indexOf('#') === 0) {
+    var hex = input.replace('#', '');
+    if (hex.length === 6) {
+      return 'rgba(' + parseInt(hex.slice(0, 2), 16) + ', ' + parseInt(hex.slice(2, 4), 16) + ', ' + parseInt(hex.slice(4, 6), 16) + ', ' + alpha + ')';
+    }
+  }
+  return themePrimaryRgba(alpha);
+}
+
+if (typeof window !== 'undefined') {
+  window.getThemePrimaryColor = getThemePrimaryColor;
+  window.getThemeAccentSoft = getThemeAccentSoft;
+  window.themePrimaryRgba = themePrimaryRgba;
+  window.colorToRgba = colorToRgba;
+  window.themePrimaryRgba = themePrimaryRgba;
 }
 
 /** UI string from active locale catalog (PWA i18n). */
@@ -174,7 +234,7 @@ function getApexRadarChartTheme() {
     tooltipTheme: light ? 'light' : 'dark',
     axisLabel: light ? '#1b5e20' : '#e0f2f1',
     legendColor: light ? '#1b5e20' : '#e0f2f1',
-    polygonStroke: light ? '#81c784' : '#374151',
+    polygonStroke: light ? getThemeAccentSoft('#81c784') : '#374151',
     polygonFill: light ? 'rgba(129, 199, 132, 0.14)' : 'rgba(55, 65, 81, 0.1)'
   };
 }
@@ -2288,10 +2348,23 @@ window.closeDonateModal = closeDonateModal;
 // ============================================
 // Tutorial Modal (new users + backtick ` to reopen)
 // ============================================
-const TUTORIAL_SLIDE_TITLES = ['Enable AI & Goals?', 'Welcome', 'Cycle tracking', 'View & AI', 'Settings & data', 'Data options', 'Accessibility', 'Goals & targets', "You're all set"];
+const TUTORIAL_SLIDE_TITLES = {
+  0: 'Enable AI & Goals?',
+  1: 'Welcome',
+  8: 'Cycle tracking',
+  2: 'View & AI',
+  3: 'Settings & data',
+  4: 'Settings & data',
+  5: 'Data options',
+  6: 'Goals & targets',
+  7: "You're all set",
+};
 
 function getTutorialVisibleIndices() {
   var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.getTutorialVisibleIndices === 'function') {
+    return window.RianellShared.getTutorialVisibleIndices(aiOn);
+  }
   if (aiOn) return [0, 1, 8, 2, 3, 4, 5, 6, 7];
   return [0, 1, 8, 5, 7];
 }
@@ -6018,18 +6091,18 @@ async function createBalanceChart() {
         enabled: !deviceOpts.reduceAnimations
       }
     },
-    colors: ['#4caf50'],
+    colors: [getThemePrimaryColor()],
     fill: {
       opacity: 0.3
     },
     stroke: {
       width: 2,
-      colors: ['#4caf50']
+      colors: [getThemePrimaryColor()]
     },
     markers: {
       size: 4,
-      colors: ['#4caf50'],
-      strokeColors: '#4caf50',
+      colors: [getThemePrimaryColor()],
+      strokeColors: getThemePrimaryColor(),
       strokeWidth: 2
     },
     xaxis: {
@@ -8093,7 +8166,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     let trendIcon, trendColor, predictedColor;
     if (currentStatus === 'improving') {
       trendIcon = svgIcon('chart-up', 'ai-inline-icon icon-success', 'Improving');
-      trendColor = "#4caf50"; // Green for improving
+      trendColor = getThemePrimaryColor(); // Theme accent for improving
     } else if (currentStatus === 'worsening') {
       trendIcon = svgIcon('chart-down', 'ai-inline-icon icon-danger', 'Declining');
       trendColor = "#f44336"; // Red for worsening
@@ -8104,7 +8177,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     
     // Predicted color based on predicted status
     if (predictedStatus === 'improving') {
-      predictedColor = "#4caf50"; // Green for improving
+      predictedColor = getThemePrimaryColor(); // Theme accent for improving
     } else if (predictedStatus === 'worsening') {
       predictedColor = "#f44336"; // Red for worsening
     } else {
@@ -8439,7 +8512,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
           <table class="ai-pain-table" style="width: 100%; border-collapse: collapse;">
             <caption class="visually-hidden">Pain and mild discomfort by body area for the selected period</caption>
             <thead>
-              <tr style="border-bottom: 1px solid rgba(76, 175, 80, 0.3);">
+              <tr style="border-bottom: 1px solid ${themePrimaryRgba(0.3)};">
                 <th scope="col" class="ai-pain-col-part" style="text-align: left; padding: 8px 12px;">Body part</th>
                 <th scope="col" class="ai-pain-col-mild" style="text-align: right; padding: 8px 12px;">Mild days</th>
                 <th scope="col" class="ai-pain-col-pain" style="text-align: right; padding: 8px 12px;">Pain days</th>
@@ -8857,18 +8930,18 @@ async function renderMetricRadarChart(metric, container) {
       },
       background: 'transparent'
     },
-    colors: ['#4caf50', '#2196f3', '#e91e63'], // Green for average, Blue for current, Pink for predicted
+    colors: [getThemePrimaryColor(), '#2196f3', '#e91e63'], // Theme accent, blue, pink
     fill: {
       opacity: 0.3
     },
     stroke: {
       width: 2,
-      colors: ['#4caf50', '#2196f3', '#e91e63']
+      colors: [getThemePrimaryColor(), '#2196f3', '#e91e63']
     },
     markers: {
       size: 4,
-      colors: ['#4caf50', '#2196f3', '#e91e63'],
-      strokeColors: ['#4caf50', '#2196f3', '#e91e63'],
+      colors: [getThemePrimaryColor(), '#2196f3', '#e91e63'],
+      strokeColors: [getThemePrimaryColor(), '#2196f3', '#e91e63'],
       strokeWidth: 2
     },
     xaxis: {
@@ -9175,18 +9248,18 @@ async function renderCorrelationRadarChart(metric1, metric2, metric3, container)
       },
       background: 'transparent'
     },
-    colors: ['#4caf50', '#2196f3', '#e91e63'], // Green, Blue, Pink
+    colors: [getThemePrimaryColor(), '#2196f3', '#e91e63'], // Theme accent, blue, pink
     fill: {
       opacity: 0.3
     },
     stroke: {
       width: 2,
-      colors: ['#4caf50', '#2196f3', '#e91e63']
+      colors: [getThemePrimaryColor(), '#2196f3', '#e91e63']
     },
     markers: {
       size: 4,
-      colors: ['#4caf50', '#2196f3', '#e91e63'],
-      strokeColors: ['#4caf50', '#2196f3', '#e91e63'],
+      colors: [getThemePrimaryColor(), '#2196f3', '#e91e63'],
+      strokeColors: [getThemePrimaryColor(), '#2196f3', '#e91e63'],
       strokeWidth: 2
     },
     xaxis: {
@@ -13181,7 +13254,8 @@ function updateEditSliderColor(sliderId) {
   if (!slider) return;
   const value = parseInt(slider.value);
   const percentage = (value / 10) * 100;
-  slider.style.background = `linear-gradient(to right, #4caf50 0%, #4caf50 ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%, rgba(255, 255, 255, 0.1) 100%)`;
+  const primary = getThemePrimaryColor();
+  slider.style.background = `linear-gradient(to right, ${primary} 0%, ${primary} ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%, rgba(255, 255, 255, 0.1) 100%)`;
 }
 
 function toggleEditWeightUnit() {
@@ -14611,12 +14685,12 @@ async function chart(id, label, dataField, color) {
         enabled: true,
         type: 'x',
         fill: {
-          color: 'rgba(76, 175, 80, 0.1)'
+          color: colorToRgba(color, 0.1)
         },
         stroke: {
           width: 1,
           dashArray: 3,
-          color: '#4caf50',
+          color: color,
           opacity: 0.4
         }
       },
@@ -14950,17 +15024,17 @@ async function chart(id, label, dataField, color) {
     annotations: predictedData.length > 0 ? {
       xaxis: [{
         x: chartData.length > 0 ? chartData[chartData.length - 1].x : new Date().getTime(),
-        borderColor: '#4caf50',
+        borderColor: color,
         borderWidth: 2,
         strokeDashArray: 4,
         opacity: 0.5,
         label: {
           text: 'Predictions start here',
           style: {
-            color: '#4caf50',
+            color: color,
             fontSize: '11px',
             fontWeight: 'normal',
-            background: 'rgba(76, 175, 80, 0.1)',
+            background: colorToRgba(color, 0.1),
             padding: {
               left: 5,
               right: 5,
@@ -17070,6 +17144,12 @@ function setGlobalTheme(theme) {
     try {
       if (typeof refreshCharts === 'function') refreshCharts();
     } catch (e) {}
+    try {
+      var aiOut = document.getElementById('aiResultsContent');
+      if (aiOut && aiOut.children && aiOut.children.length > 0 && typeof generateAISummary === 'function') {
+        generateAISummary();
+      }
+    } catch (e2) {}
   };
   if (typeof applyThemeCrossfade === 'function') applyThemeCrossfade(apply);
   else apply();
@@ -19506,19 +19586,21 @@ function toggleDemoMode() {
     // Show loading indicator
       const loadingMsg = document.createElement('div');
       loadingMsg.className = 'success-notification';
+      const accent = getThemePrimaryColor();
+      const accentSoft = getThemeAccentSoft();
       loadingMsg.style.cssText = `
         position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        background: linear-gradient(135deg, ${accent}, ${accentSoft});
         color: white;
         padding: 24px 32px;
         border-radius: 16px;
         font-weight: 600;
         font-size: 1.1rem;
         z-index: 10001;
-        box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+        box-shadow: 0 8px 24px ${themePrimaryRgba(0.4)};
         text-align: center;
       `;
       loadingMsg.textContent = tUi('common.generating.demo.data.this.may.take.a.mom');

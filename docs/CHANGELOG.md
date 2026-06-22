@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.119.0** - Cycle tracking UX, Home cards, Mood sparkline fix, deferred barcode/voice logging.
+**Latest: v1.120.0** - Theme accent tokenization (PWA), unified first-run step counter (PWA + RN).
+
+### v1.120.0 - 2026-06-21 - Theme tokens & unified onboarding counter
+- **Theme tokenization (PWA):** Replaced hundreds of hardcoded mint greens (`#4caf50`, `rgba(76, 175, 80, …)`) with **`--accent-*`** derivatives of `--primary-color` in `styles.css` and `styles-charts.css`. Affects modals (Food/Exercise log), AI Analysis (At a glance, range buttons, carousel arrows, copy note), Mood tab scores/check-ins, chart prediction dividers, progress bars, and save-button icons.
+- **Runtime theme helpers:** `getThemePrimaryColor()`, `getThemeAccentSoft()`, `themePrimaryRgba()`, `colorToRgba()` read from **`document.body`** (not `:root`) so non-mint themes apply to ApexCharts, AI inline colours, and sliders. `setGlobalTheme()` refreshes charts and re-renders AI summary when results are visible.
+- **Themed body overrides:** `body.theme-*` sets `--ui-icon-color` and `--home-checkin-icon-color` so SVG icons follow the active global theme.
+- **Unified onboarding counter (PWA + RN):** `packages/shared/src/onboarding/unifiedOnboardingProgress.mjs` — one continuous **step X of Y** across first-run wizard + per-slide tutorial (9 slides with AI on, 5 with AI off). PWA `first-run-wizard.js` and RN `FirstRunWizard.tsx` use shared resolver; tutorial slide titles keyed by slide id (fixes wrong title mapping).
+- **i18n:** `tutorial.slide1.title` … `tutorial.slide8.title` in en-GB canonical pack.
+- **Tests:** `unifiedOnboardingProgress.test.mjs`, `theme-accent-tokens.test.mjs`; **368** unit tests total.
+- **Docs:** CHANGELOG, project-reference, app-and-features, styling.md, platform-parity, wiki Release-Notes/Features/Settings/Getting-Started/Charts-and-AI.
 
 ### v1.119.0 - 2026-06-21 - Cycle tracking, Home UX, logging module trim
 - **Cycle tracking (PWA + RN):** Theme-token **SVG phase icons** (no emoji); i18n labels refresh after catalog load; horizontal day row scrolls via wheel/drag/swipe with **hidden scrollbar**; **suggest cycle day + phase** from last log entry and selected date; tutorial **slide 8** explains and toggles `cycleModuleEnabled`.

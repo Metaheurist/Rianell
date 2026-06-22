@@ -1,10 +1,15 @@
 # Release Notes
 
-## Latest release (v1.119.0)
+## Latest release (v1.120.0)
 
 **Date:** 2026-06-21
 
 ### Highlights
+
+- **Themes (web):** Switching from Mint to Red/Black (or Mono/Rainbow) now updates modals, AI Analysis cards, Mood accents, chart prediction lines, and save-button icons — not just the navbar.
+- **Onboarding:** One continuous **step counter** across the first-run wizard and each tutorial slide (PWA + native app).
+
+### Previous (v1.119.0)
 
 - **Cycle tracking:** SVG phase icons, smoother day picker (scroll without visible bar), auto-suggest day/phase from your last log and selected date; tutorial slide to enable the module.
 - **Home:** Recent patterns card styling; Weekly Health Review shows **Enable AI** until the on-device model is downloaded.
@@ -32,6 +37,7 @@
 
 | Version | Theme |
 |---------|-------|
+| v1.120.0 | Theme accent tokenization (PWA), unified onboarding step counter |
 | v1.119.0 | Cycle tracking UX, Home cards, Mood sparkline, deferred barcode/voice |
 | v1.118.0 | Onboarding UX, Smartlook default-on, Goals carousel fix |
 | v1.115.0 | PWA boot shell fix, Smartlook infrastructure |

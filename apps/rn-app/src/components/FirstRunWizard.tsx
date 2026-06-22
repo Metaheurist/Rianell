@@ -15,7 +15,9 @@ import {
   applyRegionDefaultLocale,
   buildFirstRunPlan,
   completeFirstRunWizard,
+  getTutorialVisibleIndices,
   normalizeTrackingProfile,
+  resolveUnifiedOnboardingProgress,
   TRACKING_PROFILE_FIELD_KEYS,
 } from '@rianell/shared';
 import { getPolicyPack, getRegionLabels, suggestRegionForDevice } from '../privacy/helpers';
@@ -38,9 +40,20 @@ const SLIDE_BODIES: Partial<Record<number, string>> = {
 };
 
 function visibleSlideIndices(aiEnabled: boolean): number[] {
-  if (aiEnabled) return [0, 1, 8, 2, 3, 4, 5, 6, 7];
-  return [0, 1, 8, 5, 7];
+  return getTutorialVisibleIndices(aiEnabled);
 }
+
+const TUTORIAL_SLIDE_TITLE_KEYS: Partial<Record<number, string>> = {
+  0: 'tutorial.slide.enableAi',
+  1: 'tutorial.slide1.title',
+  8: 'tutorial.slide8.title',
+  2: 'tutorial.slide2.title',
+  3: 'tutorial.slide3.title',
+  4: 'tutorial.slide4.title',
+  5: 'tutorial.slide5.title',
+  6: 'tutorial.slide6.title',
+  7: 'tutorial.slide7.title',
+};
 
 export function FirstRunWizard({
   prefs,
@@ -82,6 +95,17 @@ export function FirstRunWizard({
   const tutorialSlides = useMemo(() => visibleSlideIndices(aiEnabledLocal), [aiEnabledLocal]);
   const tutorialSlideIndex = tutorialSlides[Math.min(tutorialPos, tutorialSlides.length - 1)] ?? 0;
   const tutorialIsLast = tutorialPos >= tutorialSlides.length - 1;
+
+  const unifiedProgress = useMemo(() => {
+    if (!step) return { current: 1, total: 1 };
+    return resolveUnifiedOnboardingProgress({
+      prefs: localPrefs as Record<string, unknown>,
+      ctx: platformCtx,
+      wizardStepId: step.id,
+      tutorialPos: step.id === 'tutorial' ? tutorialPos : undefined,
+      tutorialSlideIndices: tutorialSlides,
+    });
+  }, [localPrefs, platformCtx, step, tutorialPos, tutorialSlides]);
 
   const patchPrefs = useCallback((patch: Partial<Preferences>) => {
     setLocalPrefs((cur) => ({ ...cur, ...patch }));
@@ -171,10 +195,16 @@ export function FirstRunWizard({
     [patchPrefs, goNext, localPrefs.aiModelDownloadConsentAt],
   );
 
-  const stepTitle =
-    step && FIRST_RUN_STEP_META[step.id as keyof typeof FIRST_RUN_STEP_META]
+  const stepTitle = (() => {
+    if (!step) return t('onboarding.title');
+    if (step.id === 'tutorial') {
+      const key = TUTORIAL_SLIDE_TITLE_KEYS[tutorialSlideIndex];
+      return key ? t(key) : t('onboarding.step.tutorial');
+    }
+    return FIRST_RUN_STEP_META[step.id as keyof typeof FIRST_RUN_STEP_META]
       ? t(FIRST_RUN_STEP_META[step.id as keyof typeof FIRST_RUN_STEP_META].titleKey)
       : t('onboarding.title');
+  })();
 
   const renderStepBody = () => {
     if (!step) return null;
@@ -398,7 +428,10 @@ export function FirstRunWizard({
       <SafeAreaView style={[styles.root, { backgroundColor: theme.tokens.color.background }]}>
         <Text style={[styles.title, { color: theme.tokens.color.textPrimary }]}>{stepTitle}</Text>
         <Text style={[styles.stepMeta, { color: theme.tokens.color.textMuted }]}>
-          {t('onboarding.stepCounter', { current: stepIndex + 1, total: plan.length })}
+          {t('onboarding.stepCounter', {
+            current: unifiedProgress.current,
+            total: unifiedProgress.total,
+          })}
         </Text>
         <ScrollView contentContainerStyle={styles.body}>{renderStepBody()}</ScrollView>
         <View style={styles.footer}>
