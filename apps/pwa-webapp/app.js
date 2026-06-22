@@ -21380,14 +21380,16 @@ function collectPlan04LogFields(dateValue) {
       savedAt: new Date().toISOString(),
     }];
   }
-  if (appSettings.cycleModuleEnabled) {
+    if (appSettings.cycleModuleEnabled) {
     var cycle = {};
     var cd = document.getElementById('logCycleDay');
     var phaseEl = document.getElementById('logCyclePhase');
     var flowEl = document.getElementById('logCycleFlow');
+    var periodStartEl = document.getElementById('logCyclePeriodStartFlag');
     if (cd && cd.value) cycle.cycleDay = parseInt(cd.value, 10);
     if (phaseEl && phaseEl.value) cycle.phase = phaseEl.value;
     if (flowEl && flowEl.value) cycle.flow = flowEl.value;
+    if (periodStartEl && periodStartEl.value === '1') cycle.periodStart = true;
     if (Object.keys(cycle).length) out.cycle = cycle;
   }
   return out;

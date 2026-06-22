@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.121.0 documentation sync (Cycle period-start anchor)
+
+- **Cycle tracking:** **Period started today** on log wizard step 1 sets `cycle.periodStart` + day 1; `suggestCycleForDate` counts from `findLatestPeriodStart`. UI day pills **1–35** default; expand to **45** for irregular cycles; late hint above day 35.
+- **Shared constants:** `CYCLE_DAY_NORMAL_MAX` (35), `CYCLE_DAY_SELECTOR_MAX` (35), `CYCLE_DAY_MAX` (45); helpers `computeCycleDayFromPeriodStart`, `isCycleDayLate`, `daysSincePeriodStart`.
+- **Goals modal (PWA):** Carousel meta/i18n via `RianellI18n.t`; themed dot icons (`ui-svg-icon`).
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.121.0; [data-model.md](data-model.md) § Cycle; [platform-parity.md](platform-parity.md) v1.121.0 note.
+
 ### v1.120.0 documentation sync (Theme tokens & unified onboarding)
 
 - **Theme accents (PWA):** `--accent-primary`, `--accent-soft`, `--accent-border*`, `--accent-fill-*`, `--accent-glow-*` in `styles.css` `:root`; bulk migration off hardcoded Material green. Chart/AI JS uses `getThemePrimaryColor()` from **`document.body`**; `setGlobalTheme()` triggers `refreshCharts()` + AI re-render.
@@ -13,8 +20,8 @@
 
 ### v1.119.0 documentation sync (Cycle tracking UX & Home cards)
 
-- **Cycle tracking:** Log wizard step 1 when `cycleModuleEnabled` — day pills (1–45), phase tiles (SVG), flow levels; auto-suggest from prior logs; first-run tutorial slide 8 to enable.
-- **Cycle day range:** `CYCLE_DAY_MAX = 45` supports long/irregular cycles; phase **hints** follow a simplified ~28-day map (days 17+ → luteal).
+- **Cycle tracking:** Log wizard step 1 when `cycleModuleEnabled` — **Period started today**, day pills (1–35, expand to 45), phase tiles (SVG), flow levels; auto-suggest from last period start; first-run tutorial slide 8 to enable.
+- **Cycle day range:** Selector defaults 1–35 (`CYCLE_DAY_SELECTOR_MAX`); storage cap 45 (`CYCLE_DAY_MAX`); late hint above 35 (`CYCLE_DAY_NORMAL_MAX`).
 - **Logging modules:** Settings → Data options shows **cycle module only**; barcode food and guided voice prefs exist but are forced off and hidden until a future release ships scanner/extraction UI.
 - **Home:** Recent patterns inset (icon + streak summary); Weekly review card gates on LLM ready — **Enable AI** triggers download consent when model not loaded.
 - **Mood tab:** Sparkline in metrics grid scales to card width on narrow viewports.

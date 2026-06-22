@@ -4,39 +4,49 @@
 (function (global) {
   'use strict';
 
-  function goalsT(key) {
-    if (typeof global.tUi === 'function') return global.tUi(key);
-    if (typeof global.t === 'function') return global.t(key);
+  var GOALS_PANE_TITLE_KEYS = ['common.goals.targets', 'achievements.title'];
+
+  function goalsT(key, params) {
+    if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
+      return global.RianellI18n.t(key, params);
+    }
+    if (typeof global.tUi === 'function') return global.tUi(key, params);
     return key;
   }
 
-  function goalsSvgIcon(name, className) {
+  function goalsSvgIcon(name) {
     var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
-    var cls = className || 'ui-svg-icon';
-    return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
+    return '<svg class="ui-svg-icon goals-dot-icon-svg" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
   }
 
   function ensureGoalsCarouselDots(panes) {
     var dots = document.getElementById('goalsCarouselDots');
     if (!dots) return;
-    if (dots.childElementCount === panes.length) return;
-    dots.innerHTML = '';
-    var titles = ['common.goals.targets', 'achievements.title'];
-    for (var i = 0; i < panes.length; i++) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'goals-carousel-dot';
-      btn.setAttribute('role', 'tab');
-      btn.setAttribute('aria-label', 'Pane ' + (i + 1));
-      btn.setAttribute('data-i18n-aria', titles[i] || 'common.goals.targets');
-      btn.innerHTML = goalsSvgIcon(i === 0 ? 'balance' : 'zap', 'goals-dot-icon-svg');
-      btn.onclick = (function (idx) {
-        return function () {
-          goalsCarouselGo(idx);
-        };
-      })(i);
-      dots.appendChild(btn);
+    if (dots.childElementCount !== panes.length) {
+      dots.innerHTML = '';
+      for (var i = 0; i < panes.length; i++) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'goals-carousel-dot';
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('data-i18n-aria', GOALS_PANE_TITLE_KEYS[i] || 'common.goals.targets');
+        btn.innerHTML =
+          '<span class="goals-carousel-dot__icon" aria-hidden="true">' +
+          goalsSvgIcon(i === 0 ? 'balance' : 'zap') +
+          '</span>';
+        btn.onclick = (function (idx) {
+          return function () {
+            goalsCarouselGo(idx);
+          };
+        })(i);
+        dots.appendChild(btn);
+      }
     }
+    var dotBtns = dots.querySelectorAll('.goals-carousel-dot');
+    dotBtns.forEach(function (btn, idx) {
+      var titleKey = GOALS_PANE_TITLE_KEYS[idx] || 'common.goals.targets';
+      btn.setAttribute('aria-label', goalsT(titleKey));
+    });
   }
 
   function updateGoalsCarouselDots(activeIndex) {
@@ -136,7 +146,18 @@
     goalsCarouselGo(saved);
   }
 
+  function refreshGoalsCarouselI18n() {
+    var track = document.getElementById('goalsCarouselTrack');
+    if (!track) return;
+    var panes = track.querySelectorAll('.goals-carousel-pane');
+    if (!panes.length) return;
+    var idx = parseInt(track.getAttribute('data-goals-index') || '0', 10);
+    ensureGoalsCarouselDots(panes);
+    goalsCarouselGo(idx);
+  }
+
   global.goalsCarouselGo = goalsCarouselGo;
   global.goalsCarouselStep = goalsCarouselStep;
   global.initGoalsCarouselUI = initGoalsCarouselUI;
+  global.refreshGoalsCarouselI18n = refreshGoalsCarouselI18n;
 })(typeof window !== 'undefined' ? window : globalThis);

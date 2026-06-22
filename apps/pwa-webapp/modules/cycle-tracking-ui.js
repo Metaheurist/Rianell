@@ -14,6 +14,8 @@
     { id: 'medium', i18n: 'wizard.cycle.flow.medium', drops: 2 },
     { id: 'heavy', i18n: 'wizard.cycle.flow.heavy', drops: 3 },
   ];
+  var DAY_SELECTOR_MAX = S.CYCLE_DAY_SELECTOR_MAX || 35;
+  var DAY_NORMAL_MAX = S.CYCLE_DAY_NORMAL_MAX || 35;
   var DAY_MAX = S.CYCLE_DAY_MAX || 45;
   var suggestPhase = S.suggestCyclePhaseForDay || function (day) {
     var n = parseInt(day, 10);
@@ -23,6 +25,11 @@
     if (n <= 16) return 'ovulation';
     return 'luteal';
   };
+  var isCycleDayLate = S.isCycleDayLate || function (day) {
+    var n = parseInt(day, 10);
+    return Number.isFinite(n) && n > DAY_NORMAL_MAX;
+  };
+  var daysSincePeriodStart = S.daysSincePeriodStart || null;
   var suggestForDate = S.suggestCycleForDate || null;
 
   var phaseManual = false;
@@ -30,15 +37,17 @@
   var scrollBound = false;
   var suggestionAppliedForDate = '';
   var autoFilled = false;
+  var longCycleExpanded = false;
+  var lastPeriodStartDate = '';
 
   function t(key, params) {
-    if (typeof global.tUi === 'function') {
-      var ui = global.tUi(key, params);
-      if (ui && ui !== key) return ui;
-    }
     if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
       var v = global.RianellI18n.t(key, params);
       if (v && v !== key) return v;
+    }
+    if (typeof global.tUi === 'function') {
+      var ui = global.tUi(key, params);
+      if (ui && ui !== key) return ui;
     }
     return key;
   }
@@ -51,26 +60,70 @@
     var dayEl = hidden('logCycleDay');
     var phaseEl = hidden('logCyclePhase');
     var flowEl = hidden('logCycleFlow');
+    var periodStartEl = hidden('logCyclePeriodStartFlag');
     return {
       day: dayEl ? dayEl.value : '',
       phase: phaseEl ? phaseEl.value : '',
       flow: flowEl ? flowEl.value : '',
+      periodStart: periodStartEl ? periodStartEl.value === '1' : false,
     };
   }
 
-  function setHidden(day, phase, flow) {
+  function setPeriodStartHidden(on) {
+    var periodStartEl = hidden('logCyclePeriodStartFlag');
+    if (periodStartEl) periodStartEl.value = on ? '1' : '';
+  }
+
+  function setHidden(day, phase, flow, periodStart) {
     var dayEl = hidden('logCycleDay');
     var phaseEl = hidden('logCyclePhase');
     var flowEl = hidden('logCycleFlow');
     if (dayEl) dayEl.value = day != null && day !== '' ? String(day) : '';
     if (phaseEl) phaseEl.value = phase || '';
     if (flowEl) flowEl.value = flow || '';
+    if (periodStart !== undefined) setPeriodStartHidden(!!periodStart);
   }
 
   function phaseSvg(name, className) {
     var safe = String(name || '').replace(/[^a-z0-9-]/gi, '');
     var cls = className || 'cycle-phase-icon-svg ui-svg-icon';
     return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safe + '"></use></svg>';
+  }
+
+  function ensureLongCyclePills(dayScroll) {
+    if (!dayScroll) return;
+    for (var d = DAY_SELECTOR_MAX + 1; d <= DAY_MAX; d += 1) {
+      if (dayScroll.querySelector('.cycle-day-pill[data-day="' + d + '"]')) continue;
+      var tone = suggestPhase(d) || 'unknown';
+      var pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'cycle-day-pill cycle-day-pill--long cycle-day-pill--' + tone;
+      pill.setAttribute('data-day', String(d));
+      pill.setAttribute('aria-pressed', 'false');
+      pill.setAttribute('aria-label', t('wizard.cycle.day') + ' ' + d);
+      pill.hidden = !longCycleExpanded;
+      pill.textContent = String(d);
+      pill.addEventListener('click', function () {
+        selectDay(parseInt(this.getAttribute('data-day'), 10));
+      });
+      dayScroll.appendChild(pill);
+    }
+  }
+
+  function setLongCycleExpanded(expanded) {
+    longCycleExpanded = !!expanded;
+    var toggle = document.getElementById('logCycleShowLong');
+    var dayScroll = document.getElementById('logCycleDayScroll');
+    if (dayScroll) {
+      ensureLongCyclePills(dayScroll);
+      dayScroll.querySelectorAll('.cycle-day-pill--long').forEach(function (pill) {
+        pill.hidden = !longCycleExpanded;
+      });
+    }
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', longCycleExpanded ? 'true' : 'false');
+      toggle.classList.toggle('cycle-long-toggle--open', longCycleExpanded);
+    }
   }
 
   function updateReadout() {
@@ -81,6 +134,7 @@
       readout.textContent = '';
       return;
     }
+    var dayNum = parseInt(vals.day, 10);
     var hint = t('wizard.cycle.dayHint', { day: vals.day });
     if (vals.phase && !phaseManual) {
       var phaseMeta = PHASES.find(function (p) { return p.id === vals.phase; });
@@ -88,35 +142,55 @@
         hint += ' · ' + t('wizard.cycle.suggestedPhase', { phase: t(phaseMeta.i18n) });
       }
     }
+    if (lastPeriodStartDate && typeof daysSincePeriodStart === 'function') {
+      var since = daysSincePeriodStart(lastPeriodStartDate, getWizardDateIso());
+      if (since != null && since >= 0) {
+        hint += ' · ' + t('wizard.cycle.daysSincePeriod', { days: String(since) });
+      }
+    }
+    if (isCycleDayLate(dayNum)) {
+      hint += ' · ' + t('wizard.cycle.lateHint');
+    }
     readout.textContent = hint;
   }
 
+  function getWizardDateIso() {
+    var dateEl = document.getElementById('logDate');
+    if (dateEl && dateEl.value) return dateEl.value;
+    if (typeof global.getLocalDateString === 'function') return global.getLocalDateString();
+    return '';
+  }
+
   function refreshLabels() {
-    document.querySelectorAll('#logCyclePhaseGrid [data-i18n]').forEach(function (el) {
-      var key = el.getAttribute('data-i18n');
-      if (key) el.textContent = t(key);
-    });
-    document.querySelectorAll('#logCycleFlowRow [data-i18n]').forEach(function (el) {
+    document.querySelectorAll('#logCycleBlock [data-i18n]').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
     });
     var suggestEl = document.getElementById('logCycleSuggestHint');
     if (suggestEl && suggestEl.dataset.suggestKey) {
-      suggestEl.textContent = t(suggestEl.dataset.suggestKey, {
+      var params = {
         day: suggestEl.dataset.suggestDay || '',
         phase: suggestEl.dataset.suggestPhaseLabel || '',
-      });
+        date: suggestEl.dataset.suggestDate || '',
+      };
+      suggestEl.textContent = t(suggestEl.dataset.suggestKey, params);
     }
     updateReadout();
   }
 
   function refreshActiveStates() {
     var vals = syncHidden();
+    var dayNum = parseInt(vals.day, 10);
+    if (Number.isFinite(dayNum) && dayNum > DAY_SELECTOR_MAX) {
+      setLongCycleExpanded(true);
+    }
     var dayScroll = document.getElementById('logCycleDayScroll');
     if (dayScroll) {
       dayScroll.querySelectorAll('.cycle-day-pill').forEach(function (btn) {
-        var active = btn.getAttribute('data-day') === vals.day;
+        var day = btn.getAttribute('data-day');
+        var active = day === vals.day;
         btn.classList.toggle('cycle-day-pill--active', active);
+        btn.classList.toggle('cycle-day-pill--late', isCycleDayLate(parseInt(day, 10)));
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         if (active) {
           try {
@@ -126,6 +200,10 @@
           }
         }
       });
+    }
+    var periodBtn = document.getElementById('logCyclePeriodStartBtn');
+    if (periodBtn) {
+      periodBtn.classList.toggle('cycle-period-start-btn--active', vals.periodStart && vals.day === '1');
     }
     var phaseGrid = document.getElementById('logCyclePhaseGrid');
     if (phaseGrid) {
@@ -151,11 +229,24 @@
     var vals = syncHidden();
     var nextDay = vals.day === String(day) ? '' : String(day);
     var nextPhase = vals.phase;
+    var nextPeriodStart = vals.periodStart;
+    if (nextDay && nextDay !== '1') nextPeriodStart = false;
     if (nextDay && !phaseManual) {
       nextPhase = suggestPhase(nextDay) || '';
     }
-    if (!nextDay) phaseManual = false;
-    setHidden(nextDay, nextPhase, vals.flow);
+    if (!nextDay) {
+      phaseManual = false;
+      nextPeriodStart = false;
+    }
+    setHidden(nextDay, nextPhase, vals.flow, nextPeriodStart);
+    refreshActiveStates();
+  }
+
+  function markPeriodStartedToday() {
+    autoFilled = false;
+    phaseManual = false;
+    lastPeriodStartDate = getWizardDateIso();
+    setHidden('1', 'menstrual', syncHidden().flow, true);
     refreshActiveStates();
   }
 
@@ -164,7 +255,7 @@
     var vals = syncHidden();
     var next = vals.phase === phaseId ? '' : phaseId;
     phaseManual = !!next;
-    setHidden(vals.day, next, vals.flow);
+    setHidden(vals.day, next, vals.flow, vals.periodStart);
     refreshActiveStates();
   }
 
@@ -172,7 +263,7 @@
     autoFilled = false;
     var vals = syncHidden();
     var next = vals.flow === flowId ? '' : flowId;
-    setHidden(vals.day, vals.phase, next);
+    setHidden(vals.day, vals.phase, next, vals.periodStart);
     refreshActiveStates();
   }
 
@@ -180,11 +271,14 @@
     phaseManual = false;
     autoFilled = false;
     suggestionAppliedForDate = '';
-    setHidden('', '', '');
+    lastPeriodStartDate = '';
+    setLongCycleExpanded(false);
+    setHidden('', '', '', false);
     var suggestEl = document.getElementById('logCycleSuggestHint');
     if (suggestEl) {
       suggestEl.textContent = '';
       suggestEl.hidden = true;
+      delete suggestEl.dataset.suggestKey;
     }
     refreshActiveStates();
   }
@@ -243,9 +337,24 @@
     }
     built = true;
 
+    var periodBtn = document.getElementById('logCyclePeriodStartBtn');
+    if (periodBtn && !periodBtn.dataset.bound) {
+      periodBtn.dataset.bound = '1';
+      periodBtn.addEventListener('click', markPeriodStartedToday);
+    }
+
+    var longToggle = document.getElementById('logCycleShowLong');
+    if (longToggle && !longToggle.dataset.bound) {
+      longToggle.dataset.bound = '1';
+      longToggle.addEventListener('click', function () {
+        setLongCycleExpanded(!longCycleExpanded);
+        refreshActiveStates();
+      });
+    }
+
     var dayScroll = document.getElementById('logCycleDayScroll');
     if (dayScroll && !dayScroll.childElementCount) {
-      for (var d = 1; d <= DAY_MAX; d += 1) {
+      for (var d = 1; d <= DAY_SELECTOR_MAX; d += 1) {
         var tone = suggestPhase(d) || 'unknown';
         var pill = document.createElement('button');
         pill.type = 'button';
@@ -259,6 +368,7 @@
         });
         dayScroll.appendChild(pill);
       }
+      ensureLongCyclePills(dayScroll);
       initHorizontalScroll(dayScroll);
     }
 
@@ -329,7 +439,7 @@
     if (!suggestForDate || typeof targetDateIso !== 'string' || !targetDateIso) return;
     var vals = syncHidden();
     if (targetDateIso !== suggestionAppliedForDate && autoFilled && !phaseManual) {
-      setHidden('', '', '');
+      setHidden('', '', '', false);
       vals = syncHidden();
       autoFilled = false;
       suggestionAppliedForDate = '';
@@ -337,6 +447,7 @@
       if (suggestElReset) {
         suggestElReset.textContent = '';
         suggestElReset.hidden = true;
+        delete suggestElReset.dataset.suggestKey;
       }
     }
     if (vals.day || vals.phase || vals.flow) return;
@@ -345,17 +456,27 @@
     if (!suggestion || !suggestion.cycleDay) return;
     phaseManual = false;
     autoFilled = true;
-    setHidden(String(suggestion.cycleDay), suggestion.phase || suggestPhase(suggestion.cycleDay) || '', '');
+    lastPeriodStartDate = suggestion.periodStartDate || suggestion.fromDate || '';
+    setHidden(String(suggestion.cycleDay), suggestion.phase || suggestPhase(suggestion.cycleDay) || '', '', false);
     suggestionAppliedForDate = targetDateIso;
     var suggestEl = document.getElementById('logCycleSuggestHint');
     if (suggestEl) {
       var phaseMeta = PHASES.find(function (p) { return p.id === suggestion.phase; });
       var phaseLabel = phaseMeta ? t(phaseMeta.i18n) : '';
-      suggestEl.dataset.suggestKey = 'wizard.cycle.suggestedFromLast';
-      suggestEl.dataset.suggestDay = String(suggestion.cycleDay);
-      suggestEl.dataset.suggestPhaseLabel = phaseLabel;
-      suggestEl.textContent = t('wizard.cycle.suggestedFromLast', { day: suggestion.cycleDay, phase: phaseLabel });
+      if (suggestion.periodStartDate) {
+        suggestEl.dataset.suggestKey = 'wizard.cycle.autoFromPeriodStart';
+        suggestEl.dataset.suggestDate = suggestion.periodStartDate;
+        suggestEl.textContent = t('wizard.cycle.autoFromPeriodStart', { date: suggestion.periodStartDate });
+      } else {
+        suggestEl.dataset.suggestKey = 'wizard.cycle.suggestedFromLast';
+        suggestEl.dataset.suggestDay = String(suggestion.cycleDay);
+        suggestEl.dataset.suggestPhaseLabel = phaseLabel;
+        suggestEl.textContent = t('wizard.cycle.suggestedFromLast', { day: suggestion.cycleDay, phase: phaseLabel });
+      }
       suggestEl.hidden = false;
+    }
+    if (isCycleDayLate(suggestion.cycleDay)) {
+      setLongCycleExpanded(true);
     }
     refreshActiveStates();
   }

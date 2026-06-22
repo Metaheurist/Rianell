@@ -654,6 +654,22 @@ var RianellAIEngine = (() => {
     };
   }
 
+  // packages/shared/src/logging/cycleTracking.mjs
+  var CYCLE_PHASES = [
+    { id: "menstrual", i18n: "wizard.cycle.phase.menstrual", tone: "menstrual", icon: "cycle-menstrual" },
+    { id: "follicular", i18n: "wizard.cycle.phase.follicular", tone: "follicular", icon: "cycle-follicular" },
+    { id: "ovulation", i18n: "wizard.cycle.phase.ovulation", tone: "ovulation", icon: "cycle-ovulation" },
+    { id: "luteal", i18n: "wizard.cycle.phase.luteal", tone: "luteal", icon: "cycle-luteal" }
+  ];
+  var CYCLE_FLOW_LEVELS = [
+    { id: "none", i18n: "wizard.cycle.flow.none", drops: 0 },
+    { id: "light", i18n: "wizard.cycle.flow.light", drops: 1 },
+    { id: "medium", i18n: "wizard.cycle.flow.medium", drops: 2 },
+    { id: "heavy", i18n: "wizard.cycle.flow.heavy", drops: 3 }
+  ];
+  var PHASE_IDS = new Set(CYCLE_PHASES.map((p) => p.id));
+  var FLOW_IDS = new Set(CYCLE_FLOW_LEVELS.map((f) => f.id));
+
   // packages/shared/src/charts/customMetrics.mjs
   function customMetricFieldKey(id) {
     return `custom_${id}`;
@@ -674,22 +690,6 @@ var RianellAIEngine = (() => {
     if (typeof raw === "number" && Number.isFinite(raw)) return Math.max(0, Math.min(10, raw));
     return null;
   }
-
-  // packages/shared/src/logging/cycleTracking.mjs
-  var CYCLE_PHASES = [
-    { id: "menstrual", i18n: "wizard.cycle.phase.menstrual", tone: "menstrual", icon: "cycle-menstrual" },
-    { id: "follicular", i18n: "wizard.cycle.phase.follicular", tone: "follicular", icon: "cycle-follicular" },
-    { id: "ovulation", i18n: "wizard.cycle.phase.ovulation", tone: "ovulation", icon: "cycle-ovulation" },
-    { id: "luteal", i18n: "wizard.cycle.phase.luteal", tone: "luteal", icon: "cycle-luteal" }
-  ];
-  var CYCLE_FLOW_LEVELS = [
-    { id: "none", i18n: "wizard.cycle.flow.none", drops: 0 },
-    { id: "light", i18n: "wizard.cycle.flow.light", drops: 1 },
-    { id: "medium", i18n: "wizard.cycle.flow.medium", drops: 2 },
-    { id: "heavy", i18n: "wizard.cycle.flow.heavy", drops: 3 }
-  ];
-  var PHASE_IDS = new Set(CYCLE_PHASES.map((p) => p.id));
-  var FLOW_IDS = new Set(CYCLE_FLOW_LEVELS.map((f) => f.id));
 
   // packages/shared/src/home/homeWeather.mjs
   var WEATHER_CACHE_MS = 60 * 60 * 1e3;

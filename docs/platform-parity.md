@@ -423,6 +423,10 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.121.0 parity note (Cycle period-start anchor)
+
+- **Cycle tracking:** PWA + RN — **Period started today** (`cycle.periodStart`), day selector 1–35 with irregular expand to 45, `findLatestPeriodStart` / `computeCycleDayFromPeriodStart` in `@rianell/shared`; late-cycle readout above day 35.
+
 ### v1.119.0 parity note (Cycle tracking UX & Home cards)
 
 - **Cycle tracking:** PWA + RN log wizard step 1 — SVG phase icons, hidden-scrollbar day row, `suggestCycleForDate` from shared package; tutorial slide 8 (cycle enable) on both platforms.

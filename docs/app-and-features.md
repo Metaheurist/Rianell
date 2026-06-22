@@ -38,6 +38,13 @@ flowchart LR
 - **Runtime:** `ensureAppShellDomPlacement()` in `app.js`; boot logs via `logBootState()` / `window.__rianellBootLog`.
 - **Verify:** `npm run audit:probe-shell:layout`; `tests/unit/pwa-boot-shell.test.mjs`.
 
+### v1.121.0+ Cycle period-start anchor (log wizard step 1)
+
+- **Primary action:** **Period started today** sets day 1 and `cycle.periodStart` on the log date.
+- **Auto day:** `suggestCycleForDate` counts from the latest period start (explicit flag or backward-compat day 1 + menstrual/bleeding).
+- **UI:** Day pills **1–35** by default; **Longer or irregular cycle** reveals **36–45**. Readout shows days since period start and a late hint above day 35.
+- **Phase hints:** Unchanged simplified ~28-day template; not fertility prediction or medical advice.
+
 ### v1.120.0+ Theme accent tokenization (PWA)
 
 - **Problem solved:** Switching global theme from Mint left hardcoded green in modals, AI Analysis, Mood tab, and chart prediction chrome.
@@ -48,9 +55,9 @@ flowchart LR
 ### v1.119.0+ Cycle tracking (log wizard step 1)
 
 - **Enable:** Settings → Data options → Cycle tracking module, or first-run tutorial slide **Cycle tracking**.
-- **UI:** Cycle day scroll row (days 1–45), phase tiles with theme SVG icons, optional flow level; labels from i18n (not raw keys).
-- **Suggest:** When fields are empty, day + phase pre-fill from your most recent cycle log and the wizard date.
-- **Day 45 cap:** Accommodates long/irregular cycles; phase hints use a simplified 28-day pattern (not medical diagnosis).
+- **UI:** **Period started today** button; cycle day scroll row (days 1–35, expandable to 45), phase tiles with theme SVG icons, optional flow level; labels from i18n (not raw keys).
+- **Suggest:** When fields are empty, day + phase pre-fill from last **period start** (or legacy cycle anchor) and the wizard date.
+- **Day 45 cap:** Irregular storage ceiling; typical range messaging uses 21–35 days (ACOG-cited); phase hints use a simplified ~28-day pattern (not medical diagnosis).
 
 ### v1.119.0+ Home card polish
 

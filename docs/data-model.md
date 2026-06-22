@@ -31,7 +31,7 @@ All entries require a **`date`** (`YYYY-MM-DD`). Other fields are optional; empt
 | `exercise` | array | `{ name, duration? }` |
 | `medications` | array | Per-entry medication log |
 | `subEntries` | array | L8 AM/PM partial saves: `{ id, period: 'AM'\|'PM'\|'partial', mood?, fatigue?, sleep?, jointPain?, notes?, savedAt }` |
-| `cycle` | object | L7 `{ cycleDay?, phase?, flow?, pmsSymptoms?[] }` when cycle module enabled. `cycleDay` 1–45 (`CYCLE_DAY_MAX`); phase hints use simplified ~28-day map |
+| `cycle` | object | L7 `{ cycleDay?, periodStart?, phase?, flow?, pmsSymptoms?[] }` when cycle module enabled. `cycleDay` 1–45 (`CYCLE_DAY_MAX`); UI selector defaults 1–35 (`CYCLE_DAY_SELECTOR_MAX`); `periodStart: true` marks period begin on that log date; phase hints use simplified ~28-day map (not medical advice) |
 | `medicationDoses` | array | L3 per-dose log: `{ drug, status: 'taken'\|'skipped'\|'missed', scheduledAt? }` |
 
 ## Preferences (Plan 04 logging)

@@ -204,6 +204,10 @@
         var idx = track ? parseInt(track.getAttribute('data-settings-index') || '0', 10) : 0;
         global.settingsCarouselGo(idx);
       }
+      var goalsOpen = document.getElementById('goalsModalOverlay');
+      if (goalsOpen && goalsOpen.style.display === 'block' && typeof global.refreshGoalsCarouselI18n === 'function') {
+        global.refreshGoalsCarouselI18n();
+      }
     }
   }
 

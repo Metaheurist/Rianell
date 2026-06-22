@@ -1877,8 +1877,52 @@ body.light-mode #logTab.log-wizard-mode .section-header {
 .cycle-track-title {
   margin: 0 0 4px;
   font-weight: 700;
-  color: var(--neon-lime);
+  color: var(--primary-color);
   font-size: 0.95rem;
+}
+
+.cycle-period-start-btn {
+  display: block;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 48%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 18%, rgba(10, 14, 12, 0.9));
+  color: color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cycle-period-start-btn:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 62%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 26%, rgba(10, 14, 12, 0.92));
+}
+
+.cycle-period-start-btn--active {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 42%, transparent),
+    0 0 12px color-mix(in srgb, var(--primary-color) 28%, transparent);
+}
+
+.cycle-long-toggle {
+  display: block;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--primary-color) 72%, var(--text-light) 28%);
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cycle-long-toggle--open {
+  color: var(--primary-color);
 }
 
 .cycle-track-lead {
@@ -1949,6 +1993,11 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   transform: scale(1.08);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 55%, transparent);
   border-color: var(--primary-color);
+}
+
+.cycle-day-pill--late:not(.cycle-day-pill--active) {
+  border-color: color-mix(in srgb, #ffb74d 42%, var(--primary-color) 18%);
+  background: color-mix(in srgb, #ffb74d 12%, rgba(20, 16, 12, 0.55));
 }
 
 .cycle-day-readout {
@@ -11621,12 +11670,14 @@ body.light-mode .settings-button-top:hover {
 
 .goals-header-text h3 {
   margin: 0;
+  color: var(--primary-color);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--primary-color) 32%, transparent);
 }
 
 .goals-carousel-meta {
   margin: 4px 0 8px;
   font-size: 0.82rem;
-  color: var(--text-dim);
+  color: color-mix(in srgb, var(--text-light) 72%, transparent);
 }
 
 .goals-carousel-dots {
@@ -11636,23 +11687,48 @@ body.light-mode .settings-button-top:hover {
 }
 
 .goals-carousel-dot {
-  border: none;
-  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 34%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 12%, rgba(7, 11, 10, 0.92));
   border-radius: 8px;
   padding: 6px 8px;
   cursor: pointer;
-  color: var(--ui-icon-muted);
+  color: color-mix(in srgb, var(--primary-color) 68%, var(--text-light) 32%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 18%, transparent);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .goals-carousel-dot--active {
-  background: color-mix(in srgb, var(--primary-color) 22%, transparent);
-  color: var(--primary-color);
-  box-shadow: var(--ui-icon-glow);
+  background: color-mix(in srgb, var(--primary-color) 28%, rgba(10, 24, 16, 0.85));
+  border-color: color-mix(in srgb, var(--primary-color) 62%, transparent);
+  color: color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 40%, transparent),
+    0 0 12px color-mix(in srgb, var(--primary-color) 36%, transparent);
 }
 
-.goals-dot-icon-svg {
+.goals-carousel-dot:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 52%, transparent);
+  color: color-mix(in srgb, var(--primary-color) 84%, #ffffff 16%);
+}
+
+.goals-carousel-dot:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 55%, transparent);
+}
+
+.goals-carousel-dot__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+.goals-carousel-dot .goals-dot-icon-svg,
+.goals-carousel-dot__icon .ui-svg-icon {
   width: 1.1rem;
   height: 1.1rem;
+  filter: none;
+  color: inherit;
 }
 
 .goals-carousel-viewport {

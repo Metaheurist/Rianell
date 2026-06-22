@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.120.0** - Theme accent tokenization (PWA), unified first-run step counter (PWA + RN).
+**Latest: v1.121.0** - Cycle period-start anchor (PWA + RN), day selector 1–35 default.
+
+### v1.121.0 - 2026-06-22 - Cycle period-start anchor
+- **Cycle tracking (PWA + RN):** **Period started today** sets `cycle.periodStart` and day 1; cycle day auto-computed from last period start via `findLatestPeriodStart` + `computeCycleDayFromPeriodStart`. Day selector defaults to **1–35** (ACOG-cited normal range); **Longer or irregular cycle** expands **36–45**. Late-cycle readout when day > 35.
+- **Shared:** `CYCLE_DAY_NORMAL_MAX` (35), `CYCLE_DAY_SELECTOR_MAX` (35), `periodStart` on cycle object, `isCycleDayLate`, `daysSincePeriodStart`; `suggestCycleForDate` prefers period-start anchor with legacy `findLatestCycleAnchor` fallback.
+- **i18n:** `wizard.cycle.periodStartedToday`, `showLongCycle`, `daysSincePeriod`, `lateHint`, `autoFromPeriodStart`; Plan 04 Tier-A overrides; 14 locale packs synced.
+- **Goals modal (PWA):** Carousel meta line and dot aria-labels use `RianellI18n.t` (fixes raw keys like `common.goals.targets`); dot icons use `ui-svg-icon` for theme-aware stroke; locale refresh when modal open.
+- **Tests:** `cycle-period-start.test.mjs`, goals-carousel + cycle-tracking UI contract tests; **380** unit tests total.
+- **Docs:** CHANGELOG, project-reference, data-model, app-and-features, platform-parity, wiki Logging-Data/Features-Guide/Release-Notes/Platforms-and-Parity.
 
 ### v1.120.0 - 2026-06-21 - Theme tokens & unified onboarding counter
 - **Theme tokenization (PWA):** Replaced hundreds of hardcoded mint greens (`#4caf50`, `rgba(76, 175, 80, …)`) with **`--accent-*`** derivatives of `--primary-color` in `styles.css` and `styles-charts.css`. Affects modals (Food/Exercise log), AI Analysis (At a glance, range buttons, carousel arrows, copy note), Mood tab scores/check-ins, chart prediction dividers, progress bars, and save-button icons.
