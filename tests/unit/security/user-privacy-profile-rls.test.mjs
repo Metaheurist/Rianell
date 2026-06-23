@@ -44,6 +44,8 @@ test('Schema grants authenticated CRUD on user_achievements', () => {
 test('Schema.sql defines Plan 13 RE1 pool insight RPCs', () => {
   const sql = readFileSync('supabase/Schema.sql', 'utf8');
   assert.match(sql, /research_facets jsonb/);
+  assert.match(sql, /private\.get_k_anon_pool_insights_impl/);
+  assert.match(sql, /SECURITY INVOKER/);
   assert.match(sql, /CREATE OR REPLACE FUNCTION public\.get_k_anon_pool_insights/);
   assert.match(sql, /CREATE OR REPLACE FUNCTION public\.count_pool_contribution_days/);
   assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.get_k_anon_pool_insights/);

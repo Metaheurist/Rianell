@@ -18,6 +18,7 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run benchmark` | Performance benchmarks workspace |
 | `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
 | `npm run audit:boot:strict` | Playwright strict boot gate (local / CI parity) |
+| `npm run supabase:deploy:delete-user-data` | Deploy GDPR Edge Function to Supabase project |
 | `npm run wiki:verify` / `wiki:sync` | Validate and push `wiki/` to GitHub Wiki |
 
 ---
@@ -43,7 +44,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 ### Phase 1 — Foundation (max 3 parallel)
 
 - **unit-tests** — `test:unit`, `verify:a11y-tokens`, parity, `verify:i18n`
-- **prepare-minified-assets** — minified PWA + Capacitor dist → artifact `minified-prebuild`
+- **prepare-minified-assets** — minified PWA + Capacitor dist → artifact `minified-prebuild` (copies `.well-known/security.txt`; glob copy skips dot dirs)
 - **security-audit** — Gitleaks, OSV, npm/pip audit (reusable workflow)
 
 ### Phase 2 — Build lanes (max 7 parallel)

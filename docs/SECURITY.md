@@ -118,7 +118,7 @@ Plan 13 k-anonymous pool insights use two **`SECURITY DEFINER`** functions in `p
 | **Why SECURITY DEFINER** | Cross-user cohort aggregation; per-user RLS would block reads under `SECURITY INVOKER`. |
 | **`search_path`** | `SET search_path = public` on both functions. |
 | **`anon`** | `REVOKE EXECUTE` — pool RPCs are **not** callable without sign-in (clears lint **0028**). |
-| **`authenticated`** | `GRANT EXECUTE` only — PWA/RN call via signed-in session after opt-in gates. Lint **0029** is an expected review warning, not a misconfiguration. |
+| **`authenticated`** | `GRANT EXECUTE` on **`public.*` INVOKER wrappers** only — PostgREST calls the same RPC names; elevated work runs in **`private.*_impl`** (DEFINER, not exposed to REST). Clears lint **0029** on `public`. |
 | **Client gates** | Research pool opt-in, medical condition set, 90-day contribution gate before RPC. |
 
 Re-apply [../supabase/Schema.sql](../supabase/Schema.sql) §4 after schema changes; see [../supabase/APPLY.md](../supabase/APPLY.md).

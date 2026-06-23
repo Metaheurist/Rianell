@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.95.0** - Launch audit Phases 4–9: compliance, performance, a11y, RN hardening, UX.
+**Latest: v1.96.0** - Post-launch operator setup: Supabase erasure, Edge Function, Cloudflare headers, security.txt deploy.
+
+### v1.96.0 - 2026-06-23 - Post-launch operator setup (Stages 2–4)
+- **Supabase schema:** `private.*_impl` + public `SECURITY INVOKER` wrappers (clears Security Advisor **0029** on pool RPCs and `delete_all_user_data`); `Schema-fresh-install.sql` for empty DB wipe; patch `supabase/patches/fix-lint-0029-security-definer.sql`; `consent_audit_log` + GDPR erasure RPC retained.
+- **Edge Function:** `delete-user-data` deployed on project `gitnxgfbbpykwqvogmqq` — RPC wipe + `auth.admin.deleteUser`; PWA/RN `deleteAllUserDataFromCloud` invokes function with table-delete fallback on 404; `npm run supabase:deploy:delete-user-data`.
+- **Pages deploy:** CI + `launch-server.ps1` copy `apps/pwa-webapp/.well-known/` (glob copy skipped dot dirs); build guard for `security.txt`.
+- **Cloudflare (operator):** HTTP headers trimmed to `frame-ancestors 'self'` + companion headers; full CSP remains in PWA meta tag — see [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md).
+- **Docs:** `APPLY.md`, `SECURITY.md`, launch checklist, wiki Release Notes / Cloud Sync / Build-Test-and-CI.
+- **Tests:** **398** unit tests pass.
 
 ### v1.95.0 - 2026-06-23 - Launch audit Phases 4–9
 - **Compliance (Phase 4):** EU AI Act self-assessment, DSA notes, app-store declarations, Play `data-safety.xml`; Smartlook Art. 6 legal basis; pg_cron retention SQL comments in `Schema.sql`.

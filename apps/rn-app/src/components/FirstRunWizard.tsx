@@ -202,9 +202,10 @@ export function FirstRunWizard({
   const handleAiDownload = useCallback(
     (grant: boolean) => {
       const now = new Date().toISOString();
-      const next = {
+      const consent: Preferences['aiModelDownloadConsent'] = grant ? 'granted' : 'deferred';
+      const next: Preferences = {
         ...localPrefs,
-        aiModelDownloadConsent: grant ? 'granted' : 'deferred',
+        aiModelDownloadConsent: consent,
         aiModelDownloadConsentAt: grant ? now : localPrefs.aiModelDownloadConsentAt,
       };
       setLocalPrefs(next);

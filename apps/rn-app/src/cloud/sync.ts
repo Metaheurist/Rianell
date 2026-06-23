@@ -20,6 +20,7 @@ import {
   hashMedicalConditionLabel,
 } from '@rianell/shared';
 import { decryptJsonAesGcm, encryptJsonAesGcm } from '@rianell/cloud-sync';
+import Constants from 'expo-constants';
 import { getSupabaseClient } from './supabaseClient';
 import type { LogEntry } from '../storage/logs';
 import { loadLogs, saveLogs } from '../storage/logs';
@@ -27,6 +28,37 @@ import { loadPreferences, savePreferences, type Preferences } from '../storage/p
 import { fetchPrivacyProfileAndApply } from './privacyProfile';
 
 const ANON_ENCRYPTION_KEY_LS = 'rianellLocalEncryptionKeyHex';
+
+function getSupabaseConfigFromExtra(): { url: string; anonKey: string } {
+  const extra = Constants.expoConfig?.extra ?? {};
+  const url = typeof extra.supabaseUrl === 'string' ? extra.supabaseUrl.trim() : '';
+  const anonKey = typeof extra.supabaseAnonKey === 'string' ? extra.supabaseAnonKey.trim() : '';
+  return { url, anonKey };
+}
+
+async function deleteAccountViaEdgeFunction(
+  client: SupabaseClient,
+  supabaseUrl: string,
+  anonKey: string,
+): Promise<boolean> {
+  const { data: sessionData } = await client.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error('Not signed in');
+  const base = supabaseUrl.replace(/\/$/, '');
+  const res = await fetch(`${base}/functions/v1/delete-user-data`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: anonKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ shouldSoftDelete: false }),
+  });
+  if (res.status === 404) return false;
+  const body = (await res.json().catch(() => ({}))) as { error?: string };
+  if (!res.ok) throw new Error(body.error || res.statusText || 'Edge delete failed');
+  return true;
+}
 
 function generateUserEncryptionKey(): string {
   const arr = new Uint8Array(32);
@@ -472,13 +504,26 @@ export async function deleteAnonymizedContributionFromCloud(): Promise<{ ok: boo
   return { ok: true, message: 'Anonymized contribution removed from cloud.' };
 }
 
-/** GDPR Art. 17 full cloud erasure: health_data, user_keys, anonymized_data, bug_reports. */
+/** GDPR Art. 17 full cloud erasure: app tables + auth user (Edge Function when deployed). */
 export async function deleteAllUserDataFromCloud(): Promise<{ ok: boolean; message: string }> {
   const client = getSupabaseClient();
   if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
   const { data: sessionData } = await client.auth.getSession();
   const user = sessionData.session?.user;
   if (!user) return { ok: false, message: 'Please sign in.' };
+
+  const { url, anonKey } = getSupabaseConfigFromExtra();
+  if (url && anonKey) {
+    try {
+      const usedEdge = await deleteAccountViaEdgeFunction(client, url, anonKey);
+      if (usedEdge) {
+        await client.auth.signOut();
+        return { ok: true, message: 'Account and all cloud data deleted.' };
+      }
+    } catch {
+      /* fall back to per-table RLS deletes */
+    }
+  }
 
   const err = await deleteUserRows(client, user.id, [
     'health_data',
@@ -487,6 +532,7 @@ export async function deleteAllUserDataFromCloud(): Promise<{ ok: boolean; messa
     'bug_reports',
     'user_privacy_profile',
     'user_achievements',
+    'consent_audit_log',
   ]);
   if (err) return { ok: false, message: err };
   return { ok: true, message: 'All cloud data deleted for this account.' };

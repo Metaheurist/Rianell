@@ -1,25 +1,40 @@
-# Delete user data (GDPR Art. 17)
+# Delete user data (GDPR Art. 17) — Edge Function
 
-Edge Function pattern for hard erasure after `delete_all_user_data` RPC.
+Hard erasure: `delete_all_user_data` RPC + `auth.admin.deleteUser`.
 
-## Deploy
+## Deploy (Supabase CLI)
 
-1. Apply `supabase/Schema.sql` (includes `delete_all_user_data(uuid)`).
-2. Deploy: `supabase functions deploy delete-user-data --no-verify-jwt` (invoke with service role only).
-3. Set secrets: `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_URL`.
+```bash
+npm install -g supabase
+supabase login
+cd path/to/Health-app
+supabase link --project-ref gitnxgfbbpykwqvogmqq
+supabase functions deploy delete-user-data
+```
 
-## Invoke (operator / authenticated erasure flow)
+Hosted functions receive `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` automatically — no manual secrets required for those.
+
+## Invoke — signed-in user (self-delete)
 
 ```http
-POST /functions/v1/delete-user-data
-Authorization: Bearer <user-jwt-or-service-role>
+POST https://<project-ref>.supabase.co/functions/v1/delete-user-data
+Authorization: Bearer <user-access-token>
+apikey: <anon-key>
+Content-Type: application/json
+
+{ "shouldSoftDelete": false }
+```
+
+## Invoke — operator (service role)
+
+```http
+POST https://<project-ref>.supabase.co/functions/v1/delete-user-data
+Authorization: Bearer <service-role-key>
 Content-Type: application/json
 
 { "userId": "<uuid>", "shouldSoftDelete": false }
 ```
 
-The function calls `delete_all_user_data` then `auth.admin.deleteUser(userId, shouldSoftDelete: false)`.
-
 ## Client
 
-PWA/RN `deleteAllUserDataFromCloud` deletes per-table rows via RLS; operators can run the Edge Function for full auth user removal.
+PWA/RN `deleteAllUserDataFromCloud()` calls this function when deployed; falls back to per-table RLS deletes if the function returns 404.

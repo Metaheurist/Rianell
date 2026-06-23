@@ -1,34 +1,26 @@
+﻿-- =============================================================================
+-- Rianell Supabase -- FRESH INSTALL (wipes all app tables + auth users)
 -- =============================================================================
--- Rianell Supabase schema — single SQL file (tables, RLS, grants, RPCs)
--- =============================================================================
 --
--- PRODUCTION APPLY (live project — keeps existing users + data):
---   1. Open Supabase Dashboard → SQL Editor → New query
---   2. Paste this ENTIRE file (§0 TEST RESET must stay commented out)
---   3. Run once; expect "Success. No rows returned"
---   4. Run §5 verification queries below (or re-select that section and Run)
---   5. Dashboard → Database → Security Advisor — confirm GraphQL lints cleared
+-- USE ONLY when you have NO data to keep (empty or throwaway project).
 --
--- Idempotent — safe to re-run. The browser embeds the anon key; security depends on RLS.
+-- Steps:
+--   1. Supabase Dashboard -> SQL Editor -> New query
+--   2. Paste this ENTIRE file (Ctrl+A from this file)
+--   3. Run once -> "Success. No rows returned"
+--   4. Select only the verification block at the bottom (section 5) -> Run
+--   5. Database -> Security Advisor -> Refresh
 --
--- Includes:
---   §1 Tables (user_privacy_profile, anonymized_data + research_facets, health_data, user_keys, bug_reports)
---   §2 Row Level Security policies
---   §3 Grants + GraphQL hardening (Security Advisor lints 0026/0027)
---   §4 Plan 13 RE1 pool RPCs (get_k_anon_pool_insights, count_pool_contribution_days; anon EXECUTE revoked — lint 0028)
---   §5 Post-apply verification SELECTs
---
--- Dev/staging FULL WIPE ONLY: uncomment §0 TEST RESET (destroys all tables, auth users, data).
--- Or use Schema-fresh-install.sql (§0 already enabled) when the project has no data.
--- On-device LLM weights are HF-only — no Supabase Storage bucket required.
+-- Project ref: gitnxgfbbpykwqvogmqq
+-- Canonical upgrade path (no wipe): use Schema.sql with section 0 commented out.
 -- =============================================================================
 
 BEGIN;
 
 -- =============================================================================
--- §0 TEST RESET (optional — uncomment only for dev/staging wipe)
+-- Section 0 -- FULL WIPE (enabled in this file only)
 -- =============================================================================
-/*
+
 -- Functions first (public wrappers + private impl)
 DROP FUNCTION IF EXISTS public.delete_all_user_data(uuid);
 DROP FUNCTION IF EXISTS public.count_pool_contribution_days(text);
@@ -51,10 +43,9 @@ DELETE FROM auth.refresh_tokens;
 DELETE FROM auth.sessions;
 DELETE FROM auth.identities;
 DELETE FROM auth.users;
-*/
 
 -- =============================================================================
--- §1 TABLES
+-- Â§1 TABLES
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.user_privacy_profile (
@@ -151,7 +142,7 @@ CREATE TABLE IF NOT EXISTS public.consent_audit_log (
 );
 
 -- =============================================================================
--- §2 ROW LEVEL SECURITY
+-- Â§2 ROW LEVEL SECURITY
 -- =============================================================================
 
 ALTER TABLE public.user_privacy_profile ENABLE ROW LEVEL SECURITY;
@@ -290,7 +281,7 @@ CREATE POLICY "consent_audit_log_select_own"
 -- Immutable audit trail: no UPDATE or DELETE policies for consent_audit_log
 
 -- =============================================================================
--- §3 GRANTS + GRAPHQL HARDENING (Security Advisor lints 0026/0027)
+-- Â§3 GRANTS + GRAPHQL HARDENING (Security Advisor lints 0026/0027)
 -- =============================================================================
 -- App uses PostgREST only (supabase-js), not /graphql/v1.
 
@@ -318,10 +309,10 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
 DROP EXTENSION IF EXISTS pg_graphql CASCADE;
 
 -- =============================================================================
--- §4 PLAN 13 RE1 — k-anonymous pool insight RPCs
+-- Â§4 PLAN 13 RE1 â€” k-anonymous pool insight RPCs
 -- =============================================================================
 -- SECURITY DEFINER bodies live in schema `private` (not PostgREST-exposed).
--- Public wrappers are SECURITY INVOKER — clears Security Advisor lint 0029.
+-- Public wrappers are SECURITY INVOKER â€” clears Security Advisor lint 0029.
 
 CREATE SCHEMA IF NOT EXISTS private;
 REVOKE ALL ON SCHEMA private FROM PUBLIC;
@@ -456,7 +447,7 @@ REVOKE EXECUTE ON FUNCTION public.count_pool_contribution_days(text) FROM anon;
 GRANT EXECUTE ON FUNCTION public.count_pool_contribution_days(text) TO authenticated;
 
 -- =============================================================================
--- §4b GDPR Art. 17 — delete all user-linked rows
+-- Â§4b GDPR Art. 17 â€” delete all user-linked rows
 -- =============================================================================
 -- Impl in `private` (service_role + self via public INVOKER wrapper).
 
@@ -511,7 +502,7 @@ GRANT EXECUTE ON FUNCTION public.delete_all_user_data(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_all_user_data(uuid) TO service_role;
 
 -- =============================================================================
--- §6 PG_CRON RETENTION (optional — enable pg_cron in Supabase Dashboard → Database → Extensions)
+-- Â§6 PG_CRON RETENTION (optional â€” enable pg_cron in Supabase Dashboard â†’ Database â†’ Extensions)
 -- Uncomment and run in SQL Editor after enabling pg_cron. Launch audit Phase 4.
 -- =============================================================================
 /*
@@ -540,7 +531,7 @@ SELECT cron.schedule(
 COMMIT;
 
 -- =============================================================================
--- §5 POST-APPLY VERIFICATION — run after §1–§4 succeed (select this block + Run)
+-- Â§5 POST-APPLY VERIFICATION â€” run after Â§1â€“Â§4 succeed (select this block + Run)
 -- =============================================================================
 -- Expected: 7 tables (+ consent_audit_log), all rowsecurity = true, pool RPCs + delete_all_user_data.
 

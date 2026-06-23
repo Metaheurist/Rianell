@@ -1,0 +1,13 @@
+# Minimal Supabase CLI config for Edge Function deploys.
+# Project ref matches docs/supabase APPLY.md and GitHub SUPABASE_URL secret.
+
+project_id = "gitnxgfbbpykwqvogmqq"
+
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[functions.delete-user-data]
+verify_jwt = true

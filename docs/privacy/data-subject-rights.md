@@ -1,7 +1,7 @@
 # Data subject rights — UX mapping (PWA and React Native)
 
 **Product:** Rianell  
-**Last updated:** 2026-06-13  
+**Last updated:** 2026-06-23  
 **Related:** [eu-gdpr.md](eu-gdpr.md) · [global-baseline.md](global-baseline.md) · [dpia-health-sync.md](dpia-health-sync.md)
 
 ---
@@ -21,7 +21,7 @@ This document maps GDPR / UK GDPR / global privacy rights to **in-app user journ
 | **Access** | Art. 15 | Settings → Data management → Export / backup | Settings → export flows | Supabase service-role export (logged) |
 | **Portability** | Art. 20 | JSON export (shared schema) | Same export format | Email JSON bundle |
 | **Rectification** | Art. 16 | View logs → Edit entry | Logs screen → Edit modal | — |
-| **Erasure** | Art. 17 | Delete cloud data; clear local; sign out | Settings cloud delete + clear storage | Delete `auth.users` + rows |
+| **Erasure** | Art. 17 | Delete cloud data (Edge Function removes Auth user when deployed); clear local | Settings cloud delete + clear storage | `delete-user-data` Edge Function or service-role |
 | **Restrict processing** | Art. 18 | Disable cloud sync; disable AI/LLM | Settings toggles | Flag account |
 | **Object** | Art. 21 | Disable anonymized contribution | Settings → contribution off | — |
 | **Withdraw consent** | Art. 7(3) | GDPR modal decline; revoke in settings | Same parity settings | — |

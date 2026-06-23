@@ -1,10 +1,19 @@
 # Release Notes
 
-## Latest release (v1.121.0)
+## Latest release (v1.96.0)
 
-**Date:** 2026-06-22
+**Date:** 2026-06-23
 
 ### Highlights
+
+- **Delete cloud data:** When the Supabase Edge Function is deployed, **Delete cloud data** removes all app tables **and** your login (Auth user). Falls back to per-table deletes if the function is unavailable.
+- **security.txt:** Responsible disclosure file ships at `/.well-known/security.txt` after the next Pages deploy (v1.96.0 CI fix).
+- **Supabase:** Security Advisor **0029** cleared via `private` impl + public invoker wrappers; fresh-install SQL available for empty projects.
+- **Cloudflare:** Edge sets `frame-ancestors 'self'` and companion headers; full CSP stays in the PWA (do not duplicate a narrow HTTP CSP).
+
+### Previous (v1.121.0)
+
+**Date:** 2026-06-22
 
 - **Cycle tracking (web + native):** Tap **Period started today** to anchor day 1; future logs auto-count cycle days from that date. Day picker shows **1–35** by default with an option for **36–45** when cycles run long.
 - **Late-cycle hint:** Days above 35 show informational copy (symptom logging only — not medical advice).
@@ -46,7 +55,8 @@
 
 | Version | Theme |
 |---------|-------|
-| v1.120.0 | Theme accent tokenization (PWA), unified onboarding step counter |
+| v1.96.0 | Full account erasure Edge Function, security.txt Pages fix, Supabase 0029, Cloudflare headers |
+| v1.121.0 | Cycle period-start anchor, Goals carousel i18n |
 | v1.119.0 | Cycle tracking UX, Home cards, Mood sparkline, deferred barcode/voice |
 | v1.118.0 | Onboarding UX, Smartlook default-on, Goals carousel fix |
 | v1.115.0 | PWA boot shell fix, Smartlook infrastructure |

@@ -49,10 +49,12 @@ Local storage (browser/RN) remains plaintext at rest unless a future at-rest enc
 
 - `health_data`
 - `user_keys`
+- `user_privacy_profile`
+- `user_achievements`
 - `anonymized_data`
 - `bug_reports`
 
-This does **not** delete your Supabase Auth account — sign out or contact support for full account removal. See [[Privacy-and-Your-Data]].
+When the **`delete-user-data`** Edge Function is deployed (production since v1.96.0), the app also removes your **Supabase Auth account** (email/login gone) and signs you out. If the function is unavailable, only table rows are deleted and you can still sign in — contact support for full account removal. See [[Privacy-and-Your-Data]].
 
 ---
 

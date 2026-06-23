@@ -22,13 +22,13 @@ Scroll to **§5 POST-APPLY VERIFICATION** at the bottom of `Schema.sql`, select 
 
 | Check | Expected |
 |-------|----------|
-| `tables` | 6 rows: `anonymized_data`, `bug_reports`, `health_data`, `user_keys`, `user_privacy_profile`, `user_achievements` |
-| `rls_enabled` | All 6 tables → `ok` |
-| `policy_count` | Policies on each table (21 total across tables) |
-| `rpc` | 2 rows: `count_pool_contribution_days`, `get_k_anon_pool_insights` |
+| `tables` | 7 rows including `consent_audit_log` |
+| `rls_enabled` | All 7 tables → `ok` |
+| `policy_count` | Policies on each table |
+| `rpc` | 3 rows: `count_pool_contribution_days`, `get_k_anon_pool_insights`, `delete_all_user_data` (public INVOKER wrappers) |
 | `column` | `anonymized_data.research_facets` → `ok` |
 
-Then: **Database → Security Advisor** — GraphQL exposure warnings (0026/0027) should clear after §3; pool RPC **anon EXECUTE** warnings (0028) should clear after §4 `REVOKE EXECUTE … FROM anon`.
+Then: **Database → Security Advisor** — lint **0029** on `public.*` pool/erasure RPCs should clear after §4 (DEFINER moved to `private` schema). GraphQL exposure warnings (0026/0027) clear after §3; pool RPC **anon EXECUTE** (0028) clears after §4.
 
 ## Smoke test (app)
 

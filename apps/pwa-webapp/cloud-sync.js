@@ -2288,6 +2288,40 @@ function toggleCloudAutoSyncOnOpen() {
   if (typeof saveSettings === 'function') saveSettings();
 }
 
+async function deleteAccountViaEdgeFunction(client) {
+  var cfg = window.SUPABASE_CONFIG || {};
+  var base = (cfg.url && String(cfg.url).trim().replace(/\/$/, '')) || '';
+  if (!base) return null;
+
+  var sessionResult = await client.auth.getSession();
+  var token = sessionResult && sessionResult.data && sessionResult.data.session
+    ? sessionResult.data.session.access_token
+    : null;
+  if (!token) throw new Error('Not signed in');
+
+  var res = await fetch(base + '/functions/v1/delete-user-data', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      apikey: cfg.anonKey || '',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ shouldSoftDelete: false })
+  });
+
+  if (res.status === 404) return null;
+
+  var payload = {};
+  try {
+    payload = await res.json();
+  } catch (e) {}
+
+  if (!res.ok) {
+    throw new Error((payload && payload.error) || res.statusText || 'Edge delete failed');
+  }
+  return payload;
+}
+
 async function deleteAllUserDataFromCloud() {
   try {
     const client = initSupabase();
@@ -2299,7 +2333,22 @@ async function deleteAllUserDataFromCloud() {
     const userId = cloudSyncState.user.id;
     console.log('Starting full cloud erasure for user:', userId);
 
-    const tables = ['health_data', 'user_keys', 'anonymized_data', 'bug_reports', 'user_privacy_profile', 'user_achievements'];
+    try {
+      var edgeResult = await deleteAccountViaEdgeFunction(client);
+      if (edgeResult) {
+        console.log('Full account erasure via delete-user-data Edge Function');
+        await client.auth.signOut();
+        cloudSyncState.isAuthenticated = false;
+        cloudSyncState.user = null;
+        saveCloudSyncState();
+        if (typeof updateCloudSyncUI === 'function') updateCloudSyncUI();
+        return;
+      }
+    } catch (edgeErr) {
+      console.warn('[deleteAllUserDataFromCloud] Edge function failed, falling back to table deletes:', edgeErr);
+    }
+
+    const tables = ['health_data', 'user_keys', 'anonymized_data', 'bug_reports', 'user_privacy_profile', 'user_achievements', 'consent_audit_log'];
     for (const table of tables) {
       const { error } = await client.from(table).delete().eq('user_id', userId);
       if (error) {

@@ -188,6 +188,10 @@ jobs:
 
           mkdir -p "ci-minified/site"
           cp -r apps/pwa-webapp/* "ci-minified/site/"
+          # Glob copy skips dot-directories; security.txt must ship at /.well-known/security.txt
+          if [ -d "apps/pwa-webapp/.well-known" ]; then
+            cp -r apps/pwa-webapp/.well-known "ci-minified/site/.well-known"
+          fi
           rm -rf "ci-minified/site/models/onnx-community" "ci-minified/site/models/checksums.json" 2>/dev/null || true
           if [ -d "artifacts" ]; then
             mkdir -p "ci-minified/site/artifacts"
@@ -211,6 +215,7 @@ jobs:
           if (!fs.existsSync(vendorWasm)) throw new Error('missing vendor/transformers wasm — run npm run vendor:transformers');
           if (fs.statSync(vendorWasm).size < 1000000) throw new Error('vendor wasm too small (corrupt or LFS pointer)');
           if (!fs.existsSync('ci-minified/site/vendor/transformers/transformers.min.js')) throw new Error('missing vendor/transformers/transformers.min.js');
+          if (!fs.existsSync('ci-minified/site/.well-known/security.txt')) throw new Error('missing .well-known/security.txt in Pages site build');
           "
 
       - name: Upload minified temp artifact
