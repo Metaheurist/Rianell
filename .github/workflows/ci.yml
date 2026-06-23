@@ -697,7 +697,6 @@ jobs:
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Assemble signed release APK (when keystore secret configured)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
         working-directory: apps/rn-app/android
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -706,6 +705,10 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         run: |
           set -euo pipefail
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
+            echo "KEYSTORE_BASE64 not configured — skipping release APK"
+            exit 0
+          fi
           echo "$KEYSTORE_BASE64" | base64 -d > /tmp/rianell-release.jks
           cat >> gradle.properties <<EOF
           RIANELL_RELEASE_STORE_FILE=/tmp/rianell-release.jks
