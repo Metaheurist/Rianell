@@ -15,7 +15,7 @@ jobs:
     name: Gitleaks history scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -41,7 +41,7 @@ jobs:
     name: npm audit (full tree, report only)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - name: npm audit (dev included)
         continue-on-error: true

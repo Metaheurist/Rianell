@@ -24,7 +24,7 @@ jobs:
       security-events: write
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Restore Gitleaks binary
         id: gitleaks-cache
