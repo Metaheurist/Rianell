@@ -1,4 +1,4 @@
-/** Plan 02 i18n — Tier A exact overrides for keys added in en-GB (LC-16 coverage). */
+/** Plan 02 i18n - Tier A exact overrides for keys added in en-GB (LC-16 coverage). */
 export const PLAN02_TIER_A_OVERRIDES = {
   'fr-FR': {
     'common.consent.healthDataBody':

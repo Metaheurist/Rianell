@@ -1,8 +1,8 @@
-/** v1.117.0 — Tier A overrides for achievements + Goals carousel keys. */
+/** v1.117.0 - Tier A overrides for achievements + Goals carousel keys. */
 
 const ACH_FR = {
   'common.goals.hint': 'Définissez des objectifs quotidiens ou hebdomadaires. La progression apparaît sur l’onglet Accueil. Utilisez 0 pour désactiver un objectif.',
-  'common.streak.reminder.hint': 'Rappel optionnel lorsque vous enchaînez des journées calmes (lié à la carte série sur l’Accueil). Aucun score — distinct des badges de déverrouillage dans Objectifs.',
+  'common.streak.reminder.hint': 'Rappel optionnel lorsque vous enchaînez des journées calmes (lié à la carte série sur l’Accueil). Aucun score - distinct des badges de déverrouillage dans Objectifs.',
   'achievements.title': 'Succès',
   'achievements.subtitle': 'Débloquez l’alimentation, l’exercice et les médicaments en suivant régulièrement.',
   'achievements.locked': 'Verrouillé',
@@ -27,7 +27,7 @@ const ACH_FR = {
 
 const ACH_DE = {
   'common.goals.hint': 'Tages- oder Wochenziele festlegen. Fortschritt erscheint auf dem Start-Tab. 0 deaktiviert ein Ziel.',
-  'common.streak.reminder.hint': 'Optionaler Hinweis bei ruhigen Tagen in Folge (koppelt mit der Serie auf dem Startbildschirm). Keine Punkte — getrennt von Freischalt-Badges unter Ziele.',
+  'common.streak.reminder.hint': 'Optionaler Hinweis bei ruhigen Tagen in Folge (koppelt mit der Serie auf dem Startbildschirm). Keine Punkte - getrennt von Freischalt-Badges unter Ziele.',
   'achievements.title': 'Erfolge',
   'achievements.subtitle': 'Schalten Sie Essen, Bewegung und Medikamente frei, indem Sie regelmäßig protokollieren.',
   'achievements.locked': 'Gesperrt',
@@ -52,7 +52,7 @@ const ACH_DE = {
 
 const ACH_ES = {
   'common.goals.hint': 'Establezca metas diarias o semanales. El progreso aparece en Inicio. Use 0 para desactivar una meta.',
-  'common.streak.reminder.hint': 'Recordatorio opcional cuando encadena días tranquilos (vinculado a la tarjeta de racha en Inicio). Sin puntuaciones — distinto de los distintivos de desbloqueo en Metas.',
+  'common.streak.reminder.hint': 'Recordatorio opcional cuando encadena días tranquilos (vinculado a la tarjeta de racha en Inicio). Sin puntuaciones - distinto de los distintivos de desbloqueo en Metas.',
   'achievements.title': 'Logros',
   'achievements.subtitle': 'Desbloquee comida, ejercicio y medicación registrando con constancia.',
   'achievements.locked': 'Bloqueado',
@@ -77,7 +77,7 @@ const ACH_ES = {
 
 const ACH_IT = {
   'common.goals.hint': 'Imposta obiettivi giornalieri o settimanali. I progressi compaiono nella scheda Home. Usa 0 per disattivare un obiettivo.',
-  'common.streak.reminder.hint': 'Promemoria facoltativo con giornate calme consecutive (collegato alla scheda serie in Home). Nessun punteggio — distinto dai badge di sblocco in Obiettivi.',
+  'common.streak.reminder.hint': 'Promemoria facoltativo con giornate calme consecutive (collegato alla scheda serie in Home). Nessun punteggio - distinto dai badge di sblocco in Obiettivi.',
   'achievements.title': 'Traguardi',
   'achievements.subtitle': 'Sblocca cibo, esercizio e farmaci registrando con costanza.',
   'achievements.locked': 'Bloccato',
@@ -102,7 +102,7 @@ const ACH_IT = {
 
 const ACH_NL = {
   'common.goals.hint': 'Stel dagelijkse of wekelijkse doelen in. Voortgang verschijnt op het tabblad Home. Gebruik 0 om een doel uit te zetten.',
-  'common.streak.reminder.hint': 'Optionele herinnering bij opeenvolgende rustige dagen (gekoppeld aan de reeks op Home). Geen scores — los van ontgrendelingsbadges onder Doelen.',
+  'common.streak.reminder.hint': 'Optionele herinnering bij opeenvolgende rustige dagen (gekoppeld aan de reeks op Home). Geen scores - los van ontgrendelingsbadges onder Doelen.',
   'achievements.title': 'Prestaties',
   'achievements.subtitle': 'Ontgrendel eten, beweging en medicatie door consequent bij te houden.',
   'achievements.locked': 'Vergrendeld',
@@ -127,7 +127,7 @@ const ACH_NL = {
 
 const ACH_PL = {
   'common.goals.hint': 'Ustaw cele dzienne lub tygodniowe. Postęp widać na karcie Home. Wpisz 0, aby wyłączyć cel.',
-  'common.streak.reminder.hint': 'Opcjonalne przypomnienie przy spokojnych dniach z rzędu (powiązane z kartą serii na Home). Bez punktów — oddzielnie od odznak odblokowania w Celach.',
+  'common.streak.reminder.hint': 'Opcjonalne przypomnienie przy spokojnych dniach z rzędu (powiązane z kartą serii na Home). Bez punktów - oddzielnie od odznak odblokowania w Celach.',
   'achievements.title': 'Osiągnięcia',
   'achievements.subtitle': 'Odblokuj jedzenie, ćwiczenia i leki, konsekwentnie śledząc wpisy.',
   'achievements.locked': 'Zablokowane',
@@ -152,7 +152,7 @@ const ACH_PL = {
 
 const ACH_PT_BR = {
   'common.goals.hint': 'Defina metas diárias ou semanais. O progresso aparece na aba Início. Use 0 para desativar uma meta.',
-  'common.streak.reminder.hint': 'Lembrete opcional quando você tem dias calmos seguidos (pareado com o cartão de sequência no Início). Sem pontuação — separado dos distintivos de desbloqueio em Metas.',
+  'common.streak.reminder.hint': 'Lembrete opcional quando você tem dias calmos seguidos (pareado com o cartão de sequência no Início). Sem pontuação - separado dos distintivos de desbloqueio em Metas.',
   'achievements.title': 'Conquistas',
   'achievements.subtitle': 'Desbloqueie alimentação, exercício e medicamentos registrando com consistência.',
   'achievements.locked': 'Bloqueado',
@@ -177,7 +177,7 @@ const ACH_PT_BR = {
 
 const ACH_PT_PT = {
   'common.goals.hint': 'Defina metas diárias ou semanais. O progresso aparece no separador Início. Use 0 para desativar uma meta.',
-  'common.streak.reminder.hint': 'Lembrete opcional quando tem dias calmos seguidos (associado ao cartão de sequência no Início). Sem pontuações — separado dos distintivos de desbloqueio em Metas.',
+  'common.streak.reminder.hint': 'Lembrete opcional quando tem dias calmos seguidos (associado ao cartão de sequência no Início). Sem pontuações - separado dos distintivos de desbloqueio em Metas.',
   'achievements.title': 'Conquistas',
   'achievements.subtitle': 'Desbloqueie alimentação, exercício e medicamentos ao registar com consistência.',
   'achievements.locked': 'Bloqueado',

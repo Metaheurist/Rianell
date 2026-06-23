@@ -1,4 +1,4 @@
-/** Plan 06 i18n — Tier A exact overrides for cloud sync & portability keys. */
+/** Plan 06 i18n - Tier A exact overrides for cloud sync & portability keys. */
 const PLAN06_FR = {
   'settings.cloud.conflictTitle': 'Conflit de synchronisation',
   'settings.cloud.conflictBody': '{count} date(s) diffèrent entre cet appareil et le cloud. Quelle copie conserver ?',

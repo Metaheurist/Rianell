@@ -1,4 +1,5 @@
 import { resolvePolicyPack } from '../privacy/resolvePolicyPack.mjs';
+import { isPrivacyRegionConfigured } from '../privacy/profileSync.mjs';
 
 /** First-run wizard step ids (shared PWA + RN). */
 export const FIRST_RUN_STEP_IDS = [
@@ -38,7 +39,7 @@ export function shouldSkipFirstRunStep(stepId, prefs, ctx) {
 
   switch (stepId) {
     case 'region':
-      return false;
+      return isPrivacyRegionConfigured(p);
     case 'healthConsent':
       return p.privacyRegion !== 'eea_uk' || p.healthDataConsent === true;
     case 'cookies':
@@ -60,7 +61,7 @@ export function shouldSkipFirstRunStep(stepId, prefs, ctx) {
       // Deferred to Settings; defaults applied when the wizard completes.
       return true;
     case 'tutorial':
-      return false;
+      return p.tutorialSeen === true || c.tutorialSeenLegacy === true;
     case 'aiDownload':
       if (p.aiEnabled === false) return true;
       if (p.aiModelDownloadConsent === 'granted' || p.aiModelDownloadConsent === 'deferred') return true;

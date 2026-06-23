@@ -29,6 +29,17 @@ test('buildFirstRunPlan includes core steps for fresh PWA user', () => {
   assert.equal(ids.includes('trackingProfile'), false);
 });
 
+test('region and tutorial steps skip once completed', () => {
+  assert.equal(
+    shouldSkipFirstRunStep('region', { ...basePrefs, privacyRegion: 'eea_uk' }, { platform: 'pwa' }),
+    true,
+  );
+  assert.equal(
+    shouldSkipFirstRunStep('tutorial', { ...basePrefs, tutorialSeen: true }, { platform: 'pwa' }),
+    true,
+  );
+});
+
 test('trackingProfile step skipped during first-run wizard', () => {
   assert.equal(shouldSkipFirstRunStep('trackingProfile', basePrefs, { platform: 'pwa' }), true);
   assert.equal(shouldSkipFirstRunStep('trackingProfile', basePrefs, { platform: 'rn' }), true);

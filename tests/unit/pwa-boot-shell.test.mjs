@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 test('privacy-gate CSS hides app chrome only, not every body child', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /body\.privacy-gate-active #appShell/);
+  assert.match(css, /body\.consent-locked #appShell/);
   assert.doesNotMatch(css, /body\.privacy-gate-active > \*:not\(#privacyRegionGateOverlay\)/);
 });
 
@@ -53,6 +54,7 @@ test('privacy-region.js logs gate transitions', () => {
   const gateJs = readFileSync('apps/pwa-webapp/privacy-region.js', 'utf8');
   assert.match(gateJs, /logGateState\('hidePrivacyGateOverlay'\)/);
   assert.match(gateJs, /logGateState\('unlockApp'\)/);
+  assert.match(gateJs, /syncConsentEnforcement/);
 });
 
 test('probe-shell-visible script asserts guest shell after onboarding', () => {

@@ -16,6 +16,20 @@ test('styles.css avoids hardcoded Material green literals in component rules', (
   assert.doesNotMatch(css, /rgba\(76,\s*175,\s*80/);
 });
 
+test('styles.css tokenises shell shade, toggles, and optional weather prompt', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /--shell-shade-spot-a:/);
+  assert.match(css, /--toggle-active-shadow:/);
+  assert.match(css, /--home-weather-prompt-border:/);
+  assert.match(css, /body::before[\s\S]*var\(--shell-shade-spot-a\)/);
+  assert.match(css, /\.toggle-switch\.active[\s\S]*var\(--toggle-active-shadow\)/);
+  assert.match(css, /\.home-weather-enable-prompt[\s\S]*var\(--home-weather-prompt-border\)/);
+  const shellShadeBlock = css.match(/body::before\s*\{[\s\S]*?\}/);
+  assert.ok(shellShadeBlock, 'body::before block should exist');
+  assert.doesNotMatch(shellShadeBlock[0], /rgba\(123,\s*223,\s*140/);
+  assert.match(css, /body\.theme-red-black[\s\S]*--shell-bg:/);
+});
+
 test('app.js theme helpers read from document.body and refresh on theme change', () => {
   const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.match(appJs, /document\.body \|\| document\.documentElement/);

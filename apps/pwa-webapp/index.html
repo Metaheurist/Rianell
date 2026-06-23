@@ -354,10 +354,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=93" as="style">
+  <link rel="preload" href="styles.css?v=96" as="style">
   <link rel="modulepreload" href="app.js?v=42" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=93" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=93&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=96" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=96&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -979,6 +979,8 @@
     <symbol id="icon-chart-up" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/><path d="M15 7h4v4"/></symbol>
     <symbol id="icon-chart-down" viewBox="0 0 24 24"><path d="M4 5v14h16"/><path d="m7 8 4 4 3-3 5 7"/><path d="M15 16h4v-4"/></symbol>
     <symbol id="icon-balance" viewBox="0 0 24 24"><path d="M12 4v17"/><path d="M5 7h14"/><path d="m7 7-4 7h8L7 7Z"/><path d="m17 7-4 7h8l-4-7Z"/></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle class="icon-fill" cx="12" cy="12" r="2"/></symbol>
+    <symbol id="icon-medal" viewBox="0 0 24 24"><path d="M8 3 10 8 6 10"/><path d="M16 3 14 8 18 10"/><circle cx="12" cy="14" r="5"/><circle class="icon-fill" cx="12" cy="14" r="2"/></symbol>
     <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/><path d="M8 14h2M12 14h2M16 14h2M8 17h2M12 17h2"/></symbol>
     <symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 0-1 15.9c.9.1 1.4-.5 1.4-1.1 0-.5-.3-.9-.3-1.4 0-.8.7-1.4 1.5-1.4H15a5 5 0 0 0 5-5c0-3.9-3.6-7-8-7Z"/><circle cx="8" cy="10" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="7.5" cy="13" r="1"/></symbol>
     <symbol id="icon-accessibility" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 9h14"/><path d="M12 9v11"/><path d="m8 20 4-7 4 7"/><path d="m7 12 5 1 5-1"/></symbol>
@@ -1169,7 +1171,7 @@
           <label data-i18n="settings.privacy.sessionRecording.title">Session recording</label>
           <div class="toggle-switch" id="sessionRecordingToggle" onclick="toggleSessionRecordingSetting()"></div>
         </div>
-        <p class="settings-hint" id="sessionRecordingHint" data-i18n="settings.privacy.sessionRecording.hint">Optional session analytics (Smartlook, EU) to improve the app. On by default after onboarding. Screens are anonymised and used only for heatmaps and error tracking—not for reviewing your health data. Turn off here anytime.</p>
+        <p class="settings-hint" id="sessionRecordingHint" data-i18n="settings.privacy.sessionRecording.hint">Optional session analytics (Smartlook, EU) to improve the app. On by default after onboarding. Screens are anonymised and used only for heatmaps and error tracking-not for reviewing your health data. Turn off here anytime.</p>
         <details class="settings-performance-advanced settings-consent-dashboard-panel" id="settingsConsentDashboardPanel">
           <summary class="settings-performance-advanced-summary" aria-controls="consentDashboardBody" aria-expanded="false">
             <span class="settings-performance-advanced-summary__label">
@@ -3912,19 +3914,19 @@
   })();
   </script>
   <script defer src="vendor/rianell-shared.js?v=6"></script>
-  <script defer src="modules/app-lock.js?v=1"></script>
+  <script defer src="modules/app-lock.js?v=2"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=3"></script>
   <script defer src="modules/weekly-review.js?v=6"></script>
   <script defer src="modules/mood-tab.js?v=2"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
-  <script defer src="privacy-region.js?v=7"></script>
-  <script defer src="first-run-wizard.js?v=1"></script>
+  <script defer src="privacy-region.js?v=8"></script>
+  <script defer src="first-run-wizard.js?v=2"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
   <script type="module" defer src="app.js?v=42"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
-  <script defer src="modules/goals-carousel.js?v=3"></script>
+  <script defer src="modules/goals-carousel.js?v=4"></script>
   <script defer src="achievements-sync.js?v=1"></script>
   <script defer src="cloud-sync.js?v=2"></script>
   <script>
@@ -3935,6 +3937,7 @@
         l.rel = 'stylesheet';
         l.href = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css';
         l.crossOrigin = 'anonymous';
+        l.integrity = 'sha384-nRgPTkuX86pH8yjPJUAFuASXQSSl2/bBUiNV47vSYpKFxHJhbcrGnmlYpYJMeD7a';
         l.setAttribute('data-fontawesome-deferred', '1');
         document.head.appendChild(l);
       }

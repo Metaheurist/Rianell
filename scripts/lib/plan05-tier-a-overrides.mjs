@@ -1,4 +1,4 @@
-/** Plan 05 i18n — Tier A exact overrides for privacy & trust keys. */
+/** Plan 05 i18n - Tier A exact overrides for privacy & trust keys. */
 const PLAN05_FR = {
   'settings.privacy.trustTitle': 'Confidentialité et confiance',
   'settings.privacy.trustLead': 'Contrôlez l’usage réseau, consultez les politiques et voyez un journal local des événements.',

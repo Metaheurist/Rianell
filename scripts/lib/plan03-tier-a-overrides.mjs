@@ -1,4 +1,4 @@
-/** Plan 03 i18n — Tier A exact overrides for settings/onboarding keys. */
+/** Plan 03 i18n - Tier A exact overrides for settings/onboarding keys. */
 export const PLAN03_TIER_A_OVERRIDES = {
   'fr-FR': {
     'settings.search.placeholder': 'Rechercher dans les réglages…',

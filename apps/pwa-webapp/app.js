@@ -1974,6 +1974,9 @@ function acceptHealthDataConsent() {
   }
   syncHealthDataConsentToSettings(at);
   hideHealthDataConsentOverlay();
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.syncConsentEnforcement === 'function') {
+    window.RianellPrivacy.syncConsentEnforcement('health-consent-accepted');
+  }
   if (!localStorage.getItem(COOKIE_CONSENT_KEY)) showCookieBannerIfNeeded();
   if (_healthDataConsentCallback) {
     const cb = _healthDataConsentCallback;
@@ -9783,6 +9786,33 @@ function clearOfflineQueue() {
 var DEFAULT_GOALS = { steps: 10000, hydration: 9, sleep: 5, goodDaysPerWeek: 3 };
 var GLASS_VOLUME_L = 0.25; // liters per glass (for displaying L next to glasses)
 
+function formatLitersFromGlasses(glasses) {
+  var n = parseFloat(glasses) * GLASS_VOLUME_L;
+  if (isNaN(n) || n <= 0) return '0 L';
+  return n.toFixed(2).replace(/\.?0+$/, '') + ' L';
+}
+
+function buildHydrationGoalsNumsHtml(avgGlasses, goalGlasses) {
+  var avg = parseFloat(avgGlasses);
+  var goal = parseFloat(goalGlasses);
+  if (isNaN(avg)) avg = 0;
+  if (isNaN(goal)) goal = 0;
+  var avgStr = avg % 1 === 0 ? String(avg) : avg.toFixed(1);
+  var goalStr = goal % 1 === 0 ? String(goal) : goal.toFixed(1);
+  var litersLine = formatLitersFromGlasses(avg) + ' / ' + formatLitersFromGlasses(goal);
+  var glassesWord = typeof tUi === 'function' ? tUi('common.glasses') : 'glasses';
+  var aria = 'Average ' + avgStr + ' of ' + goalStr + ' ' + glassesWord + ' per day';
+  return '<span class="goals-metric-nums goals-hydration-nums" aria-label="' + aria + '">' +
+    '<span class="goals-hydration-line">' +
+    '<span class="goals-hydration-avg" data-count-target="' + avg + '">0</span>' +
+    '<span class="goals-hydration-slash"> / </span>' +
+    '<span class="goals-hydration-target">' + goalStr + '</span>' +
+    '<span class="goals-hydration-unit"> ' + glassesWord + '</span>' +
+    '</span>' +
+    '<span class="goals-hydration-liters" aria-hidden="true">' + litersLine + '</span>' +
+    '</span>';
+}
+
 function getGoals() {
   try {
     var raw = localStorage.getItem('rianellGoals');
@@ -10191,12 +10221,10 @@ function updateGoalsProgressBlock() {
     var hydSum = hydLogs.reduce(function(acc, l) { return acc + parseFloat(l.hydration); }, 0);
     var hydAvg = hydLogs.length ? (hydSum / hydLogs.length).toFixed(1) : '0';
     var hydMet = hydLogs.filter(function(l) { return parseFloat(l.hydration) >= goals.hydration; }).length;
-    var hydAvgL = (parseFloat(hydAvg) * GLASS_VOLUME_L).toFixed(2);
-    var goalL = (goals.hydration * GLASS_VOLUME_L).toFixed(2);
     var hydPct = goals.hydration > 0 ? Math.min(100, Math.round((parseFloat(hydAvg) / goals.hydration) * 100)) : 0;
     var si = insight(hydMet, 7, goals.hydration > 0 ? Math.round((parseFloat(hydAvg) / goals.hydration) * 100) : 0);
     rows.push('<div class="goals-metric-row">' +
-      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">' + tUi('charts.metric.hydration') + '</span><span class="goals-metric-nums">' + hydAvg + ' [' + hydAvgL + ' L] / ' + goals.hydration + ' [' + goalL + ' L]</span></div>' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">' + tUi('charts.metric.hydration') + '</span>' + buildHydrationGoalsNumsHtml(hydAvg, goals.hydration) + '</div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + hydPct + '%"></div></div>' +
       '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met">' + daysDots(hydMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
   }
@@ -10255,6 +10283,7 @@ function flushOfflineQueue() {
 
 // Optimized localStorage helper function
 function saveLogsToStorage() {
+  if (!requireHealthLoggingUnlocked('save-logs')) return;
   // Invalidate filtered logs cache and chart results cache
   invalidateFilteredLogsCache();
   invalidateChartResultsCache();
@@ -15526,6 +15555,7 @@ function updateCharts() {
 }
 
 function saveQuickMinimalLog() {
+  if (!requireHealthLoggingUnlocked('quick-log')) return;
   var dateValue = (document.getElementById('date') && document.getElementById('date').value || '').trim();
   var flareVal = document.getElementById('flare') && document.getElementById('flare').value;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
@@ -15575,6 +15605,7 @@ if (typeof window !== 'undefined') window.saveQuickMinimalLog = saveQuickMinimal
 
 form.addEventListener("submit", e => {
   e.preventDefault();
+  if (!requireHealthLoggingUnlocked('log-submit')) return;
   
   // Validate form before submission
   if (!formValidator.validateForm()) {
@@ -15899,6 +15930,14 @@ function privacyFeatureAvailable(featureKey) {
   return true;
 }
 
+function requireHealthLoggingUnlocked(source) {
+  if (appSettings && appSettings.demoMode === true) return true;
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.requireUnlocked === 'function') {
+    return window.RianellPrivacy.requireUnlocked(source);
+  }
+  return true;
+}
+
 function logBootState(phase, extra) {
   var snap = {
     phase: phase,
@@ -15993,12 +16032,20 @@ function ensureAppShellDomPlacement() {
 
 function clearPrivacyGateShellLock() {
   if (typeof document === 'undefined' || !document.body) return;
-  document.body.classList.remove('privacy-gate-active');
-  var gate = document.getElementById('privacyRegionGateOverlay');
-  if (gate) gate.style.display = 'none';
   var shell = document.getElementById('appShell');
   if (shell) {
-    try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
+    shell.style.removeProperty('visibility');
+    shell.style.removeProperty('opacity');
+  }
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.syncConsentEnforcement === 'function') {
+    window.RianellPrivacy.syncConsentEnforcement('boot-reveal');
+  } else {
+    document.body.classList.remove('privacy-gate-active');
+    if (shell) {
+      try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
+    }
+    var gate = document.getElementById('privacyRegionGateOverlay');
+    if (gate) gate.style.display = 'none';
   }
   logBootState('clearPrivacyGateShellLock');
 }
@@ -16008,7 +16055,6 @@ function ensureShellContentVisible() {
   ensureAppShellDomPlacement();
   var shell = document.getElementById('appShell');
   if (shell) {
-    try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
     shell.style.removeProperty('visibility');
     shell.style.removeProperty('opacity');
   }
@@ -16023,6 +16069,11 @@ function ensureShellContentVisible() {
     tab.style.visibility = 'visible';
     tab.style.opacity = '1';
   });
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.syncConsentEnforcement === 'function') {
+    window.RianellPrivacy.syncConsentEnforcement('shell-visible');
+  } else if (shell) {
+    try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
+  }
 }
 
 function markShellPainted() {
@@ -17130,6 +17181,12 @@ function applyGlobalTheme() {
   var classes = ['theme-mint', 'theme-red-black', 'theme-mono', 'theme-rainbow'];
   document.body.classList.remove.apply(document.body.classList, classes);
   document.body.classList.add('theme-' + theme);
+
+  var root = document.documentElement;
+  if (root) {
+    root.classList.remove('rianell-theme-mint', 'rianell-theme-red-black', 'rianell-theme-mono', 'rianell-theme-rainbow');
+    root.classList.add('rianell-theme-' + theme);
+  }
 }
 
 function setGlobalTheme(theme) {
@@ -20646,7 +20703,7 @@ function homeWeatherIconClass(iconId, extra) {
 function renderHomeWeatherEnablePromptHtml() {
   var label = typeof tUi === 'function' ? tUi('home.weather.enablePrompt') : 'Optional weather';
   return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(label) + '">' +
-    '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon icon-muted') + '</span>' +
+    '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon') + '</span>' +
     '<span class="home-weather-enable-prompt__label">' + escapeHTML(label) + '</span></button>';
 }
 
@@ -21002,6 +21059,7 @@ if (typeof window !== 'undefined') {
 }
 
 function openLogWizardFromHome() {
+  if (!requireHealthLoggingUnlocked('open-log-wizard')) return;
   var go = function () {
     switchTab('log', true);
     setLogWizardStep(0);
@@ -21725,6 +21783,9 @@ if (typeof window !== 'undefined' && !window.__rianellTabNavIndicatorResize) {
 }
 
 function switchTab(tabName, skipHash) {
+  if (tabName === 'log' && !requireHealthLoggingUnlocked('switch-tab-log')) {
+    return;
+  }
   const allTabs = document.querySelectorAll('.tab-content');
   const selectedTab = document.getElementById(tabName + 'Tab');
   const currentActive = document.querySelector('.tab-content.active');

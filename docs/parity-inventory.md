@@ -1,6 +1,6 @@
 # Platform parity inventory
 
-Generated: 2026-06-21T21:30:02.605Z
+Generated: 2026-06-23T21:24:45.967Z
 
 ## Settings / preferences field parity
 
@@ -32,8 +32,8 @@ Generated: 2026-06-21T21:30:02.605Z
 | symptomTemplates | yes | yes |
 | medSchedule | yes | yes |
 | cycleModuleEnabled | yes | yes |
-| barcodeFoodLoggingEnabled | deferred (hidden) | deferred (hidden) |
-| guidedVoiceLogEnabled | deferred (hidden) | deferred (hidden) |
+| barcodeFoodLoggingEnabled | yes | yes |
+| guidedVoiceLogEnabled | yes | yes |
 | localOnlyMode | yes | yes |
 | appLockEnabled | yes | yes |
 | processingActivityLog | yes | yes |

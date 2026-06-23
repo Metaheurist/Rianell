@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.121.0** - Cycle period-start anchor (PWA + RN), day selector 1–35 default.
+**Latest: v1.94.0** - Launch audit Phase 1: SRI, security.txt, Cloudflare header docs.
+
+### v1.94.0 - 2026-06-23 - Launch audit Phase 1 (CSP / headers / SRI)
+- **SRI:** Font Awesome deferred loader now sets `integrity` + `crossorigin`; `cdn-manifest.json` pins ua-parser, Font Awesome, and Supabase UMD hashes.
+- **CI:** `scripts/verify/verify-sri-integrity.mjs` gate in unit-tests job.
+- **security.txt:** `apps/pwa-webapp/.well-known/security.txt` for responsible disclosure.
+- **Cloudflare docs:** `frame-ancestors 'self'` HTTP header steps; remove deprecated `Expect-CT`; `Permissions-Policy` uses `notifications=()`.
+- **Docs:** `SECURITY.md` CSP nonce roadmap + SRI table.
 
 ### v1.121.0 - 2026-06-22 - Cycle period-start anchor
 - **Cycle tracking (PWA + RN):** **Period started today** sets `cycle.periodStart` and day 1; cycle day auto-computed from last period start via `findLatestPeriodStart` + `computeCycleDayFromPeriodStart`. Day selector defaults to **1–35** (ACOG-cited normal range); **Longer or irregular cycle** expands **36–45**. Late-cycle readout when day > 35.

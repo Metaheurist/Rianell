@@ -12,6 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { Preferences } from '../storage/preferences';
@@ -26,6 +27,41 @@ type Props = {
 };
 
 const PANE_KEYS = ['common.goals.targets', 'achievements.title'] as const;
+
+function TargetBullseyeIcon({ color, size = 16 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden>
+      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} fill="none" />
+      <Circle cx="12" cy="12" r="6" stroke={color} strokeWidth={2} fill="none" />
+      <Circle cx="12" cy="12" r="2" fill={color} />
+    </Svg>
+  );
+}
+
+function MedalIcon({ color, size = 16 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden>
+      <Path
+        d="M8 3 10 8 6 10"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M16 3 14 8 18 10"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="14" r="5" stroke={color} strokeWidth={2} fill="none" />
+      <Circle cx="12" cy="14" r="2" fill={color} />
+    </Svg>
+  );
+}
 
 export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onClose }: Props) {
   const theme = useTheme();
@@ -75,7 +111,7 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
                 {t('common.goals.targets')}
               </Text>
               <Text style={{ color: `${theme.tokens.color.text}99`, fontSize: theme.font(12) }}>
-                {paneIndex + 1} / {PANE_KEYS.length} — {paneTitles[paneIndex]}
+                {paneIndex + 1} / {PANE_KEYS.length} - {paneTitles[paneIndex]}
               </Text>
               <View style={styles.dots}>
                 {paneTitles.map((_, i) => (
@@ -92,11 +128,15 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
                     accessibilityRole="tab"
                     accessibilityState={{ selected: i === paneIndex }}
                   >
-                    <Ionicons
-                      name={i === 0 ? 'flag-outline' : 'flash-outline'}
-                      size={16}
-                      color={i === paneIndex ? theme.tokens.color.accent : `${theme.tokens.color.text}88`}
-                    />
+                    {i === 0 ? (
+                      <TargetBullseyeIcon
+                        color={i === paneIndex ? theme.tokens.color.accent : `${theme.tokens.color.text}88`}
+                      />
+                    ) : (
+                      <MedalIcon
+                        color={i === paneIndex ? theme.tokens.color.accent : `${theme.tokens.color.text}88`}
+                      />
+                    )}
                   </Pressable>
                 ))}
               </View>

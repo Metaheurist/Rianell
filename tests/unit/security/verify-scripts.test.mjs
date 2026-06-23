@@ -9,6 +9,10 @@ test('verify-csp-connect-src passes', () => {
   execSync('node scripts/verify/verify-csp-connect-src.mjs', { stdio: 'pipe' });
 });
 
+test('verify-sri-integrity passes', () => {
+  execSync('node scripts/verify/verify-sri-integrity.mjs', { stdio: 'pipe' });
+});
+
 test('verify-no-service-role-in-clients passes', () => {
   execSync('node scripts/verify/verify-no-service-role-in-clients.mjs', { stdio: 'pipe' });
 });

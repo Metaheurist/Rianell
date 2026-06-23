@@ -16,6 +16,20 @@ export function buildFirstRunPlan(prefs, ctx) {
 }
 
 /**
+ * Wizard index after a step is completed and prefs updated (plan may drop completed ids).
+ * @param {Record<string, unknown>} prefs
+ * @param {import('./firstRunSteps.mjs').FirstRunPlatformContext} ctx
+ * @param {string} completedStepId
+ */
+export function resolveNextStepIndexAfterComplete(prefs, ctx, completedStepId) {
+  const plan = buildFirstRunPlan(prefs, ctx);
+  if (!plan.length) return 0;
+  const completedIdx = plan.findIndex((s) => s.id === completedStepId);
+  if (completedIdx >= 0 && completedIdx < plan.length - 1) return completedIdx + 1;
+  return 0;
+}
+
+/**
  * Returns true when the unified first-run wizard should not block the app.
  * @param {Record<string, unknown>} prefs
  * @param {import('./firstRunSteps.mjs').FirstRunPlatformContext} [ctx]

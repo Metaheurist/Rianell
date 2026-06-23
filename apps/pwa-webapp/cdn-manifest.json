@@ -1,17 +1,26 @@
 {
   "schemaVersion": 1,
-  "description": "Pinned third-party CDN assets for PWA. CI verifies URLs in index.html match this manifest.",
+  "description": "Pinned third-party CDN assets for PWA. CI verifies SRI via verify-sri-integrity.mjs.",
   "packages": [
     {
       "name": "ua-parser-js",
       "url": "https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js",
-      "integrity": "sha384-PLACEHOLDER_RUN_npx_subresource-integrity",
+      "integrity": "sha384-REx7yAmsljlMolptJEKWLMFdMHFcdrMNo4+v66cWh8kOGS6U6aP/uCIg/MMs9xpr",
       "crossOrigin": "anonymous"
     },
     {
+      "name": "@fortawesome/fontawesome-free",
+      "url": "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css",
+      "integrity": "sha384-nRgPTkuX86pH8yjPJUAFuASXQSSl2/bBUiNV47vSYpKFxHJhbcrGnmlYpYJMeD7a",
+      "crossOrigin": "anonymous",
+      "note": "Loaded deferred via index.html inline loader"
+    },
+    {
       "name": "@supabase/supabase-js",
-      "url": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
-      "note": "SRI set on index.html script tag — bump version with manifest"
+      "url": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js",
+      "integrity": "sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy",
+      "crossOrigin": "anonymous",
+      "note": "Loaded on demand via performance-utils.js ensureSupabaseLoaded()"
     }
   ],
   "ePrivacy": {
