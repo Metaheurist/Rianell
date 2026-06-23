@@ -32,11 +32,8 @@ module.exports = function withAndroidReleaseSigning(config) {
     }
     contents = contents.replace(/android\s*\{/, `android {${block}`);
     contents = contents.replace(
-      /signingConfigs\s*\{([^}]*)\}/,
-      (match, inner) => {
-        if (inner.includes('release {')) return match;
-        return `signingConfigs {${inner}${signingBlock}\n    }`;
-      }
+      /(signingConfigs\s*\{\s*debug\s*\{[\s\S]*?\n\s*\})/,
+      `$1${signingBlock}`
     );
     contents = contents.replace(
       /buildTypes\s*\{\s*release\s*\{/,
