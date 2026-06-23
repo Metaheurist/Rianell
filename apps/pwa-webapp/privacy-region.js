@@ -167,6 +167,7 @@
       : Object.assign(prefs, { privacyRegion: selectedId, uiLocale: 'en-GB' });
     writeSettings(merged);
     refreshLocaleUI();
+    syncConsentEnforcement('confirmRegionForWizard');
     if (global.cloudSyncState && global.cloudSyncState.isAuthenticated && typeof global.upsertPrivacyProfile === 'function') {
       global.upsertPrivacyProfile().catch(function () {});
     }
@@ -182,15 +183,201 @@
   var gateUnlockCallbacks = [];
   var gateVisible = false;
   var gateUiBound = false;
+  var gateOverlayTemplate = null;
+  var consentEnforcementStarted = false;
 
-  function logGateState(phase) {
+  function platformContext() {
+    var standalone = false;
+    try {
+      standalone = !!(global.matchMedia && global.matchMedia('(display-mode: standalone)').matches) || !!global.navigator.standalone;
+    } catch (e) {}
+    var installSeen = false;
+    var cookieAccepted = false;
+    var tutorialLegacy = false;
+    try { installSeen = !!localStorage.getItem('rianellInstallModalAfterTutorialSeen'); } catch (e2) {}
+    try { cookieAccepted = !!localStorage.getItem('rianellCookieConsent'); } catch (e3) {}
+    try { tutorialLegacy = !!localStorage.getItem('rianellTutorialSeen'); } catch (e4) {}
+    return {
+      platform: 'pwa',
+      cookieConsentAccepted: cookieAccepted,
+      installModalSeen: installSeen,
+      standalonePwa: standalone,
+      tutorialSeenLegacy: tutorialLegacy,
+    };
+  }
+
+  function getBlockReason() {
+    if (typeof S.getConsentBlockReason === 'function') {
+      return S.getConsentBlockReason(readSettings(), platformContext());
+    }
+    return isConfigured() ? null : 'region-unconfigured';
+  }
+
+  function isUnlocked() {
+    if (typeof S.isHealthLoggingUnlocked === 'function') {
+      return S.isHealthLoggingUnlocked(readSettings(), platformContext());
+    }
+    return isConfigured();
+  }
+
+  function lockAppChrome() {
+    if (!document.body) return;
+    document.body.classList.add('consent-locked', 'privacy-gate-active');
+    ['appShell', 'appFabWrap', 'app-mobile-bottom-chrome'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        try { el.setAttribute('inert', ''); } catch (e) { /* ignore */ }
+        el.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
+
+  function unlockAppChrome() {
+    if (getBlockReason()) return;
+    if (!document.body) return;
+    document.body.classList.remove('consent-locked', 'privacy-gate-active');
+    ['appShell', 'appFabWrap', 'app-mobile-bottom-chrome'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        try { el.removeAttribute('inert'); } catch (e) { /* ignore */ }
+        el.removeAttribute('aria-hidden');
+      }
+    });
+  }
+
+  function ensureGateOverlayElement() {
+    var overlay = document.getElementById('privacyRegionGateOverlay');
+    if (overlay) return overlay;
+    if (!gateOverlayTemplate || !document.body) return null;
+    var clone = gateOverlayTemplate.cloneNode(true);
+    clone.id = 'privacyRegionGateOverlay';
+    clone.style.display = 'none';
+    document.body.appendChild(clone);
+    gateUiBound = false;
+    initGateUI();
+    return clone;
+  }
+
+  function syncConsentEnforcement(source) {
+    var reason = getBlockReason();
+    if (!reason) {
+      unlockAppChrome();
+      logGateState('syncConsentEnforcement:unlocked', { source: source || '' });
+      return;
+    }
+    lockAppChrome();
+    logGateState('syncConsentEnforcement:locked', { source: source || '', reason: reason });
+    if (reason === 'region-unconfigured') {
+      if (!shouldDeferToFirstRunWizard()) {
+        if (!gateVisible) showGate();
+        else {
+          var gate = ensureGateOverlayElement();
+          if (gate) {
+            gate.style.display = 'flex';
+            gateVisible = true;
+          }
+        }
+      } else if (global.RianellFirstRunWizard && typeof global.RianellFirstRunWizard.openIfNeeded === 'function') {
+        global.RianellFirstRunWizard.openIfNeeded();
+      }
+    } else if (reason === 'missing-health-consent') {
+      if (
+        !(global.RianellFirstRunWizard && global.RianellFirstRunWizard.shouldSuppressStandaloneModals &&
+          global.RianellFirstRunWizard.shouldSuppressStandaloneModals()) &&
+        typeof global.showHealthDataConsentModal === 'function'
+      ) {
+        global.showHealthDataConsentModal(function () {
+          syncConsentEnforcement('health-consent-accepted');
+        });
+      }
+    } else if (reason === 'first-run-incomplete') {
+      if (global.RianellFirstRunWizard && typeof global.RianellFirstRunWizard.openIfNeeded === 'function') {
+        global.RianellFirstRunWizard.openIfNeeded();
+      }
+    }
+  }
+
+  function requireUnlocked(source) {
+    if (isUnlocked()) return true;
+    syncConsentEnforcement(source || 'require');
+    return false;
+  }
+
+  function onBlockedInteraction(event) {
+    if (isUnlocked()) return;
+    var target = event.target;
+    if (target && target.closest) {
+      if (target.closest('#privacyRegionGateOverlay, #firstRunWizardOverlay, #healthDataConsentOverlay, #cookieBanner')) {
+        return;
+      }
+    }
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    syncConsentEnforcement('interaction-blocked');
+  }
+
+  function startConsentEnforcement() {
+    if (consentEnforcementStarted || typeof document === 'undefined') return;
+    consentEnforcementStarted = true;
+    var initialGate = document.getElementById('privacyRegionGateOverlay');
+    if (initialGate) gateOverlayTemplate = initialGate.cloneNode(true);
+
+    document.addEventListener('click', onBlockedInteraction, true);
+    document.addEventListener('pointerdown', onBlockedInteraction, true);
+    document.addEventListener('keydown', function (event) {
+      if (isUnlocked()) return;
+      if (event.key === 'Tab' || event.key === 'Escape') return;
+      if (event.target && event.target.closest &&
+        event.target.closest('#privacyRegionGateOverlay, #firstRunWizardOverlay, #healthDataConsentOverlay')) {
+        return;
+      }
+      if (event.key.length === 1 || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        syncConsentEnforcement('keydown-blocked');
+      }
+    }, true);
+
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+      var observer = new MutationObserver(function () {
+        if (isUnlocked()) return;
+        var gate = document.getElementById('privacyRegionGateOverlay');
+        if (!gate && !shouldDeferToFirstRunWizard()) {
+          ensureGateOverlayElement();
+          showGate();
+          return;
+        }
+        if (gate && gateVisible && gate.style.display === 'none') {
+          gate.style.display = 'flex';
+        }
+        if (!document.body.classList.contains('consent-locked')) {
+          lockAppChrome();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'inert'] });
+    }
+
+    window.setInterval(function () {
+      if (!isUnlocked()) syncConsentEnforcement('interval');
+    }, 2000);
+
+    syncConsentEnforcement('start');
+  }
+
+  function logGateState(phase, extra) {
     if (typeof console !== 'undefined' && console.log) {
-      console.log('[Rianell boot]', JSON.stringify({
+      var payload = {
         phase: phase,
         gateVisible: gateVisible,
         privacyGate: !!(document.body && document.body.classList.contains('privacy-gate-active')),
+        consentLocked: !!(document.body && document.body.classList.contains('consent-locked')),
         loaded: !!(document.body && document.body.classList.contains('loaded')),
-      }));
+        blockReason: getBlockReason(),
+      };
+      if (extra && typeof extra === 'object') {
+        Object.keys(extra).forEach(function (k) { payload[k] = extra[k]; });
+      }
+      console.log('[Rianell boot]', JSON.stringify(payload));
     }
     if (typeof global !== 'undefined') {
       global.__rianellBootLog = global.__rianellBootLog || [];
@@ -199,7 +386,9 @@
         phase: phase,
         gateVisible: gateVisible,
         privacyGate: !!(document.body && document.body.classList.contains('privacy-gate-active')),
+        consentLocked: !!(document.body && document.body.classList.contains('consent-locked')),
         loaded: !!(document.body && document.body.classList.contains('loaded')),
+        blockReason: getBlockReason(),
       });
     }
   }
@@ -208,36 +397,43 @@
     gateVisible = false;
     var overlay = document.getElementById('privacyRegionGateOverlay');
     if (overlay) overlay.style.display = 'none';
-    document.body.classList.remove('privacy-gate-active');
+    if (!getBlockReason()) {
+      document.body.classList.remove('privacy-gate-active');
+    }
     logGateState('hidePrivacyGateOverlay');
   }
 
   function unlockApp() {
     hidePrivacyGateOverlay();
-    logGateState('unlockApp');
-    var cbs = gateUnlockCallbacks.slice();
-    gateUnlockCallbacks = [];
-    cbs.forEach(function (cb) {
-      try { cb(); } catch (e) { console.error(e); }
-    });
+    if (isUnlocked()) {
+      unlockAppChrome();
+      logGateState('unlockApp');
+      var cbs = gateUnlockCallbacks.slice();
+      gateUnlockCallbacks = [];
+      cbs.forEach(function (cb) {
+        try { cb(); } catch (e) { console.error(e); }
+      });
+    } else {
+      syncConsentEnforcement('unlockApp-partial');
+    }
   }
 
   function awaitGateReady(cb) {
-    if (isConfigured()) { cb(); return; }
+    if (isUnlocked()) { cb(); return; }
     if (shouldDeferToFirstRunWizard()) {
       cb();
       return;
     }
     gateUnlockCallbacks.push(cb);
-    if (!gateVisible) showGate();
+    syncConsentEnforcement('awaitGateReady');
   }
 
   function showGate() {
     gateVisible = true;
     initGateUI();
-    document.body.classList.add('privacy-gate-active');
+    lockAppChrome();
     logGateState('showGate');
-    var overlay = document.getElementById('privacyRegionGateOverlay');
+    var overlay = ensureGateOverlayElement();
     if (!overlay) return;
     overlay.style.display = 'flex';
     refreshGateLocaleUI();
@@ -436,6 +632,7 @@
       I.setLocale(prefs.uiLocale || 'en-GB', prefs).then(function () {
         initGateUI();
         bindSettingsPane();
+        startConsentEnforcement();
         if (!isConfigured()) {
           if (!shouldDeferToFirstRunWizard()) showGate();
           else logGateState('deferToFirstRunWizard');
@@ -444,6 +641,7 @@
     } else {
       initGateUI();
       bindSettingsPane();
+      startConsentEnforcement();
       if (!isConfigured()) {
         if (!shouldDeferToFirstRunWizard()) showGate();
         else logGateState('deferToFirstRunWizard');
@@ -456,6 +654,10 @@
     writeSettings: writeSettings,
     getPrivacyFields: getPrivacyFields,
     isConfigured: isConfigured,
+    isUnlocked: isUnlocked,
+    getBlockReason: getBlockReason,
+    requireUnlocked: requireUnlocked,
+    syncConsentEnforcement: syncConsentEnforcement,
     awaitGateReady: awaitGateReady,
     confirmRegionForWizard: confirmRegionForWizard,
     showPolicyViewerModal: showPolicyViewerModal,

@@ -1,4 +1,4 @@
-/** Plan 10 i18n — Tier A overrides for home dashboard (H7 gap questions). */
+/** Plan 10 i18n - Tier A overrides for home dashboard (H7 gap questions). */
 const GAP_FR = {
   'home.questions.gapMeds': 'Que noter sur les médicaments d’hier ?',
   'home.questions.gapSleep': 'Pourquoi le score de sommeil d’hier manque-t-il ?',

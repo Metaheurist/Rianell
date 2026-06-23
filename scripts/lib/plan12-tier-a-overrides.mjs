@@ -1,4 +1,4 @@
-/** Plan 12 i18n — Tier A overrides for clinician & sharing keys. */
+/** Plan 12 i18n - Tier A overrides for clinician & sharing keys. */
 
 const BASE = {
   'home.appointment.prepBusy': null,

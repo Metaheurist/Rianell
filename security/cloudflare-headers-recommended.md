@@ -29,7 +29,38 @@ If the console shows `Fetch API cannot load https://api.open-meteo.com/... viola
 6. **Save** and **Purge cache** (Caching → Purge Everything) for HTML if needed.
 7. Hard-refresh the site (Ctrl+Shift+R) and confirm weather loads without CSP errors.
 
-**Permissions-Policy:** Weather opt-in needs geolocation. Keep `geolocation=(self)` in the edge header (do not use `geolocation=()`).
+**Permissions-Policy:** Weather opt-in needs geolocation. Keep `geolocation=(self)` in the edge header (do not use `geolocation=()`). Do **not** set `notifications=(self)` — use `notifications=()` or omit `notifications` entirely (see [Permissions-Policy](#permissions-policy-notifications) below).
+
+## HTTP security headers (edge Transform Rule)
+
+When you set **non-CSP** headers at Cloudflare, use this bundle (adjust host names if needed). **Do not** add deprecated **`Expect-CT`** — Chrome removed it in v106.
+
+### Step-by-step: add `frame-ancestors` and companion headers
+
+`frame-ancestors` **cannot** be set via the HTML meta tag; it must be an HTTP response header.
+
+1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) → zone **rianell.com**.
+2. **Rules** → **Transform Rules** → **Modify Response Header** → **Create rule**.
+3. **When:** `(http.host eq "rianell.com")` or your Pages custom domain.
+4. **Then** set these headers (one rule with multiple "Set static" actions, or separate rules):
+
+```http
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: microphone=(self), geolocation=(self), camera=(), interest-cohort=(), notifications=()
+Content-Security-Policy: frame-ancestors 'self'
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+```
+
+5. **Save** and purge HTML cache if headers do not appear immediately.
+6. Verify with [securityheaders.com](https://securityheaders.com/?q=rianell.com) — grade should not be capped by missing `frame-ancestors`.
+
+**Note:** If you also set a full HTTP `Content-Security-Policy` (section B below), merge `frame-ancestors 'self'` into that single CSP value instead of a duplicate CSP header.
+
+### Responsible disclosure
+
+Ship **`/.well-known/security.txt`** from the PWA build (`apps/pwa-webapp/.well-known/security.txt`). CI verifies presence via `verify-sri-integrity.mjs`.
 
 ## Barcode food lookup (Plan 04) — required `connect-src`
 
@@ -103,11 +134,20 @@ The **`notifications`** token is not consistently recognised as a Permissions-Po
 **Safer minimal example:**
 
 ```http
-Permissions-Policy: microphone=(self), geolocation=(self), camera=(), interest-cohort=()
+Permissions-Policy: microphone=(self), geolocation=(self), camera=(), interest-cohort=(), notifications=()
 ```
+
+Do **not** use `notifications=(self)` — Chromium may reject the token. Web Notifications still work via the browser permission prompt.
 
 Tune **`microphone`**, **`geolocation`**, and **`camera`** to match product needs.
 
+### Deprecated headers — remove from Cloudflare
+
+| Header | Action |
+|--------|--------|
+| `Expect-CT` | **Remove** — deprecated since Chrome 106 |
+| `Feature-Policy` | **Remove** — replaced by `Permissions-Policy` |
+| Duplicate narrow HTTP `Content-Security-Policy` | **Remove or align** — see section A/B above |
 ## Console noise that is not the site
 
 - **`lockdown-install.js`**, **`SES Removing unpermitted intrinsics`** — often **browser extensions** (wallet / security tools), not Rianell.

@@ -1,4 +1,4 @@
-/** Plan 04 i18n — Tier A exact overrides for logging / wizard keys. */
+/** Plan 04 i18n - Tier A exact overrides for logging / wizard keys. */
 const PLAN04_FR = {
   'settings.dataOptions.loggingSection': 'Modules de journal',
   'settings.logging.title': 'Options de journal',
@@ -50,7 +50,7 @@ const PLAN04_FR = {
   'wizard.cycle.periodStartedToday': 'Les règles ont commencé aujourd’hui',
   'wizard.cycle.showLongCycle': 'Cycle plus long ou irrégulier (jours 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} jours depuis le dernier début de règles enregistré',
-  'wizard.cycle.lateHint': 'Au-delà de la plage habituelle de 21 à 35 jours — pour le suivi des symptômes uniquement, pas un avis médical',
+  'wizard.cycle.lateHint': 'Au-delà de la plage habituelle de 21 à 35 jours - pour le suivi des symptômes uniquement, pas un avis médical',
   'wizard.cycle.autoFromPeriodStart': 'D’après votre dernier début de règles le {date}',
 };
 
@@ -105,7 +105,7 @@ const PLAN04_DE = {
   'wizard.cycle.periodStartedToday': 'Periode heute begonnen',
   'wizard.cycle.showLongCycle': 'Längerer oder unregelmäßiger Zyklus (Tage 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} Tage seit dem letzten protokollierten Periodenbeginn',
-  'wizard.cycle.lateHint': 'Länger als die übliche Spanne von 21–35 Tagen — nur zur Symptomprotokollierung, kein medizinischer Rat',
+  'wizard.cycle.lateHint': 'Länger als die übliche Spanne von 21–35 Tagen - nur zur Symptomprotokollierung, kein medizinischer Rat',
   'wizard.cycle.autoFromPeriodStart': 'Basierend auf Ihrem letzten Periodenbeginn am {date}',
 };
 
@@ -160,7 +160,7 @@ const PLAN04_ES = {
   'wizard.cycle.periodStartedToday': 'La menstruación empezó hoy',
   'wizard.cycle.showLongCycle': 'Ciclo más largo o irregular (días 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} días desde el último inicio de menstruación registrado',
-  'wizard.cycle.lateHint': 'Más allá del rango habitual de 21–35 días — solo para registro de síntomas, no es consejo médico',
+  'wizard.cycle.lateHint': 'Más allá del rango habitual de 21–35 días - solo para registro de síntomas, no es consejo médico',
   'wizard.cycle.autoFromPeriodStart': 'Según su último inicio de menstruación el {date}',
 };
 
@@ -215,7 +215,7 @@ const PLAN04_IT = {
   'wizard.cycle.periodStartedToday': 'Mestruazioni iniziate oggi',
   'wizard.cycle.showLongCycle': 'Ciclo più lungo o irregolare (giorni 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} giorni dall’ultimo inizio mestruazioni registrato',
-  'wizard.cycle.lateHint': 'Oltre l’intervallo tipico di 21–35 giorni — solo per la registrazione dei sintomi, non è un consiglio medico',
+  'wizard.cycle.lateHint': 'Oltre l’intervallo tipico di 21–35 giorni - solo per la registrazione dei sintomi, non è un consiglio medico',
   'wizard.cycle.autoFromPeriodStart': 'In base all’ultimo inizio mestruazioni del {date}',
 };
 
@@ -270,7 +270,7 @@ const PLAN04_NL = {
   'wizard.cycle.periodStartedToday': 'Menstruatie vandaag begonnen',
   'wizard.cycle.showLongCycle': 'Langere of onregelmatige cyclus (dagen 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} dagen sinds laatste geregistreerde menstruatiestart',
-  'wizard.cycle.lateHint': 'Langer dan het gebruikelijke bereik van 21–35 dagen — alleen voor symptoomregistratie, geen medisch advies',
+  'wizard.cycle.lateHint': 'Langer dan het gebruikelijke bereik van 21–35 dagen - alleen voor symptoomregistratie, geen medisch advies',
   'wizard.cycle.autoFromPeriodStart': 'Gebaseerd op uw laatste menstruatiestart op {date}',
 };
 
@@ -325,7 +325,7 @@ const PLAN04_PL = {
   'wizard.cycle.periodStartedToday': 'Miesiączka zaczęła się dziś',
   'wizard.cycle.showLongCycle': 'Dłuższy lub nieregularny cykl (dni 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} dni od ostatniego zapisanego początku miesiączki',
-  'wizard.cycle.lateHint': 'Poza typowym zakresem 21–35 dni — tylko do rejestrowania objawów, nie porada medyczna',
+  'wizard.cycle.lateHint': 'Poza typowym zakresem 21–35 dni - tylko do rejestrowania objawów, nie porada medyczna',
   'wizard.cycle.autoFromPeriodStart': 'Na podstawie ostatniego początku miesiączki {date}',
 };
 
@@ -380,7 +380,7 @@ const PLAN04_PT = {
   'wizard.cycle.periodStartedToday': 'Menstruação começou hoje',
   'wizard.cycle.showLongCycle': 'Ciclo mais longo ou irregular (dias 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} dias desde o último início de menstruação registado',
-  'wizard.cycle.lateHint': 'Além do intervalo habitual de 21–35 dias — apenas para registo de sintomas, não é aconselhamento médico',
+  'wizard.cycle.lateHint': 'Além do intervalo habitual de 21–35 dias - apenas para registo de sintomas, não é aconselhamento médico',
   'wizard.cycle.autoFromPeriodStart': 'Com base no último início de menstruação em {date}',
 };
 
@@ -398,7 +398,7 @@ const PLAN04_PT_BR = {
   'wizard.cycle.periodStartedToday': 'Menstruação começou hoje',
   'wizard.cycle.showLongCycle': 'Ciclo mais longo ou irregular (dias 36–45)',
   'wizard.cycle.daysSincePeriod': '{days} dias desde o último início de menstruação registrado',
-  'wizard.cycle.lateHint': 'Além do intervalo habitual de 21–35 dias — apenas para registro de sintomas, não é aconselhamento médico',
+  'wizard.cycle.lateHint': 'Além do intervalo habitual de 21–35 dias - apenas para registro de sintomas, não é aconselhamento médico',
   'wizard.cycle.autoFromPeriodStart': 'Com base no último início de menstruação em {date}',
 };
 

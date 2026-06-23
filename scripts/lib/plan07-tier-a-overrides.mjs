@@ -1,4 +1,4 @@
-/** Plan 07 i18n — Tier A exact overrides for AI engine screen keys. */
+/** Plan 07 i18n - Tier A exact overrides for AI engine screen keys. */
 const PLAN07_FR = {
   'ai.top.insights': 'Principales informations',
   'ai.top.insights.hint':

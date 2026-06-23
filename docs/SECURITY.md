@@ -144,13 +144,28 @@ Since v1.50.0, **`apps/rn-app/src/cloud/secureStorageAdapter.ts`** persists Supa
 ## Content Security Policy (CSP) and XSS
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
-- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct. **Operators:** do not set a **narrower** HTTP CSP than the meta tag; remove the duplicate header or align it fully — see [../security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md).
+- **Nonce migration roadmap (v1.94+):** Phase 1 ships SRI on all pinned jsDelivr assets and `/.well-known/security.txt`. A future release will add CSP **nonces** for inline boot scripts, deploy **report-only** CSP at Cloudflare to collect violations, then remove `'unsafe-inline'` from `script-src` once violation rate is zero. Do not enforce nonce-only CSP until ML bootstrap paths are bundled or nonce-injected at build time.
+- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct. **Operators:** do not set a **narrower** HTTP CSP than the meta tag; remove the duplicate header or align it fully — see [../security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md). Set **`frame-ancestors 'self'`** via HTTP only (not meta).
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
 - Client code uses **`escapeHTML()`** / **`sanitizeHTML()`** for many user-derived strings (e.g. log entries, AI anomaly lines). New UI that builds HTML from user input should use the same helpers-avoid raw **`innerHTML`** with unescaped strings.
 
 ### `connect-src` and third-party hosts
 
-The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), **Open-Meteo** (`api.open-meteo.com`, `air-quality-api.open-meteo.com` for opt-in home weather), **Open Food Facts** (`world.openfoodfacts.org` for barcode food lookup), **Smartlook** (`web-sdk.smartlook.com`, `*.smartlook.com`, `*.smartlook.cloud` for opt-in session recording — also required in **`script-src`**), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; **ua-parser-js** CDN tag also uses SRI. Dynamic imports (e.g. Transformers.js) cannot use SRI — pin versions and monitor supply chain. When upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
+The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), **Open-Meteo** (`api.open-meteo.com`, `air-quality-api.open-meteo.com` for opt-in home weather), **Open Food Facts** (`world.openfoodfacts.org` for barcode food lookup), **Smartlook** (`web-sdk.smartlook.com`, `*.smartlook.com`, `*.smartlook.cloud` for opt-in session recording — also required in **`script-src`**), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed.
+
+### Subresource Integrity (SRI)
+
+Pinned CDN assets use SRI + `crossorigin="anonymous"`:
+
+| Asset | Location |
+|-------|----------|
+| **ua-parser-js** | `index.html` `<script>` tag |
+| **Font Awesome CSS** | `index.html` deferred `<link>` loader |
+| **@supabase/supabase-js UMD** | `performance-utils.js` `ensureSupabaseLoaded()` |
+
+Manifest: [`apps/pwa-webapp/cdn-manifest.json`](../apps/pwa-webapp/cdn-manifest.json). CI gate: `node scripts/verify/verify-sri-integrity.mjs` (unit-tests job). Dynamic imports (Transformers.js, ONNX weights) cannot use SRI — pin versions and monitor supply chain. When upgrading CDN packages, recompute hashes (`openssl dgst -sha384 -binary <file> | openssl base64 -A` prefixed with `sha384-`) and update manifest + loaders.
+
+Responsible disclosure: [`apps/pwa-webapp/.well-known/security.txt`](../apps/pwa-webapp/.well-known/security.txt) ships with the PWA.
 
 ## Known residual risks and mitigations
 

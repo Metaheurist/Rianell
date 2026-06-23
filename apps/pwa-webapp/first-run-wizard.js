@@ -12,6 +12,7 @@
   var plan = [];
   var _tutorialContentHome = null;
   var _focusTrapTeardown = null;
+  var progressSession = null;
 
   function t(key, params) {
     if (typeof global.tUi === 'function') return global.tUi(key, params);
@@ -119,7 +120,20 @@
     if (titleEl && step.id !== 'tutorial') {
       titleEl.textContent = meta && meta.titleKey ? t(meta.titleKey) : step.id;
     }
-    if (metaEl && typeof S.resolveUnifiedOnboardingProgress === 'function') {
+    if (metaEl && progressSession && typeof progressSession.resolve === 'function') {
+      var prefs = readPrefs();
+      var progress = progressSession.resolve({
+        prefs: prefs,
+        ctx: platformContext(),
+        wizardStepId: step.id,
+        tutorialPos: step.id === 'tutorial' ? getActiveTutorialPos() : undefined,
+        tutorialSlideIndices: getTutorialVisibleIndicesSafe(),
+      });
+      metaEl.textContent = t('onboarding.stepCounter', {
+        current: progress.current,
+        total: progress.total,
+      });
+    } else if (metaEl && typeof S.resolveUnifiedOnboardingProgress === 'function') {
       var prefs = readPrefs();
       var progress = S.resolveUnifiedOnboardingProgress({
         prefs: prefs,
@@ -384,8 +398,7 @@
     if (global.RianellPrivacy && typeof global.RianellPrivacy.confirmRegionForWizard === 'function') {
       global.RianellPrivacy.confirmRegionForWizard(selectedId, 'onboarding');
     }
-    plan = rebuildPlan();
-    advanceStep();
+    advanceFromStep('region');
   }
 
   function acceptHealthConsentStep() {
@@ -467,30 +480,41 @@
     }
   }
 
-  function advanceStep() {
-    if (stepIndex >= plan.length - 1) {
+  function advanceFromStep(completedStepId) {
+    plan = rebuildPlan();
+    if (typeof S.resolveNextStepIndexAfterComplete === 'function') {
+      stepIndex = S.resolveNextStepIndexAfterComplete(readPrefs(), platformContext(), completedStepId);
+    } else if (stepIndex >= plan.length - 1) {
+      closeWizard(true);
+      return;
+    } else {
+      stepIndex += 1;
+    }
+    if (!plan.length || stepIndex >= plan.length) {
       closeWizard(true);
       return;
     }
-    stepIndex += 1;
+    if (progressSession && typeof progressSession.refresh === 'function') {
+      progressSession.refresh(readPrefs(), platformContext(), getTutorialVisibleIndicesSafe());
+    }
     renderCurrentStep();
+  }
+
+  function advanceStep() {
+    var completed = plan[stepIndex] && plan[stepIndex].id;
+    if (completed) advanceFromStep(completed);
+    else if (stepIndex >= plan.length - 1) closeWizard(true);
+    else {
+      stepIndex += 1;
+      renderCurrentStep();
+    }
   }
 
   function onTutorialFinished() {
     restoreTutorialContent();
     try { localStorage.setItem('rianellTutorialSeen', '1'); } catch (e) {}
     writePrefs({ tutorialSeen: true });
-    plan = rebuildPlan();
-    var tutorialIdx = -1;
-    for (var i = 0; i < plan.length; i++) {
-      if (plan[i].id === 'tutorial') { tutorialIdx = i; break; }
-    }
-    if (tutorialIdx >= 0 && tutorialIdx < plan.length - 1) {
-      stepIndex = tutorialIdx + 1;
-      renderCurrentStep();
-    } else {
-      closeWizard(true);
-    }
+    advanceFromStep('tutorial');
   }
 
   function openWizard() {
@@ -500,6 +524,13 @@
       closeWizard(true);
       return false;
     }
+    if (typeof S.createOnboardingProgressSession === 'function') {
+      progressSession = S.createOnboardingProgressSession(readPrefs(), platformContext(), {
+        tutorialSlideIndices: getTutorialVisibleIndicesSafe(),
+      });
+    } else {
+      progressSession = null;
+    }
     stepIndex = 0;
     active = true;
     var overlay = overlayEl();
@@ -508,6 +539,9 @@
     overlay.style.visibility = 'visible';
     overlay.style.opacity = '1';
     document.body.classList.add('modal-active', 'first-run-wizard-active');
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.syncConsentEnforcement === 'function') {
+      global.RianellPrivacy.syncConsentEnforcement('first-run-open');
+    }
     renderCurrentStep();
     var continueBtn = document.getElementById('firstRunWizardContinueBtn');
     var backBtn = document.getElementById('firstRunWizardBackBtn');
@@ -556,6 +590,9 @@
       writePrefs(prefs);
       try { localStorage.setItem('rianellTutorialSeen', '1'); } catch (e2) {}
       if (typeof global.onFirstRunWizardComplete === 'function') global.onFirstRunWizardComplete();
+    }
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.syncConsentEnforcement === 'function') {
+      global.RianellPrivacy.syncConsentEnforcement(completed ? 'first-run-complete' : 'first-run-closed');
     }
   }
 

@@ -152,6 +152,7 @@ var RianellShared = (() => {
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
     buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
+    buildInductionProgressSteps: () => buildInductionProgressSteps,
     buildLlmRequestPayload: () => buildLlmRequestPayload,
     buildMedDoseNotificationContent: () => buildMedDoseNotificationContent,
     buildMedicationTimeline: () => buildMedicationTimeline,
@@ -202,6 +203,7 @@ var RianellShared = (() => {
     computeMedianLogTimeMinutes: () => computeMedianLogTimeMinutes,
     computePoolInsightsFromFacets: () => computePoolInsightsFromFacets,
     countDistinctLogDays: () => countDistinctLogDays,
+    createOnboardingProgressSession: () => createOnboardingProgressSession,
     createQrHandoffPayload: () => createQrHandoffPayload,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
@@ -243,6 +245,7 @@ var RianellShared = (() => {
     formatRelativeDay: () => formatRelativeDay,
     formatStructuredLlmOutput: () => formatStructuredLlmOutput,
     formatWeekChatHistory: () => formatWeekChatHistory,
+    getConsentBlockReason: () => getConsentBlockReason,
     getCrisisResourcesForRegion: () => getCrisisResourcesForRegion,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
     getDefaultAppSettingsFields: () => getDefaultAppSettingsFields,
@@ -282,6 +285,7 @@ var RianellShared = (() => {
     isCycleDayLate: () => isCycleDayLate,
     isFirstRunWizardComplete: () => isFirstRunWizardComplete,
     isGoodDayLog: () => isGoodDayLog,
+    isHealthLoggingUnlocked: () => isHealthLoggingUnlocked,
     isLlmInferenceAllowed: () => isLlmInferenceAllowed,
     isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
@@ -383,6 +387,7 @@ var RianellShared = (() => {
     resolveDataResidency: () => resolveDataResidency,
     resolveHomeCardOrder: () => resolveHomeCardOrder,
     resolveMissedLogNudgeTimeHHMM: () => resolveMissedLogNudgeTimeHHMM,
+    resolveNextStepIndexAfterComplete: () => resolveNextStepIndexAfterComplete,
     resolvePolicyPack: () => resolvePolicyPack,
     resolvePressureIconId: () => resolvePressureIconId,
     resolveSmartReminderTime: () => resolveSmartReminderTime,
@@ -1536,6 +1541,190 @@ var RianellShared = (() => {
       },
       updated_at: (/* @__PURE__ */ new Date()).toISOString()
     };
+  }
+
+  // packages/shared/src/settings/trackingProfile.mjs
+  var TRACKING_PROFILE_FIELD_KEYS = ["mood", "pain", "notes", "sleep", "fatigue"];
+  function getDefaultTrackingProfileFields() {
+    return {
+      mood: true,
+      pain: true,
+      notes: true,
+      sleep: false,
+      fatigue: false
+    };
+  }
+  function normalizeTrackingProfile(value) {
+    const d = {
+      condition: "",
+      fields: getDefaultTrackingProfileFields(),
+      configuredAt: null
+    };
+    const v = value && typeof value === "object" ? value : {};
+    const fieldsIn = v.fields && typeof v.fields === "object" ? v.fields : {};
+    const fields = { ...d.fields };
+    for (const key of TRACKING_PROFILE_FIELD_KEYS) {
+      if (typeof fieldsIn[key] === "boolean") fields[key] = fieldsIn[key];
+    }
+    return {
+      condition: typeof v.condition === "string" ? v.condition.slice(0, 200) : d.condition,
+      fields,
+      configuredAt: typeof v.configuredAt === "string" ? v.configuredAt : d.configuredAt
+    };
+  }
+  function isTrackingProfileConfigured(profile) {
+    const p = normalizeTrackingProfile(profile);
+    return !!p.configuredAt;
+  }
+
+  // packages/shared/src/onboarding/firstRunSteps.mjs
+  var FIRST_RUN_STEP_IDS = [
+    "region",
+    "healthConsent",
+    "cookies",
+    "sessionRecording",
+    "trackingProfile",
+    "tutorial",
+    "aiDownload",
+    "install"
+  ];
+  var FIRST_RUN_STEP_META = {
+    region: { titleKey: "onboarding.step.region" },
+    healthConsent: { titleKey: "onboarding.step.healthConsent" },
+    cookies: { titleKey: "onboarding.step.cookies" },
+    sessionRecording: { titleKey: "onboarding.step.sessionRecording" },
+    trackingProfile: { titleKey: "onboarding.step.trackingProfile" },
+    tutorial: { titleKey: "onboarding.step.tutorial" },
+    aiDownload: { titleKey: "onboarding.step.aiDownload" },
+    install: { titleKey: "onboarding.step.install" }
+  };
+  function shouldSkipFirstRunStep(stepId, prefs, ctx) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const c = ctx && typeof ctx === "object" ? ctx : { platform: "pwa" };
+    switch (stepId) {
+      case "region":
+        return isPrivacyRegionConfigured(p);
+      case "healthConsent":
+        return p.privacyRegion !== "eea_uk" || p.healthDataConsent === true;
+      case "cookies":
+        if (p.cookieConsent === true) return true;
+        if (c.cookieConsentAccepted === true) return true;
+        return false;
+      case "sessionRecording":
+        if (typeof p.sessionRecordingDisclosureAt === "string" && p.sessionRecordingDisclosureAt.length > 0) {
+          return true;
+        }
+        {
+          const regionId = typeof p.privacyRegion === "string" && p.privacyRegion ? p.privacyRegion : "other";
+          const resolved = resolvePolicyPack(regionId);
+          const feat = resolved.features?.sessionRecording;
+          if (!feat || feat.enabled === false) return true;
+        }
+        return false;
+      case "trackingProfile":
+        return true;
+      case "tutorial":
+        return p.tutorialSeen === true || c.tutorialSeenLegacy === true;
+      case "aiDownload":
+        if (p.aiEnabled === false) return true;
+        if (p.aiModelDownloadConsent === "granted" || p.aiModelDownloadConsent === "deferred") return true;
+        return false;
+      case "install":
+        if (c.platform !== "pwa") return true;
+        if (c.installModalSeen === true) return true;
+        if (c.standalonePwa === true) return true;
+        return false;
+      default:
+        return true;
+    }
+  }
+
+  // packages/shared/src/onboarding/firstRunOrchestrator.mjs
+  function buildFirstRunPlan(prefs, ctx) {
+    return FIRST_RUN_STEP_IDS.filter((id) => !shouldSkipFirstRunStep(id, prefs, ctx)).map((id) => ({ id }));
+  }
+  function resolveNextStepIndexAfterComplete(prefs, ctx, completedStepId) {
+    const plan = buildFirstRunPlan(prefs, ctx);
+    if (!plan.length) return 0;
+    const completedIdx = plan.findIndex((s) => s.id === completedStepId);
+    if (completedIdx >= 0 && completedIdx < plan.length - 1) return completedIdx + 1;
+    return 0;
+  }
+  function isFirstRunWizardComplete(prefs, ctx) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const c = ctx && typeof ctx === "object" ? ctx : {};
+    if (typeof p.firstRunWizardCompletedAt === "string" && p.firstRunWizardCompletedAt.length > 0) {
+      return true;
+    }
+    const tutorialDone = p.tutorialSeen === true || c.tutorialSeenLegacy === true;
+    if (isPrivacyRegionConfigured(p) && tutorialDone) {
+      return true;
+    }
+    return false;
+  }
+  function migrateFirstRunWizardPrefs(prefs, ctx) {
+    const p = prefs && typeof prefs === "object" ? { ...prefs } : {};
+    if (p.firstRunWizardCompletedAt) return p;
+    if (!isFirstRunWizardComplete(p, ctx)) return p;
+    const migratedAt = typeof p.tutorialSeenAt === "string" && p.tutorialSeenAt || typeof p.policyAcknowledgedAt === "string" && p.policyAcknowledgedAt || (/* @__PURE__ */ new Date()).toISOString();
+    return {
+      ...p,
+      firstRunWizardCompletedAt: migratedAt,
+      tutorialSeen: p.tutorialSeen !== false
+    };
+  }
+  function completeFirstRunWizard(prefs) {
+    const p = prefs && typeof prefs === "object" ? { ...prefs } : {};
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    if (!isTrackingProfileConfigured(p.trackingProfile)) {
+      const condition = typeof p.medicalCondition === "string" ? p.medicalCondition : "";
+      p.trackingProfile = normalizeTrackingProfile({
+        condition,
+        configuredAt: now
+      });
+    }
+    return {
+      ...p,
+      firstRunWizardCompletedAt: now,
+      tutorialSeen: true
+    };
+  }
+  function rebuildFirstRunPlanFromStep(prefs, ctx, currentStepId) {
+    const plan = buildFirstRunPlan(prefs, ctx);
+    if (!currentStepId) return plan;
+    const idx = plan.findIndex((s) => s.id === currentStepId);
+    if (idx < 0) return plan;
+    return plan.slice(idx);
+  }
+
+  // packages/shared/src/privacy/consentGate.mjs
+  function getConsentBlockReason(prefs, ctx, opts = {}) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const requireFirstRun = opts.requireFirstRun !== false;
+    if (!isPrivacyRegionConfigured(p)) return "region-unconfigured";
+    if (p.privacyRegion === "eea_uk" && p.healthDataConsent !== true) {
+      return "missing-health-consent";
+    }
+    const health = getFeatureAvailability(
+      String(p.privacyRegion || "other"),
+      "localHealthLogging",
+      prefsToConsents(p)
+    );
+    if (!health.available) {
+      if (p.privacyRegion !== "eea_uk" && isPrivacyRegionConfigured(p)) {
+      } else if (health.reason === "missing_consent") {
+        return "missing-health-consent";
+      } else {
+        return "health-logging-unavailable";
+      }
+    }
+    if (requireFirstRun && !isFirstRunWizardComplete(p, ctx)) {
+      return "first-run-incomplete";
+    }
+    return null;
+  }
+  function isHealthLoggingUnlocked(prefs, ctx) {
+    return getConsentBlockReason(prefs, ctx) === null;
   }
 
   // packages/shared/src/privacy/checkPolicyDrift.mjs
@@ -3263,40 +3452,6 @@ ${hist}`);
       }
     }
     return { errors, checked };
-  }
-
-  // packages/shared/src/settings/trackingProfile.mjs
-  var TRACKING_PROFILE_FIELD_KEYS = ["mood", "pain", "notes", "sleep", "fatigue"];
-  function getDefaultTrackingProfileFields() {
-    return {
-      mood: true,
-      pain: true,
-      notes: true,
-      sleep: false,
-      fatigue: false
-    };
-  }
-  function normalizeTrackingProfile(value) {
-    const d = {
-      condition: "",
-      fields: getDefaultTrackingProfileFields(),
-      configuredAt: null
-    };
-    const v = value && typeof value === "object" ? value : {};
-    const fieldsIn = v.fields && typeof v.fields === "object" ? v.fields : {};
-    const fields = { ...d.fields };
-    for (const key of TRACKING_PROFILE_FIELD_KEYS) {
-      if (typeof fieldsIn[key] === "boolean") fields[key] = fieldsIn[key];
-    }
-    return {
-      condition: typeof v.condition === "string" ? v.condition.slice(0, 200) : d.condition,
-      fields,
-      configuredAt: typeof v.configuredAt === "string" ? v.configuredAt : d.configuredAt
-    };
-  }
-  function isTrackingProfileConfigured(profile) {
-    const p = normalizeTrackingProfile(profile);
-    return !!p.configuredAt;
   }
 
   // packages/shared/src/settings/localeDefaults.mjs
@@ -5571,124 +5726,41 @@ ${questionsBlock}
     return disclosed || enabledAt;
   }
 
-  // packages/shared/src/onboarding/firstRunSteps.mjs
-  var FIRST_RUN_STEP_IDS = [
-    "region",
-    "healthConsent",
-    "cookies",
-    "sessionRecording",
-    "trackingProfile",
-    "tutorial",
-    "aiDownload",
-    "install"
-  ];
-  var FIRST_RUN_STEP_META = {
-    region: { titleKey: "onboarding.step.region" },
-    healthConsent: { titleKey: "onboarding.step.healthConsent" },
-    cookies: { titleKey: "onboarding.step.cookies" },
-    sessionRecording: { titleKey: "onboarding.step.sessionRecording" },
-    trackingProfile: { titleKey: "onboarding.step.trackingProfile" },
-    tutorial: { titleKey: "onboarding.step.tutorial" },
-    aiDownload: { titleKey: "onboarding.step.aiDownload" },
-    install: { titleKey: "onboarding.step.install" }
-  };
-  function shouldSkipFirstRunStep(stepId, prefs, ctx) {
-    const p = prefs && typeof prefs === "object" ? prefs : {};
-    const c = ctx && typeof ctx === "object" ? ctx : { platform: "pwa" };
-    switch (stepId) {
-      case "region":
-        return false;
-      case "healthConsent":
-        return p.privacyRegion !== "eea_uk" || p.healthDataConsent === true;
-      case "cookies":
-        if (p.cookieConsent === true) return true;
-        if (c.cookieConsentAccepted === true) return true;
-        return false;
-      case "sessionRecording":
-        if (typeof p.sessionRecordingDisclosureAt === "string" && p.sessionRecordingDisclosureAt.length > 0) {
-          return true;
-        }
-        {
-          const regionId = typeof p.privacyRegion === "string" && p.privacyRegion ? p.privacyRegion : "other";
-          const resolved = resolvePolicyPack(regionId);
-          const feat = resolved.features?.sessionRecording;
-          if (!feat || feat.enabled === false) return true;
-        }
-        return false;
-      case "trackingProfile":
-        return true;
-      case "tutorial":
-        return false;
-      case "aiDownload":
-        if (p.aiEnabled === false) return true;
-        if (p.aiModelDownloadConsent === "granted" || p.aiModelDownloadConsent === "deferred") return true;
-        return false;
-      case "install":
-        if (c.platform !== "pwa") return true;
-        if (c.installModalSeen === true) return true;
-        if (c.standalonePwa === true) return true;
-        return false;
-      default:
-        return true;
-    }
-  }
-
-  // packages/shared/src/onboarding/firstRunOrchestrator.mjs
-  function buildFirstRunPlan(prefs, ctx) {
-    return FIRST_RUN_STEP_IDS.filter((id) => !shouldSkipFirstRunStep(id, prefs, ctx)).map((id) => ({ id }));
-  }
-  function isFirstRunWizardComplete(prefs, ctx) {
-    const p = prefs && typeof prefs === "object" ? prefs : {};
-    const c = ctx && typeof ctx === "object" ? ctx : {};
-    if (typeof p.firstRunWizardCompletedAt === "string" && p.firstRunWizardCompletedAt.length > 0) {
-      return true;
-    }
-    const tutorialDone = p.tutorialSeen === true || c.tutorialSeenLegacy === true;
-    if (isPrivacyRegionConfigured(p) && tutorialDone) {
-      return true;
-    }
-    return false;
-  }
-  function migrateFirstRunWizardPrefs(prefs, ctx) {
-    const p = prefs && typeof prefs === "object" ? { ...prefs } : {};
-    if (p.firstRunWizardCompletedAt) return p;
-    if (!isFirstRunWizardComplete(p, ctx)) return p;
-    const migratedAt = typeof p.tutorialSeenAt === "string" && p.tutorialSeenAt || typeof p.policyAcknowledgedAt === "string" && p.policyAcknowledgedAt || (/* @__PURE__ */ new Date()).toISOString();
-    return {
-      ...p,
-      firstRunWizardCompletedAt: migratedAt,
-      tutorialSeen: p.tutorialSeen !== false
-    };
-  }
-  function completeFirstRunWizard(prefs) {
-    const p = prefs && typeof prefs === "object" ? { ...prefs } : {};
-    const now = (/* @__PURE__ */ new Date()).toISOString();
-    if (!isTrackingProfileConfigured(p.trackingProfile)) {
-      const condition = typeof p.medicalCondition === "string" ? p.medicalCondition : "";
-      p.trackingProfile = normalizeTrackingProfile({
-        condition,
-        configuredAt: now
-      });
-    }
-    return {
-      ...p,
-      firstRunWizardCompletedAt: now,
-      tutorialSeen: true
-    };
-  }
-  function rebuildFirstRunPlanFromStep(prefs, ctx, currentStepId) {
-    const plan = buildFirstRunPlan(prefs, ctx);
-    if (!currentStepId) return plan;
-    const idx = plan.findIndex((s) => s.id === currentStepId);
-    if (idx < 0) return plan;
-    return plan.slice(idx);
-  }
-
   // packages/shared/src/onboarding/unifiedOnboardingProgress.mjs
   var TUTORIAL_SLIDE_ORDER_AI_ON = [0, 1, 8, 2, 3, 4, 5, 6, 7];
   var TUTORIAL_SLIDE_ORDER_AI_OFF = [0, 1, 8, 5, 7];
   function getTutorialVisibleIndices(aiEnabled) {
     return aiEnabled !== false ? [...TUTORIAL_SLIDE_ORDER_AI_ON] : [...TUTORIAL_SLIDE_ORDER_AI_OFF];
+  }
+  function buildInductionProgressSteps(prefs, ctx, options = {}) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const indices = options.tutorialSlideIndices ?? getTutorialVisibleIndices(p.aiEnabled !== false);
+    const regionConfigured = isPrivacyRegionConfigured(p);
+    const regionId = regionConfigured ? String(p.privacyRegion) : "";
+    const wizardIds = ["region"];
+    if (!regionConfigured || regionId === "eea_uk") {
+      wizardIds.push("healthConsent");
+    }
+    for (const id of ["cookies", "sessionRecording"]) {
+      if (!shouldSkipFirstRunStep(id, p, ctx)) wizardIds.push(id);
+    }
+    if (p.tutorialSeen !== true) {
+      wizardIds.push("tutorial");
+    }
+    for (const id of ["aiDownload", "install"]) {
+      if (!shouldSkipFirstRunStep(id, p, ctx)) wizardIds.push(id);
+    }
+    const steps = [];
+    for (const id of wizardIds) {
+      if (id === "tutorial") {
+        indices.forEach((slideIndex, tutorialPos) => {
+          steps.push({ type: "tutorial", slideIndex, tutorialPos });
+        });
+      } else {
+        steps.push({ type: "wizard", id });
+      }
+    }
+    return steps;
   }
   function buildUnifiedOnboardingSteps(prefs, ctx, options = {}) {
     const plan = buildFirstRunPlan(prefs, ctx);
@@ -5711,11 +5783,13 @@ ${questionsBlock}
       ctx,
       wizardStepId,
       tutorialPos = 0,
-      tutorialSlideIndices
+      tutorialSlideIndices,
+      sessionTotal
     } = state;
     const indices = tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
-    const steps = buildUnifiedOnboardingSteps(prefs, ctx, { tutorialSlideIndices: indices });
-    const total = steps.length || 1;
+    const steps = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices });
+    const computedTotal = steps.length || 1;
+    const total = typeof sessionTotal === "number" && sessionTotal > 0 ? Math.max(sessionTotal, computedTotal) : computedTotal;
     if (wizardStepId === "tutorial") {
       const idx2 = steps.findIndex(
         (s) => s.type === "tutorial" && s.tutorialPos === tutorialPos
@@ -5724,6 +5798,30 @@ ${questionsBlock}
     }
     const idx = steps.findIndex((s) => s.type === "wizard" && s.id === wizardStepId);
     return { current: idx >= 0 ? idx + 1 : 1, total };
+  }
+  function createOnboardingProgressSession(prefs, ctx, options = {}) {
+    const indices = options.tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
+    let sessionTotal = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices }).length || 1;
+    return {
+      getTotal() {
+        return sessionTotal;
+      },
+      refresh(prefsNext, ctxNext, tutorialSlideIndicesNext) {
+        const idx = tutorialSlideIndicesNext ?? getTutorialVisibleIndices(prefsNext?.aiEnabled !== false);
+        const next = buildInductionProgressSteps(prefsNext, ctxNext, { tutorialSlideIndices: idx }).length || 1;
+        if (next > sessionTotal) sessionTotal = next;
+        return sessionTotal;
+      },
+      resolve(state) {
+        const tutorialSlideIndices = state.tutorialSlideIndices ?? getTutorialVisibleIndices(state.prefs?.aiEnabled !== false);
+        this.refresh(state.prefs, state.ctx, tutorialSlideIndices);
+        return resolveUnifiedOnboardingProgress({
+          ...state,
+          tutorialSlideIndices,
+          sessionTotal
+        });
+      }
+    };
   }
 
   // packages/shared/src/achievements/achievements.mjs

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -15,9 +15,10 @@ import {
   applyRegionDefaultLocale,
   buildFirstRunPlan,
   completeFirstRunWizard,
+  createOnboardingProgressSession,
   getTutorialVisibleIndices,
   normalizeTrackingProfile,
-  resolveUnifiedOnboardingProgress,
+  resolveNextStepIndexAfterComplete,
   TRACKING_PROFILE_FIELD_KEYS,
 } from '@rianell/shared';
 import { getPolicyPack, getRegionLabels, suggestRegionForDevice } from '../privacy/helpers';
@@ -96,9 +97,15 @@ export function FirstRunWizard({
   const tutorialSlideIndex = tutorialSlides[Math.min(tutorialPos, tutorialSlides.length - 1)] ?? 0;
   const tutorialIsLast = tutorialPos >= tutorialSlides.length - 1;
 
+  const progressSessionRef = useRef(
+    createOnboardingProgressSession(localPrefs as Record<string, unknown>, platformCtx, {
+      tutorialSlideIndices: tutorialSlides,
+    }),
+  );
+
   const unifiedProgress = useMemo(() => {
     if (!step) return { current: 1, total: 1 };
-    return resolveUnifiedOnboardingProgress({
+    return progressSessionRef.current.resolve({
       prefs: localPrefs as Record<string, unknown>,
       ctx: platformCtx,
       wizardStepId: step.id,
@@ -121,8 +128,14 @@ export function FirstRunWizard({
       finishWizard();
       return;
     }
-    setStepIndex((i) => i + 1);
-  }, [stepIndex, plan.length, finishWizard]);
+    const completedId = plan[Math.min(stepIndex, plan.length - 1)]?.id;
+    if (!completedId) {
+      setStepIndex((i) => Math.min(i + 1, plan.length - 1));
+      return;
+    }
+    const nextPrefs = localPrefs as Record<string, unknown>;
+    setStepIndex(resolveNextStepIndexAfterComplete(nextPrefs, platformCtx, completedId));
+  }, [stepIndex, plan, finishWizard, localPrefs, platformCtx]);
 
   const goBack = useCallback(() => {
     setStepIndex((i) => Math.max(0, i - 1));
@@ -145,33 +158,36 @@ export function FirstRunWizard({
     ) as Preferences;
     setLocalPrefs(base);
     void upsertPrivacyProfile(base);
-    setStepIndex((i) => i + 1);
-  }, [localPrefs, selectedRegion, pack]);
+    setStepIndex(resolveNextStepIndexAfterComplete(base as Record<string, unknown>, platformCtx, 'region'));
+  }, [localPrefs, selectedRegion, pack, platformCtx]);
 
   const acceptHealthConsent = useCallback(() => {
     const now = new Date().toISOString();
     const next = { ...localPrefs, healthDataConsent: true, healthDataConsentAt: now };
     setLocalPrefs(next);
     void upsertPrivacyProfile(next);
-    goNext();
-  }, [localPrefs, goNext]);
+    setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'healthConsent'));
+  }, [localPrefs, platformCtx]);
 
   const acceptCookies = useCallback(() => {
     const now = new Date().toISOString();
-    patchPrefs({ cookieConsent: true, cookieConsentAt: now });
-    goNext();
-  }, [patchPrefs, goNext]);
+    const next = { ...localPrefs, cookieConsent: true, cookieConsentAt: now };
+    setLocalPrefs(next);
+    setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'cookies'));
+  }, [localPrefs, platformCtx]);
 
   const confirmSessionRecording = useCallback(() => {
     const now = new Date().toISOString();
     const enabled = sessionRecordingLocal;
-    patchPrefs({
+    const next = {
+      ...localPrefs,
       sessionRecording: enabled,
       sessionRecordingAt: enabled ? now : null,
       sessionRecordingDisclosureAt: now,
-    });
-    goNext();
-  }, [sessionRecordingLocal, patchPrefs, goNext]);
+    };
+    setLocalPrefs(next);
+    setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'sessionRecording'));
+  }, [sessionRecordingLocal, localPrefs, platformCtx]);
 
   const saveTrackingProfile = useCallback(() => {
     const profile = normalizeTrackingProfile({
@@ -186,13 +202,15 @@ export function FirstRunWizard({
   const handleAiDownload = useCallback(
     (grant: boolean) => {
       const now = new Date().toISOString();
-      patchPrefs({
+      const next = {
+        ...localPrefs,
         aiModelDownloadConsent: grant ? 'granted' : 'deferred',
         aiModelDownloadConsentAt: grant ? now : localPrefs.aiModelDownloadConsentAt,
-      });
-      goNext();
+      };
+      setLocalPrefs(next);
+      setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'aiDownload'));
     },
-    [patchPrefs, goNext, localPrefs.aiModelDownloadConsentAt],
+    [localPrefs, platformCtx],
   );
 
   const stepTitle = (() => {
@@ -377,8 +395,13 @@ export function FirstRunWizard({
         saveTrackingProfile();
         break;
       case 'tutorial':
-        if (tutorialIsLast) goNext();
-        else setTutorialPos((p) => Math.min(tutorialSlides.length - 1, p + 1));
+        if (tutorialIsLast) {
+          const next = { ...localPrefs, tutorialSeen: true };
+          setLocalPrefs(next);
+          setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'tutorial'));
+        } else {
+          setTutorialPos((p) => Math.min(tutorialSlides.length - 1, p + 1));
+        }
         break;
       case 'aiDownload':
         handleAiDownload(true);

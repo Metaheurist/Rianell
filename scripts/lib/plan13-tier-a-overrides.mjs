@@ -1,4 +1,4 @@
-/** Plan 13 i18n — Tier A overrides for research pool keys. */
+/** Plan 13 i18n - Tier A overrides for research pool keys. */
 
 const BASE = {
   'research.pool.export.action': null,
@@ -30,7 +30,7 @@ const DE = {
   'research.pool.export.action': 'Meinen Beitragsverlauf exportieren',
   'research.pool.export.shareTitle': 'Rianell-Beitragsexport',
   'research.pool.insights.title': 'Forschungspool-Einblicke',
-  'research.pool.insights.lead': 'So vergleichen sich Menschen mit einer ähnlichen Erkrankung — aus mindestens {kMin} anonymen Mitwirkenden. Persönliche Daten werden nie angezeigt.',
+  'research.pool.insights.lead': 'So vergleichen sich Menschen mit einer ähnlichen Erkrankung - aus mindestens {kMin} anonymen Mitwirkenden. Persönliche Daten werden nie angezeigt.',
   'research.pool.insights.loading': 'Gemeinschaftstrends werden geladen…',
   'research.pool.insights.suppressed': 'Mindestens {kMin} ähnliche Mitwirkende nötig, bevor wir einen Trend sicher anzeigen können.',
   'research.pool.insights.optInRequired': 'Schalten Sie anonyme Forschungsfreigabe in den Einstellungen ein, um Gemeinschaftstrends zu sehen.',

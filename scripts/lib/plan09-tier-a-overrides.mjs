@@ -1,4 +1,4 @@
-/** Plan 09 i18n — Tier A overrides for charts analytics (C1, C2, C7). */
+/** Plan 09 i18n - Tier A overrides for charts analytics (C1, C2, C7). */
 const PLAN09_FR = {
   'charts.correlations.title': 'Corrélations de métriques',
   'charts.correlations.confidence.high': 'Confiance élevée',

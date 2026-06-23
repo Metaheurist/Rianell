@@ -7,6 +7,7 @@ export * from './getFeatureAvailability.mjs';
 export * from './residency.mjs';
 export * from './residency-registry.mjs';
 export * from './profileSync.mjs';
+export * from './consentGate.mjs';
 export * from './checkPolicyDrift.mjs';
 export * from './residencyRouting.mjs';
 export * from './migrationState.mjs';

@@ -1,4 +1,4 @@
-/** Plan 08 i18n — Tier A overrides for LLM UI keys (phases A–B). */
+/** Plan 08 i18n - Tier A overrides for LLM UI keys (phases A–B). */
 const PLAN08_FR = {
   'ai.clinicianBrief.action': 'Brief de préparation de visite',
   'ai.clinicianBrief.loading': 'Préparation du brief…',

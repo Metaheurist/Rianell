@@ -32,7 +32,7 @@
         btn.setAttribute('data-i18n-aria', GOALS_PANE_TITLE_KEYS[i] || 'common.goals.targets');
         btn.innerHTML =
           '<span class="goals-carousel-dot__icon" aria-hidden="true">' +
-          goalsSvgIcon(i === 0 ? 'balance' : 'zap') +
+          goalsSvgIcon(i === 0 ? 'target' : 'medal') +
           '</span>';
         btn.onclick = (function (idx) {
           return function () {
@@ -120,7 +120,7 @@
     var pane = panes[i];
     var titleKey = pane && pane.getAttribute('data-i18n-title');
     var titleText = titleKey ? goalsT(titleKey) : (pane && pane.getAttribute('data-pane-title')) || '';
-    if (meta) meta.textContent = String(i + 1) + ' / ' + n + (titleText ? ' — ' + titleText : '');
+    if (meta) meta.textContent = String(i + 1) + ' / ' + n + (titleText ? ' - ' + titleText : '');
     updateGoalsCarouselDots(i);
     global.goalsModalPaneIndex = i;
     if (i === 1 && typeof global.renderAchievementsPane === 'function') {
