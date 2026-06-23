@@ -866,7 +866,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: ZAP full scan (retry on cold cache)
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 25
           max_attempts: 2
