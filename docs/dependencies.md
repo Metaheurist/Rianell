@@ -90,14 +90,15 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo` | ~55.0.8 |
 | `expo-av` | ^16.0.8 |
 | `expo-constants` | ~55.0.9 |
+| `expo-crypto` | ~55.0.4 |
 | `expo-file-system` | ~55.0.22 |
 | `expo-haptics` | ~55.0.4 |
 | `expo-local-authentication` | ~55.0.4 |
 | `expo-modules-autolinking` | ^55.0.11 |
-| `expo-modules-core` | ~55.0.25 |
+| `expo-modules-core` | ~56.0.17 |
 | `expo-print` | ~55.0.4 |
 | `expo-secure-store` | ~55.0.4 |
-| `expo-sharing` | ~55.0.5 |
+| `expo-sharing` | ~56.0.18 |
 | `expo-speech` | ^55.0.9 |
 | `expo-speech-recognition` | ^3.1.2 |
 | `expo-status-bar` | ~55.0.4 |
