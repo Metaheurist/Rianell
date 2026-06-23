@@ -29,7 +29,7 @@
     "expo": "~55.0.8",
     "expo-av": "^16.0.8",
     "expo-constants": "~55.0.9",
-    "expo-crypto": "~55.0.4",
+    "expo-crypto": "~56.0.4",
     "expo-file-system": "~55.0.22",
     "expo-haptics": "~55.0.4",
     "expo-local-authentication": "~55.0.4",
