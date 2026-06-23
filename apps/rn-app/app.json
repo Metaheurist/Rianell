@@ -36,6 +36,7 @@
     },
     "plugins": [
       "./plugins/withAsyncStorageLocalRepo.js",
+      "./plugins/withAndroidReleaseSigning.js",
       "expo-secure-store",
       [
         "expo-speech-recognition",

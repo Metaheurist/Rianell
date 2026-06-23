@@ -707,7 +707,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "$KEYSTORE_BASE64" | base64 -d > /tmp/rianell-release.jks
-          cat >> app/gradle.properties <<EOF
+          cat >> gradle.properties <<EOF
           RIANELL_RELEASE_STORE_FILE=/tmp/rianell-release.jks
           RIANELL_RELEASE_KEY_ALIAS=${KEY_ALIAS}
           RIANELL_RELEASE_STORE_PASSWORD=${STORE_PASSWORD}

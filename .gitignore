@@ -10,6 +10,11 @@ security/.env.production
 security/.encryption_key
 security/*.key
 
+# Local signing material (never commit)
+.secrets/
+*.jks
+*.keystore
+
 # Encryption keys (repo root - legacy)
 .encryption_key
 encryption.key
