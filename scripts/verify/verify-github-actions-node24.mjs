@@ -43,4 +43,42 @@ if (hits.length) {
   hits.forEach((h) => console.error('  -', h));
   process.exit(1);
 }
+
+// Supply-chain: third-party actions must use SHA pin OR approved major tag
+const ALLOW_TAG = /^@[vV]?\d+(\.\d+)?(\.\d+)?$/;
+const ALLOW_LOCAL = /^\.\//;
+const ALLOW_SHA = /@sha256:[0-9a-f]{64}$/i;
+const pinHits = [];
+const usesRe = /uses:\s*([^\s#]+)/g;
+
+for (const file of walk(githubDir)) {
+  const text = fs.readFileSync(file, 'utf8');
+  const rel = path.relative(root, file);
+  let m;
+  while ((m = usesRe.exec(text)) !== null) {
+    const ref = m[1].trim();
+    if (ALLOW_LOCAL.test(ref)) continue;
+    if (ALLOW_SHA.test(ref)) continue;
+    if (ALLOW_TAG.test(ref.split('@').pop() ? '@' + ref.split('@').pop() : '')) {
+      const tag = '@' + ref.split('@').pop();
+      if (ALLOW_TAG.test(tag)) continue;
+    }
+    const at = ref.lastIndexOf('@');
+    if (at === -1) {
+      pinHits.push(`${rel}: missing @ref on ${ref}`);
+      continue;
+    }
+    const tag = ref.slice(at);
+    if (!ALLOW_TAG.test(tag) && !ALLOW_SHA.test(tag)) {
+      pinHits.push(`${rel}: unapproved action ref ${ref}`);
+    }
+  }
+}
+
+if (pinHits.length) {
+  console.error('verify-github-actions-node24: action pin FAIL');
+  pinHits.forEach((h) => console.error('  -', h));
+  process.exit(1);
+}
+
 console.log('verify-github-actions-node24: OK');

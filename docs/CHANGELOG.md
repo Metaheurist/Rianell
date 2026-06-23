@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.94.0** - Launch audit Phase 1: SRI, security.txt, Cloudflare header docs.
+**Latest: v1.95.0** - Launch audit Phases 4–9: compliance, performance, a11y, RN hardening, UX.
+
+### v1.95.0 - 2026-06-23 - Launch audit Phases 4–9
+- **Compliance (Phase 4):** EU AI Act self-assessment, DSA notes, app-store declarations, Play `data-safety.xml`; Smartlook Art. 6 legal basis; pg_cron retention SQL comments in `Schema.sql`.
+- **Performance (Phase 5):** Preconnect for Supabase, jsDelivr, Open-Meteo; `docs/performance-budget.md`; Cloudflare cache rules in edge docs; Transformers lazy-load documented in `performance-utils.js`.
+- **Accessibility (Phase 6):** Skip link first in body; settings toggle `role="switch"`; app-lock focus trap; `verify-a11y-tokens.mjs` + CI gate; `docs/accessibility.md`.
+- **RN (Phase 7):** AES-GCM encrypted health logs (`logsAesGcm.ts`); `android-hardening.md` (pinning, ProGuard); minimized Android `blockedPermissions`.
+- **Docs (Phase 8):** `launch-checklist.md`; threat-model and incident-response launch refs; wiki CI job note; CHANGELOG phases 3–8.
+- **UX (Phase 9):** Boot skeleton, settings overlay CSS classes, offline banner fix, demo mode badge, RN Home haptics, `ErrorBoundary`, `docs/ux-audit.md`.
 
 ### v1.94.0 - 2026-06-23 - Launch audit Phase 1 (CSP / headers / SRI)
 - **SRI:** Font Awesome deferred loader now sets `integrity` + `crossorigin`; `cdn-manifest.json` pins ua-parser, Font Awesome, and Supabase UMD hashes.

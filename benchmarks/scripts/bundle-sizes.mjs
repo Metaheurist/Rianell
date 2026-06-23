@@ -11,6 +11,9 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..', '..');
 const distDir = path.resolve(process.argv[2] || path.join(root, 'apps', 'pwa-webapp', '.android-dist'));
+const enforceBudget = process.argv.includes('--enforce-budget');
+const MAIN_JS_GZIP_MAX = Number(process.env.BUNDLE_MAIN_JS_GZIP_MAX || 2 * 1024 * 1024);
+const VENDOR_JS_GZIP_MAX = Number(process.env.BUNDLE_VENDOR_JS_GZIP_MAX || 15 * 1024 * 1024);
 
 function gzipSize(buf) {
   return zlib.gzipSync(buf).length;
@@ -70,3 +73,32 @@ fs.writeFileSync(path.join(root, 'benchmarks', 'web-pwa', 'bundle-sizes.md'), md
 
 console.log('bundle-sizes: wrote', path.relative(root, outJson));
 console.log('  JS gzip total:', report.totals.jsGzipBytes, 'CSS gzip total:', report.totals.cssGzipBytes);
+
+if (enforceBudget) {
+  let failed = false;
+  const manifestPath = path.join(distDir, 'asset-manifest.json');
+  if (fs.existsSync(manifestPath)) {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    const mainJs = manifest.mainJs;
+    if (mainJs) {
+      const mainPath = path.join(distDir, mainJs);
+      if (fs.existsSync(mainPath)) {
+        const gz = gzipSize(fs.readFileSync(mainPath));
+        if (gz > MAIN_JS_GZIP_MAX) {
+          console.error(`bundle-sizes: ${mainJs} gzip ${gz} exceeds budget ${MAIN_JS_GZIP_MAX}`);
+          failed = true;
+        }
+      }
+    }
+  }
+  const vendorPath = path.join(distDir, 'vendor', 'rianell-ai-engine.js');
+  if (fs.existsSync(vendorPath)) {
+    const gz = gzipSize(fs.readFileSync(vendorPath));
+    if (gz > VENDOR_JS_GZIP_MAX) {
+      console.error(`bundle-sizes: vendor gzip ${gz} exceeds budget ${VENDOR_JS_GZIP_MAX}`);
+      failed = true;
+    }
+  }
+  if (failed) process.exit(1);
+  console.log('bundle-sizes: budget gates OK');
+}

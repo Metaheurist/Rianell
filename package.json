@@ -39,6 +39,7 @@
     "verify:privacy-docs": "node scripts/verify/verify-privacy-docs.mjs",
     "verify:policy-packs": "node scripts/verify/verify-policy-packs.mjs",
     "verify:i18n": "node scripts/verify/i18n-all.mjs",
+    "verify:a11y-tokens": "node scripts/verify/verify-a11y-tokens.mjs",
     "verify:csp": "node scripts/verify/verify-csp-connect-src.mjs && node scripts/verify/verify-csp-connect-src-live.mjs && node scripts/verify/verify-csp-report-only-live.mjs",
     "verify:llm-security": "node scripts/verify/llm-security-contract.mjs",
     "models:download": "node scripts/models/download-llm-models.mjs",

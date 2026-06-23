@@ -827,6 +827,16 @@ function getDeviceOpts() {
 }
 
 // ============================================
+// Lazy script loaders (Supabase, ApexCharts, AI engine, export/import)
+// ============================================
+//
+// Transformers.js (@huggingface/transformers) is NOT loaded at boot.
+// It is fetched on demand when the user consents to on-device AI and calls
+// preloadSummaryLLM() → loadTransformersModule() in summary-llm.js.
+// See also app.js deferAI / PerformanceUtils.getDeviceOpts() and
+// docs/performance-budget.md (Transformers fetch budget: 0 ms at boot).
+
+// ============================================
 // Export
 // ============================================
 

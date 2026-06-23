@@ -6,6 +6,49 @@
   var locked = false;
   var unlockedThisPage = false;
   var listenersBound = false;
+  var _appLockTrapHandler = null;
+  var _appLockPreviousActive = null;
+
+  function getAppLockFocusable() {
+    var overlay = document.getElementById('appLockOverlay');
+    if (!overlay || overlay.style.display === 'none') return [];
+    var sel = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return Array.prototype.filter.call(overlay.querySelectorAll(sel), function (el) {
+      return el.offsetParent !== null;
+    });
+  }
+
+  function removeAppLockTrap() {
+    if (_appLockTrapHandler) {
+      document.removeEventListener('keydown', _appLockTrapHandler);
+      _appLockTrapHandler = null;
+    }
+  }
+
+  function bindAppLockFocusTrap() {
+    removeAppLockTrap();
+    _appLockTrapHandler = function (e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      var focusable = getAppLockFocusable();
+      if (focusable.length === 0) return;
+      var first = focusable[0];
+      var last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', _appLockTrapHandler);
+  }
 
   function t(key) {
     if (typeof global.tUi === 'function') return global.tUi(key);
@@ -67,6 +110,8 @@
     if (document.body) document.body.classList.add('modal-active', 'app-lock-active');
     setShellLocked(true);
     locked = true;
+    _appLockPreviousActive = document.activeElement;
+    bindAppLockFocusTrap();
     var input = document.getElementById('appLockPinInput');
     if (input) {
       input.value = '';
@@ -77,6 +122,7 @@
   }
 
   function hideLockOverlay() {
+    removeAppLockTrap();
     var el = document.getElementById('appLockOverlay');
     if (el) {
       el.style.display = 'none';
@@ -91,6 +137,10 @@
     }
     setShellLocked(false);
     locked = false;
+    if (_appLockPreviousActive && typeof _appLockPreviousActive.focus === 'function') {
+      try { _appLockPreviousActive.focus(); } catch (e) { /* ignore */ }
+      _appLockPreviousActive = null;
+    }
   }
 
   function armLockOnResume() {

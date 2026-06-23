@@ -436,6 +436,33 @@ REVOKE ALL ON FUNCTION public.delete_all_user_data(uuid) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.delete_all_user_data(uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.delete_all_user_data(uuid) TO authenticated, service_role;
 
+-- =============================================================================
+-- §6 PG_CRON RETENTION (optional — enable pg_cron in Supabase Dashboard → Database → Extensions)
+-- Uncomment and run in SQL Editor after enabling pg_cron. Launch audit Phase 4.
+-- =============================================================================
+/*
+-- Purge bug_reports older than 90 days (weekly, Sunday 03:00 UTC)
+SELECT cron.schedule(
+  'rianell-purge-bug-reports-90d',
+  '0 3 * * 0',
+  $$DELETE FROM public.bug_reports WHERE created_at < now() - interval '90 days'$$
+);
+
+-- Purge consent_audit_log older than 24 months (monthly, 1st 04:00 UTC)
+SELECT cron.schedule(
+  'rianell-purge-consent-audit-24m',
+  '0 4 1 * *',
+  $$DELETE FROM public.consent_audit_log WHERE created_at < now() - interval '24 months'$$
+);
+
+-- Optional: anonymized_data contribution rows without user_id older than 36 months
+SELECT cron.schedule(
+  'rianell-purge-orphan-anon-36m',
+  '0 5 1 * *',
+  $$DELETE FROM public.anonymized_data WHERE user_id IS NULL AND created_at < now() - interval '36 months'$$
+);
+*/
+
 COMMIT;
 
 -- =============================================================================

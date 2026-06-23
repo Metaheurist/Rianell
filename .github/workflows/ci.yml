@@ -100,6 +100,9 @@ jobs:
       - name: Run app unit tests
         run: npm run test:unit
 
+      - name: Accessibility token contrast (WCAG AA)
+        run: npm run verify:a11y-tokens
+
       - name: Doc links and stale path scan
         run: node scripts/verify/doc-links.mjs --strict
 
@@ -111,6 +114,9 @@ jobs:
 
       - name: GitHub Actions Node 24 pin guard
         run: node scripts/verify/verify-github-actions-node24.mjs
+
+      - name: Production dependency license check
+        run: npx --yes license-checker@25.0.1 --production --excludePrivatePackages --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;0BSD;Python-2.0;BlueOak-1.0.0"
 
       - name: Platform parity checks
         run: |
@@ -273,7 +279,7 @@ jobs:
         run: node benchmarks/scripts/run-web-benchmarks.mjs
 
       - name: Record PWA bundle sizes
-        run: node benchmarks/scripts/bundle-sizes.mjs "${{ github.workspace }}/ci-minified/site"
+        run: node benchmarks/scripts/bundle-sizes.mjs "${{ github.workspace }}/ci-minified/site" --enforce-budget
 
       - name: Upload benchmark reports (web)
         uses: actions/upload-artifact@v5
@@ -690,6 +696,25 @@ jobs:
         working-directory: apps/rn-app/android
         run: ./gradlew assembleDebug --no-daemon
 
+      - name: Assemble signed release APK (when keystore secret configured)
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        working-directory: apps/rn-app/android
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "$KEYSTORE_BASE64" | base64 -d > /tmp/rianell-release.jks
+          cat >> app/gradle.properties <<EOF
+          RIANELL_RELEASE_STORE_FILE=/tmp/rianell-release.jks
+          RIANELL_RELEASE_KEY_ALIAS=${KEY_ALIAS}
+          RIANELL_RELEASE_STORE_PASSWORD=${STORE_PASSWORD}
+          RIANELL_RELEASE_KEY_PASSWORD=${KEY_PASSWORD}
+          EOF
+          ./gradlew assembleRelease --no-daemon
+
       - name: Collect APK + latest.json
         shell: bash
         env:
@@ -704,6 +729,10 @@ jobs:
             exit 1
           fi
           cp -v "${apks[0]}" rncli-android-dist/app-debug-beta.apk
+          release_apks=(apps/rn-app/android/app/build/outputs/apk/release/*.apk)
+          if [ ${#release_apks[@]} -gt 0 ]; then
+            cp -v "${release_apks[0]}" rncli-android-dist/app-release-signed.apk
+          fi
           echo "{\"version\":${RN_BUILD},\"file\":\"app-debug-beta.apk\"}" > rncli-android-dist/latest.json
 
       - name: Upload Android dist
@@ -757,6 +786,101 @@ jobs:
           name: rncli-ios-dist
           path: rncli-ios-dist/
           retention-days: 1
+
+  playwright-e2e:
+    name: "3 · Playwright E2E smoke"
+    needs: [deploy-pages]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node-ci
+      - uses: ./.github/actions/install-playwright-chromium
+      - uses: ./.github/actions/setup-python-ci
+      - name: Download deployed Pages site
+        uses: actions/download-artifact@v5
+        with:
+          name: pages-site-probe
+          path: site
+      - name: Start probe server
+        env:
+          RIANELL_WEB_DIR: ${{ github.workspace }}/site
+          PORT: "9876"
+          HOST: "127.0.0.1"
+        run: |
+          set -euo pipefail
+          python -m server >/tmp/e2e-server.log 2>&1 &
+          MAIN_JS=$(node -pe "JSON.parse(require('fs').readFileSync('site/asset-manifest.json','utf8')).mainJs")
+          for i in $(seq 1 20); do
+            if curl -fsS "http://127.0.0.1:9876/${MAIN_JS}" -o /dev/null; then exit 0; fi
+            sleep 2
+          done
+          tail -n 40 /tmp/e2e-server.log || true
+          exit 1
+      - name: Run Playwright smoke tests
+        env:
+          PROBE_URL: http://127.0.0.1:9876/
+        run: npx playwright test --config benchmarks/playwright.config.ts
+
+  lighthouse-ci:
+    name: "3 · Lighthouse CI (Pages probe)"
+    needs: [deploy-pages]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node-ci
+      - uses: ./.github/actions/install-playwright-chromium
+      - uses: ./.github/actions/setup-python-ci
+      - name: Download deployed Pages site
+        uses: actions/download-artifact@v5
+        with:
+          name: pages-site-probe
+          path: site
+      - name: Start probe server
+        env:
+          RIANELL_WEB_DIR: ${{ github.workspace }}/site
+          PORT: "9876"
+        run: |
+          python -m server >/tmp/lhci-server.log 2>&1 &
+          sleep 3
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: http://127.0.0.1:9876/
+          configPath: ./lighthouserc.js
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  zap-scan:
+    name: "3 · OWASP ZAP baseline (rianell.com)"
+    needs: [deploy-pages]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: ZAP full scan (retry on cold cache)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 25
+          max_attempts: 2
+          command: |
+            docker run --rm -v ${{ github.workspace }}:/zap/wrk:rw \
+              -t ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+              -t https://rianell.com/ -J /zap/wrk/zap-results.sarif -m 5 -I || true
+      - name: Upload ZAP SARIF
+        if: always() && hashFiles('zap-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: zap-results.sarif
+          category: owasp-zap
 
   audit-boot-post-deploy:
     name: "3 · Post-deploy boot audit (Pages site)"
@@ -818,9 +942,14 @@ jobs:
           AUDIT_PROFILE: baseline
           PROBE_URL: http://127.0.0.1:9876/
           PROBE_PASS_MS: "120000"
-          PROBE_WARM_PASS_MS: "120000"
+          PROBE_WARM_PASS_MS: "90000"
           PROBE_GUEST_PASS_MS: "120000"
         run: npm run audit:boot:baseline
+
+      - name: Enforce boot warm budget (progressive launch gate)
+        env:
+          BOOT_WARM_CI_MAX_MS: "120000"
+        run: node scripts/audit/verify-boot-warm-budget.mjs audit-history/latest-boot-audit.json
 
       - name: Verify deploy HTML (local Pages probe only)
         env:

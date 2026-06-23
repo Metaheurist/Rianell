@@ -2,9 +2,9 @@
 
 **Product:** Rianell personal health dashboard  
 **Version baseline:** v1.49.x  
-**Last updated:** 2026-06-13  
+**Last updated:** 2026-06-23  
 **Owner:** Project maintainer  
-**Related:** [SECURITY.md](SECURITY.md) · [ai-security.md](ai-security.md) · [crypto-roadmap.md](crypto-roadmap.md) · [incident-response.md](incident-response.md)
+**Related:** [SECURITY.md](SECURITY.md) · [ai-security.md](ai-security.md) · [crypto-roadmap.md](crypto-roadmap.md) · [incident-response.md](incident-response.md) · [compliance/launch-checklist.md](compliance/launch-checklist.md)
 
 ---
 
@@ -249,6 +249,19 @@ flowchart LR
 - **Quarterly** STRIDE refresh or after major architecture change (new data store, server-side LLM, payment flow).
 - **Per release** when touching `supabase/Schema.sql`, cloud-sync crypto, or auth flows.
 - Record outcomes in [security-hardening-execution-log.md](security-hardening-execution-log.md).
+
+---
+
+## 9.1 Launch audit cross-reference (Phases 3–8)
+
+| Phase | Threat focus | Mitigation doc |
+|-------|--------------|----------------|
+| 3 — SRI/CSP | Tampering, disclosure via compromised CDN | `verify-sri-integrity.mjs`, `security.txt` |
+| 4 — Compliance | Regulatory misrepresentation | `docs/compliance/*` |
+| 5 — Performance | DoS via heavy boot | `docs/performance-budget.md` |
+| 6 — Accessibility | Exclusion, focus escape | `verify-a11y-tokens.mjs`, app lock trap |
+| 7 — RN hardening | Device extraction | `logsAesGcm.ts`, [android-hardening.md](compliance/android-hardening.md) |
+| 8 — Ops docs | Incident handling gaps | [launch-checklist.md](compliance/launch-checklist.md) |
 
 ---
 

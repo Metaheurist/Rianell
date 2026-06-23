@@ -276,7 +276,7 @@
 
         if (_screeningKind === 'phq2' && S.isPhq9SuicideItemPositive && S.isPhq9SuicideItemPositive(_screeningMergedResponses)) {
 
-          html += '<p class="screening-item9-crisis" role="alert"><strong>' + escapeHTML(t('mentalHealth.phq9.item9Crisis')) + '</strong></p>';
+          html += '<div class="phq9-crisis-card screening-item9-crisis" role="alert"><strong>' + escapeHTML(t('mentalHealth.phq9.item9Crisis')) + '</strong></div>';
 
         }
 

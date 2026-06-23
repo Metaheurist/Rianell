@@ -178,3 +178,21 @@ After renaming **`artifacts/`** → **`artifacts/`** on GitHub Pages, apply a **
 | `/artifacts/*` | `/artifacts/$1` | **301** |
 
 This preserves bookmarks and external links that still use the old path with a space-encoded URL.
+
+## Cache rules (launch audit Phase 5)
+
+Use **Cache Rules** (or legacy Page Rules) on zone **rianell.com** to balance freshness and edge performance. Adjust if your Pages origin path differs.
+
+| Rule name | When | Cache eligibility | Edge TTL | Browser TTL |
+|-----------|------|-------------------|----------|-------------|
+| **HTML no-store** | `(http.request.uri.path eq "/" or http.request.uri.path.extension eq "html")` | Bypass cache **or** TTL 0 with revalidate | 0 | `max-age=0, must-revalidate` |
+| **Hashed static assets** | `(http.request.uri.path contains ".min.") or (http.request.uri.path.extension in {"js" "css" "woff2" "png" "webp" "svg" "json"})` | Eligible | 1 year | 1 year (`immutable` if fingerprinted) |
+| **i18n / locale packs** | `(http.request.uri.path contains "/i18n-packs/")` | Eligible | 7 days | 1 day |
+| **API / Supabase** | `(http.host contains "supabase.co")` | **Bypass** — not on rianell.com zone; document for cross-origin fetches | — | — |
+
+**Notes:**
+
+- Do **not** long-cache `index.html` or `sw.js` — users must receive new CSP/SRI hashes after deploy.
+- After deploy, **Purge Everything** or purge `/` + `/sw.js` if HTML appears stale.
+- `connect-src` fetches (Open-Meteo, Hugging Face) are **browser** caches; edge rules apply only to same-origin static assets.
+- Align with [performance-budget.md](../docs/performance-budget.md) boot targets.

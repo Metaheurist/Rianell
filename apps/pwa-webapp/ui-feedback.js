@@ -305,6 +305,7 @@
     var online = global.navigator.onLine !== false;
     if (online) {
       el.classList.add('hidden');
+      el.classList.remove('show');
       return;
     }
     var queued = 0;
@@ -315,6 +316,22 @@
       ? queued + ' log' + (queued === 1 ? '' : 's') + ' will sync when back online'
       : 'You are offline - changes stay on this device';
     el.classList.remove('hidden');
+    el.classList.add('show');
+  }
+
+  function updateDemoModeBadge() {
+    var el = document.getElementById('demoModeBadge');
+    if (!el) return;
+    var demo = false;
+    try {
+      if (typeof global.appSettings !== 'undefined' && global.appSettings) {
+        demo = !!global.appSettings.demoMode;
+      } else if (typeof localStorage !== 'undefined') {
+        var raw = localStorage.getItem('rianellSettings');
+        if (raw) demo = !!JSON.parse(raw).demoMode;
+      }
+    } catch (e) {}
+    el.classList.toggle('hidden', !demo);
   }
 
   function initOfflineIndicator() {
@@ -521,6 +538,7 @@
     initRipple(document);
     initScrollReveal(document);
     initOfflineIndicator();
+    updateDemoModeBadge();
     var mo = new MutationObserver(function () {
       initRipple(document);
       initScrollReveal(document);
@@ -545,6 +563,7 @@
   global.initScrollReveal = initScrollReveal;
   global.countUp = countUp;
   global.updateOfflineIndicator = updateOfflineIndicator;
+  global.updateDemoModeBadge = updateDemoModeBadge;
   global.showUpdateBar = showUpdateBar;
   global.hideUpdateBar = hideUpdateBar;
   global.isMobileViewport = isMobileViewport;

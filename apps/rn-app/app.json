@@ -16,6 +16,12 @@
     },
     "android": {
       "allowBackup": false,
+      "blockedPermissions": [
+        "android.permission.READ_PHONE_STATE",
+        "android.permission.READ_CONTACTS",
+        "android.permission.READ_SMS",
+        "android.permission.READ_CALL_LOG"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

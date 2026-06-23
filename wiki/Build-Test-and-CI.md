@@ -13,6 +13,7 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run bundle:mobile:prod` | Expo export for Android + iOS |
 | `npm run test:unit` | Node unit tests (`tests/unit/`) |
 | `npm run verify:i18n` | Full locale/prompt/MOTD gate suite |
+| `npm run verify:a11y-tokens` | WCAG contrast gate for `@rianell/tokens` theme pairs |
 | `npm run parity:*` | Platform parity checks |
 | `npm run benchmark` | Performance benchmarks workspace |
 | `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
@@ -41,7 +42,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 ### Phase 1 — Foundation (max 3 parallel)
 
-- **unit-tests** — `test:unit`, parity, `verify:i18n`
+- **unit-tests** — `test:unit`, `verify:a11y-tokens`, parity, `verify:i18n`
 - **prepare-minified-assets** — minified PWA + Capacitor dist → artifact `minified-prebuild`
 - **security-audit** — Gitleaks, OSV, npm/pip audit (reusable workflow)
 
@@ -121,6 +122,19 @@ npm run benchmark:ai-all
 ```
 
 Reports committed on `main` via CI when changed.
+
+### Launch audit CI jobs (v1.94+)
+
+| Job | Phase | Purpose |
+|-----|-------|---------|
+| `playwright-e2e` | 3 | Smoke: shell render, settings open/close |
+| `lighthouse-ci` | 3 | LCP ≤ 2.5s, CLS ≤ 0.1, TBT ≤ 200ms (Pages probe) |
+| `zap-scan` | 3 | OWASP ZAP → SARIF (rianell.com) |
+| `verify:a11y-tokens` | 6 | WCAG contrast on theme tokens |
+| Bundle `--enforce-budget` | 3/5 | `app.*.min.js` gzip ≤ 2 MB, vendor ≤ 15 MB |
+| `verify-boot-warm-budget` | 3/5 | Progressive warm boot gate (`BOOT_WARM_CI_MAX_MS`) |
+
+Dependabot: `.github/dependabot.yml` (npm + github-actions weekly).
 
 ---
 

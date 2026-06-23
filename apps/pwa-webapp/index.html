@@ -352,6 +352,9 @@
   <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://tcoynycktablxankyriw.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
   <link rel="preload" href="styles.css?v=96" as="style">
@@ -928,6 +931,8 @@
   </style>
 </head>
 <body class="loading">
+  <a href="#main-content" class="skip-link" data-i18n="common.skipToContent">Skip to main content</a>
+  <div id="demoModeBadge" class="demo-mode-badge hidden" role="status" aria-live="polite" data-i18n="settings.demo.title">Demo Mode</div>
   <script>
     (function () {
       try {
@@ -970,7 +975,6 @@
       } catch (e) {}
     })();
   </script>
-  <a href="#main-content" class="skip-link" data-i18n="common.skipToContent">Skip to main content</a>
   <svg class="rianell-icon-sprite" aria-hidden="true" focusable="false">
     <symbol id="icon-user" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol>
     <symbol id="icon-cloud" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/></symbol>
@@ -1050,6 +1054,12 @@
         <div class="loading-sun-orbit__sun"></div>
       </div>
       <p class="loading-text" data-i18n="home.loading.app">Loading Rianell…</p>
+      <div class="boot-skeleton" aria-hidden="true">
+        <div class="boot-skeleton__bar"></div>
+        <div class="boot-skeleton__bar boot-skeleton__bar--short"></div>
+        <div class="boot-skeleton__card"></div>
+        <div class="boot-skeleton__card"></div>
+      </div>
     </div>
   </div>
 
@@ -1161,7 +1171,7 @@
         </div>
         <div class="settings-option">
           <label data-i18n="settings.privacy.localOnly.title">Local-only mode</label>
-          <div class="toggle-switch" id="localOnlyModeToggle" onclick="toggleSetting('localOnlyMode')"></div>
+          <div class="toggle-switch" id="localOnlyModeToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('localOnlyMode')"></div>
         </div>
         <div id="localOnlyFeatureMatrix" class="settings-hint" style="display:none;">
           <p data-i18n="settings.privacy.localOnly.disabledLead">While enabled, these network features are blocked:</p>
@@ -1169,7 +1179,7 @@
         </div>
         <div class="settings-option">
           <label data-i18n="settings.privacy.sessionRecording.title">Session recording</label>
-          <div class="toggle-switch" id="sessionRecordingToggle" onclick="toggleSessionRecordingSetting()"></div>
+          <div class="toggle-switch" id="sessionRecordingToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSessionRecordingSetting()"></div>
         </div>
         <p class="settings-hint" id="sessionRecordingHint" data-i18n="settings.privacy.sessionRecording.hint">Optional session analytics (Smartlook, EU) to improve the app. On by default after onboarding. Screens are anonymised and used only for heatmaps and error tracking-not for reviewing your health data. Turn off here anytime.</p>
         <details class="settings-performance-advanced settings-consent-dashboard-panel" id="settingsConsentDashboardPanel">
@@ -1298,7 +1308,7 @@
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-brain"></use></svg>AI &amp; Goals</h4>
         <div class="settings-option settings-option-with-hint">
           <label  data-i18n="settings.ai.enableFeatures">Enable AI features & Goals</label>
-          <div class="toggle-switch" id="aiEnabledToggle" onclick="toggleAIFeatures()"></div>
+          <div class="toggle-switch" id="aiEnabledToggle" role="switch" tabindex="0" aria-checked="true" onclick="toggleAIFeatures()"></div>
         </div>
         <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals & targets are available. When off: they are hidden. You can change this anytime.</p>
         <div class="settings-option" style="margin-top: 14px;">
@@ -1322,7 +1332,7 @@
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-chart-bars"></use></svg>Display Options</h4>
         <div class="settings-option">
           <label  data-i18n="common.daily.reminders">Daily reminders</label>
-          <div class="toggle-switch" id="reminderToggle" onclick="toggleSetting('reminder')"></div>
+          <div class="toggle-switch" id="reminderToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('reminder')"></div>
         </div>
         <div class="settings-option">
           <label  data-i18n="common.reminder.time">Reminder time</label>
@@ -1330,7 +1340,7 @@
         </div>
         <div class="settings-option">
           <label  data-i18n="common.enable.sound.notifications">Enable sound notifications</label>
-          <div class="toggle-switch" id="soundToggle" onclick="toggleSetting('sound')"></div>
+          <div class="toggle-switch" id="soundToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('sound')"></div>
         </div>
         <div class="settings-option">
           <label data-i18n="common.re.engagement.reminders">Re-engagement reminders</label>
@@ -1387,7 +1397,7 @@
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-accessibility"></use></svg>Accessibility</h4>
         <div class="settings-option settings-option-with-hint">
           <label  data-i18n="common.large.text">Large text</label>
-          <div class="toggle-switch" id="accessibilityLargeTextToggle" onclick="toggleAccessibilityLargeText()"></div>
+          <div class="toggle-switch" id="accessibilityLargeTextToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleAccessibilityLargeText()"></div>
         </div>
         <p class="settings-hint" data-i18n="common.a.quick.preset.for.bigger.text.across.th">A quick preset for bigger text across the app.</p>
 
@@ -1400,13 +1410,13 @@
 
         <div class="settings-option settings-option-with-hint">
           <label  data-i18n="common.text.to.speech.tap.to.read">Text-to-speech (tap-to-read)</label>
-          <div class="toggle-switch" id="accessibilityTtsToggle" onclick="toggleAccessibilityTtsEnabled()"></div>
+          <div class="toggle-switch" id="accessibilityTtsToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleAccessibilityTtsEnabled()"></div>
         </div>
         <p class="settings-hint" data-i18n="common.when.enabled.tapping.buttons.controls.re">When enabled: tapping buttons/controls reads their label aloud.</p>
 
         <div class="settings-option settings-option-with-hint" style="margin-top: 14px;">
           <label  data-i18n="common.read.mode.auto.read.on.focus">Read mode (auto-read on focus)</label>
-          <div class="toggle-switch" id="accessibilityReadModeToggle" onclick="toggleAccessibilityReadMode()"></div>
+          <div class="toggle-switch" id="accessibilityReadModeToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleAccessibilityReadMode()"></div>
         </div>
         <p class="settings-hint" data-i18n="common.read.mode.focus.hint">When on: focused controls are also read aloud (keyboard and assistive navigation).</p>
 
@@ -1443,15 +1453,15 @@
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-save"></use></svg>Data Options</h4>
         <div class="settings-option">
           <label  data-i18n="common.auto.backup.to.localstorage">Auto-backup to localStorage</label>
-          <div class="toggle-switch active" id="backupToggle" onclick="toggleSetting('backup')"></div>
+          <div class="toggle-switch active" id="backupToggle" role="switch" tabindex="0" aria-checked="true" onclick="toggleSetting('backup')"></div>
         </div>
         <div class="settings-option">
           <label  data-i18n="common.compress.chart.data">Compress chart data</label>
-          <div class="toggle-switch" id="compressToggle" onclick="toggleSetting('compress')"></div>
+          <div class="toggle-switch" id="compressToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('compress')"></div>
         </div>
         <div class="settings-option">
           <label data-i18n="settings.demo.title">Demo Mode</label>
-          <div class="toggle-switch" id="demoModeToggle" onclick="toggleDemoMode()"></div>
+          <div class="toggle-switch" id="demoModeToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleDemoMode()"></div>
         </div>
         <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
           <label style="visibility: hidden;" data-i18n="common.helper">Helper</label>
@@ -1462,7 +1472,7 @@
         <h4 data-i18n="settings.dataOptions.loggingSection">Logging modules</h4>
         <div class="settings-option">
           <label data-i18n="settings.logging.cycleModule">Cycle tracking module</label>
-          <div class="toggle-switch" id="cycleModuleToggle" onclick="toggleSetting('cycleModuleEnabled')"></div>
+          <div class="toggle-switch" id="cycleModuleToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('cycleModuleEnabled')"></div>
         </div>
       </div>
       </div>
@@ -1471,11 +1481,11 @@
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg>Performance</h4>
         <div class="settings-option">
           <label  data-i18n="common.enable.animations">Enable animations</label>
-          <div class="toggle-switch active" id="animationsToggle" onclick="toggleSetting('animations')"></div>
+          <div class="toggle-switch active" id="animationsToggle" role="switch" tabindex="0" aria-checked="true" onclick="toggleSetting('animations')"></div>
         </div>
         <div class="settings-option">
           <label  data-i18n="common.lazy.load.charts">Lazy load charts</label>
-          <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
+          <div class="toggle-switch active" id="lazyToggle" role="switch" tabindex="0" aria-checked="true" onclick="toggleSetting('lazy')"></div>
         </div>
         <div class="settings-option settings-option-llm-model">
           <label data-i18n="common.on.device.ai.model">On-device AI model</label>
@@ -1647,7 +1657,7 @@
         <div class="settings-security-group settings-security-group--caregiver">
           <div class="settings-option">
             <label data-i18n="settings.privacy.caregiver.enable">Caregiver / proxy logging</label>
-            <div class="toggle-switch" id="caregiverModeToggle" onclick="toggleCaregiverMode()"></div>
+            <div class="toggle-switch" id="caregiverModeToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleCaregiverMode()"></div>
           </div>
           <div class="settings-option" id="caregiverDependentRow" style="display:none;">
             <label for="caregiverDependentNameInput" data-i18n="settings.privacy.caregiver.dependentName">Dependent name</label>

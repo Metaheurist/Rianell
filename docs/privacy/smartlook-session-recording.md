@@ -30,6 +30,18 @@ Users who previously opted out (`sessionRecording: false` in saved settings) rem
 
 ---
 
+## 2.1 GDPR legal basis (Art. 6)
+
+| Processing | Legal basis | Notes |
+|------------|-------------|-------|
+| Session recording (analytics) | **Art. 6(1)(a) consent** | Explicit opt-in after onboarding disclosure; revocable in Settings and consent dashboard |
+| Special-category data visible on screen | **Art. 9(2)(a) explicit consent** | Gated by health data consent + `sessionRecording` toggle; not activated in local-only mode |
+| Legitimate interest | **Not relied upon** | Product does not use Art. 6(1)(f) for Smartlook — consent is the sole basis |
+
+**Records:** consent timestamps `sessionRecordingAt`, `sessionRecordingDisclosureAt`; RoPA activity **PA-10** in [ropa.json](ropa.json).
+
+---
+
 ## 3. Activation gate
 
 Smartlook SDK does **not** start until both conditions hold:

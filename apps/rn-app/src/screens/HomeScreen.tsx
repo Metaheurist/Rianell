@@ -23,6 +23,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
@@ -73,6 +74,10 @@ type HomeNav = CompositeNavigationProp<
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function hapticLight() {
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
 type CheckinPeriod = 'AM' | 'midday' | 'PM';
@@ -596,6 +601,7 @@ export function HomeScreen({
   }, [prefs.accessibility.ttsEnabled, t]);
 
   const onGoalsTargets = useCallback(() => {
+    hapticLight();
     requestOpenGoalsModal(0);
   }, []);
 
@@ -685,6 +691,7 @@ export function HomeScreen({
   );
 
   const openCheckinModal = useCallback((period: CheckinPeriod) => {
+    hapticLight();
     setCheckinPeriod(period);
     setCheckinMood('');
     setCheckinSleep('');
@@ -733,6 +740,7 @@ export function HomeScreen({
   }, [prefs.aiEnabled, prefs.aiModelDownloadConsent]);
 
   const onWeeklyReviewPress = useCallback(async () => {
+    hapticLight();
     if (weeklyReviewAiReady) {
       navigation.navigate('WeeklyReview');
       return;
@@ -1110,7 +1118,10 @@ export function HomeScreen({
 
       <View style={[styles.fabWrap, { bottom: tabBarHeight + 16 }]}>
         <Pressable
-          onPress={() => navigation.navigate('LogWizard')}
+          onPress={() => {
+            hapticLight();
+            navigation.navigate('LogWizard');
+          }}
           style={[styles.fab, { backgroundColor: accent }]}
           accessibilityRole="button"
           accessibilityLabel={`${t('home.action.logNow')}, ${t('home.fab.betaBadge')}`}
