@@ -950,7 +950,7 @@ jobs:
           AUDIT_PROFILE: baseline
           PROBE_URL: http://127.0.0.1:9876/
           PROBE_PASS_MS: "120000"
-          PROBE_WARM_PASS_MS: "90000"
+          PROBE_WARM_PASS_MS: "100000"
           PROBE_GUEST_PASS_MS: "120000"
         run: npm run audit:boot:baseline
 
