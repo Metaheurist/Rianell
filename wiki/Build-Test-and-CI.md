@@ -44,7 +44,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 ### Phase 1 — Foundation (max 3 parallel)
 
 - **unit-tests** — `test:unit`, `verify:a11y-tokens`, parity, `verify:i18n`
-- **prepare-minified-assets** — minified PWA + Capacitor dist → artifact `minified-prebuild` (copies `.well-known/security.txt`; glob copy skips dot dirs)
+- **prepare-minified-assets** — minified PWA + Capacitor dist → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** — Gitleaks, OSV, npm/pip audit (reusable workflow)
 
 ### Phase 2 — Build lanes (max 7 parallel)

@@ -53,6 +53,10 @@ if (-not $NoCompile) {
     if (Test-Path -LiteralPath $WellKnownSrc) {
         Copy-Item -Path $WellKnownSrc -Destination (Join-Path $LocalSiteDir ".well-known") -Recurse -Force
     }
+    $NoJekyll = Join-Path $ProjectRoot "apps\pwa-webapp\.nojekyll"
+    if (Test-Path -LiteralPath $NoJekyll) {
+        Copy-Item -Path $NoJekyll -Destination (Join-Path $LocalSiteDir ".nojekyll") -Force
+    }
 
     $AppBuildDir = Join-Path $ProjectRoot "artifacts"
     if (Test-Path -LiteralPath $AppBuildDir) {
