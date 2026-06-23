@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.93.0",
+  "version": "1.96.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -40,6 +40,7 @@
     "verify:policy-packs": "node scripts/verify/verify-policy-packs.mjs",
     "verify:i18n": "node scripts/verify/i18n-all.mjs",
     "verify:a11y-tokens": "node scripts/verify/verify-a11y-tokens.mjs",
+    "supabase:deploy:delete-user-data": "npx supabase functions deploy delete-user-data --project-ref gitnxgfbbpykwqvogmqq",
     "verify:csp": "node scripts/verify/verify-csp-connect-src.mjs && node scripts/verify/verify-csp-connect-src-live.mjs && node scripts/verify/verify-csp-report-only-live.mjs",
     "verify:llm-security": "node scripts/verify/llm-security-contract.mjs",
     "models:download": "node scripts/models/download-llm-models.mjs",

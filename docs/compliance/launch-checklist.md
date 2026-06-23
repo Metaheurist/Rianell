@@ -1,7 +1,7 @@
 ---
 title: Launch checklist
 phase: launch-audit
-last_updated: 2026-06-23
+last_updated: 2026-06-23T23:00:00Z
 owner: maintainer
 ---
 
@@ -11,11 +11,11 @@ Operator sign-off for public beta / store submission. Not legal advice.
 
 ## Phase 3 — Security baseline
 
-- [ ] `npm run verify:csp` passes (meta + live edge)
-- [ ] `npm run verify:sri` — CDN integrity pins current
-- [ ] `/.well-known/security.txt` deployed
-- [ ] Cloudflare headers aligned — [cloudflare-headers-recommended.md](../../security/cloudflare-headers-recommended.md)
-- [ ] Supabase RLS + Security Advisor clean
+- [x] `npm run verify:csp` passes (meta + live edge)
+- [x] `npm run verify:sri` — CDN integrity pins current
+- [ ] `/.well-known/security.txt` deployed (CI fix in v1.96.0 — verify after Pages deploy)
+- [x] Cloudflare headers aligned — [cloudflare-headers-recommended.md](../../security/cloudflare-headers-recommended.md) (`frame-ancestors` at edge; remove `Expect-CT` if still live)
+- [x] Supabase RLS + Security Advisor clean (0029 fix in Schema §4–§4b; Edge Function `delete-user-data` deployed)
 
 ## Phase 4 — Compliance
 

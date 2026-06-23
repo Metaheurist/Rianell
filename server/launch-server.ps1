@@ -49,6 +49,10 @@ if (-not $NoCompile) {
     }
     New-Item -ItemType Directory -Path $LocalSiteDir | Out-Null
     Copy-Item -Path (Join-Path $ProjectRoot "apps\pwa-webapp\*") -Destination $LocalSiteDir -Recurse -Force
+    $WellKnownSrc = Join-Path $ProjectRoot "apps\pwa-webapp\.well-known"
+    if (Test-Path -LiteralPath $WellKnownSrc) {
+        Copy-Item -Path $WellKnownSrc -Destination (Join-Path $LocalSiteDir ".well-known") -Recurse -Force
+    }
 
     $AppBuildDir = Join-Path $ProjectRoot "artifacts"
     if (Test-Path -LiteralPath $AppBuildDir) {
