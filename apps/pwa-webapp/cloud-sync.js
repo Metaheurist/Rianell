@@ -72,6 +72,17 @@ function initSupabase() {
   return createClientWhenReady();
 }
 
+/** SHA-256 storage key for anonymized_data.medical_condition (GAP-03). */
+async function poolConditionStorageKey(plainCondition) {
+  const text = String(plainCondition || '').trim();
+  if (!text) return '';
+  const S = window.RianellShared || {};
+  if (typeof S.hashMedicalConditionLabel === 'function') {
+    return S.hashMedicalConditionLabel(text);
+  }
+  return text;
+}
+
 /**
  * Sync anonymized health logs to Supabase
  * Only syncs logs that haven't been synced yet
@@ -168,6 +179,7 @@ async function syncAnonymizedData() {
     // medicalCondition was already validated and set above
     
     console.log(`[syncAnonymizedData] Medical condition: ${medicalCondition}`);
+    const conditionStorageKey = await poolConditionStorageKey(medicalCondition);
     console.log(`[syncAnonymizedData] Synced dates count: ${syncedDates.length}`);
     console.log(`[syncAnonymizedData] Synced keys count: ${syncedKeys.length}`);
     if (syncedKeys.length > 0) {
@@ -195,7 +207,7 @@ async function syncAnonymizedData() {
         const { data, error } = await supabaseClient
           .from('anonymized_data')
           .select('anonymized_log')
-          .eq('medical_condition', medicalCondition)
+          .eq('medical_condition', conditionStorageKey)
           .range(from, from + pageSize - 1);
         
         if (error) {
@@ -460,7 +472,7 @@ async function syncAnonymizedData() {
           const research_facets = buildFacets(log);
           batchData.push({
             user_id: cloudSyncState.user.id,
-            medical_condition: medicalCondition,
+            medical_condition: conditionStorageKey,
             anonymized_log: encryptedLog,
             research_facets: research_facets
           });
@@ -714,11 +726,13 @@ async function checkConditionDataAvailability(condition) {
     const pageSize = 1000;
     let hasMore = true;
     
+    const conditionStorageKey = await poolConditionStorageKey(condition);
+    
     while (hasMore) {
       const { data, error, count } = await supabaseClient
         .from('anonymized_data')
         .select('id, anonymized_log', { count: 'exact' })
-        .eq('medical_condition', condition)
+        .eq('medical_condition', conditionStorageKey)
         .range(from, from + pageSize - 1);
       
       if (error) {
@@ -2149,7 +2163,8 @@ async function countPoolContributionDays(condition) {
   if (!client || typeof S.isValidMedicalConditionForPool !== 'function' || !S.isValidMedicalConditionForPool(condition)) {
     return 0;
   }
-  const { data, error } = await client.rpc('count_pool_contribution_days', { p_condition: String(condition).trim() });
+  const storageKey = await poolConditionStorageKey(condition);
+  const { data, error } = await client.rpc('count_pool_contribution_days', { p_condition: storageKey });
   if (error) return 0;
   return Number(data) || 0;
 }
@@ -2179,8 +2194,9 @@ async function fetchPoolInsights(condition) {
   const client = initSupabase();
   if (!client) return { ok: false, message: 'Cloud sync is not configured.', insights: empty };
   const kMin = S.POOL_INSIGHT_MIN_K || 5;
+  const storageKey = await poolConditionStorageKey(condition);
   const { data, error } = await client.rpc('get_k_anon_pool_insights', {
-    p_condition: String(condition).trim(),
+    p_condition: storageKey,
     p_k: kMin
   });
   if (error) return { ok: false, message: error.message, insights: empty };

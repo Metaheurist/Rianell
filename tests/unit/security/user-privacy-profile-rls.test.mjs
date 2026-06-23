@@ -10,7 +10,7 @@ test('Schema.sql defines user_privacy_profile with RLS policies', () => {
   assert.match(sql, /user_privacy_profile_insert_own/);
   assert.match(sql, /user_privacy_profile_update_own/);
   assert.match(sql, /user_privacy_profile_delete_own/);
-  assert.match(sql, /auth\.uid\(\) = user_id/);
+  assert.match(sql, /\(select auth\.uid\(\)\) = user_id/);
 });
 
 test('Schema grants authenticated CRUD on user_privacy_profile', () => {
@@ -49,4 +49,12 @@ test('Schema.sql defines Plan 13 RE1 pool insight RPCs', () => {
   assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.get_k_anon_pool_insights/);
   assert.match(sql, /REVOKE EXECUTE ON FUNCTION public\.get_k_anon_pool_insights\(text, integer\) FROM anon/);
   assert.match(sql, /REVOKE EXECUTE ON FUNCTION public\.count_pool_contribution_days\(text\) FROM anon/);
+});
+
+test('Schema.sql defines consent_audit_log and GDPR erasure RPC', () => {
+  const sql = readFileSync('supabase/Schema.sql', 'utf8');
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS public\.consent_audit_log/);
+  assert.match(sql, /consent_audit_log_insert_own/);
+  assert.match(sql, /CREATE OR REPLACE FUNCTION public\.delete_all_user_data/);
+  assert.match(sql, /cve_rls/);
 });

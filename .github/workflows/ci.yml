@@ -140,6 +140,7 @@ jobs:
           node scripts/test/llm-golden-prompts.mjs
           node scripts/verify/verify-csp-connect-src.mjs
           node scripts/verify/verify-sri-integrity.mjs
+          node scripts/verify/verify-ropa-drift.mjs
           node scripts/verify/verify-no-service-role-in-clients.mjs
           node scripts/models/verify-no-model-weights-in-git.mjs
 

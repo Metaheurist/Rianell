@@ -11,7 +11,7 @@ if (!fs.existsSync(schemaPath)) {
   process.exit(1);
 }
 const sql = fs.readFileSync(schemaPath, 'utf8');
-const required = ['user_privacy_profile', 'health_data', 'user_keys', 'anonymized_data', 'bug_reports', 'user_achievements'];
+const required = ['user_privacy_profile', 'health_data', 'user_keys', 'anonymized_data', 'bug_reports', 'user_achievements', 'consent_audit_log'];
 const missing = required.filter((t) => !sql.includes(`public.${t}`));
 if (missing.length) {
   console.error('verify-supabase-schema-parity: Schema.sql missing tables:', missing.join(', '));

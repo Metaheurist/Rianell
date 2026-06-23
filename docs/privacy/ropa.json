@@ -80,6 +80,7 @@
         "rls_owner_policies",
         "user_keys_plaintext_risk_documented"
       ],
+      "supabase_tables": ["health_data", "user_keys", "user_achievements"],
       "international_transfers": true,
       "transfer_mechanism": "SCCs_via_supabase_dpa",
       "dpia_reference": "docs/privacy/dpia-health-sync.md",
@@ -94,7 +95,7 @@
       "legal_basis_art9": "explicit_consent_9_2_a",
       "data_categories": [
         "pseudonymous_health_derived_blob",
-        "medical_condition_label",
+        "medical_condition_sha256_hashed",
         "user_id_link"
       ],
       "data_subjects": ["contributing_users"],
@@ -112,8 +113,10 @@
       "security_measures": [
         "client_side_stripping_of_direct_identifiers",
         "encryption_before_upload",
-        "rls_owner_insert_select"
+        "rls_owner_insert_select",
+        "medical_condition_label_hashed_sha256"
       ],
+      "supabase_tables": ["anonymized_data"],
       "international_transfers": true,
       "transfer_mechanism": "SCCs_via_supabase_dpa",
       "dpia_reference": "docs/privacy/dpia-health-sync.md",
@@ -209,8 +212,10 @@
       "security_measures": [
         "insert_only_rls_for_public",
         "description_length_cap",
-        "no_public_select"
+        "no_public_select",
+        "cloudflare_waf_rate_limit_5_per_min"
       ],
+      "supabase_tables": ["bug_reports"],
       "international_transfers": true,
       "data_subject_rights": ["access", "erasure", "object"]
     },
@@ -297,8 +302,10 @@
       "security_measures": [
         "rls_owner_policies",
         "no_gps_ip_region_detection",
-        "profile_overwrites_local_on_login"
+        "profile_overwrites_local_on_login",
+        "consent_audit_log_immutable_insert_only"
       ],
+      "supabase_tables": ["user_privacy_profile", "consent_audit_log"],
       "international_transfers": true,
       "reference": "docs/privacy/region-policy-execution-plan.md",
       "data_subject_rights": ["access", "rectification", "erasure", "portability", "withdraw_consent"]
@@ -354,7 +361,7 @@
       "id": "GAP-01",
       "description": "user_keys.encryption_key stored as plaintext hex in Supabase",
       "mitigation_ref": "docs/crypto-roadmap.md",
-      "target_milestone": "v1.50"
+      "target_milestone": "v1.94"
     },
     {
       "id": "GAP-02",
@@ -364,7 +371,7 @@
     },
     {
       "id": "GAP-03",
-      "description": "anonymized_data retains user_id link",
+      "description": "anonymized_data retains user_id link; medical_condition stored as SHA-256 hash (v1.94+)",
       "mitigation_ref": "docs/privacy/dpia-health-sync.md",
       "target_milestone": "v1.50"
     }

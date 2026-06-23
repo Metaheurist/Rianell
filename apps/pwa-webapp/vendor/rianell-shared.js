@@ -67,6 +67,7 @@ var RianellShared = (() => {
     LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
     MAX_HOME_QUESTION_ANSWERS_PER_DAY: () => MAX_HOME_QUESTION_ANSWERS_PER_DAY,
     MAX_WEEK_CHAT_TURNS: () => MAX_WEEK_CHAT_TURNS,
+    MEDICAL_CONDITION_POOL_SALT: () => MEDICAL_CONDITION_POOL_SALT,
     MED_DOSE_FIRE_WINDOW_MS: () => MED_DOSE_FIRE_WINDOW_MS,
     MED_DOSE_SNOOZE_MINUTES: () => MED_DOSE_SNOOZE_MINUTES,
     MENTAL_HEALTH_DISCLAIMER_I18N: () => MENTAL_HEALTH_DISCLAIMER_I18N,
@@ -273,6 +274,7 @@ var RianellShared = (() => {
     getVisibleTrackingFields: () => getVisibleTrackingFields,
     hasEnabledMedSchedule: () => hasEnabledMedSchedule,
     hasLoggedToday: () => hasLoggedToday,
+    hashMedicalConditionLabel: () => hashMedicalConditionLabel,
     identity: () => identity,
     inferTreatmentStartsFromLogs: () => inferTreatmentStartsFromLogs,
     interpretGad2Score: () => interpretGad2Score,
@@ -320,6 +322,7 @@ var RianellShared = (() => {
     markAchievementNotified: () => markAchievementNotified,
     markAchievementSeen: () => markAchievementSeen,
     medDoseReminderNotificationId: () => medDoseReminderNotificationId,
+    medicalConditionForPoolStorage: () => medicalConditionForPoolStorage,
     mergeAchievementState: () => mergeAchievementState,
     mergeGad7Responses: () => mergeGad7Responses,
     mergeHealthLogs: () => mergeHealthLogs,
@@ -1223,7 +1226,7 @@ var RianellShared = (() => {
     "global-baseline": [
       "Rianell is a personal wellness tracker. Your health logs are stored on your device unless you turn on optional cloud backup.",
       "Optional features (encrypted cloud backup, anonymised research contribution, on-device AI, and optional session recording) each need separate consent. You can change or withdraw consent in Settings.",
-      "Session recording (Smartlook) is on by default after onboarding. You are notified during setup and can opt out immediately or later in Settings. When enabled, anonymised session data is used only for heatmaps and error tracking in the EU\u2014not for reviewing your health screens. You can turn it off at any time under Settings \u2192 Privacy.",
+      "Session recording (Smartlook) is on by default after onboarding. You are notified during setup and can opt out immediately or later in Settings. When enabled, anonymised session data is used only for heatmaps and error tracking in the EU-not for reviewing your health screens. You can turn it off at any time under Settings \u2192 Privacy.",
       "You can export your data or delete local and cloud copies at any time from Settings \u2192 Data options."
     ],
     "eu-gdpr": [
@@ -5354,10 +5357,24 @@ ${questionsBlock}
     const research_facets = buildResearchFacetsFromLog(log);
     return {
       user_id: opts.userId,
-      medical_condition: opts.medicalCondition,
+      medical_condition: opts.medicalConditionHash || opts.medicalCondition,
       anonymized_log: opts.encryptedLog,
       research_facets
     };
+  }
+
+  // packages/shared/src/research/medicalConditionHash.mjs
+  var MEDICAL_CONDITION_POOL_SALT = "rianell-anon-pool-v1";
+  async function hashMedicalConditionLabel(label) {
+    const text = String(label || "").trim().toLowerCase();
+    if (!text) return "";
+    const payload = `${MEDICAL_CONDITION_POOL_SALT}:${text}`;
+    const data = new TextEncoder().encode(payload);
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  async function medicalConditionForPoolStorage(label) {
+    return hashMedicalConditionLabel(label);
   }
 
   // packages/shared/src/crossCutting/weeklyReview.mjs
