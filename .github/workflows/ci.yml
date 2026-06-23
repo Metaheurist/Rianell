@@ -876,7 +876,7 @@ jobs:
               -t https://rianell.com/ -J /zap/wrk/zap-results.sarif -m 5 -I || true
       - name: Upload ZAP SARIF
         if: always() && hashFiles('zap-results.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         continue-on-error: true
         with:
           sarif_file: zap-results.sarif
