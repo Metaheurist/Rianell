@@ -55,7 +55,7 @@ export function buildAnonymizedInsertRow(log, opts) {
   const research_facets = buildResearchFacetsFromLog(log);
   return {
     user_id: opts.userId,
-    medical_condition: opts.medicalCondition,
+    medical_condition: opts.medicalConditionHash || opts.medicalCondition,
     anonymized_log: opts.encryptedLog,
     research_facets,
   };

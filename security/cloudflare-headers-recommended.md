@@ -157,6 +157,18 @@ Tune **`microphone`**, **`geolocation`**, and **`camera`** to match product need
 
 See also **[docs/infrastructure-and-security-edge.md](../docs/infrastructure-and-security-edge.md)** and **[SECURITY.md](../docs/SECURITY.md)** (CSP section).
 
+## Bug reports rate limiting (Supabase REST)
+
+`bug_reports` allows anonymous INSERT via RLS. Add a **Cloudflare WAF** custom rule:
+
+| Setting | Value |
+|---------|-------|
+| Expression | `(http.request.uri.path contains "/rest/v1/bug_reports")` |
+| Action | Block |
+| Rate | 5 requests per minute per IP |
+
+Document in incident response if abuse is detected.
+
 ## Artifact path redirect (post–architecture migration)
 
 After renaming **`artifacts/`** → **`artifacts/`** on GitHub Pages, apply a **Bulk Redirect** or **Redirect Rule** in Cloudflare:

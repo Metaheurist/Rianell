@@ -13,6 +13,10 @@ test('verify-sri-integrity passes', () => {
   execSync('node scripts/verify/verify-sri-integrity.mjs', { stdio: 'pipe' });
 });
 
+test('verify-ropa-drift passes', () => {
+  execSync('node scripts/verify/verify-ropa-drift.mjs', { stdio: 'pipe' });
+});
+
 test('verify-no-service-role-in-clients passes', () => {
   execSync('node scripts/verify/verify-no-service-role-in-clients.mjs', { stdio: 'pipe' });
 });

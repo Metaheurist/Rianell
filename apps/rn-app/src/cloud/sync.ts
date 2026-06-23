@@ -17,6 +17,7 @@ import {
   normalizePoolInsightsRpcResult,
   POOL_INSIGHT_MIN_K,
   isValidMedicalConditionForPool,
+  hashMedicalConditionLabel,
 } from '@rianell/shared';
 import { decryptJsonAesGcm, encryptJsonAesGcm } from '@rianell/cloud-sync';
 import { getSupabaseClient } from './supabaseClient';
@@ -296,6 +297,7 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
   if (!isValidMedicalConditionForPool(condition)) {
     return { ok: false, message: 'Set a medical condition first.' };
   }
+  const conditionStorageKey = await hashMedicalConditionLabel(condition);
 
   const logs = await loadLogs();
   if (!logs.length) return { ok: false, message: 'No logs to contribute.' };
@@ -304,7 +306,7 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
     .from('anonymized_data')
     .select('research_facets')
     .eq('user_id', user.id)
-    .eq('medical_condition', condition);
+    .eq('medical_condition', conditionStorageKey);
   const syncedDates = new Set(
     (existingRows || [])
       .map((row) => (row.research_facets as { date?: string } | null)?.date)
@@ -327,7 +329,7 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
       batch.push(
         buildAnonymizedInsertRow(log, {
           userId: user.id,
-          medicalCondition: condition,
+          medicalConditionHash: conditionStorageKey,
           encryptedLog: encrypted,
         }),
       );
@@ -404,7 +406,8 @@ export async function exportContributionHistory(): Promise<{ ok: boolean; messag
 export async function countPoolContributionDays(condition: string): Promise<number> {
   const client = getSupabaseClient();
   if (!client || !isValidMedicalConditionForPool(condition)) return 0;
-  const { data, error } = await client.rpc('count_pool_contribution_days', { p_condition: condition.trim() });
+  const storageKey = await hashMedicalConditionLabel(condition.trim());
+  const { data, error } = await client.rpc('count_pool_contribution_days', { p_condition: storageKey });
   if (error) return 0;
   return Number(data) || 0;
 }
@@ -434,8 +437,9 @@ export async function fetchPoolInsights(condition: string): Promise<{
 
   if (!client) return { ok: false, message: 'Cloud sync is not configured.', insights: empty };
 
+  const storageKey = await hashMedicalConditionLabel(condition.trim());
   const { data, error } = await client.rpc('get_k_anon_pool_insights', {
-    p_condition: condition.trim(),
+    p_condition: storageKey,
     p_k: POOL_INSIGHT_MIN_K,
   });
   if (error) return { ok: false, message: error.message, insights: empty };

@@ -128,6 +128,18 @@ CREATE TABLE IF NOT EXISTS public.user_achievements (
   CONSTRAINT user_achievements_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS public.consent_audit_log (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  user_id uuid NOT NULL,
+  consent_type text NOT NULL,
+  consent_version text NOT NULL DEFAULT 'v1.0.0',
+  accepted_at timestamp with time zone NOT NULL DEFAULT now(),
+  revoked_at timestamp with time zone,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  CONSTRAINT consent_audit_log_pkey PRIMARY KEY (id),
+  CONSTRAINT consent_audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id) ON DELETE CASCADE
+);
+
 -- =============================================================================
 -- §2 ROW LEVEL SECURITY
 -- =============================================================================
@@ -138,90 +150,91 @@ ALTER TABLE public.health_data ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bug_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.consent_audit_log ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "user_privacy_profile_select_own" ON public.user_privacy_profile;
 CREATE POLICY "user_privacy_profile_select_own"
   ON public.user_privacy_profile FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_privacy_profile_insert_own" ON public.user_privacy_profile;
 CREATE POLICY "user_privacy_profile_insert_own"
   ON public.user_privacy_profile FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_privacy_profile_update_own" ON public.user_privacy_profile;
 CREATE POLICY "user_privacy_profile_update_own"
   ON public.user_privacy_profile FOR UPDATE TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_privacy_profile_delete_own" ON public.user_privacy_profile;
 CREATE POLICY "user_privacy_profile_delete_own"
   ON public.user_privacy_profile FOR DELETE TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "anonymized_data_insert_own" ON public.anonymized_data;
 CREATE POLICY "anonymized_data_insert_own"
   ON public.anonymized_data FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "anonymized_data_select_own" ON public.anonymized_data;
 CREATE POLICY "anonymized_data_select_own"
   ON public.anonymized_data FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "anonymized_data_update_own" ON public.anonymized_data;
 CREATE POLICY "anonymized_data_update_own"
   ON public.anonymized_data FOR UPDATE TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "anonymized_data_delete_own" ON public.anonymized_data;
 CREATE POLICY "anonymized_data_delete_own"
   ON public.anonymized_data FOR DELETE TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "health_data_select_own" ON public.health_data;
 CREATE POLICY "health_data_select_own"
   ON public.health_data FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "health_data_insert_own" ON public.health_data;
 CREATE POLICY "health_data_insert_own"
   ON public.health_data FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "health_data_update_own" ON public.health_data;
 CREATE POLICY "health_data_update_own"
   ON public.health_data FOR UPDATE TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "health_data_delete_own" ON public.health_data;
 CREATE POLICY "health_data_delete_own"
   ON public.health_data FOR DELETE TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_keys_select_own" ON public.user_keys;
 CREATE POLICY "user_keys_select_own"
   ON public.user_keys FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_keys_insert_own" ON public.user_keys;
 CREATE POLICY "user_keys_insert_own"
   ON public.user_keys FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_keys_update_own" ON public.user_keys;
 CREATE POLICY "user_keys_update_own"
   ON public.user_keys FOR UPDATE TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_keys_delete_own" ON public.user_keys;
 CREATE POLICY "user_keys_delete_own"
   ON public.user_keys FOR DELETE TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "bug_reports_insert_public" ON public.bug_reports;
 CREATE POLICY "bug_reports_insert_public"
@@ -231,28 +244,40 @@ CREATE POLICY "bug_reports_insert_public"
 DROP POLICY IF EXISTS "bug_reports_select_own" ON public.bug_reports;
 CREATE POLICY "bug_reports_select_own"
   ON public.bug_reports FOR SELECT TO authenticated
-  USING (user_id IS NOT NULL AND auth.uid() = user_id);
+  USING (user_id IS NOT NULL AND (select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_achievements_select_own" ON public.user_achievements;
 CREATE POLICY "user_achievements_select_own"
   ON public.user_achievements FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_achievements_insert_own" ON public.user_achievements;
 CREATE POLICY "user_achievements_insert_own"
   ON public.user_achievements FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_achievements_update_own" ON public.user_achievements;
 CREATE POLICY "user_achievements_update_own"
   ON public.user_achievements FOR UPDATE TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "user_achievements_delete_own" ON public.user_achievements;
 CREATE POLICY "user_achievements_delete_own"
   ON public.user_achievements FOR DELETE TO authenticated
-  USING (auth.uid() = user_id);
+  USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "consent_audit_log_insert_own" ON public.consent_audit_log;
+CREATE POLICY "consent_audit_log_insert_own"
+  ON public.consent_audit_log FOR INSERT TO authenticated
+  WITH CHECK ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "consent_audit_log_select_own" ON public.consent_audit_log;
+CREATE POLICY "consent_audit_log_select_own"
+  ON public.consent_audit_log FOR SELECT TO authenticated
+  USING ((select auth.uid()) = user_id);
+
+-- Immutable audit trail: no UPDATE or DELETE policies for consent_audit_log
 
 -- =============================================================================
 -- §3 GRANTS + GRAPHQL HARDENING (Security Advisor lints 0026/0027)
@@ -267,6 +292,8 @@ REVOKE ALL ON public.bug_reports FROM anon;
 
 REVOKE ALL ON public.user_achievements FROM anon;
 
+REVOKE ALL ON public.consent_audit_log FROM anon;
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_privacy_profile TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.anonymized_data TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.health_data TO authenticated;
@@ -274,6 +301,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_keys TO authenticated;
 GRANT INSERT ON public.bug_reports TO anon, authenticated;
 GRANT SELECT ON public.bug_reports TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_achievements TO authenticated;
+GRANT SELECT, INSERT ON public.consent_audit_log TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
 
@@ -312,7 +340,8 @@ BEGIN
       avg((research_facets->>'sleep')::numeric) AS avg_sleep,
       avg(CASE WHEN (research_facets->>'flare')::int = 1 THEN 1.0 ELSE 0.0 END) AS flare_rate
     FROM anonymized_data
-    WHERE lower(medical_condition) = lower(trim(p_condition))
+    WHERE medical_condition = trim(p_condition)
+       OR lower(medical_condition) = lower(trim(p_condition))
       AND research_facets IS NOT NULL
       AND research_facets ? 'sleep'
     GROUP BY user_id
@@ -369,7 +398,8 @@ SET search_path = public
 AS $$
   SELECT count(*)::integer
   FROM anonymized_data
-  WHERE lower(medical_condition) = lower(trim(p_condition))
+  WHERE medical_condition = trim(p_condition)
+     OR lower(medical_condition) = lower(trim(p_condition))
     AND research_facets IS NOT NULL;
 $$;
 
@@ -377,18 +407,68 @@ REVOKE ALL ON FUNCTION public.count_pool_contribution_days(text) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION public.count_pool_contribution_days(text) FROM anon;
 GRANT EXECUTE ON FUNCTION public.count_pool_contribution_days(text) TO authenticated;
 
+-- =============================================================================
+-- §4b GDPR Art. 17 — delete all user-linked rows (service role or self via RPC)
+-- =============================================================================
+
+CREATE OR REPLACE FUNCTION public.delete_all_user_data(p_user_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF p_user_id IS NULL THEN
+    RAISE EXCEPTION 'delete_all_user_data: p_user_id required';
+  END IF;
+
+  DELETE FROM public.consent_audit_log WHERE user_id = p_user_id;
+  DELETE FROM public.anonymized_data WHERE user_id = p_user_id;
+  DELETE FROM public.health_data WHERE user_id = p_user_id;
+  DELETE FROM public.user_keys WHERE user_id = p_user_id;
+  DELETE FROM public.user_privacy_profile WHERE user_id = p_user_id;
+  DELETE FROM public.user_achievements WHERE user_id = p_user_id;
+  DELETE FROM public.bug_reports WHERE user_id = p_user_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.delete_all_user_data(uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.delete_all_user_data(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION public.delete_all_user_data(uuid) TO authenticated, service_role;
+
 COMMIT;
 
 -- =============================================================================
 -- §5 POST-APPLY VERIFICATION — run after §1–§4 succeed (select this block + Run)
 -- =============================================================================
--- Expected: 6 tables, all rowsecurity = true, 2 RPCs, research_facets column present.
+-- Expected: 7 tables (+ consent_audit_log), all rowsecurity = true, pool RPCs + delete_all_user_data.
+
+-- CVE-2025-48757 audit (PostgREST RLS exposure): no public table without RLS
+SELECT 'cve_rls' AS check_type, c.relname AS name,
+  CASE WHEN c.relrowsecurity THEN 'ok' ELSE 'FAIL' END AS status
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind = 'r'
+  AND c.relname IN (
+    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys',
+    'bug_reports', 'user_achievements', 'consent_audit_log'
+  )
+ORDER BY c.relname;
+
+-- CVE-2025-48757: anon must not have SELECT on user health tables
+SELECT 'cve_anon_select' AS check_type, table_name AS name,
+  CASE WHEN count(*) = 0 THEN 'ok' ELSE 'FAIL' END AS status
+FROM information_schema.role_table_grants
+WHERE grantee = 'anon' AND table_schema = 'public'
+  AND privilege_type = 'SELECT'
+  AND table_name IN ('health_data', 'user_keys', 'anonymized_data', 'user_privacy_profile', 'user_achievements', 'consent_audit_log')
+GROUP BY table_name;
 
 SELECT 'tables' AS check_type, table_name AS name, 'ok' AS status
 FROM information_schema.tables
 WHERE table_schema = 'public'
   AND table_name IN (
-    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports', 'user_achievements'
+    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports', 'user_achievements', 'consent_audit_log'
   )
 ORDER BY table_name;
 
@@ -397,7 +477,7 @@ SELECT 'rls_enabled' AS check_type, tablename AS name,
 FROM pg_tables
 WHERE schemaname = 'public'
   AND tablename IN (
-    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports', 'user_achievements'
+    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports', 'user_achievements', 'consent_audit_log'
   )
 ORDER BY tablename;
 
@@ -411,7 +491,7 @@ SELECT 'rpc' AS check_type, proname AS name, 'ok' AS status
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
-  AND proname IN ('get_k_anon_pool_insights', 'count_pool_contribution_days')
+  AND proname IN ('get_k_anon_pool_insights', 'count_pool_contribution_days', 'delete_all_user_data')
 ORDER BY proname;
 
 SELECT 'column' AS check_type, 'anonymized_data.research_facets' AS name,
