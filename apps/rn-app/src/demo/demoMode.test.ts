@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOGS_STORAGE_KEY_V1 } from '@rianell/shared';
 import { clearDemoBackup, disableDemoMode, enableDemoMode, refreshDemoModeLogsOnLaunch } from './demoMode';
+import { loadLogs } from '../storage/logs';
 
 const mockMem = new Map<string, string>();
+const secureMem = new Map<string, string>();
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
@@ -17,20 +19,38 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
-function readLogs() {
-  const raw = mockMem.get(LOGS_STORAGE_KEY_V1);
-  return raw ? (JSON.parse(raw) as Array<{ date: string }>) : [];
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(async (k: string) => (secureMem.has(k) ? secureMem.get(k)! : null)),
+  setItemAsync: jest.fn(async (k: string, v: string) => {
+    secureMem.set(k, v);
+  }),
+  deleteItemAsync: jest.fn(async (k: string) => {
+    secureMem.delete(k);
+  }),
+}));
+
+jest.mock('expo-crypto', () => ({
+  getRandomBytesAsync: jest.fn(async (n: number) => {
+    const out = new Uint8Array(n);
+    for (let i = 0; i < n; i++) out[i] = (i * 17 + 3) % 256;
+    return out;
+  }),
+}));
+
+async function readLogs() {
+  return loadLogs();
 }
 
 beforeEach(() => {
   mockMem.clear();
+  secureMem.clear();
   jest.clearAllMocks();
 });
 
 test('enable demo mode backs up current logs and writes demo logs', async () => {
   mockMem.set(LOGS_STORAGE_KEY_V1, JSON.stringify([{ date: '2026-01-01', flare: 'No' }]));
   await enableDemoMode();
-  const logs = readLogs();
+  const logs = await readLogs();
   expect(logs.length).toBe(90);
   expect(logs[0]?.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   expect(mockMem.get('rianell.logs.backup.beforeDemo.v1')).toContain('2026-01-01');
@@ -40,7 +60,7 @@ test('disable demo mode restores backup logs', async () => {
   mockMem.set('rianell.logs.backup.beforeDemo.v1', JSON.stringify([{ date: '2026-02-02', flare: 'No' }]));
   mockMem.set(LOGS_STORAGE_KEY_V1, JSON.stringify([{ date: '2026-03-03', flare: 'Yes' }]));
   await disableDemoMode();
-  const logs = readLogs();
+  const logs = await readLogs();
   expect(logs).toHaveLength(1);
   expect(logs[0]?.date).toBe('2026-02-02');
   expect(await AsyncStorage.getItem('rianell.logs.backup.beforeDemo.v1')).toBeNull();
@@ -49,7 +69,7 @@ test('disable demo mode restores backup logs', async () => {
 test('refresh demo mode rewrites logs without touching backup', async () => {
   mockMem.set('rianell.logs.backup.beforeDemo.v1', JSON.stringify([{ date: '2026-04-04', flare: 'No' }]));
   await refreshDemoModeLogsOnLaunch();
-  expect(readLogs()).toHaveLength(90);
+  expect((await readLogs()).length).toBe(90);
   expect(mockMem.get('rianell.logs.backup.beforeDemo.v1')).toContain('2026-04-04');
 });
 

@@ -17366,10 +17366,12 @@ function loadSettingsState() {
   const demoModeToggle = document.getElementById('demoModeToggle');
   if (demoModeToggle) {
     demoModeToggle.classList.toggle('active', !!appSettings.demoMode);
+    demoModeToggle.setAttribute('aria-checked', appSettings.demoMode ? 'true' : 'false');
     demoModeToggle.style.opacity = '1';
     demoModeToggle.style.cursor = 'pointer';
     demoModeToggle.style.pointerEvents = 'auto';
   }
+  if (typeof updateDemoModeBadge === 'function') updateDemoModeBadge();
 
   var cycleModuleToggle = document.getElementById('cycleModuleToggle');
   if (cycleModuleToggle) cycleModuleToggle.classList.toggle('active', !!appSettings.cycleModuleEnabled);

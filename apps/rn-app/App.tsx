@@ -10,6 +10,7 @@ import {
 } from '@rianell/shared';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { syncEngagementNotifications } from './src/notifications/smartReminderSync';
 import {
   getDefaultPreferences,
@@ -198,12 +199,14 @@ export default function App() {
       <ThemeProvider prefs={prefs}>
         <I18nProvider prefs={prefs} onLocaleChange={setPrefs}>
           <ToastProvider>
-            <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
-              <AppLockGate enabled={prefs.appLockEnabled}>
-                <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
-                <GoalsModalHost prefs={prefs} onChangePrefs={setPrefs} />
-              </AppLockGate>
-            </AiModelDownloadGate>
+            <ErrorBoundary>
+              <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
+                <AppLockGate enabled={prefs.appLockEnabled}>
+                  <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+                  <GoalsModalHost prefs={prefs} onChangePrefs={setPrefs} />
+                </AppLockGate>
+              </AiModelDownloadGate>
+            </ErrorBoundary>
             {prefs.replayTutorial ? (
               <TutorialModal
                 prefs={prefs}

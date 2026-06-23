@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOGS_STORAGE_KEY_V1, LOGS_STORAGE_KEY_MOBILE_LEGACY, normalizeLogEntry, createSampleLogEntry, mergeLogEntriesForDate } from '@rianell/shared';
 import { backupLogs, compressLogsIfEnabled } from './backup';
+import { decryptLogsEnvelope, encryptLogsEnvelope } from './logsAesGcm';
 
 export type LogEntry = ReturnType<typeof normalizeLogEntry>;
 
@@ -13,7 +14,7 @@ export async function loadLogs(): Promise<LogEntry[]> {
   const raw = await AsyncStorage.getItem(LOGS_STORAGE_KEY_V1);
   if (!raw) return [];
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = await decryptLogsEnvelope<unknown>(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed.map((x) => normalizeLogEntry(x));
   } catch {
@@ -22,7 +23,8 @@ export async function loadLogs(): Promise<LogEntry[]> {
 }
 
 export async function saveLogs(logs: LogEntry[]): Promise<void> {
-  await AsyncStorage.setItem(LOGS_STORAGE_KEY_V1, JSON.stringify(logs));
+  const envelope = await encryptLogsEnvelope(logs);
+  await AsyncStorage.setItem(LOGS_STORAGE_KEY_V1, envelope);
 }
 
 export async function persistLogs(logs: LogEntry[], opts?: PersistLogsOptions): Promise<void> {
@@ -71,7 +73,7 @@ export async function migrateLegacyLogsIfNeeded(): Promise<void> {
     const parsed = JSON.parse(legacy);
     if (!Array.isArray(parsed)) return;
     const normalized = parsed.map((x) => normalizeLogEntry(x));
-    await AsyncStorage.setItem(LOGS_STORAGE_KEY_V1, JSON.stringify(normalized));
+    await saveLogs(normalized);
   } catch {
     // ignore
   }
@@ -94,4 +96,3 @@ export function getFrequentLogItems(logs: LogEntry[], key: 'symptoms' | 'stresso
     .slice(0, limit)
     .map(([item]) => item);
 }
-

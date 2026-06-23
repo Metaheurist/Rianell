@@ -15,18 +15,9 @@ function settingsOverlaySetOpen(overlay, open, deps) {
   if (!overlay) return;
   if (open) {
     overlay.dataset.settingsState = 'opening';
-    document.body.style.overflow = 'hidden';
-    overlay.style.display = 'block';
-    overlay.style.visibility = 'visible';
-    overlay.style.position = 'fixed';
-    overlay.style.top = '0';
-    overlay.style.left = '0';
-    overlay.style.right = '0';
-    overlay.style.bottom = '0';
-    overlay.style.width = '100vw';
-    overlay.style.height = '100vh';
-    overlay.style.zIndex = '99999';
-    document.body.classList.add('modal-active');
+    document.body.classList.add('settings-modal-open', 'modal-active');
+    overlay.classList.add('settings-overlay--visible');
+    overlay.classList.remove('settings-overlay--hidden');
     requestAnimationFrame(function () {
       overlay.classList.add('settings-overlay--open');
       overlay.dataset.settingsState = 'open';
@@ -45,11 +36,10 @@ function settingsOverlaySetOpen(overlay, open, deps) {
       cleaned = true;
       overlay.removeEventListener('transitionend', onEnd);
       if (t) clearTimeout(t);
-      overlay.style.display = 'none';
-      overlay.style.visibility = 'hidden';
+      overlay.classList.remove('settings-overlay--visible', 'settings-overlay--open');
+      overlay.classList.add('settings-overlay--hidden');
       delete overlay.dataset.settingsState;
-      document.body.classList.remove('modal-active');
-      document.body.style.overflow = '';
+      document.body.classList.remove('modal-active', 'settings-modal-open');
     }
     var onEnd = function (e) {
       if (e.target !== overlay) return;
@@ -76,16 +66,7 @@ export function installSettingsEarlyPlaceholder(deps) {
       }
       settingsOverlaySetOpen(overlay, true, deps);
       const menu = overlay.querySelector('.settings-menu');
-      if (menu) {
-        menu.style.position = 'fixed';
-        menu.style.top = '50%';
-        menu.style.left = '50%';
-        menu.style.right = 'auto';
-        menu.style.bottom = 'auto';
-        menu.style.zIndex = '100000';
-        menu.style.display = 'flex';
-        menu.style.visibility = 'visible';
-      }
+      if (menu) menu.classList.add('settings-menu--ready');
     }
   };
 }
@@ -362,11 +343,10 @@ export function installSettingsModule(deps) {
   }
 
   function settingsOverlayDoCloseCleanup(overlay, onDone) {
-    overlay.style.display = 'none';
-    overlay.style.visibility = 'hidden';
+    overlay.classList.remove('settings-overlay--visible', 'settings-overlay--open');
+    overlay.classList.add('settings-overlay--hidden');
     delete overlay.dataset.settingsState;
-    document.body.classList.remove('modal-active');
-    document.body.style.overflow = '';
+    document.body.classList.remove('modal-active', 'settings-modal-open');
     if (onDone) onDone();
   }
 
@@ -415,34 +395,12 @@ export function installSettingsModule(deps) {
       }
       overlay.dataset.settingsState = 'opening';
       _settingsPreviousActiveElement = document.activeElement;
-      document.body.style.overflow = 'hidden';
+      document.body.classList.add('settings-modal-open', 'modal-active');
       window.scrollTo(0, 0);
-      overlay.style.position = 'fixed';
-      overlay.style.top = '0';
-      overlay.style.left = '0';
-      overlay.style.right = '0';
-      overlay.style.bottom = '0';
-      overlay.style.width = '100vw';
-      overlay.style.height = '100vh';
-      overlay.style.margin = '0';
-      overlay.style.padding = '0';
-      overlay.style.display = 'block';
-      overlay.style.visibility = 'visible';
-      overlay.style.zIndex = '99999';
-      document.body.classList.add('modal-active');
+      overlay.classList.add('settings-overlay--visible');
+      overlay.classList.remove('settings-overlay--hidden');
       const menu = overlay.querySelector('.settings-menu');
-      if (menu) {
-        menu.style.position = 'fixed';
-        menu.style.top = '50%';
-        menu.style.left = '50%';
-        menu.style.right = 'auto';
-        menu.style.bottom = 'auto';
-        menu.style.margin = '0';
-        menu.style.padding = '0';
-        menu.style.zIndex = '100000';
-        menu.style.visibility = 'visible';
-        menu.style.display = 'flex';
-      }
+      if (menu) menu.classList.add('settings-menu--ready');
       if (typeof loadSettingsState === 'function') loadSettingsState();
       if (typeof window.RianellPrivacy !== 'undefined' && typeof window.RianellPrivacy.renderSettingsPane === 'function') {
         window.RianellPrivacy.renderSettingsPane();

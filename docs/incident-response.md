@@ -1,8 +1,8 @@
 # Incident response plan
 
 **Product:** Rianell  
-**Last updated:** 2026-06-13  
-**Related:** [threat-model.md](threat-model.md) · [SECURITY.md](SECURITY.md) · [rotation-runbook.md](../security/rotation-runbook.md) · [privacy/eu-gdpr.md](privacy/eu-gdpr.md)
+**Last updated:** 2026-06-23  
+**Related:** [threat-model.md](threat-model.md) · [SECURITY.md](SECURITY.md) · [rotation-runbook.md](../security/rotation-runbook.md) · [privacy/eu-gdpr.md](privacy/eu-gdpr.md) · [compliance/launch-checklist.md](compliance/launch-checklist.md)
 
 ---
 
@@ -241,3 +241,16 @@ Use the same forensic packet as GDPR; map fields to OAIC form sections (identity
 | T+90 | Post-mortem actions → threat-model backlog |
 
 Log exercise date in [security-hardening-execution-log.md](security-hardening-execution-log.md).
+
+---
+
+## 11. Launch audit alignment (Phases 3–8)
+
+Use [compliance/launch-checklist.md](compliance/launch-checklist.md) before public beta. Incident playbooks must cover:
+
+| Launch control | Incident hook |
+|----------------|---------------|
+| Cloudflare WAF on `bug_reports` | P2 spam → rate-limit rule in [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md) |
+| Smartlook opt-in | P3 misconfiguration → revoke SDK init; Art. 6 consent basis in [smartlook-session-recording.md](privacy/smartlook-session-recording.md) |
+| pg_cron retention | Data minimization evidence for erasure audits — `Schema.sql` §6 |
+| RN encrypted logs | Stolen-device scenario — [android-hardening.md](compliance/android-hardening.md) |
