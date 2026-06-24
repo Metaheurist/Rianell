@@ -3378,7 +3378,11 @@ function escapeHTML(str) {
 }
 
 function svgIcon(name, className, title) {
+  var KNOWN_SVG_ICONS = new Set([
+    'target', 'medal', 'food', 'run', 'pill', 'lock', 'calendar', 'sleep', 'cycle', 'star', 'check',
+  ]);
   var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
+  if (!KNOWN_SVG_ICONS.has(safeName)) safeName = 'target';
   var cls = className || 'ui-svg-icon';
   var label = title ? ' role="img" aria-label="' + escapeAttr(title) + '"' : ' aria-hidden="true"';
   return '<svg class="' + cls + '"' + label + '><use href="#icon-' + safeName + '"></use></svg>';
@@ -9805,9 +9809,9 @@ function buildHydrationGoalsNumsHtml(avgGlasses, goalGlasses) {
   return '<span class="goals-metric-nums goals-hydration-nums" aria-label="' + aria + '">' +
     '<span class="goals-hydration-line">' +
     '<span class="goals-hydration-avg" data-count-target="' + avg + '">0</span>' +
-    '<span class="goals-hydration-slash"> / </span>' +
+    '<span class="goals-hydration-slash" aria-hidden="true">/</span>' +
     '<span class="goals-hydration-target">' + goalStr + '</span>' +
-    '<span class="goals-hydration-unit"> ' + glassesWord + '</span>' +
+    '<span class="goals-hydration-unit">' + glassesWord + '</span>' +
     '</span>' +
     '<span class="goals-hydration-liters" aria-hidden="true">' + litersLine + '</span>' +
     '</span>';
@@ -9868,7 +9872,11 @@ function saveAchievementState(state) {
       appSettings.achievements = normalized;
       if (typeof saveSettings === 'function') saveSettings();
     }
-  } catch (e) {}
+  } catch (e) {
+    if (e && (e.name === 'QuotaExceededError' || e.code === 22)) {
+      console.warn('Achievement state not saved: localStorage quota exceeded');
+    }
+  }
   if (typeof syncAchievementsToCloud === 'function') {
     clearTimeout(_achievementTickTimer);
     _achievementTickTimer = setTimeout(function () {
@@ -9888,21 +9896,38 @@ function computeCurrentAchievementSnapshots() {
 function renderAchievementsPane() {
   var grid = document.getElementById('achievementsGrid');
   if (!grid) return;
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
   var result = computeCurrentAchievementSnapshots();
   var snapshots = result.snapshots || [];
+  var totalCount = S && S.ALL_ACHIEVEMENTS ? S.ALL_ACHIEVEMENTS.length : snapshots.length;
+  var unlockedCount = snapshots.filter(function (s) { return s.unlocked; }).length;
   var t = typeof tUi === 'function' ? tUi : function (k) { return k; };
-  grid.innerHTML = snapshots.map(function (s) {
-    var title = t(s.i18nTitle);
-    var desc = t(s.i18nDescription);
-    var statusKey = s.unlocked ? 'achievements.unlocked' : 'achievements.locked';
+  var counterText = t('achievements.completionCounter')
+    .replace('{unlocked}', String(unlockedCount))
+    .replace('{total}', String(totalCount));
+  var counterHtml =
+    '<div class="achievements-counter">' +
+      '<span class="achievements-counter__unlocked">' + unlockedCount + '</span>' +
+      '<span class="achievements-counter__total"> / ' + totalCount + ' ' + escapeHTML(t('achievements.title')) + '</span>' +
+      '<p class="achievements-counter__label">' + escapeHTML(counterText) + '</p>' +
+    '</div>';
+  grid.innerHTML = counterHtml + snapshots.map(function (s) {
+    var title = escapeHTML(t(s.i18nTitle));
+    var desc = escapeHTML(t(s.i18nDescription));
     var progressText = s.unlocked
-      ? t('achievements.unlocked')
-      : t('achievements.progress').replace('{days}', String(s.daysElapsed)).replace('{required}', String(s.requiredDays));
+      ? escapeHTML(t('achievements.unlocked'))
+      : escapeHTML(t('achievements.progress').replace('{days}', String(s.daysElapsed)).replace('{required}', String(s.requiredDays)));
+    var percentText = escapeHTML(t('achievements.progressPercent').replace('{percent}', String(Math.round(s.progress * 100))));
     var iconCls = s.unlocked ? 'achievement-icon--unlocked' : 'achievement-icon--locked';
     var pillCls = s.unlocked ? 'achievement-status-pill--unlocked' : 'achievement-status-pill--locked';
-    var lockSvg = s.unlocked ? '' : '<svg class="achievement-lock-badge ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>';
+    var cardCls = s.unlocked ? 'achievement-card achievement-card--unlocked' : 'achievement-card';
+    var tierCls = 'achievement-tier-badge achievement-tier-badge--' + String(s.tier || 'bronze');
+    var lockSvg = s.unlocked
+      ? '<svg class="achievement-lock-badge ui-svg-icon achievement-check-badge" aria-hidden="true"><use href="#icon-check"></use></svg>'
+      : '<svg class="achievement-lock-badge ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>';
+    var fillWidth = s.unlocked ? '100' : String(Math.round(s.progress * 100));
     return (
-      '<article class="achievement-card" data-achievement-id="' + s.id + '">' +
+      '<article class="' + cardCls + '" data-achievement-id="' + escapeHTML(s.id) + '" data-tier="' + escapeHTML(s.tier || '') + '">' +
         '<div class="achievement-icon-wrap" style="--achievement-progress:' + s.progress + '">' +
           '<div class="achievement-icon-inner ' + iconCls + '">' +
             svgIcon(s.icon, 'ui-svg-icon') +
@@ -9910,13 +9935,31 @@ function renderAchievementsPane() {
           '</div>' +
         '</div>' +
         '<div class="achievement-card-body">' +
-          '<h4 class="achievement-card-title">' + title + '</h4>' +
+          '<div class="achievement-card-title-row">' +
+            '<h4 class="achievement-card-title">' + title + '</h4>' +
+            '<span class="' + tierCls + '">' + escapeHTML(String(s.tier || '')) + '</span>' +
+          '</div>' +
           '<p class="achievement-card-desc">' + desc + '</p>' +
+          '<div class="achievement-progress-row">' +
+            '<div class="achievement-progress-track">' +
+              '<div class="achievement-progress-fill" style="width:' + fillWidth + '%" data-progress="' + fillWidth + '"></div>' +
+            '</div>' +
+            '<span class="achievement-progress-percent">' + percentText + '</span>' +
+          '</div>' +
           '<span class="achievement-status-pill ' + pillCls + '">' + progressText + '</span>' +
         '</div>' +
       '</article>'
     );
   }).join('');
+  requestAnimationFrame(function () {
+    grid.querySelectorAll('.achievement-progress-fill').forEach(function (el) {
+      var target = el.getAttribute('data-progress') || '0';
+      el.style.width = '0%';
+      requestAnimationFrame(function () {
+        el.style.width = target + '%';
+      });
+    });
+  });
 }
 
 async function mergeAchievementsFromCloudIfNeeded() {
@@ -9936,15 +9979,76 @@ function fireAchievementUnlockNotifications(newlyUnlocked) {
       var gate = S.shouldFireAchievementUnlockNotification(snap, { notificationsEnabled: notificationsOn });
       if (!gate.fire) return;
     }
-    if (S && typeof S.buildAchievementUnlockNotificationContent === 'function' && typeof NotificationManager !== 'undefined') {
+    if (S && typeof S.buildAchievementUnlockNotificationContent === 'function') {
       var content = S.buildAchievementUnlockNotificationContent(snap.id, t);
-      NotificationManager.showNotification(content.title, content.body, content.url || '/?quick=true');
+      if (typeof NotificationManager !== 'undefined') {
+        NotificationManager.showNotification(content.title, content.body, content.url || '/?quick=true');
+      }
+      if (typeof showAchievementToast === 'function') {
+        showAchievementToast({ id: snap.id, title: content.title, body: content.body });
+      }
     }
     if (S && typeof S.markAchievementNotified === 'function') {
       state = S.markAchievementNotified(state, snap.id);
     }
   });
   if (newlyUnlocked.length) saveAchievementState(state);
+}
+
+var _achievementToastDismissTimer = null;
+
+function ensureAchievementToastPresenter() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || typeof S.registerAchievementToastPresenter !== 'function') return;
+  if (window._achievementToastPresenterBound) return;
+  window._achievementToastPresenterBound = true;
+  S.registerAchievementToastPresenter(function (item) {
+    var toast = document.getElementById('achievementToast');
+    if (!toast) {
+      if (S.markAchievementToastDismissed) S.markAchievementToastDismissed();
+      return;
+    }
+    var titleEl = toast.querySelector('.achievement-toast__title');
+    var bodyEl = toast.querySelector('.achievement-toast__message');
+    var actionBtn = toast.querySelector('.achievement-toast__action');
+    if (titleEl) titleEl.textContent = item.title || '';
+    if (bodyEl) bodyEl.textContent = item.body || '';
+    if (actionBtn) {
+      actionBtn.textContent = typeof tUi === 'function' ? tUi('achievements.toast.view') : 'View';
+      actionBtn.onclick = function () {
+        dismissAchievementToast();
+        if (typeof openGoalsModal === 'function') openGoalsModal(1);
+      };
+    }
+    toast.removeAttribute('hidden');
+    toast.classList.add('achievement-toast--visible');
+    if (_achievementToastDismissTimer) clearTimeout(_achievementToastDismissTimer);
+    _achievementToastDismissTimer = setTimeout(dismissAchievementToast, 4000);
+  });
+}
+
+function dismissAchievementToast() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  var toast = document.getElementById('achievementToast');
+  if (toast) {
+    toast.classList.remove('achievement-toast--visible');
+    toast.setAttribute('hidden', '');
+  }
+  if (_achievementToastDismissTimer) {
+    clearTimeout(_achievementToastDismissTimer);
+    _achievementToastDismissTimer = null;
+  }
+  if (S && typeof S.markAchievementToastDismissed === 'function') {
+    S.markAchievementToastDismissed();
+  }
+}
+
+function showAchievementToast(item) {
+  ensureAchievementToastPresenter();
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.enqueueAchievementToast === 'function') {
+    S.enqueueAchievementToast(item);
+  }
 }
 
 function tickAchievements() {
@@ -9970,6 +10074,9 @@ if (typeof window !== 'undefined') {
   window.renderAchievementsPane = renderAchievementsPane;
   window.tickAchievements = tickAchievements;
   window.initAchievementsOnBoot = initAchievementsOnBoot;
+  window.showAchievementToast = showAchievementToast;
+  window.dismissAchievementToast = dismissAchievementToast;
+  ensureAchievementToastPresenter();
 }
 
 function openGoalsModal(paneIndex) {
