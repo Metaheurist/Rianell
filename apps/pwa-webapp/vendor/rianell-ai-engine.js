@@ -718,6 +718,148 @@ var RianellAIEngine = (() => {
   var PHQ9_FOLLOWUP_QUESTIONS = PHQ9_QUESTIONS.slice(2);
   var GAD7_FOLLOWUP_QUESTIONS = GAD7_QUESTIONS.slice(2);
 
+  // packages/shared/src/achievements/achievements.mjs
+  var LOGGING_ACHIEVEMENTS = [
+    {
+      id: "food_logging",
+      category: "food",
+      icon: "food",
+      tier: "bronze",
+      kind: "logging",
+      i18nTitle: "achievements.food.title",
+      i18nDescription: "achievements.food.description",
+      i18nNotificationTitle: "achievements.food.notificationTitle",
+      i18nNotificationBody: "achievements.food.notificationBody"
+    },
+    {
+      id: "exercise_logging",
+      category: "exercise",
+      icon: "run",
+      tier: "silver",
+      kind: "logging",
+      i18nTitle: "achievements.exercise.title",
+      i18nDescription: "achievements.exercise.description",
+      i18nNotificationTitle: "achievements.exercise.notificationTitle",
+      i18nNotificationBody: "achievements.exercise.notificationBody"
+    },
+    {
+      id: "medication_logging",
+      category: "medications",
+      icon: "pill",
+      tier: "gold",
+      kind: "logging",
+      i18nTitle: "achievements.medication.title",
+      i18nDescription: "achievements.medication.description",
+      i18nNotificationTitle: "achievements.medication.notificationTitle",
+      i18nNotificationBody: "achievements.medication.notificationBody"
+    }
+  ];
+  var MILESTONE_ACHIEVEMENTS = [
+    {
+      id: "milestone_3",
+      category: "milestone",
+      icon: "calendar",
+      tier: "bronze",
+      kind: "milestone",
+      requiredDays: 3,
+      i18nTitle: "achievements.milestone3.title",
+      i18nDescription: "achievements.milestone3.description",
+      i18nNotificationTitle: "achievements.milestone3.notificationTitle",
+      i18nNotificationBody: "achievements.milestone3.notificationBody"
+    },
+    {
+      id: "milestone_30",
+      category: "milestone",
+      icon: "calendar",
+      tier: "silver",
+      kind: "milestone",
+      requiredDays: 30,
+      i18nTitle: "achievements.milestone30.title",
+      i18nDescription: "achievements.milestone30.description",
+      i18nNotificationTitle: "achievements.milestone30.notificationTitle",
+      i18nNotificationBody: "achievements.milestone30.notificationBody"
+    },
+    {
+      id: "milestone_60",
+      category: "milestone",
+      icon: "calendar",
+      tier: "silver",
+      kind: "milestone",
+      requiredDays: 60,
+      i18nTitle: "achievements.milestone60.title",
+      i18nDescription: "achievements.milestone60.description",
+      i18nNotificationTitle: "achievements.milestone60.notificationTitle",
+      i18nNotificationBody: "achievements.milestone60.notificationBody"
+    },
+    {
+      id: "milestone_90",
+      category: "milestone",
+      icon: "calendar",
+      tier: "gold",
+      kind: "milestone",
+      requiredDays: 90,
+      i18nTitle: "achievements.milestone90.title",
+      i18nDescription: "achievements.milestone90.description",
+      i18nNotificationTitle: "achievements.milestone90.notificationTitle",
+      i18nNotificationBody: "achievements.milestone90.notificationBody"
+    },
+    {
+      id: "milestone_180",
+      category: "milestone",
+      icon: "calendar",
+      tier: "platinum",
+      kind: "milestone",
+      requiredDays: 180,
+      i18nTitle: "achievements.milestone180.title",
+      i18nDescription: "achievements.milestone180.description",
+      i18nNotificationTitle: "achievements.milestone180.notificationTitle",
+      i18nNotificationBody: "achievements.milestone180.notificationBody"
+    }
+  ];
+  var ENGAGEMENT_ACHIEVEMENTS = [
+    {
+      id: "sleep_pioneer",
+      category: "engagement",
+      unlockCategory: "sleep",
+      icon: "sleep",
+      tier: "bronze",
+      kind: "engagement",
+      i18nTitle: "achievements.sleepPioneer.title",
+      i18nDescription: "achievements.sleepPioneer.description",
+      i18nNotificationTitle: "achievements.sleepPioneer.notificationTitle",
+      i18nNotificationBody: "achievements.sleepPioneer.notificationBody"
+    },
+    {
+      id: "cycle_tracker",
+      category: "engagement",
+      unlockCategory: "cycle",
+      icon: "cycle",
+      tier: "gold",
+      kind: "engagement",
+      i18nTitle: "achievements.cycleTracker.title",
+      i18nDescription: "achievements.cycleTracker.description",
+      i18nNotificationTitle: "achievements.cycleTracker.notificationTitle",
+      i18nNotificationBody: "achievements.cycleTracker.notificationBody"
+    },
+    {
+      id: "full_logger",
+      category: "engagement",
+      icon: "star",
+      tier: "platinum",
+      kind: "full_logger",
+      i18nTitle: "achievements.fullLogger.title",
+      i18nDescription: "achievements.fullLogger.description",
+      i18nNotificationTitle: "achievements.fullLogger.notificationTitle",
+      i18nNotificationBody: "achievements.fullLogger.notificationBody"
+    }
+  ];
+  var ALL_ACHIEVEMENTS = [
+    ...LOGGING_ACHIEVEMENTS,
+    ...MILESTONE_ACHIEVEMENTS,
+    ...ENGAGEMENT_ACHIEVEMENTS
+  ];
+  var ACHIEVEMENT_ID_SET = new Set(ALL_ACHIEVEMENTS.map((a) => a.id));
+
   // packages/ai-engine/src/chartAnalytics.mjs
   var METRIC_PAIRS = [
     { metric1: "mood", metric2: "sleep", label1: "Mood", label2: "Sleep" },
