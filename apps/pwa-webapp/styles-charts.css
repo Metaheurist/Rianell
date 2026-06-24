@@ -338,6 +338,92 @@ body.light-mode .chart-loading {
   letter-spacing: 0.5px;
 }
 
+.chart-empty-warm-message {
+  margin: 0.35rem 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  text-align: center;
+  color: color-mix(in srgb, var(--text-light, #e0f2f1) 80%, transparent);
+  max-width: 24rem;
+}
+
+.chart-empty-ghost-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 22rem;
+  height: 4.5rem;
+  margin: 0 auto 0.75rem;
+  padding: 0 0.5rem;
+}
+
+.chart-empty-ghost-col {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.chart-empty-ghost-bar {
+  display: block;
+  width: 100%;
+  max-width: 1.75rem;
+  border-radius: 4px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--primary-color) 55%, transparent),
+    color-mix(in srgb, var(--primary-color) 22%, transparent));
+  animation: chartGhostBarIn 0.6s ease-out backwards, shimmerSweep 2.2s ease-in-out infinite;
+}
+
+.chart-empty-ghost-col:nth-child(2) .chart-empty-ghost-bar { animation-delay: 0.08s, 0.3s; }
+.chart-empty-ghost-col:nth-child(3) .chart-empty-ghost-bar { animation-delay: 0.16s, 0.5s; }
+.chart-empty-ghost-col:nth-child(4) .chart-empty-ghost-bar { animation-delay: 0.24s, 0.7s; }
+.chart-empty-ghost-col:nth-child(5) .chart-empty-ghost-bar { animation-delay: 0.32s, 0.9s; }
+.chart-empty-ghost-col:nth-child(6) .chart-empty-ghost-bar { animation-delay: 0.4s, 1.1s; }
+
+.chart-empty-ghost-label {
+  margin-top: 0.25rem;
+  font-size: 0.62rem;
+  text-align: center;
+  color: color-mix(in srgb, var(--text-light, #e0f2f1) 58%, transparent);
+  line-height: 1.1;
+}
+
+.chart-empty-progress {
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--text-light, #e0f2f1);
+}
+
+.chart-empty-progress strong {
+  color: var(--primary-color);
+}
+
+@keyframes chartGhostBarIn {
+  from { opacity: 0; transform: scaleY(0.4); transform-origin: bottom; }
+  to { opacity: 1; transform: scaleY(1); transform-origin: bottom; }
+}
+
+@keyframes shimmerSweep {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.18); }
+  100% { filter: brightness(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-empty-ghost-bar {
+    animation: none;
+  }
+  .empty-placeholder-text {
+    animation: none;
+  }
+}
+
 @keyframes textGlow {
   0%, 100% {
     text-shadow: 0 0 10px color-mix(in srgb, var(--primary-color) 52%, transparent);

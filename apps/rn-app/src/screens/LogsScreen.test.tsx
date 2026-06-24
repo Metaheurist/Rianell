@@ -18,6 +18,14 @@ function ymdDaysFromToday(delta: number): string {
   return `${y}-${m}-${day}`;
 }
 
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({ navigate: jest.fn() }),
+  };
+});
+
 jest.mock('../storage/logs', () => {
   function todayYmd(): string {
     const d = new Date();
@@ -57,7 +65,7 @@ test('logs screen shows empty state when no logs', async () => {
   mockLoadLogs.mockResolvedValueOnce([]);
   const { findByText, getByLabelText } = renderLogs();
 
-  await findByText(/No logs yet\./);
+  await findByText('Your health story starts here');
   expect(getByLabelText('30d')).toBeTruthy();
   expect(getByLabelText('Sort, newest first')).toBeTruthy();
 });
@@ -149,7 +157,7 @@ test('logs entry edit flow updates details and persists', async () => {
 (__DEV__ ? test : test.skip)('dev-only: add sample log adds row when __DEV__', async () => {
   mockLoadLogs.mockResolvedValueOnce([]);
   const { findByText, getByLabelText } = renderLogs();
-  await findByText(/No logs yet\./);
+  await findByText('Your health story starts here');
   const sampleDate = ymdDaysFromToday(0);
   fireEvent.press(getByLabelText('Add sample log'));
   await waitFor(() => findByText(displayDate(sampleDate)));

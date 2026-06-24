@@ -12,6 +12,8 @@ import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchm
 import { generateSummaryNote, generateClinicianVisitBrief, generateDoctorQuestions, generateStructuredInsights, sendWeekChatMessage, type WeekChatTurn } from '../ai/llm';
 import { MAX_WEEK_CHAT_TURNS, canSendWeekChatTurn, POOL_INSIGHT_MIN_K } from '@rianell/shared';
 import { fetchPoolInsights } from '../cloud/sync';
+import { EmptyState } from '../components/ui/EmptyState';
+import { AiInsightEmptyPreview } from '../components/ui/EmptyPreview';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
@@ -170,6 +172,8 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
             </Text>
           ) : null}
 
+          {prefs.aiEnabled && logs.length === 0 ? <AiInsightEmptyPreview /> : null}
+
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.filter.range')}</Text>
           <View style={styles.rangeRow}>
             {RANGE_OPTIONS.map((opt) => {
@@ -210,7 +214,11 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
             <Text style={[styles.error, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{error}</Text>
           ) : null}
 
-          {summary && prefs.aiEnabled ? (
+          {prefs.aiEnabled && summary && summary.totalLogs === 0 && logs.length > 0 ? (
+            <EmptyState variant="ai" message={t('ai.empty.warm.message')} />
+          ) : null}
+
+          {summary && prefs.aiEnabled && summary.totalLogs > 0 ? (
             <>
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.summaryNote')}</Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>

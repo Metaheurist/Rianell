@@ -126,8 +126,13 @@
     if (meta) meta.textContent = String(i + 1) + ' / ' + n + (titleText ? ' - ' + titleText : '');
     updateGoalsCarouselDots(i);
     global.goalsModalPaneIndex = i;
-    if (i === 1 && typeof global.renderAchievementsPane === 'function') {
-      global.renderAchievementsPane();
+    if (i === 1) {
+      if (typeof global.renderAchievementsPane === 'function') {
+        global.renderAchievementsPane();
+      }
+      if (typeof global.markUnlockedAchievementsSeen === 'function') {
+        global.markUnlockedAchievementsSeen();
+      }
     }
   }
 
@@ -138,7 +143,32 @@
     goalsCarouselGo(i + delta);
   }
 
+  function renderGoalsOrientationCard() {
+    var card = document.getElementById('goalsOrientationCard');
+    if (!card) return;
+    var seen = global.appSettings && global.appSettings.goalsModalSeenCount;
+    if (seen) {
+      card.hidden = true;
+      card.innerHTML = '';
+      return;
+    }
+    card.hidden = false;
+    card.innerHTML =
+      '<p class="goals-orientation-body">' + goalsT('goals.firstVisit.body') + '</p>' +
+      '<button type="button" class="goals-orientation-dismiss">' + goalsT('goals.firstVisit.dismiss') + '</button>';
+    var dismiss = card.querySelector('.goals-orientation-dismiss');
+    if (dismiss) {
+      dismiss.onclick = function () {
+        if (!global.appSettings) global.appSettings = {};
+        global.appSettings.goalsModalSeenCount = 1;
+        if (typeof global.saveSettings === 'function') global.saveSettings();
+        renderGoalsOrientationCard();
+      };
+    }
+  }
+
   function initGoalsCarouselUI(paneIndex) {
+    renderGoalsOrientationCard();
     bindGoalsCarouselTouchOnce();
     var saved =
       typeof paneIndex === 'number'

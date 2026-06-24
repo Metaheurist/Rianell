@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme, useNavigationContainerRef } from '@react-navigation/native';
@@ -18,6 +18,7 @@ import type { ChartViewMode } from '../charts/summarizeCharts';
 import { Permissions, type ReminderAction } from '../permissions/permissions';
 import { handleMedDoseNotificationAction } from '../notifications/smartReminderSync';
 import { useT } from '../i18n/I18nProvider';
+import { isTabBadgeActive, clearTabDiscoveryBadge } from '../utils/engagementGamification';
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -216,6 +217,13 @@ export function RootNavigator({
 function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (next: Preferences) => void }) {
   const theme = useTheme();
   const { t } = useT();
+  const [chartsBadge, setChartsBadge] = useState(false);
+  const [aiBadge, setAiBadge] = useState(false);
+
+  useEffect(() => {
+    void isTabBadgeActive('tabBadge_charts').then(setChartsBadge);
+    void isTabBadgeActive('tabBadge_ai').then(setAiBadge);
+  }, []);
   const tabBg =
     theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
       ? '#ffffff'
@@ -263,9 +271,16 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         name="Charts"
         options={{
           tabBarLabel: t('nav.charts'),
+          tabBarBadge: chartsBadge ? '' : undefined,
           tabBarIcon: ({ focused, size }: TabBarIconProps) => (
             <TabBarIonicons name="bar-chart-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
           ),
+        }}
+        listeners={{
+          tabPress: () => {
+            void clearTabDiscoveryBadge('tabBadge_charts');
+            setChartsBadge(false);
+          },
         }}
       >
         {() => <ChartsScreen prefs={prefs} onChangePrefs={onChangePrefs} />}
@@ -286,9 +301,16 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
           name="AI Analysis"
           options={{
             tabBarLabel: t('nav.ai'),
+            tabBarBadge: aiBadge ? '' : undefined,
             tabBarIcon: ({ focused, size }: TabBarIconProps) => (
               <TabBarIonicons name="sparkles-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
             ),
+          }}
+          listeners={{
+            tabPress: () => {
+              void clearTabDiscoveryBadge('tabBadge_ai');
+              setAiBadge(false);
+            },
           }}
         >
           {() => <AiScreen prefs={prefs} />}

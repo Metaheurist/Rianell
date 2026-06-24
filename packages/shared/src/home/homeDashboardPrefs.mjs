@@ -33,5 +33,15 @@ export function normalizeHomeDashboardPrefs(raw) {
         : null,
     weeklyReviewDismissedWeek:
       typeof v.weeklyReviewDismissedWeek === 'string' ? v.weeklyReviewDismissedWeek : null,
+    homeWelcomeCardDismissed: v.homeWelcomeCardDismissed === true,
+    goalsModalSeenCount:
+      typeof v.goalsModalSeenCount === 'number' && Number.isFinite(v.goalsModalSeenCount)
+        ? Math.max(0, Math.floor(v.goalsModalSeenCount))
+        : 0,
+    firstOpenDate: typeof v.firstOpenDate === 'string' ? v.firstOpenDate : null,
+    weeklyReviewCompletedAt:
+      typeof v.weeklyReviewCompletedAt === 'string' ? v.weeklyReviewCompletedAt : null,
+    personalBestDismissedAt:
+      typeof v.personalBestDismissedAt === 'string' ? v.personalBestDismissedAt : null,
   };
 }

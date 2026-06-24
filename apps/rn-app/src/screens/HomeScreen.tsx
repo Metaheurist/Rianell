@@ -53,7 +53,19 @@ import {
   normalizeWeatherCoords,
   nextHomeQuestionAnswerState,
   formatDate,
+  computePersonalBests,
+  pickPersonalBestHighlight,
+  computeAchievementSnapshots,
 } from '@rianell/shared';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
+import { HomeWelcomeCard } from '../components/ui/HomeWelcomeCard';
+import { HomeDiscoveryChips } from '../components/ui/HomeDiscoveryChips';
+import { useToast } from '../components/ui/Toast';
+import {
+  daysSinceDate,
+  detectNewLogMilestone,
+  setTabDiscoveryBadge,
+} from '../utils/engagementGamification';
 import { getWeatherDisplayMetrics, resolveWeatherIconColor, weatherIconIonName } from '../utils/weatherIcons';
 import { requestWeatherCoords } from '../utils/homeWeatherLocation';
 import { summarizeLogsForAi } from '../ai/analyzeLogs';
@@ -346,6 +358,10 @@ export function HomeScreen({
   const { t, locale } = useT();
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<HomeNav>();
+  const { show: showToast } = useToast();
+  const reduceMotion = useReduceMotionFlag();
+  const fabPulse = useRef(new Animated.Value(0)).current;
+  const prevLogCountRef = useRef<number | null>(null);
   const bg = theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)' ? '#ffffff' : theme.tokens.color.background;
   const accent = theme.tokens.color.accent;
 
@@ -457,6 +473,72 @@ export function HomeScreen({
         setLoggedToday(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!prefs.firstOpenDate) {
+      void persistPrefs({ ...prefs, firstOpenDate: todayStr });
+    }
+  }, [persistPrefs, prefs, prefs.firstOpenDate, todayStr]);
+
+  useEffect(() => {
+    const count = homeLogs.length;
+    const prev = prevLogCountRef.current;
+    if (prev == null) {
+      prevLogCountRef.current = count;
+      return;
+    }
+    if (count > prev) {
+      void detectNewLogMilestone(prev, count).then((key) => {
+        if (key) {
+          showToast(t(key), 'success');
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
+      });
+      if (prev === 0 && count >= 1) void setTabDiscoveryBadge('tabBadge_charts');
+      if (prev < 7 && count >= 7) void setTabDiscoveryBadge('tabBadge_ai');
+    }
+    prevLogCountRef.current = count;
+  }, [homeLogs.length, showToast, t]);
+
+  useEffect(() => {
+    if (loggedToday || reduceMotion) {
+      fabPulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fabPulse, { toValue: 0.5, duration: 900, useNativeDriver: true }),
+        Animated.timing(fabPulse, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [fabPulse, loggedToday, reduceMotion]);
+
+  const showWelcomeCard = useMemo(() => {
+    if (prefs.homeWelcomeCardDismissed) return false;
+    const days = daysSinceDate(prefs.firstOpenDate ?? prefs.firstRunWizardCompletedAt);
+    return homeLogs.length < 3 && days <= 7;
+  }, [homeLogs.length, prefs.firstOpenDate, prefs.firstRunWizardCompletedAt, prefs.homeWelcomeCardDismissed]);
+
+  const weeklyReviewCompleteBanner = useMemo(() => {
+    if (!prefs.weeklyReviewCompletedAt) return false;
+    const at = Date.parse(prefs.weeklyReviewCompletedAt);
+    if (!Number.isFinite(at)) return false;
+    return Date.now() - at < 60 * 60 * 1000;
+  }, [prefs.weeklyReviewCompletedAt]);
+
+  const unseenAchievementCount = useMemo(() => {
+    const { snapshots } = computeAchievementSnapshots(prefs.trackingProfile, prefs.achievements);
+    return snapshots.filter((s) => s.unlocked && !s.seenAt).length;
+  }, [prefs.trackingProfile, prefs.achievements]);
+
+  const personalBestHighlight = useMemo(() => {
+    if (prefs.personalBestDismissedAt) return null;
+    if (homeLogs.length < 14) return null;
+    const bests = computePersonalBests(homeLogs);
+    return pickPersonalBestHighlight(bests, streakSnapshot);
+  }, [homeLogs, prefs.personalBestDismissedAt, streakSnapshot]);
 
   const refreshHomeSuggestions = useCallback(() => {
     const d = todayIso();
@@ -774,15 +856,17 @@ export function HomeScreen({
 
   const renderHomeCard = (cardId: string) => {
     if (cardId === 'hero') {
-      const notLoggedDetail = cardContext.streakBroken
-        ? t('home.status.notLoggedStreakBrokenDetail')
-        : t('home.status.notLoggedTodayDetail');
+      const notLoggedDetail = cardContext.streakGrace
+        ? t('home.streak.grace')
+        : cardContext.streakBroken
+          ? t('home.status.notLoggedStreakBrokenDetail')
+          : t('home.status.notLoggedTodayDetail');
       return (
         <View
           key="hero"
           style={[
             styles.card,
-            !loggedToday && cardContext.streakBroken ? styles.heroStreakNudgeCard : null,
+            !loggedToday && cardContext.streakBroken && !cardContext.streakGrace ? styles.heroStreakNudgeCard : null,
           ]}
         >
           <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>Rianell</Text>
@@ -807,8 +891,25 @@ export function HomeScreen({
               <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
                 {notLoggedDetail}
               </Text>
+              <PrimaryButton
+                label={t('home.action.logNow')}
+                onPress={() => {
+                  hapticLight();
+                  navigation.navigate('LogWizard');
+                }}
+                style={{ marginTop: 12 }}
+                accessibilityLabel={t('home.action.logNow')}
+              />
             </>
           )}
+          {weeklyReviewCompleteBanner ? (
+            <View style={[styles.heroInset, { borderTopColor: `${accent}33` }]}>
+              <Ionicons name="checkmark-circle-outline" size={22} color={accent} style={{ marginBottom: 6 }} />
+              <Text style={[styles.insetBody, { color: theme.tokens.color.textPrimary, fontSize: theme.font(14) }]}>
+                {t('gamification.weeklyReview.heroCard')}
+              </Text>
+            </View>
+          ) : null}
           {loggedToday ? (
             <Pressable
               onPress={() => void onReadTodayEntry()}
@@ -846,6 +947,11 @@ export function HomeScreen({
                       flareFree: streakSnapshot.flareFreeDays,
                     })}
                   </Text>
+                  {cardContext.streakBroken && !loggedToday ? (
+                    <Text style={{ color: accent, fontSize: theme.font(12), marginTop: 4 }}>
+                      {t('home.streak.graceDay')}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
             </View>
@@ -924,6 +1030,11 @@ export function HomeScreen({
                 </Pressable>
               ))}
             </View>
+          ) : homeLogs.length === 0 ? (
+            <HomeDiscoveryChips
+              onOpenGoals={() => requestOpenGoalsModal(0)}
+              onNavigateMood={() => navigation.navigate('Mood')}
+            />
           ) : null}
           {showWeeklyReview ? (
             <View style={[styles.heroInset, { borderTopColor: `${accent}33` }]} accessibilityLabel={t('weeklyReview.card.title')}>
@@ -970,24 +1081,64 @@ export function HomeScreen({
       return null;
     }
     if (cardId === 'goals') {
+      const todayEntry = todayLog;
+      const stepsVal = todayEntry?.steps != null ? Number(todayEntry.steps) : 0;
+      const hydrationVal = todayEntry?.hydration != null ? Number(todayEntry.hydration) : 0;
+      const sleepVal = todayEntry?.sleep != null ? Number(todayEntry.sleep) : 0;
+      const goalRows = [
+        { key: 'steps', label: t('common.steps.per.day'), current: stepsVal, target: prefs.goals.steps },
+        { key: 'hydration', label: t('common.hydration.glasses.per.day'), current: hydrationVal, target: prefs.goals.hydration },
+        { key: 'sleep', label: t('common.sleep.quality.score.1.10'), current: sleepVal, target: prefs.goals.sleepScore },
+      ];
       return (
-        <View key="goals" style={styles.card} accessibilityLabel={t('home.goals.title')}>
+        <Pressable
+          key="goals"
+          style={styles.card}
+          accessibilityRole="button"
+          accessibilityLabel={t('home.goals.title')}
+          onPress={() => requestOpenGoalsModal(0)}
+        >
           <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.goals.title')}</Text>
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            {t('home.goals.summary', {
-              steps: prefs.goals.steps.toLocaleString(),
-              hydration: String(prefs.goals.hydration),
-              sleepScore: String(prefs.goals.sleepScore),
-              goodDays: String(prefs.goals.goodDaysPerWeek),
-            })}
+          {goalRows.map((row) => {
+            const progress = row.target > 0 ? Math.min(1, row.current / row.target) : 0;
+            const onTrack = row.target > 0 && row.current >= row.target;
+            return (
+              <View key={row.key} style={{ marginTop: 10 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>{row.label}</Text>
+                  {onTrack ? (
+                    <Text style={{ color: accent, fontSize: theme.font(12), fontWeight: '600' }}>{t('goals.onTrack')}</Text>
+                  ) : (
+                    <Text style={{ color: theme.tokens.color.text + '99', fontSize: theme.font(12) }}>
+                      {row.current} / {row.target}
+                    </Text>
+                  )}
+                </View>
+                <View style={{ height: 4, borderRadius: 2, backgroundColor: accent + '22' }}>
+                  <View style={{ height: 4, borderRadius: 2, width: `${progress * 100}%`, backgroundColor: accent }} />
+                </View>
+              </View>
+            );
+          })}
+        </Pressable>
+      );
+    }
+    if (cardId === 'personalBest' && personalBestHighlight) {
+      return (
+        <View key="personalBest" style={styles.card}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(16) }]}>
+            {personalBestHighlight.kind === 'goodDays'
+              ? t('gamification.personalBest.goodDays', { n: String(personalBestHighlight.n) })
+              : t('gamification.personalBest.flareFree', { n: String(personalBestHighlight.n) })}
           </Text>
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 6 }]}>
-            {t('home.goals.wellness', {
-              mood: String(prefs.goals.moodTarget),
-              sleep: String(prefs.goals.sleepTarget),
-              fatigue: String(prefs.goals.fatigueTarget),
-            })}
-          </Text>
+          <Pressable
+            onPress={() => void persistPrefs({ ...prefs, personalBestDismissedAt: new Date().toISOString() })}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+            style={{ marginTop: 8 }}
+          >
+            <Text style={{ color: theme.tokens.color.text + '99' }}>{t('common.close')}</Text>
+          </Pressable>
         </View>
       );
     }
@@ -1003,10 +1154,23 @@ export function HomeScreen({
             onPress={onGoalsTargets}
             style={({ pressed }) => [styles.chromeBtn, chromeShadow(accent), { borderColor: accent, opacity: pressed ? 0.88 : 1 }]}
             accessibilityRole="button"
-            accessibilityLabel="Goals and targets"
+            accessibilityLabel={
+              unseenAchievementCount > 0
+                ? `${unseenAchievementCount} new achievement${unseenAchievementCount === 1 ? '' : 's'}`
+                : 'Goals and targets'
+            }
             accessibilityHint="Opens Goals and targets modal"
           >
-            <TargetBullseyeIcon color={accent} size={24} />
+            <View>
+              <TargetBullseyeIcon color={accent} size={24} />
+              {unseenAchievementCount > 0 ? (
+                <View
+                  style={[styles.goalsBadgeDot, { backgroundColor: theme.tokens.color.accent }]}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                />
+              ) : null}
+            </View>
           </Pressable>
           <Pressable
             onPress={onBugReport}
@@ -1104,10 +1268,31 @@ export function HomeScreen({
             ) : null}
           </View>
         </View>
+        {showWelcomeCard ? (
+          <HomeWelcomeCard
+            condition={prefs.medicalCondition}
+            onDismiss={() => void persistPrefs({ ...prefs, homeWelcomeCardDismissed: true })}
+            pills={[
+              { icon: 'moon-outline', labelKey: 'home.welcome.pill.sleep', onPress: () => navigation.navigate('Charts') },
+              { icon: 'happy-outline', labelKey: 'home.welcome.pill.mood', onPress: () => navigation.navigate('Mood') },
+              { icon: 'flash-outline', labelKey: 'home.welcome.pill.energy', onPress: () => navigation.navigate('LogWizard') },
+            ]}
+          />
+        ) : null}
+        {personalBestHighlight ? renderHomeCard('personalBest') : null}
         {visibleCardOrder.map((cardId) => renderHomeCard(cardId))}
       </ScrollView>
 
       <View style={[styles.fabWrap, { bottom: tabBarHeight + 16 }]}>
+        {!loggedToday && !reduceMotion ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.fabPulseRing,
+              { backgroundColor: accent + '55', opacity: fabPulse },
+            ]}
+          />
+        ) : null}
         <Pressable
           onPress={() => {
             hapticLight();
@@ -1372,6 +1557,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.42)',
   },
+  goalsBadgeDot: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.55)',
+  },
   card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)', marginBottom: 12 },
   heroInset: {
     position: 'relative',
@@ -1498,6 +1693,13 @@ const styles = StyleSheet.create({
     right: 24,
     width: 56,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabPulseRing: {
+    position: 'absolute',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
   },
   fab: {
     width: 56,

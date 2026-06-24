@@ -162,6 +162,11 @@ export type Preferences = {
   homeGapQuestionCache: { date: string; gapId: string } | null;
   homeQuestionAnswerState: { date: string; count: number } | null;
   weeklyReviewDismissedWeek: string | null;
+  homeWelcomeCardDismissed: boolean;
+  goalsModalSeenCount: number;
+  firstOpenDate: string | null;
+  weeklyReviewCompletedAt: string | null;
+  personalBestDismissedAt: string | null;
   achievements: {
     achievements: Record<string, { notifiedAt?: string; seenAt?: string }>;
     updatedAt: string | null;
@@ -279,6 +284,11 @@ export function getDefaultPreferences(): Preferences {
     homeGapQuestionCache: null,
     homeQuestionAnswerState: null,
     weeklyReviewDismissedWeek: null,
+    homeWelcomeCardDismissed: false,
+    goalsModalSeenCount: 0,
+    firstOpenDate: null,
+    weeklyReviewCompletedAt: null,
+    personalBestDismissedAt: null,
     achievements: normalizeAchievementState(null) as Preferences['achievements'],
   };
 }

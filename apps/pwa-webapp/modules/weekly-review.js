@@ -660,6 +660,13 @@
 
 
 
+  function renderWeeklyReviewEmptyState(messageKey) {
+    return '<div class="weekly-review-empty-state">' +
+      svgIcon('calendar', 'weekly-review-empty-icon') +
+      '<h4 class="weekly-review-empty-title">' + escapeHTML(t('weeklyReview.empty.warm.title')) + '</h4>' +
+      '<p class="weekly-review-empty-message">' + escapeHTML(t(messageKey)) + '</p></div>';
+  }
+
   function renderCorrelationPane(logArr) {
 
     var cards = correlationCards(logArr);
@@ -668,9 +675,7 @@
 
       return '<div class="weekly-review-pane-inner weekly-review-pane-inner--empty">'
 
-        + svgIcon('chart-bars', 'weekly-review-empty-icon')
-
-        + '<p>' + escapeHTML(t('weeklyReview.correlations.empty')) + '</p></div>';
+        + renderWeeklyReviewEmptyState('weeklyReview.correlations.empty.warm') + '</div>';
 
     }
 
@@ -736,7 +741,7 @@
 
     if (!changes.length) {
 
-      html += '<p class="weekly-review-pane-lede">' + escapeHTML(t('weeklyReview.digest.emptyDetail')) + '</p>';
+      html += renderWeeklyReviewEmptyState('weeklyReview.digest.empty.warm');
 
     } else {
 
@@ -1184,8 +1189,11 @@
 
 
 
+  var _weeklyReviewCompleted = false;
+
   function closeWeeklyReviewModal() {
 
+    var wasCompleted = _weeklyReviewCompleted;
     var modal = document.getElementById('weeklyReviewModal');
 
     if (modal) {
@@ -1216,6 +1224,11 @@
 
     setWeeklyReviewModalTitle('weeklyReview.title');
 
+    if (wasCompleted && typeof global.showToast === 'function') {
+      global.showToast(t('gamification.weeklyReview.complete'), { type: 'success' });
+    }
+    _weeklyReviewCompleted = false;
+
   }
 
 
@@ -1232,9 +1245,11 @@
 
     if (S.isoWeekMondayKey) {
 
-      saveSettingsPatch({ weeklyReviewDismissedWeek: S.isoWeekMondayKey(today) });
+      saveSettingsPatch({ weeklyReviewDismissedWeek: S.isoWeekMondayKey(today), weeklyReviewCompletedAt: new Date().toISOString() });
 
     }
+
+    _weeklyReviewCompleted = true;
 
     closeWeeklyReviewModal();
 
