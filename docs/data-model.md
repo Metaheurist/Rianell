@@ -49,16 +49,28 @@ Stored in app settings / RN `Preferences` (not in each log entry):
 
 `trackingProfile` (Plan 03) gates progressive wizard categories (L1): food, exercise, medications unlock on a day schedule.
 
-## Achievements (v1.117.0)
+## Achievements (v1.117.0+, expanded v1.97.0)
 
-Unlock badges mirror the L1 schedule (food day 7, exercise day 14, medications day 21). Unlock is **derived** from `trackingProfile.configuredAt` via shared `computeAchievementSnapshots` — not stored as trusted client flags.
+Unlock badges are **derived** from `trackingProfile.configuredAt` and category unlock state via shared `computeAchievementSnapshots` — not stored as trusted client flags.
+
+**Catalog (`ALL_ACHIEVEMENTS` — 11 ids):**
+
+| Group | IDs | Unlock rule |
+| :--- | :--- | :--- |
+| Logging | `food_logging`, `exercise_logging`, `medication_logging` | L1 category schedule (7 / 14 / 21 days) |
+| Milestones | `milestone_3`, `milestone_30`, `milestone_60`, `milestone_90`, `milestone_180` | Elapsed tracking days |
+| Engagement | `sleep_pioneer`, `cycle_tracker`, `full_logger` | Sleep (3d), cycle (28d), all categories unlocked |
+
+Each definition includes `tier` (`bronze` \| `silver` \| `gold` \| `platinum`) for UI accent only.
 
 | Field | Storage | Notes |
 | :--- | :--- | :--- |
 | `achievements` | PWA `appSettings.achievements`; RN `prefs.achievements` | Map of achievement id → `{ notifiedAt?, seenAt? }` only |
-| `rianellAchievements` | PWA `localStorage` (legacy mirror) | Kept in sync with `appSettings.achievements` on write |
+| `rianellAchievements` | PWA `localStorage` (legacy mirror) | Kept in sync with `appSettings.achievements` on write; quota errors logged fail-closed |
 
-Cloud backup when signed in: one row per user in **`user_achievements.achievements`** (jsonb). Merge unions `notifiedAt`/`seenAt` timestamps with latest-wins semantics.
+In-app unlock toasts use `achievementToastQueue` (sequential queue); OS notifications remain optional via `shouldFireAchievementUnlockNotification`.
+
+Cloud backup when signed in: one row per user in **`user_achievements.achievements`** (jsonb). Merge unions `notifiedAt`/`seenAt` timestamps with latest-wins semantics. `markAchievementNotified` / `markAchievementSeen` reject unknown achievement ids.
 
 ## Minimal log (quick save)
 

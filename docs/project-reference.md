@@ -48,8 +48,8 @@
 
 ### v1.117.0 documentation sync (Achievements & logging unlock)
 
-- **Progressive unlock:** Food/exercise/medication wizard steps remain gated by `getUnlockedLogCategories`; achievements surface the same schedule as themed badges with optional unlock notifications.
-- **Goals modal:** PWA `#goalsModal` and RN `GoalsModal` — carousel panes 0 (targets) and 1 (achievements); Home **Goals & targets** opens pane 0 on both platforms.
+- **Progressive unlock:** Food/exercise/medication wizard steps remain gated by `getUnlockedLogCategories`; achievements surface the same schedule plus milestone and engagement badges (11 total in `ALL_ACHIEVEMENTS`) with tier accents, per-card progress bars, completion counter, in-app unlock toast, and optional OS notifications.
+- **Goals modal:** PWA `#goalsModal` and RN `GoalsModal` — carousel panes 0 (targets) and 1 (achievements); sleek crosshair/medal nav icons; Home **Goals & targets** opens pane 0 on both platforms.
 - **Persistence:** Local `appSettings.achievements` (PWA) / `prefs.achievements` (RN); cloud row in **`user_achievements`** when signed in with backup enabled.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.117.0; [platform-parity.md](platform-parity.md) v1.117.0 note; [data-model.md](data-model.md) § Achievements.
 

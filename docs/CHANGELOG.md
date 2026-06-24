@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.96.2** - First-run wizard: fix blocked Enable AI & Goals onboarding clicks.
+**Latest: v1.97.0** - Achievements overhaul: expanded catalog, progress UI, in-app unlock toast, sleeker Goals modal icons.
+
+### v1.97.0 - 2026-06-24 - Achievements overhaul
+- **Catalog:** `ALL_ACHIEVEMENTS` expands from 3 → 11 ids — logging (3), milestones (5), engagement (3); `tier` field for bronze/silver/gold/platinum UI accents.
+- **Progress UI:** Per-card animated progress bars + `{unlocked} / {total}` completion counter on RN `AchievementsPane` and PWA `renderAchievementsPane`.
+- **In-app toast:** RN `AchievementUnlockToast` (spring slide, glow, haptics, queue); PWA `#achievementToast` with CSS glow animation; shared `achievementToastQueue.mjs`.
+- **Icons:** Redesigned crosshair target + ribbon medal nav tab icons (RN `goalsModalIcons.tsx`, PWA SVG sprites); new `icon-sleep`, `icon-cycle`, `icon-star` sprites.
+- **Security:** Achievement id allowlist on `markAchievementNotified`/`markAchievementSeen`; SVG icon name allowlists; `localStorage` quota guard on achievement writes.
+- **i18n:** New achievement keys in all shipped locale packs; vendor bundle rebuilt.
+- **Tests:** Achievement catalog, toast queue, notification content coverage.
+- **Docs:** `data-model.md`, `project-reference.md`, `MASTER.md`.
 
 ### v1.96.2 - 2026-06-24 - First-run wizard consent interaction fix
 - **PWA onboarding:** Privacy consent enforcement no longer blocks **Enable / Skip** on the tutorial **Enable AI & Goals?** slide while the first-run wizard is open (`region-unconfigured` + `interaction-blocked`).
