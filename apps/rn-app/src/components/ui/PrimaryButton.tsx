@@ -9,14 +9,16 @@ type Props = {
   variant?: 'primary' | 'secondary';
   style?: ViewStyle;
   disabled?: boolean;
+  accessibilityLabel?: string;
 };
 
-export function PrimaryButton({ label, onPress, variant = 'primary', style, disabled }: Props) {
+export function PrimaryButton({ label, onPress, variant = 'primary', style, disabled, accessibilityLabel }: Props) {
   const theme = useTheme();
   const isPrimary = variant === 'primary';
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
       disabled={disabled}
       onPress={() => {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
