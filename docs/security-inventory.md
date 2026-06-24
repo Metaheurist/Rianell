@@ -4,7 +4,7 @@ Schema version: **1** · Generated for Rianell security program.
 ## npm workspaces
 | Package | Version |
 |---------|---------|
-| `rianell` (root) | 1.93.0 |
+| `rianell` (root) | 1.97.0 |
 | `apps/rn-app` | 1.0.0 |
 ## Python
 See `requirements.txt` (scanned by pip-audit in CI).
@@ -13,6 +13,9 @@ See `requirements.txt` (scanned by pip-audit in CI).
 - https://rianell.com/
 - https://fonts.googleapis.com
 - https://fonts.gstatic.com
+- https://tcoynycktablxankyriw.supabase.co
+- https://cdn.jsdelivr.net
+- https://api.open-meteo.com
 - https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap
 SRI integrity attributes in index.html: **1** (expand via `apps/pwa-webapp/cdn-manifest.json`).
 ## Sensitive localStorage keys (sample)
@@ -27,6 +30,7 @@ SRI integrity attributes in index.html: **1** (expand via `apps/pwa-webapp/cdn-m
 - `healthAppDebug`
 - `healthLogs`
 - `healthLogs_backup`
+- `rianellAchievements`
 - `rianellDebug`
 - `rianellEnableStaticSW`
 - `rianellFunctionTrace`
