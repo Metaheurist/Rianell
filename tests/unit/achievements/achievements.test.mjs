@@ -1,11 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  ALL_ACHIEVEMENTS,
   computeAchievementSnapshots,
   detectNewlyUnlocked,
   getRequiredDaysForAchievement,
-  mergeAchievementState,
+  isKnownAchievementId,
   markAchievementNotified,
+  markAchievementSeen,
+  mergeAchievementState,
   normalizeAchievementState,
 } from '@rianell/shared';
 
@@ -15,10 +18,21 @@ const profileAtDays = (days) => ({
   configuredAt: new Date(Date.now() - days * 86400000).toISOString(),
 });
 
+test('ALL_ACHIEVEMENTS has 11 entries with tier metadata', () => {
+  assert.equal(ALL_ACHIEVEMENTS.length, 11);
+  assert.ok(ALL_ACHIEVEMENTS.every((a) => a.tier));
+  assert.ok(ALL_ACHIEVEMENTS.some((a) => a.id === 'milestone_30'));
+  assert.ok(ALL_ACHIEVEMENTS.some((a) => a.id === 'full_logger'));
+});
+
 test('getRequiredDaysForAchievement matches progressive unlock schedule', () => {
   assert.equal(getRequiredDaysForAchievement('food_logging'), 7);
   assert.equal(getRequiredDaysForAchievement('exercise_logging'), 14);
   assert.equal(getRequiredDaysForAchievement('medication_logging'), 21);
+  assert.equal(getRequiredDaysForAchievement('milestone_3'), 3);
+  assert.equal(getRequiredDaysForAchievement('milestone_30'), 30);
+  assert.equal(getRequiredDaysForAchievement('sleep_pioneer'), 3);
+  assert.equal(getRequiredDaysForAchievement('full_logger'), 28);
 });
 
 test('computeAchievementSnapshots locks food until day 7', () => {
@@ -30,6 +44,20 @@ test('computeAchievementSnapshots locks food until day 7', () => {
   const day7 = computeAchievementSnapshots(profileAtDays(7), {});
   const food7 = day7.snapshots.find((s) => s.id === 'food_logging');
   assert.equal(food7?.unlocked, true);
+});
+
+test('milestone_3 unlocks at day 3', () => {
+  const d2 = computeAchievementSnapshots(profileAtDays(2), {});
+  const d3 = computeAchievementSnapshots(profileAtDays(3), {});
+  assert.equal(d2.snapshots.find((s) => s.id === 'milestone_3')?.unlocked, false);
+  assert.equal(d3.snapshots.find((s) => s.id === 'milestone_3')?.unlocked, true);
+});
+
+test('full_logger unlocks when all categories available', () => {
+  const d27 = computeAchievementSnapshots(profileAtDays(27), {});
+  const d28 = computeAchievementSnapshots(profileAtDays(28), {});
+  assert.equal(d27.snapshots.find((s) => s.id === 'full_logger')?.unlocked, false);
+  assert.equal(d28.snapshots.find((s) => s.id === 'full_logger')?.unlocked, true);
 });
 
 test('medications locked at day 13, unlocked at day 21', () => {
@@ -71,7 +99,17 @@ test('detectNewlyUnlocked fires once when unlock transitions', () => {
   assert.equal(afterNotify.length, 0);
 });
 
-test('markAchievementNotified persists timestamp', () => {
+test('markAchievementNotified persists timestamp and rejects unknown ids', () => {
   const state = markAchievementNotified(normalizeAchievementState({}), 'food_logging', '2026-06-21T12:00:00.000Z');
   assert.equal(state.achievements.food_logging.notifiedAt, '2026-06-21T12:00:00.000Z');
+
+  const noop = markAchievementNotified(state, 'not_a_real_achievement');
+  assert.equal(noop.achievements.not_a_real_achievement, undefined);
+});
+
+test('markAchievementSeen rejects unknown ids', () => {
+  assert.equal(isKnownAchievementId('food_logging'), true);
+  assert.equal(isKnownAchievementId('bogus'), false);
+  const state = markAchievementSeen(normalizeAchievementState({}), 'bogus');
+  assert.equal(state.achievements.bogus, undefined);
 });
