@@ -5,7 +5,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 **Latest: v1.96.1** - CI green loop: pin `expo-modules-core@55.0.25`, live Cloudflare boot probe resilience.
 
 ### v1.96.1 - 2026-06-24 - CI Android APK + live probe fixes
-- **Android APK:** Root `overrides` pin `expo-modules-core@55.0.25` — lockfile had nested **56.0.17** under `apps/rn-app`, breaking Kotlin `Promise` bridge vs RN 0.83.
+- **Android APK:** Root `overrides` pin `expo-modules-core@55.0.25` — lockfile had nested **56.0.17** under `apps/rn-app`, breaking Kotlin `Promise` bridge vs RN 0.83. CI Gradle sets `RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM=1` so release Metro bundle uses HF stubs (matches Expo export gate).
 - **Live LLM job:** `deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and longer timeouts for `https://rianell.com/` (Cloudflare `load` event often never fires from GitHub runners).
 - **Docs:** CHANGELOG, wiki Build-Test-and-CI.
 
