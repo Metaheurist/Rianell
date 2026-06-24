@@ -63,6 +63,7 @@ import { speakLabel } from '../accessibility/tts';
 import { submitBugReport } from '../utils/submitBugReport';
 import { getBugReportAttachmentText } from '../utils/bugReportLogs';
 import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
+import { TargetBullseyeIcon } from '../components/goalsModalIcons';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
 const SECURITY_DOC_URL = 'https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md';
@@ -331,16 +332,6 @@ function HomeMotdHeartbeat({
         </Svg>
       </View>
     </>
-  );
-}
-
-function TargetBullseyeIcon({ color }: { color: string }) {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" accessibilityElementsHidden>
-      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} fill="none" />
-      <Circle cx="12" cy="12" r="6" stroke={color} strokeWidth={2} fill="none" />
-      <Circle cx="12" cy="12" r="2" fill={color} />
-    </Svg>
   );
 }
 
@@ -1015,7 +1006,7 @@ export function HomeScreen({
             accessibilityLabel="Goals and targets"
             accessibilityHint="Opens Goals and targets modal"
           >
-            <TargetBullseyeIcon color={accent} />
+            <TargetBullseyeIcon color={accent} size={24} />
           </Pressable>
           <Pressable
             onPress={onBugReport}

@@ -14,8 +14,11 @@
     return key;
   }
 
+  var KNOWN_GOALS_ICON_NAMES = new Set(['target', 'medal']);
+
   function goalsSvgIcon(name) {
     var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
+    if (!KNOWN_GOALS_ICON_NAMES.has(safeName)) safeName = 'target';
     return '<svg class="ui-svg-icon goals-dot-icon-svg" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
   }
 
