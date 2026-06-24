@@ -60,9 +60,11 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
   useEffect(() => {
     if (!visible || paneIndex !== 1) return;
     const { snapshots } = computeAchievementSnapshots(prefs.trackingProfile, prefs.achievements);
-    let next = prefs.achievements;
+    let next: Preferences['achievements'] = prefs.achievements;
     for (const s of snapshots) {
-      if (s.unlocked && !s.seenAt) next = markAchievementSeen(next, s.id);
+      if (s.unlocked && !s.seenAt) {
+        next = markAchievementSeen(next, s.id) as Preferences['achievements'];
+      }
     }
     if (next !== prefs.achievements) onChangePrefs({ ...prefs, achievements: next });
   }, [onChangePrefs, paneIndex, prefs, visible]);
