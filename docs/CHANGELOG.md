@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.96.0** - Post-launch operator setup: Supabase erasure, Edge Function, Cloudflare headers, security.txt deploy.
+**Latest: v1.96.1** - CI green loop: pin `expo-modules-core@55.0.25`, live Cloudflare boot probe resilience.
+
+### v1.96.1 - 2026-06-24 - CI Android APK + live probe fixes
+- **Android APK:** Root `overrides` pin `expo-modules-core@55.0.25` — lockfile had nested **56.0.17** under `apps/rn-app`, breaking Kotlin `Promise` bridge vs RN 0.83.
+- **Live LLM job:** `deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and longer timeouts for `https://rianell.com/` (Cloudflare `load` event often never fires from GitHub runners).
+- **Docs:** CHANGELOG, wiki Build-Test-and-CI.
 
 ### v1.96.0 - 2026-06-23 - Post-launch operator setup (Stages 2–4)
 - **Supabase schema:** `private.*_impl` + public `SECURITY INVOKER` wrappers (clears Security Advisor **0029** on pool RPCs and `delete_all_user_data`); `Schema-fresh-install.sql` for empty DB wipe; patch `supabase/patches/fix-lint-0029-security-definer.sql`; `consent_audit_log` + GDPR erasure RPC retained.

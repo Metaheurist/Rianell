@@ -41,6 +41,8 @@ jobs:
       - name: Live boot probe (Cloudflare)
         env:
           PROBE_URL: https://rianell.com/
+          PROBE_PASS_MS: "120000"
+          PROBE_GOTO_TIMEOUT_MS: "180000"
         run: node scripts/ci/deploy-probe-loop.mjs
 
       - name: Live HF model download probe (Cloudflare)

@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.96.0",
+  "version": "1.96.1",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -151,7 +151,8 @@
     "react-native-transformers": {
       "@huggingface/transformers": "3.3.2"
     },
-    "@huggingface/transformers": "3.3.2"
+    "@huggingface/transformers": "3.3.2",
+    "expo-modules-core": "55.0.25"
   },
   "engines": {
     "node": ">=24.14.1"
