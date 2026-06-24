@@ -63,6 +63,13 @@ test('RN CLI Android collect step globs APK from repo root (not android/ cwd)', 
   );
 });
 
+test('RN CLI Android job stubs HF transformers for Gradle Metro bundle', () => {
+  assert.match(
+    ciYml,
+    /rncli-android-apk:\s*[\s\S]*?env:\s*[\s\S]*?RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM:\s*"1"/m,
+  );
+});
+
 test('publish-release depends on RN CLI Android artifact (APK + EXE only)', () => {
   assert.match(ciYml, /publish-release:\s*[\s\S]*needs:\s*\[[^\]]*rncli-android-apk[^\]]*\]/m);
   assert.match(ciYml, /Download RN CLI Android APK artifact/);
