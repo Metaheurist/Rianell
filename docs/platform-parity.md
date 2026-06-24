@@ -7,6 +7,14 @@ This document defines the expected behaviour contract across:
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
+### v1.97.0 parity note (Engagement & UX overhaul)
+
+- **Empty states:** Logs, Charts, AI, Mood, Weekly Review — warm copy + visual previews on PWA and RN (`EmptyState`, `EmptyPreview`, PWA ghost cards/bars).
+- **Home:** Welcome card, discovery chips, FAB pulse (no logs today), goals animated progress bars, streak grace messaging, personal-best card, weekly-review completion banner — both platforms.
+- **Settings:** Three collapsible chapters + setup strip + inline hints (PWA `settings.js` / RN `SettingsChapter`).
+- **Gamification:** Log milestones, goal celebration, wizard unlock banners, tab discovery badges, unseen achievement dot — shared logic in `@rianell/shared` + `engagementGamification.ts` / PWA `app.js`.
+- **Goals modal:** First-visit orientation card; achievements pane marks `seenAt`.
+
 ### v1.120.0 parity note (Theme tokens & unified onboarding)
 
 - **Theme (PWA):** Global theme (Mint, Red/Black, Mono, Rainbow) now drives modal borders, AI carousel controls, mood metric accents, and chart prediction annotations via CSS `--accent-*` tokens + runtime helpers. RN global theme tokens unchanged in this release (PWA-focused pass).

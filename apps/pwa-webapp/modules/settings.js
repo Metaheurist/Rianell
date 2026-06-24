@@ -158,7 +158,135 @@ function refreshSettingsSecurityLockTabIcon(svgIcon) {
   dotsWrap.setAttribute('data-app-lock-state', getSettingsAppLockIconState());
 }
 
+/** Settings chapter groupings (pane indices match `data-settings-pane-i18n` order in index.html). */
+var SETTINGS_CHAPTERS = [
+  { id: 'gettingStarted', i18n: 'settings.chapter.gettingStarted', icon: 'zap', panes: [0, 1, 3], defaultOpen: true },
+  { id: 'customise', i18n: 'settings.chapter.customise', icon: 'palette', panes: [4, 5], defaultOpen: false },
+  { id: 'advanced', i18n: 'settings.chapter.advanced', icon: 'zap', panes: [2, 6, 7, 8, 9], defaultOpen: false }
+];
+
+function settingsChapterTitle(key) {
+  var i18n = typeof window !== 'undefined' ? window.RianellI18n : null;
+  if (i18n && typeof i18n.t === 'function') {
+    var translated = i18n.t(key);
+    if (translated && translated !== key) return translated;
+  }
+  if (typeof window !== 'undefined' && typeof window.tUi === 'function') return window.tUi(key);
+  return key;
+}
+
+function toggleSettingsChapter(chapterId) {
+  var root = document.getElementById('settingsChapters');
+  if (!root) return;
+  var chapter = root.querySelector('[data-settings-chapter="' + chapterId + '"]');
+  if (!chapter) return;
+  var open = !chapter.classList.contains('settings-chapter--open');
+  chapter.classList.toggle('settings-chapter--open', open);
+  var toggle = chapter.querySelector('.settings-chapter-toggle');
+  if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function settingsIconForTitle(title, idx, paneEl) {
+  var paneKey = paneEl && paneEl.getAttribute ? paneEl.getAttribute('data-settings-pane-i18n') : '';
+  if (paneKey === 'settings.privacy.title') return 'check';
+  if (paneKey === 'settings.security.title') {
+    var enabled = typeof window !== 'undefined' && window.appSettings && window.appSettings.appLockEnabled;
+    return enabled ? 'lock' : 'lock-open';
+  }
+  var t = String(title || '').toLowerCase();
+  if (t.indexOf('privacy') !== -1 || t.indexOf('region') !== -1) return 'document';
+  if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'user';
+  if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'brain';
+  if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'chart-bars';
+  if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return 'palette';
+  if (t.indexOf('access') !== -1) return 'accessibility';
+  if (t.indexOf('data option') !== -1) return 'save';
+  if (t.indexOf('performance') !== -1) return 'zap';
+  if (t.indexOf('install') !== -1) return 'save';
+  if (t.indexOf('data management') !== -1) return 'save';
+  if (t.indexOf('security') !== -1) return 'lock-open';
+  return idx % 2 === 0 ? 'chart-bars' : 'document';
+}
+
+function initSettingsChapters(panes, svgIcon) {
+  var root = document.getElementById('settingsChapters');
+  if (!root) return;
+  if (root.getAttribute('data-chapters-built') === '1') {
+    refreshSettingsChapterDots(panes, svgIcon);
+    return;
+  }
+  root.innerHTML = '';
+  SETTINGS_CHAPTERS.forEach(function (chapter) {
+    var section = document.createElement('section');
+    section.className = 'settings-chapter' + (chapter.defaultOpen ? ' settings-chapter--open' : '');
+    section.setAttribute('data-settings-chapter', chapter.id);
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'settings-chapter-toggle';
+    toggle.setAttribute('aria-expanded', chapter.defaultOpen ? 'true' : 'false');
+    toggle.innerHTML =
+      '<span class="settings-chapter-toggle__icon" aria-hidden="true">' +
+      svgIcon(chapter.icon, 'settings-chapter-icon-svg') +
+      '</span><span class="settings-chapter-toggle__label">' +
+      settingsChapterTitle(chapter.i18n) +
+      '</span><span class="settings-chapter-toggle__chevron" aria-hidden="true"></span>';
+    toggle.addEventListener('click', function () {
+      toggleSettingsChapter(chapter.id);
+    });
+    var body = document.createElement('div');
+    body.className = 'settings-chapter-body';
+    var dots = document.createElement('div');
+    dots.className = 'settings-carousel-dots settings-chapter-dots';
+    dots.setAttribute('data-chapter-id', chapter.id);
+    dots.setAttribute('role', 'tablist');
+    body.appendChild(dots);
+    section.appendChild(toggle);
+    section.appendChild(body);
+    root.appendChild(section);
+  });
+  root.setAttribute('data-chapters-built', '1');
+  refreshSettingsChapterDots(panes, svgIcon);
+}
+
+function refreshSettingsChapterDots(panes, svgIcon) {
+  if (!panes || !panes.length) return;
+  SETTINGS_CHAPTERS.forEach(function (chapter) {
+    var dotsWrap = document.querySelector('.settings-chapter-dots[data-chapter-id="' + chapter.id + '"]');
+    if (!dotsWrap) return;
+    dotsWrap.innerHTML = '';
+    chapter.panes.forEach(function (paneIdx) {
+      if (paneIdx < 0 || paneIdx >= panes.length) return;
+      var dot = document.createElement('button');
+      var paneTitle = resolveSettingsPaneTitle(panes[paneIdx]) || 'Section ' + String(paneIdx + 1);
+      dot.className = 'settings-carousel-dot';
+      dot.type = 'button';
+      dot.setAttribute('aria-label', 'Go to settings section ' + String(paneIdx + 1) + (paneTitle ? ': ' + paneTitle : ''));
+      dot.setAttribute('title', paneTitle);
+      dot.setAttribute('data-settings-target', String(paneIdx));
+      dot.innerHTML =
+        '<span class="settings-carousel-dot__icon" aria-hidden="true">' +
+        svgIcon(settingsIconForTitle(paneTitle, paneIdx, panes[paneIdx]), 'ui-svg-icon') +
+        '</span>';
+      dot.addEventListener('click', function (e) {
+        var idx = parseInt(e.currentTarget.getAttribute('data-settings-target') || '0', 10);
+        if (typeof window.settingsCarouselGo === 'function') window.settingsCarouselGo(idx);
+      });
+      dotsWrap.appendChild(dot);
+    });
+  });
+  var track = document.getElementById('settingsCarouselTrack');
+  if (track) {
+    var active = parseInt(track.getAttribute('data-settings-index') || '0', 10);
+    updateSettingsCarouselDots(active);
+  }
+}
+
 function ensureSettingsCarouselDots(panes, svgIcon) {
+  var chaptersRoot = document.getElementById('settingsChapters');
+  if (chaptersRoot) {
+    initSettingsChapters(panes, svgIcon);
+    return;
+  }
   var dotsWrap = document.getElementById('settingsCarouselDots');
   if (!dotsWrap) return;
   var n = panes && panes.length ? panes.length : 0;
@@ -181,28 +309,6 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
   dotsWrap.innerHTML = '';
   dotsWrap.setAttribute('data-carousel-icons', 'svg');
 
-  function settingsIconForTitle(title, idx, paneEl) {
-    var paneKey = paneEl && paneEl.getAttribute ? paneEl.getAttribute('data-settings-pane-i18n') : '';
-    if (paneKey === 'settings.privacy.title') return 'check';
-    if (paneKey === 'settings.security.title') {
-      var enabled = typeof window !== 'undefined' && window.appSettings && window.appSettings.appLockEnabled;
-      return enabled ? 'lock' : 'lock-open';
-    }
-    var t = String(title || '').toLowerCase();
-    if (t.indexOf('privacy') !== -1 || t.indexOf('region') !== -1) return 'document';
-    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'user';
-    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'brain';
-    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'chart-bars';
-    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return 'palette';
-    if (t.indexOf('access') !== -1) return 'accessibility';
-    if (t.indexOf('data option') !== -1) return 'save';
-    if (t.indexOf('performance') !== -1) return 'zap';
-    if (t.indexOf('install') !== -1) return 'save';
-    if (t.indexOf('data management') !== -1) return 'save';
-    if (t.indexOf('security') !== -1) return 'lock-open';
-    return idx % 2 === 0 ? 'chart-bars' : 'document';
-  }
-
   for (var i = 0; i < n; i++) {
     var dot = document.createElement('button');
     var paneTitle = resolveSettingsPaneTitle(panes[i]) || 'Section ' + String(i + 1);
@@ -224,10 +330,11 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
 }
 
 function updateSettingsCarouselDots(activeIdx) {
-  var dots = document.querySelectorAll('#settingsCarouselDots .settings-carousel-dot');
+  var dots = document.querySelectorAll('#settingsChapters .settings-carousel-dot, #settingsCarouselDots .settings-carousel-dot');
   if (!dots || !dots.length) return;
   for (var i = 0; i < dots.length; i++) {
-    var active = i === activeIdx;
+    var target = parseInt(dots[i].getAttribute('data-settings-target') || '-1', 10);
+    var active = target === activeIdx;
     dots[i].classList.toggle('settings-carousel-dot--active', active);
     dots[i].setAttribute('aria-current', active ? 'true' : 'false');
   }
@@ -529,7 +636,15 @@ export function installSettingsModule(deps) {
     });
     if (firstHit >= 0 && needle) settingsCarouselGo(firstHit);
   }
-  if (typeof window !== 'undefined') window.filterSettingsPanes = filterSettingsPanes;
+  if (typeof window !== 'undefined') {
+    window.filterSettingsPanes = filterSettingsPanes;
+    window.toggleSettingsChapter = toggleSettingsChapter;
+    window.initSettingsChapters = function () {
+      var track = document.getElementById('settingsCarouselTrack');
+      if (!track) return;
+      initSettingsChapters(track.querySelectorAll('.settings-carousel-pane'), svgIcon);
+    };
+  }
 
   return {
     captureSettingsModalCarouselState,

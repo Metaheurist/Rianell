@@ -4,6 +4,16 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.97.0 documentation sync (Achievements + Engagement & UX)
+
+- **Achievements:** 11-id catalog with tier accents, per-card progress bars, completion counter, in-app unlock toast queue, unseen badge on Goals header (`markAchievementSeen` on achievements pane).
+- **Empty states:** Warm copy + animated placeholders on Logs, Charts, AI, Mood, Weekly Review (RN components + PWA HTML/CSS); ghost chart bars and AI insight cards when data is sparse.
+- **Home:** Welcome card, discovery chips, FAB pulse, goals progress bars, streak grace day, personal-best card, tab discovery badges (Charts/AI).
+- **Settings:** Collapsible chapters, setup progress strip, inline info expanders on complex toggles.
+- **Gamification:** Behavior-gated log milestones, daily goal celebration, wizard unlock banners — no points/leaderboards.
+- **Prefs:** `homeWelcomeCardDismissed`, `goalsModalSeenCount`, `firstOpenDate`, `weeklyReviewCompletedAt`, `personalBestDismissedAt` via `normalizeHomeDashboardPrefs`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.97.0; [data-model.md](data-model.md) § Home dashboard engagement; [platform-parity.md](platform-parity.md) v1.97.0 note; [ux-audit.md](ux-audit.md).
+
 ### v1.96.2 documentation sync (First-run wizard interaction fix)
 
 - **PWA onboarding:** Consent lock (`privacy-region.js`) merges `appSettings` with `localStorage` for enforcement; clicks inside the active first-run wizard and tutorial modal are no longer blocked as `interaction-blocked` while `region-unconfigured`.

@@ -1143,7 +1143,8 @@
         <div class="settings-header-text">
           <h3 class="settings-title" data-i18n="settings.title">Settings</h3>
           <p class="settings-carousel-meta" id="settingsCarouselMeta" aria-live="polite"></p>
-          <div class="settings-carousel-dots" id="settingsCarouselDots" role="tablist" aria-label="Settings sections" data-i18n-aria="common.settings.sections"></div>
+          <div class="settings-chapters" id="settingsChapters" role="navigation" aria-label="Settings sections" data-i18n-aria="common.settings.sections"></div>
+          <div class="settings-carousel-dots settings-carousel-dots--legacy" id="settingsCarouselDots" role="tablist" aria-label="Settings sections" data-i18n-aria="common.settings.sections" hidden></div>
           <input type="search" id="settingsSearchInput" class="settings-search-input" data-i18n-placeholder="settings.search.placeholder" placeholder="Search settings…" aria-label="Search settings" oninput="filterSettingsPanes(this.value)" />
         </div>
         <button type="button" class="settings-close">&times;</button>
@@ -1694,6 +1695,7 @@
           <div class="goals-carousel-track" id="goalsCarouselTrack" data-goals-index="0">
             <div class="goals-carousel-pane goals-carousel-pane--active goals-carousel-pane--targets" data-pane-title="Goals" data-i18n-title="common.goals.targets" role="tabpanel" aria-hidden="false">
               <div class="modal-body goals-modal-body">
+                <div id="goalsOrientationCard" class="goals-orientation-card" hidden></div>
                 <p class="field-hint" style="margin-bottom: 16px;" data-i18n="common.goals.hint">Set daily or weekly targets. Progress appears on the Home tab. Use 0 to leave a goal off.</p>
                 <div class="goals-slider-group">
                   <label for="goalSteps" data-i18n="common.steps.per.day">Steps per day</label>
@@ -1941,6 +1943,7 @@
 
     <!-- Home / Today -->
     <div id="homeTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-home">
+      <div id="homeWelcomeCard" class="home-welcome-card-wrap" data-scroll-reveal hidden></div>
       <div class="home-today-header">
         <h2 class="tab-title home-today-greeting" id="homeGreeting" data-i18n="home.greeting.today">Today</h2>
         <div class="home-today-meta">
@@ -1953,6 +1956,7 @@
         <div id="homeStreakCard" class="home-hero-inset home-streak-inset" data-home-card="streak" hidden></div>
         <div id="homeWeeklyReviewCard" class="home-hero-inset home-weekly-review-inset" data-home-card="weeklyReview" hidden></div>
         <div id="homeCheckinCard" class="home-checkin-card" data-home-card="checkin" hidden></div>
+        <div id="homeDiscoveryChips" class="home-discovery-chips-wrap" hidden aria-live="polite"></div>
         <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       </div>
       <div id="goalsProgressBlock" class="goals-progress-block" data-home-card="goals" style="display: none;" aria-live="polite" data-scroll-reveal></div>
@@ -2661,7 +2665,10 @@
       <!-- Empty State Placeholder -->
       <div id="chartEmptyPlaceholder" class="chart-empty-placeholder hidden">
         <div class="empty-placeholder-icon"><svg class="empty-placeholder-icon-svg" aria-hidden="true"><use href="#icon-chart-bars"></use></svg></div>
-        <div class="empty-placeholder-text">Start logging to display data</div>
+        <div class="empty-placeholder-text" data-i18n="charts.empty.warm.title">Your patterns are waiting</div>
+        <p class="chart-empty-warm-message" data-i18n="charts.empty.warm.message">Log a few days and your trends will take shape here.</p>
+        <div class="chart-empty-ghost-bars" id="chartEmptyGhostBars" aria-hidden="true"></div>
+        <p class="chart-empty-progress" id="chartEmptyProgress" aria-live="polite"></p>
       </div>
       
       <!-- Combined Chart View -->
@@ -2748,6 +2755,7 @@
   <!-- Beta + FAB: desktop = badge top-right, + bottom-right; mobile = badge beside + above tab bar -->
   <div class="app-fab-wrap" id="appFabWrap">
     <span class="app-beta-badge" aria-hidden="true" data-i18n="home.fab.betaBadge">Beta</span>
+    <span class="app-fab-pulse" id="appFabPulse" aria-hidden="true"></span>
     <button type="button" class="app-log-fab" id="appLogFab" data-ripple onclick="openLogWizardFromHome()" title="Log health entry" data-i18n-title="common.log.health.entry" aria-label="Add health log entry" data-i18n-aria="common.add.health.log.entry">+</button>
   </div>
 

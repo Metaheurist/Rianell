@@ -17,6 +17,7 @@ import { useT } from '../i18n/I18nProvider';
 import type { Preferences } from '../storage/preferences';
 import { AchievementsPane } from './AchievementsPane';
 import { MedalIcon, TargetBullseyeIcon } from './goalsModalIcons';
+import { computeAchievementSnapshots, markAchievementSeen } from '@rianell/shared';
 
 type Props = {
   visible: boolean;
@@ -55,6 +56,16 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
       scrollRef.current?.scrollTo({ x: initialPane * width, animated: false });
     });
   }, [visible, initialPane, width]);
+
+  useEffect(() => {
+    if (!visible || paneIndex !== 1) return;
+    const { snapshots } = computeAchievementSnapshots(prefs.trackingProfile, prefs.achievements);
+    let next = prefs.achievements;
+    for (const s of snapshots) {
+      if (s.unlocked && !s.seenAt) next = markAchievementSeen(next, s.id);
+    }
+    if (next !== prefs.achievements) onChangePrefs({ ...prefs, achievements: next });
+  }, [onChangePrefs, paneIndex, prefs, visible]);
 
   const onPaneScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const x = e.nativeEvent.contentOffset.x;
@@ -135,6 +146,20 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
             style={styles.carousel}
           >
             <ScrollView style={{ width }} contentContainerStyle={styles.pane} nestedScrollEnabled>
+              {!prefs.goalsModalSeenCount ? (
+                <View style={[styles.orientationCard, { borderColor: theme.tokens.color.accent + '55', backgroundColor: theme.tokens.color.accent + '12' }]}>
+                  <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(14), lineHeight: 20 }}>
+                    {t('goals.firstVisit.body')}
+                  </Text>
+                  <Pressable
+                    onPress={() => onChangePrefs({ ...prefs, goalsModalSeenCount: 1 })}
+                    style={{ marginTop: 10, minHeight: 44, justifyContent: 'center' }}
+                    accessibilityRole="button"
+                  >
+                    <Text style={{ color: theme.tokens.color.accent, fontWeight: '600' }}>{t('goals.firstVisit.dismiss')}</Text>
+                  </Pressable>
+                </View>
+              ) : null}
               <Text style={[styles.hint, { color: `${theme.tokens.color.text}BB`, fontSize: theme.font(13) }]}>
                 {t('common.goals.hint')}
               </Text>
@@ -260,6 +285,7 @@ const styles = StyleSheet.create({
   navBtn: { padding: 8 },
   carousel: { maxHeight: 420 },
   pane: { padding: 16, paddingBottom: 24 },
+  orientationCard: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 8 },
   hint: { marginBottom: 12 },
   sliderGroup: { marginBottom: 16 },
   goalInput: {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -48,6 +48,8 @@ import { SettingsPrivacyTrustPane } from '../settings/SettingsPrivacyTrustPane';
 import { SettingsSecurityLockPane } from '../settings/SettingsSecurityLockPane';
 import { SettingsPerformanceLearnPane } from '../settings/SettingsPerformanceLearnPane';
 import { AnonPoolFieldChecklist } from '../settings/AnonPoolFieldChecklist';
+import { SettingsChapter } from '../components/ui/SettingsChapter';
+import { computeSetupProgress } from '../utils/engagementGamification';
 import { EncryptedExportModal } from '../settings/EncryptedExportModal';
 import { QrHandoffModal } from '../settings/QrHandoffModal';
 import { SettingsLoggingPane } from '../settings/SettingsLoggingPane';
@@ -610,8 +612,62 @@ export function SettingsScreen({
       ? `quality ${unknownObservabilityQuality} · drift ${unknownDriftStatus} · trajectory ${unknownTrajectoryStability}`
       : null;
 
+  const setupProgress = useMemo(() => computeSetupProgress(prefs), [prefs]);
+  const [expandedHint, setExpandedHint] = useState<string | null>(null);
+
+  const renderPaneButton = (i: number) => {
+    const paneTitle = paneTitles[i];
+    const active = i === paneIndex;
+    const iconName = settingsPaneIconName(paneTitle, i, PANE_TITLE_KEYS[i], prefs.appLockEnabled);
+    return (
+      <Pressable
+        key={PANE_TITLE_KEYS[i]}
+        testID={`settings-pane-tab-${i}`}
+        onPress={() => goPane(i)}
+        style={[
+          styles.paneIconBtn,
+          {
+            width: settingsPaneIconBtnSize,
+            height: settingsPaneIconBtnSize,
+            borderColor: active ? theme.tokens.color.accent : `${theme.tokens.color.text}33`,
+            backgroundColor: active ? `${theme.tokens.color.accent}2E` : `${theme.tokens.color.text}14`,
+          },
+        ]}
+        accessibilityRole="tab"
+        accessibilityLabel={`${paneTitle}${active ? ', selected' : ''}`}
+        accessibilityState={{ selected: active }}
+      >
+        <Ionicons
+          name={iconName}
+          size={Math.round(Math.min(settingsPaneIconBtnSize * 0.42, theme.font(16)))}
+          color={active ? theme.tokens.color.accent : theme.tokens.color.text}
+        />
+      </Pressable>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
+      {setupProgress.done < setupProgress.total ? (
+        <View style={[styles.setupStrip, { borderColor: `${theme.tokens.color.accent}44` }]}>
+          <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>
+            {t('settings.setup.progress', {
+              done: String(setupProgress.done),
+              total: String(setupProgress.total),
+            })}
+          </Text>
+          <View style={[styles.setupTrack, { backgroundColor: `${theme.tokens.color.accent}22` }]}>
+            <View
+              style={{
+                height: 4,
+                borderRadius: 2,
+                width: `${(setupProgress.done / setupProgress.total) * 100}%`,
+                backgroundColor: theme.tokens.color.accent,
+              }}
+            />
+          </View>
+        </View>
+      ) : null}
       <View style={styles.carouselChrome}>
         <View style={[styles.carouselNav, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
           <Pressable
@@ -641,39 +697,21 @@ export function SettingsScreen({
           </Pressable>
         </View>
 
-        <View style={styles.paneIconRow} accessibilityRole="tablist">
-          {paneTitles.map((paneTitle, i) => {
-            const active = i === paneIndex;
-            const iconName = settingsPaneIconName(paneTitle, i, PANE_TITLE_KEYS[i], prefs.appLockEnabled);
-            return (
-              <Pressable
-                key={PANE_TITLE_KEYS[i]}
-                testID={`settings-pane-tab-${i}`}
-                onPress={() => goPane(i)}
-                style={[
-                  styles.paneIconBtn,
-                  {
-                    width: settingsPaneIconBtnSize,
-                    height: settingsPaneIconBtnSize,
-                    borderColor: active
-                      ? theme.tokens.color.accent
-                      : `${theme.tokens.color.text}33`,
-                    backgroundColor: active ? `${theme.tokens.color.accent}2E` : `${theme.tokens.color.text}14`,
-                  },
-                ]}
-                accessibilityRole="tab"
-                accessibilityLabel={`${paneTitle}${active ? ', selected' : ''}`}
-                accessibilityState={{ selected: active }}
-              >
-                <Ionicons
-                  name={iconName}
-                  size={Math.round(Math.min(settingsPaneIconBtnSize * 0.42, theme.font(16)))}
-                  color={active ? theme.tokens.color.accent : theme.tokens.color.text}
-                />
-              </Pressable>
-            );
-          })}
-        </View>
+        <SettingsChapter title={t('settings.chapter.gettingStarted')} iconName="rocket-outline" defaultOpen>
+          <View style={styles.paneIconRow} accessibilityRole="tablist">
+            {[0, 1, 3].map((i) => renderPaneButton(i))}
+          </View>
+        </SettingsChapter>
+        <SettingsChapter title={t('settings.chapter.customise')} iconName="color-palette-outline">
+          <View style={styles.paneIconRow} accessibilityRole="tablist">
+            {[4, 5].map((i) => renderPaneButton(i))}
+          </View>
+        </SettingsChapter>
+        <SettingsChapter title={t('settings.chapter.advanced')} iconName="construct-outline">
+          <View style={styles.paneIconRow} accessibilityRole="tablist">
+            {[2, 6, 7, 8, 9].map((i) => renderPaneButton(i))}
+          </View>
+        </SettingsChapter>
         <TextInput
           value={settingsSearch}
           onChangeText={(q) => {
@@ -788,7 +826,13 @@ export function SettingsScreen({
                 />
               </Row>
 
-              <Row label="Contribute anonymized data">
+              <RowWithInlineHint
+                label="Contribute anonymized data"
+                hintId="anon"
+                hintText={t('settings.anon.inlineHint')}
+                expandedHint={expandedHint}
+                setExpandedHint={setExpandedHint}
+              >
                 <Switch
                   value={prefs.contributeAnonData === true}
                   onValueChange={(next) => {
@@ -799,7 +843,7 @@ export function SettingsScreen({
                     onChangePrefs({ ...prefs, contributeAnonData: next });
                   }}
                 />
-              </Row>
+              </RowWithInlineHint>
 
               <Row label="Use open health datasets">
                 <Switch
@@ -843,7 +887,13 @@ export function SettingsScreen({
 
             <Section title={t('settings.ai.title')}>
 
-              <Row label={t('settings.ai.enableFeatures')}>
+              <RowWithInlineHint
+                label={t('settings.ai.enableFeatures')}
+                hintId="ai"
+                hintText={t('settings.ai.inlineHint')}
+                expandedHint={expandedHint}
+                setExpandedHint={setExpandedHint}
+              >
 
                 <Switch
 
@@ -853,7 +903,7 @@ export function SettingsScreen({
 
                 />
 
-              </Row>
+              </RowWithInlineHint>
 
               <Hint>When on: AI Analysis tab, chart predictions, and Goals & targets are available (web parity).</Hint>
 
@@ -1856,7 +1906,13 @@ export function SettingsScreen({
 
               {!prefs.simpleMode ? (
               <>
-              <Row label="On-device AI model">
+              <RowWithInlineHint
+                label="On-device AI model"
+                hintId="performance"
+                hintText={t('settings.performance.modelHint')}
+                expandedHint={expandedHint}
+                setExpandedHint={setExpandedHint}
+              >
 
                 <InlineChoices
 
@@ -1886,7 +1942,7 @@ export function SettingsScreen({
 
                 />
 
-              </Row>
+              </RowWithInlineHint>
 
               <Row label={t('settings.performance.llmCoachPersona')}>
 
@@ -2421,6 +2477,45 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
+function RowWithInlineHint({
+  label,
+  hintId,
+  hintText,
+  expandedHint,
+  setExpandedHint,
+  children,
+}: {
+  label: string;
+  hintId: string;
+  hintText: string;
+  expandedHint: string | null;
+  setExpandedHint: (value: string | null) => void;
+  children: React.ReactNode;
+}) {
+  const theme = useTheme();
+  return (
+    <View>
+      <View style={styles.row}>
+        <View style={styles.rowLabelHintWrap}>
+          <Text style={[styles.rowLabel, { fontSize: theme.font(15), color: theme.tokens.color.text, flex: 1 }]}>
+            {label}
+          </Text>
+          <Pressable
+            onPress={() => setExpandedHint(expandedHint === hintId ? null : hintId)}
+            accessibilityRole="button"
+            accessibilityLabel="More information"
+            hitSlop={8}
+          >
+            <Ionicons name="help-circle-outline" size={18} color={theme.tokens.color.accent} />
+          </Pressable>
+        </View>
+        <View style={styles.rowRight}>{children}</View>
+      </View>
+      {expandedHint === hintId ? <Hint>{hintText}</Hint> : null}
+    </View>
+  );
+}
+
 function Hint({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
   const muted = `${theme.tokens.color.text}CC`;
@@ -2485,6 +2580,8 @@ function InlineChoices({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  setupStrip: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4, gap: 6 },
+  setupTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
   /** Horizontal pager: must fill remaining height so inner panes can scroll vertically. */
   carouselBody: { flex: 1, minHeight: 0 },
   paneOuter: { flex: 1, minHeight: 0 },
@@ -2527,6 +2624,7 @@ const styles = StyleSheet.create({
   sectionBody: { gap: 10 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   rowLabel: { fontSize: 15, flex: 1 },
+  rowLabelHintWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingRight: 8 },
   rowRight: { alignItems: 'flex-end' },
   hint: { fontSize: 13, marginTop: -4 },
   choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },

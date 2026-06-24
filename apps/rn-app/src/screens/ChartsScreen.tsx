@@ -36,6 +36,7 @@ import {
 import { BalanceRadarChart } from '../charts/BalanceRadarChart';
 import { buildRadarSvgForExport, printOrShareChartReport } from '../utils/printChartReport';
 import { explainChartRange } from '../ai/llm';
+import { ChartsEmptyPreview } from '../components/ui/EmptyPreview';
 
 const RANGE_OPTIONS: ChartRange[] = [7, 14, 30, 90, 'all'];
 
@@ -543,12 +544,7 @@ export function ChartsScreen({
 
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.metric.trends')}</Text>
           {noDataInRange ? (
-            <Text
-              style={[styles.emptyHint, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-              accessibilityLabel="Charts empty state"
-            >
-              {t('charts.empty.noEntries')}
-            </Text>
+            <ChartsEmptyPreview logsCount={logs.length} />
           ) : (
             trendsForView.map((trend) => (
               <View

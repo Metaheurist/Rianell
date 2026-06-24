@@ -41,8 +41,8 @@ test(
     const { findByLabelText, getByText } = renderWithProviders(<ChartsScreen />, { prefs });
 
     await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalled());
-    await findByLabelText('Charts empty state', {}, { timeout: 10000 });
-    expect(getByText(/No log entries in this date range/i)).toBeTruthy();
+    await findByLabelText('Placeholder chart preview', {}, { timeout: 10000 });
+    expect(getByText(/Your patterns are waiting/i)).toBeTruthy();
   },
   15000
 );

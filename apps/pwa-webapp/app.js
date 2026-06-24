@@ -6735,6 +6735,263 @@ window._aiAnalysisCache = null;
 // Multi-range cache: key (from getAICacheKey) -> { analysis, sortedLogs, dateRangeText, cacheKey }; only update on data change
 window._aiAnalysisCacheMap = Object.create(null);
 
+var LOG_MILESTONES_KEY = 'logMilestonesShown';
+var LOG_MILESTONE_THRESHOLDS = [1, 5, 10, 25, 50];
+var LOG_MILESTONE_I18N = {
+  1: 'home.firstLog.celebration',
+  5: 'gamification.milestone.5logs',
+  10: 'gamification.milestone.10logs',
+  25: 'gamification.milestone.25logs',
+  50: 'gamification.milestone.50logs'
+};
+var _prevLogCountForMilestones = null;
+
+function readShownLogMilestones() {
+  try {
+    var raw = localStorage.getItem(LOG_MILESTONES_KEY);
+    if (!raw) return [];
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(function (n) { return typeof n === 'number'; }) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function markLogMilestoneShown(n) {
+  var shown = readShownLogMilestones();
+  if (shown.indexOf(n) >= 0) return;
+  try {
+    localStorage.setItem(LOG_MILESTONES_KEY, JSON.stringify(shown.concat([n])));
+  } catch (e) {}
+}
+
+function detectNewLogMilestone(prevCount, newCount) {
+  if (newCount <= prevCount) return null;
+  var shown = readShownLogMilestones();
+  for (var i = 0; i < LOG_MILESTONE_THRESHOLDS.length; i++) {
+    var m = LOG_MILESTONE_THRESHOLDS[i];
+    if (prevCount < m && newCount >= m && shown.indexOf(m) < 0) {
+      markLogMilestoneShown(m);
+      return LOG_MILESTONE_I18N[m] || null;
+    }
+  }
+  return null;
+}
+
+function fireLogMilestoneCelebrations(prevCount, newCount) {
+  var key = detectNewLogMilestone(prevCount, newCount);
+  if (!key || typeof tUi !== 'function') return;
+  if (newCount === 1 && prevCount === 0 && typeof showAchievementToast === 'function') {
+    showAchievementToast({ id: 'log-milestone-1', title: tUi(key), body: '' });
+    return;
+  }
+  if (typeof showToast === 'function') {
+    showToast(tUi(key), { type: 'success' });
+  }
+}
+
+function initLogMilestoneTracking() {
+  var count = Array.isArray(logs) ? logs.length : 0;
+  _prevLogCountForMilestones = count;
+  updateTabDiscoveryBadges();
+  updateGoalsHeaderUnseenBadge();
+}
+
+function onLogsCountChanged(newCount) {
+  if (_prevLogCountForMilestones == null) {
+    _prevLogCountForMilestones = newCount;
+    return;
+  }
+  if (newCount > _prevLogCountForMilestones) {
+    fireLogMilestoneCelebrations(_prevLogCountForMilestones, newCount);
+    if (_prevLogCountForMilestones === 0 && newCount >= 1) setTabDiscoveryBadge('tabBadge_charts');
+    if (_prevLogCountForMilestones < 7 && newCount >= 7) setTabDiscoveryBadge('tabBadge_ai');
+    maybeCelebrateGoalsToday();
+  }
+  _prevLogCountForMilestones = newCount;
+}
+
+var TAB_BADGE_KEYS = { charts: 'tabBadge_charts', ai: 'tabBadge_ai' };
+
+function setTabDiscoveryBadge(key) {
+  try {
+    localStorage.setItem(key, new Date().toISOString());
+    updateTabDiscoveryBadges();
+  } catch (e) {}
+}
+
+function clearTabDiscoveryBadge(key) {
+  try {
+    localStorage.removeItem(key);
+    updateTabDiscoveryBadges();
+  } catch (e) {}
+}
+
+function isTabBadgeActive(key) {
+  try {
+    var raw = localStorage.getItem(key);
+    if (!raw) return false;
+    var at = Date.parse(raw);
+    if (!Number.isFinite(at)) return false;
+    return Date.now() - at < 24 * 60 * 60 * 1000;
+  } catch (e) {
+    return false;
+  }
+}
+
+function updateTabDiscoveryBadges() {
+  var chartsActive = isTabBadgeActive(TAB_BADGE_KEYS.charts);
+  var aiActive = isTabBadgeActive(TAB_BADGE_KEYS.ai);
+  ['charts', 'ai'].forEach(function (tab) {
+    var active = tab === 'charts' ? chartsActive : aiActive;
+    ['tab-' + tab, 'bottom-tab-' + tab].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('main-nav-tab--badge', active);
+      el.setAttribute('aria-label', active ? (tab === 'charts' ? 'Charts, new' : 'AI, new') : '');
+    });
+  });
+}
+
+function todayDateStrLocal() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function computeMetGoalsTodayLocal(logArr, goals, todayStr) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!Array.isArray(logArr) || !goals || !todayStr) return [];
+  var log = logArr.find(function (l) { return l && l.date === todayStr; });
+  if (!log) return [];
+  var met = [];
+  var steps = typeof log.steps === 'number' ? log.steps : Number(log.steps);
+  if (goals.steps > 0 && Number.isFinite(steps) && steps >= goals.steps) met.push('steps');
+  var hydration = typeof log.hydration === 'number' ? log.hydration : Number(log.hydration);
+  if (goals.hydration > 0 && Number.isFinite(hydration) && hydration >= goals.hydration) met.push('hydration');
+  var sleepScore = typeof log.sleep === 'number' ? log.sleep : Number(log.sleep);
+  var sleepTarget = goals.sleepScore != null ? goals.sleepScore : goals.sleep;
+  if (sleepTarget > 0 && Number.isFinite(sleepScore) && sleepScore >= sleepTarget) met.push('sleepScore');
+  if (S && typeof S.isGoodDayLog === 'function' && S.isGoodDayLog(log)) met.push('goodDay');
+  return met;
+}
+
+function pickGoalCelebrationKeyLocal(metGoals) {
+  if (metGoals.indexOf('goodDay') >= 0) return 'gamification.goal.goodDay';
+  if (metGoals.indexOf('steps') >= 0) return 'gamification.goal.steps';
+  if (metGoals.indexOf('hydration') >= 0) return 'gamification.goal.hydration';
+  return 'gamification.goal.generic';
+}
+
+function maybeCelebrateGoalsToday() {
+  var todayStr = todayDateStrLocal();
+  var key = 'goalCelebrated_' + todayStr;
+  try {
+    if (localStorage.getItem(key) === '1') return;
+  } catch (e) {
+    return;
+  }
+  var goals = typeof getGoals === 'function' ? getGoals() : null;
+  if (!goals) return;
+  var met = computeMetGoalsTodayLocal(logs, goals, todayStr);
+  if (!met.length || typeof tUi !== 'function') return;
+  try {
+    localStorage.setItem(key, '1');
+  } catch (e) {}
+  if (typeof showToast === 'function') {
+    showToast(tUi(pickGoalCelebrationKeyLocal(met)), { type: 'success' });
+  }
+}
+
+function countUnseenAchievements() {
+  var result = computeCurrentAchievementSnapshots();
+  var snapshots = result.snapshots || [];
+  return snapshots.filter(function (s) { return s.unlocked && !s.seenAt; }).length;
+}
+
+function markUnlockedAchievementsSeen() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || typeof S.markAchievementSeen !== 'function') return;
+  var result = computeCurrentAchievementSnapshots();
+  var snapshots = result.snapshots || [];
+  var state = getAchievementState();
+  var next = state;
+  snapshots.forEach(function (s) {
+    if (s.unlocked && !s.seenAt) next = S.markAchievementSeen(next, s.id);
+  });
+  if (next !== state) saveAchievementState(next);
+  updateGoalsHeaderUnseenBadge();
+}
+
+function updateGoalsHeaderUnseenBadge() {
+  var btn = document.querySelector('.targets-button-top');
+  if (!btn) return;
+  var count = countUnseenAchievements();
+  btn.classList.toggle('targets-button-top--unseen', count > 0);
+  if (count > 0) {
+    btn.setAttribute('aria-label', count + ' new achievement' + (count === 1 ? '' : 's'));
+  } else {
+    btn.removeAttribute('aria-label');
+  }
+}
+
+function isLoggingStreakGraceLocal(logArr, todayStr) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.isLoggingStreakGrace === 'function') {
+    return S.isLoggingStreakGrace(logArr, todayStr);
+  }
+  if (!Array.isArray(logArr) || !todayStr) return false;
+  var dates = new Set(logArr.map(function (l) { return l && l.date; }).filter(Boolean));
+  var yday = yesterdayDateStr(todayStr);
+  var dayBefore = yesterdayDateStr(yday);
+  return !dates.has(todayStr) && !dates.has(yday) && dates.has(dayBefore);
+}
+
+function yesterdayDateStr(todayStr) {
+  var d = /^\d{4}-\d{2}-\d{2}$/.test(todayStr) ? new Date(todayStr + 'T12:00:00') : new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function daysSinceIsoDate(isoDate) {
+  if (!isoDate || !/^\d{4}-\d{2}-\d{2}/.test(isoDate)) return 0;
+  var start = new Date(isoDate.slice(0, 10) + 'T12:00:00').getTime();
+  var now = new Date();
+  now.setHours(12, 0, 0, 0);
+  return Math.max(0, Math.floor((now.getTime() - start) / (24 * 60 * 60 * 1000)));
+}
+
+function renderLogsEmptyStateHtml() {
+  return (
+    '<div class="logs-empty-state">' +
+    '<div class="logs-empty-icon" aria-hidden="true">' + svgIcon('document', 'logs-empty-icon-svg') + '</div>' +
+    '<h3 class="logs-empty-title">' + escapeHTML(tUi('logs.empty.warm.title')) + '</h3>' +
+    '<p class="logs-empty-message">' + escapeHTML(tUi('logs.empty.warm.message')) + '</p>' +
+    '<button type="button" class="action-btn logs-empty-cta" onclick="openLogWizardFromHome()">' + escapeHTML(tUi('logs.empty.warm.cta')) + '</button>' +
+    '</div>'
+  );
+}
+
+var AI_PREVIEW_LABEL_KEYS = ['ai.preview.label1', 'ai.preview.label2', 'ai.preview.label3'];
+
+function renderAiEmptyPreviewHtml() {
+  var html = '<div class="ai-empty-preview">';
+  html += '<div class="ai-loading-state ai-empty-warm">';
+  html += '<div class="ai-loading-icon">' + svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis') + '</div>';
+  html += '<h3 class="ai-empty-title">' + escapeHTML(tUi('ai.empty.warm.title')) + '</h3>';
+  html += '<p class="ai-empty-desc">' + escapeHTML(tUi('ai.empty.warm.message')) + '</p>';
+  html += '</div>';
+  AI_PREVIEW_LABEL_KEYS.forEach(function (key) {
+    html += '<div class="ai-ghost-card" aria-label="' + escapeAttr(tUi(key)) + '">';
+    html += '<span class="ai-ghost-lock" aria-hidden="true">' + svgIcon('lock', 'ai-ghost-lock-svg') + '</span>';
+    html += '<span class="ai-ghost-shimmer ai-ghost-shimmer--wide"></span>';
+    html += '<span class="ai-ghost-shimmer ai-ghost-shimmer--narrow"></span>';
+    html += '<span class="ai-ghost-label">' + escapeHTML(tUi(key)) + '</span>';
+    html += '</div>';
+  });
+  html += '<p class="ai-preview-unlock">' + escapeHTML(tUi('ai.preview.unlock')) + '</p>';
+  html += '</div>';
+  return html;
+}
+
 function getAICacheKey(aiDateRange, logsLength, filteredCount) {
   var deviceTier = (window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass)
     ? window.PerformanceUtils.platform.deviceClass
@@ -6761,13 +7018,7 @@ async function generateAISummary() {
 
   // No data: show in-place empty state (display-only, no modal)
   if (!logs || logs.length === 0) {
-    resultsContent.innerHTML = `
-      <div class="ai-loading-state">
-        <div class="ai-loading-icon">${svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis')}</div>
-        <h3 class="ai-empty-title">${tUi('ai.empty.noData.title')}</h3>
-        <p class="ai-empty-desc">${tUi('ai.empty.noData.desc')}</p>
-      </div>
-    `;
+    resultsContent.innerHTML = renderAiEmptyPreviewHtml();
     Logger.debug('AI Summary: no logs in range (empty state)');
     return;
   }
@@ -10063,6 +10314,7 @@ function tickAchievements() {
   _achievementSnapshotsPrev = snapshots.map(function (s) { return Object.assign({}, s); });
   var grid = document.getElementById('achievementsGrid');
   if (grid && grid.childElementCount) renderAchievementsPane();
+  updateGoalsHeaderUnseenBadge();
 }
 
 async function initAchievementsOnBoot() {
@@ -13796,7 +14048,7 @@ function renderLogEntries(logsToRender) {
     const hasAnyLogs = Array.isArray(allLogs) && allLogs.length > 0;
     outputEl.innerHTML = hasAnyLogs
       ? '<p class="empty-items">' + tUi('common.no.logs.in.this.range.try.another.range.') + '</p>'
-      : '<p class="empty-items">' + tUi('logs.empty.none') + '</p>';
+      : renderLogsEmptyStateHtml();
     return;
   }
   const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
@@ -15584,12 +15836,35 @@ function updateChartEmptyState(hasData) {
     placeholder.classList.remove('hidden');
     if (combinedContainer) combinedContainer.classList.add('hidden');
     if (individualContainer) individualContainer.classList.add('hidden');
+    renderChartEmptyGhostBars();
   } else {
     // Hide placeholder, show appropriate chart container based on view
     placeholder.classList.add('hidden');
     if (typeof enforceChartSectionView === 'function') {
       enforceChartSectionView(getCurrentChartView());
     }
+  }
+}
+
+var CHART_EMPTY_BAR_HEIGHTS = [24, 40, 32, 48, 28, 36];
+var CHART_EMPTY_BAR_LABELS = ['Mood', 'Sleep', 'Fatigue', 'Energy', 'Steps', 'Hydration'];
+
+function renderChartEmptyGhostBars() {
+  var barsEl = document.getElementById('chartEmptyGhostBars');
+  var progressEl = document.getElementById('chartEmptyProgress');
+  if (!barsEl) return;
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : (typeof logs !== 'undefined' ? logs : []);
+  var count = Array.isArray(logArr) ? logArr.length : 0;
+  var remaining = Math.max(0, 3 - count);
+  var dayWord = remaining === 1 ? 'day' : 'days';
+  var html = '';
+  for (var i = 0; i < CHART_EMPTY_BAR_HEIGHTS.length; i++) {
+    html += '<div class="chart-empty-ghost-col"><span class="chart-empty-ghost-bar" style="height:' + CHART_EMPTY_BAR_HEIGHTS[i] + 'px"></span>';
+    html += '<span class="chart-empty-ghost-label">' + escapeHTML(CHART_EMPTY_BAR_LABELS[i]) + '</span></div>';
+  }
+  barsEl.innerHTML = html;
+  if (progressEl) {
+    progressEl.innerHTML = 'Log <strong>' + remaining + ' more ' + dayWord + '</strong> to see your first chart';
   }
 }
 
@@ -15699,6 +15974,7 @@ function saveQuickMinimalLog() {
   }
   logs.push(newEntry);
   saveLogsToStorage();
+  onLogsCountChanged(logs.length);
   if (typeof clearLogDraft === 'function') clearLogDraft();
   logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
   logFormExerciseItems = [];
@@ -15867,6 +16143,7 @@ form.addEventListener("submit", e => {
 
   saveLogsToStorage();
   Logger.debug('Health logs saved to localStorage', { entryCount: logs.length });
+  onLogsCountChanged(logs.length);
 
   if (!wasOffline) {
     // Sync anonymized data if contribution is enabled (but not in demo mode)
@@ -16013,6 +16290,10 @@ let appSettings = {
   caregiverRelationship: 'parent',
   customChartMetrics: [],
   homeStreakCardDismissed: false,
+  homeWelcomeCardDismissed: false,
+  goalsModalSeenCount: 0,
+  firstOpenDate: null,
+  weeklyReviewCompletedAt: null,
   weatherStripEnabled: false,
   weatherLat: null,
   weatherLon: null,
@@ -20727,7 +21008,13 @@ function saveMicroCheckinAndClose() {
     logs = next;
     if (typeof window !== 'undefined') window.logs = next;
     if (typeof saveLogsToStorage === 'function') saveLogsToStorage();
-    if (typeof showToast === 'function') {
+    if (typeof showAchievementToast === 'function') {
+      showAchievementToast({
+        id: 'checkin-saved',
+        title: typeof tUi === 'function' ? tUi('home.checkin.saved.toast') : 'Check-in saved',
+        body: ''
+      });
+    } else if (typeof showToast === 'function') {
       showToast(typeof tUi === 'function' ? tUi('home.checkin.saved') : 'Check-in saved.', { type: 'success' });
     }
     closeMicroCheckinModal();
@@ -20939,11 +21226,163 @@ function enableHomeWeatherStrip() {
   }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
 }
 
+function updateHomeFabPulse(shouldPulse) {
+  var pulse = document.getElementById('appFabPulse');
+  var fab = document.getElementById('appLogFab');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (pulse) pulse.classList.toggle('app-fab-pulse--active', !!shouldPulse && !reduceMotion);
+  if (fab) fab.classList.toggle('app-log-fab--pulse', !!shouldPulse && !reduceMotion);
+}
+
+function renderHomeWelcomeCard(logArr) {
+  var card = document.getElementById('homeWelcomeCard');
+  if (!card) return;
+  var count = Array.isArray(logArr) ? logArr.length : 0;
+  var dismissed = appSettings && appSettings.homeWelcomeCardDismissed === true;
+  var anchor = appSettings && (appSettings.firstOpenDate || appSettings.firstRunWizardCompletedAt);
+  var days = daysSinceIsoDate(anchor);
+  var show = !dismissed && count < 3 && days <= 7;
+  if (!show) {
+    card.hidden = true;
+    card.innerHTML = '';
+    return;
+  }
+  card.hidden = false;
+  var condition = (appSettings && appSettings.medicalCondition) ? String(appSettings.medicalCondition).trim() : '';
+  var body = tUi('home.welcome.body').replace('{condition}', condition || 'your condition');
+  var pills = [
+    { key: 'home.welcome.pill.sleep', tab: 'charts', icon: 'chart-bars' },
+    { key: 'home.welcome.pill.mood', tab: 'mood', icon: 'chart-bars' },
+    { key: 'home.welcome.pill.energy', tab: 'log', icon: 'zap' }
+  ];
+  var html = '<button type="button" class="home-welcome-dismiss" aria-label="' + escapeAttr(tUi('common.close')) + '">&times;</button>';
+  html += '<div class="home-welcome-icon" aria-hidden="true">' + svgIcon('star', 'home-welcome-icon-svg') + '</div>';
+  html += '<h3 class="home-welcome-title">' + escapeHTML(tUi('home.welcome.title')) + '</h3>';
+  html += '<p class="home-welcome-body">' + escapeHTML(body) + '</p>';
+  html += '<div class="home-welcome-pills">';
+  pills.forEach(function (pill) {
+    html += '<button type="button" class="home-welcome-pill" data-welcome-tab="' + escapeHTML(pill.tab) + '">';
+    html += svgIcon(pill.icon, 'home-welcome-pill-icon');
+    html += '<span>' + escapeHTML(tUi(pill.key)) + '</span></button>';
+  });
+  html += '</div>';
+  card.innerHTML = html;
+  card.classList.add('rianell-in-view');
+  var dismissBtn = card.querySelector('.home-welcome-dismiss');
+  if (dismissBtn) {
+    dismissBtn.onclick = function () {
+      appSettings.homeWelcomeCardDismissed = true;
+      if (typeof saveSettings === 'function') saveSettings();
+      renderHomeWelcomeCard(logArr);
+    };
+  }
+  card.querySelectorAll('[data-welcome-tab]').forEach(function (btn) {
+    btn.onclick = function () {
+      var tab = btn.getAttribute('data-welcome-tab');
+      if (tab === 'log') openLogWizardFromHome();
+      else if (typeof switchTab === 'function') switchTab(tab);
+    };
+  });
+}
+
+var _homeDiscoveryModalKind = null;
+
+function closeHomeDiscoveryModal() {
+  var overlay = document.getElementById('homeDiscoveryModalOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  overlay.setAttribute('hidden', '');
+  document.body.classList.remove('modal-active');
+  _homeDiscoveryModalKind = null;
+}
+
+function openHomeDiscoveryModal(kind) {
+  var overlay = document.getElementById('homeDiscoveryModalOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'homeDiscoveryModalOverlay';
+    overlay.className = 'modal-overlay home-discovery-modal-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.innerHTML = '<div class="modal-content home-discovery-modal-content" role="document"></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeHomeDiscoveryModal();
+    });
+  }
+  _homeDiscoveryModalKind = kind;
+  var content = overlay.querySelector('.home-discovery-modal-content');
+  if (!content) return;
+  var titleKey = kind === 'ai' ? 'home.discover.ai' : 'home.discover.mood';
+  var bodyKey = kind === 'ai' ? 'home.discover.ai.info' : 'home.discover.mood.info';
+  var html = '<div class="modal-header"><h3>' + escapeHTML(tUi(titleKey)) + '</h3>';
+  html += '<button type="button" class="modal-close" aria-label="' + escapeAttr(tUi('common.close')) + '">&times;</button></div>';
+  html += '<div class="modal-body"><p>' + escapeHTML(tUi(bodyKey)) + '</p></div>';
+  html += '<div class="modal-footer">';
+  if (kind === 'mood') {
+    html += '<button type="button" class="action-btn home-discovery-modal-cta">' + escapeHTML(tUi('home.discover.mood.cta')) + '</button>';
+  } else {
+    html += '<button type="button" class="action-btn home-discovery-modal-cta">' + escapeHTML(tUi('common.close')) + '</button>';
+  }
+  html += '</div>';
+  content.innerHTML = html;
+  content.onclick = function (e) { e.stopPropagation(); };
+  var closeBtn = content.querySelector('.modal-close');
+  if (closeBtn) closeBtn.onclick = closeHomeDiscoveryModal;
+  var cta = content.querySelector('.home-discovery-modal-cta');
+  if (cta) {
+    cta.onclick = function () {
+      closeHomeDiscoveryModal();
+      if (kind === 'mood' && typeof switchTab === 'function') switchTab('mood');
+    };
+  }
+  overlay.removeAttribute('hidden');
+  overlay.style.display = 'block';
+  document.body.classList.add('modal-active');
+}
+
+function renderHomeDiscoveryChips(logArr) {
+  var wrap = document.getElementById('homeDiscoveryChips');
+  if (!wrap) return;
+  var count = Array.isArray(logArr) ? logArr.length : 0;
+  if (count !== 0) {
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.hidden = false;
+  var chips = [
+    { id: 'mood', key: 'home.discover.mood' },
+    { id: 'goals', key: 'home.discover.goals' },
+    { id: 'ai', key: 'home.discover.ai' }
+  ];
+  var html = '<div class="home-discovery-row">';
+  chips.forEach(function (chip) {
+    html += '<button type="button" class="home-discovery-chip" data-discovery-chip="' + escapeHTML(chip.id) + '">';
+    html += escapeHTML(tUi(chip.key));
+    html += '</button>';
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-discovery-chip]').forEach(function (btn) {
+    btn.onclick = function () {
+      var id = btn.getAttribute('data-discovery-chip');
+      if (id === 'goals' && typeof openGoalsModal === 'function') openGoalsModal(0);
+      else if (id === 'mood') openHomeDiscoveryModal('mood');
+      else if (id === 'ai') openHomeDiscoveryModal('ai');
+    };
+  });
+}
+
 function updateHomeTodayPanel() {
   var greet = document.getElementById('homeGreeting');
   var dateEl = document.getElementById('homeTodayDate');
   var statusEl = document.getElementById('homeTodayStatus');
   var hero = document.getElementById('homeHeroCard');
+  if (!appSettings.firstOpenDate) {
+    appSettings.firstOpenDate = getTodayDateStr();
+    if (typeof saveSettings === 'function') saveSettings();
+  }
   var name = (typeof appSettings !== 'undefined' && appSettings.userName) ? String(appSettings.userName).trim() : '';
   var hour = new Date().getHours();
   var salutationKey = hour < 12 ? 'home.greeting.morning' : hour < 17 ? 'home.greeting.afternoon' : 'home.greeting.evening';
@@ -20964,21 +21403,33 @@ function updateHomeTodayPanel() {
   var streakBroken = S && typeof S.isLoggingStreakBroken === 'function'
     ? S.isLoggingStreakBroken(logArr, todayStr)
     : false;
+  var streakGrace = isLoggingStreakGraceLocal(logArr, todayStr);
   if (today) {
     var loggedTitle = typeof tUi === 'function' ? tUi('home.status.loggedToday') : 'Logged today';
     var loggedDetail = typeof tUi === 'function' ? tUi('home.status.loggedTodayDetail') : 'Open View logs to browse or edit your entry.';
     statusEl.innerHTML = '<strong>' + escapeHTML(loggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(loggedDetail) + '</p>';
     statusEl.classList.remove('home-today-status--streak-nudge');
-    if (hero) hero.classList.add('home-hero-card--logged');
+    if (hero) {
+      hero.classList.add('home-hero-card--logged');
+      hero.classList.remove('home-hero-card--streak-nudge');
+    }
   } else {
     var notLoggedTitle = typeof tUi === 'function' ? tUi('home.status.notLoggedYet') : 'Not logged yet';
-    var notLoggedDetail = streakBroken
-      ? (typeof tUi === 'function' ? tUi('home.status.notLoggedStreakBrokenDetail') : 'You logged yesterday but not yet today. Tap + to record how you feel.')
-      : (typeof tUi === 'function' ? tUi('home.status.notLoggedTodayDetail') : 'No log for today yet. Tap + to record how you feel.');
+    var notLoggedDetail = streakGrace
+      ? (typeof tUi === 'function' ? tUi('home.streak.grace') : 'Life gets in the way sometimes.')
+      : streakBroken
+        ? (typeof tUi === 'function' ? tUi('home.status.notLoggedStreakBrokenDetail') : 'You logged yesterday but not yet today. Tap + to record how you feel.')
+        : (typeof tUi === 'function' ? tUi('home.status.notLoggedTodayDetail') : 'No log for today yet. Tap + to record how you feel.');
     statusEl.innerHTML = '<strong>' + escapeHTML(notLoggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(notLoggedDetail).replace('+', '<span class="home-plus-emphasis" aria-hidden="true">+</span>') + '</p>';
-    statusEl.classList.toggle('home-today-status--streak-nudge', streakBroken);
-    if (hero) hero.classList.remove('home-hero-card--logged');
+    statusEl.classList.toggle('home-today-status--streak-nudge', streakBroken && !streakGrace);
+    if (hero) {
+      hero.classList.remove('home-hero-card--logged');
+      hero.classList.toggle('home-hero-card--streak-nudge', streakBroken && !streakGrace);
+    }
   }
+  updateHomeFabPulse(!today);
+  if (typeof renderHomeWelcomeCard === 'function') renderHomeWelcomeCard(logArr);
+  if (typeof renderHomeDiscoveryChips === 'function') renderHomeDiscoveryChips(logArr);
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
   if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
   if (hero) {
@@ -21007,6 +21458,11 @@ function renderHomeAiSuggestions() {
   }
   var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false && appSettings.simpleMode !== true;
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  if (!logArr.length) {
+    container.innerHTML = '';
+    container.hidden = true;
+    return;
+  }
   var todayStr = getTodayDateStr();
   var loggedToday = logArr.some(function(l) { return l && l.date === todayStr; });
   var snap = typeof S.computeHomeAnalysisSnapshot === 'function'
@@ -21165,6 +21621,18 @@ if (typeof window !== 'undefined') {
   window.renderHomeAiSuggestions = renderHomeAiSuggestions;
   window.openHomeQuestionModal = openHomeQuestionModal;
   window.closeHomeQuestionModal = closeHomeQuestionModal;
+}
+
+if (typeof window !== 'undefined') {
+  window.renderHomeWelcomeCard = renderHomeWelcomeCard;
+  window.renderHomeDiscoveryChips = renderHomeDiscoveryChips;
+  window.openHomeDiscoveryModal = openHomeDiscoveryModal;
+  window.closeHomeDiscoveryModal = closeHomeDiscoveryModal;
+  window.initLogMilestoneTracking = initLogMilestoneTracking;
+  window.onLogsCountChanged = onLogsCountChanged;
+  window.updateTabDiscoveryBadges = updateTabDiscoveryBadges;
+  window.updateGoalsHeaderUnseenBadge = updateGoalsHeaderUnseenBadge;
+  window.markUnlockedAchievementsSeen = markUnlockedAchievementsSeen;
 }
 
 function openLogWizardFromHome() {
@@ -21942,6 +22410,8 @@ function switchTab(tabName, skipHash) {
     if (tabName === 'home' && typeof updateGoalsProgressBlock === 'function') {
       updateGoalsProgressBlock();
     }
+    if (tabName === 'charts') clearTabDiscoveryBadge(TAB_BADGE_KEYS.charts);
+    if (tabName === 'ai') clearTabDiscoveryBadge(TAB_BADGE_KEYS.ai);
     if (typeof updateHomeTodayPanel === 'function') {
       updateHomeTodayPanel();
     }
@@ -22439,6 +22909,7 @@ function runRianellBootAfterDomReady() {
     /* initializeSections() clears .open on all accordions; log wizard needs .open so tile picker rows and section children are not stuck at opacity 0 from slideInUp */
     if (typeof initializeLogWizardSections === 'function') initializeLogWizardSections();
     if (typeof initAchievementsOnBoot === 'function') initAchievementsOnBoot();
+    if (typeof initLogMilestoneTracking === 'function') initLogMilestoneTracking();
     initializeOneOpenDetails();
     
     const toggleBtn = document.getElementById('predictionToggle');

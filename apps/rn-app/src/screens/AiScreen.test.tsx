@@ -57,6 +57,14 @@ jest.mock('../ai/llm', () => ({
 const mockedLoadLogs = loadLogs as jest.MockedFunction<typeof loadLogs>;
 const mockedGenerateSummaryNote = generateSummaryNote as jest.MockedFunction<typeof generateSummaryNote>;
 
+test('ai screen shows empty preview when no logs', async () => {
+  mockedLoadLogs.mockResolvedValueOnce([]);
+  const prefs = getDefaultPreferences();
+  const { findByText } = renderWithProviders(<AiScreen prefs={prefs} />, { prefs });
+  await findByText('Insights are on their way');
+  await findByText('Your first insight appears after 3 entries');
+});
+
 test('ai screen renders summary from logs', async () => {
   const prefs = getDefaultPreferences();
   const { findByText, getByText } = renderWithProviders(

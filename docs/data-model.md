@@ -72,6 +72,20 @@ In-app unlock toasts use `achievementToastQueue` (sequential queue); OS notifica
 
 Cloud backup when signed in: one row per user in **`user_achievements.achievements`** (jsonb). Merge unions `notifiedAt`/`seenAt` timestamps with latest-wins semantics. `markAchievementNotified` / `markAchievementSeen` reject unknown achievement ids.
 
+## Home dashboard engagement (v1.97.0)
+
+Normalized via `normalizeHomeDashboardPrefs` (PWA `appSettings` + RN `prefs`):
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `homeWelcomeCardDismissed` | boolean | Hides first-week welcome card |
+| `goalsModalSeenCount` | number | First-visit orientation in Goals modal (0 = show) |
+| `firstOpenDate` | ISO date | Anchors welcome/discovery timing |
+| `weeklyReviewCompletedAt` | ISO timestamp | Hero banner within 60 min of completion |
+| `personalBestDismissedAt` | ISO timestamp | Dismisses personal-best home card |
+
+Ephemeral engagement state (not cloud-synced): `logMilestonesShown` (localStorage/AsyncStorage), `goalCelebrated_YYYY-MM-DD`, `tabBadge_charts` / `tabBadge_ai` (24h discovery dots), `wizardUnlockBannerShown` per category.
+
 ## Minimal log (quick save)
 
 Both web and RN support saving after **date + flare** only. Normalization fills missing numeric scores with defaults (typically mid-scale 5s) so charts and summaries remain valid.
