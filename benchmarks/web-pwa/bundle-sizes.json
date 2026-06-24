@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-24T00:38:49.973Z",
+  "generatedAt": "2026-06-24T17:16:26.429Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4144681,
+    "jsBytes": 4146640,
     "cssBytes": 448116,
-    "jsGzipBytes": 986560,
+    "jsGzipBytes": 986929,
     "cssGzipBytes": 77203
   },
   "files": [
@@ -80,13 +80,13 @@
     },
     {
       "file": "ci-minified/site/privacy-region.js",
-      "bytes": 26936,
-      "gzipBytes": 5658
+      "bytes": 27714,
+      "gzipBytes": 5811
     },
     {
       "file": "ci-minified/site/first-run-wizard.js",
-      "bytes": 24610,
-      "gzipBytes": 5080
+      "bytes": 25791,
+      "gzipBytes": 5296
     },
     {
       "file": "ci-minified/site/notifications.js",

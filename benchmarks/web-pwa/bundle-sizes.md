@@ -1,6 +1,6 @@
 # PWA bundle sizes
 
-Generated: 2026-06-24T00:38:49.973Z
+Generated: 2026-06-24T17:16:26.429Z
 
 | File | Raw | Gzip |
 |------|-----|------|
@@ -18,12 +18,12 @@ Generated: 2026-06-24T00:38:49.973Z
 | ci-minified/site/device-benchmark.js | 41261 | 9157 |
 | ci-minified/site/modules/weekly-review.js | 34879 | 7655 |
 | ci-minified/site/performance-utils.js | 28978 | 7090 |
-| ci-minified/site/privacy-region.js | 26936 | 5658 |
-| ci-minified/site/first-run-wizard.js | 24610 | 5080 |
+| ci-minified/site/privacy-region.js | 27714 | 5811 |
+| ci-minified/site/first-run-wizard.js | 25791 | 5296 |
 | ci-minified/site/notifications.js | 23808 | 5763 |
 | ci-minified/site/modules/settings.js | 22418 | 4716 |
 | ci-minified/site/ui-feedback.js | 21169 | 5118 |
 | ci-minified/site/import-utils.js | 19409 | 5029 |
 
-**JS total (gzip):** 986560 bytes
+**JS total (gzip):** 986929 bytes
 **CSS total (gzip):** 77203 bytes
