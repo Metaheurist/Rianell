@@ -12,11 +12,11 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { Preferences } from '../storage/preferences';
 import { AchievementsPane } from './AchievementsPane';
+import { MedalIcon, TargetBullseyeIcon } from './goalsModalIcons';
 
 type Props = {
   visible: boolean;
@@ -27,41 +27,6 @@ type Props = {
 };
 
 const PANE_KEYS = ['common.goals.targets', 'achievements.title'] as const;
-
-function TargetBullseyeIcon({ color, size = 16 }: { color: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden>
-      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} fill="none" />
-      <Circle cx="12" cy="12" r="6" stroke={color} strokeWidth={2} fill="none" />
-      <Circle cx="12" cy="12" r="2" fill={color} />
-    </Svg>
-  );
-}
-
-function MedalIcon({ color, size = 16 }: { color: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden>
-      <Path
-        d="M8 3 10 8 6 10"
-        stroke={color}
-        strokeWidth={2}
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M16 3 14 8 18 10"
-        stroke={color}
-        strokeWidth={2}
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Circle cx="12" cy="14" r="5" stroke={color} strokeWidth={2} fill="none" />
-      <Circle cx="12" cy="14" r="2" fill={color} />
-    </Svg>
-  );
-}
 
 export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onClose }: Props) {
   const theme = useTheme();
@@ -122,7 +87,9 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
                       styles.dot,
                       {
                         backgroundColor:
-                          i === paneIndex ? `${theme.tokens.color.accent}44` : `${theme.tokens.color.text}14`,
+                          i === paneIndex ? `${theme.tokens.color.accent}44` : `${theme.tokens.color.text}08`,
+                        borderColor:
+                          i === paneIndex ? theme.tokens.color.accent : `${theme.tokens.color.text}22`,
                       },
                     ]}
                     accessibilityRole="tab"
@@ -276,7 +243,15 @@ const styles = StyleSheet.create({
   },
   title: { fontWeight: '700' },
   dots: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  dot: { padding: 6, borderRadius: 8 },
+  dot: {
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   navRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
