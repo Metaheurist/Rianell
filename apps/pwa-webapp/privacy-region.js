@@ -25,8 +25,22 @@
     return next;
   }
 
+  function readEnforcementPrefs() {
+    var prefs = readSettings();
+    if (global.appSettings && typeof global.appSettings === 'object') {
+      prefs = Object.assign({}, prefs, global.appSettings);
+    }
+    try {
+      if (localStorage.getItem('rianellCookieConsent')) prefs.cookieConsent = true;
+    } catch (e) {}
+    try {
+      if (localStorage.getItem('rianellTutorialSeen')) prefs.tutorialSeen = true;
+    } catch (e2) {}
+    return prefs;
+  }
+
   function getPrivacyFields() {
-    var s = readSettings();
+    var s = readEnforcementPrefs();
     return {
       privacyRegion: s.privacyRegion || '',
       privacyRegionSource: s.privacyRegionSource || '',
@@ -40,6 +54,21 @@
       healthDataConsent: s.healthDataConsent === true,
       healthDataConsentAt: s.healthDataConsentAt || null,
     };
+  }
+
+  function isFirstRunWizardActive() {
+    return !!(global.RianellFirstRunWizard &&
+      typeof global.RianellFirstRunWizard.isActive === 'function' &&
+      global.RianellFirstRunWizard.isActive());
+  }
+
+  function isOnboardingInteractionTarget(target) {
+    if (!target || !target.closest) return false;
+    if (isFirstRunWizardActive()) return true;
+    return !!target.closest(
+      '#privacyRegionGateOverlay, #firstRunWizardOverlay, #firstRunWizardTutorialMount, ' +
+      '#tutorialModalOverlay, #healthDataConsentOverlay, #cookieBanner, #perfBenchmarkOverlay'
+    );
   }
 
   function t(key, params) {
@@ -208,14 +237,14 @@
 
   function getBlockReason() {
     if (typeof S.getConsentBlockReason === 'function') {
-      return S.getConsentBlockReason(readSettings(), platformContext());
+      return S.getConsentBlockReason(readEnforcementPrefs(), platformContext());
     }
     return isConfigured() ? null : 'region-unconfigured';
   }
 
   function isUnlocked() {
     if (typeof S.isHealthLoggingUnlocked === 'function') {
-      return S.isHealthLoggingUnlocked(readSettings(), platformContext());
+      return S.isHealthLoggingUnlocked(readEnforcementPrefs(), platformContext());
     }
     return isConfigured();
   }
@@ -305,12 +334,7 @@
 
   function onBlockedInteraction(event) {
     if (isUnlocked()) return;
-    var target = event.target;
-    if (target && target.closest) {
-      if (target.closest('#privacyRegionGateOverlay, #firstRunWizardOverlay, #healthDataConsentOverlay, #cookieBanner')) {
-        return;
-      }
-    }
+    if (isOnboardingInteractionTarget(event.target)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     syncConsentEnforcement('interaction-blocked');
@@ -327,10 +351,7 @@
     document.addEventListener('keydown', function (event) {
       if (isUnlocked()) return;
       if (event.key === 'Tab' || event.key === 'Escape') return;
-      if (event.target && event.target.closest &&
-        event.target.closest('#privacyRegionGateOverlay, #firstRunWizardOverlay, #healthDataConsentOverlay')) {
-        return;
-      }
+      if (isOnboardingInteractionTarget(event.target)) return;
       if (event.key.length === 1 || event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         event.stopImmediatePropagation();

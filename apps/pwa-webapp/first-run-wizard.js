@@ -91,7 +91,15 @@
 
   function rebuildPlan() {
     if (typeof S.buildFirstRunPlan !== 'function') return [];
-    return S.buildFirstRunPlan(readPrefs(), platformContext());
+    var plan = S.buildFirstRunPlan(readPrefs(), platformContext());
+    if (
+      typeof S.isPrivacyRegionConfigured === 'function' &&
+      !S.isPrivacyRegionConfigured(readPrefs()) &&
+      !plan.some(function (step) { return step.id === 'region'; })
+    ) {
+      plan.unshift({ id: 'region' });
+    }
+    return plan;
   }
 
   function escapeHtml(s) {
@@ -323,7 +331,27 @@
 
     if (typeof global.showTutorialSlide === 'function') global.showTutorialSlide(0);
     if (typeof global.updateTutorialConditionDisplay === 'function') global.updateTutorialConditionDisplay();
+    bindTutorialAiChoiceButtons();
     syncTutorialWizardFooter();
+  }
+
+  function bindTutorialAiChoiceButtons() {
+    var enableBtn = document.querySelector('#firstRunWizardTutorialMount .tutorial-ai-enable, #firstRunWizardBody .tutorial-ai-enable');
+    var skipBtn = document.querySelector('#firstRunWizardTutorialMount .tutorial-ai-skip, #firstRunWizardBody .tutorial-ai-skip');
+    if (enableBtn && !enableBtn.dataset.frwBound) {
+      enableBtn.dataset.frwBound = '1';
+      enableBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (typeof global.setTutorialAIChoice === 'function') global.setTutorialAIChoice(true);
+      });
+    }
+    if (skipBtn && !skipBtn.dataset.frwBound) {
+      skipBtn.dataset.frwBound = '1';
+      skipBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (typeof global.setTutorialAIChoice === 'function') global.setTutorialAIChoice(false);
+      });
+    }
   }
 
   function restoreTutorialContent() {

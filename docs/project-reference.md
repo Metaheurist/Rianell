@@ -4,6 +4,12 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.96.2 documentation sync (First-run wizard interaction fix)
+
+- **PWA onboarding:** Consent lock (`privacy-region.js`) merges `appSettings` with `localStorage` for enforcement; clicks inside the active first-run wizard and tutorial modal are no longer blocked as `interaction-blocked` while `region-unconfigured`.
+- **Wizard:** `first-run-wizard.js` re-inserts the **region** step if prefs drift; tutorial **Enable AI & Goals?** buttons use bound listeners.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.96.2.
+
 ### v1.121.0 documentation sync (Cycle period-start anchor)
 
 - **Cycle tracking:** **Period started today** on log wizard step 1 sets `cycle.periodStart` + day 1; `suggestCycleForDate` counts from `findLatestPeriodStart`. UI day pills **1–35** default; expand to **45** for irregular cycles; late hint above day 35.

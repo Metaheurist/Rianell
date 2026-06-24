@@ -41,6 +41,12 @@ test('PWA index.html includes region gate and first-run wizard overlays', () => 
   assert.match(html, /privacyRegionSettingsPane/);
 });
 
+test('first-run wizard re-inserts region step when prefs drift', () => {
+  const wizardJs = readFileSync('apps/pwa-webapp/first-run-wizard.js', 'utf8');
+  assert.match(wizardJs, /plan\.unshift\(\{ id: 'region' \}\)/);
+  assert.match(wizardJs, /bindTutorialAiChoiceButtons/);
+});
+
 test('RN App blocks navigator until first-run wizard complete', () => {
   const app = readFileSync('apps/rn-app/App.tsx', 'utf8');
   assert.match(app, /isFirstRunWizardComplete/);
