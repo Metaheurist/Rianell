@@ -37,7 +37,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `sharp` | ^0.33.5 |
 | `turbo` | ^2.9.18 |
 
-**`overrides`** — 30 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@rianell/benchmark-runner → lighthouse → @sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `react-native-transformers → @huggingface/transformers`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — 31 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@rianell/benchmark-runner → lighthouse → @sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `expo-modules-core`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `react-native-transformers → @huggingface/transformers`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
@@ -95,7 +95,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo-haptics` | ~55.0.4 |
 | `expo-local-authentication` | ~55.0.4 |
 | `expo-modules-autolinking` | ^55.0.11 |
-| `expo-modules-core` | ~55.0.25 |
+| `expo-modules-core` | 55.0.25 |
 | `expo-print` | ~55.0.4 |
 | `expo-secure-store` | ~55.0.4 |
 | `expo-sharing` | ~55.0.20 |
