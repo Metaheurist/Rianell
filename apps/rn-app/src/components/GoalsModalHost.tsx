@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { GoalsModal } from './GoalsModal';
+import { AchievementUnlockToast } from './AchievementUnlockToast';
 import { registerGoalsModalOpenListener } from '../achievements/goalsModalBridge';
 import type { Preferences } from '../storage/preferences';
 
@@ -21,12 +22,15 @@ export function GoalsModalHost({ prefs, onChangePrefs }: Props) {
   }, []);
 
   return (
-    <GoalsModal
-      visible={visible}
-      initialPane={pane}
-      prefs={prefs}
-      onChangePrefs={onChangePrefs}
-      onClose={() => setVisible(false)}
-    />
+    <>
+      <AchievementUnlockToast />
+      <GoalsModal
+        visible={visible}
+        initialPane={pane}
+        prefs={prefs}
+        onChangePrefs={onChangePrefs}
+        onClose={() => setVisible(false)}
+      />
+    </>
   );
 }

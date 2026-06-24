@@ -225,6 +225,7 @@ export * from './analytics/index.mjs';
 export * from './onboarding/index.mjs';
 export * from './achievements/achievements.mjs';
 export * from './achievements/achievementUnlockNotification.mjs';
+export * from './achievements/achievementToastQueue.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({
