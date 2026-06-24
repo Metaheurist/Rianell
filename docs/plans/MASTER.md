@@ -2,7 +2,7 @@
 
 Single source of truth for required features, execution plans, and progress. **Agents: update `Status` and `Plan status` when starting or finishing work.**
 
-**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Last updated:** 2026-06-19 (Plans 01–14 complete; v1.111.0 CI green)
+**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Last updated:** 2026-06-24 (Plans 01–14 complete; v1.97.0 achievements overhaul)
 
 ---
 
@@ -14,7 +14,7 @@ Single source of truth for required features, execution plans, and progress. **A
 | Feature IDs done | 85 / 85 |
 | Cross-cutting themes done | 5 / 5 |
 | Last CI run (post-plan) | [green](https://github.com/Metaheurist/Rianell/actions/runs/27845245487) v1.111.0 |
-| Last local gate | 302/302 unit tests · `verify:migration` OK |
+| Last local gate | 409 unit tests · achievements overhaul v1.97.0 |
 
 **Status values:** `pending` · `in_progress` · `done` · `deferred`
 
