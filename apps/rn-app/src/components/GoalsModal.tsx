@@ -167,24 +167,28 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
               </Text>
               <GoalField
                 label={t('common.steps.per.day')}
+                hint={t('goals.field.steps.hint')}
                 value={String(prefs.goals.steps)}
                 onChangeText={(v) => updateGoal({ steps: clampInt(v, 0, 100000) ?? prefs.goals.steps })}
                 theme={theme}
               />
               <GoalField
                 label={t('common.hydration.glasses.per.day')}
+                hint={t('goals.field.hydration.hint')}
                 value={String(prefs.goals.hydration)}
                 onChangeText={(v) => updateGoal({ hydration: clampInt(v, 0, 30) ?? prefs.goals.hydration })}
                 theme={theme}
               />
               <GoalField
                 label={t('common.sleep.quality.score.1.10')}
+                hint={t('goals.field.sleep.hint')}
                 value={String(prefs.goals.sleepScore)}
                 onChangeText={(v) => updateGoal({ sleepScore: clampInt(v, 0, 10) ?? prefs.goals.sleepScore })}
                 theme={theme}
               />
               <GoalField
                 label={t('common.good.days.per.week.no.flare.mood.6')}
+                hint={t('goals.field.goodDays.hint')}
                 value={String(prefs.goals.goodDaysPerWeek)}
                 onChangeText={(v) => updateGoal({ goodDaysPerWeek: clampInt(v, 0, 7) ?? prefs.goals.goodDaysPerWeek })}
                 theme={theme}
@@ -220,11 +224,13 @@ function clampInt(raw: string, min: number, max: number): number | undefined {
 
 function GoalField({
   label,
+  hint,
   value,
   onChangeText,
   theme,
 }: {
   label: string;
+  hint?: string;
   value: string;
   onChangeText: (v: string) => void;
   theme: ReturnType<typeof useTheme>;
@@ -232,6 +238,11 @@ function GoalField({
   return (
     <View style={styles.sliderGroup}>
       <Text style={{ color: theme.tokens.color.text, fontWeight: '500', marginBottom: 4 }}>{label}</Text>
+      {hint ? (
+        <Text style={{ color: `${theme.tokens.color.text}99`, fontSize: theme.font(12), marginBottom: 6, lineHeight: 17 }}>
+          {hint}
+        </Text>
+      ) : null}
       <TextInput
         value={value}
         onChangeText={onChangeText}
