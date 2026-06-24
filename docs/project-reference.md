@@ -10,6 +10,7 @@
 - **Empty states:** Warm copy + animated placeholders on Logs, Charts, AI, Mood, Weekly Review (RN components + PWA HTML/CSS); ghost chart bars and AI insight cards when data is sparse.
 - **Home:** Welcome card, discovery chips, FAB pulse, goals progress bars, streak grace day, personal-best card, tab discovery badges (Charts/AI).
 - **Settings:** Collapsible chapters, setup progress strip, inline info expanders on complex toggles.
+- **Goals modal:** First-visit orientation card; per-field target hints (`goals.field.*`); achievement progress bars with WCAG `progressbar` role.
 - **Gamification:** Behavior-gated log milestones, daily goal celebration, wizard unlock banners — no points/leaderboards.
 - **Prefs:** `homeWelcomeCardDismissed`, `goalsModalSeenCount`, `firstOpenDate`, `weeklyReviewCompletedAt`, `personalBestDismissedAt` via `normalizeHomeDashboardPrefs`.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.97.0; [data-model.md](data-model.md) § Home dashboard engagement; [platform-parity.md](platform-parity.md) v1.97.0 note; [ux-audit.md](ux-audit.md).

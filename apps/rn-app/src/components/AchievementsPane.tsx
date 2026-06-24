@@ -28,11 +28,13 @@ function AchievementProgressBar({
   unlocked,
   accent,
   success,
+  accessibilityLabel,
 }: {
   progress: number;
   unlocked: boolean;
   accent: string;
   success: string;
+  accessibilityLabel: string;
 }) {
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -51,7 +53,12 @@ function AchievementProgressBar({
   });
 
   return (
-    <View style={[styles.progressTrack, { backgroundColor: `${accent}22` }]}>
+    <View
+      style={[styles.progressTrack, { backgroundColor: `${accent}22` }]}
+      accessibilityRole="progressbar"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}
+    >
       <Animated.View
         style={[
           styles.progressFill,
@@ -158,6 +165,7 @@ function AchievementCard({
             unlocked={snap.unlocked}
             accent={theme.tokens.color.accent}
             success={theme.tokens.color.success}
+            accessibilityLabel={percentText}
           />
           <Text
             style={[
