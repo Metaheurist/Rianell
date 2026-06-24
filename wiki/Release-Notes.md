@@ -1,6 +1,15 @@
 # Release Notes
 
-## Latest release (v1.96.0)
+## Latest release (v1.96.2)
+
+**Date:** 2026-06-24
+
+### Highlights
+
+- **First-run onboarding (web):** **Enable** and **Skip for now** on the **Enable AI & Goals?** tutorial slide work again — consent enforcement no longer blocks clicks while the wizard is open.
+- **Region step:** Wizard re-shows the privacy region step if settings drift out of sync during onboarding.
+
+### Previous (v1.96.0)
 
 **Date:** 2026-06-23
 

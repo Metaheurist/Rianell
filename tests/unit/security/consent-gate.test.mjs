@@ -42,6 +42,9 @@ test('PWA enforces consent beyond overlay CSS', () => {
   assert.match(gateJs, /requireUnlocked/);
   assert.match(gateJs, /startConsentEnforcement/);
   assert.match(gateJs, /onBlockedInteraction/);
+  assert.match(gateJs, /isOnboardingInteractionTarget/);
+  assert.match(gateJs, /readEnforcementPrefs/);
+  assert.match(gateJs, /isFirstRunWizardActive/);
 });
 
 test('app.js guards health log writes behind consent', () => {

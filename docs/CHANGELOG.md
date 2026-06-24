@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.96.1** - CI green loop: pin `expo-modules-core@55.0.25`, live Cloudflare boot probe resilience.
+**Latest: v1.96.2** - First-run wizard: fix blocked Enable AI & Goals onboarding clicks.
+
+### v1.96.2 - 2026-06-24 - First-run wizard consent interaction fix
+- **PWA onboarding:** Privacy consent enforcement no longer blocks **Enable / Skip** on the tutorial **Enable AI & Goals?** slide while the first-run wizard is open (`region-unconfigured` + `interaction-blocked`).
+- **`privacy-region.js`:** `readEnforcementPrefs()` aligns lock checks with wizard prefs (`localStorage` + `appSettings`); `isOnboardingInteractionTarget()` allows clicks during active wizard and tutorial modal.
+- **`first-run-wizard.js`:** Re-insert **region** step when prefs drift; bind tutorial AI choice buttons with listeners (backup to inline `onclick`).
+- **Tests:** **401** unit tests pass; consent-gate and region-gate contract tests updated.
+- **Docs:** CHANGELOG, project-reference, wiki Release Notes.
 
 ### v1.96.1 - 2026-06-24 - CI Android APK + live probe fixes
 - **Android APK:** Root `overrides` pin `expo-modules-core@55.0.25` — lockfile had nested **56.0.17** under `apps/rn-app`, breaking Kotlin `Promise` bridge vs RN 0.83. CI Gradle sets `RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM=1` so release Metro bundle uses HF stubs (matches Expo export gate).

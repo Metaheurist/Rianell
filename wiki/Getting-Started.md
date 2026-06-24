@@ -7,8 +7,9 @@ Rianell runs as a **web app (PWA)**, **Android/iOS native app**, or via a **loca
 ## Option 1 — Web app (recommended)
 
 1. Open **[rianell.com](https://rianell.com)** in Chrome, Firefox, Edge, or Safari.
-2. **Install as PWA** (optional): use the browser’s “Install app” or “Add to Home Screen” prompt for offline-capable access.
-3. Tap the green **+** button to open the **log wizard** and save your first day (date + flare is enough for a quick entry).
+2. Complete the **first-run wizard** (privacy region, consents, tutorial, optional AI download) — if **Enable** on the AI & Goals slide does not respond, hard-refresh after updating to **v1.96.2+**.
+3. **Install as PWA** (optional): use the browser’s “Install app” or “Add to Home Screen” prompt for offline-capable access.
+4. Tap the green **+** button to open the **log wizard** and save your first day (date + flare is enough for a quick entry).
 
 Cloud sync and AI model download are optional — you can use the app entirely offline with data stored in your browser.
 
