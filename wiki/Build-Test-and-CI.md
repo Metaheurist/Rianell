@@ -97,6 +97,10 @@ Caches miss only when lockfiles or pinned tool versions change:
 | Expo / Metro | lockfiles change |
 | Gradle (Android) | root lockfile or `apps/rn-app/package.json` changes |
 | Android SDK | same as Gradle key (API 36 / NDK 27) |
+
+**Android native build (v1.96.1):** Root `package.json` `overrides` pin `expo-modules-core@55.0.25` so `apps/rn-app` does not resolve SDK 56 Kotlin Promise stubs against RN 0.83.
+
+**Live Cloudflare probe (v1.96.1):** `scripts/ci/deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and `PROBE_GOTO_TIMEOUT_MS` / `PROBE_PASS_MS` env vars — `waitUntil: load` often times out on `rianell.com` from GitHub Actions.
 | PyInstaller (Windows) | Python requirements / pip extras change |
 | UPX (Chocolatey) | server-exe matrix (cached install path) |
 | Gitleaks / OSV binaries | workflow pin version bumped |

@@ -3,6 +3,9 @@ import { chromium } from 'playwright';
 
 const URL = process.env.PROBE_URL || 'https://rianell.com/';
 const PASS_MS = Number(process.env.PROBE_PASS_MS || 60000);
+const GOTO_TIMEOUT_MS = Number(process.env.PROBE_GOTO_TIMEOUT_MS || 180000);
+const GOTO_WAIT_UNTIL = process.env.PROBE_GOTO_WAIT || 'domcontentloaded';
+const GOTO_ATTEMPTS = Number(process.env.PROBE_GOTO_ATTEMPTS || 3);
 
 function killHeadless() {
   try {
@@ -74,7 +77,19 @@ async function probe(cold) {
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 120)));
 
     const t0 = Date.now();
-    await page.goto(URL, { waitUntil: 'load', timeout: 120000 });
+    let gotoErr;
+    for (let attempt = 1; attempt <= GOTO_ATTEMPTS; attempt++) {
+      try {
+        await page.goto(URL, { waitUntil: GOTO_WAIT_UNTIL, timeout: GOTO_TIMEOUT_MS });
+        gotoErr = null;
+        break;
+      } catch (e) {
+        gotoErr = e;
+        console.error(`goto attempt ${attempt}/${GOTO_ATTEMPTS} failed (${GOTO_WAIT_UNTIL}):`, e.message);
+        if (attempt < GOTO_ATTEMPTS) await page.waitForTimeout(5000);
+      }
+    }
+    if (gotoErr) throw gotoErr;
 
     let last = null;
     for (let i = 0; i < 90; i++) {
