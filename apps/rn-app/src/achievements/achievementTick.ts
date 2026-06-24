@@ -7,6 +7,7 @@ import {
   normalizeAchievementState,
   shouldFireAchievementUnlockNotification,
 } from '@rianell/shared';
+import { showAchievementToast } from './achievementToastBridge';
 import { getSupabaseClient } from '../cloud/supabaseClient';
 import {
   loadAchievementsFromCloud,
@@ -62,6 +63,7 @@ export async function tickAchievements(
       if (!gate.fire) continue;
       const content = buildAchievementUnlockNotificationContent(snap.id, t);
       await presentUnlockNotification(content.title, content.body);
+      showAchievementToast({ id: snap.id, title: content.title, body: content.body });
       nextState = markAchievementNotified(nextState, snap.id);
       changed = true;
     }
