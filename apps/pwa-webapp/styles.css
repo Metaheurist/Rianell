@@ -11724,20 +11724,35 @@ body.light-mode .settings-button-top:hover {
 }
 
 .goals-carousel-dots {
+  --goals-dot-size: 2.75rem;
+  --goals-dot-gap: 0.5rem;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: var(--goals-dot-gap);
   margin-bottom: 4px;
 }
 
 .goals-carousel-dot {
+  position: relative;
+  width: var(--goals-dot-size);
+  height: var(--goals-dot-size);
+  min-width: var(--goals-dot-size);
+  min-height: var(--goals-dot-size);
+  flex: 0 0 var(--goals-dot-size);
   border: 1px solid color-mix(in srgb, var(--primary-color) 34%, transparent);
   background: color-mix(in srgb, var(--primary-color) 12%, rgba(7, 11, 10, 0.92));
-  border-radius: 8px;
-  padding: 6px 8px;
+  border-radius: 10px;
+  padding: 0;
   cursor: pointer;
   color: color-mix(in srgb, var(--primary-color) 68%, var(--text-light) 32%);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 18%, transparent);
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .goals-carousel-dot--active {
@@ -11747,6 +11762,7 @@ body.light-mode .settings-button-top:hover {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--primary-color) 40%, transparent),
     0 0 12px color-mix(in srgb, var(--primary-color) 36%, transparent);
+  transform: scale(1.04);
 }
 
 .goals-carousel-dot:hover {
@@ -11763,15 +11779,24 @@ body.light-mode .settings-button-top:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
   line-height: 0;
 }
 
 .goals-carousel-dot .goals-dot-icon-svg,
 .goals-carousel-dot__icon .ui-svg-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: calc(var(--goals-dot-size) * 0.58);
+  height: calc(var(--goals-dot-size) * 0.58);
+  min-width: 1.3rem;
+  min-height: 1.3rem;
+  --ui-icon-stroke: 2.15;
   filter: none;
   color: inherit;
+}
+
+.goals-carousel-dot:nth-child(2) .ui-svg-icon {
+  transform: scale(1.08);
 }
 
 .goals-carousel-viewport {
@@ -11859,6 +11884,28 @@ body.light-mode .settings-button-top:hover {
   margin-bottom: 14px;
 }
 
+.achievements-counter {
+  margin-bottom: 12px;
+}
+
+.achievements-counter__unlocked {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--primary-color);
+}
+
+.achievements-counter__total {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.achievements-counter__label {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
 .achievements-grid {
   display: flex;
   flex-direction: column;
@@ -11934,10 +11981,75 @@ body.light-mode .settings-button-top:hover {
 }
 
 .achievement-card-desc {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 0.85rem;
   color: var(--text-dim);
   line-height: 1.35;
+}
+
+.achievement-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.achievement-card-title-row .achievement-card-title {
+  margin: 0;
+  flex: 1;
+}
+
+.achievement-tier-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.achievement-tier-badge--bronze { color: #cd7f32; }
+.achievement-tier-badge--silver { color: #a8b4c4; }
+.achievement-tier-badge--gold { color: #d4af37; }
+.achievement-tier-badge--platinum { color: #7dd3fc; }
+
+.achievement-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.achievement-progress-track {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  overflow: hidden;
+}
+
+.achievement-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--primary-color);
+  width: 0;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--primary-color) 60%, transparent);
+}
+
+.achievement-card--unlocked .achievement-progress-fill {
+  background: var(--ui-icon-success, var(--primary-color));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 60%, transparent);
+}
+
+.achievement-progress-percent {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  min-width: 2.25rem;
+  text-align: right;
+}
+
+.achievement-check-badge {
+  color: var(--ui-icon-success, var(--primary-color));
 }
 
 .achievement-status-pill {
@@ -11956,6 +12068,95 @@ body.light-mode .settings-button-top:hover {
 .achievement-status-pill--unlocked {
   background: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 22%, transparent);
   color: var(--ui-icon-success, var(--primary-color));
+}
+
+.achievement-toast {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top, 12px));
+  left: 50%;
+  transform: translate(-50%, -120%);
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(420px, calc(100vw - 24px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
+  background: var(--card-bg, #121212);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease, box-shadow 0.9s ease;
+}
+
+.achievement-toast--visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: auto;
+  animation: achievementToastGlow 1.8s ease-in-out infinite;
+}
+
+@keyframes achievementToastGlow {
+  0%, 100% {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 0 0 color-mix(in srgb, var(--primary-color) 0%, transparent);
+    border-color: color-mix(in srgb, var(--primary-color) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 18px 2px color-mix(in srgb, var(--primary-color) 45%, transparent);
+    border-color: var(--primary-color);
+  }
+}
+
+.achievement-toast__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  flex-shrink: 0;
+}
+
+.achievement-toast__icon .ui-svg-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--primary-color);
+}
+
+.achievement-toast__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-toast__title {
+  margin: 0 0 2px;
+  font-weight: 700;
+  color: var(--text-light);
+  font-size: 0.95rem;
+}
+
+.achievement-toast__message {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+.achievement-toast__action {
+  border: none;
+  background: transparent;
+  color: var(--primary-color);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+
+.achievement-toast__action:hover,
+.achievement-toast__action:focus-visible {
+  text-decoration: underline;
 }
 
 .wizard-progressive-lock-cta {
@@ -12193,9 +12394,10 @@ body.light-mode .goals-value-label {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 3px;
+  padding-inline-end: 4px;
   text-align: right;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .goals-hydration-line {
@@ -12203,7 +12405,7 @@ body.light-mode .goals-value-label {
   align-items: baseline;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0;
+  gap: 0.25em;
   color: var(--text-light);
   font-weight: 600;
 }
@@ -12213,7 +12415,13 @@ body.light-mode .goals-value-label {
   font-variant-numeric: tabular-nums;
 }
 
+.goals-hydration-slash {
+  font-weight: 500;
+  opacity: 0.75;
+}
+
 .goals-hydration-unit {
+  margin-inline-start: 0.1em;
   font-weight: 500;
   font-size: 0.8rem;
   color: var(--text-muted, rgba(255,255,255,0.75));
