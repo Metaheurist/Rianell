@@ -12,8 +12,12 @@ import {
 } from 'react-native';
 import { FlatList, RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
+import { EmptyState } from '../components/ui/EmptyState';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 import { formatIsoDate } from '@rianell/shared';
 import {
   filterLogsByRange,
@@ -81,6 +85,7 @@ function exercisePreview(entry: LogEntry): string {
 export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   const theme = useTheme();
   const { t, locale } = useT();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -423,9 +428,12 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
         ) : null}
 
         {logs.length === 0 ? (
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
-            {t('logs.emptyHint')}
-          </Text>
+          <EmptyState
+            variant="logs"
+            message={t('logs.empty.warm.message')}
+            actionLabel={t('logs.empty.warm.cta')}
+            onAction={() => navigation.navigate('LogWizard')}
+          />
         ) : (
           <FlatList<LogEntry>
             data={displayed}

@@ -96,6 +96,9 @@ async function renderSettingsScreen(
   await waitFor(() => {
     expect(require('../permissions/permissions').Permissions.getLastReminderAction).toHaveBeenCalled();
   });
+  const { getByRole } = utils;
+  fireEvent.press(getByRole('button', { name: 'Customise' }));
+  fireEvent.press(getByRole('button', { name: 'Advanced' }));
   return utils;
 }
 

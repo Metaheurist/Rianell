@@ -9,8 +9,12 @@ import {
   summarizeDigestStep,
   isoWeekMondayKey,
 } from '@rianell/shared';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
+import { EmptyState } from '../components/ui/EmptyState';
+import { useToast } from '../components/ui/Toast';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import type { Preferences } from '../storage/preferences';
 import { loadLogs } from '../storage/logs';
@@ -32,6 +36,7 @@ export function WeeklyReviewScreen({
   const theme = useTheme();
   const { t, locale } = useT();
   const navigation = useNavigation<Nav>();
+  const { show: showToast } = useToast();
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [briefText, setBriefText] = useState('');
@@ -100,7 +105,14 @@ export function WeeklyReviewScreen({
     try {
       await printOrShareAppointmentReport({ logs, prefs, briefText, doctorQuestions: [] });
       const today = new Date().toISOString().slice(0, 10);
-      onChangePrefs({ ...prefs, weeklyReviewDismissedWeek: isoWeekMondayKey(today) });
+      const completedAt = new Date().toISOString();
+      onChangePrefs({
+        ...prefs,
+        weeklyReviewDismissedWeek: isoWeekMondayKey(today),
+        weeklyReviewCompletedAt: completedAt,
+      });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast(t('gamification.weeklyReview.complete'), 'success');
       navigation.goBack();
     } catch (e) {
       Alert.alert(t('weeklyReview.title'), e instanceof Error ? e.message : t('settings.export.failed'));
@@ -125,6 +137,22 @@ export function WeeklyReviewScreen({
         <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
           {t('weeklyReview.progress', { current: String(step + 1), total: String(WEEKLY_REVIEW_STEPS.length) })}
         </Text>
+        <View style={styles.dotsRow} accessibilityRole="progressbar" accessibilityLabel={t('weeklyReview.progress', { current: String(step + 1), total: String(WEEKLY_REVIEW_STEPS.length) })}>
+          {WEEKLY_REVIEW_STEPS.map((s, i) => (
+            <View
+              key={s.id}
+              style={[
+                styles.dot,
+                {
+                  width: i === step ? 10 : 6,
+                  height: i === step ? 10 : 6,
+                  borderRadius: 999,
+                  backgroundColor: i === step ? theme.tokens.color.accent : theme.tokens.color.accent + '33',
+                },
+              ]}
+            />
+          ))}
+        </View>
         <Text style={[styles.stepTitle, { color: theme.tokens.color.accent, fontSize: theme.font(16) }]}>
           {t(current.i18n)}
         </Text>
@@ -137,24 +165,28 @@ export function WeeklyReviewScreen({
               </Text>
             ))
           ) : (
-            <Text style={[styles.body, { color: theme.tokens.color.text }]}>{t('weeklyReview.correlations.empty')}</Text>
+            <EmptyState variant="weeklyReview" message={t('weeklyReview.correlations.empty.warm')} />
           )
         ) : null}
 
         {current.id === 'digest' ? (
-          <>
-            <Text style={[styles.body, { color: theme.tokens.color.text }]}>{digest.headline}</Text>
-            {digest.improvements.map((line: string) => (
-              <Text key={`imp-${line}`} style={[styles.body, { color: theme.tokens.color.text }]}>
-                + {line}
-              </Text>
-            ))}
-            {digest.concerns.map((line: string) => (
-              <Text key={`con-${line}`} style={[styles.body, { color: theme.tokens.color.text }]}>
-                − {line}
-              </Text>
-            ))}
-          </>
+          digest.headline ? (
+            <>
+              <Text style={[styles.body, { color: theme.tokens.color.text }]}>{digest.headline}</Text>
+              {digest.improvements.map((line: string) => (
+                <Text key={`imp-${line}`} style={[styles.body, { color: theme.tokens.color.text }]}>
+                  + {line}
+                </Text>
+              ))}
+              {digest.concerns.map((line: string) => (
+                <Text key={`con-${line}`} style={[styles.body, { color: theme.tokens.color.text }]}>
+                  − {line}
+                </Text>
+              ))}
+            </>
+          ) : (
+            <EmptyState variant="weeklyReview" message={t('weeklyReview.digest.empty.warm')} />
+          )
         ) : null}
 
         {current.id === 'brief' ? (
@@ -170,7 +202,10 @@ export function WeeklyReviewScreen({
         ) : null}
 
         {current.id === 'pdf' ? (
-          <Text style={[styles.body, { color: theme.tokens.color.text }]}>{t('weeklyReview.pdf.lead')}</Text>
+          <>
+            <Ionicons name="checkmark-circle" size={40} color={theme.tokens.color.accent} style={{ marginBottom: 8 }} />
+            <Text style={[styles.body, { color: theme.tokens.color.text }]}>{t('weeklyReview.pdf.lead')}</Text>
+          </>
         ) : null}
       </ScrollView>
 
@@ -197,6 +232,8 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 24 },
   title: { fontWeight: '800', marginBottom: 4 },
   meta: { opacity: 0.75, marginBottom: 12 },
+  dotsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 12 },
+  dot: {},
   stepTitle: { fontWeight: '700', marginBottom: 12 },
   body: { lineHeight: 22, marginBottom: 8 },
   footer: { flexDirection: 'row', gap: 10, padding: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(128,128,128,0.35)' },

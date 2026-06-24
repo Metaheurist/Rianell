@@ -123,7 +123,11 @@
     var html = '<p class="mood-lead">' + escapeHTML(t('mood.lead')) + '</p>';
 
     if (!summary.count) {
-      html += '<p class="mood-empty">' + escapeHTML(t('mood.empty')) + '</p>';
+      html += '<div class="mood-empty-state">';
+      html += '<div class="mood-empty-icon" aria-hidden="true">' + svgIcon('chart-bars', 'mood-empty-icon-svg') + '</div>';
+      html += '<h3 class="mood-empty-title">' + escapeHTML(t('mood.empty.warm.title')) + '</h3>';
+      html += '<p class="mood-empty-message">' + escapeHTML(t('mood.empty.warm.message')) + '</p>';
+      html += '</div>';
     } else {
       var trendKey = summary.trend === 'up' ? 'mood.trend.up' : summary.trend === 'down' ? 'mood.trend.down' : 'mood.trend.stable';
       var latest = summary.latest;

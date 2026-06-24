@@ -39,6 +39,13 @@ import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogR
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { VoiceNotesButton } from '../voice/VoiceNotesButton';
 import { useToast } from '../components/ui';
+import {
+  getUnlockBannerI18nKey,
+  markUnlockBannerShown,
+  runPostLogSaveEngagement,
+  shouldShowUnlockBanner,
+  type UnlockCategory,
+} from '../utils/engagementGamification';
 
 /** Matches web `LOG_WIZARD_TOTAL_STEPS` (10 steps: Date…Review). */
 const WIZARD_STEPS = 10;
@@ -753,6 +760,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     cyclePeriodStart: false,
   });
   const [medDoseStatus, setMedDoseStatus] = useState<Record<string, 'taken' | 'skipped' | 'missed'>>({});
+  const [unlockBanner, setUnlockBanner] = useState<UnlockCategory | null>(null);
+  const unlockBannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -1042,6 +1051,62 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   }
 
+  function dismissUnlockBanner() {
+    if (unlockBannerTimerRef.current) {
+      clearTimeout(unlockBannerTimerRef.current);
+      unlockBannerTimerRef.current = null;
+    }
+    setUnlockBanner(null);
+  }
+
+  function showUnlockBanner(category: UnlockCategory) {
+    dismissUnlockBanner();
+    setUnlockBanner(category);
+    void markUnlockBannerShown(category);
+    unlockBannerTimerRef.current = setTimeout(() => {
+      setUnlockBanner(null);
+      unlockBannerTimerRef.current = null;
+    }, 3000);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (unlockBannerTimerRef.current) clearTimeout(unlockBannerTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (step === 6 && showFoodStep) {
+      void shouldShowUnlockBanner(prefs.trackingProfile, 'food').then((show) => {
+        if (show) showUnlockBanner('food');
+      });
+    } else if (step === 7 && showExerciseStep) {
+      void shouldShowUnlockBanner(prefs.trackingProfile, 'exercise').then((show) => {
+        if (show) showUnlockBanner('exercise');
+      });
+    } else if (step === 8 && showMedicationsStep) {
+      void shouldShowUnlockBanner(prefs.trackingProfile, 'medications').then((show) => {
+        if (show) showUnlockBanner('medications');
+      });
+    } else {
+      dismissUnlockBanner();
+    }
+  }, [step, showFoodStep, showExerciseStep, showMedicationsStep, prefs.trackingProfile]);
+
+  function renderUnlockBanner() {
+    if (!unlockBanner) return null;
+    return (
+      <Pressable
+        onPress={dismissUnlockBanner}
+        style={[styles.unlockBanner, { borderColor: theme.tokens.color.accent + '55', backgroundColor: theme.tokens.color.accent + '14' }]}
+        accessibilityRole="button"
+        accessibilityLabel={t(getUnlockBannerI18nKey(unlockBanner))}
+      >
+        <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>{t(getUnlockBannerI18nKey(unlockBanner))}</Text>
+      </Pressable>
+    );
+  }
+
   function goToStep(next: Step) {
     hapticLight();
     setStep(next);
@@ -1056,6 +1121,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     const dateValue = date.trim();
     try {
       const existing = await loadLogs();
+      const prevCount = existing.length;
       if (existing.some((l) => l.date === dateValue)) {
         Alert.alert(t('wizard.alert.duplicate.title'), t('wizard.alert.duplicate.body', { date: formatIsoDate(dateValue, locale, { dateStyle: 'medium' }) }));
         return;
@@ -1076,7 +1142,15 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       }),
         prefs,
       );
-      await persistWizardLogEntry(existing, minimal);
+      const next = await persistWizardLogEntry(existing, minimal);
+      await runPostLogSaveEngagement({
+        prevCount,
+        logs: next,
+        logDate: dateValue,
+        goals: prefs.goals,
+        showToast: toast.show,
+        t,
+      });
       hapticLight();
       toast.show(t('wizard.toast.minimalSaved', { date: formatIsoDate(dateValue, locale, { dateStyle: 'medium' }) }));
       navigation.goBack();
@@ -1089,7 +1163,16 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   async function save() {
     try {
       const existing = await loadLogs();
-      await persistWizardLogEntry(existing, draft);
+      const prevCount = existing.length;
+      const next = await persistWizardLogEntry(existing, draft);
+      await runPostLogSaveEngagement({
+        prevCount,
+        logs: next,
+        logDate: draft.date,
+        goals: prefs.goals,
+        showToast: toast.show,
+        t,
+      });
       hapticLight();
       toast.show(t('wizard.toast.entrySaved'));
       navigation.goBack();
@@ -1132,6 +1215,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+        {renderUnlockBanner()}
         {step === 0 ? (
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.step.date')}</Text>
@@ -2208,6 +2292,12 @@ const styles = StyleSheet.create({
   card: { flex: 1, borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: 24 },
+  unlockBanner: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
   reviewBlock: {
     marginTop: 8,
     padding: 12,

@@ -17,6 +17,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
+import { EmptyState } from '../components/ui/EmptyState';
+import { useToast } from '../components/ui/Toast';
 import { formatIsoDate } from '@rianell/shared';
 import type { MainTabParamList } from '../navigation/RootNavigator';
 import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
@@ -146,6 +148,7 @@ function ScreeningFrequencySlider({
 export function MoodScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
   const { t, locale } = useT();
+  const { show: showToast } = useToast();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const accent = theme.tokens.color.accent;
   const bg =
@@ -173,6 +176,7 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
   const [mergedResponses, setMergedResponses] = useState<Record<string, number>>({});
   const [screeningFullInstrument, setScreeningFullInstrument] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [screeningInfoDismissed, setScreeningInfoDismissed] = useState(false);
 
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
@@ -283,7 +287,7 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
       await saveLogs(next);
       setLogs(next);
       setCheckinModalOpen(false);
-      Alert.alert(t('home.checkin.modalTitle'), t('home.checkin.saved'));
+      showToast(t('home.checkin.saved.toast'), 'success');
     } catch {
       Alert.alert(t('common.error'), t('wizard.alert.saveFailed'));
     } finally {
@@ -383,7 +387,7 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
         </View>
 
         {summary.count === 0 ? (
-          <Text style={[styles.empty, { color: theme.tokens.color.textMuted }]}>{t('mood.empty')}</Text>
+          <EmptyState variant="mood" message={t('mood.empty.warm.message')} />
         ) : (
           <>
             <View style={styles.metricsGrid}>
@@ -544,6 +548,27 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
           </Text>
           {!showResult ? (
             <>
+              {screeningPhase === 'initial' && !screeningInfoDismissed ? (
+                <View
+                  style={[
+                    styles.screeningInfoCard,
+                    { borderColor: accent, backgroundColor: `${accent}12` },
+                  ]}
+                >
+                  <Ionicons name="information-circle-outline" size={20} color={accent} />
+                  <Text style={{ color: theme.tokens.color.textPrimary, flex: 1, lineHeight: 20 }}>
+                    {t('mood.screening.whatIsThis')}
+                  </Text>
+                  <Pressable
+                    onPress={() => setScreeningInfoDismissed(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.close')}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="close" size={18} color={theme.tokens.color.textMuted} />
+                  </Pressable>
+                </View>
+              ) : null}
               {screeningPhase === 'followup' ? (
                 <Text style={{ color: theme.tokens.color.textMuted, marginBottom: 12, lineHeight: 20 }}>
                   {t(screeningKind === 'phq2' ? 'mentalHealth.phq2.followUpIntro' : 'mentalHealth.gad2.followUpIntro')}
@@ -617,6 +642,9 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                   <Text style={[styles.crisisHelpBtnText, { color: accent }]}>{t(link.i18n)}</Text>
                 </Pressable>
               ))}
+              <Text style={{ color: theme.tokens.color.textMuted, fontSize: theme.font(12), lineHeight: 18, marginTop: 8 }}>
+                {t('mood.screening.notDiagnosis')}
+              </Text>
             </>
           )}
           <Pressable onPress={() => setScreeningOpen(false)} style={{ marginTop: 16 }}>
@@ -636,8 +664,16 @@ const styles = StyleSheet.create({
   filterLabel: { fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
-  empty: { lineHeight: 20, marginBottom: 12 },
   metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  screeningInfoCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
   metricCard: {
     flexGrow: 1,
     flexBasis: '30%',

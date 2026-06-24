@@ -38,6 +38,12 @@ jest.mock('../performance/benchmark', () => ({
 jest.mock('../utils/submitBugReport', () => ({
   submitBugReport: jest.fn(async () => undefined),
 }));
+jest.mock('../utils/engagementGamification', () => ({
+  daysSinceDate: () => 0,
+  detectNewLogMilestone: jest.fn(async () => null),
+  setTabDiscoveryBadge: jest.fn(async () => {}),
+  computeSetupProgress: () => ({ done: 0, total: 4 }),
+}));
 jest.mock('../achievements/goalsModalBridge', () => ({
   requestOpenGoalsModal: jest.fn(),
 }));
