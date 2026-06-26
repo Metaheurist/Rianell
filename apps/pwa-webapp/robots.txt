@@ -1,0 +1,109 @@
+# rianell.com robots.txt
+# Health data is personal and should not be scraped for AI training.
+# Standard search engine indexing is permitted below.
+
+User-agent: *
+Allow: /
+
+# --- AI training / LLM crawlers (blocked) ---
+# OpenAI
+User-agent: GPTBot
+Disallow: /
+
+# Google (Gemini / Vertex AI training)
+User-agent: Google-Extended
+Disallow: /
+
+# Anthropic
+User-agent: anthropic-ai
+Disallow: /
+User-agent: Claude-Web
+Disallow: /
+User-agent: ClaudeBot
+Disallow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Disallow: /
+
+# Meta
+User-agent: FacebookBot
+Disallow: /
+User-agent: meta-externalagent
+Disallow: /
+
+# Amazon
+User-agent: Amazonbot
+Disallow: /
+
+# Apple
+User-agent: Applebot-Extended
+Disallow: /
+
+# ByteDance / TikTok
+User-agent: Bytespider
+Disallow: /
+
+# Common Crawl (used for LLM training datasets)
+User-agent: CCBot
+Disallow: /
+
+# Cohere
+User-agent: cohere-ai
+Disallow: /
+
+# Diffbot
+User-agent: Diffbot
+Disallow: /
+
+# Huawei / Petal
+User-agent: PetalBot
+Disallow: /
+
+# You.com
+User-agent: YouBot
+Disallow: /
+
+# img2dataset
+User-agent: img2dataset
+Disallow: /
+
+# Scrapy
+User-agent: Scrapy
+Disallow: /
+
+# iaskspider / iAsk
+User-agent: iaskspider
+Disallow: /
+
+# Omgili / Webz.io
+User-agent: omgili
+Disallow: /
+User-agent: omgilibot
+Disallow: /
+
+# Webz.io
+User-agent: Webzio-Extended
+Disallow: /
+
+# DataForSeo
+User-agent: DataForSeoBot
+Disallow: /
+
+# Semrush
+User-agent: SemrushBot
+Disallow: /
+
+# Ahrefs
+User-agent: AhrefsBot
+Disallow: /
+
+# MJ12 / Majestic
+User-agent: MJ12bot
+Disallow: /
+
+# DotBot / OpenLinkProfiler
+User-agent: DotBot
+Disallow: /
+
+Sitemap: https://rianell.com/sitemap.xml

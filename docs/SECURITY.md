@@ -8,6 +8,12 @@
 
 This document describes how **Rianell** (this health app) handles health-related data across surfaces, operational defaults, and where to configure controls. It complements OWASP-style practice (see [OWASP Top 10:2025](https://owasp.org/Top10/2025/)).
 
+## v1.134.0 DNS hygiene and AI crawler blocking
+
+- **Dangling A records (Moderate):** External security scan (2026-06-22) found 4 DNS A records for `rianell.com` pointing to IPs that no longer respond to the hostname — subdomain takeover risk. Action: audit DNS A records in Cloudflare and remove any pointing to released IPs. See [cloudflare-headers-recommended.md → Dangling A records](../security/cloudflare-headers-recommended.md).
+- **DMARC missing (Low):** No valid DMARC record at `_dmarc.rianell.com`. Add `v=DMARC1; p=quarantine; rua=mailto:security@rianell.com` TXT record. See [cloudflare-headers-recommended.md → DMARC](../security/cloudflare-headers-recommended.md).
+- **AI crawler blocking:** Added `apps/pwa-webapp/robots.txt` declaring `Disallow: /` for 25+ AI training bots (GPTBot, Google-Extended, ClaudeBot, CCBot, Bytespider, etc.). Enable Cloudflare **Block AI bots** toggle for edge enforcement. See [cloudflare-headers-recommended.md → AI crawler blocking](../security/cloudflare-headers-recommended.md).
+
 ## v1.113.0 dependency and CVE review
 
 - **`npm audit`** at release: **0** production vulnerabilities (Jun 2026).
