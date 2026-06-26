@@ -16,7 +16,7 @@ export async function initializeHealthConnect(): Promise<boolean> {
   try {
     const mod = await import('react-native-health-connect');
     if (typeof mod.initialize === 'function') {
-      return mod.initialize() === true || (await mod.initialize());
+      return await mod.initialize();
     }
   } catch {
     return false;
