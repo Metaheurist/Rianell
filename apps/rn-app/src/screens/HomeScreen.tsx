@@ -113,6 +113,16 @@ function checkinPeriodIcon(period: CheckinPeriod): keyof typeof Ionicons.glyphMa
   return 'sunny';
 }
 
+function defaultCheckinPeriod(): CheckinPeriod {
+  const h = new Date().getHours();
+  if (h < 12) return 'AM';
+  if (h < 17) return 'midday';
+  return 'PM';
+}
+
+const CHECKIN_SLIDER_SELECTED_SCALE = 1.8;
+const CHECKIN_SLIDER_UNSELECTED_SCALE = 1;
+
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 function useReduceMotionFlag() {
@@ -388,6 +398,16 @@ export function HomeScreen({
   const [checkinSleep, setCheckinSleep] = useState('');
   const [checkinFatigue, setCheckinFatigue] = useState('');
   const [checkinSaving, setCheckinSaving] = useState(false);
+  const initialCheckinPeriod = defaultCheckinPeriod();
+  const [selectedPeriod, setSelectedPeriod] = useState<CheckinPeriod>(initialCheckinPeriod);
+  const [checkinTime, setCheckinTime] = useState('');
+  const sliderScaleAM = useRef(new Animated.Value(initialCheckinPeriod === 'AM' ? CHECKIN_SLIDER_SELECTED_SCALE : CHECKIN_SLIDER_UNSELECTED_SCALE)).current;
+  const sliderScaleMid = useRef(new Animated.Value(initialCheckinPeriod === 'midday' ? CHECKIN_SLIDER_SELECTED_SCALE : CHECKIN_SLIDER_UNSELECTED_SCALE)).current;
+  const sliderScalePM = useRef(new Animated.Value(initialCheckinPeriod === 'PM' ? CHECKIN_SLIDER_SELECTED_SCALE : CHECKIN_SLIDER_UNSELECTED_SCALE)).current;
+  const sliderScales = useMemo(
+    () => ({ AM: sliderScaleAM, midday: sliderScaleMid, PM: sliderScalePM }),
+    [sliderScaleAM, sliderScaleMid, sliderScalePM],
+  );
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherSnapshot, setWeatherSnapshot] = useState(prefs.weatherCache);
   const weatherDisplay = useMemo(() => getWeatherDisplayMetrics(weatherSnapshot), [weatherSnapshot]);
@@ -765,12 +785,41 @@ export function HomeScreen({
 
   const openCheckinModal = useCallback((period: CheckinPeriod) => {
     hapticLight();
+    setCheckinTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    setSelectedPeriod(period);
     setCheckinPeriod(period);
     setCheckinMood('');
     setCheckinSleep('');
     setCheckinFatigue('');
     setCheckinModalOpen(true);
   }, []);
+
+  const animateSliderTo = useCallback(
+    (period: CheckinPeriod) => {
+      (HOME_CHECKIN_PERIODS as readonly CheckinPeriod[]).forEach((p) => {
+        const toValue = p === period ? CHECKIN_SLIDER_SELECTED_SCALE : CHECKIN_SLIDER_UNSELECTED_SCALE;
+        if (reduceMotion) {
+          sliderScales[p].setValue(toValue);
+        } else {
+          Animated.spring(sliderScales[p], {
+            toValue,
+            useNativeDriver: true,
+            tension: 180,
+            friction: 12,
+          }).start();
+        }
+      });
+    },
+    [reduceMotion, sliderScales],
+  );
+
+  useEffect(() => {
+    if (!doneCheckinPeriods.has(selectedPeriod)) return;
+    const next = (HOME_CHECKIN_PERIODS as readonly CheckinPeriod[]).find((p) => !doneCheckinPeriods.has(p));
+    if (!next) return;
+    setSelectedPeriod(next);
+    animateSliderTo(next);
+  }, [animateSliderTo, doneCheckinPeriods, selectedPeriod]);
 
   const onSaveCheckin = useCallback(async () => {
     const metrics = {
@@ -961,52 +1010,66 @@ export function HomeScreen({
               <Text style={[styles.heroCheckinTitle, { color: theme.tokens.color.textPrimary, fontSize: theme.font(16) }]}>
                 {t('home.checkin.title')}
               </Text>
-              <View style={styles.checkinRow}>
-                {(HOME_CHECKIN_PERIODS as readonly CheckinPeriod[]).map((period) => {
-                  const done = doneCheckinPeriods.has(period);
-                  return (
-                    <Pressable
-                      key={period}
-                      disabled={done}
-                      onPress={() => openCheckinModal(period)}
-                      style={({ pressed }) => [
-                        styles.checkinBtn,
-                        styles.checkinIconBtn,
-                        {
-                          borderColor: `${accent}66`,
-                          opacity: done ? 0.55 : pressed ? 0.88 : 1,
-                        },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        done
-                          ? `${t(checkinPeriodLabelKey(period))}, ${t('home.checkin.done')}`
-                          : t(checkinPeriodLabelKey(period))
-                      }
-                    >
-                      <Ionicons
-                        name={checkinPeriodIcon(period)}
-                        size={theme.font(30)}
-                        color={done ? `${accent}88` : accent}
-                      />
-                      <Text
-                        style={{
-                          color: done ? `${accent}88` : accent,
-                          fontSize: theme.font(12),
-                          fontWeight: '600',
-                          marginTop: 2,
-                        }}
-                      >
-                        {t(checkinPeriodLabelKey(period))}
-                      </Text>
-                      {done ? (
-                        <Text style={[styles.checkinDoneBadge, { color: theme.tokens.color.text, fontSize: theme.font(10), backgroundColor: `${theme.tokens.color.success}44` }]}>
-                          {t('home.checkin.done')}
-                        </Text>
-                      ) : null}
-                    </Pressable>
-                  );
-                })}
+              <View style={styles.checkinSliderWrap}>
+                <View style={styles.checkinSliderTrack}>
+                  {(HOME_CHECKIN_PERIODS as readonly CheckinPeriod[]).map((period, idx) => {
+                    const done = doneCheckinPeriods.has(period);
+                    const isSelected = selectedPeriod === period;
+                    return (
+                      <React.Fragment key={period}>
+                        {idx > 0 ? <View style={[styles.checkinSliderLine, { backgroundColor: `${accent}33` }]} /> : null}
+                        <Pressable
+                          disabled={done}
+                          onPress={() => {
+                            if (isSelected) {
+                              openCheckinModal(period);
+                            } else {
+                              setSelectedPeriod(period);
+                              animateSliderTo(period);
+                            }
+                          }}
+                          style={styles.checkinSliderStop}
+                          accessibilityRole="button"
+                          accessibilityLabel={
+                            done
+                              ? `${t(checkinPeriodLabelKey(period))}, ${t('home.checkin.done')}`
+                              : t(checkinPeriodLabelKey(period))
+                          }
+                        >
+                          <Animated.View
+                            style={{
+                              transform: [{ scale: sliderScales[period] }],
+                              opacity: done ? 0.42 : 1,
+                            }}
+                          >
+                            <Ionicons
+                              name={checkinPeriodIcon(period)}
+                              size={theme.font(22)}
+                              color={isSelected ? accent : `${accent}55`}
+                            />
+                          </Animated.View>
+                          <Text
+                            style={{
+                              fontSize: theme.font(isSelected ? 11 : 10),
+                              color: isSelected ? accent : `${accent}66`,
+                              fontWeight: '600',
+                            }}
+                          >
+                            {t(checkinPeriodLabelKey(period))}
+                          </Text>
+                        </Pressable>
+                      </React.Fragment>
+                    );
+                  })}
+                </View>
+                <Pressable
+                  style={[styles.checkinCtaBtn, { backgroundColor: accent }]}
+                  onPress={() => openCheckinModal(selectedPeriod)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('home.checkin.cta')}
+                >
+                  <Text style={styles.checkinCtaBtnText}>{t('home.checkin.cta')}</Text>
+                </Pressable>
               </View>
             </View>
           ) : null}
@@ -1179,7 +1242,7 @@ export function HomeScreen({
             accessibilityLabel="Report a bug"
             accessibilityHint="Opens bug report form"
           >
-            <Ionicons name="bug-outline" size={22} color={accent} />
+            <Ionicons name="bug-outline" size={24} color={accent} />
           </Pressable>
           <Pressable
             onPress={onSettings}
@@ -1470,6 +1533,10 @@ export function HomeScreen({
                   <Ionicons name="close" size={24} color={accent} />
                 </Pressable>
               </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Ionicons name={checkinPeriodIcon(checkinPeriod)} size={26} color={accent} />
+                <Text style={{ color: accent, fontSize: theme.font(15), fontWeight: '700' }}>{checkinTime}</Text>
+              </View>
               <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginBottom: 12 }]}>
                 {t('wizard.energy.instructions')}
               </Text>
@@ -1654,6 +1721,12 @@ const styles = StyleSheet.create({
   },
   suggestionChipText: { lineHeight: 18 },
   checkinRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  checkinSliderWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4, width: '100%' },
+  checkinSliderTrack: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  checkinSliderLine: { flex: 1, height: 2, borderRadius: 1 },
+  checkinSliderStop: { alignItems: 'center', gap: 3, paddingHorizontal: 4, paddingVertical: 6 },
+  checkinCtaBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  checkinCtaBtnText: { fontWeight: '700', fontSize: 13, color: '#000' },
   heroCheckinWrap: { marginTop: 12, width: '100%' },
   heroCheckinTitle: { fontWeight: '700', marginBottom: 6 },
   checkinBtn: {
