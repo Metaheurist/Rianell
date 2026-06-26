@@ -1674,6 +1674,64 @@
         <a href="#" class="settings-footer-link" onclick="event.preventDefault(); openCookiePolicyModal(); return false;" data-i18n="common.cookie.policy">Cookie policy</a>
       </div>
       </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Integrations" data-i18n-title="settings.connectors.title" data-settings-pane-i18n="settings.connectors.title" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="settings.connectors.title">Integrations &amp; connectors</span></h4>
+        <p class="settings-hint" data-i18n="settings.connectors.lead">Connect third-party apps to import data automatically. OAuth flows open in a new tab.</p>
+        <div id="connectorsPane" class="connectors-list">
+          <div class="connector-row">
+            <span class="connector-name">Strava</span>
+            <button type="button" class="settings-data-btn connector-connect-btn" data-connector="strava" onclick="openOAuthConnector('strava')" data-i18n="settings.connectors.connect">Connect</button>
+          </div>
+          <div class="connector-row">
+            <span class="connector-name">Withings</span>
+            <button type="button" class="settings-data-btn connector-connect-btn" data-connector="withings" onclick="openOAuthConnector('withings')" data-i18n="settings.connectors.connect">Connect</button>
+          </div>
+          <div class="connector-row">
+            <span class="connector-name">Google Sheets</span>
+            <button type="button" class="settings-data-btn connector-connect-btn" data-connector="google-sheets" onclick="openOAuthConnector('google-sheets')" data-i18n="settings.connectors.connect">Connect</button>
+          </div>
+        </div>
+        <div id="connectorStatusMsg" class="settings-hint connector-status-msg" hidden aria-live="polite"></div>
+      </div>
+      <div class="settings-section" style="margin-top: 16px;">
+        <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-save"></use></svg><span data-i18n="settings.data.import.title">Import from another app</span></h4>
+        <p class="settings-hint" data-i18n="settings.migration.lead">Import your health data from Bearable, Flaredown, Oura, Daylio, Apple Health, or Garmin.</p>
+        <button type="button" class="settings-data-btn" onclick="openMigrationWizard()" data-i18n="settings.migration.openWizard">Open import wizard</button>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Developer" data-i18n-title="settings.developer.title" data-settings-pane-i18n="settings.developer.title" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="settings.developer.title">Developer &amp; API</span></h4>
+        <p class="settings-hint" data-i18n="settings.developer.lead">Use API keys to read your health data from external tools. Requires Cloud Sync to be enabled.</p>
+        <div id="apiKeysSection" class="api-keys-section">
+          <div class="api-key-generate-row">
+            <button type="button" class="settings-data-btn" id="generateApiKeyBtn" onclick="generateApiKey()" data-i18n="settings.developer.generateKey">Generate API key</button>
+          </div>
+          <div id="apiKeyDisplay" class="api-key-display" hidden aria-live="polite"></div>
+          <div id="apiKeysList" class="api-keys-list" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="settings-section" style="margin-top: 16px;">
+        <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="settings.developer.webhooks">Webhooks</span></h4>
+        <p class="settings-hint" data-i18n="settings.developer.webhooksLead">Get notified when you log data. Enter an HTTPS URL to receive POST requests.</p>
+        <div class="settings-option settings-option--stacked" style="margin-top: 8px;">
+          <label for="webhookUrlInput" data-i18n="settings.developer.webhookUrl">Endpoint URL (HTTPS)</label>
+          <input type="url" id="webhookUrlInput" class="item-input" placeholder="https://your-server.com/hook" autocomplete="off" />
+        </div>
+        <div class="settings-option" style="margin-top: 8px;">
+          <label for="webhookEventSelect" data-i18n="settings.developer.webhookEvent">Trigger event</label>
+          <select id="webhookEventSelect" class="settings-select">
+            <option value="log.created">log.created</option>
+            <option value="flare.detected">flare.detected</option>
+            <option value="goal.achieved">goal.achieved</option>
+          </select>
+        </div>
+        <button type="button" class="settings-data-btn" style="margin-top: 8px;" onclick="saveWebhook()" data-i18n="settings.developer.saveWebhook">Save webhook</button>
+        <div id="webhookStatusMsg" class="settings-hint" hidden aria-live="polite"></div>
+        <div id="webhooksList" class="webhooks-list" style="margin-top: 10px;" aria-live="polite"></div>
+      </div>
+      </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Security lock" data-i18n-title="settings.security.title" data-settings-pane-i18n="settings.security.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section" id="settingsSecurityLockSection">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-lock-open"></use></svg><span data-i18n="settings.security.title">Security lock</span></h4>
@@ -1800,6 +1858,38 @@
       <div class="modal-footer">
         <button type="button" class="modal-cancel-btn" onclick="closeMicroCheckinModal()" data-i18n="common.cancel">Cancel</button>
         <button type="button" class="modal-save-btn" onclick="saveMicroCheckinAndClose()" data-i18n="home.checkin.save">Save check-in</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Migration Wizard Modal (Plan 25) -->
+  <div class="modal-overlay migration-wizard-overlay" id="migrationWizardModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="migrationWizardTitle">
+    <div class="modal-content migration-wizard-content" onclick="event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h3 id="migrationWizardTitle" data-i18n="settings.data.import.title">Import from another app</h3>
+        <button type="button" class="modal-close" onclick="closeMigrationWizard()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body migration-wizard-body">
+        <div id="migrationStep1" class="migration-step">
+          <p class="settings-hint" data-i18n="settings.migration.lead">Select your source app and upload your exported file.</p>
+          <div class="migration-source-grid" id="migrationSourceGrid"></div>
+          <div class="migration-file-row" id="migrationFileRow" hidden>
+            <label for="migrationFileInput" id="migrationFileLabel" class="settings-label">Upload export file</label>
+            <input type="file" id="migrationFileInput" class="hidden" accept=".csv,.json,.xml" onchange="handleMigrationFileSelected(this)" />
+            <button type="button" class="settings-data-btn" onclick="document.getElementById('migrationFileInput').click()" data-i18n="settings.migration.chooseFile">Choose file</button>
+          </div>
+        </div>
+        <div id="migrationStep2" class="migration-step" hidden>
+          <p id="migrationPreviewMsg" class="settings-hint" aria-live="polite"></p>
+          <div id="migrationConflictWarning" class="food-sensitivity-alert" hidden></div>
+        </div>
+        <div id="migrationStep3" class="migration-step" hidden>
+          <p id="migrationResultMsg" class="settings-hint" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="modal-footer migration-wizard-footer">
+        <button type="button" class="modal-cancel-btn" onclick="closeMigrationWizard()" data-i18n="common.cancel">Cancel</button>
+        <button type="button" class="modal-save-btn" id="migrationImportBtn" onclick="executeMigrationImport()" hidden data-i18n="settings.migration.import">Import</button>
       </div>
     </div>
   </div>

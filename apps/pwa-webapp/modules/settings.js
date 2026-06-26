@@ -399,6 +399,14 @@ export function installSettingsModule(deps) {
         refreshLlmModelSettingsHints();
       }
     }
+    var activePane = panes[i];
+    if (activePane) {
+      var paneI18n = activePane.getAttribute('data-settings-pane-i18n') || '';
+      if (paneI18n === 'settings.developer.title') {
+        if (typeof window.loadApiKeysList === 'function') window.loadApiKeysList();
+        if (typeof window.loadWebhooksList === 'function') window.loadWebhooksList();
+      }
+    }
   }
 
   function settingsCarouselStep(delta) {

@@ -18541,3 +18541,96 @@ body.first-run-wizard-active #appShell {
   font-size: 0.84rem;
   opacity: 0.85;
 }
+
+/* --- Connectors / Integrations pane (Plan 19) --- */
+.connectors-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.connector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.connector-name { font-weight: 600; font-size: 0.9rem; }
+.connector-connect-btn { min-width: 90px; }
+.connector-status-msg { margin-top: 8px; }
+
+/* --- Developer pane — API keys + webhooks (Plan 18) --- */
+.api-keys-section { margin-top: 10px; }
+.api-key-generate-row { margin-bottom: 8px; }
+.api-key-display {
+  margin: 10px 0;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.3);
+  border-radius: var(--radius-sm,8px);
+  font-size: 0.82rem;
+}
+.api-key-code {
+  display: block;
+  font-family: monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+  color: var(--primary-color,#7bdf8c);
+  cursor: pointer;
+  margin: 6px 0;
+  padding: 6px 10px;
+  background: rgba(123,223,140,0.08);
+  border-radius: 6px;
+}
+.api-keys-list-inner, .webhooks-list-inner {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.api-key-row, .webhook-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.82rem;
+}
+.api-key-row code { font-size: 0.75rem; opacity: 0.8; flex: 1; }
+.api-key-meta { opacity: 0.55; font-size: 0.75rem; }
+.api-key-revoke-btn {
+  background: rgba(240,80,60,0.15);
+  border: 1px solid rgba(240,80,60,0.3);
+  color: #f05042;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.webhook-url { flex: 1; font-size: 0.75rem; opacity: 0.8; word-break: break-all; }
+.webhook-event { font-size: 0.72rem; opacity: 0.55; white-space: nowrap; }
+.webhooks-list { margin-top: 6px; }
+
+/* --- Migration wizard modal (Plan 25) --- */
+.migration-wizard-content {
+  max-width: 480px;
+  width: 90vw;
+}
+.migration-wizard-body { padding: 16px 20px; }
+.migration-step { display: flex; flex-direction: column; gap: 12px; }
+.migration-source-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+.migration-source-btn {
+  padding: 10px 6px;
+  background: var(--card-bg-glass,rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm,8px);
+  color: var(--text-light,#e8eeec);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.migration-source-btn.active, .migration-source-btn:hover {
+  border-color: var(--primary-color,#7bdf8c);
+  color: var(--primary-color,#7bdf8c);
+}
+.migration-file-row { display: flex; flex-direction: column; gap: 6px; }
+.migration-wizard-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 12px 20px; }
