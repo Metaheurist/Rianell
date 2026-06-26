@@ -1,3 +1,12 @@
+/* ─── Hide scrollbars globally while preserving scroll behaviour ─── */
+*, *::before, *::after {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge legacy */
+}
+*::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari / Opera */
+}
+
 :root {
   --rianell-styles: 1; /* used by index.html to detect if this file loaded (mobile reload fix) */
   --text-scale: 1;
@@ -18425,4 +18434,110 @@ body.first-run-wizard-active #appShell {
   .ai-ghost-shimmer {
     animation: none;
   }
+}
+
+/* --- Nutrition Summary (Plan 17 NU4) --- */
+.food-nutrition-summary {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  background: var(--card-bg-glass, rgba(255,255,255,0.05));
+  border: 1px solid rgba(var(--primary-color-rgb, 123,223,140), 0.2);
+  border-radius: var(--radius-md, 12px);
+  font-size: 0.82rem;
+  color: var(--text-light, #e8eeec);
+}
+.food-nutrition-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+.nutrition-label {
+  font-weight: 600;
+  opacity: 0.75;
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.nutrition-stat { opacity: 0.9; }
+.nutrition-fodmap-warn {
+  flex-basis: 100%;
+  color: #f0a050;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+/* --- Food Sensitivity Alert (Plan 17 NU5) --- */
+.food-sensitivity-alert {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  background: rgba(240, 100, 60, 0.1);
+  border: 1px solid rgba(240, 100, 60, 0.35);
+  border-radius: var(--radius-md, 12px);
+  font-size: 0.82rem;
+  color: var(--text-light, #e8eeec);
+}
+.food-sensitivity-inner ul {
+  margin: 6px 0 0 0;
+  padding-left: 18px;
+}
+.food-sensitivity-inner li { margin-bottom: 2px; }
+
+/* --- Community Tips Feed (Plan 23 CM1) --- */
+.community-tips-feed {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  background: var(--card-bg-glass, rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg, 16px);
+}
+.community-tips-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.community-tips-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary-color, #7bdf8c);
+}
+.community-tips-empty {
+  font-size: 0.82rem;
+  opacity: 0.6;
+  margin: 0;
+}
+.community-tips-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.84rem;
+  opacity: 0.85;
+}
+.community-tip-item { margin-bottom: 5px; }
+
+/* --- Cohort Benchmark Card (Plan 23 CM2) --- */
+.cohort-benchmark-card {
+  margin: 12px 0 0;
+  padding: 14px 16px;
+  background: var(--card-bg-glass, rgba(255,255,255,0.04));
+  border: 1px solid rgba(var(--primary-color-rgb, 123,223,140), 0.15);
+  border-radius: var(--radius-lg, 16px);
+}
+.cohort-card-inner {}
+.cohort-card-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary-color, #7bdf8c);
+  margin: 0 0 4px;
+}
+.cohort-card-count {
+  font-size: 0.78rem;
+  opacity: 0.6;
+  margin: 0 0 8px;
+}
+.cohort-metrics-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.84rem;
+  opacity: 0.85;
 }

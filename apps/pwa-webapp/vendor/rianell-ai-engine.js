@@ -41,6 +41,7 @@ var RianellAIEngine = (() => {
     computeTriggerHypotheses: () => computeTriggerHypotheses,
     correlationConfidenceLevel: () => correlationConfidenceLevel,
     cycleBandsToApexAnnotations: () => cycleBandsToApexAnnotations,
+    detectFoodSensitivities: () => detectFoodSensitivities,
     detectMetricAnomalies: () => detectMetricAnomalies,
     exportAnalysisJsonForResearch: () => exportAnalysisJsonForResearch,
     filterLogsByRange: () => filterLogsByRange,
@@ -860,6 +861,84 @@ var RianellAIEngine = (() => {
   ];
   var ACHIEVEMENT_ID_SET = new Set(ALL_ACHIEVEMENTS.map((a) => a.id));
 
+  // packages/shared/src/nutrition/fodmap.mjs
+  var FODMAP_CATEGORIES = {
+    apple: "high",
+    apricot: "high",
+    avocado: "low",
+    banana: "low",
+    blackberry: "high",
+    blueberry: "low",
+    bread: "high",
+    broccoli: "low",
+    cabbage: "high",
+    carrot: "low",
+    cauliflower: "high",
+    celery: "low",
+    cheese: "low",
+    chickpea: "high",
+    chocolate: "moderate",
+    coconut: "low",
+    corn: "low",
+    couscous: "high",
+    cucumber: "low",
+    garlic: "high",
+    grape: "low",
+    honey: "high",
+    hummus: "high",
+    lactose: "high",
+    lentil: "high",
+    mango: "high",
+    milk: "high",
+    mushroom: "high",
+    oat: "low",
+    onion: "high",
+    orange: "low",
+    pasta: "high",
+    peach: "high",
+    pear: "high",
+    pineapple: "low",
+    potato: "low",
+    rice: "low",
+    rye: "high",
+    spinach: "low",
+    strawberry: "low",
+    tomato: "low",
+    watermelon: "high",
+    wheat: "high",
+    yogurt: "moderate",
+    beans: "high",
+    cashew: "high",
+    almond: "low",
+    pistachio: "high",
+    sausage: "high",
+    soy: "moderate",
+    tofu: "low",
+    beer: "high",
+    coffee: "low",
+    tea: "low"
+  };
+  var KEYWORD_MAP = Object.entries(FODMAP_CATEGORIES).flatMap(([key, status]) => {
+    return [{ pattern: key, status }];
+  });
+
+  // packages/shared/src/fhir/loincMap.mjs
+  var LOINC_MAP = {
+    mood: "72133-2",
+    pain: "38208-5",
+    fatigue: "72514-3",
+    sleep_hours: "93832-4",
+    weight: "29463-7",
+    blood_pressure_systolic: "8480-6",
+    blood_pressure_diastolic: "8462-4",
+    blood_glucose: "15074-8",
+    spO2: "59408-5",
+    hrv: "80404-7"
+  };
+  var LOINC_TO_FIELD = Object.fromEntries(
+    Object.entries(LOINC_MAP).map(([field, code]) => [code, field])
+  );
+
   // packages/ai-engine/src/chartAnalytics.mjs
   var METRIC_PAIRS = [
     { metric1: "mood", metric2: "sleep", label1: "Mood", label2: "Sleep" },
@@ -1229,6 +1308,76 @@ var RianellAIEngine = (() => {
       }
     };
     return JSON.stringify(payload, null, 2);
+  }
+
+  // packages/ai-engine/src/foodSensitivities.mjs
+  function parseDate(iso) {
+    const d = /* @__PURE__ */ new Date(`${iso}T12:00:00Z`);
+    return Number.isFinite(d.getTime()) ? d : null;
+  }
+  function hoursBetween(a, b) {
+    return Math.abs(b.getTime() - a.getTime()) / 36e5;
+  }
+  function symptomScore(log) {
+    const pain = Number(log?.pain ?? log?.stiffness ?? 0);
+    const fatigue = Number(log?.fatigue ?? 0);
+    const mood = Number(log?.mood ?? 5);
+    const moodInverse = 10 - Math.min(10, Math.max(0, mood));
+    return (pain + fatigue + moodInverse) / 3;
+  }
+  function collectFoodEvents(logs) {
+    const events = [];
+    for (const log of logs) {
+      if (!log?.date) continue;
+      const food = log.food;
+      if (!food || typeof food !== "object") continue;
+      for (const meal of ["breakfast", "lunch", "dinner", "snack"]) {
+        const items = food[meal];
+        if (!Array.isArray(items)) continue;
+        for (const item of items) {
+          const name = typeof item === "string" ? item : item?.name;
+          if (!name || typeof name !== "string") continue;
+          events.push({ food: name.trim().toLowerCase(), date: log.date, log });
+        }
+      }
+    }
+    return events;
+  }
+  function detectFoodSensitivities(logs) {
+    if (!Array.isArray(logs) || logs.length < 3) return [];
+    const events = collectFoodEvents(logs);
+    const byFood = /* @__PURE__ */ new Map();
+    for (const ev of events) {
+      if (!byFood.has(ev.food)) byFood.set(ev.food, []);
+      byFood.get(ev.food).push(ev);
+    }
+    const allScores = logs.map(symptomScore).filter((s) => Number.isFinite(s));
+    const baseline = allScores.length ? allScores.reduce((a, b) => a + b, 0) / allScores.length : 5;
+    const results = [];
+    for (const [food, evs] of byFood) {
+      if (evs.length < 3) continue;
+      const postScores = [];
+      for (const ev of evs) {
+        const eaten = parseDate(ev.date);
+        if (!eaten) continue;
+        for (const log of logs) {
+          const ld = parseDate(log.date);
+          if (!ld) continue;
+          const h = hoursBetween(eaten, ld);
+          if (h > 0 && h <= 48) postScores.push(symptomScore(log));
+        }
+      }
+      if (!postScores.length) continue;
+      const postAvg = postScores.reduce((a, b) => a + b, 0) / postScores.length;
+      const deltaPct = baseline > 0 ? (postAvg - baseline) / baseline * 100 : 0;
+      const occurrences = evs.length;
+      let confidence = "low";
+      if (occurrences >= 5) confidence = "medium";
+      if (occurrences >= 8 && deltaPct > 30) confidence = "high";
+      const suspected = deltaPct > 20;
+      results.push({ food, occurrences, deltaPct: Math.round(deltaPct), confidence, suspected });
+    }
+    return results.filter((r) => r.suspected).sort((a, b) => b.deltaPct - a.deltaPct);
   }
 
   // packages/ai-engine/src/index.mjs

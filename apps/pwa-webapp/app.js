@@ -11788,6 +11788,7 @@ function renderLogFoodItems() {
   renderFoodChipsForCategory('lunch', 'logFoodLunchChips');
   renderFoodChipsForCategory('dinner', 'logFoodDinnerChips');
   renderFoodChipsForCategory('snack', 'logFoodSnackChips');
+  if (typeof updateFoodNutritionSummary === 'function') updateFoodNutritionSummary();
 }
 
 // Build exercise tile grid for one category (log form) - three sections: icon (top), name (middle), duration (bottom)
@@ -16358,6 +16359,7 @@ form.addEventListener("submit", e => {
   saveLogsToStorage();
   Logger.debug('Health logs saved to localStorage', { entryCount: logs.length });
   onLogsCountChanged(logs.length);
+  if (typeof showFoodSensitivityAlert === 'function') showFoodSensitivityAlert(newEntry);
 
   if (!wasOffline) {
     // Sync anonymized data if contribution is enabled (but not in demo mode)
@@ -16818,6 +16820,14 @@ function loadSettings() {
   applyAccessibilityTtsSettings();
   applyAccessibilityTextScale();
   applyAccessibilityColorblindMode();
+  if (typeof applyBrainFogModeClass === 'function') applyBrainFogModeClass();
+  setTimeout(function () {
+    if (typeof renderCommunityTipsPane === 'function') {
+      var tags = appSettings && appSettings.medicalCondition ? [appSettings.medicalCondition] : [];
+      renderCommunityTipsPane(tags);
+    }
+    if (typeof renderCohortBenchmarkCard === 'function') renderCohortBenchmarkCard();
+  }, 800);
   
   // Set up background sync if contribution is enabled
   if (appSettings.contributeAnonData && typeof setupBackgroundSync === 'function') {
@@ -17919,8 +17929,126 @@ function renderCommunityTipsPane(conditionTags) {
   if (!el) return;
   el.setAttribute('data-community-feed', 'true');
   el.setAttribute('data-conditions', (conditionTags || []).join(','));
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  var tips = [];
+  try {
+    if (Shared && typeof Shared.getCommunityTriggers === 'function') {
+      tips = Shared.getCommunityTriggers(conditionTags && conditionTags[0] || '');
+    }
+  } catch (e) {}
+  var titleText = tUi('community.tips.title') || 'Community tips';
+  var emptyText = tUi('community.tips.empty') || 'No community tips yet.';
+  if (!tips || !tips.length) {
+    el.innerHTML = '<div class="community-tips-header"><span class="community-tips-title">' + titleText + '</span></div><p class="community-tips-empty">' + emptyText + '</p>';
+    el.hidden = false;
+    return;
+  }
+  var html = '<div class="community-tips-header"><span class="community-tips-title">' + titleText + '</span></div><ul class="community-tips-list">';
+  tips.slice(0, 5).forEach(function(tip) {
+    html += '<li class="community-tip-item">' + (typeof tip === 'string' ? tip : (tip.trigger || tip.label || '')) + '</li>';
+  });
+  html += '</ul>';
+  el.innerHTML = html;
+  el.hidden = false;
 }
 if (typeof window !== 'undefined') window.renderCommunityTipsPane = renderCommunityTipsPane;
+
+function updateFoodNutritionSummary() {
+  var el = document.getElementById('foodNutritionSummary');
+  if (!el) return;
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!Shared) return;
+  var allItems = [];
+  var cats = ['breakfast', 'lunch', 'dinner', 'snack'];
+  cats.forEach(function(cat) {
+    var items = logFormFoodByCategory && logFormFoodByCategory[cat] ? logFormFoodByCategory[cat] : [];
+    items.forEach(function(item) { allItems.push(item); });
+  });
+  if (!allItems.length) { el.hidden = true; return; }
+
+  var totals = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
+  var fodmapFlags = [];
+  allItems.forEach(function(item) {
+    if (item && typeof item === 'object' && item.nutrients) {
+      try {
+        var m = Shared.calculateMacrosForServing(item, item.servingGrams || 100);
+        totals.kcal += m.kcal || 0;
+        totals.protein_g += m.protein_g || 0;
+        totals.carbs_g += m.carbs_g || 0;
+        totals.fat_g += m.fat_g || 0;
+      } catch (e) {}
+    }
+    var name = typeof item === 'string' ? item : (item && (item.name || item.label || ''));
+    if (name) {
+      try {
+        var status = Shared.getFodmapStatus && Shared.getFodmapStatus(name);
+        if (status === 'high') fodmapFlags.push(name);
+      } catch (e) {}
+    }
+  });
+
+  var hasMacros = totals.kcal > 0 || totals.protein_g > 0;
+  if (!hasMacros && !fodmapFlags.length) { el.hidden = true; return; }
+
+  var html = '<div class="food-nutrition-inner">';
+  if (hasMacros) {
+    html += '<span class="nutrition-label">' + (tUi('nutrition.summary.title') || 'Nutrition today') + ':</span>';
+    html += '<span class="nutrition-stat"><strong>' + Math.round(totals.kcal) + '</strong> ' + (tUi('nutrition.kcal') || 'kcal') + '</span>';
+    html += '<span class="nutrition-stat"><strong>' + totals.protein_g.toFixed(1) + 'g</strong> ' + (tUi('nutrition.protein') || 'protein') + '</span>';
+    html += '<span class="nutrition-stat"><strong>' + totals.carbs_g.toFixed(1) + 'g</strong> ' + (tUi('nutrition.carbs') || 'carbs') + '</span>';
+    html += '<span class="nutrition-stat"><strong>' + totals.fat_g.toFixed(1) + 'g</strong> ' + (tUi('nutrition.fat') || 'fat') + '</span>';
+  }
+  if (fodmapFlags.length) {
+    html += '<span class="nutrition-fodmap-warn">⚠ High FODMAP: ' + fodmapFlags.join(', ') + '</span>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+  el.hidden = false;
+}
+if (typeof window !== 'undefined') window.updateFoodNutritionSummary = updateFoodNutritionSummary;
+
+function showFoodSensitivityAlert(log) {
+  var el = document.getElementById('foodSensitivityAlert');
+  if (!el) return;
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!Shared || typeof Shared.detectFoodSensitivities !== 'function') return;
+  try {
+    var triggers = Shared.detectFoodSensitivities(logs || [], log);
+    if (!triggers || !triggers.length) { el.hidden = true; return; }
+    var html = '<div class="food-sensitivity-inner"><strong>' + (tUi('food.sensitivity.title') || 'Possible food triggers') + ':</strong><ul>';
+    triggers.slice(0, 3).forEach(function(t) {
+      var name = typeof t === 'string' ? t : (t.food || t.name || '');
+      if (name) html += '<li>' + name + ' — ' + (tUi('food.sensitivity.possible.trigger') || 'may be a trigger') + '</li>';
+    });
+    html += '</ul></div>';
+    el.innerHTML = html;
+    el.hidden = false;
+  } catch (e) {}
+}
+if (typeof window !== 'undefined') window.showFoodSensitivityAlert = showFoodSensitivityAlert;
+
+function renderCohortBenchmarkCard() {
+  var el = document.getElementById('cohortBenchmarkCard');
+  if (!el) return;
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!Shared || typeof Shared.buildCohortBenchmarkCard !== 'function') return;
+  var poolData = null;
+  try { poolData = JSON.parse(localStorage.getItem('rianellCohortPool') || 'null'); } catch (e) {}
+  var card = Shared.buildCohortBenchmarkCard(poolData, appSettings && appSettings.medicalCondition);
+  if (!card || !card.visible) { el.hidden = true; return; }
+  var html = '<div class="cohort-card-inner">';
+  html += '<p class="cohort-card-title">' + (tUi('cohort.benchmark.title') || 'People like you') + '</p>';
+  html += '<p class="cohort-card-count">' + card.contributorCount + ' ' + (tUi('cohort.benchmark.people') || 'contributors') + '</p>';
+  if (card.metrics && card.metrics.length) {
+    html += '<ul class="cohort-metrics-list">';
+    card.metrics.forEach(function(m) { html += '<li>' + m.label + ': <strong>' + (m.value != null ? m.value.toFixed(1) : '—') + m.unit + '</strong></li>'; });
+    html += '</ul>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+  el.hidden = false;
+}
+if (typeof window !== 'undefined') window.renderCohortBenchmarkCard = renderCohortBenchmarkCard;
 
 function openTutorialFromSettings() {
   try { localStorage.removeItem('rianellTutorialSeen'); } catch (e) {}
@@ -18006,6 +18134,13 @@ function loadSettingsState() {
   if (plainLangToggle && appSettings.accessibility) {
     plainLangToggle.classList.toggle('active', !!appSettings.accessibility.plainLanguageEnabled);
     plainLangToggle.setAttribute('aria-checked', appSettings.accessibility.plainLanguageEnabled ? 'true' : 'false');
+  }
+
+  var brainFogToggleEl = document.getElementById('brainFogModeToggle');
+  if (brainFogToggleEl) {
+    var bfOn = !!appSettings.brainFogMode;
+    brainFogToggleEl.classList.toggle('active', bfOn);
+    brainFogToggleEl.setAttribute('aria-checked', bfOn ? 'true' : 'false');
   }
 
   var chartPaletteSelect = document.getElementById('accessibilityChartPaletteSelect');
