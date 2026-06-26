@@ -8,7 +8,7 @@ jobs:
   zap-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-node-ci
         with:
           install: true
@@ -28,7 +28,7 @@ jobs:
           fail_action: true
       - name: Upload ZAP report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: zap-report
           path: report_html.html
@@ -36,7 +36,7 @@ jobs:
   axe-accessibility:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-node-ci
         with:
           install: true
@@ -50,13 +50,13 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run MobSF static scan
         uses: MobSF/mobsfscan@v0.3.8
         with:
           args: '. --json -o mobsf-report.json'
       - name: Upload MobSF report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: mobsf-report
           path: mobsf-report.json
