@@ -14112,6 +14112,28 @@ body.light-mode .settings-consent-dashboard h5 {
   max-width: 100%;
 }
 
+/* Passphrase setup fields — both rows use the same fixed input width
+   so labels of different lengths don't cause unequal field sizes. */
+.app-lock-passphrase-field {
+  flex: 0 0 160px;
+  width: 160px;
+  min-width: 0;
+}
+
+/* Strength bar sits below both passphrase rows, full width */
+.app-lock-strength-bar {
+  margin-top: 4px;
+  margin-bottom: 2px;
+  width: 100%;
+}
+
+.app-lock-strength-label {
+  width: 100%;
+  text-align: right;
+  font-size: 0.75rem;
+  margin: 0 0 6px;
+}
+
 .app-lock-save-btn {
   width: 100%;
   margin-top: 0.5rem;

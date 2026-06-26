@@ -1786,15 +1786,16 @@
           </div>
           <div id="appLockPassphraseSetupUi" style="display:none;">
             <div class="settings-option">
-              <label for="appLockPinSetupInput" data-i18n="settings.privacy.appLock.setupPrompt">Set a passcode (min 12 characters)</label>
-              <input type="password" id="appLockPinSetupInput" class="item-input app-lock-pin-input" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
-              <div class="password-strength-bar" id="appLockSetupStrengthBar"><div class="password-strength-fill" id="appLockSetupStrengthFill"></div></div>
-              <p class="password-strength-label" id="appLockSetupStrengthLabel"></p>
+              <label for="appLockPinSetupInput" data-i18n="settings.privacy.appLock.setupPrompt">Set a passphrase (min 12 characters)</label>
+              <input type="password" id="appLockPinSetupInput" class="item-input app-lock-pin-input app-lock-passphrase-field" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
             </div>
             <div class="settings-option">
-              <label for="appLockPinConfirmInput" data-i18n="settings.privacy.appLock.confirmPrompt">Confirm passcode</label>
-              <input type="password" id="appLockPinConfirmInput" class="item-input app-lock-pin-input" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
+              <label for="appLockPinConfirmInput" data-i18n="settings.privacy.appLock.confirmPrompt">Confirm passphrase</label>
+              <input type="password" id="appLockPinConfirmInput" class="item-input app-lock-pin-input app-lock-passphrase-field" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
             </div>
+            <!-- Strength bar sits below both fields, full width -->
+            <div class="password-strength-bar app-lock-strength-bar" id="appLockSetupStrengthBar"><div class="password-strength-fill" id="appLockSetupStrengthFill"></div></div>
+            <p class="password-strength-label app-lock-strength-label" id="appLockSetupStrengthLabel"></p>
           </div>
           <button type="button" class="modal-save-btn app-lock-save-btn" onclick="saveAppLockPasscode()" data-i18n="settings.security.savePasscode">Save passcode</button>
         </div>
