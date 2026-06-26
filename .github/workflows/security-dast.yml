@@ -9,13 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-node-ci
         with:
-          node-version: '24'
-      - name: Install and build PWA
-        run: |
-          npm ci
-          npm run build:web
+          install: true
+          cache-node-modules: true
+      - name: Build PWA
+        run: npm run build:web
       - name: Start PWA server
         run: |
           npx serve apps/pwa-webapp -p 8080 &
@@ -38,11 +37,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-node-ci
         with:
-          node-version: '24'
+          install: true
+          cache-node-modules: true
       - name: Build PWA
-        run: npm ci && npm run build:web
+        run: npm run build:web
       - name: Axe audit contract
         run: node scripts/audit/run-axe-audit.mjs --dry-run
 
