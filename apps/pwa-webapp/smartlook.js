@@ -1,5 +1,5 @@
 /**
- * Smartlook session recording — consent-gated (PWA).
+ * Smartlook session recording - consent-gated (PWA).
  * Project key and EU region from Smartlook dashboard (mobile + web).
  */
 (function (global) {

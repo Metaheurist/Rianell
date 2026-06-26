@@ -760,7 +760,7 @@
     var platformType = getPlatformType();
     var env = getEnvSnapshot(platformType);
 
-    // Quick CPU estimate to pick suite workloads (single pass — no 1.4M retry on fast PCs).
+    // Quick CPU estimate to pick suite workloads (single pass - no 1.4M retry on fast PCs).
     var estimateIters = 280000;
     var est0 = nowMs();
     cpuArith(estimateIters);

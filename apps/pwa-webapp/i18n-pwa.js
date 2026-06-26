@@ -1,5 +1,5 @@
 /**
- * PWA i18n runtime — loads locale packs from /i18n-packs/locale-packs/v1/ and exposes t().
+ * PWA i18n runtime - loads locale packs from /i18n-packs/locale-packs/v1/ and exposes t().
  */
 (function (global) {
   'use strict';

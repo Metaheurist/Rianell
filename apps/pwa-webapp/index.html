@@ -41,7 +41,7 @@
   <meta name="msapplication-tap-highlight" content="no">
   
   <!-- Security: CSP roadmap in docs/SECURITY.md (unsafe-eval/inline required today for ML bootstraps; tighten over time). -->
-  <!-- script-src: wasm-unsafe-eval + worker-src blob: for TensorFlow.js / ML CDNs. If Cloudflare (or any edge) sets Content-Security-Policy via HTTP, it must DUPLICATE this meta policy or be REMOVED — narrower HTTP CSP blocks cdn.jsdelivr.net (Supabase UMD, Transformers), fonts, Font Awesome. See security/cloudflare-headers-recommended.md -->
+  <!-- script-src: wasm-unsafe-eval + worker-src blob: for TensorFlow.js / ML CDNs. If Cloudflare (or any edge) sets Content-Security-Policy via HTTP, it must DUPLICATE this meta policy or be REMOVED - narrower HTTP CSP blocks cdn.jsdelivr.net (Supabase UMD, Transformers), fonts, Font Awesome. See security/cloudflare-headers-recommended.md -->
   <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
   <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
   <meta name="paypal-client-id" content="">
@@ -2298,35 +2298,47 @@
               </div>
               <span class="vitals-unit" data-i18n="wizard.vitals.bp.unit">mmHg</span>
             </div>
-            <div class="weight-label-container">
-              <label for="bloodGlucose" data-i18n="wizard.vitals.bloodGlucose">Blood glucose</label>
-              <button type="button" id="glucoseUnitToggle" class="unit-toggle-btn" onclick="toggleGlucoseUnit()" data-i18n-title="settings.units.glucose">
-                <span id="glucoseUnitDisplay" data-i18n="units.mmol">mmol/L</span>
-              </button>
-            </div>
-            <div class="input-container">
-              <input type="number" id="bloodGlucose" min="1" max="35" step="0.1" />
-            </div>
-            <label for="spO2" data-i18n="wizard.vitals.spO2">Oxygen saturation (SpO₂)</label>
-            <div class="input-container">
-              <input type="number" id="spO2" min="70" max="100" step="1" />
-              <span class="vitals-unit" data-i18n="wizard.vitals.spO2.unit">%</span>
-            </div>
-            <label for="hrv" data-i18n="wizard.vitals.hrv">HRV (RMSSD)</label>
-            <div class="input-container">
-              <input type="number" id="hrv" min="0" max="300" step="1" />
-              <span class="vitals-unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
-            </div>
-            <div class="weight-label-container">
-              <label for="bodyWeight" data-i18n="wizard.vitals.weight">Body weight</label>
-              <button type="button" id="bodyWeightUnitToggle" class="unit-toggle-btn" onclick="toggleBodyWeightUnit()" data-i18n-title="settings.units.weight">
-                <span id="bodyWeightUnitDisplay" data-i18n="units.kg">kg</span>
-              </button>
-            </div>
-            <div class="input-container">
-              <input type="number" id="bodyWeight" min="20" max="300" step="0.1" />
-              <p class="field-hint" id="bmiReadout" hidden></p>
-            </div>
+
+            <!-- Advanced vitals - collapsed by default -->
+            <details class="vitals-advanced-details" id="vitalsAdvancedDetails">
+              <summary class="vitals-advanced-summary">
+                <svg class="ui-svg-icon vitals-advanced-summary__icon" aria-hidden="true"><use href="#icon-activity"></use></svg>
+                <span data-i18n="wizard.vitals.advanced">Advanced vitals</span>
+                <span class="optional-hint" data-i18n="wizard.vitals.advanced.hint">(optional)</span>
+                <svg class="ui-svg-icon vitals-advanced-summary__chevron" aria-hidden="true"><use href="#icon-chart-down"></use></svg>
+              </summary>
+              <div class="vitals-advanced-body">
+                <div class="weight-label-container">
+                  <label for="bloodGlucose" data-i18n="wizard.vitals.bloodGlucose">Blood glucose</label>
+                  <button type="button" id="glucoseUnitToggle" class="unit-toggle-btn" onclick="toggleGlucoseUnit()" data-i18n-title="settings.units.glucose">
+                    <span id="glucoseUnitDisplay" data-i18n="units.mmol">mmol/L</span>
+                  </button>
+                </div>
+                <div class="input-container">
+                  <input type="number" id="bloodGlucose" min="1" max="35" step="0.1" />
+                </div>
+                <label for="spO2" data-i18n="wizard.vitals.spO2">Oxygen saturation (SpO₂)</label>
+                <div class="input-container">
+                  <input type="number" id="spO2" min="70" max="100" step="1" />
+                  <span class="vitals-unit" data-i18n="wizard.vitals.spO2.unit">%</span>
+                </div>
+                <label for="hrv" data-i18n="wizard.vitals.hrv">HRV (RMSSD)</label>
+                <div class="input-container">
+                  <input type="number" id="hrv" min="0" max="300" step="1" />
+                  <span class="vitals-unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
+                </div>
+                <div class="weight-label-container">
+                  <label for="bodyWeight" data-i18n="wizard.vitals.weight">Body weight</label>
+                  <button type="button" id="bodyWeightUnitToggle" class="unit-toggle-btn" onclick="toggleBodyWeightUnit()" data-i18n-title="settings.units.weight">
+                    <span id="bodyWeightUnitDisplay" data-i18n="units.kg">kg</span>
+                  </button>
+                </div>
+                <div class="input-container">
+                  <input type="number" id="bodyWeight" min="20" max="300" step="0.1" />
+                  <p class="field-hint" id="bmiReadout" hidden></p>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       </div>
@@ -2779,7 +2791,8 @@
         <button type="button" id="suggestNoteBtn" class="suggest-note-btn" title="Suggest a short note based on today&#39;s metrics vs your average" data-i18n-title="common.suggest.a.short.note.based.on.today.39.s" data-i18n="wizard.alert.suggestNote.title">Suggest note</button>
         <div class="validation-message" id="notes-error"></div>
           </div>
-          <div class="log-photo-attachments">
+          <!-- Add photo hidden: pending implementation -->
+          <div class="log-photo-attachments" hidden>
             <label for="logPhotoInput" data-i18n="wizard.attachments.addPhoto">Add photo</label>
             <input type="file" id="logPhotoInput" accept="image/*" capture="environment" multiple />
             <p class="field-hint" id="logPhotoCount" hidden data-i18n="wizard.attachments.photoCount">0 photo(s) attached</p>
@@ -3564,7 +3577,7 @@
         <button type="button" class="modal-close" onclick="closeShareCreateModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body alert-modal-body">
-        <p class="share-create-hint" data-i18n="settings.share.createHint">Choose a date range and password. The link is encrypted — only people with the password can view your data.</p>
+        <p class="share-create-hint" data-i18n="settings.share.createHint">Choose a date range and password. The link is encrypted - only people with the password can view your data.</p>
         <div class="share-create-row">
           <label for="shareCreateFrom" data-i18n="common.from">From</label>
           <input type="date" id="shareCreateFrom" class="cloud-input" />

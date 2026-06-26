@@ -1,5 +1,5 @@
 /**
- * GGUF / transformers.js browser adapter (Path 3) — lazy load behind feature flag.
+ * GGUF / transformers.js browser adapter (Path 3) - lazy load behind feature flag.
  */
 (function (global) {
   'use strict';
@@ -40,7 +40,7 @@
       throw new Error('GGUF model not allowlisted');
     }
     if (!isGgufFeatureEnabled()) {
-      throw new Error('GGUF Path 3 disabled — enable via ?gguf=1 or settings');
+      throw new Error('GGUF Path 3 disabled - enable via ?gguf=1 or settings');
     }
     if (ggufEngine && ggufReady) return ggufEngine;
     if (typeof progressCallback === 'function') {
