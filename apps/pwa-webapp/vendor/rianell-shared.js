@@ -22,6 +22,7 @@ var RianellShared = (() => {
   __export(index_exports, {
     ACHIEVEMENTS_STORAGE_KEY: () => ACHIEVEMENTS_STORAGE_KEY,
     ALLOWED_LLM_MODEL_HOSTS: () => ALLOWED_LLM_MODEL_HOSTS,
+    ALLOWED_VOICE_LOG_FIELDS: () => ALLOWED_VOICE_LOG_FIELDS,
     ALL_ACHIEVEMENTS: () => ALL_ACHIEVEMENTS,
     ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
     ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
@@ -30,6 +31,10 @@ var RianellShared = (() => {
     APPOINTMENT_RANGE_DAYS: () => APPOINTMENT_RANGE_DAYS,
     BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
+    COHORT_MIN_K: () => COHORT_MIN_K,
+    COMMON_SUPPLEMENTS: () => COMMON_SUPPLEMENTS,
+    COMMUNITY_TIP_CATEGORIES: () => COMMUNITY_TIP_CATEGORIES,
+    CONNECTOR_PROVIDERS: () => CONNECTOR_PROVIDERS,
     CONTRIBUTION_EXPORT_FORMAT: () => CONTRIBUTION_EXPORT_FORMAT,
     CYCLE_DAY_MAX: () => CYCLE_DAY_MAX,
     CYCLE_DAY_MIN: () => CYCLE_DAY_MIN,
@@ -38,6 +43,7 @@ var RianellShared = (() => {
     CYCLE_DAY_TYPICAL_MAX: () => CYCLE_DAY_TYPICAL_MAX,
     CYCLE_FLOW_LEVELS: () => CYCLE_FLOW_LEVELS,
     CYCLE_PHASES: () => CYCLE_PHASES,
+    DEFAULT_API_SCOPES: () => DEFAULT_API_SCOPES,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
@@ -46,6 +52,7 @@ var RianellShared = (() => {
     ENGAGEMENT_ACHIEVEMENTS: () => ENGAGEMENT_ACHIEVEMENTS,
     FIRST_RUN_STEP_IDS: () => FIRST_RUN_STEP_IDS,
     FIRST_RUN_STEP_META: () => FIRST_RUN_STEP_META,
+    FODMAP_CATEGORIES: () => FODMAP_CATEGORIES,
     GAD2_MAX_SCORE: () => GAD2_MAX_SCORE,
     GAD2_QUESTIONS: () => GAD2_QUESTIONS,
     GAD7_FOLLOWUP_QUESTIONS: () => GAD7_FOLLOWUP_QUESTIONS,
@@ -58,6 +65,7 @@ var RianellShared = (() => {
     HOME_SUGGESTIONS_MAX_CHIPS: () => HOME_SUGGESTIONS_MAX_CHIPS,
     HOME_SUGGESTIONS_MIN_DAYS: () => HOME_SUGGESTIONS_MIN_DAYS,
     HOME_SUGGESTIONS_RANGE_DAYS: () => HOME_SUGGESTIONS_RANGE_DAYS,
+    LEGACY_BODY_REGION_TO_PAIN_LOCATION: () => LEGACY_BODY_REGION_TO_PAIN_LOCATION,
     LLM_COACH_PERSONAS: () => LLM_COACH_PERSONAS,
     LOCAL_ONLY_NETWORK_FEATURES: () => LOCAL_ONLY_NETWORK_FEATURES,
     LOGGING_ACHIEVEMENTS: () => LOGGING_ACHIEVEMENTS,
@@ -67,18 +75,28 @@ var RianellShared = (() => {
     LOG_CSV_ENGLISH_HEADERS: () => LOG_CSV_ENGLISH_HEADERS,
     LOG_CSV_FIELD_IDS: () => LOG_CSV_FIELD_IDS,
     LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
+    LOINC_MAP: () => LOINC_MAP,
+    LOINC_TO_FIELD: () => LOINC_TO_FIELD,
     MAX_HOME_QUESTION_ANSWERS_PER_DAY: () => MAX_HOME_QUESTION_ANSWERS_PER_DAY,
     MAX_WEEK_CHAT_TURNS: () => MAX_WEEK_CHAT_TURNS,
+    MEAL_PHOTO_ACCEPT: () => MEAL_PHOTO_ACCEPT,
+    MEAL_PHOTO_BUCKET: () => MEAL_PHOTO_BUCKET,
+    MEAL_PHOTO_CATEGORY: () => MEAL_PHOTO_CATEGORY,
     MEDICAL_CONDITION_POOL_SALT: () => MEDICAL_CONDITION_POOL_SALT,
     MED_DOSE_FIRE_WINDOW_MS: () => MED_DOSE_FIRE_WINDOW_MS,
     MED_DOSE_SNOOZE_MINUTES: () => MED_DOSE_SNOOZE_MINUTES,
     MENTAL_HEALTH_DISCLAIMER_I18N: () => MENTAL_HEALTH_DISCLAIMER_I18N,
+    MIGRATION_ADAPTERS: () => MIGRATION_ADAPTERS,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
     MILESTONE_ACHIEVEMENTS: () => MILESTONE_ACHIEVEMENTS,
+    MIN_TOUCH_TARGET_PX: () => MIN_TOUCH_TARGET_PX,
     MOOD_CHECKIN_PERIODS: () => MOOD_CHECKIN_PERIODS,
+    OAUTH2_SCOPES: () => OAUTH2_SCOPES,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
     ON_DEVICE_MOAT_BULLET_KEYS: () => ON_DEVICE_MOAT_BULLET_KEYS,
+    PAIN_REGIONS: () => PAIN_REGIONS,
+    PBKDF2_ITERATIONS: () => PBKDF2_ITERATIONS,
     PHQ2_MAX_SCORE: () => PHQ2_MAX_SCORE,
     PHQ2_QUESTIONS: () => PHQ2_QUESTIONS,
     PHQ9_FOLLOWUP_QUESTIONS: () => PHQ9_FOLLOWUP_QUESTIONS,
@@ -91,6 +109,7 @@ var RianellShared = (() => {
     POOL_INSIGHT_MIN_K: () => POOL_INSIGHT_MIN_K,
     PREDICTION_STATE_KEY: () => PREDICTION_STATE_KEY,
     PREFS_STORAGE_KEY_MOBILE: () => PREFS_STORAGE_KEY_MOBILE,
+    PRIMARY_ACTION_MIN_HEIGHT_PX: () => PRIMARY_ACTION_MIN_HEIGHT_PX,
     PRIVACY_REGIONS: () => PRIVACY_REGIONS,
     PROCESSING_ACTIVITY_LOG_KEY: () => PROCESSING_ACTIVITY_LOG_KEY,
     PROCESSING_ACTIVITY_LOG_MAX: () => PROCESSING_ACTIVITY_LOG_MAX,
@@ -102,6 +121,7 @@ var RianellShared = (() => {
     QR_HANDOFF_MAX_CHARS: () => QR_HANDOFF_MAX_CHARS,
     RE_ENGAGEMENT_IDLE_DAYS: () => RE_ENGAGEMENT_IDLE_DAYS,
     SCREENING_RESPONSE_OPTIONS: () => SCREENING_RESPONSE_OPTIONS,
+    SENSITIVE_STORAGE_KEYS: () => SENSITIVE_STORAGE_KEYS,
     SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
     SHARE_LINK_FORMAT: () => SHARE_LINK_FORMAT,
@@ -118,12 +138,18 @@ var RianellShared = (() => {
     TUTORIAL_SLIDE_ORDER_AI_ON: () => TUTORIAL_SLIDE_ORDER_AI_ON,
     UNLOCK_DAYS: () => UNLOCK_DAYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
+    WCAG_BODY_TEXT_MIN_CONTRAST: () => WCAG_BODY_TEXT_MIN_CONTRAST,
+    WCAG_LARGE_TEXT_MIN_CONTRAST: () => WCAG_LARGE_TEXT_MIN_CONTRAST,
+    WCAG_UI_COMPONENT_MIN_CONTRAST: () => WCAG_UI_COMPONENT_MIN_CONTRAST,
     WEATHER_CACHE_MS: () => WEATHER_CACHE_MS,
+    WEBHOOK_EVENTS: () => WEBHOOK_EVENTS,
     WEEKLY_REVIEW_MIN_LOG_DAYS: () => WEEKLY_REVIEW_MIN_LOG_DAYS,
     WEEKLY_REVIEW_STEPS: () => WEEKLY_REVIEW_STEPS,
     addLogFavorite: () => addLogFavorite,
     addMinutesToHHMM: () => addMinutesToHHMM,
+    aggregateDailyMacros: () => aggregateDailyMacros,
     analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
+    apiKeyDisplayPrefix: () => apiKeyDisplayPrefix,
     appendProcessingActivity: () => appendProcessingActivity,
     applyLocaleDefaultsToPrefs: () => applyLocaleDefaultsToPrefs,
     applyMicroCheckin: () => applyMicroCheckin,
@@ -133,6 +159,8 @@ var RianellShared = (() => {
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
     appointmentCountdownLabelKey: () => appointmentCountdownLabelKey,
     auditGoldenPrompt: () => auditGoldenPrompt,
+    base64ToSalt: () => base64ToSalt,
+    base64ToWrappedDek: () => base64ToWrappedDek,
     buildAchievementUnlockNotificationContent: () => buildAchievementUnlockNotificationContent,
     buildAirQualityUrl: () => buildAirQualityUrl,
     buildAnonymizedInsertRow: () => buildAnonymizedInsertRow,
@@ -140,9 +168,12 @@ var RianellShared = (() => {
     buildAppointmentChartRows: () => buildAppointmentChartRows,
     buildAppointmentReportHtml: () => buildAppointmentReportHtml,
     buildAppointmentReportModel: () => buildAppointmentReportModel,
+    buildAuthorizeUrl: () => buildAuthorizeUrl,
     buildClinicianBriefContext: () => buildClinicianBriefContext,
     buildClinicianBriefFallback: () => buildClinicianBriefFallback,
     buildClinicianBriefPrompt: () => buildClinicianBriefPrompt,
+    buildCohortBenchmarkCard: () => buildCohortBenchmarkCard,
+    buildConsentAuditPayload: () => buildConsentAuditPayload,
     buildConsentDashboardEntries: () => buildConsentDashboardEntries,
     buildDoctorQuestionsContext: () => buildDoctorQuestionsContext,
     buildDoctorQuestionsFallback: () => buildDoctorQuestionsFallback,
@@ -151,16 +182,20 @@ var RianellShared = (() => {
     buildExplainChartContext: () => buildExplainChartContext,
     buildExplainChartFallback: () => buildExplainChartFallback,
     buildExplainChartPrompt: () => buildExplainChartPrompt,
+    buildFhirObservation: () => buildFhirObservation,
     buildFirstRunPlan: () => buildFirstRunPlan,
     buildFlareRiskNotificationContent: () => buildFlareRiskNotificationContent,
+    buildFocusScrollMargin: () => buildFocusScrollMargin,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
     buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
     buildInductionProgressSteps: () => buildInductionProgressSteps,
     buildLlmRequestPayload: () => buildLlmRequestPayload,
+    buildMealPhotoMetadata: () => buildMealPhotoMetadata,
     buildMedDoseNotificationContent: () => buildMedDoseNotificationContent,
     buildMedicationTimeline: () => buildMedicationTimeline,
     buildMotdPrompt: () => buildMotdPrompt,
+    buildNotificationContent: () => buildNotificationContent,
     buildProxyLogMetadata: () => buildProxyLogMetadata,
     buildQrHandoffLogsSubset: () => buildQrHandoffLogsSubset,
     buildReEngagementNotificationContent: () => buildReEngagementNotificationContent,
@@ -177,10 +212,12 @@ var RianellShared = (() => {
     buildUserCohortsFromFacets: () => buildUserCohortsFromFacets,
     buildWeatherDisplayMetrics: () => buildWeatherDisplayMetrics,
     buildWeatherForecastUrl: () => buildWeatherForecastUrl,
+    buildWebhookInvokePayload: () => buildWebhookInvokePayload,
     buildWeekChatContext: () => buildWeekChatContext,
     buildWeekChatFallback: () => buildWeekChatFallback,
     buildWeekChatPrompt: () => buildWeekChatPrompt,
     buildWeekChatUserPayload: () => buildWeekChatUserPayload,
+    calculateMacrosForServing: () => calculateMacrosForServing,
     canAnswerHomeQuestionToday: () => canAnswerHomeQuestionToday,
     canChooseDataResidency: () => canChooseDataResidency,
     canExportContributionHistory: () => canExportContributionHistory,
@@ -198,6 +235,7 @@ var RianellShared = (() => {
     completeFirstRunWizard: () => completeFirstRunWizard,
     completedCheckinPeriods: () => completedCheckinPeriods,
     computeAchievementSnapshots: () => computeAchievementSnapshots,
+    computeBmiKg: () => computeBmiKg,
     computeCycleDayFromPeriodStart: () => computeCycleDayFromPeriodStart,
     computeFlareFreeDays: () => computeFlareFreeDays,
     computeGoodDayStreak: () => computeGoodDayStreak,
@@ -205,8 +243,12 @@ var RianellShared = (() => {
     computeHomeCardContext: () => computeHomeCardContext,
     computeHomeStreakSnapshot: () => computeHomeStreakSnapshot,
     computeMedianLogTimeMinutes: () => computeMedianLogTimeMinutes,
+    computePersonalBests: () => computePersonalBests,
     computePoolInsightsFromFacets: () => computePoolInsightsFromFacets,
+    configureSecureStorageBackend: () => configureSecureStorageBackend,
+    contrastRatioPasses: () => contrastRatioPasses,
     countDistinctLogDays: () => countDistinctLogDays,
+    countHighFodmapDays: () => countHighFodmapDays,
     createOnboardingProgressSession: () => createOnboardingProgressSession,
     createQrHandoffPayload: () => createQrHandoffPayload,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
@@ -219,13 +261,18 @@ var RianellShared = (() => {
     daysSincePeriodStart: () => daysSincePeriodStart,
     daysSinceTrackingProfileStart: () => daysSinceTrackingProfileStart,
     daysUntilAppointment: () => daysUntilAppointment,
+    decryptData: () => decryptData,
     decryptExportWithPassphrase: () => decryptExportWithPassphrase,
     decryptQrHandoffToken: () => decryptQrHandoffToken,
+    deriveCodeChallenge: () => deriveCodeChallenge,
     deriveDateFormatFromLocale: () => deriveDateFormatFromLocale,
     deriveFirstDayOfWeekFromLocale: () => deriveFirstDayOfWeekFromLocale,
     deriveWeightUnitFromLocale: () => deriveWeightUnitFromLocale,
+    deriveWrappingKey: () => deriveWrappingKey,
     detectHomeLoggingGaps: () => detectHomeLoggingGaps,
+    detectImportConflicts: () => detectImportConflicts,
     detectNewlyUnlocked: () => detectNewlyUnlocked,
+    encryptData: () => encryptData,
     encryptExportWithPassphrase: () => encryptExportWithPassphrase,
     enqueueAchievementToast: () => enqueueAchievementToast,
     evaluateFatigueWeekAnomaly: () => evaluateFatigueWeekAnomaly,
@@ -234,6 +281,7 @@ var RianellShared = (() => {
     extractMedDoseTakenMap: () => extractMedDoseTakenMap,
     fetchHomeWeatherSnapshot: () => fetchHomeWeatherSnapshot,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
+    fieldForLoinc: () => fieldForLoinc,
     filterLogsByDays: () => filterLogsByDays,
     filterLogsForAppointment: () => filterLogsForAppointment,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
@@ -243,6 +291,7 @@ var RianellShared = (() => {
     flareToBit: () => flareToBit,
     formatActivityTypeLabel: () => formatActivityTypeLabel,
     formatBarcodeFoodLabel: () => formatBarcodeFoodLabel,
+    formatCommunityTip: () => formatCommunityTip,
     formatContributionExport: () => formatContributionExport,
     formatDate: () => formatDate,
     formatIsoDate: () => formatIsoDate,
@@ -250,7 +299,13 @@ var RianellShared = (() => {
     formatRelativeDay: () => formatRelativeDay,
     formatStructuredLlmOutput: () => formatStructuredLlmOutput,
     formatWeekChatHistory: () => formatWeekChatHistory,
+    generateCodeVerifier: () => generateCodeVerifier,
+    generateDek: () => generateDek,
+    generateRawApiKey: () => generateRawApiKey,
+    generateSalt: () => generateSalt,
     getAchievementToastQueueLength: () => getAchievementToastQueueLength,
+    getBrainFogFontScale: () => getBrainFogFontScale,
+    getCommunityTriggers: () => getCommunityTriggers,
     getConsentBlockReason: () => getConsentBlockReason,
     getCrisisResourcesForRegion: () => getCrisisResourcesForRegion,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
@@ -258,7 +313,10 @@ var RianellShared = (() => {
     getDefaultLocaleForRegion: () => getDefaultLocaleForRegion,
     getDefaultTrackingProfileFields: () => getDefaultTrackingProfileFields,
     getFeatureAvailability: () => getFeatureAvailability,
+    getFodmapStatus: () => getFodmapStatus,
+    getFodmapWarning: () => getFodmapWarning,
     getLlmCapability: () => getLlmCapability,
+    getMotionDurationMs: () => getMotionDurationMs,
     getOnDeviceMoatBulletKeys: () => getOnDeviceMoatBulletKeys,
     getPolicyBodyParagraphs: () => getPolicyBodyParagraphs,
     getPolicyDocumentsForRegion: () => getPolicyDocumentsForRegion,
@@ -279,6 +337,7 @@ var RianellShared = (() => {
     getVisibleTrackingFields: () => getVisibleTrackingFields,
     hasEnabledMedSchedule: () => hasEnabledMedSchedule,
     hasLoggedToday: () => hasLoggedToday,
+    hashApiKey: () => hashApiKey,
     hashMedicalConditionLabel: () => hashMedicalConditionLabel,
     identity: () => identity,
     inferTreatmentStartsFromLogs: () => inferTreatmentStartsFromLogs,
@@ -286,7 +345,9 @@ var RianellShared = (() => {
     interpretGad7Score: () => interpretGad7Score,
     interpretPhq2Score: () => interpretPhq2Score,
     interpretPhq9Score: () => interpretPhq9Score,
+    invokeDeliverWebhook: () => invokeDeliverWebhook,
     isAchievementToastShowing: () => isAchievementToastShowing,
+    isAllowedAppearanceMode: () => isAllowedAppearanceMode,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isConfiguredVapidPublicKey: () => isConfiguredVapidPublicKey,
     isCustomMetricField: () => isCustomMetricField,
@@ -299,6 +360,7 @@ var RianellShared = (() => {
     isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
     isLoggingStreakBroken: () => isLoggingStreakBroken,
+    isMealPhoto: () => isMealPhoto,
     isMedDoseSnoozed: () => isMedDoseSnoozed,
     isPhq9SuicideItemPositive: () => isPhq9SuicideItemPositive,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
@@ -312,10 +374,17 @@ var RianellShared = (() => {
     isValidLocaleId: () => isValidLocaleId,
     isValidMedicalConditionForPool: () => isValidMedicalConditionForPool,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
+    isValidWebhookUrl: () => isValidWebhookUrl,
+    isVoicePromptInjection: () => isVoicePromptInjection,
     isWeatherCacheFresh: () => isWeatherCacheFresh,
     isoWeekKey: () => isoWeekKey,
     isoWeekMondayKey: () => isoWeekMondayKey,
+    kgToLbs: () => kgToLbs,
     languageNameForLocale: () => languageNameForLocale,
+    lbsToKg: () => lbsToKg,
+    listConnectorsForPlatform: () => listConnectorsForPlatform,
+    listMigrationAdapters: () => listMigrationAdapters,
+    listMigrationSources: () => listMigrationSources,
     listTodayMedDoseReminders: () => listTodayMedDoseReminders,
     loadPolicyPackFromDisk: () => loadPolicyPackFromDisk,
     loadPromptPack: () => loadPromptPack,
@@ -326,6 +395,10 @@ var RianellShared = (() => {
     logToFhirObservations: () => logToFhirObservations,
     logsToCsv: () => logsToCsv,
     logsToFhirBundle: () => logsToFhirBundle,
+    loincForField: () => loincForField,
+    lookupBarcode: () => lookupBarcode,
+    macroPercentages: () => macroPercentages,
+    mapLabResultsToLogFields: () => mapLabResultsToLogFields,
     markAchievementNotified: () => markAchievementNotified,
     markAchievementSeen: () => markAchievementSeen,
     markAchievementToastDismissed: () => markAchievementToastDismissed,
@@ -337,14 +410,18 @@ var RianellShared = (() => {
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     mergePhq9Responses: () => mergePhq9Responses,
+    mgdlToMmol: () => mgdlToMmol,
     migrateFirstRunWizardPrefs: () => migrateFirstRunWizardPrefs,
     minutesToHHMM: () => minutesToHHMM,
+    mmolToMgdl: () => mmolToMgdl,
     moodQualitativeKey: () => moodQualitativeKey,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
     nextHomeQuestionAnswerState: () => nextHomeQuestionAnswerState,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
     normalizeAchievementState: () => normalizeAchievementState,
     normalizeActivityEntry: () => normalizeActivityEntry,
+    normalizeBloodGlucose: () => normalizeBloodGlucose,
+    normalizeBodyWeight: () => normalizeBodyWeight,
     normalizeCaregiverSettings: () => normalizeCaregiverSettings,
     normalizeCustomChartMetric: () => normalizeCustomChartMetric,
     normalizeCustomChartMetrics: () => normalizeCustomChartMetrics,
@@ -362,20 +439,31 @@ var RianellShared = (() => {
     normalizeMedScheduleEntry: () => normalizeMedScheduleEntry,
     normalizeMedicationDose: () => normalizeMedicationDose,
     normalizeMedicationDoses: () => normalizeMedicationDoses,
+    normalizePainLocation: () => normalizePainLocation,
+    normalizePainLocations: () => normalizePainLocations,
+    normalizePhotoAttachment: () => normalizePhotoAttachment,
+    normalizePhotoAttachments: () => normalizePhotoAttachments,
     normalizePoolInsightsRpcResult: () => normalizePoolInsightsRpcResult,
     normalizePreferencesPartial: () => normalizePreferencesPartial,
     normalizeProfileAvatar: () => normalizeProfileAvatar,
     normalizeSubEntries: () => normalizeSubEntries,
     normalizeSubEntry: () => normalizeSubEntry,
+    normalizeSupplementEntry: () => normalizeSupplementEntry,
+    normalizeSupplements: () => normalizeSupplements,
     normalizeSymptomTemplates: () => normalizeSymptomTemplates,
     normalizeTrackingProfile: () => normalizeTrackingProfile,
     normalizeTreatmentStarts: () => normalizeTreatmentStarts,
+    normalizeTriggerRow: () => normalizeTriggerRow,
+    normalizeVitalMetrics: () => normalizeVitalMetrics,
     normalizeWeatherCoords: () => normalizeWeatherCoords,
+    painBodyStateToLocations: () => painBodyStateToLocations,
     parseAppointmentDate: () => parseAppointmentDate,
     parseDoctorQuestionsResponse: () => parseDoctorQuestionsResponse,
     parseIsoDateLocal: () => parseIsoDateLocal,
     parseLogsCsv: () => parseLogsCsv,
     parseMigrationCsv: () => parseMigrationCsv,
+    parseMigrationFile: () => parseMigrationFile,
+    parseORU: () => parseORU,
     parseQrHandoffToken: () => parseQrHandoffToken,
     parseSettingsProfileImport: () => parseSettingsProfileImport,
     parseStructuredLlmOutput: () => parseStructuredLlmOutput,
@@ -384,6 +472,8 @@ var RianellShared = (() => {
     pickDailyHomeGapQuestion: () => pickDailyHomeGapQuestion,
     pickHomeAiSuggestionBundle: () => pickHomeAiSuggestionBundle,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
+    pickPersonalBestHighlight: () => pickPersonalBestHighlight,
+    prefersReducedMotion: () => prefersReducedMotion,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
     putWebDavEncryptedBackup: () => putWebDavEncryptedBackup,
@@ -411,10 +501,14 @@ var RianellShared = (() => {
     resolveWeatherIconTone: () => resolveWeatherIconTone,
     roundWeatherCoord: () => roundWeatherCoord,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
+    saltToBase64: () => saltToBase64,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
+    sanitizeVoiceExtractResult: () => sanitizeVoiceExtractResult,
     scoreGad7FromResponses: () => scoreGad7FromResponses,
     scorePhq9FromResponses: () => scorePhq9FromResponses,
     scoreScreeningResponses: () => scoreScreeningResponses,
+    searchFood: () => searchFood,
+    secureStore: () => secureStore,
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shouldActivateSessionRecording: () => shouldActivateSessionRecording,
@@ -441,9 +535,13 @@ var RianellShared = (() => {
     t: () => t,
     textDirection: () => textDirection,
     touchLastActiveAt: () => touchLastActiveAt,
+    unwrapDek: () => unwrapDek,
     upsertSymptomTemplate: () => upsertSymptomTemplate,
     validateRemoteLlmEndpoint: () => validateRemoteLlmEndpoint,
-    validateResearchFacets: () => validateResearchFacets
+    validateResearchFacets: () => validateResearchFacets,
+    validateTipSubmission: () => validateTipSubmission,
+    wrapDek: () => wrapDek,
+    wrappedDekToBase64: () => wrappedDekToBase64
   });
 
   // packages/shared/src/logging/cycleTracking.mjs
@@ -588,10 +686,45 @@ var RianellShared = (() => {
 
   // packages/shared/src/logging/logSchema.mjs
   var SUB_ENTRY_PERIODS = /* @__PURE__ */ new Set(["AM", "midday", "PM", "partial"]);
+  var PAIN_REGIONS = /* @__PURE__ */ new Set([
+    "head",
+    "neck",
+    "shoulders-L",
+    "shoulders-R",
+    "chest",
+    "upper-back",
+    "lower-back",
+    "abdomen",
+    "hips",
+    "knees-L",
+    "knees-R",
+    "ankles-L",
+    "ankles-R",
+    "hands-L",
+    "hands-R"
+  ]);
+  var COMMON_SUPPLEMENTS = /* @__PURE__ */ new Set([
+    "Vitamin D",
+    "Magnesium",
+    "Omega-3",
+    "Zinc",
+    "B12",
+    "Iron",
+    "Melatonin",
+    "Probiotics",
+    "Ashwagandha",
+    "CoQ10"
+  ]);
   function clampInt(raw, min, max) {
     const n = typeof raw === "number" ? raw : typeof raw === "string" ? parseInt(raw, 10) : NaN;
     if (!Number.isFinite(n)) return void 0;
     return Math.max(min, Math.min(max, Math.round(n)));
+  }
+  function clampFloat(raw, min, max, decimals = 1) {
+    const n = typeof raw === "number" ? raw : typeof raw === "string" ? parseFloat(raw) : NaN;
+    if (!Number.isFinite(n)) return void 0;
+    const clamped = Math.max(min, Math.min(max, n));
+    return Number(clamped.toFixed(decimals));
   }
   function normalizeString(raw, maxLen) {
     if (typeof raw !== "string") return void 0;
@@ -599,6 +732,160 @@ var RianellShared = (() => {
     if (!s) return void 0;
     if (typeof maxLen === "number") return s.slice(0, maxLen);
     return s;
+  }
+  function mmolToMgdl(mmol) {
+    return Number((mmol * 18.02).toFixed(1));
+  }
+  function mgdlToMmol(mgdl) {
+    return Number((mgdl / 18.02).toFixed(2));
+  }
+  function lbsToKg(lbs) {
+    return Number((lbs * 0.453592).toFixed(2));
+  }
+  function kgToLbs(kg) {
+    return Number((kg / 0.453592).toFixed(1));
+  }
+  function computeBmiKg(weightKg, heightCm) {
+    if (!Number.isFinite(weightKg) || !Number.isFinite(heightCm) || heightCm <= 0) return void 0;
+    const heightM = heightCm / 100;
+    return Number((weightKg / (heightM * heightM)).toFixed(1));
+  }
+  function normalizePainLocation(value) {
+    const v = value && typeof value === "object" ? value : {};
+    const region = typeof v.region === "string" && PAIN_REGIONS.has(v.region) ? v.region : void 0;
+    const intensity = clampInt(v.intensity, 0, 10);
+    if (!region) return void 0;
+    return { region, intensity: intensity ?? 0 };
+  }
+  function normalizePainLocations(raw) {
+    if (!Array.isArray(raw)) return void 0;
+    const items = raw.map((x) => normalizePainLocation(x)).filter(Boolean);
+    return items.length ? items.slice(0, 15) : void 0;
+  }
+  function normalizeSupplementEntry(value) {
+    const v = value && typeof value === "object" ? value : {};
+    const name = normalizeString(v.name, 120);
+    if (!name) return void 0;
+    return {
+      name,
+      dose: normalizeString(v.dose, 40),
+      unit: normalizeString(v.unit, 20),
+      brand: normalizeString(v.brand, 80)
+    };
+  }
+  function normalizeSupplements(raw) {
+    if (!Array.isArray(raw)) return void 0;
+    const items = raw.map((x) => normalizeSupplementEntry(x)).filter(Boolean);
+    return items.length ? items.slice(0, 20) : void 0;
+  }
+  function normalizePhotoAttachment(value) {
+    const v = value && typeof value === "object" ? value : {};
+    const url = normalizeString(v.url, 500);
+    if (!url || !/^https?:\/\//i.test(url) && !/^health-photos\//i.test(url)) return void 0;
+    return { url, caption: normalizeString(v.caption, 200) };
+  }
+  function normalizePhotoAttachments(raw) {
+    if (!Array.isArray(raw)) return void 0;
+    const items = raw.map((x) => normalizePhotoAttachment(x)).filter(Boolean);
+    return items.length ? items.slice(0, 6) : void 0;
+  }
+  function normalizeBloodGlucose(value, unitPref) {
+    const v = value && typeof value === "object" ? value : { value };
+    const raw = typeof v === "number" ? v : v.value ?? v.bloodGlucose;
+    const unit = v.unit === "mgdl" || v.bloodGlucoseUnit === "mgdl" || unitPref === "mgdl" ? "mgdl" : "mmol";
+    const n = typeof raw === "number" ? raw : parseFloat(String(raw || ""));
+    if (!Number.isFinite(n)) return void 0;
+    const mmol = unit === "mgdl" ? mgdlToMmol(n) : clampFloat(n, 1, 35, 2);
+    if (mmol === void 0) return void 0;
+    return { bloodGlucose: mmol, bloodGlucoseUnit: "mmol" };
+  }
+  function normalizeBodyWeight(value, unitPref) {
+    const v = value && typeof value === "object" ? value : { value };
+    const raw = typeof v === "number" ? v : v.value ?? v.bodyWeight;
+    const unit = v.unit === "lbs" || v.bodyWeightUnit === "lbs" || unitPref === "lbs" ? "lbs" : "kg";
+    const n = typeof raw === "number" ? raw : parseFloat(String(raw || ""));
+    if (!Number.isFinite(n)) return void 0;
+    const kg = unit === "lbs" ? lbsToKg(n) : clampFloat(n, 20, 300, 2);
+    if (kg === void 0) return void 0;
+    return { bodyWeight: kg, bodyWeightUnit: "kg" };
+  }
+  var LEGACY_BODY_REGION_TO_PAIN_LOCATION = {
+    head: "head",
+    neck: "neck",
+    left_shoulder: "shoulders-L",
+    right_shoulder: "shoulders-R",
+    chest: "chest",
+    abdomen: "abdomen",
+    left_hip: "hips",
+    right_hip: "hips",
+    left_knee: "knees-L",
+    right_knee: "knees-R",
+    left_ankle: "ankles-L",
+    right_ankle: "ankles-R",
+    left_hand: "hands-L",
+    right_hand: "hands-R",
+    left_upper_arm: "upper-back",
+    right_upper_arm: "upper-back",
+    left_lower_leg: "lower-back",
+    right_lower_leg: "lower-back"
+  };
+  function painBodyStateToLocations(state, intensityMap = { 1: 4, 2: 8 }) {
+    if (!state || typeof state !== "object") return void 0;
+    const items = [];
+    Object.keys(state).forEach((legacyId) => {
+      const level = state[legacyId];
+      if (!level) return;
+      const region = LEGACY_BODY_REGION_TO_PAIN_LOCATION[legacyId];
+      if (!region) return;
+      const intensity = intensityMap[level] ?? clampInt(level, 0, 10) ?? 0;
+      const existing = items.find((x) => x.region === region);
+      if (existing) existing.intensity = Math.max(existing.intensity, intensity);
+      else items.push({ region, intensity });
+    });
+    return normalizePainLocations(items);
+  }
+  function normalizeBbtCelsius(raw, unitPref) {
+    const n = typeof raw === "number" ? raw : parseFloat(String(raw ?? ""));
+    if (!Number.isFinite(n)) return void 0;
+    const celsius = unitPref === "fahrenheit" ? (n - 32) * 5 / 9 : n;
+    return clampFloat(celsius, 35, 38.5, 2);
+  }
+  function normalizeVitalMetrics(value, options = {}) {
+    const v = value && typeof value === "object" ? value : {};
+    const glucose = normalizeBloodGlucose(
+      { value: v.bloodGlucose, unit: v.bloodGlucoseUnit },
+      options.glucoseUnit
+    );
+    const weight = normalizeBodyWeight(
+      {
+        value: v.bodyWeight ?? (v.weight != null ? parseFloat(String(v.weight)) : void 0),
+        unit: v.bodyWeightUnit
+      },
+      options.weightUnit
+    );
+    const bristolRaw = typeof v.bristol === "number" ? v.bristol : parseInt(String(v.bristol ?? ""), 10);
+    const bristol = Number.isFinite(bristolRaw) && bristolRaw >= 1 && bristolRaw <= 7 ? bristolRaw : void 0;
+    const tempUnit = v.bbtUnit === "fahrenheit" || options.temperatureUnit === "fahrenheit" ? "fahrenheit" : "celsius";
+    const out = {
+      bloodPressureSystolic: clampInt(v.bloodPressureSystolic, 60, 250),
+      bloodPressureDiastolic: clampInt(v.bloodPressureDiastolic, 40, 150),
+      bloodGlucose: glucose?.bloodGlucose,
+      bloodGlucoseUnit: glucose?.bloodGlucoseUnit,
+      spO2: clampInt(v.spO2, 70, 100),
+      hrv: clampInt(v.hrv, 0, 300),
+      bodyWeight: weight?.bodyWeight,
+      bodyWeightUnit: weight?.bodyWeightUnit,
+      bristol,
+      painLocations: normalizePainLocations(v.painLocations),
+      gratitude: normalizeString(v.gratitude, 500),
+      bbt: normalizeBbtCelsius(v.bbt, tempUnit),
+      photoAttachments: normalizePhotoAttachments(v.photoAttachments),
+      supplements: normalizeSupplements(v.supplements)
+    };
+    Object.keys(out).forEach((k) => {
+      if (out[k] === void 0 || Array.isArray(out[k]) && out[k].length === 0) delete out[k];
+    });
+    return Object.keys(out).length ? out : void 0;
   }
   function normalizeCycleFields(value) {
     const v = value && typeof value === "object" ? value : {};
@@ -3016,6 +3303,13 @@ var RianellShared = (() => {
     if (dates.has(todayStr)) return false;
     return dates.has(yesterdayOf2(todayStr));
   }
+  function isLoggingStreakGrace(logs, todayStr) {
+    if (!Array.isArray(logs) || !todayStr) return false;
+    const dates = new Set(logs.map((l) => l?.date).filter(Boolean));
+    const yday = yesterdayOf2(todayStr);
+    const dayBefore = yesterdayOf2(yday);
+    return !dates.has(todayStr) && !dates.has(yday) && dates.has(dayBefore);
+  }
   function computeHomeCardContext(logs, todayStr, options = {}) {
     const {
       aiEnabled = true,
@@ -3028,10 +3322,12 @@ var RianellShared = (() => {
     } = options;
     const loggedToday = Array.isArray(logs) && logs.some((l) => l?.date === todayStr);
     const streakBroken = isLoggingStreakBroken(logs, todayStr);
+    const streakGrace = isLoggingStreakGrace(logs, todayStr);
     const showAiQuestions = aiEnabled && !simpleMode && loggedToday;
     return {
       loggedToday,
       streakBroken,
+      streakGrace,
       aiEnabled: aiEnabled !== false,
       simpleMode: simpleMode === true,
       showGoals: showGoals !== false && aiEnabled !== false,
@@ -3378,17 +3674,17 @@ ${hist}`);
   ];
   function validateRemoteLlmEndpoint(endpoint) {
     const raw = String(endpoint || "").trim();
-    if (!raw) return { allowed: true };
+    if (!raw) return { allowed: true, ok: true };
     let host = "";
     try {
       host = new URL(raw).hostname.toLowerCase();
     } catch {
-      return { allowed: false, reason: "invalid_url" };
+      return { allowed: false, ok: false, reason: "invalid_url" };
     }
     if (BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS.some((re) => re.test(host))) {
-      return { allowed: false, reason: "commercial_api_blocked" };
+      return { allowed: false, ok: false, reason: "commercial_api_blocked" };
     }
-    return { allowed: true };
+    return { allowed: true, ok: true };
   }
   function isPwaOnDeviceLlmOnly() {
     return true;
@@ -3564,6 +3860,14 @@ ${hist}`);
       revokeField: "sessionRecording"
     });
     return rows;
+  }
+  function buildConsentAuditPayload(field, value, platform) {
+    return {
+      field: String(field || ""),
+      value,
+      ts: Date.now(),
+      platform: platform || (typeof window !== "undefined" ? "pwa" : "rn")
+    };
   }
 
   // packages/shared/src/settings/profileExport.mjs
@@ -3811,27 +4115,72 @@ ${hist}`);
   }
 
   // packages/shared/src/logging/barcodeFood.mjs
-  var OFF_API = "https://world.openfoodfacts.org/api/v2/product";
+  var OFF_PRODUCT_API = "https://world.openfoodfacts.org/api/v2/product";
+  var OFF_SEARCH_API = "https://world.openfoodfacts.org/cgi/search.pl";
+  var OFF_USER_AGENT = "Rianell/1.0 (health PWA; contact: support@rianell.com)";
+  function parseNutrients(nutriments = {}) {
+    const n = nutriments && typeof nutriments === "object" ? nutriments : {};
+    return {
+      energy_kcal: numOrUndef(n["energy-kcal_100g"] ?? n["energy-kcal"]),
+      proteins_g: numOrUndef(n.proteins_100g ?? n.proteins),
+      carbohydrates_g: numOrUndef(n.carbohydrates_100g ?? n.carbohydrates),
+      fat_g: numOrUndef(n.fat_100g ?? n.fat),
+      fiber_g: numOrUndef(n.fiber_100g ?? n.fiber)
+    };
+  }
+  function numOrUndef(v) {
+    const x = Number(v);
+    return Number.isFinite(x) ? x : void 0;
+  }
+  function mapProduct(p, barcode) {
+    const name = p.product_name || p.generic_name || p.brands || "Unknown product";
+    const brand = typeof p.brands === "string" ? p.brands.split(",")[0].trim() : "";
+    const nutrients = parseNutrients(p.nutriments);
+    const tags = Array.isArray(p.labels_tags) ? p.labels_tags.filter((t2) => typeof t2 === "string") : [];
+    return {
+      barcode: String(barcode || p.code || "").replace(/\D/g, ""),
+      name: String(name).trim().slice(0, 200),
+      brand: brand.slice(0, 120),
+      nutriScore: typeof p.nutriscore_grade === "string" ? p.nutriscore_grade.toUpperCase().slice(0, 1) : void 0,
+      serving: typeof p.serving_size === "string" ? p.serving_size.slice(0, 80) : void 0,
+      nutrients,
+      fodmap_tags: tags.filter((t2) => t2.includes("fodmap")).map((t2) => t2.replace(/^en:/, ""))
+    };
+  }
   async function fetchOpenFoodFactsProduct(barcode, fetchImpl = globalThis.fetch) {
     const code = String(barcode || "").replace(/\D/g, "");
     if (code.length < 8) throw new Error("Invalid barcode");
     if (typeof fetchImpl !== "function") throw new Error("fetch unavailable");
-    const res = await fetchImpl(`${OFF_API}/${code}.json`, {
-      headers: { Accept: "application/json", "User-Agent": "Rianell/1.0 (health PWA; contact: support@rianell.com)" }
+    const res = await fetchImpl(`${OFF_PRODUCT_API}/${code}.json`, {
+      headers: { Accept: "application/json", "User-Agent": OFF_USER_AGENT }
     });
     if (!res.ok) throw new Error(`Open Food Facts HTTP ${res.status}`);
     const data = await res.json();
     if (data.status !== 1 || !data.product) throw new Error("Product not found");
-    const p = data.product;
-    const name = p.product_name || p.generic_name || p.brands || "Unknown product";
-    const brand = typeof p.brands === "string" ? p.brands.split(",")[0].trim() : "";
-    return {
-      barcode: code,
-      name: String(name).trim().slice(0, 200),
-      brand: brand.slice(0, 120),
-      nutriScore: typeof p.nutriscore_grade === "string" ? p.nutriscore_grade.toUpperCase().slice(0, 1) : void 0,
-      serving: typeof p.serving_size === "string" ? p.serving_size.slice(0, 80) : void 0
-    };
+    return mapProduct(data.product, code);
+  }
+  var lookupBarcode = fetchOpenFoodFactsProduct;
+  async function searchFood(query, page = 1, fetchImpl = globalThis.fetch) {
+    const q = String(query || "").trim().slice(0, 120);
+    if (!q) return [];
+    if (typeof fetchImpl !== "function") throw new Error("fetch unavailable");
+    const params = new URLSearchParams({
+      search_terms: q,
+      search_simple: "1",
+      action: "process",
+      json: "1",
+      page_size: "20",
+      page: String(Math.max(1, Math.min(20, Number(page) || 1)))
+    });
+    const url = `${OFF_SEARCH_API}?${params.toString()}`;
+    if (!url.startsWith(OFF_SEARCH_API)) throw new Error("Invalid search URL");
+    const res = await fetchImpl(url, {
+      headers: { Accept: "application/json", "User-Agent": OFF_USER_AGENT }
+    });
+    if (!res.ok) throw new Error(`Open Food Facts search HTTP ${res.status}`);
+    const data = await res.json();
+    const products = Array.isArray(data.products) ? data.products : [];
+    return products.filter((p) => p && (p.product_name || p.generic_name)).slice(0, 20).map((p) => mapProduct(p, p.code || p._id));
   }
   function formatBarcodeFoodLabel(product) {
     if (!product || typeof product !== "object") return "";
@@ -3840,6 +4189,20 @@ ${hist}`);
   }
 
   // packages/shared/src/logging/voiceLogExtract.mjs
+  var ALLOWED_VOICE_LOG_FIELDS = [
+    "notes",
+    "mood",
+    "fatigue",
+    "sleep",
+    "jointPain",
+    "flare"
+  ];
+  var INJECTION_PATTERNS = [
+    /ignore\s+previous\s+instructions/i,
+    /system\s*override/i,
+    /\bSYSTEM:\s*You are now/i,
+    /leak\s+all\s+user\s+data/i
+  ];
   var MOOD_WORDS = [
     ["great", 9],
     ["good", 7],
@@ -3847,9 +4210,24 @@ ${hist}`);
     ["low", 3],
     ["awful", 2]
   ];
+  function isVoicePromptInjection(text) {
+    const raw = typeof text === "string" ? text : "";
+    return INJECTION_PATTERNS.some((re) => re.test(raw));
+  }
+  function sanitizeVoiceExtractResult(result) {
+    const out = {};
+    for (const key of ALLOWED_VOICE_LOG_FIELDS) {
+      if (result[key] !== void 0) out[key] = result[key];
+    }
+    out.systemPromptLeaked = false;
+    return out;
+  }
   function extractLogFieldsFromVoiceTranscript(text) {
     const raw = typeof text === "string" ? text.trim() : "";
     if (!raw) return { notes: "" };
+    if (isVoicePromptInjection(raw)) {
+      return sanitizeVoiceExtractResult({ notes: raw.slice(0, 200) });
+    }
     const lower = raw.toLowerCase();
     let mood;
     for (const [word, score] of MOOD_WORDS) {
@@ -3873,7 +4251,7 @@ ${hist}`);
     Object.keys(out).forEach((k) => {
       if (out[k] === void 0) delete out[k];
     });
-    return out;
+    return sanitizeVoiceExtractResult(out);
   }
 
   // packages/shared/src/notifications/smartReminder.mjs
@@ -4255,6 +4633,21 @@ ${hist}`);
     };
   }
 
+  // packages/shared/src/notifications/notificationParity.mjs
+  function buildNotificationContent(platform, content) {
+    const base = {
+      title: content?.title || "",
+      body: content?.body || ""
+    };
+    if (platform === "ios") {
+      return { ...base, sound: true, badge: typeof content?.badge === "number" ? content.badge : 1 };
+    }
+    if (platform === "android") {
+      return { ...base, channelId: content?.channelId || "health-reminders" };
+    }
+    return { ...base, data: content?.data || {} };
+  }
+
   // packages/shared/src/home/homeAppointment.mjs
   var APPOINTMENT_COUNTDOWN_DAYS = 14;
   function parseAppointmentDate(value) {
@@ -4550,8 +4943,67 @@ ${hist}`);
       treatmentStarts: normalizeTreatmentStarts(v.treatmentStarts),
       homeGapQuestionCache: v.homeGapQuestionCache && typeof v.homeGapQuestionCache === "object" ? v.homeGapQuestionCache : null,
       homeQuestionAnswerState: v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === "object" ? v.homeQuestionAnswerState : null,
-      weeklyReviewDismissedWeek: typeof v.weeklyReviewDismissedWeek === "string" ? v.weeklyReviewDismissedWeek : null
+      weeklyReviewDismissedWeek: typeof v.weeklyReviewDismissedWeek === "string" ? v.weeklyReviewDismissedWeek : null,
+      homeWelcomeCardDismissed: v.homeWelcomeCardDismissed === true,
+      goalsModalSeenCount: typeof v.goalsModalSeenCount === "number" && Number.isFinite(v.goalsModalSeenCount) ? Math.max(0, Math.floor(v.goalsModalSeenCount)) : 0,
+      firstOpenDate: typeof v.firstOpenDate === "string" ? v.firstOpenDate : null,
+      weeklyReviewCompletedAt: typeof v.weeklyReviewCompletedAt === "string" ? v.weeklyReviewCompletedAt : null,
+      personalBestDismissedAt: typeof v.personalBestDismissedAt === "string" ? v.personalBestDismissedAt : null
     };
+  }
+
+  // packages/shared/src/home/personalBests.mjs
+  function logsNewestFirst2(logs) {
+    return [...Array.isArray(logs) ? logs : []].sort(
+      (a, b) => String(b?.date || "").localeCompare(String(a?.date || ""))
+    );
+  }
+  function longestConsecutiveRun(logs, predicate) {
+    const sorted = logsNewestFirst2(logs);
+    let best = 0;
+    let current = 0;
+    for (const log of sorted) {
+      if (predicate(log)) {
+        current += 1;
+        if (current > best) best = current;
+      } else {
+        current = 0;
+      }
+    }
+    return best;
+  }
+  function longestFlareFreeRun(logs) {
+    const sorted = logsNewestFirst2(logs);
+    let best = 0;
+    let current = 0;
+    for (const log of sorted) {
+      if (log?.flare === "Yes") {
+        current = 0;
+      } else if (log?.date) {
+        current += 1;
+        if (current > best) best = current;
+      }
+    }
+    return best;
+  }
+  function computePersonalBests(logs) {
+    const list = Array.isArray(logs) ? logs : [];
+    return {
+      longestGoodRun: longestConsecutiveRun(list, isGoodDayLog),
+      longestFlareFreeRun: longestFlareFreeRun(list),
+      totalLogs: list.length
+    };
+  }
+  function pickPersonalBestHighlight(bests, current = {}) {
+    const good = typeof current.goodDayStreak === "number" ? current.goodDayStreak : 0;
+    const flareFree = typeof current.flareFreeDays === "number" ? current.flareFreeDays : 0;
+    if (good >= 2 && good >= bests.longestGoodRun) {
+      return { kind: "goodDays", n: good };
+    }
+    if (flareFree >= 2 && flareFree >= bests.longestFlareFreeRun) {
+      return { kind: "flareFree", n: flareFree };
+    }
+    return null;
   }
 
   // packages/shared/src/export/logCsv.mjs
@@ -4692,7 +5144,25 @@ ${hist}`);
     sleep: { system: "http://loinc.org", code: "93832-4", display: "Sleep duration" },
     fatigue: { system: "http://loinc.org", code: "75826-7", display: "Fatigue" },
     bpm: { system: "http://loinc.org", code: "8867-4", display: "Heart rate" },
-    weight: { system: "http://loinc.org", code: "29463-7", display: "Body weight" }
+    weight: { system: "http://loinc.org", code: "29463-7", display: "Body weight" },
+    bodyWeight: { system: "http://loinc.org", code: "29463-7", display: "Body weight" },
+    bloodPressureSystolic: { system: "http://loinc.org", code: "8480-6", display: "Systolic blood pressure" },
+    bloodPressureDiastolic: { system: "http://loinc.org", code: "8462-4", display: "Diastolic blood pressure" },
+    bloodGlucose: { system: "http://loinc.org", code: "2339-0", display: "Glucose" },
+    spO2: { system: "http://loinc.org", code: "59408-5", display: "Oxygen saturation" },
+    hrv: { system: "http://loinc.org", code: "80404-7", display: "HRV RMSSD" },
+    bbt: { system: "http://loinc.org", code: "8310-5", display: "Basal body temperature" }
+  };
+  var METRIC_UNITS = {
+    weight: "kg",
+    bodyWeight: "kg",
+    bpm: "/min",
+    bloodPressureSystolic: "mmHg",
+    bloodPressureDiastolic: "mmHg",
+    bloodGlucose: "mmol/L",
+    spO2: "%",
+    hrv: "ms",
+    bbt: "Cel"
   };
   function observationFor(log, field, value) {
     const coding = METRIC_CODES[field];
@@ -4706,7 +5176,7 @@ ${hist}`);
       code: { coding: [coding] },
       subject: { display: "Rianell user" },
       effectiveDateTime: `${log.date}T12:00:00Z`,
-      valueQuantity: isNum ? { value: num2, unit: field === "weight" ? "kg" : field === "bpm" ? "/min" : "{score}" } : void 0,
+      valueQuantity: isNum ? { value: num2, unit: METRIC_UNITS[field] || "{score}" } : void 0,
       valueString: isNum ? void 0 : String(value)
     };
   }
@@ -4787,6 +5257,234 @@ ${hist}`);
     return { url: target, status: res.status };
   }
 
+  // packages/shared/src/migration/MigrationAdapter.mjs
+  var MigrationAdapter = class {
+    static get id() {
+      return "base";
+    }
+    static get displayName() {
+      return "Base";
+    }
+    static get fileTypes() {
+      return [".csv"];
+    }
+    static get fieldMap() {
+      return {};
+    }
+    static async parse(_fileContent) {
+      return [];
+    }
+  };
+  function listMigrationAdapters(adapters) {
+    return adapters.map((A) => ({
+      id: A.id,
+      displayName: A.displayName,
+      fileTypes: A.fileTypes
+    }));
+  }
+  function detectImportConflicts(existingLogs, importedLogs) {
+    const dates = new Set((existingLogs || []).map((l) => l?.date).filter(Boolean));
+    return (importedLogs || []).map((entry) => ({
+      entry,
+      conflict: dates.has(entry.date)
+    }));
+  }
+
+  // packages/shared/src/migration/adapters/cara.mjs
+  function parseCsvLine2(line) {
+    const values = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') inQuotes = !inQuotes;
+      else if (c === "," && !inQuotes) {
+        values.push(current.trim());
+        current = "";
+      } else current += c;
+    }
+    values.push(current.trim());
+    return values;
+  }
+  var CaraMigrationAdapter = class extends MigrationAdapter {
+    static get id() {
+      return "cara";
+    }
+    static get displayName() {
+      return "Cara Care";
+    }
+    static get fileTypes() {
+      return [".csv"];
+    }
+    static get fieldMap() {
+      return {
+        Date: "date",
+        Symptoms: "symptoms",
+        Mood: "mood",
+        Notes: "notes",
+        Pain: "jointPain"
+      };
+    }
+    static async parse(fileContent) {
+      const lines = String(fileContent || "").split(/\r?\n/).filter((l) => l.trim());
+      if (lines.length < 2) return [];
+      const headers = parseCsvLine2(lines[0]);
+      const lowerHeaders = headers.map((h) => h.toLowerCase());
+      const logs = [];
+      for (let i = 1; i < lines.length; i++) {
+        const vals = parseCsvLine2(lines[i]);
+        const row = {};
+        lowerHeaders.forEach((h, idx) => {
+          row[h] = vals[idx];
+        });
+        const dateRaw = row.date || row.day;
+        const date = String(dateRaw || "").slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        const entry = { date };
+        const mood = Number.parseInt(row.mood, 10);
+        if (Number.isFinite(mood)) entry.mood = Math.min(10, mood);
+        const pain = Number.parseInt(row.pain, 10);
+        if (Number.isFinite(pain)) entry.jointPain = Math.min(10, pain);
+        const notes = [row.notes, row.symptoms].filter(Boolean).join(" \u2014 ");
+        if (notes) entry.notes = notes.slice(0, 500);
+        logs.push(entry);
+      }
+      return logs;
+    }
+  };
+
+  // packages/shared/src/migration/adapters/daylio.mjs
+  var ACTIVITY_MAP = {
+    sleep: "sleep",
+    sport: "exercise",
+    exercise: "exercise",
+    meds: "medication"
+  };
+  function parseCsvLine3(line) {
+    const values = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') inQuotes = !inQuotes;
+      else if (c === "," && !inQuotes) {
+        values.push(current.trim());
+        current = "";
+      } else current += c;
+    }
+    values.push(current.trim());
+    return values;
+  }
+  var DaylioMigrationAdapter = class extends MigrationAdapter {
+    static get id() {
+      return "daylio";
+    }
+    static get displayName() {
+      return "Daylio";
+    }
+    static get fileTypes() {
+      return [".csv"];
+    }
+    static get fieldMap() {
+      return { date: "date", mood: "mood", note: "notes", activities: "tags" };
+    }
+    static async parse(fileContent) {
+      const lines = String(fileContent || "").split(/\r?\n/).filter((l) => l.trim());
+      if (lines.length < 2) return [];
+      const headers = parseCsvLine3(lines[0]).map((h) => h.toLowerCase());
+      const logs = [];
+      for (let i = 1; i < lines.length; i++) {
+        const vals = parseCsvLine3(lines[i]);
+        const row = {};
+        headers.forEach((h, idx) => {
+          row[h] = vals[idx];
+        });
+        const date = String(row.date || "").slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        const moodRaw = Number.parseInt(row.mood, 10);
+        const entry = { date };
+        if (Number.isFinite(moodRaw)) entry.mood = Math.min(10, Math.max(1, moodRaw * 2));
+        if (row.note) entry.notes = String(row.note).slice(0, 500);
+        const acts = String(row.activities || "").split(",").map((a) => a.trim().toLowerCase()).filter(Boolean);
+        for (const a of acts) {
+          if (ACTIVITY_MAP[a]) entry[ACTIVITY_MAP[a]] = entry[ACTIVITY_MAP[a]] || true;
+        }
+        logs.push(entry);
+      }
+      return logs;
+    }
+  };
+
+  // packages/shared/src/migration/adapters/oura.mjs
+  function parseCsvLine4(line) {
+    const values = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') inQuotes = !inQuotes;
+      else if (c === "," && !inQuotes) {
+        values.push(current.trim());
+        current = "";
+      } else current += c;
+    }
+    values.push(current.trim());
+    return values;
+  }
+  function parseCsv(text) {
+    const lines = String(text || "").split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) return [];
+    const headers = parseCsvLine4(lines[0]).map((h) => h.toLowerCase());
+    const rows = [];
+    for (let i = 1; i < lines.length; i++) {
+      const vals = parseCsvLine4(lines[i]);
+      const row = {};
+      headers.forEach((h, idx) => {
+        row[h] = vals[idx];
+      });
+      rows.push(row);
+    }
+    return rows;
+  }
+  var OuraMigrationAdapter = class extends MigrationAdapter {
+    static get id() {
+      return "oura";
+    }
+    static get displayName() {
+      return "Oura Ring";
+    }
+    static get fileTypes() {
+      return [".csv"];
+    }
+    static get fieldMap() {
+      return {
+        date: "date",
+        total_sleep_duration: "sleepHours",
+        hrv_average: "hrv",
+        steps: "exercise.steps",
+        score: "ouraReadiness"
+      };
+    }
+    static async parse(fileContent) {
+      const rows = parseCsv(fileContent);
+      const byDate = /* @__PURE__ */ new Map();
+      for (const row of rows) {
+        const date = String(row.date || "").slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+        const entry = byDate.get(date) || { date };
+        if (row.total_sleep_duration) {
+          const secs = Number(row.total_sleep_duration);
+          if (Number.isFinite(secs)) entry.sleep = Math.min(10, Math.round(secs / 3600 * 2));
+        }
+        if (row.hrv_average) entry.hrv = Number(row.hrv_average);
+        if (row.steps) entry.steps = Number(row.steps);
+        if (row.score) entry.ouraReadiness = Number(row.score);
+        byDate.set(date, entry);
+      }
+      return [...byDate.values()];
+    }
+  };
+
   // packages/shared/src/import/migrationAssistants.mjs
   var BEARABLE_ALIASES = {
     date: ["Date", "date", "Day"],
@@ -4804,12 +5502,22 @@ ${hist}`);
     notes: ["notes", "Notes", "journal"],
     flare: ["flare", "Flare", "symptom_level"]
   };
+  var CARA_ALIASES = {
+    date: ["Date", "date", "Day"],
+    mood: ["Mood", "mood"],
+    pain: ["Pain", "pain", "Symptoms", "jointPain"],
+    notes: ["Notes", "Note", "notes"]
+  };
+  var MIGRATION_ADAPTERS = [CaraMigrationAdapter, DaylioMigrationAdapter, OuraMigrationAdapter];
   var MIGRATION_SOURCES = [
     { id: "bearable", labelKey: "settings.import.migration.bearable" },
     { id: "flaredown", labelKey: "settings.import.migration.flaredown" },
+    { id: "cara", labelKey: "settings.import.migration.cara" },
+    { id: "oura", labelKey: "settings.import.migration.oura" },
+    { id: "daylio", labelKey: "settings.import.migration.daylio" },
     { id: "generic", labelKey: "settings.import.migration.generic" }
   ];
-  function parseCsvLine2(line) {
+  function parseCsvLine5(line) {
     const values = [];
     let current = "";
     let inQuotes = false;
@@ -4862,11 +5570,13 @@ ${hist}`);
     const mood = Number.parseInt(raw.mood, 10);
     const sleep = Number.parseInt(raw.sleep, 10);
     const fatigue = Number.parseInt(raw.fatigue, 10);
+    const pain = Number.parseInt(raw.pain ?? raw.jointPain, 10);
     const entry = {
       date,
       mood: Number.isFinite(mood) ? mood : void 0,
       sleep: Number.isFinite(sleep) ? sleep : void 0,
       fatigue: Number.isFinite(fatigue) ? fatigue : void 0,
+      jointPain: Number.isFinite(pain) ? pain : void 0,
       notes: typeof raw.notes === "string" ? raw.notes.trim().slice(0, 500) : void 0,
       flare: raw.flare && Number(raw.flare) >= 7 ? "Yes" : "No"
     };
@@ -4875,14 +5585,25 @@ ${hist}`);
     });
     return entry;
   }
+  function resolveAliasMap(sourceId) {
+    if (sourceId === "flaredown") return FLAREDOWN_ALIASES;
+    if (sourceId === "bearable") return BEARABLE_ALIASES;
+    if (sourceId === "cara") return CARA_ALIASES;
+    return { ...BEARABLE_ALIASES, ...FLAREDOWN_ALIASES, ...CARA_ALIASES };
+  }
+  async function parseMigrationFile(text, sourceId = "generic") {
+    const adapter = MIGRATION_ADAPTERS.find((A) => A.id === sourceId);
+    if (adapter) return adapter.parse(text);
+    return parseMigrationCsv(text, sourceId);
+  }
   function parseMigrationCsv(text, sourceId = "generic") {
     const lines = String(text || "").split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) throw new Error("Migration CSV must include a header row and data.");
-    const headers = parseCsvLine2(lines[0]);
-    const aliasMap = sourceId === "flaredown" ? FLAREDOWN_ALIASES : sourceId === "bearable" ? BEARABLE_ALIASES : { ...BEARABLE_ALIASES, ...FLAREDOWN_ALIASES };
+    const headers = parseCsvLine5(lines[0]);
+    const aliasMap = resolveAliasMap(sourceId);
     const logs = [];
     for (let i = 1; i < lines.length; i++) {
-      const values = parseCsvLine2(lines[i]);
+      const values = parseCsvLine5(lines[i]);
       if (!values.some((v) => v)) continue;
       const raw = mapRow(headers, values, aliasMap);
       const entry = normalizeMigrationRow(raw);
@@ -4890,6 +5611,9 @@ ${hist}`);
     }
     if (!logs.length) throw new Error("No rows could be mapped. Check column headers for your export source.");
     return logs;
+  }
+  function listMigrationSources() {
+    return MIGRATION_SOURCES;
   }
 
   // packages/shared/src/sync/logSyncConflicts.mjs
@@ -6217,6 +6941,566 @@ ${questionsBlock}
     presenter = null;
   }
 
+  // packages/shared/src/crypto/keyManagement.mjs
+  var PBKDF2_ITERATIONS = 31e4;
+  function getSubtle2() {
+    if (typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.subtle) {
+      return globalThis.crypto.subtle;
+    }
+    throw new Error("Web Crypto unavailable");
+  }
+  function randomBytes2(length) {
+    const buf = new Uint8Array(length);
+    if (typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.getRandomValues) {
+      globalThis.crypto.getRandomValues(buf);
+    }
+    return buf;
+  }
+  function bytesToBase642(bytes) {
+    if (typeof Buffer !== "undefined") {
+      return Buffer.from(bytes).toString("base64");
+    }
+    let binary = "";
+    const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+    return btoa(binary);
+  }
+  function base64ToBytes2(b64) {
+    if (typeof Buffer !== "undefined") {
+      return new Uint8Array(Buffer.from(String(b64 || ""), "base64"));
+    }
+    const binary = atob(String(b64 || ""));
+    const out = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
+  }
+  async function deriveWrappingKey(passphrase, salt) {
+    const subtle = getSubtle2();
+    const enc = new TextEncoder();
+    const baseKey = await subtle.importKey("raw", enc.encode(String(passphrase || "")), "PBKDF2", false, ["deriveKey"]);
+    return subtle.deriveKey(
+      { name: "PBKDF2", salt, iterations: PBKDF2_ITERATIONS, hash: "SHA-256" },
+      baseKey,
+      { name: "AES-KW", length: 256 },
+      false,
+      ["wrapKey", "unwrapKey"]
+    );
+  }
+  async function generateDek() {
+    const subtle = getSubtle2();
+    return subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+  }
+  async function wrapDek(dek, wrappingKey) {
+    const subtle = getSubtle2();
+    const wrapped = await subtle.wrapKey("raw", dek, wrappingKey, "AES-KW");
+    return wrapped;
+  }
+  async function unwrapDek(wrappedDek, wrappingKey) {
+    const subtle = getSubtle2();
+    return subtle.unwrapKey("raw", wrappedDek, wrappingKey, "AES-KW", { name: "AES-GCM", length: 256 }, true, [
+      "encrypt",
+      "decrypt"
+    ]);
+  }
+  async function encryptData(plaintext, dek) {
+    const subtle = getSubtle2();
+    const iv = randomBytes2(12);
+    const enc = new TextEncoder();
+    const ciphertext = await subtle.encrypt({ name: "AES-GCM", iv }, dek, enc.encode(String(plaintext ?? "")));
+    return { ciphertext: bytesToBase642(new Uint8Array(ciphertext)), iv: bytesToBase642(iv) };
+  }
+  async function decryptData(ciphertextB64, ivB64, dek) {
+    const subtle = getSubtle2();
+    const iv = base64ToBytes2(ivB64);
+    const ciphertext = base64ToBytes2(ciphertextB64);
+    const plainBuf = await subtle.decrypt({ name: "AES-GCM", iv }, dek, ciphertext);
+    return new TextDecoder().decode(plainBuf);
+  }
+  function generateSalt(bytes = 16) {
+    return randomBytes2(bytes);
+  }
+  function saltToBase64(salt) {
+    return bytesToBase642(salt);
+  }
+  function base64ToSalt(b64) {
+    return base64ToBytes2(b64);
+  }
+  function wrappedDekToBase64(buf) {
+    return bytesToBase642(new Uint8Array(buf));
+  }
+  function base64ToWrappedDek(b64) {
+    return base64ToBytes2(b64).buffer;
+  }
+
+  // packages/shared/src/nutrition/fodmap.mjs
+  var FODMAP_CATEGORIES = {
+    apple: "high",
+    apricot: "high",
+    avocado: "low",
+    banana: "low",
+    blackberry: "high",
+    blueberry: "low",
+    bread: "high",
+    broccoli: "low",
+    cabbage: "high",
+    carrot: "low",
+    cauliflower: "high",
+    celery: "low",
+    cheese: "low",
+    chickpea: "high",
+    chocolate: "moderate",
+    coconut: "low",
+    corn: "low",
+    couscous: "high",
+    cucumber: "low",
+    garlic: "high",
+    grape: "low",
+    honey: "high",
+    hummus: "high",
+    lactose: "high",
+    lentil: "high",
+    mango: "high",
+    milk: "high",
+    mushroom: "high",
+    oat: "low",
+    onion: "high",
+    orange: "low",
+    pasta: "high",
+    peach: "high",
+    pear: "high",
+    pineapple: "low",
+    potato: "low",
+    rice: "low",
+    rye: "high",
+    spinach: "low",
+    strawberry: "low",
+    tomato: "low",
+    watermelon: "high",
+    wheat: "high",
+    yogurt: "moderate",
+    beans: "high",
+    cashew: "high",
+    almond: "low",
+    pistachio: "high",
+    sausage: "high",
+    soy: "moderate",
+    tofu: "low",
+    beer: "high",
+    coffee: "low",
+    tea: "low"
+  };
+  var KEYWORD_MAP = Object.entries(FODMAP_CATEGORIES).flatMap(([key, status]) => {
+    return [{ pattern: key, status }];
+  });
+  function normalizeFoodName(name) {
+    return String(name || "").toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  }
+  function getFodmapStatus(foodName) {
+    const norm = normalizeFoodName(foodName);
+    if (!norm) return "unknown";
+    if (FODMAP_CATEGORIES[norm]) return FODMAP_CATEGORIES[norm];
+    for (const { pattern, status } of KEYWORD_MAP) {
+      if (norm.includes(pattern)) return status;
+    }
+    const first = norm.split(" ")[0];
+    if (FODMAP_CATEGORIES[first]) return FODMAP_CATEGORIES[first];
+    return "unknown";
+  }
+  function getFodmapWarning(status) {
+    switch (status) {
+      case "high":
+        return "wizard.food.fodmap.high";
+      case "moderate":
+        return "wizard.food.fodmap.moderate";
+      case "low":
+        return "wizard.food.fodmap.low";
+      default:
+        return "";
+    }
+  }
+  function countHighFodmapDays(logs) {
+    if (!Array.isArray(logs)) return 0;
+    let days = 0;
+    for (const log of logs) {
+      const foods = collectFoodNames(log);
+      if (foods.some((f) => getFodmapStatus(f) === "high")) days += 1;
+    }
+    return days;
+  }
+  function collectFoodNames(log) {
+    const names = [];
+    const food = log?.food;
+    if (!food || typeof food !== "object") return names;
+    for (const meal of ["breakfast", "lunch", "dinner", "snack"]) {
+      const items = food[meal];
+      if (!Array.isArray(items)) continue;
+      for (const item of items) {
+        if (typeof item === "string") names.push(item);
+        else if (item && typeof item.name === "string") names.push(item.name);
+      }
+    }
+    return names;
+  }
+
+  // packages/shared/src/nutrition/macroBreakdown.mjs
+  function calculateMacrosForServing(food, servingGrams = 100) {
+    const g = Math.max(0, Number(servingGrams) || 100);
+    const factor = g / 100;
+    const n = food?.nutrients && typeof food.nutrients === "object" ? food.nutrients : {};
+    const protein_g = round1((n.proteins_g ?? 0) * factor);
+    const carbs_g = round1((n.carbohydrates_g ?? 0) * factor);
+    const fat_g = round1((n.fat_g ?? 0) * factor);
+    const fiber_g = round1((n.fiber_g ?? 0) * factor);
+    const kcalFromNutrients = (n.energy_kcal ?? 0) * factor;
+    const kcalFromMacros = protein_g * 4 + carbs_g * 4 + fat_g * 9;
+    const kcal = round1(kcalFromNutrients > 0 ? kcalFromNutrients : kcalFromMacros);
+    return { kcal, protein_g, carbs_g, fat_g, fiber_g };
+  }
+  function macroPercentages(macros) {
+    const p = (macros?.protein_g ?? 0) * 4;
+    const c = (macros?.carbs_g ?? 0) * 4;
+    const f = (macros?.fat_g ?? 0) * 9;
+    const total = p + c + f;
+    if (total <= 0) return { protein: 0, carbs: 0, fat: 0 };
+    return {
+      protein: Math.round(p / total * 100),
+      carbs: Math.round(c / total * 100),
+      fat: Math.round(f / total * 100)
+    };
+  }
+  function aggregateDailyMacros(log) {
+    const totals = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 };
+    const food = log?.food;
+    if (!food || typeof food !== "object") return totals;
+    for (const meal of ["breakfast", "lunch", "dinner", "snack"]) {
+      const items = food[meal];
+      if (!Array.isArray(items)) continue;
+      for (const item of items) {
+        if (!item || typeof item !== "object" || !item.macros) continue;
+        const m = item.macros;
+        totals.kcal += Number(m.kcal) || 0;
+        totals.protein_g += Number(m.protein_g) || 0;
+        totals.carbs_g += Number(m.carbs_g) || 0;
+        totals.fat_g += Number(m.fat_g) || 0;
+        totals.fiber_g += Number(m.fiber_g) || 0;
+      }
+    }
+    return {
+      kcal: round1(totals.kcal),
+      protein_g: round1(totals.protein_g),
+      carbs_g: round1(totals.carbs_g),
+      fat_g: round1(totals.fat_g),
+      fiber_g: round1(totals.fiber_g)
+    };
+  }
+  function round1(n) {
+    return Math.round(n * 10) / 10;
+  }
+
+  // packages/shared/src/nutrition/mealPhoto.mjs
+  var MEAL_PHOTO_CATEGORY = "food";
+  var MEAL_PHOTO_BUCKET = "health-photos";
+  function buildMealPhotoMetadata(extra = {}) {
+    return {
+      category: MEAL_PHOTO_CATEGORY,
+      ...extra
+    };
+  }
+  var MEAL_PHOTO_ACCEPT = "image/*";
+  function isMealPhoto(attachment) {
+    if (!attachment || typeof attachment !== "object") return false;
+    return attachment.category === MEAL_PHOTO_CATEGORY || attachment.tag === MEAL_PHOTO_CATEGORY;
+  }
+
+  // packages/shared/src/api/apiKeys.mjs
+  var KEY_PREFIX = "rn_live_";
+  var KEY_HEX_LEN = 32;
+  function generateRawApiKey(randomBytes3 = crypto.getRandomValues(new Uint8Array(KEY_HEX_LEN / 2))) {
+    const hex = Array.from(randomBytes3, (b) => b.toString(16).padStart(2, "0")).join("");
+    return `${KEY_PREFIX}${hex}`;
+  }
+  function apiKeyDisplayPrefix(rawKey) {
+    const s = String(rawKey || "");
+    if (!s.startsWith(KEY_PREFIX)) return s.slice(0, 12);
+    return `${s.slice(0, KEY_PREFIX.length + 8)}\u2026`;
+  }
+  async function hashApiKey(rawKey) {
+    const data = new TextEncoder().encode(String(rawKey || ""));
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  var DEFAULT_API_SCOPES = ["logs:read"];
+  var WEBHOOK_EVENTS = ["log.created", "flare.detected", "goal.achieved"];
+  function isValidWebhookUrl(url) {
+    try {
+      const u = new URL(String(url || ""));
+      return u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  // packages/shared/src/api/webhooks.mjs
+  function buildWebhookInvokePayload({ event, logDate, userId }) {
+    return {
+      event: String(event || "log.created"),
+      log_date: String(logDate || ""),
+      user_id: String(userId || ""),
+      ts: Date.now()
+    };
+  }
+  async function invokeDeliverWebhook(supabase, payload) {
+    if (!supabase || typeof supabase.functions?.invoke !== "function") return;
+    try {
+      await supabase.functions.invoke("deliver-webhook", { body: payload });
+    } catch {
+    }
+  }
+
+  // packages/shared/src/connectors/oauth2.mjs
+  var OAUTH2_SCOPES = ["logs:read", "metrics:read", "goals:read", "profile:read", "logs:write"];
+  function generateCodeVerifier() {
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    return base64UrlEncode(bytes);
+  }
+  async function deriveCodeChallenge(verifier) {
+    const data = new TextEncoder().encode(String(verifier || ""));
+    const digest = await crypto.subtle.digest("SHA-256", data);
+    return base64UrlEncode(new Uint8Array(digest));
+  }
+  function base64UrlEncode(bytes) {
+    if (typeof Buffer !== "undefined") {
+      return Buffer.from(bytes).toString("base64url");
+    }
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function buildAuthorizeUrl(baseUrl, params) {
+    const u = new URL(`${String(baseUrl || "").replace(/\/$/, "")}/oauth2-authorize`);
+    u.searchParams.set("client_id", params.clientId);
+    u.searchParams.set("redirect_uri", params.redirectUri);
+    u.searchParams.set("response_type", "code");
+    u.searchParams.set("scope", (params.scopes || ["logs:read"]).join(" "));
+    u.searchParams.set("code_challenge", params.codeChallenge);
+    u.searchParams.set("code_challenge_method", "S256");
+    if (params.state) u.searchParams.set("state", params.state);
+    return u.toString();
+  }
+  var CONNECTOR_PROVIDERS = {
+    google_sheets: { id: "google_sheets", label: "Google Sheets", oauth: true },
+    withings: { id: "withings", label: "Withings", oauth: true },
+    strava: { id: "strava", label: "Strava", oauth: true },
+    health_connect: { id: "health_connect", label: "Health Connect", oauth: false, platform: "android" },
+    fhir_import: { id: "fhir_import", label: "FHIR Import", oauth: false }
+  };
+  function listConnectorsForPlatform(platform) {
+    return Object.values(CONNECTOR_PROVIDERS).filter((c) => !c.platform || c.platform === platform);
+  }
+
+  // packages/shared/src/fhir/loincMap.mjs
+  var LOINC_MAP = {
+    mood: "72133-2",
+    pain: "38208-5",
+    fatigue: "72514-3",
+    sleep_hours: "93832-4",
+    weight: "29463-7",
+    blood_pressure_systolic: "8480-6",
+    blood_pressure_diastolic: "8462-4",
+    blood_glucose: "15074-8",
+    spO2: "59408-5",
+    hrv: "80404-7"
+  };
+  var LOINC_TO_FIELD = Object.fromEntries(
+    Object.entries(LOINC_MAP).map(([field, code]) => [code, field])
+  );
+  function loincForField(field) {
+    return LOINC_MAP[field] || null;
+  }
+  function fieldForLoinc(code) {
+    return LOINC_TO_FIELD[String(code || "")] || null;
+  }
+  function buildFhirObservation({ patientId, field, value, unit, effectiveDate }) {
+    const code = loincForField(field);
+    if (!code) return null;
+    return {
+      resourceType: "Observation",
+      status: "final",
+      subject: { reference: `Patient/${patientId}` },
+      code: {
+        coding: [{ system: "http://loinc.org", code, display: field }]
+      },
+      effectiveDateTime: effectiveDate,
+      valueQuantity: value != null ? { value: Number(value), unit: unit || "1" } : void 0
+    };
+  }
+
+  // packages/shared/src/fhir/hl7Parser.mjs
+  function parseORU(message) {
+    const text = String(message || "").trim();
+    if (!text) return [];
+    const segments = text.split(/\r\n|\r|\n/).map((s) => s.trim()).filter(Boolean);
+    const results = [];
+    let observedAt = "";
+    for (const seg of segments) {
+      const fields = seg.split("|");
+      const type = fields[0];
+      if (type === "OBR" && fields[7]) observedAt = fields[7];
+      if (type === "OBX") {
+        const testName = (fields[3] || "").split("^")[1] || fields[3] || "";
+        results.push({
+          testName: testName.trim(),
+          value: (fields[5] || "").trim(),
+          units: (fields[6] || "").trim(),
+          referenceRange: (fields[7] || "").trim(),
+          observedAt: (fields[14] || observedAt || "").trim()
+        });
+      }
+    }
+    return results;
+  }
+  function mapLabResultsToLogFields(labResults) {
+    const out = {};
+    for (const r of labResults) {
+      const name = r.testName.toLowerCase();
+      const val = parseFloat(r.value);
+      if (!Number.isFinite(val)) continue;
+      if (name.includes("glucose")) out.bloodGlucose = val;
+      else if (name.includes("weight")) out.weight = val;
+      else if (name.includes("systolic")) out.bloodPressureSystolic = val;
+      else if (name.includes("diastolic")) out.bloodPressureDiastolic = val;
+    }
+    return out;
+  }
+
+  // packages/shared/src/community/communityTips.mjs
+  var COMMUNITY_TIP_CATEGORIES = ["trigger", "treatment", "lifestyle", "general"];
+  var TIP_MAX_LENGTH = 500;
+  var TIP_MIN_UPVOTES_VISIBLE = 20;
+  function validateTipSubmission({ content, conditionTag, category }) {
+    const errors = [];
+    if (!conditionTag || typeof conditionTag !== "string") errors.push("condition_required");
+    if (!COMMUNITY_TIP_CATEGORIES.includes(category)) errors.push("invalid_category");
+    const text = typeof content === "string" ? content.trim() : "";
+    if (!text) errors.push("content_required");
+    if (text.length > TIP_MAX_LENGTH) errors.push("content_too_long");
+    return { ok: errors.length === 0, errors, content: text };
+  }
+  function formatCommunityTip(tip) {
+    if (!tip || typeof tip !== "object") return null;
+    return {
+      id: tip.id,
+      conditionTag: tip.condition_tag || tip.conditionTag,
+      category: tip.category,
+      content: tip.content,
+      upvotes: typeof tip.upvotes === "number" ? tip.upvotes : 0,
+      showUpvotes: (tip.upvotes || 0) >= TIP_MIN_UPVOTES_VISIBLE,
+      approved: tip.approved === true
+    };
+  }
+
+  // packages/shared/src/community/cohortInsights.mjs
+  var COHORT_MIN_K = 5;
+  function buildCohortBenchmarkCard(poolInsights, condition) {
+    if (!poolInsights || typeof poolInsights !== "object") {
+      return { visible: false, reason: "no_data" };
+    }
+    const n = poolInsights.contributor_count ?? poolInsights.contributorCount ?? 0;
+    if (n < COHORT_MIN_K) {
+      return { visible: false, reason: "k_anon_suppressed", contributorCount: n };
+    }
+    return {
+      visible: true,
+      condition: condition || poolInsights.condition_tag || "your condition",
+      contributorCount: n,
+      metrics: [
+        { key: "sleep", label: "average sleep", value: poolInsights.avg_sleep_hours, unit: "h" },
+        { key: "pain", label: "average pain on flare days", value: poolInsights.avg_pain_flare, unit: "/10" },
+        { key: "fatigue", label: "average fatigue", value: poolInsights.avg_fatigue, unit: "/10" }
+      ].filter((m) => m.value != null)
+    };
+  }
+
+  // packages/shared/src/community/communityTriggers.mjs
+  function normalizeTriggerRow(row) {
+    if (!row || typeof row !== "object") return null;
+    return {
+      id: row.id,
+      conditionTag: row.condition_tag || row.conditionTag,
+      triggerName: row.trigger_name || row.triggerName,
+      triggerCategory: row.trigger_category || row.triggerCategory,
+      contributorCount: row.contributor_count ?? row.contributorCount ?? 0,
+      approved: row.approved === true
+    };
+  }
+  function getCommunityTriggers(rows, conditionTag) {
+    const list = Array.isArray(rows) ? rows : [];
+    return list.map(normalizeTriggerRow).filter(Boolean).filter((t2) => !conditionTag || t2.conditionTag === conditionTag).filter((t2) => t2.approved && t2.contributorCount >= COHORT_MIN_K).sort((a, b) => b.contributorCount - a.contributorCount);
+  }
+
+  // packages/shared/src/a11y/wcagHelpers.mjs
+  var WCAG_BODY_TEXT_MIN_CONTRAST = 4.5;
+  var WCAG_LARGE_TEXT_MIN_CONTRAST = 3;
+  var WCAG_UI_COMPONENT_MIN_CONTRAST = 3;
+  var MIN_TOUCH_TARGET_PX = 44;
+  var PRIMARY_ACTION_MIN_HEIGHT_PX = 64;
+  function prefersReducedMotion() {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+  function getMotionDurationMs(normalMs, reducedMs = 100) {
+    return prefersReducedMotion() ? reducedMs : normalMs;
+  }
+  function getBrainFogFontScale(enabled) {
+    return enabled ? 1.2 : 1;
+  }
+  function buildFocusScrollMargin(bottomNavPx = 80) {
+    return { scrollMarginBottom: `${bottomNavPx}px` };
+  }
+  function isAllowedAppearanceMode(mode) {
+    return ["system", "dark", "light", "warm-dark"].includes(mode);
+  }
+  function contrastRatioPasses(ratio, isLargeText = false) {
+    const min = isLargeText ? WCAG_LARGE_TEXT_MIN_CONTRAST : WCAG_BODY_TEXT_MIN_CONTRAST;
+    return ratio >= min;
+  }
+
+  // packages/shared/src/crypto/secureStorage.mjs
+  var SENSITIVE_STORAGE_KEYS = [
+    "userKeys",
+    "supabaseSession",
+    "vapidSubscription",
+    "encryptionPassphrase"
+  ];
+  function isSensitiveKey(key) {
+    return SENSITIVE_STORAGE_KEYS.includes(key);
+  }
+  var encryptedBackend = null;
+  function configureSecureStorageBackend(backend) {
+    encryptedBackend = backend;
+  }
+  var secureStore = {
+    async getItem(key) {
+      if (isSensitiveKey(key) && encryptedBackend?.getItem) {
+        return encryptedBackend.getItem(key);
+      }
+      if (typeof localStorage !== "undefined") return localStorage.getItem(key);
+      return null;
+    },
+    async setItem(key, value) {
+      if (isSensitiveKey(key) && encryptedBackend?.setItem) {
+        return encryptedBackend.setItem(key, value);
+      }
+      if (typeof localStorage !== "undefined") localStorage.setItem(key, value);
+    },
+    async removeItem(key) {
+      if (isSensitiveKey(key) && encryptedBackend?.removeItem) {
+        return encryptedBackend.removeItem(key);
+      }
+      if (typeof localStorage !== "undefined") localStorage.removeItem(key);
+    }
+  };
+
   // packages/shared/src/index.mjs
   function identity(value) {
     return value;
@@ -6384,7 +7668,8 @@ ${questionsBlock}
       medicationDoses: normalizeMedicationDoses(v.medicationDoses),
       savedAt: typeof v.savedAt === "string" ? v.savedAt.slice(0, 40) : void 0,
       barcodeFood: typeof v.barcodeFood === "string" ? v.barcodeFood.slice(0, 200) : void 0,
-      customMetrics: normalizeCustomMetricValues(v.customMetrics)
+      customMetrics: normalizeCustomMetricValues(v.customMetrics),
+      ...normalizeVitalMetrics(v)
     };
     if (entry.steps != null && !Number.isFinite(entry.steps)) entry.steps = void 0;
     if (entry.hydration != null && !Number.isFinite(entry.hydration)) entry.hydration = void 0;

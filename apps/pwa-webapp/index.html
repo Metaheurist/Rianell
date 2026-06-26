@@ -1443,6 +1443,12 @@
         <p class="settings-hint" data-i18n="settings.accessibility.plainLanguageHint">When on: AI summaries use simpler words (B1 level). Your log notes are never rewritten.</p>
 
         <div class="settings-option settings-option-with-hint" style="margin-top: 14px;">
+          <label data-i18n="settings.accessibility.brainFogMode">Brain fog mode</label>
+          <div class="toggle-switch" id="brainFogModeToggle" role="switch" aria-checked="false" tabindex="0" onclick="toggleBrainFogMode()"></div>
+        </div>
+        <p class="settings-hint" data-i18n="settings.accessibility.brainFogModeHint">Enlarges text and simplifies the interface on your hardest days.</p>
+
+        <div class="settings-option settings-option-with-hint" style="margin-top: 14px;">
           <label for="accessibilityChartPaletteSelect" data-i18n="settings.accessibility.chartPalette">Chart colour palette</label>
           <select id="accessibilityChartPaletteSelect" class="settings-select" onchange="setAccessibilityChartPalette(this.value)">
             <option value="standard" data-i18n="settings.accessibility.chartPaletteStandard">Standard</option>
@@ -1993,6 +1999,8 @@
         <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       </div>
       <div id="goalsProgressBlock" class="goals-progress-block" data-home-card="goals" style="display: none;" aria-live="polite" data-scroll-reveal></div>
+      <div id="cohortBenchmarkCard" class="cohort-benchmark-card" hidden aria-live="polite" data-scroll-reveal></div>
+      <div id="communityTipsFeed" class="community-tips-feed" hidden aria-live="polite" data-scroll-reveal></div>
     </div>
 
     <!-- Log wizard (opened via floating + button, not a main nav tab) -->
@@ -2406,6 +2414,7 @@
         </button>
         <div class="section-content" id="foodLog">
           <div id="logFoodFrequent" class="frequent-chips-wrap" aria-label="Frequently logged foods" data-i18n-aria="common.frequently.logged.foods"></div>
+          <div id="foodNutritionSummary" class="food-nutrition-summary" hidden aria-live="polite"></div>
           <button type="button" id="barcodeScanBtn" class="hidden secondary-btn barcode-scan-btn" onclick="activateBarcodeScanner()" data-i18n="wizard.food.scanBarcode">Scan barcode</button>
           <div id="foodSearchWrap" class="food-search-wrap">
             <label for="foodSearchInput" class="settings-label" data-i18n="wizard.food.search">Search food</label>
@@ -2468,6 +2477,7 @@
           </div>
         </div>
       </div>
+      <div id="foodSensitivityAlert" class="food-sensitivity-alert" hidden aria-live="polite"></div>
 
       </div>
       <div class="log-wizard-step" data-log-step="7" data-step-title="Exercise" data-i18n-title="common.exercise">
