@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { searchFood, getFodmapStatus, getFodmapWarning, calculateMacrosForServing } from '@rianell/shared';
 import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function FoodSearchInput({ onSelect }: Props) {
-  const t = useT();
+  const { t } = useT();
   const theme = useTheme();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<FoodResult[]>([]);
@@ -69,17 +69,14 @@ export function FoodSearchInput({ onSelect }: Props) {
           {t('wizard.food.noResults')}
         </Text>
       ) : null}
-      <FlatList
-        data={results}
-        keyExtractor={(item) => item.barcode || item.name}
-        scrollEnabled={results.length > 0}
-        style={{ maxHeight: 180, marginTop: 6 }}
-        renderItem={({ item }) => {
+      <ScrollView style={{ maxHeight: 180, marginTop: 6 }} keyboardShouldPersistTaps="handled">
+        {results.map((item) => {
           const fodmap = getFodmapStatus(item.name);
           const fodmapKey = getFodmapWarning(fodmap);
           const label = [item.brand, item.name].filter(Boolean).join(', ');
           return (
             <Pressable
+              key={item.barcode || item.name}
               onPress={() => {
                 const macros = calculateMacrosForServing(item, 100);
                 onSelect(label, { ...item, macros } as FoodResult & { macros: ReturnType<typeof calculateMacrosForServing> });
@@ -94,8 +91,8 @@ export function FoodSearchInput({ onSelect }: Props) {
               ) : null}
             </Pressable>
           );
-        }}
-      />
+        })}
+      </ScrollView>
     </View>
   );
 }

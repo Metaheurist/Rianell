@@ -26,6 +26,7 @@ jobs:
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a -j'
           fail_action: true
+          allow_issue_writing: false
       - name: Upload ZAP report
         if: always()
         uses: actions/upload-artifact@v5
