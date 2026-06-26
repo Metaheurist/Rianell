@@ -28,7 +28,7 @@ Settings → **Privacy & region** controls language and regional policies.
 
 | Right | In-app path |
 |-------|-------------|
-| **Access / portability** | Settings → Export JSON backup |
+| **Access / portability** | Settings → Export JSON backup; or create an encrypted share link |
 | **Rectification** | View logs → Edit entry |
 | **Erasure** | Delete entry; Delete cloud data; clear local storage |
 | **Withdraw consent** | Decline or revoke in Settings; disable cloud sync; revoke **Session recording (Smartlook)** |

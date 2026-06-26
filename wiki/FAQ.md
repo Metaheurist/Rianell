@@ -23,7 +23,13 @@ No. Insights and AI text are informational only. Consult a healthcare profession
 ## Data and privacy
 
 **Can I export my data?**  
-Yes. Settings → export JSON backup. Format is portable to another device or platform.
+Yes. Settings → export JSON backup. Format is portable to another device or platform. You can also create a password-protected encrypted export (min 12-character passphrase).
+
+**How do I share data with my doctor?**  
+Use **QR handoff** (Settings → Share & export) for an in-office encrypted QR code, or create a **hosted share link** with a chosen date range and password. Both are encrypted client-side; we never see your health data.
+
+**What is the minimum password length for encrypted exports?**  
+12 characters. The app will not accept shorter passphrases for exports, QR handoff, or share links.
 
 **How do I delete everything?**  
 Delete individual logs in **View logs**; **Delete cloud data** in Settings for remote copies; clear local storage in Settings for device-only data.
@@ -33,6 +39,9 @@ No. Your notes, symptoms, and medication text stay exactly as you entered them.
 
 **Who can see my cloud backup?**  
 Only you (encrypted per user; Supabase RLS enforces owner-only access).
+
+**Who can see a hosted share link?**  
+Only someone with both the link URL and the password you set. Data is encrypted with PBKDF2 (310 000 iterations) before upload. Links expire automatically (max 90 days) and have an access count limit.
 
 ---
 
