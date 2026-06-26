@@ -2267,14 +2267,20 @@
           <span class="section-title">Basic Metrics <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="basicMetrics">
-      <label for="bpm" data-i18n="common.resting.bpm">Resting BPM</label>
+      <label for="bpm" class="field-label-with-icon" data-i18n="common.resting.bpm">
+        <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-activity"></use></svg>
+        Resting BPM
+      </label>
       <div class="input-container">
         <input type="number" id="bpm" min="30" max="120" />
         <div class="validation-message" id="bpm-error"></div>
       </div>
 
           <div class="weight-label-container">
-            <label for="weight" data-i18n="charts.metric.weight">Weight</label>
+            <label for="weight" class="field-label-with-icon" data-i18n="charts.metric.weight">
+              <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-balance"></use></svg>
+              Weight
+            </label>
             <button type="button" id="weightUnitToggle" class="unit-toggle-btn" onclick="toggleWeightUnit()" title="Toggle between kg and lb" data-i18n-title="common.toggle.between.kg.and.lb">
               <span id="weightUnitDisplay" data-i18n="units.kg">kg</span>
             </button>
@@ -2285,7 +2291,10 @@
           </div>
 
           <div id="bpStep" class="vitals-extended-block">
-            <label data-i18n="wizard.vitals.bloodPressure">Blood pressure</label>
+            <label class="field-label-with-icon" data-i18n="wizard.vitals.bloodPressure">
+              <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-stethoscope"></use></svg>
+              Blood pressure
+            </label>
             <div class="vitals-inline-row">
               <div class="input-container">
                 <label for="bloodPressureSystolic" class="visually-hidden" data-i18n="wizard.vitals.bp.systolic">Systolic</label>
@@ -2309,7 +2318,10 @@
               </summary>
               <div class="vitals-advanced-body">
                 <div class="weight-label-container">
-                  <label for="bloodGlucose" data-i18n="wizard.vitals.bloodGlucose">Blood glucose</label>
+                  <label for="bloodGlucose" class="field-label-with-icon" data-i18n="wizard.vitals.bloodGlucose">
+                    <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-zap"></use></svg>
+                    Blood glucose
+                  </label>
                   <button type="button" id="glucoseUnitToggle" class="unit-toggle-btn" onclick="toggleGlucoseUnit()" data-i18n-title="settings.units.glucose">
                     <span id="glucoseUnitDisplay" data-i18n="units.mmol">mmol/L</span>
                   </button>
@@ -2317,18 +2329,27 @@
                 <div class="input-container">
                   <input type="number" id="bloodGlucose" min="1" max="35" step="0.1" />
                 </div>
-                <label for="spO2" data-i18n="wizard.vitals.spO2">Oxygen saturation (SpO₂)</label>
+                <label for="spO2" class="field-label-with-icon" data-i18n="wizard.vitals.spO2">
+                  <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-run"></use></svg>
+                  Oxygen saturation (SpO₂)
+                </label>
                 <div class="input-container">
                   <input type="number" id="spO2" min="70" max="100" step="1" />
                   <span class="vitals-unit" data-i18n="wizard.vitals.spO2.unit">%</span>
                 </div>
-                <label for="hrv" data-i18n="wizard.vitals.hrv">HRV (RMSSD)</label>
+                <label for="hrv" class="field-label-with-icon" data-i18n="wizard.vitals.hrv">
+                  <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-brain"></use></svg>
+                  HRV (RMSSD)
+                </label>
                 <div class="input-container">
                   <input type="number" id="hrv" min="0" max="300" step="1" />
                   <span class="vitals-unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
                 </div>
                 <div class="weight-label-container">
-                  <label for="bodyWeight" data-i18n="wizard.vitals.weight">Body weight</label>
+                  <label for="bodyWeight" class="field-label-with-icon" data-i18n="wizard.vitals.weight">
+                    <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-balance"></use></svg>
+                    Body weight
+                  </label>
                   <button type="button" id="bodyWeightUnitToggle" class="unit-toggle-btn" onclick="toggleBodyWeightUnit()" data-i18n-title="settings.units.weight">
                     <span id="bodyWeightUnitDisplay" data-i18n="units.kg">kg</span>
                   </button>
