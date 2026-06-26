@@ -331,7 +331,7 @@ function tryLockPortraitOrientationMobile() {
   } catch (e) {}
 })();
 
-// Verbose debug — off globally; only ?debug=1 on the URL enables it for that page load.
+// Verbose debug - off globally; only ?debug=1 on the URL enables it for that page load.
 // index.html clears any persisted rianellDebug / healthAppDebug localStorage flags on startup.
 try {
   if (typeof window.rianellDebug !== 'boolean') {
@@ -3375,11 +3375,21 @@ function escapeHTML(str) {
 
 function svgIcon(name, className, title) {
   var KNOWN_SVG_ICONS = new Set([
-    'target', 'medal', 'food', 'run', 'pill', 'lock', 'calendar', 'sleep', 'cycle', 'star', 'check',
-    'checkin-am', 'checkin-midday', 'checkin-pm',
+    'accessibility', 'activity', 'android', 'apple', 'balance', 'bandage', 'brain', 'bundle',
+    'calendar', 'chart-bars', 'chart-down', 'chart-up', 'check', 'checkin-am', 'checkin-midday',
+    'checkin-pm', 'cloud', 'cloud-up', 'cycle', 'cycle-follicular', 'cycle-luteal',
+    'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'globe',
+    'import-arrow', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal', 'notice',
+    'palette', 'pill', 'plus', 'qr', 'run', 'save', 'share', 'sleep', 'star', 'stethoscope',
+    'stress', 'target', 'trash', 'user', 'zap',
+    'weather-aqi-good', 'weather-aqi-moderate', 'weather-aqi-poor',
+    'weather-clear', 'weather-cloudy', 'weather-fog', 'weather-partly-cloudy',
+    'weather-pressure', 'weather-pressure-high', 'weather-pressure-low',
+    'weather-rain', 'weather-snow', 'weather-temp-cold', 'weather-temp-hot',
+    'weather-temp-mild', 'weather-temp-warm', 'weather-thunder', 'weather-unknown',
   ]);
   var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
-  if (!KNOWN_SVG_ICONS.has(safeName)) safeName = 'target';
+  if (!KNOWN_SVG_ICONS.has(safeName)) safeName = 'notice';
   var cls = className || 'ui-svg-icon';
   var label = title ? ' role="img" aria-label="' + escapeAttr(title) + '"' : ' aria-hidden="true"';
   return '<svg class="' + cls + '"' + label + '><use href="#icon-' + safeName + '"></use></svg>';
@@ -3515,7 +3525,7 @@ Logger.info('Rianell initialized', {
 })();
 
 // ============================================
-// PWA Service Worker — rianell.com / *.github.io (or ?sw=1 / localStorage rianellEnableStaticSW=1)
+// PWA Service Worker - rianell.com / *.github.io (or ?sw=1 / localStorage rianellEnableStaticSW=1)
 // ============================================
 function initRianellPwaServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
@@ -4298,7 +4308,7 @@ window.addEventListener('error', function(e) {
 
 /**
  * Ensure MOTD lives as the first child of #main-content (sticky needs in-flow placement in the scroll pane).
- * Older builds moved it under #appShell for position:fixed — restore so sticky + layout match shipped CSS.
+ * Older builds moved it under #appShell for position:fixed - restore so sticky + layout match shipped CSS.
  */
 function restoreMotdTitleToMainIfNeeded() {
   var main = document.getElementById('main-content');
@@ -4378,7 +4388,7 @@ window.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  /* Cache-bust via static ?v= on link/script tags in index.html — do not rewrite href/src here.
+  /* Cache-bust via static ?v= on link/script tags in index.html - do not rewrite href/src here.
      Changing stylesheet href forces a full CSS reload and a gap where base rules (e.g. mobile bottom nav
      display:none) win until the new sheet loads, which caused nav flicker. */
   
@@ -5030,7 +5040,7 @@ function renderLogSupplementsItems() {
     return;
   }
   list.innerHTML = logFormSupplements.map(function(item, index) {
-    var label = escapeHTML(item.name) + (item.dose ? ' — ' + escapeHTML(item.dose) : '');
+    var label = escapeHTML(item.name) + (item.dose ? ' - ' + escapeHTML(item.dose) : '');
     return '<div class="item-chip">' + label + ' <button type="button" onclick="removeLogSupplement(' + index + ')">×</button></div>';
   }).join('');
 }
@@ -10402,8 +10412,8 @@ let logFormExerciseItems = []; // array of { name, duration } (duration in minut
 let logFormStressorsItems = [];
 let logFormSymptomsItems = [];
 var logFormMedications = []; // array of { name, times, taken } for medication/supplement tracker
-var logFormSupplements = []; // Plan 16 VM6 — wellness supplements distinct from meds
-var logFormPhotoAttachments = []; // Plan 16 VM11 — { url, caption? }
+var logFormSupplements = []; // Plan 16 VM6 × wellness supplements distinct from meds
+var logFormPhotoAttachments = []; // Plan 16 VM11 × { url, caption? }
 var medTimesDraftForAdd = []; // HH:MM strings for current "Add medication" row (before main Add)
 let editStressorsItems = [];
 let editSymptomsItems = [];
@@ -11323,7 +11333,7 @@ migrateLogs();
 
 /**
  * Build one ECG-like beat (Lead II style): P, PR, Q, sharp R, S, ST, T. Width 100 units; ends on baseline.
- * Randomness is morphology only (amplitude/timing), not baseline drift — beats tile cleanly at x0+100.
+ * Randomness is morphology only (amplitude/timing), not baseline drift - beats tile cleanly at x0+100.
  */
 function buildEcgBeatSegment(x0, yBase) {
   var r = Math.random;
@@ -11369,7 +11379,7 @@ function buildEcgBeatSegment(x0, yBase) {
   return parts.join(' ');
 }
 
-/** Full 400×60 viewBox path: four beats, each with independent random morphology. */
+/** Full 400-60 viewBox path: four beats, each with independent random morphology. */
 function generateEcgPathD() {
   var base = 30;
   return (
@@ -11435,7 +11445,7 @@ function spinOmegaToHeartbeatDuration(absOmega) {
   return 3.2 - t * (3.2 - 0.8);
 }
 
-/** MOTD: 3D spin around X (rad) + ω (rad/s). No hard angle cap — rapid taps can exceed 360° total travel.
+/** MOTD: 3D spin around X (rad) + ω (rad/s). No hard angle cap - rapid taps can exceed 360° total travel.
  *  Each tap increments spring charge; when |ω| drops, θ→0 uses a stiffer spring so more taps = faster “slingshot” return. */
 var __motdSpinAngle = 0;
 var __motdSpinVelocity = 0;
@@ -16917,7 +16927,7 @@ function logBootState(phase, extra) {
   }
 }
 
-/** Older HTML shipped #appShell nested inside #settingsOverlay — reparent to body so the shell paints. */
+/** Older HTML shipped #appShell nested inside #settingsOverlay - reparent to body so the shell paints. */
 function ensureAppShellDomPlacement() {
   if (typeof document === 'undefined' || !document.body) return false;
   var shell = document.getElementById('appShell');
@@ -17493,7 +17503,7 @@ function shouldHighlightSettingsPerformanceAdvanced() {
   return false;
 }
 
-/** Auto-expand only when manual overrides are set — not during download (progress stays visible above). */
+/** Auto-expand only when manual overrides are set - not during download (progress stays visible above). */
 function shouldAutoExpandSettingsPerformanceAdvanced() {
   if (!appSettings) return false;
   var tier = appSettings.preferredLlmModelSize || 'recommended';
@@ -18372,7 +18382,7 @@ async function generateApiKey() {
       await client.from('api_keys').insert({ key_hash: hash, scopes: Shared.DEFAULT_API_SCOPES || ['logs:read'] });
     }
     if (displayEl) {
-      displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + rawKey + '</code><p class="settings-hint">Click to copy. Store it safely — it won\'t be shown again.</p>';
+      displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + rawKey + '</code><p class="settings-hint">Click to copy. Store it safely - it won\'t be shown again.</p>';
       displayEl.hidden = false;
     }
     if (btn) btn.disabled = false;
@@ -18604,7 +18614,7 @@ function showFoodSensitivityAlert(log) {
     var html = '<div class="food-sensitivity-inner"><strong>' + (tUi('food.sensitivity.title') || 'Possible food triggers') + ':</strong><ul>';
     triggers.slice(0, 3).forEach(function(t) {
       var name = typeof t === 'string' ? t : (t.food || t.name || '');
-      if (name) html += '<li>' + name + ' — ' + (tUi('food.sensitivity.possible.trigger') || 'may be a trigger') + '</li>';
+      if (name) html += '<li>' + name + ': ' + (tUi('food.sensitivity.possible.trigger') || 'may be a trigger') + '</li>';
     });
     html += '</ul></div>';
     el.innerHTML = html;
@@ -18627,7 +18637,7 @@ function renderCohortBenchmarkCard() {
   html += '<p class="cohort-card-count">' + card.contributorCount + ' ' + (tUi('cohort.benchmark.people') || 'contributors') + '</p>';
   if (card.metrics && card.metrics.length) {
     html += '<ul class="cohort-metrics-list">';
-    card.metrics.forEach(function(m) { html += '<li>' + m.label + ': <strong>' + (m.value != null ? m.value.toFixed(1) : '—') + m.unit + '</strong></li>'; });
+    card.metrics.forEach(function(m) { html += '<li>' + m.label + ': <strong>' + (m.value != null ? m.value.toFixed(1) : '-') + m.unit + '</strong></li>'; });
     html += '</ul>';
   }
   html += '</div>';
@@ -20226,8 +20236,8 @@ if (typeof window !== 'undefined') {
 /**
  * Generic in-app text/password prompt modal.
  * opts: { title, hint, placeholder, type ('text'|'password'), submitLabel, minLength }
- * onSubmit(value) — called with trimmed value on OK
- * onCancel()     — called on Cancel / Escape / backdrop click
+ * onSubmit(value) - called with trimmed value on OK
+ * onCancel()     - called on Cancel / Escape / backdrop click
  */
 function showTextPromptModal(opts, onSubmit, onCancel) {
   var overlay = document.getElementById('textPromptModalOverlay');
@@ -24369,7 +24379,7 @@ function runRianellBootAfterDomReady() {
     saveLogsToStorage();
   }
   
-  // Date range and chart section — defer to idle so boot shell stays responsive.
+  // Date range and chart section - defer to idle so boot shell stays responsive.
   function scheduleBootChartSetup() {
     var run = function () {
       try {
@@ -24579,7 +24589,7 @@ function runRianellBootAfterDomReady() {
         }
       });
     }).catch(function () {
-      /* deferred consent or download failure — still reveal shell */
+      /* deferred consent or download failure - still reveal shell */
     }).then(function () {
       window.__rianellAiPreloadedDuringBoot = true;
       revealAppShellWithLocale();

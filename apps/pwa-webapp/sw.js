@@ -1,4 +1,4 @@
-/* Rianell PWA — versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
+/* Rianell PWA - versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
 var CACHE_NAME = CACHE_PREFIX + 'v2026-06-20-shell-visible-v6';
 
@@ -66,7 +66,7 @@ function offlineDocumentResponse() {
 }
 
 self.addEventListener('install', function (e) {
-  /* Do not skipWaiting here — page posts SKIP_WAITING when user taps Update */
+  /* Do not skipWaiting here - page posts SKIP_WAITING when user taps Update */
   e.waitUntil(precacheShell());
 });
 

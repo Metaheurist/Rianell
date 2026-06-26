@@ -464,7 +464,7 @@ async function syncAnonymizedData() {
               continue;
             }
           } else {
-            console.warn('[syncAnonymizedData] encryptAnonymizedData not available — skipping log (fail-closed)');
+            console.warn('[syncAnonymizedData] encryptAnonymizedData not available - skipping log (fail-closed)');
             continue;
           }
           
@@ -901,7 +901,7 @@ async function checkAuthStatus() {
     try {
       await window.PerformanceUtils.ensureSupabaseLoaded();
     } catch (e) {
-      /* library blocked or offline — handled below */
+      /* library blocked or offline - handled below */
     }
   }
   const client = initSupabase();
@@ -1013,7 +1013,7 @@ async function handleCloudSignUp(context) {
 
   var residencyCode = 'default';
   if (typeof window !== 'undefined' && window.RianellShared && window.RianellPrivacy) {
-    /* single Supabase project — no residency routing */
+    /* single Supabase project - no residency routing */
   }
   
   try {
@@ -1138,7 +1138,7 @@ async function handleCloudLogin(context) {
   }
 
   if (typeof window !== 'undefined' && window.RianellShared && window.RianellPrivacy) {
-    /* single Supabase project — no login residency routing */
+    /* single Supabase project - no login residency routing */
   }
   
   try {
@@ -2251,7 +2251,7 @@ async function upsertPrivacyProfile() {
   if (error) console.warn('upsertPrivacyProfile:', error);
 }
 
-/** Plan 06 D3 — conflict resolution modal (keep device / keep cloud / cancel). */
+/** Plan 06 D3 - conflict resolution modal (keep device / keep cloud / cancel). */
 function showSyncConflictModal(count) {
   const overlay = document.getElementById('alertModalOverlay');
   const titleEl = document.getElementById('alertModalTitle');

@@ -1,5 +1,5 @@
 /**
- * Plan 12 CL1 — appointment mode PDF (PWA).
+ * Plan 12 CL1 - appointment mode PDF (PWA).
  */
 (function () {
   'use strict';

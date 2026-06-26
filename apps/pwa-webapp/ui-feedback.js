@@ -1,6 +1,6 @@
 /**
  * Shared UI feedback: toasts, modals, haptics, ripple, scroll-reveal, offline banner.
- * @rianell/ui-feedback — keep platform-parity hooks in sync with RN Toast component.
+ * @rianell/ui-feedback - keep platform-parity hooks in sync with RN Toast component.
  */
 (function (global) {
   'use strict';

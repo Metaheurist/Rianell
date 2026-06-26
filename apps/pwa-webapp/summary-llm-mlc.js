@@ -1,5 +1,5 @@
 /**
- * WebLLM MLC adapter (Path 2) — lazy worker + IndexedDB cache.
+ * WebLLM MLC adapter (Path 2) - lazy worker + IndexedDB cache.
  * Pin: @mlc-ai/web-llm@0.2.84
  */
 (function (global) {
@@ -53,7 +53,7 @@
             });
           }
         };
-        // Callback must be set on main thread only — never in engineConfig (postMessage clone error).
+        // Callback must be set on main thread only - never in engineConfig (postMessage clone error).
         var engine = new webllm.WebWorkerMLCEngine(worker, {});
         if (typeof engine.setInitProgressCallback === 'function') {
           engine.setInitProgressCallback(initProgress);

@@ -1,5 +1,5 @@
 /**
- * Plan 12 CL2 — QR handoff modal (PWA).
+ * Plan 12 CL2 - QR handoff modal (PWA).
  */
 (function () {
   'use strict';

@@ -539,7 +539,7 @@
     return null;
   }
 
-  /** Ordered GPU backends to try before WASM/CPU (adapter probe cache only — never benchmark alone). */
+  /** Ordered GPU backends to try before WASM/CPU (adapter probe cache only - never benchmark alone). */
   function getGpuDeviceCandidates() {
     var ordered = [];
     if (typeof window !== 'undefined' && window.DeviceBenchmark &&
@@ -783,7 +783,7 @@
     return true;
   }
 
-  /** GitHub Pages project sites live at /RepoName/ — include that in model URLs. */
+  /** GitHub Pages project sites live at /RepoName/ - include that in model URLs. */
   function getAppOriginBase() {
     if (typeof window === 'undefined' || !window.location) return '/';
     var origin = window.location.origin || '';
