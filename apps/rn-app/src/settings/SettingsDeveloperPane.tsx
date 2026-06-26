@@ -4,7 +4,7 @@ import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 
 export function SettingsDeveloperPane() {
-  const t = useT();
+  const { t } = useT();
   const theme = useTheme();
 
   return (

@@ -1,7 +1,6 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 import { CONNECTOR_PROVIDERS } from '@rianell/shared';
-import { SwitchRow } from './SwitchRow';
 import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 import type { Preferences } from '../storage/preferences';
@@ -12,25 +11,38 @@ type Props = {
 };
 
 export function SettingsConnectorsPane({ prefs, onChangePrefs }: Props) {
-  const t = useT();
+  const { t } = useT();
   const theme = useTheme();
   const enabled = prefs.healthConnectEnabled === true;
 
   return (
-    <View>
-      <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(16), fontWeight: '600', marginBottom: 8 }}>
+    <View style={styles.wrap}>
+      <Text style={[styles.heading, { color: theme.tokens.color.textPrimary }]}>
         {t('settings.connectors.title')}
       </Text>
       {Object.values(CONNECTOR_PROVIDERS).map((p) => (
-        <Text key={p.id} style={{ color: theme.tokens.color.textMuted, fontSize: theme.font(12), marginBottom: 4 }}>
+        <Text key={p.id} style={{ color: theme.tokens.color.textMuted, fontSize: 12, marginBottom: 4 }}>
           {p.label}
         </Text>
       ))}
-      <SwitchRow
-        label={t('settings.connectors.healthConnect')}
-        value={enabled}
-        onValueChange={(healthConnectEnabled) => onChangePrefs({ ...prefs, healthConnectEnabled })}
-      />
+      <View style={styles.row}>
+        <Text style={[styles.rowLabel, { color: theme.tokens.color.textPrimary }]}>
+          {t('settings.connectors.healthConnect')}
+        </Text>
+        <Switch
+          value={enabled}
+          onValueChange={(healthConnectEnabled: boolean) =>
+            onChangePrefs({ ...prefs, healthConnectEnabled })
+          }
+        />
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrap: { marginTop: 8, marginBottom: 16 },
+  heading: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginVertical: 6 },
+  rowLabel: { flex: 1, fontSize: 14, paddingRight: 8 },
+});
