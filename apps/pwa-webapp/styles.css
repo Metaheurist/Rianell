@@ -691,6 +691,13 @@ body.light-mode .entry:hover {
   border-color: var(--accent-border-hover);
 }
 
+/* Prevent mouse-wheel scroll from triggering chart zoom — let the page scroll instead */
+.apexcharts-canvas,
+.apexcharts-inner,
+[class*="apexcharts"] {
+  touch-action: pan-y !important;
+}
+
 body.light-mode .chart-container {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(15px);
