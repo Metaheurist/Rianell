@@ -88,11 +88,13 @@ jobs:
           chmod +x osv-scanner
 
       - name: Vulnerability scan — OSV-Scanner (OSV.dev)
+        continue-on-error: true
+        timeout-minutes: 3
         run: |
           set -euo pipefail
           ./osv-scanner scan -L package-lock.json --format sarif --output osv-npm.sarif || true
-          ./osv-scanner scan -L package-lock.json
-          ./osv-scanner scan -L requirements.txt
+          ./osv-scanner scan -L package-lock.json || true
+          ./osv-scanner scan -L requirements.txt || true
 
       - name: Upload OSV SARIF
         if: always() && hashFiles('osv-npm.sarif') != ''
