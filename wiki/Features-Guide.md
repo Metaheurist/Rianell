@@ -70,10 +70,25 @@ Full list: [[Settings-and-Languages]].
 ## Export, print, and share
 
 - **Export** health logs as JSON (portable across web and mobile).
+- **Password-protected export** — encrypt your export file with a passphrase (minimum 12 characters); the file cannot be opened without it.
+- **QR handoff** — generate a short-lived encrypted QR code to share a view-only log summary with a clinician in-office (passphrase required, min 12 characters).
+- **Hosted share links** (cloud) — create a time-limited encrypted link you can send to a clinician or carer. Choose a date range, whether to include free-text notes and condition name, and set a password. The link is encrypted before upload; Rianell cannot read your data.
 - **Print** summary views where supported (web/PWA).
-- **Share** individual log entries (web).
 
 Import preview sanitises user content before display.
+
+---
+
+## App lock
+
+Protect Rianell with a local passcode. Two modes:
+
+| Mode | Requirement |
+|------|-------------|
+| **Passphrase** | 12+ characters, mixed case + number + special recommended |
+| **PIN** | 4–8 digits; simple sequences (1234, 0000) are blocked |
+
+Settings → Security lock. The passcode is stored only on your device.
 
 ---
 

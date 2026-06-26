@@ -196,3 +196,26 @@ Use **Cache Rules** (or legacy Page Rules) on zone **rianell.com** to balance fr
 - After deploy, **Purge Everything** or purge `/` + `/sw.js` if HTML appears stale.
 - `connect-src` fetches (Open-Meteo, Hugging Face) are **browser** caches; edge rules apply only to same-origin static assets.
 - Align with [performance-budget.md](../docs/performance-budget.md) boot targets.
+
+## Share link routing (`rianell.com/share/*`)
+
+Hosted encrypted share links use GitHub Pages `404.html` to redirect `/share/{CODE}` → `/#share/{CODE}`. Cloudflare should **not** cache these paths and should rate-limit abusive access.
+
+### WAF custom rules (Dashboard → Security → WAF → Custom rules)
+
+| Rule | Expression | Action |
+|------|------------|--------|
+| **Share path rate limit** | URI Path starts with `/share/` | Rate limit: **30 requests / minute / IP** |
+| **Share path injection block** | URI Path starts with `/share/` **and** URI Query contains `<`, `>`, `{`, or `}` | **Block** |
+
+### Cache rule (Dashboard → Caching → Cache Rules)
+
+| Rule | When | Cache status |
+|------|------|--------------|
+| **Bypass share paths** | URI Path starts with `/share/` | **Bypass cache** |
+
+**Notes:**
+
+- No `wrangler.toml` or Page Rule redirect is required — GitHub Pages serves `apps/pwa-webapp/404.html` for unmatched `/share/*` paths; Cloudflare forwards the request normally.
+- The SPA decrypts share payloads client-side after fetching ciphertext from Supabase; edge cache bypass avoids serving stale HTML for share entry URLs.
+- Document in incident response if share-link abuse (enumeration, brute-force passwords) is detected.

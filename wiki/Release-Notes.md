@@ -1,6 +1,23 @@
 # Release Notes
 
-## Latest release (v1.96.2)
+## Latest release (v1.134.0)
+
+**Date:** 2026-06-26
+
+### Highlights
+
+- **Hosted share links:** Create a time-limited, password-encrypted link to share a read-only view of your logs with a clinician or carer. Choose date range, whether to include free-text notes, and a password. Data is encrypted client-side (PBKDF2 310 000 iterations + AES-GCM) before upload — Rianell never sees unencrypted health data.
+- **App lock PIN mode:** App lock now supports both a **passphrase** (12+ characters) and a **PIN** (4–8 digits). Weak PINs (repeating digits, sequential runs) are blocked.
+- **Password strength:** Encrypted exports, QR handoffs, and share links now require a minimum **12-character** passphrase (raised from 8). A strength estimator provides live feedback.
+- **PWA install guide:** Platform-specific install instructions (iOS Safari, macOS Safari, Chrome, Firefox, Edge) with step-by-step guidance and illustrations.
+- **Log range slider:** Log date range now uses a smooth slider instead of discrete buttons.
+- **Check-in icons:** New time-of-day icons (morning, midday, evening) for quick check-ins.
+- **i18n:** 20+ new translation keys across all 15 supported locales.
+- **CI:** Android and iOS manifests now include direct download/install URLs.
+
+---
+
+## Previous (v1.96.2)
 
 **Date:** 2026-06-24
 
