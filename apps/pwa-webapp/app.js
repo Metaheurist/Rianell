@@ -1353,6 +1353,16 @@ function formatLogEntryAsText(log) {
     'VITAL SIGNS',
     '  Heart rate: ' + (log.bpm || '-') + ' BPM',
     '  Weight: ' + (weightDisplay != null && weightDisplay !== '' ? weightDisplay : '-') + ' ' + (weightUnit || ''),
+    ...(log.bloodPressureSystolic && log.bloodPressureDiastolic
+      ? ['  Blood pressure: ' + log.bloodPressureSystolic + '/' + log.bloodPressureDiastolic + ' mmHg'] : []),
+    ...(log.bloodGlucose != null && log.bloodGlucose !== ''
+      ? ['  Blood glucose: ' + log.bloodGlucose + ' ' + (log.bloodGlucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L')] : []),
+    ...(log.spO2 != null && log.spO2 !== ''
+      ? ['  SpO2: ' + log.spO2 + '%'] : []),
+    ...(log.hrv != null && log.hrv !== ''
+      ? ['  HRV (RMSSD): ' + log.hrv + ' ms'] : []),
+    ...(log.bodyWeight != null && log.bodyWeight !== ''
+      ? ['  Body weight: ' + log.bodyWeight + ' ' + (log.bodyWeightUnit || 'kg')] : []),
     '',
     'SYMPTOMS (1-10)',
     '  Fatigue: ' + (log.fatigue ?? '-'),
@@ -1401,11 +1411,19 @@ function formatLogEntryAsText(log) {
 // Single-row CSV for one log (same headers as exportToCSV)
 function formatLogEntryAsCSV(log) {
   if (!log) return '';
-  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+  const headers = "Date,BPM,Weight,Blood Pressure,Blood Glucose,SpO2,HRV,Body Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+  const bp = (log.bloodPressureSystolic && log.bloodPressureDiastolic)
+    ? log.bloodPressureSystolic + '/' + log.bloodPressureDiastolic
+    : '';
   const row = [
     log.date || '',
     log.bpm || '',
     log.weight || '',
+    bp,
+    log.bloodGlucose != null ? log.bloodGlucose : '',
+    log.spO2 != null ? log.spO2 : '',
+    log.hrv != null ? log.hrv : '',
+    log.bodyWeight != null ? log.bodyWeight : '',
     log.fatigue || '',
     log.stiffness || '',
     log.backPain || '',
@@ -14333,19 +14351,44 @@ function generateLogEntryHTML(log) {
       <div class="metric-group vital-signs">
         <h4 class="metric-group-title">${tUi('common.vital.signs')}</h4>
         <div class="metric-item">
-          <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Heart rate')} Heart Rate</span>
+          <span class="metric-label">${svgIcon('activity', 'metric-svg-icon', 'Heart rate')} Heart Rate</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-bpm inline-edit-field" value="${log.bpm}" min="30" max="120" /><span class="inline-edit-suffix">BPM</span></span>`
-            : `<span class="metric-value">${log.bpm} BPM</span>`
+            : `<span class="metric-value">${log.bpm != null && log.bpm !== '' ? log.bpm + ' BPM' : '-'}</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('balance', 'metric-svg-icon', 'Weight')} Weight</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-weight inline-edit-field" value="${weightDisplay}" min="40" max="200" step="0.1" /><span class="inline-edit-suffix">${weightUnit}</span></span>`
-            : `<span class="metric-value">${weightDisplay}${weightUnit}</span>`
+            : `<span class="metric-value">${weightDisplay != null && weightDisplay !== '' ? weightDisplay + ' ' + weightUnit : '-'}</span>`
           }
         </div>
+        ${(log.bloodPressureSystolic && log.bloodPressureDiastolic) ? `
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('stethoscope', 'metric-svg-icon', 'Blood pressure')} Blood Pressure</span>
+          <span class="metric-value">${log.bloodPressureSystolic}/${log.bloodPressureDiastolic} mmHg</span>
+        </div>` : ''}
+        ${log.bloodGlucose != null && log.bloodGlucose !== '' ? `
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('zap', 'metric-svg-icon', 'Blood glucose')} Blood Glucose</span>
+          <span class="metric-value">${log.bloodGlucose} ${log.bloodGlucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L'}</span>
+        </div>` : ''}
+        ${log.spO2 != null && log.spO2 !== '' ? `
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('run', 'metric-svg-icon', 'Oxygen saturation')} SpO₂</span>
+          <span class="metric-value">${log.spO2}%</span>
+        </div>` : ''}
+        ${log.hrv != null && log.hrv !== '' ? `
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'HRV')} HRV (RMSSD)</span>
+          <span class="metric-value">${log.hrv} ms</span>
+        </div>` : ''}
+        ${log.bodyWeight != null && log.bodyWeight !== '' ? `
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('balance', 'metric-svg-icon', 'Body weight')} Body Weight</span>
+          <span class="metric-value">${log.bodyWeight} ${log.bodyWeightUnit || 'kg'}</span>
+        </div>` : ''}
       </div>
       <div class="metric-group symptoms">
         <h4 class="metric-group-title">${tUi('wizard.step.symptoms')}</h4>
