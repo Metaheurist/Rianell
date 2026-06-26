@@ -15,5 +15,6 @@ export * from './localOnlyMode.mjs';
 export * from './processingActivityLog.mjs';
 export * from './anonPoolFieldManifest.mjs';
 export * from './encryptedExport.mjs';
+export * from './passwordStrength.mjs';
 export * from './policyBodies.mjs';
 export * from './caregiverMode.mjs';

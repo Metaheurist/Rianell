@@ -1,6 +1,6 @@
 /** Plan 12 CL2 — ephemeral encrypted QR handoff (P4 crypto, bounded payload). */
 
-import { encryptExportWithPassphrase, decryptExportWithPassphrase } from '../privacy/encryptedExport.mjs';
+import { encryptExportWithPassphrase, decryptExportWithPassphrase, ENCRYPTED_EXPORT_MIN_LENGTH } from '../privacy/encryptedExport.mjs';
 
 export const QR_HANDOFF_FORMAT = 'rianell-qr-handoff-v1';
 export const QR_HANDOFF_MAX_CHARS = 2400;
@@ -14,8 +14,8 @@ export function buildQrHandoffLogsSubset(logs, maxLogs = 14) {
 }
 
 export async function createQrHandoffPayload(logs, passphrase, opts = {}) {
-  if (typeof passphrase !== 'string' || passphrase.length < 8) {
-    throw new Error('Passphrase must be at least 8 characters');
+  if (typeof passphrase !== 'string' || passphrase.length < ENCRYPTED_EXPORT_MIN_LENGTH) {
+    throw new Error(`Passphrase must be at least ${ENCRYPTED_EXPORT_MIN_LENGTH} characters`);
   }
   const ttlMin = Math.min(180, Math.max(5, Number(opts.ttlMinutes) || QR_HANDOFF_DEFAULT_TTL_MINUTES));
   const expiresAt = new Date(Date.now() + ttlMin * 60_000).toISOString();

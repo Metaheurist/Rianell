@@ -2,6 +2,7 @@
 
 export const ENCRYPTED_EXPORT_FORMAT = 'rianell-encrypted-export-v1';
 export const ENCRYPTED_EXPORT_KDF_ITERATIONS = 120000;
+export const ENCRYPTED_EXPORT_MIN_LENGTH = 12;
 
 function getSubtle(subtle) {
   const s = subtle || (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.subtle);
@@ -31,12 +32,13 @@ function base64ToBytes(b64) {
   return out;
 }
 
-async function deriveExportKey(passphrase, salt, subtle) {
+async function deriveExportKey(passphrase, salt, subtle, iterations) {
   const enc = new TextEncoder();
   const cryptoSubtle = getSubtle(subtle);
+  const iters = iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
   const keyMaterial = await cryptoSubtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
   return cryptoSubtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: ENCRYPTED_EXPORT_KDF_ITERATIONS, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt, iterations: iters, hash: 'SHA-256' },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
     false,
@@ -44,20 +46,22 @@ async function deriveExportKey(passphrase, salt, subtle) {
   );
 }
 
-export async function encryptExportWithPassphrase(payload, passphrase, subtle) {
-  if (typeof passphrase !== 'string' || passphrase.length < 8) {
-    throw new Error('Passphrase must be at least 8 characters');
+export async function encryptExportWithPassphrase(payload, passphrase, subtle, opts) {
+  const options = opts && typeof opts === 'object' ? opts : {};
+  const iterations = options.iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
+  if (typeof passphrase !== 'string' || passphrase.length < ENCRYPTED_EXPORT_MIN_LENGTH) {
+    throw new Error(`Passphrase must be at least ${ENCRYPTED_EXPORT_MIN_LENGTH} characters`);
   }
   const cryptoSubtle = getSubtle(subtle);
   const salt = randomBytes(16);
   const iv = randomBytes(12);
-  const key = await deriveExportKey(passphrase, salt, cryptoSubtle);
+  const key = await deriveExportKey(passphrase, salt, cryptoSubtle, iterations);
   const encoded = new TextEncoder().encode(JSON.stringify(payload));
   const cipher = await cryptoSubtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
   return {
     format: ENCRYPTED_EXPORT_FORMAT,
     kdf: 'PBKDF2',
-    iterations: ENCRYPTED_EXPORT_KDF_ITERATIONS,
+    iterations,
     salt: bytesToBase64(salt),
     iv: bytesToBase64(iv),
     ciphertext: bytesToBase64(new Uint8Array(cipher)),
@@ -73,7 +77,8 @@ export async function decryptExportWithPassphrase(envelope, passphrase, subtle) 
   const salt = base64ToBytes(envelope.salt);
   const iv = base64ToBytes(envelope.iv);
   const cipher = base64ToBytes(envelope.ciphertext);
-  const key = await deriveExportKey(passphrase, salt, cryptoSubtle);
+  const iterations = envelope.iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
+  const key = await deriveExportKey(passphrase, salt, cryptoSubtle, iterations);
   const plain = await cryptoSubtle.decrypt({ name: 'AES-GCM', iv }, key, cipher);
   return JSON.parse(new TextDecoder().decode(plain));
 }
