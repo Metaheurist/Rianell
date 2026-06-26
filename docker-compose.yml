@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  rianell-pwa:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./apps/pwa-webapp:/usr/share/nginx/html:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    environment:
+      - RIANELL_MODE=${RIANELL_MODE:-cloud}
+  rianell-server:
+    build: ./server
+    ports:
+      - "8081:8081"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - RIANELL_MODE=${RIANELL_MODE:-cloud}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+    depends_on:
+      - rianell-pwa

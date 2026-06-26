@@ -44,6 +44,18 @@ export function SettingsLoggingPane({ prefs, onChangePrefs }: Props) {
           onValueChange={(cycleModuleEnabled) => onChangePrefs({ ...prefs, cycleModuleEnabled })}
         />
       </Row>
+      <Row label={t('settings.logging.guidedVoice')}>
+        <Switch
+          value={prefs.guidedVoiceLogEnabled}
+          onValueChange={(guidedVoiceLogEnabled) => onChangePrefs({ ...prefs, guidedVoiceLogEnabled })}
+        />
+      </Row>
+      <Row label={t('settings.logging.barcodeFood')}>
+        <Switch
+          value={prefs.barcodeFoodLoggingEnabled}
+          onValueChange={(barcodeFoodLoggingEnabled) => onChangePrefs({ ...prefs, barcodeFoodLoggingEnabled })}
+        />
+      </Row>
 
       <Text style={[styles.subheading, { color: theme.tokens.color.textPrimary }]}>
         {t('settings.logging.symptomTemplates')}

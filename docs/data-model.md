@@ -33,8 +33,20 @@ All entries require a **`date`** (`YYYY-MM-DD`). Other fields are optional; empt
 | `subEntries` | array | L8 AM/PM partial saves: `{ id, period: 'AM'\|'PM'\|'partial', mood?, fatigue?, sleep?, jointPain?, notes?, savedAt }` |
 | `cycle` | object | L7 `{ cycleDay?, periodStart?, phase?, flow?, pmsSymptoms?[] }` when cycle module enabled. `cycleDay` 1–45 (`CYCLE_DAY_MAX`); UI selector defaults 1–35 (`CYCLE_DAY_SELECTOR_MAX`); `periodStart: true` marks period begin on that log date; phase hints use simplified ~28-day map (not medical advice) |
 | `medicationDoses` | array | L3 per-dose log: `{ drug, status: 'taken'\|'skipped'\|'missed', scheduledAt? }` |
+| `bloodPressureSystolic` | number | 60–250 mmHg (Plan 16 VM1) |
+| `bloodPressureDiastolic` | number | 40–150 mmHg (Plan 16 VM1) |
+| `bloodGlucose` | number | Stored as mmol/L; `bloodGlucoseUnit` records display pref (VM2) |
+| `spO2` | number | 70–100 % (VM3) |
+| `hrv` | number | RMSSD ms, 0–300 (VM4 manual entry) |
+| `bodyWeight` | number | Stored as kg; `bodyWeightUnit` records display pref (VM5) |
+| `bristol` | 1–7 | Bristol stool scale (VM7) |
+| `painLocations` | array | `{ region, intensity: 0–10 }[]` body-map regions (VM8) |
+| `gratitude` | string | Max 500 chars; excluded from anonymized pool (VM9) |
+| `bbt` | number | Basal body temp °C, 35.0–38.5 (VM10) |
+| `photoAttachments` | array | `{ url, caption? }[]` private storage paths (VM11) |
+| `supplements` | array | `{ name, dose?, unit?, brand? }[]` distinct from meds (VM6) |
 
-## Preferences (Plan 04 logging)
+## Preferences (Plan 04 logging + Plan 16 units)
 
 Stored in app settings / RN `Preferences` (not in each log entry):
 
@@ -44,6 +56,11 @@ Stored in app settings / RN `Preferences` (not in each log entry):
 | `symptomTemplates` | array | User-learned chip sets per condition (L6) |
 | `medSchedule` | array | Scheduled drugs + dose times for wizard dose chips (L3) |
 | `cycleModuleEnabled` | boolean | Shows cycle fields in wizard step 1 (L7) |
+| `digestiveModuleEnabled` | boolean | Shows Bristol scale in wizard (VM7) |
+| `glucoseUnit` | `'mmol'` \| `'mgdl'` | Blood glucose display preference (VM2) |
+| `temperatureUnit` | `'celsius'` \| `'fahrenheit'` | BBT display preference (VM10) |
+| `heightCm` | number | User height for BMI on log card (VM5) |
+| `bodyWeightUnit` | `'kg'` \| `'lbs'` | Body weight display preference (VM5) |
 | `barcodeFoodLoggingEnabled` | boolean | **Deferred** — pref forced off; Settings toggle removed (L5 planned) |
 | `guidedVoiceLogEnabled` | boolean | **Deferred** — pref forced off; Settings toggle removed (L11 planned) |
 

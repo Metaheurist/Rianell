@@ -43,3 +43,13 @@ export function buildConsentDashboardEntries(input) {
 
   return rows;
 }
+
+/** Audit payload for consent_audit_log RPC (Plan 15 FC3). */
+export function buildConsentAuditPayload(field, value, platform) {
+  return {
+    field: String(field || ''),
+    value,
+    ts: Date.now(),
+    platform: platform || (typeof window !== 'undefined' ? 'pwa' : 'rn'),
+  };
+}

@@ -133,8 +133,14 @@ export type Preferences = {
   symptomTemplates: Array<{ condition: string; chips: string[] }>;
   medSchedule: Array<{ id: string; drug: string; dose: string; times: string[]; enabled: boolean }>;
   cycleModuleEnabled: boolean;
+  digestiveModuleEnabled: boolean;
   barcodeFoodLoggingEnabled: boolean;
+  healthConnectEnabled: boolean;
   guidedVoiceLogEnabled: boolean;
+  glucoseUnit: 'mmol' | 'mgdl';
+  temperatureUnit: 'celsius' | 'fahrenheit';
+  heightCm: number | null;
+  bodyWeightUnit: 'kg' | 'lbs';
   localOnlyMode: boolean;
   sessionRecording: boolean;
   sessionRecordingAt: string | null;
@@ -260,8 +266,14 @@ export function getDefaultPreferences(): Preferences {
     symptomTemplates: [],
     medSchedule: [],
     cycleModuleEnabled: false,
+    digestiveModuleEnabled: false,
     barcodeFoodLoggingEnabled: false,
+    healthConnectEnabled: false,
     guidedVoiceLogEnabled: false,
+    glucoseUnit: 'mmol',
+    temperatureUnit: 'celsius',
+    heightCm: null,
+    bodyWeightUnit: 'kg',
     localOnlyMode: false,
     sessionRecording: true,
     sessionRecordingAt: null,
@@ -487,8 +499,14 @@ export async function loadPreferences(): Promise<Preferences> {
       symptomTemplates: normalizeSymptomTemplates(parsed.symptomTemplates),
       medSchedule: normalizeMedSchedule(parsed.medSchedule),
       cycleModuleEnabled: parsed.cycleModuleEnabled === true,
-      barcodeFoodLoggingEnabled: false,
-      guidedVoiceLogEnabled: false,
+      digestiveModuleEnabled: parsed.digestiveModuleEnabled === true,
+      barcodeFoodLoggingEnabled: parsed.barcodeFoodLoggingEnabled === true,
+      healthConnectEnabled: parsed.healthConnectEnabled === true,
+      guidedVoiceLogEnabled: parsed.guidedVoiceLogEnabled === true,
+      glucoseUnit: parsed.glucoseUnit === 'mgdl' ? 'mgdl' : d.glucoseUnit,
+      temperatureUnit: parsed.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : d.temperatureUnit,
+      heightCm: typeof parsed.heightCm === 'number' && Number.isFinite(parsed.heightCm) ? parsed.heightCm : d.heightCm,
+      bodyWeightUnit: parsed.bodyWeightUnit === 'lbs' ? 'lbs' : d.bodyWeightUnit,
       localOnlyMode: parsed.localOnlyMode === true,
       sessionRecording: parsed.sessionRecording === true,
       sessionRecordingAt:

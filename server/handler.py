@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 
 from . import config
 from .routes.api import ApiRoutesMixin
+from .routes.fhir import FhirRoutesMixin
 from .routes.static import StaticRoutesMixin
 
 logger = config.logger
@@ -37,7 +38,7 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         super().server_bind()
 
 
-class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, http.server.SimpleHTTPRequestHandler):
+class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, FhirRoutesMixin, http.server.SimpleHTTPRequestHandler):
     """Custom handler to set proper MIME types and handle SPA routing"""
     
     timeout = 30  # Request timeout
@@ -175,6 +176,15 @@ class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, http.server.SimpleHT
         if parsed_path.path.startswith('/api/anonymized-data'):
             self.handle_anonymized_data()
             return
+
+        # Plan 20 SH3 — FHIR R4 lite export (self-hosted)
+        if parsed_path.path.rstrip('/') == '/fhir/R4/Bundle' or parsed_path.path.rstrip('/') == '/api/fhir/bundle':
+            self.handle_fhir_bundle()
+            return
+        
+        if parsed_path.path.startswith('/fhir/r4'):
+            self.handle_fhir_r4(method='GET')
+            return
         
         # Serve tutorial test page at /tutorial (same app, tutorial auto-opens for demo/testing)
         if parsed_path.path.rstrip('/') == '/tutorial':
@@ -205,6 +215,10 @@ class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, http.server.SimpleHT
 
         if parsed_path.path == '/api/bug-report':
             self.handle_bug_report()
+            return
+
+        if parsed_path.path.startswith('/fhir/r4'):
+            self.handle_fhir_r4(method='POST')
             return
         
         # For other POST requests, return 405 Method Not Allowed
