@@ -72,6 +72,8 @@ Symptom / energy / stressor “add” controls use **content-sized pill** button
 
 On narrow viewports, AI timeline sections can sit in horizontal **slides** (`.ai-mobile-pager` → `.ai-mobile-pager-track` → `.ai-mobile-pager-pane`). **Desktop** uses **‹ ›** on the sides; **mobile** hides those and relies on swipe.
 
+**Chapter layout (v1.134.0):** Each `.ai-chapter` (`.ai-chapter--overview`, `--trends`, `--lifestyle`, `--mind`, `--body`) is one pager slide. Semantic status colours use `--ai-status-optimal`, `--ai-status-caution`, `--ai-status-alert`, and `--ai-status-neutral`. Loading uses `.ai-skeleton-loading` shimmer blocks (respect **`prefers-reduced-motion`**).
+
 **Affordance (no caption):** panes are slightly **narrower than the track** (`max-width: 768px` rules) so the **next card peeks** at the edge; a **dot row** (`#aiMobilePagerDots`, `.ai-mobile-pager-dot`) shows slide count. JavaScript resolves the active slide from **pane centers vs. scroll position**, not `scrollLeft / trackWidth`, so snap and height stay aligned.
 
 **First visit:** optional **shimmer** bar only (`#aiMobilePagerSwipeCue`); **`localStorage`** `healthApp_aiSwipeCueSeen`; dismiss on horizontal scroll or timeout; respect **`prefers-reduced-motion: reduce`**; not shown **≥ 769px**.

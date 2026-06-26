@@ -253,8 +253,8 @@ function NeuralAnalysisNetwork(engine) {
   };
 
   this.layerInput = async function(ctx) {
-    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
-    const requirePositive = { bpm: true, weight: true };
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration', 'hrv'];
+    const requirePositive = { bpm: true, weight: true, hrv: true };
     const trainingLogs = ctx.trainingLogs;
     const recentLogs = ctx.recentLogs;
     const engine = this.engine;
@@ -411,6 +411,9 @@ function NeuralAnalysisNetwork(engine) {
     e.analyzeStressorsImpact(recentLogs, ctx.analysis);
     e.analyzeSymptomsAndPainLocation(recentLogs, ctx.analysis);
     e.analyzeCrossSectionCorrelations(recentLogs, ctx.analysis);
+    e.analyzeExtendedMetrics(recentLogs, ctx.analysis, {
+      appSettings: (typeof appSettings !== 'undefined' ? appSettings : {})
+    });
   };
 
   this.layerClustering = function(ctx) {
@@ -498,7 +501,7 @@ function NeuralAnalysisNetwork(engine) {
       return metric === 'weight' ? parseFloat(log[metric]) : (parseInt(log[metric], 10) || 0);
     }
 
-    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration', 'hrv'];
     const blendWeights = state.blendWeights || {};
     const lastPredictions = state.lastPredictions || {};
 
@@ -559,8 +562,8 @@ const AIEngine = {
   // Trend layer activator: computes regression, predictions, projected values per metric
   // If context.metricsData is provided (from layerInput), uses precomputed data to avoid re-scanning logs
   _computeTrends: function(analysis, trainingLogs, recentLogs, context) {
-    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
-    const requirePositive = { bpm: true, weight: true };
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration', 'hrv'];
+    const requirePositive = { bpm: true, weight: true, hrv: true };
     const metricsData = context && context.metricsData;
 
     metrics.forEach(metric => {
@@ -1461,7 +1464,7 @@ const AIEngine = {
   // Multi-metric correlation matrix: detect complex relationships between all metrics
   // options: { precomputedByIndex: number[][], metricNames: string[] } to use input-layer matrix (optimisation)
   detectMultiMetricCorrelations: function(logs, analysis, options) {
-    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration', 'hrv'];
     let correlationMatrix = {};
 
     if (options && options.precomputedByIndex && options.metricNames && options.precomputedByIndex.length >= 5) {
@@ -2241,7 +2244,17 @@ const AIEngine = {
         highCalorieDays: dailyNutrition.filter(d => d.calories > 2500).length,
         lowCalorieDays: dailyNutrition.filter(d => d.calories > 0 && d.calories < 1500).length,
         highProteinDays: dailyNutrition.filter(d => d.protein >= 100).length,
-        lowProteinDays: dailyNutrition.filter(d => d.protein > 0 && d.protein < 50).length
+        lowProteinDays: dailyNutrition.filter(d => d.protein > 0 && d.protein < 50).length,
+        dailySeries: dailyNutrition
+      };
+      analysis.macroTrends = {
+        calories: dailyNutrition.map(d => d.calories),
+        protein: dailyNutrition.map(d => d.protein),
+        avgCalories,
+        avgProtein,
+        calorieTrend: dailyNutrition.length >= 3
+          ? (dailyNutrition[dailyNutrition.length - 1].calories > avgCalories ? 'up' : dailyNutrition[dailyNutrition.length - 1].calories < avgCalories ? 'down' : 'stable')
+          : 'stable'
       };
     }
     // Exercise: total minutes per day (from { name, duration } items)
@@ -3091,48 +3104,217 @@ const AIEngine = {
     return insights.join('\n\n');
   },
 
+  analyzeExtendedMetrics: function(logs, analysis, options) {
+    if (!logs || !logs.length || !analysis) return;
+    const opts = options || {};
+    const settings = opts.appSettings || {};
+
+    let taken = 0;
+    let skipped = 0;
+    let missed = 0;
+    const dailyMed = [];
+    logs.forEach(log => {
+      const doses = log.medicationDoses;
+      if (!doses || !Array.isArray(doses) || !doses.length) return;
+      let dayTaken = 0;
+      let daySkipped = 0;
+      let dayMissed = 0;
+      doses.forEach(d => {
+        const st = String((d && (d.status || d.taken)) || '').toLowerCase();
+        if (st === 'taken' || st === 'yes') { taken++; dayTaken++; }
+        else if (st === 'skipped') { skipped++; daySkipped++; }
+        else if (st === 'missed' || st === 'no') { missed++; dayMissed++; }
+      });
+      const total = dayTaken + daySkipped + dayMissed;
+      dailyMed.push({
+        date: log.date,
+        taken: dayTaken,
+        skipped: daySkipped,
+        missed: dayMissed,
+        rate: total ? Math.round((dayTaken / total) * 100) : null
+      });
+    });
+    if (taken + skipped + missed > 0) {
+      analysis.medicationAdherence = {
+        rate: Math.round((taken / (taken + skipped + missed)) * 100),
+        taken,
+        skipped,
+        missed,
+        daysTracked: dailyMed.length,
+        daily: dailyMed
+      };
+    }
+
+    const bristolVals = logs.map(l => parseInt(l.bristol, 10)).filter(v => v >= 1 && v <= 7);
+    if (bristolVals.length >= 1) {
+      const avg = bristolVals.reduce((a, b) => a + b, 0) / bristolVals.length;
+      const recentSlice = bristolVals.slice(-Math.min(3, bristolVals.length));
+      const recentAvg = recentSlice.reduce((a, b) => a + b, 0) / recentSlice.length;
+      let trend = 'stable';
+      if (recentAvg - avg > 0.4) trend = 'increasing';
+      else if (avg - recentAvg > 0.4) trend = 'decreasing';
+      analysis.digestiveAnalysis = {
+        avgType: Math.round(avg * 10) / 10,
+        daysLogged: bristolVals.length,
+        trend,
+        series: bristolVals
+      };
+    }
+
+    const slotBuckets = { am: [], midday: [], pm: [] };
+    logs.forEach(log => {
+      if (!log.subEntries || !Array.isArray(log.subEntries)) return;
+      log.subEntries.forEach(se => {
+        const slotRaw = String((se && (se.slot || se.period || se.timeOfDay)) || '').toLowerCase();
+        let slot = null;
+        if (slotRaw.indexOf('am') >= 0 || slotRaw === 'morning') slot = 'am';
+        else if (slotRaw.indexOf('mid') >= 0) slot = 'midday';
+        else if (slotRaw.indexOf('pm') >= 0 || slotRaw === 'evening' || slotRaw === 'night') slot = 'pm';
+        if (!slot || !slotBuckets[slot]) return;
+        ['fatigue', 'mood', 'jointPain', 'backPain'].forEach(m => {
+          const v = parseInt(se[m], 10);
+          if (!isNaN(v) && v >= 0) slotBuckets[slot].push({ metric: m, value: v });
+        });
+      });
+    });
+    const intradayLines = [];
+    ['fatigue', 'mood', 'jointPain'].forEach(metric => {
+      const amVals = slotBuckets.am.filter(x => x.metric === metric).map(x => x.value);
+      const pmVals = slotBuckets.pm.filter(x => x.metric === metric).map(x => x.value);
+      if (amVals.length >= 2 && pmVals.length >= 2) {
+        const amAvg = amVals.reduce((a, b) => a + b, 0) / amVals.length;
+        const pmAvg = pmVals.reduce((a, b) => a + b, 0) / pmVals.length;
+        const diff = pmAvg - amAvg;
+        if (Math.abs(diff) >= 1) {
+          const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          intradayLines.push(diff > 0
+            ? `${name} tends to be higher in the afternoon than the morning in your check-ins.`
+            : `${name} tends to ease through the day in your check-ins.`);
+        }
+      }
+    });
+    if (intradayLines.length) {
+      analysis.intradayPatterns = { summaryLines: intradayLines.slice(0, 3) };
+    }
+
+    const gratitudeLogs = logs.filter(l => l.gratitude && String(l.gratitude).trim());
+    if (gratitudeLogs.length > 0) {
+      const wordCounts = {};
+      gratitudeLogs.forEach(l => {
+        String(l.gratitude).toLowerCase().replace(/[^\w\s']/g, ' ').split(/\s+/).filter(w => w.length > 3).forEach(w => {
+          wordCounts[w] = (wordCounts[w] || 0) + 1;
+        });
+      });
+      analysis.gratitudeAnalysis = {
+        daysWithGratitude: gratitudeLogs.length,
+        topWords: Object.entries(wordCounts).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([word, count]) => ({ word, count }))
+      };
+    }
+
+    const mh = settings.mentalHealthScreening || settings.lastMentalHealthScreening || settings.mentalHealth;
+    if (mh && (mh.phq != null || mh.gad != null || mh.phq2 != null || mh.gad2 != null || mh.phq9 != null || mh.gad7 != null)) {
+      analysis.mentalHealthAnalysis = {
+        phq: mh.phq != null ? mh.phq : (mh.phq9 != null ? mh.phq9 : mh.phq2),
+        gad: mh.gad != null ? mh.gad : (mh.gad7 != null ? mh.gad7 : mh.gad2),
+        phqMax: mh.phqMax || (mh.phq9 != null ? 27 : 6),
+        gadMax: mh.gadMax || (mh.gad7 != null ? 21 : 6),
+        date: mh.date || mh.completedAt || null,
+        phqSeverity: mh.phqSeverity || mh.phqSeverityI18n || null,
+        gadSeverity: mh.gadSeverity || mh.gadSeverityI18n || null
+      };
+    }
+
+    const exerciseDays = [];
+    logs.forEach(log => {
+      if (!log.exercise || !Array.isArray(log.exercise) || !log.exercise.length) return;
+      const minutes = log.exercise.reduce((sum, item) => {
+        const mins = typeof item === 'object' && item.duration != null ? item.duration : 0;
+        return sum + (typeof mins === 'number' ? mins : parseInt(mins, 10) || 0);
+      }, 0);
+      exerciseDays.push({ date: log.date, minutes, count: log.exercise.length });
+    });
+    if (exerciseDays.length >= 2) analysis.exerciseTimeline = exerciseDays;
+
+    analysis.wellbeingScore = this.computeWellbeingScore(analysis, logs);
+  },
+
+  computeWellbeingScore: function(analysis, logs) {
+    let score = 70;
+    const moodTrend = analysis.trends && analysis.trends.mood;
+    const sleepTrend = analysis.trends && analysis.trends.sleep;
+    if (moodTrend && moodTrend.average) score += (moodTrend.average - 5) * 2.5;
+    if (sleepTrend && sleepTrend.average) score += (sleepTrend.average - 5) * 2;
+    if (analysis.flareUpRisk) {
+      if (analysis.flareUpRisk.level === 'high') score -= 18;
+      else if (analysis.flareUpRisk.level === 'moderate') score -= 9;
+    }
+    Object.keys(analysis.trends || {}).forEach(metric => {
+      const t = analysis.trends[metric];
+      if (!t || !t.statusFromAverage) return;
+      if (t.statusFromAverage === 'improving') score += 1.5;
+      else if (t.statusFromAverage === 'worsening') score -= 2;
+    });
+    if (analysis.medicationAdherence && analysis.medicationAdherence.rate >= 85) score += 4;
+    if (logs && logs.length) {
+      const flareDays = logs.filter(l => l.flare === 'Yes').length;
+      score -= Math.min(12, Math.round((flareDays / logs.length) * 20));
+    }
+    return Math.max(0, Math.min(100, Math.round(score)));
+  },
+
   // Natural language generation: one paragraph suitable for a daily or period summary note
   generateAnalysisNote: function(analysis, options) {
     const opts = options || {};
     const dayCount = opts.dayCount || 7;
     const logs = opts.logs || [];
-    const parts = [];
-    if (analysis.summary && analysis.summary.trim()) {
-      parts.push(analysis.summary.replace(/\*\*([^*]+)\*\*/g, '$1').trim());
+    const rangeLabel = dayCount === 1 ? 'today' : `the last ${dayCount} days`;
+
+    const leadParts = [];
+    if (analysis.wellbeingScore != null) {
+      const band = analysis.wellbeingScore >= 75 ? 'strong' : analysis.wellbeingScore >= 50 ? 'mixed' : 'strained';
+      leadParts.push(`Over ${rangeLabel}, your overall wellbeing score is ${analysis.wellbeingScore} (${band}).`);
     }
-    if (analysis.prioritisedInsights && analysis.prioritisedInsights.length > 0) {
-      const first = analysis.prioritisedInsights[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
-      if (first && !parts[0].includes(first.substring(0, 30))) parts.push(first);
-    }
+
     const improving = [];
     const worsening = [];
     Object.keys(analysis.trends || {}).forEach(metric => {
       const t = analysis.trends[metric];
-      if (!t.regression || t.regression.normalizedSignificance < 0.5) return;
+      if (!t || !t.statusFromAverage) return;
       const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-      if (t.regression.direction === 'improving') improving.push(name);
-      else if (t.regression.direction === 'worsening') worsening.push(name);
+      if (t.statusFromAverage === 'improving') improving.push(name);
+      else if (t.statusFromAverage === 'worsening' && worsening.length < 2) worsening.push(name);
     });
-    if (improving.length > 0 || worsening.length > 0) {
-      const trendSentence = [];
-      if (improving.length > 0) trendSentence.push(improving.join(', ') + (improving.length === 1 ? ' is' : ' are') + ' improving');
-      if (worsening.length > 0) trendSentence.push(worsening.join(', ') + (worsening.length === 1 ? ' is' : ' are') + ' trending worse');
-      if (trendSentence.length > 0 && !parts.some(p => p.includes('improving') || p.includes('trending'))) {
-        parts.push(trendSentence.join('; ') + '.');
-      }
+    if (worsening.length > 0) {
+      leadParts.push(`${worsening[0]} needs attention — track it daily and note what changed on harder days.`);
+    } else if (improving.length > 0) {
+      leadParts.push(`${improving.slice(0, 2).join(' and ')} ${improving.length === 1 ? 'is' : 'are'} trending in a good direction — keep what is working.`);
+    } else if (analysis.flareUpRisk && analysis.flareUpRisk.level === 'high') {
+      leadParts.push('Several flare warning signs showed up — prioritise rest and reach out to your care team if symptoms concern you.');
+    } else if (analysis.prioritisedInsights && analysis.prioritisedInsights.length > 0) {
+      leadParts.push(analysis.prioritisedInsights[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim());
+    } else if (analysis.summary && analysis.summary.trim()) {
+      leadParts.push(analysis.summary.replace(/\*\*([^*]+)\*\*/g, '$1').trim());
     }
-    const flareCount = logs.filter(l => l.flare === 'Yes').length;
-    if (flareCount > 0 && dayCount >= 1) {
-      const pct = Math.round(flareCount / dayCount * 100);
-      parts.push(`You logged ${flareCount} flare ${flareCount === 1 ? 'day' : 'days'} (${pct}% of the period).`);
-    }
+
+    const actionParts = [];
     if (analysis.advice && analysis.advice.length > 0) {
-      const firstAdvice = analysis.advice[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
-      if (firstAdvice.length < 120 && !parts.some(p => p.indexOf(firstAdvice.substring(0, 40)) >= 0)) {
-        parts.push(firstAdvice);
-      }
+      const tip = analysis.advice[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+      if (tip.length < 140) actionParts.push(tip);
     }
-    return parts.length ? parts.slice(0, 4).join(' ') : 'Review your trends and patterns in the app for insights.';
+    if (!actionParts.length && sleepTrendAvailable(analysis)) {
+      actionParts.push('Aim for a consistent sleep window tonight and log how you feel tomorrow morning.');
+    } else if (!actionParts.length && analysis.macroTrends && analysis.macroTrends.avgProtein) {
+      actionParts.push(`Try hitting your protein target (${analysis.macroTrends.avgProtein}g average) on days you exercise.`);
+    } else if (!actionParts.length) {
+      actionParts.push('Keep logging daily so patterns stay clear over the next week.');
+    }
+
+    function sleepTrendAvailable(a) {
+      return a.trends && a.trends.sleep && a.trends.sleep.statusFromAverage === 'worsening';
+    }
+
+    const sentences = [...leadParts.slice(0, 2), ...actionParts.slice(0, 1)];
+    return sentences.filter(Boolean).join(' ') || 'Keep logging daily — your next insight appears as more entries build up.';
   },
 
   // Suggest a short note for a single log based on how today compares to recent baseline

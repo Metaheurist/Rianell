@@ -137,10 +137,8 @@
       pack,
       plain ? 'summary.system.plain' : 'summary.system',
       plain
-        ? 'You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text.'
-        : 'You summarise health tracking data for the patient in exactly 2 short sentences. '
-            + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
-            + 'Reply with only the summary text.'
+        ? 'You write a coaching summary from health tracking data in 2-3 short sentences (plain B1 English). Lead with the single most important finding from the data. Reference the time range when provided. End with one concrete, actionable suggestion tied to a tracked metric. Use active voice. No medical disclaimers. Reply with only the summary text.'
+        : 'You write a coaching summary from health tracking data in 2-3 short sentences. Lead with the single most important finding. Reference the user\'s actual date range when provided (e.g. "Over the last 30 days…"). End with one concrete suggestion tied to a specific tracked metric. Use active voice — never passive. Do not include medical disclaimers or diagnosis language. Be specific, warm, and actionable like a wellness coach. Reply with only the summary text.'
     ), pack);
     return { system: system, user: 'Data: ' + context };
   }

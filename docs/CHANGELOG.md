@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.133.1** - Plans 15–26 rollout: i18n Tier A coverage gate, chart loading keys, duplicate plan docs removed.
+**Latest: v1.134.0** - AI Analysis tab overhaul: five-chapter layout, wellbeing score, extended engine inputs, skeleton loading.
+
+### v1.134.0 - 2026-06-26 - AI Analysis tab overhaul (PWA)
+- **PWA:** AI Analysis restructured into five chapters (Overview, Trends & vitals, Lifestyle, Mind & mood, Body & pain) with wellbeing score ring, coaching insight card, sparklines, skeleton loading, and custom SVG icons.
+- **AIEngine:** HRV trends, medication adherence, Bristol/gut, intraday patterns, macro trends, gratitude analysis, wellbeing score; coaching-style summary note.
+- **i18n:** New `ai.chapter.*`, `ai.wellbeing.*`, `ai.medication.*`, and related keys (en-GB/en-US canonical; synced to PWA/RN).
+- **Prompts:** Summary LLM system prompt updated to Oura-style coaching voice (lead finding → range → actionable suggestion).
+- **Privacy:** `share_links` table added to `docs/privacy/ropa.json` (PA-13).
 
 ### v1.133.1 - 2026-06-26 - Plans 15–26 rollout hygiene
 - **i18n:** Tier A locale packs translated for Plan 15–26 keys; `verify:i18n` passes at 13% identical threshold.

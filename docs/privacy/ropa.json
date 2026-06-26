@@ -9,7 +9,7 @@
     "uk_establishment": false,
     "dpo_appointed": false
   },
-  "last_updated": "2026-06-13",
+  "last_updated": "2026-06-26",
   "next_review": "2026-12-01",
   "related_documents": [
     "docs/privacy/global-baseline.md",
@@ -403,6 +403,42 @@
       "supabase_tables": ["csp_violations", "community_tips", "community_triggers"],
       "international_transfers": true,
       "data_subject_rights": ["access", "erasure", "object"]
+    },
+    {
+      "id": "PA-13",
+      "name": "Password-protected read-only share links",
+      "description": "User-generated encrypted snapshots of log data shared via short code and optional password; stored in share_links until expiry or access limit.",
+      "purposes": ["Caregiver or clinician handoff", "Read-only data sharing"],
+      "legal_basis_art6": "consent_6_1_a",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": [
+        "encrypted_share_blob",
+        "share_code",
+        "expiry_metadata",
+        "access_count"
+      ],
+      "data_subjects": ["users_creating_links", "link_recipients"],
+      "special_category": true,
+      "recipients": ["supabase_postgres"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "database_hosting",
+          "dpa": "standard_terms",
+          "reference": "docs/privacy/subprocessors.md"
+        }
+      ],
+      "storage_locations": ["supabase_region_operator_selected"],
+      "retention": "Until expires_at, max_accesses reached, or creator erasure",
+      "security_measures": [
+        "client_side_encryption_pbkdf2",
+        "password_optional",
+        "expiry_and_access_limits",
+        "rls_anon_insert_select"
+      ],
+      "supabase_tables": ["share_links"],
+      "international_transfers": true,
+      "data_subject_rights": ["access", "erasure", "withdraw_consent"]
     }
   ],
   "technical_and_organisational_measures": {

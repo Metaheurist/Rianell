@@ -3393,13 +3393,13 @@ function escapeHTML(str) {
 
 function svgIcon(name, className, title) {
   var KNOWN_SVG_ICONS = new Set([
-    'accessibility', 'activity', 'android', 'apple', 'balance', 'bandage', 'brain', 'bundle',
-    'calendar', 'chart-bars', 'chart-down', 'chart-up', 'check', 'checkin-am', 'checkin-midday',
+    'accessibility', 'activity', 'android', 'apple', 'balance', 'bandage', 'brain', 'brain-wave', 'bundle',
+    'calendar', 'calendar-heatmap', 'chart-bars', 'chart-down', 'chart-up', 'check', 'checkin-am', 'checkin-midday',
     'checkin-pm', 'cloud', 'cloud-up', 'cycle', 'cycle-follicular', 'cycle-luteal',
-    'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'globe',
-    'import-arrow', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal', 'notice',
-    'palette', 'pill', 'plus', 'qr', 'run', 'save', 'share', 'sleep', 'star', 'stethoscope',
-    'stress', 'target', 'trash', 'user', 'zap',
+    'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
+    'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal', 'notice',
+    'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring',
+    'star', 'stethoscope', 'stress', 'stressor-bolt', 'target', 'trash', 'user', 'zap',
     'weather-aqi-good', 'weather-aqi-moderate', 'weather-aqi-poor',
     'weather-clear', 'weather-cloudy', 'weather-fog', 'weather-partly-cloudy',
     'weather-pressure', 'weather-pressure-high', 'weather-pressure-low',
@@ -7627,13 +7627,7 @@ async function generateAISummary() {
   }
 
   // Show loading state in results area only (so user sees progress and avoids perceived lag)
-  resultsContent.innerHTML = `
-    <div class="ai-loading-state">
-      <div class="ai-loading-icon">${svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis')}</div>
-      <p class="ai-loading-text">${tUi('ai.loading.analyzing')}</p>
-      <p class="ai-loading-subtext">${sortedLogs.length} days (${escapeHTML(dateRangeText)})</p>
-    </div>
-  `;
+  resultsContent.innerHTML = renderAISkeletonLoading(dateRangeText, sortedLogs.length);
 
   // Allow the loading UI to paint before starting heavy analysis
   await new Promise(function(r) {
@@ -7858,7 +7852,7 @@ function scheduleAIPreload() {
 
 // Update the Summary note paragraph with in-browser LLM result when available (runs after displayAISummary).
 async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
-  var el = document.getElementById('aiSummaryNoteText');
+  var el = document.getElementById('aiInsightCardText') || document.getElementById('aiSummaryNoteText');
   if (!el || !analysis) return;
   var fallbackNote = '';
   if (window.AIEngine && typeof window.AIEngine.generateAnalysisNote === 'function') {
@@ -7899,7 +7893,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
   Promise.race([llmPromise, timeoutPromise])
     .then(function (text) {
       if (window.__aiSummaryNoteReqId !== reqId) return;
-      var target = document.getElementById('aiSummaryNoteText');
+      var target = document.getElementById('aiInsightCardText') || document.getElementById('aiSummaryNoteText');
       if (!target) return;
       if (text && text.trim()) {
         target.textContent = text.trim();
@@ -7909,7 +7903,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     })
     .catch(function () {
       if (window.__aiSummaryNoteReqId !== reqId) return;
-      var target = document.getElementById('aiSummaryNoteText');
+      var target = document.getElementById('aiInsightCardText') || document.getElementById('aiSummaryNoteText');
       if (target) target.textContent = fallbackText;
     });
 }
@@ -8722,6 +8716,238 @@ function escapeAttr(text) {
     .replace(/>/g, '&gt;');
 }
 
+function renderAISkeletonLoading(dateRangeText, dayCount) {
+  var chapters = [
+    { cls: 'overview', pills: 4 },
+    { cls: 'trends', pills: 2 },
+    { cls: 'lifestyle', pills: 2 },
+    { cls: 'mind', pills: 2 },
+    { cls: 'body', pills: 2 }
+  ];
+  var html = '<div class="ai-skeleton-loading" role="status" aria-live="polite" aria-label="' + escapeAttr(tUi('ai.skeleton.loadingAria')) + '">';
+  html += '<p class="ai-loading-text">' + escapeHTML(tUi('ai.loading.analyzing')) + '</p>';
+  if (dateRangeText) {
+    html += '<p class="ai-loading-subtext">' + (dayCount || 0) + ' days (' + escapeHTML(dateRangeText) + ')</p>';
+  }
+  chapters.forEach(function(ch) {
+    html += '<div class="ai-skeleton-chapter ai-skeleton-chapter--' + ch.cls + '">';
+    if (ch.cls === 'overview') html += '<div class="ai-skeleton-ring" aria-hidden="true"></div>';
+    html += '<div class="ai-skeleton-line ai-skeleton-line--title" aria-hidden="true"></div>';
+    html += '<div class="ai-skeleton-line ai-skeleton-line--wide" aria-hidden="true"></div>';
+    html += '<div class="ai-skeleton-line ai-skeleton-line--medium" aria-hidden="true"></div>';
+    html += '<div class="ai-skeleton-grid" aria-hidden="true">';
+    for (var i = 0; i < ch.pills; i++) html += '<div class="ai-skeleton-pill"></div>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function buildAISparklineSvg(values, options) {
+  options = options || {};
+  var nums = (values || []).filter(function(v) { return typeof v === 'number' && !isNaN(v); });
+  if (nums.length < 2) return '';
+  var w = options.width || 120;
+  var h = options.height || 28;
+  var pad = 2;
+  var min = Math.min.apply(null, nums);
+  var max = Math.max.apply(null, nums);
+  var range = max - min || 1;
+  var step = (w - pad * 2) / (nums.length - 1);
+  var pts = nums.map(function(v, i) {
+    var x = pad + i * step;
+    var y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+  var drawClass = options.animate !== false ? ' ai-sparkline__line--draw' : '';
+  return '<svg class="ai-sparkline" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">' +
+    '<polyline class="ai-sparkline__line' + drawClass + '" points="' + pts + '"/></svg>';
+}
+
+function getAIMetricSparkSeries(logs, metric) {
+  if (!logs || !logs.length) return [];
+  return logs.map(function(log) {
+    if (metric === 'weight') return parseFloat(log[metric]);
+    return parseInt(log[metric], 10);
+  }).filter(function(v) { return !isNaN(v) && v > 0; });
+}
+
+function renderWellbeingScoreRing(score, reduceMotion) {
+  var s = Math.max(0, Math.min(100, score || 0));
+  var r = 54;
+  var c = 2 * Math.PI * r;
+  var offset = c * (1 - s / 100);
+  var arcClass = reduceMotion ? '' : ' ai-wellbeing-ring__arc--draw';
+  var color = s >= 75 ? 'var(--ai-status-optimal)' : s >= 50 ? 'var(--ai-status-caution)' : 'var(--ai-status-alert)';
+  return '<div class="ai-wellbeing-ring-wrap" role="img" aria-label="' + escapeAttr(tUi('ai.wellbeing.scoreAria', { score: String(s) })) + '">' +
+    '<svg class="ai-wellbeing-ring" viewBox="0 0 120 120" aria-hidden="true">' +
+    '<circle class="ai-wellbeing-ring__track" cx="60" cy="60" r="' + r + '"/>' +
+    '<circle class="ai-wellbeing-ring__arc' + arcClass + '" cx="60" cy="60" r="' + r + '" ' +
+    'stroke="' + color + '" stroke-dasharray="' + c.toFixed(2) + '" stroke-dashoffset="' + (reduceMotion ? offset : c).toFixed(2) + '" ' +
+    'style="--ai-ring-circumference:' + c.toFixed(2) + ';--ai-ring-offset:' + offset.toFixed(2) + '"/>' +
+    '</svg>' +
+    '<div class="ai-wellbeing-ring__score">' +
+    '<span class="ai-wellbeing-ring__value ai-count-up" data-count-target="' + s + '">0</span>' +
+    '<span class="ai-wellbeing-ring__label">' + escapeHTML(tUi('ai.wellbeing.label')) + '</span>' +
+    '</div></div>';
+}
+
+function renderFlareArcGauge(flareUpRisk) {
+  if (!flareUpRisk) return '';
+  var matchCount = flareUpRisk.matchingMetrics || 0;
+  var level = flareUpRisk.level || 'low';
+  var color = level === 'high' ? 'var(--ai-status-alert)' : level === 'moderate' ? 'var(--ai-status-caution)' : 'var(--ai-status-optimal)';
+  var pct = matchCount / 5;
+  var r = 50;
+  var c = Math.PI * r;
+  var offset = c * (1 - pct);
+  return '<div class="ai-flare-arc-gauge">' +
+    svgIcon('gauge', 'ai-inline-icon', tUi('ai.section.flareUp')) +
+    '<svg class="ai-flare-arc-gauge__svg" viewBox="0 0 120 70" aria-hidden="true">' +
+    '<path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="8" stroke-linecap="round"/>' +
+    '<path d="M10 60 A50 50 0 0 1 110 60" fill="none" stroke="' + color + '" stroke-width="8" stroke-linecap="round" ' +
+    'stroke-dasharray="' + c.toFixed(2) + '" stroke-dashoffset="' + offset.toFixed(2) + '"/>' +
+    '</svg>' +
+    '<div class="ai-flare-arc-gauge__label" style="color:' + color + '">' + escapeHTML(level) + ' · ' + matchCount + '/5</div>' +
+    '</div>';
+}
+
+function renderMedicationHeatmap(adherence) {
+  if (!adherence || !adherence.daily || !adherence.daily.length) return '';
+  var cells = adherence.daily.map(function(d) {
+    var cls = 'ai-med-heatmap__cell';
+    if (d.rate == null) cls += '';
+    else if (d.rate >= 100) cls += ' ai-med-heatmap__cell--taken';
+    else if (d.rate >= 50) cls += ' ai-med-heatmap__cell--partial';
+    else cls += ' ai-med-heatmap__cell--missed';
+    return '<span class="' + cls + '" title="' + escapeAttr(d.date + ': ' + (d.rate != null ? d.rate + '%' : '—')) + '" aria-hidden="true"></span>';
+  }).join('');
+  return '<div class="ai-med-heatmap" role="img" aria-label="' + escapeAttr(tUi('ai.medication.heatmapAria', { rate: String(adherence.rate) })) + '">' + cells + '</div>';
+}
+
+function renderStressorWheel(stressorAnalysis) {
+  if (!stressorAnalysis || !stressorAnalysis.topStressors || !stressorAnalysis.topStressors.length) return '';
+  var freq = stressorAnalysis.frequency || {};
+  return '<div class="ai-stressor-wheel" role="list">' +
+    stressorAnalysis.topStressors.slice(0, 6).map(function(name) {
+      var count = freq[name] || '';
+      return '<span class="ai-stressor-chip" role="listitem">' + svgIcon('stressor-bolt', 'ai-inline-icon') +
+        escapeHTML(String(name)) +
+        (count ? ' <span class="ai-stressor-chip__count">' + count + '</span>' : '') +
+        '</span>';
+    }).join('') +
+    '</div>';
+}
+
+function wrapAIChapter(chapterId, titleKey, iconName, innerHtml, chapterDelay) {
+  return '<div class="ai-chapter ai-chapter--' + chapterId + ' ai-summary-section ai-timeline-snap ai-animate-in" style="--ai-chapter-delay:' + (chapterDelay || 0) + 'ms;animation-delay:' + (chapterDelay || 0) + 'ms;">' +
+    '<h3 class="ai-chapter-header" id="ai-chapter-' + chapterId + '">' + svgIcon(iconName, 'ai-inline-icon', tUi(titleKey)) + ' ' + escapeHTML(tUi(titleKey)) + '</h3>' +
+    innerHtml +
+    '</div>';
+}
+
+function formatAITrendValueDisplay(metric, trend) {
+  var isBPM = metric === 'bpm';
+  var isHRV = metric === 'hrv';
+  var isWeight = metric === 'weight';
+  var isSteps = metric === 'steps';
+  var isHydration = metric === 'hydration';
+  var averageDisplay, currentDisplay, predictedDisplay = '';
+  if (isBPM || isHRV) {
+    averageDisplay = Math.round(trend.average).toString() + (isHRV ? ' ms' : '');
+    currentDisplay = Math.round(trend.current).toString() + (isHRV ? ' ms' : '');
+    if (trend.projected7Days != null) predictedDisplay = Math.round(trend.projected7Days).toString() + (isHRV ? ' ms' : '');
+  } else if (isWeight) {
+    var weightUnit = appSettings.weightUnit || 'kg';
+    var suffix = weightUnit === 'lb' ? 'lb' : 'kg';
+    var avgW = trend.average;
+    var curW = trend.current;
+    var predW = trend.projected7Days;
+    if (weightUnit === 'lb') {
+      avgW = parseFloat(kgToLb(avgW));
+      curW = parseFloat(kgToLb(curW));
+      if (predW != null) predW = parseFloat(kgToLb(predW));
+    }
+    averageDisplay = avgW.toFixed(1) + suffix;
+    currentDisplay = curW.toFixed(1) + suffix;
+    if (predW != null) predictedDisplay = predW.toFixed(1) + suffix;
+  } else if (isSteps) {
+    averageDisplay = Math.round(trend.average).toLocaleString();
+    currentDisplay = Math.round(trend.current).toLocaleString();
+    if (trend.projected7Days != null) predictedDisplay = Math.round(trend.projected7Days).toLocaleString();
+  } else if (isHydration) {
+    averageDisplay = trend.average.toFixed(1) + ' glasses';
+    currentDisplay = trend.current.toFixed(1) + ' glasses';
+    if (trend.projected7Days != null) predictedDisplay = trend.projected7Days.toFixed(1) + ' glasses';
+  } else {
+    averageDisplay = Math.round(trend.average) + '/10';
+    currentDisplay = Math.round(trend.current) + '/10';
+    if (trend.projected7Days != null) predictedDisplay = Math.round(trend.projected7Days) + '/10';
+  }
+  return { averageDisplay: averageDisplay, currentDisplay: currentDisplay, predictedDisplay: predictedDisplay };
+}
+
+function renderAITrendCardHtml(metric, trend, index, animationDelay) {
+  var currentStatus = trend.statusFromAverage || 'stable';
+  var predictedStatus = trend.predictedStatus || 'stable';
+  var trendIcon, trendColor;
+  if (currentStatus === 'improving') {
+    trendIcon = svgIcon('chart-up', 'ai-inline-icon icon-success', 'Improving');
+    trendColor = getThemePrimaryColor();
+  } else if (currentStatus === 'worsening') {
+    trendIcon = svgIcon('chart-down', 'ai-inline-icon icon-danger', 'Declining');
+    trendColor = '#f44336';
+  } else {
+    trendIcon = svgIcon('chart-bars', 'ai-inline-icon icon-muted', 'Stable');
+    trendColor = '#e91e63';
+  }
+  var predictedColor = predictedStatus === 'improving' ? getThemePrimaryColor() : predictedStatus === 'worsening' ? '#f44336' : '#e91e63';
+  var metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  var vals = formatAITrendValueDisplay(metric, trend);
+  var trendDescription = currentStatus === 'improving' ? tUi('ai.trend.gettingBetter') : currentStatus === 'worsening' ? tUi('ai.trend.gettingWorse') : tUi('ai.trend.stable');
+  var statusKey = currentStatus === 'improving' ? 'improving' : currentStatus === 'worsening' ? 'worsening' : 'stable';
+  var spark = buildAISparklineSvg(trend.recentSeries || [], { width: 100, height: 24 });
+  return '<div class="ai-trend-card ai-trend-card--metric ai-animate-in ai-trend-status--' + statusKey + '" style="border-left-color:' + trendColor + ';animation-delay:' + (animationDelay + index * 80) + 'ms;" role="listitem">' +
+    '<div class="ai-trend-card-inner">' +
+    '<div class="ai-trend-header"><strong><span aria-hidden="true">' + trendIcon + '</span> ' + metricName + '</strong>' +
+    '<span class="ai-trend-status-chip ai-trend-status-chip--' + statusKey + '">' + escapeHTML(trendDescription) + '</span></div>' +
+    (spark ? spark : '') +
+    '<div class="ai-trend-values">' +
+    '<div class="ai-trend-value"><span class="ai-trend-value-label">' + tUi('common.typical') + '</span><strong style="color:' + trendColor + ';">' + vals.averageDisplay + '</strong></div>' +
+    '<div class="ai-trend-value"><span class="ai-trend-value-label">' + tUi('common.latest') + '</span><strong style="color:' + trendColor + ';">' + vals.currentDisplay + '</strong></div>' +
+    (vals.predictedDisplay ? '<div class="ai-trend-value"><span class="ai-trend-value-label">' + tUi('common.outlook') + '</span><strong style="color:' + predictedColor + ';">' + vals.predictedDisplay + '</strong></div>' : '') +
+    '</div></div></div>';
+}
+
+function initAIChapterAnimations(container) {
+  if (!container || container.classList.contains('reduce-motion')) return;
+  var counters = container.querySelectorAll('.ai-count-up[data-count-target]');
+  counters.forEach(function(el) {
+    var target = parseInt(el.getAttribute('data-count-target'), 10);
+    if (isNaN(target)) return;
+    var start = 0;
+    var dur = 600;
+    var t0 = performance.now();
+    function tick(now) {
+      var p = Math.min(1, (now - t0) / dur);
+      el.textContent = Math.round(start + (target - start) * p);
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+  if (typeof IntersectionObserver === 'undefined') return;
+  var sparks = container.querySelectorAll('.ai-sparkline__line--draw');
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.style.strokeDashoffset = '0';
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  sparks.forEach(function(line) { obs.observe(line); });
+}
+
 /**
  * Short plain-language bullets for non-technical users (shown above dense analysis).
  */
@@ -8795,15 +9021,12 @@ function buildAIAnalysisAtAGlance(analysis, logs, dayCount) {
 
 function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateRangeText = '') {
   const resultsContent = document.getElementById('aiResultsContent');
-  
   if (!resultsContent) {
     Logger.error('AI results content element not found');
     return;
   }
 
-  // Store analysis data for radar chart access
   currentAIAnalysis = analysis;
-  // Store filtered logs for average calculation (logs parameter contains the filtered logs for the selected range)
   currentAIFilteredLogs = logs;
 
   var optProfile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
@@ -8811,727 +9034,238 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   var reduceUIAnimations = !!(optProfile && optProfile.reduceUIAnimations) || !!(deviceOpts.reduceAnimations);
   if (reduceUIAnimations) resultsContent.classList.add('reduce-motion'); else resultsContent.classList.remove('reduce-motion');
   var animStep = reduceUIAnimations ? 0 : 1;
+  var chapterDelay = 0;
+  var chapterStep = reduceUIAnimations ? 0 : 80;
 
-  // Build the summary HTML with animation classes (delays zeroed on low/reduced-motion)
-  let html = '';
-  let animationDelay = 0;
+  Object.keys(analysis.trends || {}).forEach(function(metric) {
+    var logKey = metric;
+    analysis.trends[metric].recentSeries = getAIMetricSparkSeries(logs, logKey);
+  });
 
-  // Top-level results heading for the date range
+  var html = '';
   if (dateRangeText) {
-    html += `<h2 class="ai-results-heading" id="ai-results-main-heading">Analysis for ${escapeHTML(dateRangeText)}</h2>`;
+    html += '<h2 class="ai-results-heading" id="ai-results-main-heading">' + escapeHTML(tUi('ai.analysisFor', { range: dateRangeText })) + '</h2>';
   }
 
-  html += buildAIAnalysisAtAGlance(analysis, logs, dayCount);
-
-  // AI Insights Section (from enhanced local analysis)
-  let insightsText = webLLMInsights;
-  
-  // If no LLM insights, use enhanced local analysis
-  if (!insightsText) {
-    insightsText = generateComprehensiveInsights(analysis, logs, dayCount);
-  }
-  
-  if (insightsText) {
-    html += `
-      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <section class="ai-synopsis-section" aria-labelledby="ai-heading-found">
-        <h3 class="ai-section-title" id="ai-heading-found">${svgIcon('brain', 'ai-inline-icon', tUi('ai.section.whatWeFound'))} ${tUi('ai.section.whatWeFound')}</h3>
-        <p class="ai-section-intro">Patterns described in everyday language. Numbers in highlights come from your own entries. This screen supports self-care - it does not replace medical advice.</p>
-        <div class="ai-llm-synopsis" role="region" aria-label="${tUi('common.detailed.written.findings')}">
-          ${insightsText.split('\n\n').map(para => {
-            const trimmed = para.trim();
-            if (!trimmed) return '';
-            // Escape HTML first, then format markdown-style bold text and highlight figures in brackets
-            const escaped = escapeHTML(trimmed);
-            let formatted = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            formatted = formatted.replace(/\(([^)]+)\)/g, '<span class="ai-brackets-highlight">($1)</span>');
-            // Format bullet points
-            if (trimmed.startsWith('- ')) {
-              formatted = formatted.substring(2);
-              return `<p class="ai-bullet-point">• ${formatted}</p>`;
-            }
-            // Format section headers (lines that end with colon and are short)
-            if (trimmed.endsWith(':') && trimmed.length < 50) {
-              return `<h4 class="ai-subsection-title">${formatted}</h4>`;
-            }
-            return `<p>${formatted}</p>`;
-          }).join('')}
-        </div>
-        </section>
-      </div>
-  `;
-    animationDelay += 200 * animStep;
-  }
-
-  // Natural language summary note (copyable). Rule-based note shown first; in-browser LLM may replace it.
-  var summaryNoteSectionId = 'aiSummaryNoteSection';
-  var summaryNoteTextId = 'aiSummaryNoteText';
+  // —— Chapter 1: Overview ——
+  var overviewInner = '';
+  var wellbeingScore = analysis.wellbeingScore != null ? analysis.wellbeingScore : 0;
+  var insightText = '';
   if (window.AIEngine && typeof window.AIEngine.generateAnalysisNote === 'function') {
-    try {
-      const noteText = window.AIEngine.generateAnalysisNote(analysis, { dayCount: dayCount || logs.length, logs: logs });
-      if (noteText && noteText.trim()) {
-        html += `
-      <div class="ai-summary-section ai-animate-in" id="${summaryNoteSectionId}" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" id="ai-heading-summary-note">${svgIcon('edit', 'ai-inline-icon', tUi('ai.section.summaryNote'))} ${tUi('ai.section.summaryNote')}</h3>
-        <p class="ai-section-intro">${tUi('common.a.short.line.you.can.copy.for.yourself.o')}</p>
-        <p class="ai-generated-note" id="${summaryNoteTextId}">${escapeHTML(noteText.trim())}</p>
-        <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="${tUi('common.copy.summary.note.to.clipboard')}" aria-label="${tUi('common.copy.summary.note.to.clipboard')}">${tUi('ai.action.copyNote')}</button>
-      </div>`;
-        animationDelay += 200 * animStep;
-      }
-    } catch (e) { /* ignore */ }
+    try { insightText = window.AIEngine.generateAnalysisNote(analysis, { dayCount: dayCount || logs.length, logs: logs }); } catch (e) {}
   }
+  if (!insightText && webLLMInsights) insightText = webLLMInsights;
+  if (!insightText) insightText = generateComprehensiveInsights(analysis, logs, dayCount);
 
-  // Data in this period - show which data points were logged (all feed into analysis)
-  const numericMetricLabels = { bpm: 'BPM', weight: 'Weight', fatigue: 'Fatigue', stiffness: 'Stiffness', backPain: 'Back Pain', sleep: 'Sleep', jointPain: 'Joint Pain', mobility: 'Mobility', dailyFunction: 'Daily Function', swelling: 'Swelling', mood: 'Mood', irritability: 'Irritability', weatherSensitivity: 'Weather Sensitivity', steps: 'Steps', hydration: 'Hydration' };
-  const numericWithData = Object.keys(analysis.trends || {}).filter(m => analysis.trends[m]);
-  const daysFlare = logs.filter(l => l.flare === 'Yes').length;
-  const daysFood = logs.filter(l => {
+  overviewInner += '<div class="ai-hero-row">';
+  overviewInner += renderWellbeingScoreRing(wellbeingScore, reduceUIAnimations);
+  overviewInner += '<div class="ai-insight-card" id="aiInsightCard">';
+  overviewInner += '<p class="ai-insight-card__title">' + svgIcon('brain-wave', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.insight.title')) + '</p>';
+  overviewInner += '<p class="ai-insight-card__text" id="aiInsightCardText">' + escapeHTML(String(insightText || '').split('\n\n')[0].replace(/\*\*/g, '')) + '</p>';
+  overviewInner += '<button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote===\'function\'&&copyAIGeneratedNote(this)" aria-label="' + escapeAttr(tUi('ai.action.copyNote')) + '">' + escapeHTML(tUi('ai.action.copyNote')) + '</button>';
+  overviewInner += '</div></div>';
+
+  var moodTrend = analysis.trends && analysis.trends.mood;
+  var sleepTrend = analysis.trends && analysis.trends.sleep;
+  var flareLevel = analysis.flareUpRisk ? analysis.flareUpRisk.level : 'low';
+  var daysSymptoms = logs.filter(function(l) { return l.symptoms && Array.isArray(l.symptoms) && l.symptoms.length > 0; }).length;
+  var quickStats = [
+    { labelKey: 'ai.quick.flareRisk', value: flareLevel, spark: null, delta: analysis.flareUpRisk ? analysis.flareUpRisk.matchingMetrics + '/5' : '—' },
+    { labelKey: 'ai.quick.mood', value: moodTrend ? Math.round(moodTrend.average) + '/10' : '—', spark: moodTrend ? moodTrend.recentSeries : [], delta: moodTrend && moodTrend.statusFromAverage === 'improving' ? '↑' : moodTrend && moodTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
+    { labelKey: 'ai.quick.sleep', value: sleepTrend ? Math.round(sleepTrend.average) + '/10' : '—', spark: sleepTrend ? sleepTrend.recentSeries : [], delta: sleepTrend && sleepTrend.statusFromAverage === 'improving' ? '↑' : sleepTrend && sleepTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
+    { labelKey: 'ai.stats.symptoms', value: daysSymptoms || '—', spark: getAIMetricSparkSeries(logs, 'fatigue'), delta: '' }
+  ];
+  overviewInner += '<div class="ai-quick-stats" role="list">';
+  quickStats.forEach(function(q) {
+    var deltaCls = q.delta === '↑' ? 'ai-quick-stat__delta--up' : q.delta === '↓' ? 'ai-quick-stat__delta--down' : 'ai-quick-stat__delta--flat';
+    overviewInner += '<div class="ai-quick-stat" role="listitem"><div class="ai-quick-stat__head"><span class="ai-quick-stat__label">' + escapeHTML(tUi(q.labelKey)) + '</span>';
+    if (q.delta) overviewInner += '<span class="ai-quick-stat__delta ' + deltaCls + '" aria-hidden="true">' + escapeHTML(String(q.delta)) + '</span>';
+    overviewInner += '</div><span class="ai-quick-stat__value">' + escapeHTML(String(q.value)) + '</span>';
+    if (q.spark && q.spark.length >= 2) overviewInner += buildAISparklineSvg(q.spark, { width: 110, height: 26, animate: !reduceUIAnimations });
+    overviewInner += '</div>';
+  });
+  overviewInner += '</div>';
+  overviewInner += buildAIAnalysisAtAGlance(analysis, logs, dayCount);
+  html += wrapAIChapter('overview', 'ai.chapter.overview', 'sparkle-ring', overviewInner, chapterDelay);
+  chapterDelay += chapterStep;
+
+  // —— Chapter 2: Trends & Vitals ——
+  var trendsInner = '<p class="ai-section-intro">' + escapeHTML(tUi('ai.chapter.trendsIntro')) + '</p>';
+  trendsInner += '<div class="ai-trends-grid" role="list">';
+  Object.keys(analysis.trends || {}).forEach(function(metric, index) {
+    trendsInner += renderAITrendCardHtml(metric, analysis.trends[metric], index, chapterDelay);
+  });
+  trendsInner += '</div>';
+  if (analysis.flareUpRisk) {
+    trendsInner += '<div class="ai-summary-section ai-section-warning" style="margin-top:1rem;">';
+    trendsInner += '<h4 class="ai-section-title" id="ai-heading-flare">' + svgIcon('gauge', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.section.flareUp')) + '</h4>';
+    trendsInner += renderFlareArcGauge(analysis.flareUpRisk);
+    trendsInner += '<p class="ai-flare-hint">' + escapeHTML(tUi('ai.flare.hint')) + '</p></div>';
+  }
+  if (analysis.anomalies && analysis.anomalies.length > 0) {
+    trendsInner += '<div class="ai-summary-section ai-section-warning" style="margin-top:1rem;"><h4 class="ai-section-title ai-section-orange">' + svgIcon('notice', 'ai-inline-icon icon-warning') + ' ' + escapeHTML(tUi('ai.section.thingsToWatch')) + '</h4><ul class="ai-list ai-list-warning">';
+    analysis.anomalies.forEach(function(anomaly) { trendsInner += '<li>' + formatAnomalyLine(anomaly) + '</li>'; });
+    trendsInner += '</ul></div>';
+  }
+  html += wrapAIChapter('trends', 'ai.chapter.trends', 'heart-pulse', trendsInner, chapterDelay);
+  chapterDelay += chapterStep;
+
+  // —— Chapter 3: Lifestyle ——
+  var lifeInner = '';
+  var numericWithData = Object.keys(analysis.trends || {}).filter(function(m) { return analysis.trends[m]; });
+  var daysFlare = logs.filter(function(l) { return l.flare === 'Yes'; }).length;
+  var daysFood = logs.filter(function(l) {
     if (!l.food) return false;
-    const arr = Array.isArray(l.food) ? l.food : [].concat(l.food.breakfast || [], l.food.lunch || [], l.food.dinner || [], l.food.snack || []);
+    var arr = Array.isArray(l.food) ? l.food : [].concat(l.food.breakfast || [], l.food.lunch || [], l.food.dinner || [], l.food.snack || []);
     return arr.length > 0;
   }).length;
-  const daysExercise = logs.filter(l => l.exercise && Array.isArray(l.exercise) && l.exercise.length > 0).length;
-  const daysStressors = logs.filter(l => l.stressors && Array.isArray(l.stressors) && l.stressors.length > 0).length;
-  const daysSymptoms = logs.filter(l => l.symptoms && Array.isArray(l.symptoms) && l.symptoms.length > 0).length;
-  const daysPainLocation = logs.filter(l => l.painLocation && String(l.painLocation).trim().length > 0).length;
-  const daysEnergyClarity = logs.filter(l => l.energyClarity && String(l.energyClarity).trim().length > 0).length;
-  const daysNotes = logs.filter(l => l.notes && String(l.notes).trim().length > 0).length;
-  const statPills = [
-    { icon: 'chart-bars', value: numericWithData.length, labelKey: 'ai.stats.metrics', metricsAria: true },
-    { icon: 'notice', value: daysFlare, labelKey: 'ai.stats.flareDays' },
-    { icon: 'food', value: daysFood, labelKey: 'ai.stats.food' },
-    { icon: 'chart-up', value: daysExercise, labelKey: 'ai.stats.exercise' },
-    { icon: 'brain', value: daysStressors, labelKey: 'ai.stats.stress' },
-    { icon: 'notice', value: daysSymptoms, labelKey: 'ai.stats.symptoms' },
-    { icon: 'balance', value: daysPainLocation, labelKey: 'ai.stats.painAreas' },
-    { icon: 'zap', value: daysEnergyClarity, labelKey: 'ai.stats.energy' },
-    { icon: 'edit', value: daysNotes, labelKey: 'ai.stats.notes' }
-  ];
-  html += `
-    <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title" id="ai-heading-logged">${svgIcon('document', 'ai-inline-icon', tUi('ai.section.whatYouLogged'))} ${tUi('ai.section.whatYouLogged')}</h3>
-      <p class="ai-section-intro">${tUi('common.how.many.days.in.this.range.included.eac')}</p>
-      <div class="ai-stat-pills" role="list">
-        ${statPills.map((p, i) => {
-          const label = tUi(p.labelKey);
-          const aria = p.metricsAria
-            ? tUi('ai.stats.metricsAria', { count: p.value })
-            : tUi('ai.stats.daysLoggedAria', { count: p.value, label: label.toLowerCase() });
-          return `<div class="ai-stat-pill ai-animate-in" style="animation-delay: ${animationDelay + (i * 40)}ms;" role="listitem" aria-label="${escapeAttr(aria)}">
-          <span class="ai-stat-pill-icon" aria-hidden="true">${svgIcon(p.icon, 'ai-inline-icon')}</span>
-          <span class="ai-stat-pill-value" aria-hidden="true">${p.value}</span>
-          <span class="ai-stat-pill-label">${escapeHTML(label)}</span>
-        </div>`;
-        }).join('')}
-      </div>
-    </div>
-  `;
-  animationDelay += 200 * animStep;
-
-  // Trends section - simplified for non-technical users
-  html += `
-    <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title" id="ai-heading-trends">${svgIcon('chart-up', 'ai-inline-icon', tUi('ai.section.howYouAreDoing'))} ${tUi('ai.section.howYouAreDoing')}</h3>
-      <p class="ai-section-intro">Each card compares your recent average to your latest entry. Labels like “Getting better” describe the direction - not a medical judgement.</p>
-      <div class="ai-trends-grid" role="list">
-  `;
-  animationDelay += 200 * animStep;
-  
-  Object.keys(analysis.trends).forEach((metric, index) => {
-    const trend = analysis.trends[metric];
-    const isBPM = metric === 'bpm';
-    
-    // Determine status and colors based on average vs current comparison
-    // Use predictedStatus for predicted value, statusFromAverage for current trend
-    const currentStatus = trend.statusFromAverage || 'stable';
-    const predictedStatus = trend.predictedStatus || 'stable';
-    
-    // Set icon and color based on status
-    let trendIcon, trendColor, predictedColor;
-    if (currentStatus === 'improving') {
-      trendIcon = svgIcon('chart-up', 'ai-inline-icon icon-success', 'Improving');
-      trendColor = getThemePrimaryColor(); // Theme accent for improving
-    } else if (currentStatus === 'worsening') {
-      trendIcon = svgIcon('chart-down', 'ai-inline-icon icon-danger', 'Declining');
-      trendColor = "#f44336"; // Red for worsening
-    } else {
-      trendIcon = svgIcon('chart-bars', 'ai-inline-icon icon-muted', 'Stable');
-      trendColor = "#e91e63"; // Pink/magenta for stable (matches button)
-    }
-    
-    // Predicted color based on predicted status
-    if (predictedStatus === 'improving') {
-      predictedColor = getThemePrimaryColor(); // Theme accent for improving
-    } else if (predictedStatus === 'worsening') {
-      predictedColor = "#f44336"; // Red for worsening
-    } else {
-      predictedColor = "#e91e63"; // Pink/magenta for stable (matches button)
-    }
-    
-    const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-    const isWeight = metric === 'weight';
-    const isSteps = metric === 'steps';
-    const isHydration = metric === 'hydration';
-    
-    // Format values differently for BPM, Weight, Steps, Hydration vs other metrics
-    let averageDisplay, currentDisplay, predictedDisplay = '';
-    
-    if (isBPM) {
-      // BPM: whole numbers only
-      averageDisplay = Math.round(trend.average).toString();
-      currentDisplay = Math.round(trend.current).toString();
-      if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
-        predictedDisplay = Math.round(trend.projected7Days).toString();
-      }
-    } else if (isWeight) {
-      // Weight: show actual weight value with unit (1 decimal place)
-      const weightUnit = appSettings.weightUnit || 'kg';
-      const weightUnitSuffix = weightUnit === 'lb' ? 'lb' : 'kg';
-      
-      // Convert to display unit if needed
-      let avgWeight = trend.average;
-      let currentWeight = trend.current;
-      let predictedWeight = trend.projected7Days;
-      
-      if (weightUnit === 'lb') {
-        avgWeight = parseFloat(kgToLb(avgWeight));
-        currentWeight = parseFloat(kgToLb(currentWeight));
-        if (predictedWeight !== undefined && predictedWeight !== null) {
-          predictedWeight = parseFloat(kgToLb(predictedWeight));
-        }
-      }
-      
-      averageDisplay = avgWeight.toFixed(1) + weightUnitSuffix;
-      currentDisplay = currentWeight.toFixed(1) + weightUnitSuffix;
-      if (predictedWeight !== undefined && predictedWeight !== null) {
-        predictedDisplay = predictedWeight.toFixed(1) + weightUnitSuffix;
-      }
-    } else if (isSteps) {
-      // Steps: whole numbers with comma formatting
-      averageDisplay = Math.round(trend.average).toLocaleString();
-      currentDisplay = Math.round(trend.current).toLocaleString();
-      if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
-        predictedDisplay = Math.round(trend.projected7Days).toLocaleString();
-      }
-    } else if (isHydration) {
-      // Hydration: show as glasses (1 decimal place)
-      averageDisplay = trend.average.toFixed(1) + ' glasses';
-      currentDisplay = trend.current.toFixed(1) + ' glasses';
-      if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
-        predictedDisplay = trend.projected7Days.toFixed(1) + ' glasses';
-      }
-    } else {
-      // Other metrics: 0-10 scale
-      averageDisplay = Math.round(trend.average) + '/10';
-      currentDisplay = Math.round(trend.current) + '/10';
-      if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
-        predictedDisplay = Math.round(trend.projected7Days) + '/10';
-      }
-    }
-    
-    // Create simple, user-friendly trend description
-    let trendDescription = '';
-    if (currentStatus === 'improving') {
-      trendDescription = tUi('ai.trend.gettingBetter');
-    } else if (currentStatus === 'worsening') {
-      trendDescription = 'Getting Worse';
-    } else {
-      trendDescription = 'Staying Stable';
-    }
-    
-    // Plain-English prediction description
-    let predictionDescription = '';
-    if (predictedDisplay) {
-      if (predictedStatus === 'improving') {
-        predictionDescription = 'may get better';
-      } else if (predictedStatus === 'worsening') {
-        predictionDescription = 'may get worse';
-      } else {
-        predictionDescription = 'may stay about the same';
-      }
-    }
-    
-    const statusKey = currentStatus === 'improving' ? 'improving' : currentStatus === 'worsening' ? 'worsening' : 'stable';
-    const ariaCard =
-      metricName +
-      '. ' +
-      trendDescription +
-      '. Typical value ' +
-      averageDisplay +
-      ', latest ' +
-      currentDisplay +
-      (predictedDisplay ? ', outlook ' + predictedDisplay : '') +
-      '.';
-    html += `
-      <div class="ai-trend-card ai-trend-card--metric ai-animate-in ai-trend-status--${statusKey}" style="border-left-color: ${trendColor}; animation-delay: ${animationDelay + (index * 100)}ms;" role="listitem">
-        <div class="ai-trend-card-inner" role="group" aria-label="${escapeAttr(ariaCard)}">
-        <div class="ai-trend-header">
-          <strong><span aria-hidden="true">${trendIcon}</span> ${metricName}</strong>
-          <span class="ai-trend-status-chip ai-trend-status-chip--${statusKey}">${escapeHTML(trendDescription)}</span>
-        </div>
-        <div class="ai-trend-values">
-          <div class="ai-trend-value"><span class="ai-trend-value-label">${tUi('common.typical')}</span><strong style="color: ${trendColor};">${averageDisplay}</strong></div>
-          <div class="ai-trend-value"><span class="ai-trend-value-label">${tUi('common.latest')}</span><strong style="color: ${trendColor};">${currentDisplay}</strong></div>
-          ${predictedDisplay ? `<div class="ai-trend-value"><span class="ai-trend-value-label">${tUi('common.outlook')}</span><strong style="color: ${predictedColor};">${predictedDisplay}</strong></div>` : ''}
-        </div>
-        </div>
-      </div>
-  `;
+  var daysExercise = logs.filter(function(l) { return l.exercise && Array.isArray(l.exercise) && l.exercise.length > 0; }).length;
+  lifeInner += '<div class="ai-stat-pills" role="list">';
+  [{ icon: 'chart-bars', value: numericWithData.length, labelKey: 'ai.stats.metrics' }, { icon: 'food', value: daysFood, labelKey: 'ai.stats.food' }, { icon: 'run', value: daysExercise, labelKey: 'ai.stats.exercise' }, { icon: 'notice', value: daysFlare, labelKey: 'ai.stats.flareDays' }].forEach(function(p) {
+    lifeInner += '<div class="ai-stat-pill" role="listitem"><span class="ai-stat-pill-icon">' + svgIcon(p.icon, 'ai-inline-icon') + '</span><span class="ai-stat-pill-value">' + p.value + '</span><span class="ai-stat-pill-label">' + escapeHTML(tUi(p.labelKey)) + '</span></div>';
   });
-  
-  html += `</div></div>`;
-  animationDelay += 300 * animStep;
+  lifeInner += '</div>';
 
-  // Flare-up risk section
-  if (analysis.flareUpRisk) {
-    const riskLevel = analysis.flareUpRisk.level;
-    const riskColor = riskLevel === 'high' ? '#f44336' : riskLevel === 'moderate' ? '#ff9800' : '#ffc107';
-    const riskIcon = riskLevel === 'high'
-      ? svgIcon('notice', 'ai-inline-icon icon-danger', 'High risk')
-      : riskLevel === 'moderate'
-        ? svgIcon('notice', 'ai-inline-icon icon-warning', 'Moderate risk')
-        : svgIcon('notice', 'ai-inline-icon icon-muted', 'Low risk');
-    
-    const matchCount = analysis.flareUpRisk.matchingMetrics;
-    html += `
-      <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" id="ai-heading-flare" style="color: ${riskColor};"><span aria-hidden="true">${riskIcon}</span> ${tUi('ai.section.flareUp')}</h3>
-        <p class="ai-section-intro">${tUi('common.a.simple.score.from.patterns.in.your.log')}</p>
-        <div class="ai-flare-visual">
-          <div class="ai-flare-level" style="color: ${riskColor};"><strong>${riskLevel}</strong> <span class="ai-flare-level-note">${tUi('common.risk.level')}</span></div>
-          <div class="ai-flare-dots" aria-hidden="true">
-            ${[1,2,3,4,5].map(n => `<span class="ai-flare-dot ${n <= matchCount ? 'active' : ''}" style="${n <= matchCount ? `background: ${riskColor};` : ''}"></span>`).join('')}
-          </div>
-          <p class="ai-flare-hint" role="status">${matchCount} of 5 warning signs lit. Listen to your body and seek care if symptoms concern you.</p>
-        </div>
-      </div>
-    `;
-    animationDelay += 300 * animStep;
+  if (analysis.macroTrends || (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories)) {
+    var nut = analysis.nutritionAnalysis || {};
+    var macro = analysis.macroTrends || {};
+    lifeInner += '<div class="ai-nutrition-visual" style="margin-top:1rem;"><div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgCalories || '—') + '</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.cal')) + '</span></div>';
+    lifeInner += '<div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgProtein || '—') + 'g</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.protein')) + '</span></div></div>';
+    if (macro.calories && macro.calories.length >= 2) {
+      lifeInner += '<div class="ai-macro-sparklines"><div class="ai-macro-sparkline-card"><div class="ai-macro-sparkline-card__label">' + escapeHTML(tUi('ai.macro.calories')) + '</div><div class="ai-macro-sparkline-card__value">' + macro.avgCalories + '</div>' + buildAISparklineSvg(macro.calories, { animate: !reduceUIAnimations }) + '</div>';
+      lifeInner += '<div class="ai-macro-sparkline-card"><div class="ai-macro-sparkline-card__label">' + escapeHTML(tUi('common.protein')) + '</div><div class="ai-macro-sparkline-card__value">' + macro.avgProtein + 'g</div>' + buildAISparklineSvg(macro.protein, { animate: !reduceUIAnimations }) + '</div></div>';
+    }
   }
+  if (analysis.exerciseTimeline && analysis.exerciseTimeline.length >= 2) {
+    var maxMin = Math.max.apply(null, analysis.exerciseTimeline.map(function(d) { return d.minutes; }).concat([1]));
+    lifeInner += '<p class="ai-section-intro">' + escapeHTML(tUi('ai.exercise.timelineIntro')) + '</p><div class="ai-exercise-timeline" role="img" aria-label="' + escapeAttr(tUi('ai.exercise.timelineAria')) + '">';
+    analysis.exerciseTimeline.forEach(function(d) {
+      var h = Math.max(8, Math.round((d.minutes / maxMin) * 44));
+      lifeInner += '<span class="ai-exercise-timeline__bar" style="height:' + h + 'px" title="' + escapeAttr(d.date + ': ' + d.minutes + ' min') + '"></span>';
+    });
+    lifeInner += '</div>';
+  } else if (analysis.exerciseSummary && analysis.exerciseSummary.daysWithExercise > 0) {
+    var ex = analysis.exerciseSummary;
+    lifeInner += '<div class="ai-exercise-visual"><span class="ai-exercise-value">' + ex.avgMinutesPerDay + '</span> <span class="ai-exercise-unit">' + escapeHTML(tUi('common.min.avg')) + '</span> <span class="ai-exercise-days">' + ex.daysWithExercise + ' days</span></div>';
+  }
+  if (analysis.medicationAdherence) {
+    var med = analysis.medicationAdherence;
+    lifeInner += '<div style="margin-top:1rem;"><h4 class="ai-section-title">' + svgIcon('pill-check', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.medication.adherence')) + '</h4>';
+    lifeInner += '<p>' + escapeHTML(tUi('ai.medication.rate', { rate: String(med.rate), taken: String(med.taken), missed: String(med.missed) })) + '</p>';
+    lifeInner += renderMedicationHeatmap(med) + '</div>';
+  }
+  if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
+    lifeInner += '<h4 class="ai-section-title" style="margin-top:1rem;">' + svgIcon('food', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.helpful.patterns')) + '</h4><div class="ai-trends-grid">';
+    analysis.foodExerciseImpacts.slice(0, 4).forEach(function(impact, index) {
+      var impactColor = impact.isPositive ? '#e91e63' : '#ff9800';
+      lifeInner += '<div class="ai-trend-card" style="border-left-color:' + impactColor + ';"><div class="ai-trend-header"><strong>' + (impact.isPositive ? svgIcon('chart-up', 'ai-inline-icon icon-success') : svgIcon('notice', 'ai-inline-icon icon-warning')) + ' ' + escapeHTML(impact.type === 'exercise' ? tUi('ai.stats.exercise') : tUi('ai.stats.food')) + '</strong></div><span>' + escapeHTML(impact.description || (impact.metric + ': ' + impact.withAvg + ' vs ' + impact.withoutAvg)) + '</span></div>';
+    });
+    lifeInner += '</div>';
+  }
+  html += wrapAIChapter('lifestyle', 'ai.chapter.lifestyle', 'food', lifeInner, chapterDelay);
+  chapterDelay += chapterStep;
 
-  // Correlation matrix section
+  // —— Chapter 4: Mind & Mood ——
+  var mindInner = '';
+  if (analysis.stressorAnalysis && analysis.stressorAnalysis.topStressors && analysis.stressorAnalysis.topStressors.length > 0) {
+    mindInner += '<p>' + formatAIValueText(analysis.stressorAnalysis.summary) + '</p>' + renderStressorWheel(analysis.stressorAnalysis);
+    if (analysis.stressorAnalysis.impacts && analysis.stressorAnalysis.impacts.length) {
+      mindInner += '<ul class="ai-list">' + analysis.stressorAnalysis.impacts.slice(0, 3).map(function(i) { return '<li>' + formatAIValueText(i) + '</li>'; }).join('') + '</ul>';
+    }
+  }
+  if (analysis.mentalHealthAnalysis) {
+    var mh = analysis.mentalHealthAnalysis;
+    mindInner += '<div class="ai-screening-cards">';
+    if (mh.phq != null) mindInner += '<div class="ai-screening-card"><strong>PHQ</strong><br>' + mh.phq + '/' + (mh.phqMax || 27) + '</div>';
+    if (mh.gad != null) mindInner += '<div class="ai-screening-card"><strong>GAD</strong><br>' + mh.gad + '/' + (mh.gadMax || 21) + '</div>';
+    mindInner += '</div><p class="ai-section-intro">' + escapeHTML(tUi('mentalHealth.disclaimer')) + '</p>';
+  }
+  if (analysis.gratitudeAnalysis && analysis.gratitudeAnalysis.topWords && analysis.gratitudeAnalysis.topWords.length) {
+    mindInner += '<h4 class="ai-section-title">' + svgIcon('leaf', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.gratitude.title')) + '</h4>';
+    mindInner += '<p class="ai-section-intro">' + escapeHTML(tUi('ai.gratitude.days', { count: String(analysis.gratitudeAnalysis.daysWithGratitude) })) + '</p>';
+    mindInner += '<div class="ai-gratitude-tags">' + analysis.gratitudeAnalysis.topWords.map(function(w) {
+      return '<span class="ai-gratitude-tag">' + escapeHTML(w.word) + ' <span aria-hidden="true">×' + w.count + '</span></span>';
+    }).join('') + '</div>';
+  }
+  if (analysis.intradayPatterns && analysis.intradayPatterns.summaryLines) {
+    mindInner += '<ul class="ai-list">' + analysis.intradayPatterns.summaryLines.map(function(l) { return '<li>' + formatAIValueText(l) + '</li>'; }).join('') + '</ul>';
+  }
+  if (!mindInner) mindInner = '<p class="ai-section-intro">' + escapeHTML(tUi('ai.chapter.mindEmpty')) + '</p>';
+  html += wrapAIChapter('mind', 'ai.chapter.mind', 'brain-wave', mindInner, chapterDelay);
+  chapterDelay += chapterStep;
+
+  // —— Chapter 5: Body & Pain ——
+  var bodyInner = '';
+  if (analysis.symptomsAndPainAnalysis) {
+    var sa = analysis.symptomsAndPainAnalysis;
+    if (sa.summary) bodyInner += '<p>' + formatAIValueText(sa.summary) + '</p>';
+    if (sa.painByRegion) {
+      bodyInner += '<div class="ai-pain-body-figure-wrap"><div class="ai-pain-body-figure" aria-hidden="true">' + getAIPainBodyFigureSVG(sa.painByRegion) + '</div>';
+      bodyInner += '<p class="ai-pain-body-legend"><span class="ai-legend-dot green"></span> good &nbsp; <span class="ai-legend-dot yellow"></span> discomfort &nbsp; <span class="ai-legend-dot red"></span> pain</p></div>';
+    }
+    if (sa.painExploration && sa.painExploration.summaryLines) {
+      bodyInner += '<ul class="ai-list">' + sa.painExploration.summaryLines.map(function(l) { return '<li>' + formatAIValueText(l) + '</li>'; }).join('') + '</ul>';
+    }
+  }
+  if (analysis.digestiveAnalysis) {
+    var dig = analysis.digestiveAnalysis;
+    bodyInner += '<h4 class="ai-section-title">' + svgIcon('gut', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.digestive.title')) + '</h4>';
+    bodyInner += '<p>' + escapeHTML(tUi('ai.digestive.summary', { avg: String(dig.avgType), days: String(dig.daysLogged), trend: dig.trend })) + '</p>';
+    if (dig.series && dig.series.length >= 2) bodyInner += buildAISparklineSvg(dig.series, { animate: !reduceUIAnimations });
+  }
   if (analysis.correlationMatrix) {
-    const strongCorrelations = [];
-    const metrics = Object.keys(analysis.correlationMatrix);
-    
-    metrics.forEach(metric1 => {
+    var strongCorrelations = [];
+    var metrics = Object.keys(analysis.correlationMatrix);
+    metrics.forEach(function(metric1) {
       if (!analysis.correlationMatrix[metric1]) return;
-      metrics.forEach(metric2 => {
-        if (metric1 >= metric2) return; // Avoid duplicates
-        const corr = analysis.correlationMatrix[metric1][metric2];
+      metrics.forEach(function(metric2) {
+        if (metric1 >= metric2) return;
+        var corr = analysis.correlationMatrix[metric1][metric2];
         if (corr && Math.abs(corr) > 0.6) {
-          // Find a third metric that correlates with both metric1 and metric2
-          let metric3 = null;
-          let metric3Field = null;
-          let bestCorrelation = 0;
-          
-          metrics.forEach(metric3Candidate => {
-            if (metric3Candidate === metric1 || metric3Candidate === metric2) return;
-            
-            const corr1_3 = analysis.correlationMatrix[metric1] && analysis.correlationMatrix[metric1][metric3Candidate];
-            const corr2_3 = analysis.correlationMatrix[metric2] && analysis.correlationMatrix[metric2][metric3Candidate];
-            
-            // Check if metric3Candidate correlates with both (at least 0.5 correlation with each)
-            if (corr1_3 && corr2_3 && Math.abs(corr1_3) > 0.5 && Math.abs(corr2_3) > 0.5) {
-              // Use the average correlation strength as the score
-              const avgCorr = (Math.abs(corr1_3) + Math.abs(corr2_3)) / 2;
-              if (avgCorr > bestCorrelation) {
-                bestCorrelation = avgCorr;
-                metric3Field = metric3Candidate;
-                metric3 = metric3Candidate.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-              }
-            }
-          });
-          
-          // If no third metric found, use the one with highest correlation to either metric1 or metric2
-          if (!metric3Field) {
-            metrics.forEach(metric3Candidate => {
-              if (metric3Candidate === metric1 || metric3Candidate === metric2) return;
-              
-              const corr1_3 = analysis.correlationMatrix[metric1] && analysis.correlationMatrix[metric1][metric3Candidate];
-              const corr2_3 = analysis.correlationMatrix[metric2] && analysis.correlationMatrix[metric2][metric3Candidate];
-              
-              const maxCorr = Math.max(
-                corr1_3 ? Math.abs(corr1_3) : 0,
-                corr2_3 ? Math.abs(corr2_3) : 0
-              );
-              
-              if (maxCorr > bestCorrelation && maxCorr > 0.5) {
-                bestCorrelation = maxCorr;
-                metric3Field = metric3Candidate;
-                metric3 = metric3Candidate.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-              }
-            });
-          }
-          
-          const metric1Name = metric1.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-          const metric2Name = metric2.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-          
-          strongCorrelations.push({
-            metric1: metric1Name,
-            metric2: metric2Name,
-            metric3: metric3 || 'N/A',
-            metric1Field: metric1,
-            metric2Field: metric2,
-            metric3Field: metric3Field,
-            correlation: corr
-          });
+          strongCorrelations.push({ metric1: metric1, metric2: metric2, metric1Field: metric1, metric2Field: metric2, metric3Field: '', correlation: corr });
         }
       });
     });
-    
-    if (strongCorrelations.length > 0) {
-      // Sort by correlation strength and limit to top 3
-      strongCorrelations.sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation));
-      const topCorrelations = strongCorrelations.slice(0, 3);
-      
-      html += `
-        <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-          <h3 class="ai-section-title" id="ai-heading-correlations">🔗 ${tUi('ai.section.correlations')}</h3>
-          <p class="ai-section-intro">Metrics that tended to move together in your logs. Tap a row (or press Enter when focused) to show or hide a chart.</p>
-          <div class="ai-trends-grid ai-correlations-grid" role="list">
-      `;
-      
-      topCorrelations.forEach((corr, index) => {
-        const corrColor = corr.correlation > 0 ? '#e91e63' : '#f44336';
-        const direction = corr.correlation > 0 ? 'goes up when' : 'goes down when';
-        const strength = Math.abs(corr.correlation) > 0.7 ? 'strongly' : Math.abs(corr.correlation) > 0.5 ? 'usually' : 'sometimes';
-        const corrSummary = corr.metric1 + ' ' + strength + ' ' + direction + ' ' + corr.metric2;
-        
-        html += `
-          <div class="ai-correlation-card-wrap ai-animate-in" style="animation-delay: ${animationDelay + (index * 100)}ms;" role="listitem">
-          <button type="button" class="ai-correlation-card-toggle ai-trend-card" style="border-left-color: ${corrColor};" onclick="toggleCorrelationRadarChart('${corr.metric1Field}', '${corr.metric2Field}', '${corr.metric3Field || ''}', ${index})" data-correlation-index="${index}" aria-expanded="false" aria-controls="correlationRadarChart_${index}" id="correlationToggle_${index}" aria-label="${escapeAttr(corrSummary + '. Show or hide chart.')}">
-            <span class="ai-trend-header">
-              <strong>${corr.metric1} ${strength} ${direction} ${corr.metric2}</strong>
-            </span>
-            <span class="ai-correlation-expand-hint" aria-hidden="true">${tUi('charts.chart')}</span>
-          </button>
-            <div class="metric-radar-chart-container" id="correlationRadarChart_${index}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);" role="region" aria-label="Chart for ${escapeAttr(corr.metric1 + ' and ' + corr.metric2)}">
-              <div id="correlationRadarChart_${index}_chart" style="height: 400px;"></div>
-            </div>
-          </div>
-        `;
+    strongCorrelations.sort(function(a, b) { return Math.abs(b.correlation) - Math.abs(a.correlation); });
+    var topCorrelations = strongCorrelations.slice(0, 3);
+    if (topCorrelations.length) {
+      bodyInner += '<h4 class="ai-section-title">' + escapeHTML(tUi('ai.section.correlations')) + '</h4><div class="ai-trends-grid ai-correlations-grid">';
+      topCorrelations.forEach(function(corr, index) {
+        var m1 = corr.metric1.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); });
+        var m2 = corr.metric2.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); });
+        bodyInner += '<div class="ai-correlation-card-wrap"><button type="button" class="ai-correlation-card-toggle ai-trend-card" onclick="toggleCorrelationRadarChart(\'' + corr.metric1Field + '\', \'' + corr.metric2Field + '\', \'\', ' + index + ')" aria-expanded="false" aria-controls="correlationRadarChart_' + index + '"><strong>' + escapeHTML(m1 + ' ↔ ' + m2) + '</strong></button>';
+        bodyInner += '<div class="metric-radar-chart-container" id="correlationRadarChart_' + index + '" style="display:none;margin-top:1rem;"><div id="correlationRadarChart_' + index + '_chart" style="height:400px;"></div></div></div>';
       });
-      
-      html += `</div></div>`;
-      animationDelay += 300 * animStep;
-      
-      // Display correlation clusters if available - simplified for non-technical users
-      if (analysis.correlationClusters && analysis.correlationClusters.length > 0) {
-        html += `
-          <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-            <h3 class="ai-section-title ai-section-green">${svgIcon('chart-bars', 'ai-inline-icon', 'Correlations')} Groups that change together</h3>
-            <p class="ai-section-intro">${tUi('common.these.items.often.showed.up.together.in.')}</p>
-            <ul class="ai-list" style="margin-top: 1rem;">
-              ${analysis.correlationClusters.map((cluster, idx) => {
-                const clusterNames = cluster.map(m => m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())).join(', ');
-                return `<li style="margin-bottom: 0.75rem;">${clusterNames}</li>`;
-              }).join('')}
-            </ul>
-          </div>
-        `;
-        animationDelay += 200 * animStep;
-      }
+      bodyInner += '</div>';
+    }
+    if (analysis.correlationClusters && analysis.correlationClusters.length) {
+      bodyInner += '<p class="ai-section-intro">' + escapeHTML(tUi('ai.groups.that.change.together')) + '</p><ul class="ai-list">' + analysis.correlationClusters.map(function(cluster) {
+        return '<li>' + cluster.map(function(m) { return m.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); }); }).join(', ') + '</li>';
+      }).join('') + '</ul>';
     }
   }
+  bodyInner += '<div class="ai-summary-section" id="aiPoolInsightsSection"><h4 class="ai-section-title">' + svgIcon('brain', 'ai-inline-icon') + ' ' + escapeHTML(tUi('research.pool.insights.title')) + '</h4><div id="aiPoolInsightsBody"><p class="ai-section-intro">' + escapeHTML(tUi('research.pool.insights.loading')) + '</p></div></div>';
+  bodyInner += '<p class="ai-disclaimer">' + escapeHTML(tUi('ai.disclaimer.medical')) + '</p>';
+  html += wrapAIChapter('body', 'ai.chapter.body', 'balance', bodyInner, chapterDelay);
 
-  // Stressors impact section
-  if (analysis.stressorAnalysis && analysis.stressorAnalysis.topStressors.length > 0) {
-    const stressorAnalysis = analysis.stressorAnalysis;
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('brain', 'ai-inline-icon', 'Stress')} Stress and triggers</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${formatAIValueText(stressorAnalysis.summary)}</p>
-    `;
-    
-    if (stressorAnalysis.impacts.length > 0) {
-      html += `<ul class="ai-list">`;
-      stressorAnalysis.impacts.slice(0, 3).forEach((impact, index) => {
-        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 100 + (index * 100)}ms;">${formatAIValueText(impact)}</li>`;
-      });
-      html += `</ul>`;
-    }
-    
-    html += `</div>`;
-    animationDelay += 300 * animStep;
-  }
-  
-  // Symptoms and pain location analysis section
-  if (analysis.symptomsAndPainAnalysis && (analysis.symptomsAndPainAnalysis.topSymptoms.length > 0 || analysis.symptomsAndPainAnalysis.topPainLocations.length > 0)) {
-    const symptomsAnalysis = analysis.symptomsAndPainAnalysis;
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('notice', 'ai-inline-icon', 'Symptoms')} Symptoms and where you had pain</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${formatAIValueText(symptomsAnalysis.summary)}</p>
-    `;
-    
-    if (symptomsAnalysis.symptomImpacts.length > 0 || symptomsAnalysis.painLocationImpacts.length > 0) {
-      html += `<ul class="ai-list">`;
-      [...symptomsAnalysis.symptomImpacts, ...symptomsAnalysis.painLocationImpacts].slice(0, 3).forEach((impact, index) => {
-        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 100 + (index * 100)}ms;">${formatAIValueText(impact)}</li>`;
-      });
-      html += `</ul>`;
-    }
-    
-    html += `</div>`;
-    animationDelay += 300 * animStep;
-  }
-  
-  // Pain by body part (28 diagram regions) - show how bad each body part (severity, days, % of period)
-  if (analysis.symptomsAndPainAnalysis && analysis.symptomsAndPainAnalysis.painByRegion) {
-    const painByRegion = analysis.symptomsAndPainAnalysis.painByRegion;
-    const regionsWithPain = Object.entries(painByRegion)
-      .filter(([, data]) => data && (data.painDays > 0 || data.mildDays > 0))
-      .sort((a, b) => (b[1].severityScore || 0) - (a[1].severityScore || 0));
-    const painBodyFigureSVG = getAIPainBodyFigureSVG(painByRegion);
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('balance', 'ai-inline-icon', 'Pain locations')} Pain by body part</h3>
-        <div class="ai-pain-body-figure-wrap">
-          <div class="ai-pain-body-figure" aria-hidden="true">${painBodyFigureSVG}</div>
-          <p class="ai-pain-body-legend"><span class="ai-legend-dot green"></span> good &nbsp; <span class="ai-legend-dot yellow"></span> discomfort &nbsp; <span class="ai-legend-dot red"></span> pain</p>
-        </div>
-        <p class="ai-section-intro">Severity uses colour <em>and</em> a text label.</p>
-        <div class="ai-pain-table-wrap">
-          <table class="ai-pain-table" style="width: 100%; border-collapse: collapse;">
-            <caption class="visually-hidden">Pain and mild discomfort by body area for the selected period</caption>
-            <thead>
-              <tr style="border-bottom: 1px solid ${themePrimaryRgba(0.3)};">
-                <th scope="col" class="ai-pain-col-part" style="text-align: left; padding: 8px 12px;">Body part</th>
-                <th scope="col" class="ai-pain-col-mild" style="text-align: right; padding: 8px 12px;">Mild days</th>
-                <th scope="col" class="ai-pain-col-pain" style="text-align: right; padding: 8px 12px;">Pain days</th>
-                <th scope="col" class="ai-pain-col-period" style="text-align: right; padding: 8px 12px;">% of period</th>
-                <th scope="col" class="ai-pain-col-severity" style="text-align: left; padding: 8px 12px;">Severity label</th>
-              </tr>
-            </thead>
-            <tbody>
-    `;
-    if (regionsWithPain.length > 0) {
-      regionsWithPain.forEach(([, data], index) => {
-        const painRatio = data.painRatio != null ? Math.round(data.painRatio * 100) : (data.painDays && data.totalDays ? Math.round((data.painDays / data.totalDays) * 100) : 0);
-        const pctOfPeriod = data.pctOfPeriod != null ? data.pctOfPeriod : (dayCount ? Math.round((data.totalDays / dayCount) * 100) : 0);
-        let severityLabel = 'Low';
-        if (data.severityScore >= 10 || (data.painRatio >= 0.7 && data.totalDays >= 5)) severityLabel = 'High';
-        else if (data.severityScore >= 4 || data.painRatio >= 0.4) severityLabel = 'Medium';
-        const severityClass = severityLabel === 'High' ? 'ai-pain-severity-high' : (severityLabel === 'Medium' ? 'ai-pain-severity-medium' : 'ai-pain-severity-low');
-        html += `<tr class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 25)}ms; border-bottom: 1px solid rgba(255,255,255,0.06);">
-          <td class="ai-pain-col-part" style="padding: 8px 12px;">${escapeHTML(data.label)}</td>
-          <td class="ai-pain-col-mild" style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.mildDays || 0}</span></td>
-          <td class="ai-pain-col-pain" style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.painDays || 0}</span></td>
-          <td class="ai-pain-col-period" style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${pctOfPeriod}%</span></td>
-          <td class="ai-pain-col-severity" style="padding: 8px 12px;"><span class="${severityClass} ai-brackets-highlight" style="padding: 2px 8px; border-radius: 6px; font-size: 0.85rem;">${severityLabel}</span></td>
-        </tr>`;
-      });
-    } else {
-      html += `<tr><td colspan="5" style="padding: 12px;">No body areas with pain or mild in this period.</td></tr>`;
-    }
-    html += `</tbody></table></div>`;
-    html += `</div>`;
-    animationDelay += 300 * animStep;
-  }
-  
-  // Pain data exploration: summary from all pain points in the period
-  if (analysis.symptomsAndPainAnalysis && analysis.symptomsAndPainAnalysis.painExploration && analysis.symptomsAndPainAnalysis.painExploration.summaryLines && analysis.symptomsAndPainAnalysis.painExploration.summaryLines.length > 0) {
-    const exploration = analysis.symptomsAndPainAnalysis.painExploration;
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🔬 Pain patterns</h3>
-        <ul class="ai-list" style="margin: 0; padding-left: 1.25rem;">
-    `;
-    exploration.summaryLines.forEach((line, i) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (i * 60)}ms; margin-bottom: 0.5rem;">${formatAIValueText(line)}</li>`;
-    });
-    html += `</ul></div>`;
-    animationDelay += 300 * animStep;
-  }
-  
-  // Nutrition analysis section
-  if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories > 0) {
-    const nutrition = analysis.nutritionAnalysis;
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('food', 'ai-inline-icon', 'Nutrition')} Nutrition</h3>
-        <div class="ai-nutrition-visual">
-          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgCalories}</span> <span class="ai-nutrition-unit">${tUi('common.cal')}</span></div>
-          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgProtein}g</span> <span class="ai-nutrition-unit">${tUi('common.protein')}</span></div>
-        </div>
-    `;
-    if (nutrition.highCalorieDays > 0 || nutrition.lowCalorieDays > 0 || nutrition.highProteinDays > 0 || nutrition.lowProteinDays > 0) {
-      const extras = [];
-      if (nutrition.highCalorieDays > 0) extras.push(`>2500 cal: <span class="ai-brackets-highlight">${nutrition.highCalorieDays}d</span>`);
-      if (nutrition.lowCalorieDays > 0) extras.push(`<1500 cal: <span class="ai-brackets-highlight">${nutrition.lowCalorieDays}d</span>`);
-      if (nutrition.highProteinDays > 0) extras.push(`>100g: <span class="ai-brackets-highlight">${nutrition.highProteinDays}d</span>`);
-      if (nutrition.lowProteinDays > 0) extras.push(`<50g: <span class="ai-brackets-highlight">${nutrition.lowProteinDays}d</span>`);
-      html += `<p class="ai-nutrition-extra">${extras.join(' · ')}</p>`;
-    }
-    html += `</div>`;
-    animationDelay += 300 * animStep;
-  }
-  
-  // Exercise summary (avg minutes on days with exercise)
-  if (analysis.exerciseSummary && analysis.exerciseSummary.daysWithExercise > 0) {
-    const ex = analysis.exerciseSummary;
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('run', 'ai-inline-icon', 'Exercise')} Exercise</h3>
-        <div class="ai-exercise-visual">
-          <span class="ai-exercise-value ai-brackets-highlight">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">${tUi('common.min.avg')}</span>
-          <span class="ai-exercise-days ai-brackets-highlight">${ex.daysWithExercise} days</span>
-        </div>
-      </div>
-    `;
-    animationDelay += 300 * animStep;
-  }
+  html = '<div class="ai-results-timeline-outer"><nav class="ai-timeline-mobile" id="aiTimelineMobile" hidden aria-hidden="true"><div class="ai-timeline-mobile-line" id="aiTimelineMobileLine" aria-hidden="true"></div><div class="ai-timeline-mobile-track" id="aiTimelineMobileTrack" role="list"></div></nav><div class="ai-results-timeline-layout"><div class="ai-results-timeline-main">' + html + '</div></div></div>';
 
-  // Top exercises (most logged by name)
-  if (analysis.topExercises && analysis.topExercises.length > 0) {
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('run', 'ai-inline-icon', 'Top exercises')} Top exercises</h3>
-        <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
-    `;
-    analysis.topExercises.forEach((item, index) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: <span class="ai-brackets-highlight">${item.count} ${item.count === 1 ? 'time' : 'times'}</span></li>`;
-    });
-    html += `</ul></div>`;
-    animationDelay += 300 * animStep;
-  }
-
-  // Top foods (most logged by name)
-  if (analysis.topFoods && analysis.topFoods.length > 0) {
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('food', 'ai-inline-icon', 'Top foods')} Top foods</h3>
-        <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
-    `;
-    analysis.topFoods.forEach((item, index) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: <span class="ai-brackets-highlight">${item.count} ${item.count === 1 ? 'time' : 'times'}</span></li>`;
-    });
-    html += `</ul></div>`;
-    animationDelay += 300 * animStep;
-  }
-
-  // Nutrition summary (avg calories/protein when present)
-  if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.daysWithFood > 0 && !analysis.nutritionAnalysis.avgCalories) {
-    const nut = analysis.nutritionAnalysis;
-    html += `
-      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('food', 'ai-inline-icon', 'Food summary')} Food summary</h3>
-        <div class="ai-exercise-visual"><span class="ai-exercise-days">${nut.daysWithFood} days</span> with food logged</div>
-      </div>
-    `;
-    animationDelay += 300 * animStep;
-  }
-  
-  // Food/Exercise impact section - simplified
-  if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
-    html += `
-      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title">${svgIcon('food', 'ai-inline-icon', 'Helpful patterns')} What seems to help</h3>
-        <div class="ai-trends-grid">
-    `;
-    
-    analysis.foodExerciseImpacts.slice(0, 6).forEach((impact, index) => {
-      const impactColor = impact.isPositive ? '#e91e63' : '#ff9800';
-      const impactIcon = impact.isPositive
-        ? svgIcon('chart-up', 'ai-inline-icon icon-success', 'Positive')
-        : svgIcon('notice', 'ai-inline-icon icon-warning', 'Caution');
-      let impactType = 'Nutrition';
-      if (impact.type === 'food') impactType = 'When you log food';
-      else if (impact.type === 'exercise') impactType = 'When you exercise';
-      const simpleDirection = impact.isPositive ? 'tends to be better' : 'tends to be worse';
-      
-      html += `
-        <div class="ai-trend-card ai-animate-in" style="border-left-color: ${impactColor}; animation-delay: ${animationDelay + (index * 100)}ms;">
-          <div class="ai-trend-header">
-            <strong>${impactIcon} ${impactType}</strong>
-          </div>
-          <div class="ai-trend-stats">
-            ${impact.description ? 
-              `<span>${impact.description}</span>` :
-              `<span><strong>${impact.metric}:</strong> ${impact.withAvg} (when you logged) vs ${impact.withoutAvg} (when you didn't)</span>
-               <span style="color: ${impactColor}; font-size: 0.9rem;">${simpleDirection}</span>`
-            }
-          </div>
-        </div>
-      `;
-    });
-    
-    html += `</div></div>`;
-    animationDelay += 300 * animStep;
-  }
-
-  // Anomalies section (high-contrast, less dense)
-  if (analysis.anomalies.length > 0) {
-    html += `
-      <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-orange" id="ai-heading-watch">${svgIcon('notice', 'ai-inline-icon icon-warning', tUi('ai.section.thingsToWatch'))} ${tUi('ai.section.thingsToWatch')}</h3>
-        <p class="ai-section-intro">Unusual patterns in your numbers. They are prompts to notice how you feel - not automatic diagnoses.</p>
-        <ul class="ai-list ai-list-warning">
-    `;
-    analysis.anomalies.forEach((anomaly, index) => {
-      const formatted = formatAnomalyLine(anomaly);
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 100)}ms;">${formatted}</li>`;
-    });
-    html += `</ul></div>`;
-    animationDelay += 300 * animStep;
-  }
-
-  // General management section - simplified
-  html += `
-    <div class="ai-summary-section ai-animate-in" id="aiPoolInsightsSection" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title" id="ai-heading-pool-insights">${svgIcon('brain', 'ai-inline-icon', tUi('research.pool.insights.title'))} ${tUi('research.pool.insights.title')}</h3>
-      <p class="ai-section-intro">${tUi('research.pool.insights.lead', { kMin: String((window.RianellShared && window.RianellShared.POOL_INSIGHT_MIN_K) || 5) })}</p>
-      <div id="aiPoolInsightsBody"><p class="ai-section-intro">${tUi('research.pool.insights.loading')}</p></div>
-    </div>
-  `;
-  animationDelay += 200 * animStep;
-
-  html += `
-    <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title ai-section-green">${svgIcon('notice', 'ai-inline-icon', 'Important')} Important</h3>
-      <p class="ai-disclaimer">For patterns only - talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.</p>
-    </div>
-  `;
-
-  // Timeline layout wrapper + scroll-snap targets per section (mobile uses horizontal pager)
-  if (html.indexOf('ai-summary-section') !== -1) {
-    html = html.replace(/class="ai-summary-section/g, 'class="ai-summary-section ai-timeline-snap');
-    html =
-      '<div class="ai-results-timeline-outer">' +
-      '<nav class="ai-timeline-mobile" id="aiTimelineMobile" hidden aria-hidden="true">' +
-      '<div class="ai-timeline-mobile-line" id="aiTimelineMobileLine" aria-hidden="true"></div>' +
-      '<div class="ai-timeline-mobile-track" id="aiTimelineMobileTrack" role="list"></div>' +
-      '</nav>' +
-      '<div class="ai-results-timeline-layout">' +
-      '<div class="ai-results-timeline-main">' +
-      html +
-      '</div></div></div>';
-  }
-
-  // Set the HTML content (drop stale rails that were reparented to #appShell)
   purgeAItimelineDetachedOverlays();
   resultsContent.innerHTML = html;
 
-  if (typeof loadPoolInsightsPanel === 'function') {
-    loadPoolInsightsPanel();
-  }
+  if (typeof loadPoolInsightsPanel === 'function') loadPoolInsightsPanel();
 
   requestAnimationFrame(function() {
     requestAnimationFrame(function() {
+      initAIChapterAnimations(resultsContent);
       if (typeof initAITimelinePortrait === 'function') initAITimelinePortrait();
     });
   });
 
-  // Scroll to the AI results section smoothly
-  if (resultsContent) {
-    setTimeout(() => {
-      resultsContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+  if (resultsContent && !reduceUIAnimations) {
+    setTimeout(function() { resultsContent.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
   }
 }
-
 // Toggle radar chart for a specific metric
 function toggleMetricRadarChart(metric, index) {
   const chartContainer = document.getElementById(`metricRadarChart_${metric}`);
@@ -11725,6 +11459,44 @@ function createTilePickerSearchEl(inputId, placeholder, ariaLabel) {
 function filterTilePickerScope(scopeEl, query) {
   if (!scopeEl) return;
   const q = (query || '').trim().toLowerCase();
+  const qTrim = (query || '').trim();
+
+  // Flat search results panel (exercise / food modals) — takes priority when active
+  var flatPanel = scopeEl.querySelector('.modal-search-flat');
+  if (flatPanel) {
+    if (qTrim) {
+      var allChips = Array.from(scopeEl.querySelectorAll('.exercise-chip, .food-chip'));
+      var matchingChips = allChips.filter(function(btn) {
+        var text = (btn.getAttribute('data-search-text') || btn.textContent || '').toLowerCase();
+        return text.indexOf(q) !== -1;
+      });
+      if (matchingChips.length > 0) {
+        var flatHtml = matchingChips.map(function(b) { return b.outerHTML; }).join('');
+        flatPanel.innerHTML = '<div class="search-results-flat-chips">' + flatHtml + '</div>';
+        // Re-bind onclick for cloned chips (inline onclick survives but re-bind for safety)
+        flatPanel.querySelectorAll('.exercise-chip[data-exercise-id]').forEach(function(btn) {
+          var eid = btn.getAttribute('data-exercise-id');
+          btn.onclick = function(e) { e.stopPropagation(); if (typeof addExerciseItem === 'function') addExerciseItem(eid); };
+        });
+        flatPanel.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
+          var fid = btn.getAttribute('data-food-id');
+          var meal = btn.getAttribute('data-food-meal');
+          btn.onclick = function(e) { e.stopPropagation(); if (typeof addFoodItemModal === 'function') addFoodItemModal(meal, fid); };
+        });
+      } else {
+        flatPanel.innerHTML = '<p class="empty-items">' + escapeHTML(tUi('common.no.resultsForQuery', { query: qTrim })) + '</p>';
+      }
+      flatPanel.hidden = false;
+      scopeEl.querySelectorAll('.exercise-category-block, .food-category-block').forEach(function(d) { d.hidden = true; });
+    } else {
+      flatPanel.hidden = true;
+      flatPanel.innerHTML = '';
+      scopeEl.querySelectorAll('.exercise-category-block, .food-category-block').forEach(function(d) { d.hidden = false; });
+    }
+    return; // flat panel handled everything
+  }
+
+  // Standard group-based filtering (stressors, symptoms, energy clarity, tile-group)
   const groups = scopeEl.querySelectorAll('.food-group, .stressor-group, .symptom-group, .tile-group');
   if (groups.length > 0) {
     groups.forEach(function(group) {
@@ -11744,21 +11516,12 @@ function filterTilePickerScope(scopeEl, query) {
       btn.hidden = !match;
     });
   }
-  const qTrim = (query || '').trim();
   scopeEl.querySelectorAll('.exercise-category-block').forEach(function(d) {
-    if (!qTrim) {
-      d.hidden = false;
-      return;
-    }
+    if (!qTrim) { d.hidden = false; return; }
     const chips = d.querySelectorAll('.exercise-chip');
     if (chips.length === 0) return;
     let vis = false;
-    for (let i = 0; i < chips.length; i++) {
-      if (!chips[i].hidden) {
-        vis = true;
-        break;
-      }
-    }
+    for (let i = 0; i < chips.length; i++) { if (!chips[i].hidden) { vis = true; break; } }
     d.hidden = !vis;
   });
 }
@@ -13370,6 +13133,7 @@ function closeFoodModal() {
   document.body.style.overflow = '';
   currentEditingDate = null;
   currentFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+  window._foodModalSearchQ = '';
 }
 
 function addFoodItemModal(category, foodId) {
@@ -13391,7 +13155,7 @@ function renderFoodItems() {
   const labels = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
   const container = document.getElementById('foodItemsList');
   if (!container) return;
-  container.innerHTML = categories.map(cat => {
+  const categoryBlocksHtml = categories.map(cat => {
     const items = currentFoodByCategory[cat] || [];
     const listId = 'modalFood' + labels[cat] + 'List';
     const itemsHtml = items.length === 0
@@ -13423,7 +13187,8 @@ function renderFoodItems() {
       const chipsHtml = foods.map(f => {
         const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
         const groupClass = 'food-chip--' + (f.group || 'mixed');
-        return `<button type="button" class="food-chip ${groupClass}" data-food-id="${escapeHTML(f.id)}" data-food-meal="${escapeHTML(cat)}" title="Add ${escapeHTML(f.name)}, ${f.calories} cal to ${labels[cat]}" onclick="addFoodItemModal('${cat}', '${escapeHTML(f.id)}')"><span class="food-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="food-chip-name">${escapeHTML(f.name)}</span><span class="food-chip-nutrition">${f.calories} cal · ${f.protein}g P</span></button>`;
+        const searchText = escapeHTML((f.name + ' ' + (f.group || '') + ' ' + cat + ' ' + (f.calories || '') + ' cal').toLowerCase());
+        return `<button type="button" class="food-chip ${groupClass}" data-food-id="${escapeHTML(f.id)}" data-food-meal="${escapeHTML(cat)}" data-search-text="${searchText}" title="Add ${escapeHTML(f.name)}, ${f.calories} cal to ${labels[cat]}" onclick="addFoodItemModal('${cat}', '${escapeHTML(f.id)}')"><span class="food-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="food-chip-name">${escapeHTML(f.name)}</span><span class="food-chip-nutrition">${f.calories} cal · ${f.protein}g P</span></button>`;
       }).join('');
       return `<div class="food-group" data-group="${escapeHTML(grp.id)}"><div class="food-group__title">${escapeHTML(grp.label)}</div><div class="food-chips">${chipsHtml}</div></div>`;
     }).join('');
@@ -13440,6 +13205,16 @@ function renderFoodItems() {
       </div>
     </div>`;
   }).join('');
+
+  container.innerHTML = `
+    <div class="tile-picker-search-wrap">
+      <label class="visually-hidden" for="foodModalTileSearch">${tUi('common.filter.foods') || 'Filter foods'}</label>
+      <input type="search" class="tile-picker-search" id="foodModalTileSearch" placeholder="${tUi('logs.picker.filterFoods') || 'Search foods\u2026'}" autocomplete="off" aria-label="${tUi('common.filter.foods') || 'Filter foods'}" />
+    </div>
+    <div class="modal-search-flat" id="foodModalSearchFlat" hidden></div>
+    ${categoryBlocksHtml}
+  `;
+
   /* Direct listeners: modal .modal-content uses stopPropagation so delegated body handlers are unreliable */
   container.querySelectorAll('.food-category-summary.tile-picker-trigger').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
@@ -13448,6 +13223,19 @@ function renderFoodItems() {
       if (typeof openTilePickerSheet === 'function') openTilePickerSheet(btn);
     });
   });
+
+  // Wire up food modal search bar
+  var foodModalSearch = document.getElementById('foodModalTileSearch');
+  if (foodModalSearch) {
+    attachTilePickerSearch(container, foodModalSearch);
+    var savedFoodQ = typeof window._foodModalSearchQ === 'string' ? window._foodModalSearchQ : '';
+    if (savedFoodQ) {
+      foodModalSearch.value = savedFoodQ;
+      filterTilePickerScope(container, savedFoodQ);
+    }
+    foodModalSearch.addEventListener('input', function() { window._foodModalSearchQ = foodModalSearch.value; });
+  }
+
   // Keep food card selection badges in sync while editing an existing log (per meal category).
   container.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
     var id = btn.getAttribute('data-food-id');
@@ -13638,6 +13426,7 @@ function closeExerciseModal() {
   document.body.style.overflow = '';
   currentEditingDate = null;
   currentExerciseItems = [];
+  window._exerciseModalSearchQ = '';
 }
 
 // Add exercise in modal (by tile click - uses default duration)
@@ -13689,11 +13478,21 @@ function renderExerciseItems() {
       <label class="visually-hidden" for="exerciseModalTileSearch">${tUi('common.filter.exercises')}</label>
       <input type="search" class="tile-picker-search" id="exerciseModalTileSearch" placeholder="${tUi('logs.picker.filterExercises')}" autocomplete="off" aria-label="${tUi('common.filter.exercises')}" />
     </div>
+    <div class="modal-search-flat" id="exerciseModalSearchFlat" hidden></div>
     <div class="items-list" style="min-height: 24px; margin-bottom: 12px;">${itemsHtml}</div>
     ${categoryBlocks}
   `;
   const modalExSearch = document.getElementById('exerciseModalTileSearch');
-  if (modalExSearch) attachTilePickerSearch(list, modalExSearch);
+  if (modalExSearch) {
+    attachTilePickerSearch(list, modalExSearch);
+    // Restore search query preserved across re-renders (e.g. after adding a chip)
+    var savedExQ = typeof window._exerciseModalSearchQ === 'string' ? window._exerciseModalSearchQ : '';
+    if (savedExQ) {
+      modalExSearch.value = savedExQ;
+      filterTilePickerScope(list, savedExQ);
+    }
+    modalExSearch.addEventListener('input', function() { window._exerciseModalSearchQ = modalExSearch.value; });
+  }
   list.querySelectorAll('.exercise-category-summary.tile-picker-trigger').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
       e.preventDefault();
@@ -18426,7 +18225,7 @@ async function generateApiKey() {
       await client.from('api_keys').insert({ key_hash: hash, scopes: Shared.DEFAULT_API_SCOPES || ['logs:read'] });
     }
     if (displayEl) {
-      displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + rawKey + '</code><p class="settings-hint">Click to copy. Store it safely - it won\'t be shown again.</p>';
+      displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + rawKey + '</code><p class="settings-hint">' + escapeHTML(tUi('settings.developer.apiKeyCopyOnceHint')) + '</p>';
       displayEl.hidden = false;
     }
     if (btn) btn.disabled = false;
@@ -18516,20 +18315,73 @@ async function deleteWebhook(id) {
 }
 if (typeof window !== 'undefined') window.deleteWebhook = deleteWebhook;
 
+// Third-party connector registry — add client IDs when credentials are configured.
+var CONNECTOR_PROVIDERS = [
+  {
+    id: 'strava',
+    label: 'Strava',
+    icon: 'run',
+    clientId: '',
+    defaultScopes: ['activity:read_all'],
+    comingSoon: true
+  },
+  {
+    id: 'withings',
+    label: 'Withings',
+    icon: 'stethoscope',
+    clientId: '',
+    defaultScopes: ['user.metrics', 'user.sleepevents'],
+    comingSoon: true
+  },
+  {
+    id: 'google-sheets',
+    label: 'Google Sheets',
+    icon: 'document',
+    clientId: '',
+    defaultScopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    comingSoon: true
+  }
+];
+
 function openOAuthConnector(providerSlug) {
+  var provider = CONNECTOR_PROVIDERS.find(function(p) { return p.id === providerSlug; });
+  if (!provider) {
+    notifyError(tUi('settings.connectors.unsupported') || ('Unknown connector: ' + providerSlug));
+    return;
+  }
+
+  // Show coming-soon notice if credentials are not yet configured
+  if (provider.comingSoon || !provider.clientId) {
+    var msgEl = document.getElementById('connectorStatusMsg');
+    if (msgEl) {
+      msgEl.textContent = (provider.label || providerSlug) + ' integration is coming soon. Stay tuned for updates.';
+      msgEl.hidden = false;
+      // Auto-hide after 6 s
+      clearTimeout(msgEl._hideTimer);
+      msgEl._hideTimer = setTimeout(function() { msgEl.hidden = true; }, 6000);
+    } else {
+      notifySuccess((provider.label || providerSlug) + ' integration coming soon.');
+    }
+    return;
+  }
+
   var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
   if (!Shared || typeof Shared.generateCodeVerifier !== 'function' || typeof Shared.buildAuthorizeUrl !== 'function') {
-    notifyError('OAuth connector requires Cloud Sync to be enabled.');
+    notifyError(tUi('settings.connectors.cloudRequired') || 'OAuth connector requires Cloud Sync to be enabled.');
     return;
   }
   try {
     var verifier = Shared.generateCodeVerifier();
     Shared.deriveCodeChallenge(verifier).then(function(challenge) {
       sessionStorage.setItem('oauth_verifier_' + providerSlug, verifier);
-      var provider = (Shared.CONNECTOR_PROVIDERS || []).find(function(p) { return p.id === providerSlug; });
-      if (!provider) { notifyError('Provider not supported: ' + providerSlug); return; }
       var baseUrl = window.location.origin + '/functions/v1/oauth2-authorize';
-      var url = Shared.buildAuthorizeUrl(baseUrl, { clientId: provider.clientId || '', redirectUri: window.location.origin + '/auth/callback', scope: (provider.defaultScopes || []).join(' '), codeChallenge: challenge, providerSlug: providerSlug });
+      var url = Shared.buildAuthorizeUrl(baseUrl, {
+        clientId: provider.clientId,
+        redirectUri: window.location.origin + '/auth/callback',
+        scope: (provider.defaultScopes || []).join(' '),
+        codeChallenge: challenge,
+        providerSlug: providerSlug
+      });
       window.open(url, '_blank', 'noopener,noreferrer');
     });
   } catch(e) {
@@ -22799,12 +22651,10 @@ function renderHomeWelcomeCard(logArr) {
   var anchor = appSettings && (appSettings.firstOpenDate || appSettings.firstRunWizardCompletedAt);
   var days = daysSinceIsoDate(anchor);
   var show = !dismissed && count < 3 && days <= 7;
-  if (!show) {
-    card.hidden = true;
-    card.innerHTML = '';
-    return;
-  }
-  card.hidden = false;
+  // Welcome card permanently removed.
+  card.hidden = true;
+  card.innerHTML = '';
+  return;
   var condition = (appSettings && appSettings.medicalCondition) ? String(appSettings.medicalCondition).trim() : '';
   var body = tUi('home.welcome.body').replace('{condition}', condition || 'your condition');
   var pills = [

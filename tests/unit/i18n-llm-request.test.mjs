@@ -50,7 +50,7 @@ test('buildMotdPrompt returns system and user prompts', () => {
 
 test('buildSummaryPrompt wraps context in user message', () => {
   const { system, user } = buildSummaryPrompt('en-GB', '3 day(s) of data.');
-  assert.ok(system.includes('summarise'));
+  assert.ok(system.includes('coaching summary'));
   assert.equal(user, 'Data: 3 day(s) of data.');
 });
 
