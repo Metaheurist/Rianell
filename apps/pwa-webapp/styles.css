@@ -2038,6 +2038,21 @@ body.light-mode .vitals-advanced-body {
   border-top-color: rgba(0, 0, 0, 0.08);
 }
 
+/* ── Field label icons (vitals + other wizard fields) ────────────────────── */
+.field-label-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.field-label-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  opacity: 0.65;
+  color: var(--primary-color);
+}
+
 .log-wizard-progressive-lock {
   margin: 0 0 12px;
   padding: 10px 12px;
