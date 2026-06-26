@@ -29,6 +29,7 @@ export { buildWeeklyDigest } from './weeklyDigest.mjs';
 export { compareTreatmentWindows } from './treatmentTimeline.mjs';
 export { CONDITION_ANALYSIS_PACKS, applyConditionPack } from './conditionPacks.mjs';
 export { exportAnalysisJsonForResearch } from './researchExport.mjs';
+export { detectFoodSensitivities } from './foodSensitivities.mjs';
 export { runDeterministicAnalysis, rankNeuralAnalysisInsights } from './analyze.mjs';
 
 function avg(values) {

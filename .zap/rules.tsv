@@ -1,0 +1,3 @@
+10021	IGNORE	(CSRF token) Static PWA — no server-side forms
+10038	IGNORE	(CSP) Report-only trial period; meta CSP in index.html
+10055	IGNORE	(Cookies without Secure) Local dev server only

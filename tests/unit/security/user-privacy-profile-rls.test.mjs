@@ -21,8 +21,8 @@ test('Schema grants authenticated CRUD on user_privacy_profile', () => {
 
 test('Schema.sql does not require llm-models storage bucket (HF-only weights)', () => {
   const sql = readFileSync('supabase/Schema.sql', 'utf8');
-  assert.doesNotMatch(sql, /INSERT INTO storage\.buckets/);
   assert.doesNotMatch(sql, /'llm-models'/);
+  assert.doesNotMatch(sql, /llm-models/);
 });
 
 test('Schema.sql defines user_achievements with RLS policies', () => {

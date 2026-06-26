@@ -2,6 +2,7 @@ import {
   normalizeCycleFields,
   normalizeSubEntries,
   normalizeMedicationDoses,
+  normalizeVitalMetrics,
 } from './logging/logSchema.mjs';
 import { normalizeCustomMetricValues } from './charts/customMetrics.mjs';
 
@@ -196,6 +197,7 @@ export function normalizeLogEntry(value) {
     savedAt: typeof v.savedAt === 'string' ? v.savedAt.slice(0, 40) : undefined,
     barcodeFood: typeof v.barcodeFood === 'string' ? v.barcodeFood.slice(0, 200) : undefined,
     customMetrics: normalizeCustomMetricValues(v.customMetrics),
+    ...normalizeVitalMetrics(v),
   };
 
   if (entry.steps != null && !Number.isFinite(entry.steps)) entry.steps = undefined;
@@ -226,6 +228,19 @@ export * from './onboarding/index.mjs';
 export * from './achievements/achievements.mjs';
 export * from './achievements/achievementUnlockNotification.mjs';
 export * from './achievements/achievementToastQueue.mjs';
+export * from './crypto/keyManagement.mjs';
+export * from './nutrition/index.mjs';
+export * from './api/index.mjs';
+export * from './connectors/index.mjs';
+export * from './fhir/index.mjs';
+export * from './community/index.mjs';
+export * from './a11y/wcagHelpers.mjs';
+export * from './crypto/secureStorage.mjs';
+export {
+  ALLOWED_VOICE_LOG_FIELDS,
+  isVoicePromptInjection,
+  sanitizeVoiceExtractResult,
+} from './logging/voiceLogExtract.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({

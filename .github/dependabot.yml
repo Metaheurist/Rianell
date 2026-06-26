@@ -5,27 +5,13 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 10
-    target-branch: main
     groups:
-      rianell-workspace:
-        patterns:
-          - "@rianell/*"
-      dev-tooling:
-        dependency-type: development
-        patterns:
-          - "*"
-    labels:
-      - dependencies
-      - npm
-
-  - package-ecosystem: github-actions
-    directory: "/"
+      patch-updates:
+        update-types: ["patch"]
+    ignore:
+      - dependency-name: "@huggingface/transformers"
+        versions: [">=3.3.3"]
+  - package-ecosystem: pip
+    directory: "/server"
     schedule:
       interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    target-branch: main
-    labels:
-      - dependencies
-      - github-actions

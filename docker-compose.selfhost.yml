@@ -1,0 +1,12 @@
+# Plan 20 SH1 — self-hosted Rianell stack (PWA static + Python server)
+services:
+  rianell-server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    ports:
+      - "8765:8765"
+    environment:
+      - RIANELL_SELF_HOST=1
+    volumes:
+      - ./apps/pwa-webapp:/app/web:ro

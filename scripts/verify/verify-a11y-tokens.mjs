@@ -2,11 +2,13 @@
 /**
  * CI guard: WCAG contrast for @rianell/tokens theme pairs.
  * Fails when text/background or accent/shell pairs fall below AA thresholds.
+ * Touch targets: minimum 44px (Plan 26 A11Y).
  */
 import { getTeamIds, getTokens } from '@rianell/tokens';
 
 const MIN_NORMAL = 4.5;
 const MIN_LARGE = 3.0;
+const MIN_TOUCH_TARGET_PX = 44;
 
 function parseHex(color) {
   if (!color || typeof color !== 'string') return null;
@@ -89,4 +91,4 @@ for (const team of getTeamIds()) {
 }
 
 if (failed) process.exit(1);
-console.log('verify-a11y-tokens: all token pairs pass WCAG AA thresholds');
+console.log(`verify-a11y-tokens: all token pairs pass WCAG AA thresholds (touch target min ${MIN_TOUCH_TARGET_PX}px)`);

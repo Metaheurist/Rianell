@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AppState, I18nManager } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import {
@@ -37,6 +37,7 @@ import { GoalsModalHost } from './src/components/GoalsModalHost';
 import { I18nProvider } from './src/i18n/I18nProvider';
 import { applySessionRecording } from './src/analytics/sessionRecording';
 import { initAchievementsOnBoot, syncAchievementsIfSignedIn, tickAchievements } from './src/achievements/achievementTick';
+import { CONSENT_AUDIT_FIELDS, maybeLogConsentChange } from './src/cloud/consentAudit';
 
 function firstRunPlatformContext(prefs: Preferences) {
   return {
@@ -51,6 +52,7 @@ function firstRunPlatformContext(prefs: Preferences) {
 export default function App() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
   const [bootTeam, setBootTeam] = useState(() => getDefaultPreferences().team);
+  const prevPrefsRef = useRef<Preferences | null>(null);
 
   useEffect(() => {
     if (!prefs) return;
@@ -86,6 +88,15 @@ export default function App() {
 
   useEffect(() => {
     if (!prefs) return;
+    const prev = prevPrefsRef.current;
+    if (prev) {
+      for (const field of CONSENT_AUDIT_FIELDS) {
+        if ((prev as Record<string, unknown>)[field] !== (prefs as Record<string, unknown>)[field]) {
+          maybeLogConsentChange(field, (prefs as Record<string, unknown>)[field]);
+        }
+      }
+    }
+    prevPrefsRef.current = prefs;
     savePreferences(prefs).catch(() => {});
   }, [prefs]);
 

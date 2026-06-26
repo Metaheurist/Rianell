@@ -1478,6 +1478,39 @@
           <label data-i18n="settings.logging.cycleModule">Cycle tracking module</label>
           <div class="toggle-switch" id="cycleModuleToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('cycleModuleEnabled')"></div>
         </div>
+        <div class="settings-option">
+          <label data-i18n="settings.logging.guidedVoice">Guided voice log extraction</label>
+          <div class="toggle-switch" id="guidedVoiceLogToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('guidedVoiceLogEnabled')"></div>
+        </div>
+        <div class="settings-option">
+          <label data-i18n="settings.logging.barcodeFood">Barcode food logging</label>
+          <div class="toggle-switch" id="barcodeFoodLoggingToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('barcodeFoodLoggingEnabled')"></div>
+        </div>
+        <div class="settings-option">
+          <label data-i18n="settings.logging.digestiveModule">Digestion module (Bristol scale)</label>
+          <div class="toggle-switch" id="digestiveModuleToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('digestiveModuleEnabled')"></div>
+        </div>
+        <div class="settings-section settings-units-section">
+          <h4 data-i18n="settings.units.title">Units</h4>
+          <div class="settings-option">
+            <label for="settingsGlucoseUnit" data-i18n="settings.units.glucose">Blood glucose unit</label>
+            <select id="settingsGlucoseUnit" class="settings-select" onchange="setGlucoseUnitPref(this.value)">
+              <option value="mmol" data-i18n="units.mmol">mmol/L</option>
+              <option value="mgdl" data-i18n="units.mgdl">mg/dL</option>
+            </select>
+          </div>
+          <div class="settings-option">
+            <label for="settingsTemperatureUnit" data-i18n="settings.units.temperature">Temperature unit</label>
+            <select id="settingsTemperatureUnit" class="settings-select" onchange="setTemperatureUnitPref(this.value)">
+              <option value="celsius" data-i18n="units.celsius">°C</option>
+              <option value="fahrenheit" data-i18n="units.fahrenheit">°F</option>
+            </select>
+          </div>
+          <div class="settings-option">
+            <label for="settingsHeightCm" data-i18n="settings.units.height">Height (cm, for BMI)</label>
+            <input type="number" id="settingsHeightCm" class="settings-input" min="100" max="250" step="1" onchange="setHeightCmPref(this.value)" />
+          </div>
+        </div>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Performance" data-i18n-title="settings.performance.title" data-settings-pane-i18n="settings.performance.title" role="tabpanel" aria-hidden="true">
@@ -2038,6 +2071,15 @@
             <div class="cycle-flow-row" id="logCycleFlowRow" role="group" aria-labelledby="logCycleFlowLabel"></div>
           </div>
           <button type="button" class="cycle-track-clear" id="logCycleClear" data-i18n="wizard.cycle.clear">Clear cycle info</button>
+          <div class="cycle-bbt-row" id="logCycleBbtRow">
+            <label for="bbt" data-i18n="wizard.cycle.bbt">Basal body temperature</label>
+            <div class="input-container vitals-inline-row">
+              <input type="number" id="bbt" min="35" max="38.5" step="0.1" />
+              <button type="button" id="temperatureUnitToggle" class="unit-toggle-btn" onclick="toggleTemperatureUnit()">
+                <span id="temperatureUnitDisplay" data-i18n="units.celsius">°C</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <p class="settings-hint log-quick-log-hint" data-i18n="common.only.need.date.and.flare.save.a.minimal.">Only need date and flare? Save a minimal entry and add details later.</p>
@@ -2069,6 +2111,51 @@
       <div class="input-container">
         <input type="number" id="weight" min="40" max="200" step="0.1" />
         <div class="validation-message" id="weight-error"></div>
+          </div>
+
+          <div id="bpStep" class="vitals-extended-block">
+            <label data-i18n="wizard.vitals.bloodPressure">Blood pressure</label>
+            <div class="vitals-inline-row">
+              <div class="input-container">
+                <label for="bloodPressureSystolic" class="visually-hidden" data-i18n="wizard.vitals.bp.systolic">Systolic</label>
+                <input type="number" id="bloodPressureSystolic" min="60" max="250" step="1" placeholder="120" data-i18n-placeholder="wizard.vitals.bp.systolic" />
+              </div>
+              <span class="vitals-sep" aria-hidden="true">/</span>
+              <div class="input-container">
+                <label for="bloodPressureDiastolic" class="visually-hidden" data-i18n="wizard.vitals.bp.diastolic">Diastolic</label>
+                <input type="number" id="bloodPressureDiastolic" min="40" max="150" step="1" placeholder="80" data-i18n-placeholder="wizard.vitals.bp.diastolic" />
+              </div>
+              <span class="vitals-unit" data-i18n="wizard.vitals.bp.unit">mmHg</span>
+            </div>
+            <div class="weight-label-container">
+              <label for="bloodGlucose" data-i18n="wizard.vitals.bloodGlucose">Blood glucose</label>
+              <button type="button" id="glucoseUnitToggle" class="unit-toggle-btn" onclick="toggleGlucoseUnit()" data-i18n-title="settings.units.glucose">
+                <span id="glucoseUnitDisplay" data-i18n="units.mmol">mmol/L</span>
+              </button>
+            </div>
+            <div class="input-container">
+              <input type="number" id="bloodGlucose" min="1" max="35" step="0.1" />
+            </div>
+            <label for="spO2" data-i18n="wizard.vitals.spO2">Oxygen saturation (SpO₂)</label>
+            <div class="input-container">
+              <input type="number" id="spO2" min="70" max="100" step="1" />
+              <span class="vitals-unit" data-i18n="wizard.vitals.spO2.unit">%</span>
+            </div>
+            <label for="hrv" data-i18n="wizard.vitals.hrv">HRV (RMSSD)</label>
+            <div class="input-container">
+              <input type="number" id="hrv" min="0" max="300" step="1" />
+              <span class="vitals-unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
+            </div>
+            <div class="weight-label-container">
+              <label for="bodyWeight" data-i18n="wizard.vitals.weight">Body weight</label>
+              <button type="button" id="bodyWeightUnitToggle" class="unit-toggle-btn" onclick="toggleBodyWeightUnit()" data-i18n-title="settings.units.weight">
+                <span id="bodyWeightUnitDisplay" data-i18n="units.kg">kg</span>
+              </button>
+            </div>
+            <div class="input-container">
+              <input type="number" id="bodyWeight" min="20" max="300" step="0.1" />
+              <p class="field-hint" id="bmiReadout" hidden></p>
+            </div>
           </div>
         </div>
       </div>
@@ -2160,6 +2247,25 @@
         </div>
       </div>
 
+      <div class="form-section hidden" id="digestionSection" data-digestive-gated="true">
+        <button type="button" class="section-header" data-section="digestion">
+          <span class="section-icon"><svg class="section-icon-svg" aria-hidden="true"><use href="#icon-food"></use></svg></span>
+          <span class="section-title" data-i18n="wizard.digestion.bristol.title">Stool type (Bristol scale)</span>
+        </button>
+        <div class="section-content" id="digestion">
+          <div class="bristol-scale-row" role="radiogroup" aria-labelledby="bristol-scale-label">
+            <span id="bristol-scale-label" class="visually-hidden" data-i18n="wizard.digestion.bristol.title">Stool type (Bristol scale)</span>
+            <label class="bristol-option"><input type="radio" name="bristol" value="1" /> <span data-i18n="wizard.digestion.bristol.1">1</span></label>
+            <label class="bristol-option"><input type="radio" name="bristol" value="2" /> <span data-i18n="wizard.digestion.bristol.2">2</span></label>
+            <label class="bristol-option"><input type="radio" name="bristol" value="3" /> <span data-i18n="wizard.digestion.bristol.3">3</span></label>
+            <label class="bristol-option"><input type="radio" name="bristol" value="4" /> <span data-i18n="wizard.digestion.bristol.4">4</span></label>
+            <label class="bristol-option"><input type="radio" name="bristol" value="5" /> <span data-i18n="wizard.digestion.bristol.5">5</span></label>
+            <label class="bristol-option"><input type="radio" name="bristol" value="6" /> <span data-i18n="wizard.digestion.bristol.6">6</span></label>
+            <label class="bristol-option"><input type="radio" name="bristol" value="7" /> <span data-i18n="wizard.digestion.bristol.7">7</span></label>
+          </div>
+        </div>
+      </div>
+
       <!-- Extra symptom tags (tile picker) - same step as sliders & body map -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="additionalSymptoms">
@@ -2206,6 +2312,11 @@
             <input type="range" id="mood" min="1" max="10" step="1" />
             <label for="mood" class="slider-label" data-i18n="common.mood.level">Mood Level</label>
             <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          </div>
+          <label for="gratitude" data-i18n="wizard.mood.gratitudeLabel">Gratitude (optional)</label>
+          <div class="input-container">
+            <textarea id="gratitude" maxlength="500" rows="2" placeholder="Today I'm grateful for..." data-i18n-placeholder="wizard.mood.gratitude"></textarea>
+            <span id="gratitudeCounter" class="character-counter">0/500</span>
           </div>
           <div class="input-container">
             <label for="energyClarity" class="visually-hidden" data-i18n="common.energy.and.mental.clarity">Energy and mental clarity</label>
@@ -2295,6 +2406,14 @@
         </button>
         <div class="section-content" id="foodLog">
           <div id="logFoodFrequent" class="frequent-chips-wrap" aria-label="Frequently logged foods" data-i18n-aria="common.frequently.logged.foods"></div>
+          <button type="button" id="barcodeScanBtn" class="hidden secondary-btn barcode-scan-btn" onclick="activateBarcodeScanner()" data-i18n="wizard.food.scanBarcode">Scan barcode</button>
+          <div id="foodSearchWrap" class="food-search-wrap">
+            <label for="foodSearchInput" class="settings-label" data-i18n="wizard.food.search">Search food</label>
+            <input type="search" id="foodSearchInput" class="food-search-input" autocomplete="off" data-i18n-placeholder="wizard.food.searchPlaceholder" placeholder="Type food name…" />
+            <ul id="foodSearchResults" class="food-search-results" role="listbox" hidden></ul>
+          </div>
+          <button type="button" id="mealPhotoBtn" class="secondary-btn meal-photo-btn" data-i18n="wizard.food.takePhoto">Take photo</button>
+          <input type="file" id="mealPhotoInput" accept="image/*" capture="environment" class="hidden" />
           <div class="food-category-block food-meal-collapsible">
             <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label" data-i18n="common.breakfast">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
             <div class="tile-picker-slot">
@@ -2420,6 +2539,23 @@
       </div>
       <div class="log-wizard-step" data-log-step="8" data-step-title="Medication &amp; notes" data-i18n-title="common.medication.amp.notes">
 
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="supplementsLog">
+          <span class="section-icon"><svg class="section-icon-svg" aria-hidden="true"><use href="#icon-pill"></use></svg></span>
+          <span class="section-title" data-i18n="wizard.supplements.title">Supplements</span>
+        </button>
+        <div class="section-content" id="supplementsLog">
+          <p class="field-hint" data-i18n="wizard.supplements.add">Add supplement</p>
+          <div id="logSupplementsList" class="items-list"></div>
+          <datalist id="commonSupplementsList"></datalist>
+          <div class="vitals-inline-row">
+            <input type="text" id="supplementNameInput" list="commonSupplementsList" placeholder="Vitamin D" data-i18n-placeholder="wizard.supplements.namePlaceholder" />
+            <input type="text" id="supplementDoseInput" placeholder="200 mg" data-i18n-placeholder="wizard.supplements.dosePlaceholder" />
+            <button type="button" class="secondary-btn" id="addSupplementBtn" onclick="addLogSupplement()" data-i18n="wizard.supplements.addBtn">Add</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Medication / Supplements Section (optional) -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="medications">
@@ -2469,6 +2605,12 @@
         <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." data-i18n-placeholder="common.tap.here.and.use.voice.dictation.to.quic" maxlength="500"></textarea>
         <button type="button" id="suggestNoteBtn" class="suggest-note-btn" title="Suggest a short note based on today&#39;s metrics vs your average" data-i18n-title="common.suggest.a.short.note.based.on.today.39.s" data-i18n="wizard.alert.suggestNote.title">Suggest note</button>
         <div class="validation-message" id="notes-error"></div>
+          </div>
+          <div class="log-photo-attachments">
+            <label for="logPhotoInput" data-i18n="wizard.attachments.addPhoto">Add photo</label>
+            <input type="file" id="logPhotoInput" accept="image/*" capture="environment" multiple />
+            <p class="field-hint" id="logPhotoCount" hidden data-i18n="wizard.attachments.photoCount">0 photo(s) attached</p>
+            <div id="logPhotoThumbnails" class="log-photo-thumbnails"></div>
           </div>
         </div>
       </div>
@@ -2705,6 +2847,18 @@
       <div id="individualChartsContainer">
         <div id="bpmChart" class="chart-container lazy-chart" data-chart-type="bpm">
           <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading BPM chart" data-i18n-aria="common.loading.bpm.chart"></div>
+        </div>
+        <div id="bloodPressureChart" class="chart-container lazy-chart" data-chart-type="bloodPressureSystolic">
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading blood pressure chart" data-i18n-aria="common.loading.blood.pressure.chart"></div>
+        </div>
+        <div id="bloodGlucoseChart" class="chart-container lazy-chart" data-chart-type="bloodGlucose">
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading blood glucose chart" data-i18n-aria="common.loading.blood.glucose.chart"></div>
+        </div>
+        <div id="spO2Chart" class="chart-container lazy-chart" data-chart-type="spO2">
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading SpO2 chart" data-i18n-aria="common.loading.spo2.chart"></div>
+        </div>
+        <div id="bodyWeightChart" class="chart-container lazy-chart" data-chart-type="bodyWeight">
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading body weight chart" data-i18n-aria="common.loading.body.weight.chart"></div>
         </div>
         <div id="fatigueChart" class="chart-container lazy-chart" data-chart-type="fatigue">
           <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Fatigue chart" data-i18n-aria="common.loading.fatigue.chart"></div>

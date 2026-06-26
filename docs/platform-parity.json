@@ -5,8 +5,8 @@
   "features": [
     {
       "id": "notifications",
-      "status": { "web": "supported", "android": "supported", "ios": "partial" },
-      "notes": "PWA LocalNotifications plugin path; RN native channels and scheduling; iOS delivery varies by OS policy."
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "PWA LocalNotifications plugin path; RN native channels and scheduling; iOS uses sound+badge fallback via buildNotificationContent."
     },
     {
       "id": "speech_to_text",
@@ -197,6 +197,16 @@
       "id": "ui_rtl_ar_he",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
       "notes": "ar/he in SHIPPED_LOCALES; PWA dir + [dir=rtl] CSS (modals, wizard, settings carousel); RN I18nManager.forceRTL + mirrored nav/chevrons in LogWizard and Settings."
+    },
+    {
+      "id": "extended_vital_metrics",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Plan 16 VM1–VM11: BP, glucose, SpO2, HRV, body weight/BMI, supplements, Bristol, pain body-map, gratitude, BBT, photo attachments."
+    },
+    {
+      "id": "health_photos_storage",
+      "status": { "web": "supported", "android": "partial", "ios": "partial" },
+      "notes": "Supabase health-photos private bucket; PWA upload when signed in; RN displays attachment count (picker deferred)."
     }
   ]
 }

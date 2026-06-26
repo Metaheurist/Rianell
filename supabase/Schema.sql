@@ -99,13 +99,19 @@ CREATE TABLE IF NOT EXISTS public.health_data (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   ai_state text,
+  data_encrypted text,
+  data_iv text,
+  data_encrypted_v integer DEFAULT 1,
   CONSTRAINT health_data_pkey PRIMARY KEY (user_id),
   CONSTRAINT health_data_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
 );
 
 CREATE TABLE IF NOT EXISTS public.user_keys (
   user_id uuid NOT NULL,
-  encryption_key text NOT NULL,
+  encryption_key text,
+  wrapped_dek text,
+  dek_salt text,
+  key_version integer DEFAULT 1,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT user_keys_pkey PRIMARY KEY (user_id),
   CONSTRAINT user_keys_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
@@ -150,6 +156,77 @@ CREATE TABLE IF NOT EXISTS public.consent_audit_log (
   CONSTRAINT consent_audit_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id) ON DELETE CASCADE
 );
 
+-- Plan 18 API1 — API keys & webhooks
+CREATE TABLE IF NOT EXISTS public.api_keys (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  key_hash text NOT NULL,
+  key_prefix text NOT NULL,
+  label text,
+  scopes text[] DEFAULT ARRAY['logs:read']::text[],
+  last_used_at timestamptz,
+  created_at timestamptz DEFAULT now(),
+  revoked_at timestamptz
+);
+
+CREATE TABLE IF NOT EXISTS public.user_webhooks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  url text NOT NULL,
+  events text[] DEFAULT ARRAY['log.created']::text[],
+  secret text,
+  enabled boolean DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  last_delivered_at timestamptz,
+  failure_count integer DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS public.webhook_deliveries (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  webhook_id uuid REFERENCES public.user_webhooks(id) ON DELETE CASCADE,
+  event_type text,
+  payload jsonb,
+  response_status integer,
+  attempt integer DEFAULT 1,
+  delivered_at timestamptz DEFAULT now()
+);
+
+-- Plan 19 CN1/CN4 — OAuth2 clients & user integrations
+CREATE TABLE IF NOT EXISTS public.oauth2_clients (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id text NOT NULL UNIQUE,
+  client_name text NOT NULL,
+  redirect_uris text[] NOT NULL DEFAULT '{}'::text[],
+  allowed_scopes text[] NOT NULL DEFAULT ARRAY['logs:read']::text[],
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.oauth2_auth_codes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code text NOT NULL UNIQUE,
+  client_id text NOT NULL,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  scopes text[] NOT NULL DEFAULT '{}'::text[],
+  code_challenge text NOT NULL,
+  expires_at timestamptz NOT NULL,
+  used boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.user_integrations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  provider text NOT NULL,
+  access_token_encrypted text,
+  refresh_token_encrypted text,
+  sheet_id text,
+  sheet_range text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
 -- =============================================================================
 -- §2 ROW LEVEL SECURITY
 -- =============================================================================
@@ -161,6 +238,12 @@ ALTER TABLE public.user_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bug_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.consent_audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_webhooks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.webhook_deliveries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.oauth2_clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.oauth2_auth_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_integrations ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "user_privacy_profile_select_own" ON public.user_privacy_profile;
 CREATE POLICY "user_privacy_profile_select_own"
@@ -289,6 +372,47 @@ CREATE POLICY "consent_audit_log_select_own"
 
 -- Immutable audit trail: no UPDATE or DELETE policies for consent_audit_log
 
+DROP POLICY IF EXISTS "api_keys_owner" ON public.api_keys;
+CREATE POLICY "api_keys_owner"
+  ON public.api_keys FOR ALL TO authenticated
+  USING (user_id = (select auth.uid()))
+  WITH CHECK (user_id = (select auth.uid()));
+
+DROP POLICY IF EXISTS "user_webhooks_owner" ON public.user_webhooks;
+CREATE POLICY "user_webhooks_owner"
+  ON public.user_webhooks FOR ALL TO authenticated
+  USING (user_id = (select auth.uid()))
+  WITH CHECK (user_id = (select auth.uid()));
+
+DROP POLICY IF EXISTS "webhook_deliveries_owner" ON public.webhook_deliveries;
+CREATE POLICY "webhook_deliveries_owner"
+  ON public.webhook_deliveries FOR SELECT TO authenticated
+  USING (
+    webhook_id IN (SELECT id FROM public.user_webhooks WHERE user_id = (select auth.uid()))
+  );
+
+DROP POLICY IF EXISTS "oauth2_clients_read" ON public.oauth2_clients;
+CREATE POLICY "oauth2_clients_read"
+  ON public.oauth2_clients FOR SELECT TO authenticated
+  USING (created_by IS NULL OR created_by = (select auth.uid()));
+
+DROP POLICY IF EXISTS "oauth2_clients_insert" ON public.oauth2_clients;
+CREATE POLICY "oauth2_clients_insert"
+  ON public.oauth2_clients FOR INSERT TO authenticated
+  WITH CHECK (created_by = (select auth.uid()));
+
+DROP POLICY IF EXISTS "oauth2_auth_codes_owner" ON public.oauth2_auth_codes;
+CREATE POLICY "oauth2_auth_codes_owner"
+  ON public.oauth2_auth_codes FOR ALL TO authenticated
+  USING (user_id = (select auth.uid()))
+  WITH CHECK (user_id = (select auth.uid()));
+
+DROP POLICY IF EXISTS "user_integrations_owner" ON public.user_integrations;
+CREATE POLICY "user_integrations_owner"
+  ON public.user_integrations FOR ALL TO authenticated
+  USING (user_id = (select auth.uid()))
+  WITH CHECK (user_id = (select auth.uid()));
+
 -- =============================================================================
 -- §3 GRANTS + GRAPHQL HARDENING (Security Advisor lints 0026/0027)
 -- =============================================================================
@@ -312,6 +436,12 @@ GRANT INSERT ON public.bug_reports TO anon, authenticated;
 GRANT SELECT ON public.bug_reports TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_achievements TO authenticated;
 GRANT SELECT, INSERT ON public.consent_audit_log TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.api_keys TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_webhooks TO authenticated;
+GRANT SELECT ON public.webhook_deliveries TO authenticated;
+GRANT SELECT, INSERT ON public.oauth2_clients TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.oauth2_auth_codes TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_integrations TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
 
@@ -471,6 +601,11 @@ BEGIN
     RAISE EXCEPTION 'delete_all_user_data: p_user_id required';
   END IF;
 
+  DELETE FROM public.webhook_deliveries WHERE webhook_id IN (SELECT id FROM public.user_webhooks WHERE user_id = p_user_id);
+  DELETE FROM public.user_webhooks WHERE user_id = p_user_id;
+  DELETE FROM public.api_keys WHERE user_id = p_user_id;
+  DELETE FROM public.oauth2_auth_codes WHERE user_id = p_user_id;
+  DELETE FROM public.user_integrations WHERE user_id = p_user_id;
   DELETE FROM public.consent_audit_log WHERE user_id = p_user_id;
   DELETE FROM public.anonymized_data WHERE user_id = p_user_id;
   DELETE FROM public.health_data WHERE user_id = p_user_id;
@@ -510,6 +645,24 @@ REVOKE EXECUTE ON FUNCTION public.delete_all_user_data(uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.delete_all_user_data(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_all_user_data(uuid) TO service_role;
 
+CREATE OR REPLACE FUNCTION public.log_consent_event(p_consent_type text, p_metadata jsonb DEFAULT '{}'::jsonb)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'not authenticated';
+  END IF;
+  INSERT INTO public.consent_audit_log (user_id, consent_type, metadata)
+  VALUES (auth.uid(), COALESCE(p_consent_type, 'consent_changed'), COALESCE(p_metadata, '{}'::jsonb));
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.log_consent_event(text, jsonb) FROM anon;
+GRANT EXECUTE ON FUNCTION public.log_consent_event(text, jsonb) TO authenticated;
+
 -- =============================================================================
 -- §6 PG_CRON RETENTION (optional — enable pg_cron in Supabase Dashboard → Database → Extensions)
 -- Uncomment and run in SQL Editor after enabling pg_cron. Launch audit Phase 4.
@@ -536,6 +689,90 @@ SELECT cron.schedule(
   $$DELETE FROM public.anonymized_data WHERE user_id IS NULL AND created_at < now() - interval '36 months'$$
 );
 */
+
+-- =============================================================================
+-- §4c Plan 21 SEC5 — CSP violation reports
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.csp_violations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  url text,
+  directive text,
+  blocked_uri text,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.csp_violations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.csp_violations FROM anon, authenticated;
+
+-- =============================================================================
+-- §4d Plan 23 — Community tables (anonymous, k≥5 enforced in RPC)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS public.community_tips (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  condition_tag text NOT NULL,
+  category text NOT NULL,
+  content text NOT NULL CHECK (char_length(content) <= 500),
+  upvotes integer DEFAULT 0,
+  flag_count integer DEFAULT 0,
+  approved boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.community_tips ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS tips_read_approved ON public.community_tips;
+CREATE POLICY tips_read_approved ON public.community_tips
+  FOR SELECT TO authenticated USING (approved = true AND flag_count < 3);
+DROP POLICY IF EXISTS tips_insert_authenticated ON public.community_tips;
+CREATE POLICY tips_insert_authenticated ON public.community_tips
+  FOR INSERT TO authenticated WITH CHECK (true);
+REVOKE ALL ON public.community_tips FROM anon;
+
+CREATE TABLE IF NOT EXISTS public.community_triggers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  condition_tag text NOT NULL,
+  trigger_name text NOT NULL,
+  trigger_category text,
+  contributor_count integer DEFAULT 1,
+  approved boolean DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.community_triggers ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.community_triggers FROM anon;
+
+CREATE OR REPLACE FUNCTION public.get_community_triggers(p_condition text)
+RETURNS SETOF public.community_triggers
+LANGUAGE sql
+SECURITY INVOKER
+SET search_path = public
+AS $$
+  SELECT * FROM public.community_triggers
+  WHERE condition_tag = trim(p_condition)
+    AND approved = true
+    AND contributor_count >= 5
+  ORDER BY contributor_count DESC;
+$$;
+REVOKE EXECUTE ON FUNCTION public.get_community_triggers(text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.get_community_triggers(text) TO authenticated;
+
+-- =============================================================================
+-- §4e Plan 16 VM11 — private health photo attachments (storage)
+-- =============================================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('health-photos', 'health-photos', false)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "health_photos_select_own" ON storage.objects;
+CREATE POLICY "health_photos_select_own"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (bucket_id = 'health-photos' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "health_photos_insert_own" ON storage.objects;
+CREATE POLICY "health_photos_insert_own"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'health-photos' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+DROP POLICY IF EXISTS "health_photos_delete_own" ON storage.objects;
+CREATE POLICY "health_photos_delete_own"
+  ON storage.objects FOR DELETE TO authenticated
+  USING (bucket_id = 'health-photos' AND (storage.foldername(name))[1] = auth.uid()::text);
 
 COMMIT;
 
@@ -592,7 +829,7 @@ SELECT 'rpc' AS check_type, proname AS name, 'ok' AS status
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
-  AND proname IN ('get_k_anon_pool_insights', 'count_pool_contribution_days', 'delete_all_user_data')
+  AND proname IN ('get_k_anon_pool_insights', 'count_pool_contribution_days', 'delete_all_user_data', 'log_consent_event')
 ORDER BY proname;
 
 SELECT 'column' AS check_type, 'anonymized_data.research_facets' AS name,

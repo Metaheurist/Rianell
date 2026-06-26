@@ -344,6 +344,65 @@
       ],
       "international_transfers": false,
       "data_subject_rights": ["access", "erasure", "withdraw_consent", "object"]
+    },
+    {
+      "id": "PA-11",
+      "name": "REST API keys and webhooks",
+      "description": "Authenticated users may create API keys and outbound webhooks for log sync integrations.",
+      "purposes": ["Data portability", "Third-party integrations"],
+      "legal_basis_art6": "consent_6_1_a",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": ["api_key_hashes", "webhook_urls", "delivery_metadata"],
+      "data_subjects": ["authenticated_users"],
+      "special_category": true,
+      "recipients": ["supabase_postgres"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "database_hosting",
+          "dpa": "standard_terms",
+          "reference": "docs/privacy/subprocessors.md"
+        }
+      ],
+      "storage_locations": ["supabase_region_operator_selected"],
+      "retention": "Until user revokes key/webhook or account erasure",
+      "security_measures": ["rls_owner_policies", "hashed_api_keys", "https_webhooks_only"],
+      "supabase_tables": [
+        "api_keys",
+        "user_webhooks",
+        "webhook_deliveries",
+        "oauth2_clients",
+        "oauth2_auth_codes",
+        "user_integrations"
+      ],
+      "international_transfers": true,
+      "data_subject_rights": ["access", "erasure", "withdraw_consent"]
+    },
+    {
+      "id": "PA-12",
+      "name": "Security monitoring and anonymous community content",
+      "description": "CSP violation reports and anonymized community tips/triggers (no user_id on community rows).",
+      "purposes": ["Security monitoring", "Peer support insights"],
+      "legal_basis_art6": "legitimate_interest_6_1_f",
+      "legal_basis_art9": "not_applicable",
+      "data_categories": ["csp_report_metadata", "anonymous_community_text"],
+      "data_subjects": ["app_users"],
+      "special_category": false,
+      "recipients": ["supabase_postgres"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "database_hosting",
+          "dpa": "standard_terms",
+          "reference": "docs/privacy/subprocessors.md"
+        }
+      ],
+      "storage_locations": ["supabase_region_operator_selected"],
+      "retention": "CSP rows 90 days; community content until moderated removal",
+      "security_measures": ["rls_authenticated_insert", "k_anon_suppression", "admin_moderation"],
+      "supabase_tables": ["csp_violations", "community_tips", "community_triggers"],
+      "international_transfers": true,
+      "data_subject_rights": ["access", "erasure", "object"]
     }
   ],
   "technical_and_organisational_measures": {

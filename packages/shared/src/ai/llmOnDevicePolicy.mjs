@@ -24,17 +24,17 @@ export const ALLOWED_LLM_MODEL_HOSTS = [
  */
 export function validateRemoteLlmEndpoint(endpoint) {
   const raw = String(endpoint || '').trim();
-  if (!raw) return { allowed: true };
+  if (!raw) return { allowed: true, ok: true };
   let host = '';
   try {
     host = new URL(raw).hostname.toLowerCase();
   } catch {
-    return { allowed: false, reason: 'invalid_url' };
+    return { allowed: false, ok: false, reason: 'invalid_url' };
   }
   if (BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS.some((re) => re.test(host))) {
-    return { allowed: false, reason: 'commercial_api_blocked' };
+    return { allowed: false, ok: false, reason: 'commercial_api_blocked' };
   }
-  return { allowed: true };
+  return { allowed: true, ok: true };
 }
 
 /** PWA inference path is on-device Transformers.js / MLC / GGUF only. */
