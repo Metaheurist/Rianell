@@ -17917,39 +17917,334 @@ async function lazyLoadCharts() {
 }
 if (typeof window !== 'undefined') window.lazyLoadCharts = lazyLoadCharts;
 
+var _migrationSource = null;
+var _migrationParsed = null;
+
 function openMigrationWizard() {
-  if (typeof showToast === 'function') {
-    showToast(window.RianellI18n ? window.RianellI18n.t('settings.data.import.title') : 'Import from another app');
-  }
+  var modal = document.getElementById('migrationWizardModal');
+  if (!modal) return;
+  _migrationSource = null;
+  _migrationParsed = null;
+  renderMigrationSourceGrid();
+  var step1 = document.getElementById('migrationStep1');
+  var step2 = document.getElementById('migrationStep2');
+  var step3 = document.getElementById('migrationStep3');
+  var btn = document.getElementById('migrationImportBtn');
+  if (step1) step1.hidden = false;
+  if (step2) step2.hidden = true;
+  if (step3) step3.hidden = true;
+  if (btn) btn.hidden = true;
+  var fileRow = document.getElementById('migrationFileRow');
+  if (fileRow) fileRow.hidden = true;
+  modal.style.display = '';
+  if (typeof closeSettings === 'function') closeSettings();
 }
 if (typeof window !== 'undefined') window.openMigrationWizard = openMigrationWizard;
 
-function renderCommunityTipsPane(conditionTags) {
-  var el = document.getElementById('communityTipsFeed');
-  if (!el) return;
-  el.setAttribute('data-community-feed', 'true');
-  el.setAttribute('data-conditions', (conditionTags || []).join(','));
+function closeMigrationWizard() {
+  var modal = document.getElementById('migrationWizardModal');
+  if (modal) modal.style.display = 'none';
+}
+if (typeof window !== 'undefined') window.closeMigrationWizard = closeMigrationWizard;
+
+function renderMigrationSourceGrid() {
+  var grid = document.getElementById('migrationSourceGrid');
+  if (!grid) return;
   var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
-  var tips = [];
+  var sources = [];
   try {
-    if (Shared && typeof Shared.getCommunityTriggers === 'function') {
-      tips = Shared.getCommunityTriggers(conditionTags && conditionTags[0] || '');
-    }
+    if (Shared && typeof Shared.listMigrationSources === 'function') sources = Shared.listMigrationSources();
   } catch (e) {}
-  var titleText = tUi('community.tips.title') || 'Community tips';
-  var emptyText = tUi('community.tips.empty') || 'No community tips yet.';
-  if (!tips || !tips.length) {
-    el.innerHTML = '<div class="community-tips-header"><span class="community-tips-title">' + titleText + '</span></div><p class="community-tips-empty">' + emptyText + '</p>';
-    el.hidden = false;
+  if (!sources.length) sources = [
+    { id: 'bearable', label: 'Bearable' },
+    { id: 'flaredown', label: 'Flaredown' },
+    { id: 'oura', label: 'Oura' },
+    { id: 'daylio', label: 'Daylio' },
+    { id: 'apple-health', label: 'Apple Health' },
+    { id: 'garmin', label: 'Garmin' },
+  ];
+  grid.innerHTML = sources.map(function(s) {
+    return '<button type="button" class="migration-source-btn" data-source="' + s.id + '" onclick="selectMigrationSource(\'' + s.id + '\')">' + s.label + '</button>';
+  }).join('');
+}
+
+function selectMigrationSource(sourceId) {
+  _migrationSource = sourceId;
+  var grid = document.getElementById('migrationSourceGrid');
+  if (grid) {
+    grid.querySelectorAll('.migration-source-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.source === sourceId);
+    });
+  }
+  var fileRow = document.getElementById('migrationFileRow');
+  var fileLabel = document.getElementById('migrationFileLabel');
+  if (fileRow) fileRow.hidden = false;
+  if (fileLabel) fileLabel.textContent = 'Upload your ' + sourceId + ' export (.csv or .json)';
+  var fileInput = document.getElementById('migrationFileInput');
+  if (fileInput) fileInput.value = '';
+}
+if (typeof window !== 'undefined') window.selectMigrationSource = selectMigrationSource;
+
+function handleMigrationFileSelected(input) {
+  var file = input && input.files && input.files[0];
+  if (!file || !_migrationSource) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target && e.target.result;
+    var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+    var step1 = document.getElementById('migrationStep1');
+    var step2 = document.getElementById('migrationStep2');
+    var previewMsg = document.getElementById('migrationPreviewMsg');
+    var conflictWarn = document.getElementById('migrationConflictWarning');
+    var importBtn = document.getElementById('migrationImportBtn');
+    try {
+      if (!Shared || typeof Shared.parseMigrationFile !== 'function') throw new Error('Migration parser unavailable');
+      _migrationParsed = Shared.parseMigrationFile(text, _migrationSource);
+      if (!_migrationParsed || !_migrationParsed.length) throw new Error('No entries found in file');
+      if (previewMsg) previewMsg.textContent = 'Ready to import ' + _migrationParsed.length + ' entries from ' + _migrationSource + '.';
+      var conflicts = [];
+      try {
+        if (Shared && typeof Shared.detectImportConflicts === 'function') {
+          conflicts = Shared.detectImportConflicts(_migrationParsed, logs || []);
+        }
+      } catch (e) {}
+      if (conflictWarn) {
+        if (conflicts && conflicts.length) {
+          conflictWarn.innerHTML = '<strong>' + conflicts.length + ' duplicate date(s) detected.</strong> Existing entries for those dates will be kept.';
+          conflictWarn.hidden = false;
+        } else {
+          conflictWarn.hidden = true;
+        }
+      }
+      if (step1) step1.hidden = true;
+      if (step2) step2.hidden = false;
+      if (importBtn) importBtn.hidden = false;
+    } catch (err) {
+      if (previewMsg) previewMsg.textContent = 'Could not read file: ' + (err.message || 'unknown error');
+      if (step1) step1.hidden = true;
+      if (step2) step2.hidden = false;
+      if (importBtn) importBtn.hidden = true;
+    }
+  };
+  reader.readAsText(file);
+}
+if (typeof window !== 'undefined') window.handleMigrationFileSelected = handleMigrationFileSelected;
+
+function executeMigrationImport() {
+  if (!_migrationParsed || !_migrationParsed.length) return;
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  var step2 = document.getElementById('migrationStep2');
+  var step3 = document.getElementById('migrationStep3');
+  var resultMsg = document.getElementById('migrationResultMsg');
+  var importBtn = document.getElementById('migrationImportBtn');
+  try {
+    var imported = 0;
+    _migrationParsed.forEach(function(entry) {
+      if (!entry || !entry.date) return;
+      var existing = logs.findIndex(function(l) { return l.date === entry.date; });
+      if (existing >= 0) return;
+      var normalized = Shared && typeof Shared.normalizeLogEntry === 'function' ? Shared.normalizeLogEntry(entry) : entry;
+      logs.push(normalized);
+      imported++;
+    });
+    if (imported > 0) {
+      saveLogsToStorage();
+      onLogsCountChanged(logs.length);
+      renderLogs();
+      updateCharts();
+    }
+    if (step2) step2.hidden = true;
+    if (step3) step3.hidden = false;
+    if (importBtn) importBtn.hidden = true;
+    if (resultMsg) resultMsg.textContent = 'Imported ' + imported + ' new entries successfully.';
+    setTimeout(closeMigrationWizard, 2000);
+  } catch (err) {
+    if (resultMsg) resultMsg.textContent = 'Import failed: ' + (err.message || 'unknown error');
+    if (step2) step2.hidden = true;
+    if (step3) step3.hidden = false;
+  }
+}
+if (typeof window !== 'undefined') window.executeMigrationImport = executeMigrationImport;
+
+async function generateApiKey() {
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  var displayEl = document.getElementById('apiKeyDisplay');
+  var btn = document.getElementById('generateApiKeyBtn');
+  if (!Shared || typeof Shared.generateRawApiKey !== 'function') {
+    if (displayEl) { displayEl.textContent = 'API keys require Cloud Sync to be enabled.'; displayEl.hidden = false; }
     return;
   }
-  var html = '<div class="community-tips-header"><span class="community-tips-title">' + titleText + '</span></div><ul class="community-tips-list">';
-  tips.slice(0, 5).forEach(function(tip) {
-    html += '<li class="community-tip-item">' + (typeof tip === 'string' ? tip : (tip.trigger || tip.label || '')) + '</li>';
-  });
-  html += '</ul>';
+  try {
+    var rawKey = Shared.generateRawApiKey();
+    var hash = await Shared.hashApiKey(rawKey);
+    var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+    if (client) {
+      await client.from('api_keys').insert({ key_hash: hash, scopes: Shared.DEFAULT_API_SCOPES || ['logs:read'] });
+    }
+    if (displayEl) {
+      displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + rawKey + '</code><p class="settings-hint">Click to copy. Store it safely — it won\'t be shown again.</p>';
+      displayEl.hidden = false;
+    }
+    if (btn) btn.disabled = false;
+    loadApiKeysList();
+  } catch (err) {
+    if (displayEl) { displayEl.textContent = 'Error generating key: ' + (err.message || ''); displayEl.hidden = false; }
+  }
+}
+if (typeof window !== 'undefined') window.generateApiKey = generateApiKey;
+
+async function loadApiKeysList() {
+  var listEl = document.getElementById('apiKeysList');
+  if (!listEl) return;
+  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+  if (!client) { listEl.innerHTML = ''; return; }
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  try {
+    var r = await client.from('api_keys').select('id, created_at, scopes, key_hash').order('created_at', { ascending: false }).limit(10);
+    var rows = r && r.data || [];
+    if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">No API keys yet.</p>'; return; }
+    var html = '<ul class="api-keys-list-inner">';
+    rows.forEach(function(k) {
+      var prefix = Shared && typeof Shared.apiKeyDisplayPrefix === 'function' ? Shared.apiKeyDisplayPrefix(k.key_hash || '') : k.key_hash.slice(0,12) + '…';
+      var date = k.created_at ? new Date(k.created_at).toLocaleDateString() : '';
+      html += '<li class="api-key-row"><code>' + prefix + '</code><span class="api-key-meta">' + date + '</span><button class="api-key-revoke-btn" onclick="revokeApiKey(\'' + k.id + '\')" data-i18n="common.revoke">Revoke</button></li>';
+    });
+    html += '</ul>';
+    listEl.innerHTML = html;
+  } catch(e) { listEl.innerHTML = ''; }
+}
+if (typeof window !== 'undefined') window.loadApiKeysList = loadApiKeysList;
+
+async function revokeApiKey(id) {
+  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+  if (!client) return;
+  try { await client.from('api_keys').delete().eq('id', id); loadApiKeysList(); } catch(e) {}
+}
+if (typeof window !== 'undefined') window.revokeApiKey = revokeApiKey;
+
+async function saveWebhook() {
+  var urlInput = document.getElementById('webhookUrlInput');
+  var eventSelect = document.getElementById('webhookEventSelect');
+  var statusEl = document.getElementById('webhookStatusMsg');
+  var url = urlInput && urlInput.value.trim();
+  var event = eventSelect && eventSelect.value;
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!url || !event) { if (statusEl) { statusEl.textContent = 'Enter a valid HTTPS URL.'; statusEl.hidden = false; } return; }
+  if (Shared && typeof Shared.isValidWebhookUrl === 'function' && !Shared.isValidWebhookUrl(url)) {
+    if (statusEl) { statusEl.textContent = 'URL must start with https://'; statusEl.hidden = false; } return;
+  }
+  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+  if (!client) { if (statusEl) { statusEl.textContent = 'Cloud Sync required.'; statusEl.hidden = false; } return; }
+  try {
+    await client.from('user_webhooks').insert({ endpoint_url: url, event_type: event, enabled: true });
+    if (urlInput) urlInput.value = '';
+    if (statusEl) { statusEl.textContent = 'Webhook saved.'; statusEl.hidden = false; }
+    loadWebhooksList();
+  } catch(err) {
+    if (statusEl) { statusEl.textContent = 'Error: ' + (err.message || ''); statusEl.hidden = false; }
+  }
+}
+if (typeof window !== 'undefined') window.saveWebhook = saveWebhook;
+
+async function loadWebhooksList() {
+  var listEl = document.getElementById('webhooksList');
+  if (!listEl) return;
+  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+  if (!client) { listEl.innerHTML = ''; return; }
+  try {
+    var r = await client.from('user_webhooks').select('id, endpoint_url, event_type, enabled').order('created_at', { ascending: false }).limit(10);
+    var rows = r && r.data || [];
+    if (!rows.length) { listEl.innerHTML = ''; return; }
+    var html = '<ul class="webhooks-list-inner">';
+    rows.forEach(function(w) {
+      html += '<li class="webhook-row"><span class="webhook-url">' + escapeHTML(w.endpoint_url) + '</span><span class="webhook-event">' + escapeHTML(w.event_type) + '</span><button class="api-key-revoke-btn" onclick="deleteWebhook(\'' + w.id + '\')">Delete</button></li>';
+    });
+    html += '</ul>';
+    listEl.innerHTML = html;
+  } catch(e) { listEl.innerHTML = ''; }
+}
+if (typeof window !== 'undefined') window.loadWebhooksList = loadWebhooksList;
+
+async function deleteWebhook(id) {
+  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+  if (!client) return;
+  try { await client.from('user_webhooks').delete().eq('id', id); loadWebhooksList(); } catch(e) {}
+}
+if (typeof window !== 'undefined') window.deleteWebhook = deleteWebhook;
+
+function openOAuthConnector(providerSlug) {
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!Shared || typeof Shared.generateCodeVerifier !== 'function' || typeof Shared.buildAuthorizeUrl !== 'function') {
+    notifyError('OAuth connector requires Cloud Sync to be enabled.');
+    return;
+  }
+  try {
+    var verifier = Shared.generateCodeVerifier();
+    Shared.deriveCodeChallenge(verifier).then(function(challenge) {
+      sessionStorage.setItem('oauth_verifier_' + providerSlug, verifier);
+      var provider = (Shared.CONNECTOR_PROVIDERS || []).find(function(p) { return p.id === providerSlug; });
+      if (!provider) { notifyError('Provider not supported: ' + providerSlug); return; }
+      var baseUrl = window.location.origin + '/functions/v1/oauth2-authorize';
+      var url = Shared.buildAuthorizeUrl(baseUrl, { clientId: provider.clientId || '', redirectUri: window.location.origin + '/auth/callback', scope: (provider.defaultScopes || []).join(' '), codeChallenge: challenge, providerSlug: providerSlug });
+      window.open(url, '_blank', 'noopener,noreferrer');
+    });
+  } catch(e) {
+    notifyError('Could not initiate OAuth: ' + (e.message || ''));
+  }
+}
+if (typeof window !== 'undefined') window.openOAuthConnector = openOAuthConnector;
+
+async function renderCommunityTipsPane(conditionTags) {
+  var el = document.getElementById('communityTipsFeed');
+  if (!el) return;
+  var condition = conditionTags && conditionTags[0] ? conditionTags[0] : '';
+  el.setAttribute('data-community-feed', 'true');
+  el.setAttribute('data-conditions', condition);
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  var titleText = tUi('community.tips.title') || 'Community tips';
+  var emptyText = tUi('community.tips.empty') || 'No community tips yet. Be the first to share!';
+  var rows = [];
+  try {
+    if (typeof fetchCommunityTriggerRows === 'function') {
+      rows = await fetchCommunityTriggerRows(condition);
+    }
+  } catch (e) {}
+  var tips = [];
+  if (Shared && typeof Shared.getCommunityTriggers === 'function' && Array.isArray(rows)) {
+    try { tips = Shared.getCommunityTriggers(rows, condition); } catch (e) {}
+  }
+  var html = '<div class="community-tips-header"><span class="community-tips-title">' + titleText + '</span></div>';
+  if (!tips.length) {
+    html += '<p class="community-tips-empty">' + emptyText + '</p>';
+  } else {
+    html += '<ul class="community-tips-list">';
+    tips.slice(0, 5).forEach(function(tip) {
+      html += '<li class="community-tip-item">' + escapeHTML(tip.triggerName || '') + '</li>';
+    });
+    html += '</ul>';
+  }
   el.innerHTML = html;
   el.hidden = false;
+}
+
+async function fetchCommunityTriggerRows(conditionTag) {
+  try {
+    var cached = JSON.parse(localStorage.getItem('rianellCommunityTriggers') || 'null');
+    if (cached && Array.isArray(cached.rows) && cached.condition === conditionTag && (Date.now() - (cached.at || 0)) < 3600000) {
+      return cached.rows;
+    }
+  } catch (e) {}
+  if (typeof window === 'undefined' || !window.fetchPoolInsights) return [];
+  try {
+    var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+    if (!client) return [];
+    var q = client.from('community_triggers').select('*').eq('approved', true);
+    if (conditionTag) q = q.eq('condition_tag', conditionTag);
+    var result = await q.limit(20);
+    var rows = (result && result.data) || [];
+    try { localStorage.setItem('rianellCommunityTriggers', JSON.stringify({ rows: rows, condition: conditionTag, at: Date.now() })); } catch(e) {}
+    return rows;
+  } catch (e) { return []; }
 }
 if (typeof window !== 'undefined') window.renderCommunityTipsPane = renderCommunityTipsPane;
 
@@ -18010,10 +18305,11 @@ if (typeof window !== 'undefined') window.updateFoodNutritionSummary = updateFoo
 function showFoodSensitivityAlert(log) {
   var el = document.getElementById('foodSensitivityAlert');
   if (!el) return;
-  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
-  if (!Shared || typeof Shared.detectFoodSensitivities !== 'function') return;
+  var AIEngine = typeof window !== 'undefined' ? window.RianellAIEngine : null;
+  if (!AIEngine || typeof AIEngine.detectFoodSensitivities !== 'function') { el.hidden = true; return; }
   try {
-    var triggers = Shared.detectFoodSensitivities(logs || [], log);
+    var allLogs = (logs || []).concat(log ? [log] : []);
+    var triggers = AIEngine.detectFoodSensitivities(allLogs);
     if (!triggers || !triggers.length) { el.hidden = true; return; }
     var html = '<div class="food-sensitivity-inner"><strong>' + (tUi('food.sensitivity.title') || 'Possible food triggers') + ':</strong><ul>';
     triggers.slice(0, 3).forEach(function(t) {
@@ -18023,7 +18319,7 @@ function showFoodSensitivityAlert(log) {
     html += '</ul></div>';
     el.innerHTML = html;
     el.hidden = false;
-  } catch (e) {}
+  } catch (e) { el.hidden = true; }
 }
 if (typeof window !== 'undefined') window.showFoodSensitivityAlert = showFoodSensitivityAlert;
 
@@ -18641,6 +18937,13 @@ async function loadPoolInsightsPanel() {
       }
       return '';
     }).join('');
+    try {
+      var poolForCohort = result.insights && result.insights.raw ? result.insights.raw : result.insights;
+      if (poolForCohort) {
+        localStorage.setItem('rianellCohortPool', JSON.stringify(poolForCohort));
+        if (typeof renderCohortBenchmarkCard === 'function') renderCohortBenchmarkCard();
+      }
+    } catch (e) {}
   } catch (e) {
     body.innerHTML = '<p class="ai-section-intro">' + escapeHTML(tUi('research.pool.insights.unavailable')) + '</p>';
   }
