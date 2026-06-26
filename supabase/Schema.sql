@@ -10,17 +10,26 @@
 --   5. Dashboard → Database → Security Advisor — confirm GraphQL lints cleared
 --
 -- Idempotent — safe to re-run. The browser embeds the anon key; security depends on RLS.
+-- All migrations are baked in; do NOT run supabase/migrations/* separately.
 --
 -- Includes:
---   §1 Tables (user_privacy_profile, anonymized_data + research_facets, health_data, user_keys, bug_reports)
---   §2 Row Level Security policies
+--   §0 TEST RESET (commented out — uncomment for dev/staging wipe only)
+--   §1 Tables: core health + keys + bugs + achievements + consent audit
+--            + api_keys, user_webhooks, webhook_deliveries (Plan 18)
+--            + oauth2_clients, oauth2_auth_codes, user_integrations (Plan 19)
+--            + csp_violations, community_tips, community_triggers (Plan 21/23)
+--            + share_links (encrypted read-only share links)
+--   §2 Row Level Security policies (all tables)
 --   §3 Grants + GraphQL hardening (Security Advisor lints 0026/0027)
---   §4 Plan 13 RE1 pool RPCs (get_k_anon_pool_insights, count_pool_contribution_days; anon EXECUTE revoked — lint 0028)
+--   §4 RPCs: pool insights, consent audit, GDPR delete, share link counter,
+--            community triggers, log consent event
+--   §4e Storage: health-photos private bucket
 --   §5 Post-apply verification SELECTs
 --
 -- Dev/staging FULL WIPE ONLY: uncomment §0 TEST RESET (destroys all tables, auth users, data).
 -- Or use Schema-fresh-install.sql (§0 already enabled) when the project has no data.
 -- On-device LLM weights are HF-only — no Supabase Storage bucket required.
+-- Project ref: gitnxgfbbpykwqvogmqq
 -- =============================================================================
 
 BEGIN;
@@ -29,7 +38,10 @@ BEGIN;
 -- §0 TEST RESET (optional — uncomment only for dev/staging wipe)
 -- =============================================================================
 /*
--- Functions first (public wrappers + private impl)
+-- Functions first
+DROP FUNCTION IF EXISTS public.increment_share_access(text);
+DROP FUNCTION IF EXISTS public.get_community_triggers(text);
+DROP FUNCTION IF EXISTS public.log_consent_event(text, jsonb);
 DROP FUNCTION IF EXISTS public.delete_all_user_data(uuid);
 DROP FUNCTION IF EXISTS public.count_pool_contribution_days(text);
 DROP FUNCTION IF EXISTS public.get_k_anon_pool_insights(text, integer);
@@ -37,6 +49,17 @@ DROP FUNCTION IF EXISTS private.delete_all_user_data_impl(uuid);
 DROP FUNCTION IF EXISTS private.count_pool_contribution_days_impl(text);
 DROP FUNCTION IF EXISTS private.get_k_anon_pool_insights_impl(text, integer);
 
+-- Tables (newest first to respect FK deps)
+DROP TABLE IF EXISTS public.share_links CASCADE;
+DROP TABLE IF EXISTS public.community_triggers CASCADE;
+DROP TABLE IF EXISTS public.community_tips CASCADE;
+DROP TABLE IF EXISTS public.csp_violations CASCADE;
+DROP TABLE IF EXISTS public.webhook_deliveries CASCADE;
+DROP TABLE IF EXISTS public.user_webhooks CASCADE;
+DROP TABLE IF EXISTS public.api_keys CASCADE;
+DROP TABLE IF EXISTS public.user_integrations CASCADE;
+DROP TABLE IF EXISTS public.oauth2_auth_codes CASCADE;
+DROP TABLE IF EXISTS public.oauth2_clients CASCADE;
 DROP TABLE IF EXISTS public.consent_audit_log CASCADE;
 DROP TABLE IF EXISTS public.user_achievements CASCADE;
 DROP TABLE IF EXISTS public.bug_reports CASCADE;
@@ -227,6 +250,22 @@ CREATE TABLE IF NOT EXISTS public.user_integrations (
   updated_at timestamptz DEFAULT now()
 );
 
+-- Plan: Share Link System — encrypted hosted read-only share links
+-- Password never stored server-side; client encrypts before upload.
+CREATE TABLE IF NOT EXISTS public.share_links (
+  id             uuid        DEFAULT gen_random_uuid() PRIMARY KEY,
+  share_code     text        NOT NULL UNIQUE,
+  encrypted_blob text        NOT NULL,
+  salt           text        NOT NULL,
+  iv             text        NOT NULL,
+  kdf_iterations integer     NOT NULL DEFAULT 310000,
+  created_at     timestamptz DEFAULT now() NOT NULL,
+  expires_at     timestamptz NOT NULL,
+  access_count   integer     DEFAULT 0 NOT NULL,
+  max_accesses   integer     DEFAULT 500 NOT NULL,
+  metadata       jsonb       DEFAULT '{}'::jsonb
+);
+
 -- =============================================================================
 -- §2 ROW LEVEL SECURITY
 -- =============================================================================
@@ -244,6 +283,7 @@ ALTER TABLE public.webhook_deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oauth2_clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oauth2_auth_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_integrations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.share_links ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "user_privacy_profile_select_own" ON public.user_privacy_profile;
 CREATE POLICY "user_privacy_profile_select_own"
@@ -413,6 +453,16 @@ CREATE POLICY "user_integrations_owner"
   USING (user_id = (select auth.uid()))
   WITH CHECK (user_id = (select auth.uid()));
 
+DROP POLICY IF EXISTS "share_links_anon_insert" ON public.share_links;
+CREATE POLICY "share_links_anon_insert"
+  ON public.share_links FOR INSERT TO anon, authenticated
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "share_links_anon_select" ON public.share_links;
+CREATE POLICY "share_links_anon_select"
+  ON public.share_links FOR SELECT TO anon, authenticated
+  USING (expires_at > now() AND access_count < max_accesses);
+
 -- =============================================================================
 -- §3 GRANTS + GRAPHQL HARDENING (Security Advisor lints 0026/0027)
 -- =============================================================================
@@ -442,6 +492,8 @@ GRANT SELECT ON public.webhook_deliveries TO authenticated;
 GRANT SELECT, INSERT ON public.oauth2_clients TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.oauth2_auth_codes TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_integrations TO authenticated;
+GRANT INSERT ON public.share_links TO anon, authenticated;
+GRANT SELECT ON public.share_links TO anon, authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
 
@@ -753,6 +805,17 @@ REVOKE EXECUTE ON FUNCTION public.get_community_triggers(text) FROM anon;
 GRANT EXECUTE ON FUNCTION public.get_community_triggers(text) TO authenticated;
 
 -- =============================================================================
+-- §4f Share link access counter (SECURITY DEFINER — no RLS bypass needed)
+-- =============================================================================
+CREATE OR REPLACE FUNCTION public.increment_share_access(p_code text)
+RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  UPDATE share_links SET access_count = access_count + 1
+  WHERE share_code = p_code AND expires_at > now();
+$$;
+
+GRANT EXECUTE ON FUNCTION public.increment_share_access(text) TO anon, authenticated;
+
+-- =============================================================================
 -- §4e Plan 16 VM11 — private health photo attachments (storage)
 -- =============================================================================
 INSERT INTO storage.buckets (id, name, public)
@@ -829,8 +892,16 @@ SELECT 'rpc' AS check_type, proname AS name, 'ok' AS status
 FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
-  AND proname IN ('get_k_anon_pool_insights', 'count_pool_contribution_days', 'delete_all_user_data', 'log_consent_event')
+  AND proname IN (
+    'get_k_anon_pool_insights', 'count_pool_contribution_days',
+    'delete_all_user_data', 'log_consent_event',
+    'increment_share_access', 'get_community_triggers'
+  )
 ORDER BY proname;
+
+SELECT 'share_links' AS check_type, table_name AS name, 'ok' AS status
+FROM information_schema.tables
+WHERE table_schema = 'public' AND table_name = 'share_links';
 
 SELECT 'column' AS check_type, 'anonymized_data.research_facets' AS name,
   CASE WHEN count(*) = 1 THEN 'ok' ELSE 'FAIL' END AS status
