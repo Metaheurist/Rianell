@@ -664,6 +664,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Free disk space (remove unused toolchains)
+        run: |
+          df -h /
+          sudo rm -rf /usr/local/lib/android/sdk/ndk /usr/local/lib/android/sdk/system-images \
+            /usr/local/lib/android/sdk/emulator /opt/hostedtoolcache/CodeQL \
+            /usr/local/.ghcup /usr/share/dotnet /opt/ghc \
+            "$AGENT_TOOLSDIRECTORY/node" 2>/dev/null || true
+          sudo apt-get clean 2>/dev/null || true
+          df -h /
+
       - uses: ./.github/actions/setup-node-ci
 
       - uses: ./.github/actions/cache-expo
