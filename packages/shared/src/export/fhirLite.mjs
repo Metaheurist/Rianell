@@ -6,6 +6,25 @@ const METRIC_CODES = {
   fatigue: { system: 'http://loinc.org', code: '75826-7', display: 'Fatigue' },
   bpm: { system: 'http://loinc.org', code: '8867-4', display: 'Heart rate' },
   weight: { system: 'http://loinc.org', code: '29463-7', display: 'Body weight' },
+  bodyWeight: { system: 'http://loinc.org', code: '29463-7', display: 'Body weight' },
+  bloodPressureSystolic: { system: 'http://loinc.org', code: '8480-6', display: 'Systolic blood pressure' },
+  bloodPressureDiastolic: { system: 'http://loinc.org', code: '8462-4', display: 'Diastolic blood pressure' },
+  bloodGlucose: { system: 'http://loinc.org', code: '2339-0', display: 'Glucose' },
+  spO2: { system: 'http://loinc.org', code: '59408-5', display: 'Oxygen saturation' },
+  hrv: { system: 'http://loinc.org', code: '80404-7', display: 'HRV RMSSD' },
+  bbt: { system: 'http://loinc.org', code: '8310-5', display: 'Basal body temperature' },
+};
+
+const METRIC_UNITS = {
+  weight: 'kg',
+  bodyWeight: 'kg',
+  bpm: '/min',
+  bloodPressureSystolic: 'mmHg',
+  bloodPressureDiastolic: 'mmHg',
+  bloodGlucose: 'mmol/L',
+  spO2: '%',
+  hrv: 'ms',
+  bbt: 'Cel',
 };
 
 function observationFor(log, field, value) {
@@ -21,7 +40,7 @@ function observationFor(log, field, value) {
     subject: { display: 'Rianell user' },
     effectiveDateTime: `${log.date}T12:00:00Z`,
     valueQuantity: isNum
-      ? { value: num, unit: field === 'weight' ? 'kg' : field === 'bpm' ? '/min' : '{score}' }
+      ? { value: num, unit: METRIC_UNITS[field] || '{score}' }
       : undefined,
     valueString: isNum ? undefined : String(value),
   };

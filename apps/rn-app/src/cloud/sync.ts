@@ -229,6 +229,12 @@ export async function syncToCloud(options?: { conflictPolicy?: SyncConflictPolic
   });
 
   if (error) return { ok: false, message: error.message };
+
+  const latestDate = mergedLogs.length ? mergedLogs[mergedLogs.length - 1]?.date : '';
+  void client.functions.invoke('deliver-webhook', {
+    body: { event: 'log.created', log_date: latestDate, user_id: user.id, ts: Date.now() },
+  }).catch(() => {});
+
   await saveLogs(mergedLogs);
   await logSyncActivity(prefs, 'cloud_sync', `${mergedLogs.length} logs`);
   return { ok: true, message: `Synced ${mergedLogs.length} log(s).` };

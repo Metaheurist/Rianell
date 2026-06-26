@@ -1,0 +1,11 @@
+{
+  "name": "n8n-nodes-rianell",
+  "version": "0.1.0",
+  "description": "n8n community node for Rianell Health API",
+  "main": "dist/nodes/Rianell/Rianell.node.js",
+  "n8n": {
+    "nodes": ["dist/nodes/Rianell/Rianell.node.js"],
+    "credentials": ["dist/credentials/RianellApi.credentials.js"]
+  },
+  "private": true
+}

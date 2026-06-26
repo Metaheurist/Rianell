@@ -4153,6 +4153,18 @@ window.addEventListener('DOMContentLoaded', function() {
   renderLogSymptomsItems(); // also populates logSymptomsTiles
   initPainBodyDiagram('painBodyDiagram', 'painLocation');
   initPainBodyDiagram('editPainBodyDiagram', 'editPainLocation');
+  if (typeof initCommonSupplementsDatalist === 'function') initCommonSupplementsDatalist();
+  if (typeof initLogPhotoInput === 'function') initLogPhotoInput();
+  if (typeof syncDigestiveModuleVisibility === 'function') syncDigestiveModuleVisibility();
+  var gratitudeField = document.getElementById('gratitude');
+  var gratitudeCounter = document.getElementById('gratitudeCounter');
+  if (gratitudeField && gratitudeCounter) {
+    gratitudeField.addEventListener('input', function() {
+      gratitudeCounter.textContent = gratitudeField.value.length + '/500';
+    });
+  }
+  var bodyWeightInput = document.getElementById('bodyWeight');
+  if (bodyWeightInput) bodyWeightInput.addEventListener('input', updateBmiReadout);
   initMotdScrollBlurForMobile();
   if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
   ['steps', 'hydration', 'sleep'].forEach(function(id) {
@@ -4613,6 +4625,201 @@ function getWeightUnitSuffix() {
   return appSettings.weightUnit;
 }
 
+function toggleGlucoseUnit() {
+  appSettings.glucoseUnit = appSettings.glucoseUnit === 'mgdl' ? 'mmol' : 'mgdl';
+  var display = document.getElementById('glucoseUnitDisplay');
+  var input = document.getElementById('bloodGlucose');
+  if (display) display.textContent = appSettings.glucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L';
+  if (input && input.value) {
+    var n = parseFloat(input.value);
+    if (!isNaN(n)) {
+      var Shared = window.RianellShared;
+      if (Shared && appSettings.glucoseUnit === 'mgdl' && typeof Shared.mmolToMgdl === 'function') {
+        input.value = Shared.mmolToMgdl(n);
+      } else if (Shared && appSettings.glucoseUnit === 'mmol' && typeof Shared.mgdlToMmol === 'function') {
+        input.value = Shared.mgdlToMmol(n);
+      }
+    }
+  }
+  if (input) {
+    input.min = appSettings.glucoseUnit === 'mgdl' ? '18' : '1';
+    input.max = appSettings.glucoseUnit === 'mgdl' ? '600' : '35';
+  }
+  saveSettings();
+}
+if (typeof window !== 'undefined') window.toggleGlucoseUnit = toggleGlucoseUnit;
+
+function toggleBodyWeightUnit() {
+  appSettings.bodyWeightUnit = appSettings.bodyWeightUnit === 'lbs' ? 'kg' : 'lbs';
+  var display = document.getElementById('bodyWeightUnitDisplay');
+  var input = document.getElementById('bodyWeight');
+  if (display) display.textContent = appSettings.bodyWeightUnit;
+  if (input && input.value) {
+    var n = parseFloat(input.value);
+    if (!isNaN(n)) {
+      if (appSettings.bodyWeightUnit === 'lbs') input.value = parseFloat(kgToLb(n));
+      else input.value = parseFloat(lbToKg(n));
+    }
+  }
+  saveSettings();
+  updateBmiReadout();
+}
+if (typeof window !== 'undefined') window.toggleBodyWeightUnit = toggleBodyWeightUnit;
+
+function toggleTemperatureUnit() {
+  appSettings.temperatureUnit = appSettings.temperatureUnit === 'fahrenheit' ? 'celsius' : 'fahrenheit';
+  var display = document.getElementById('temperatureUnitDisplay');
+  var input = document.getElementById('bbt');
+  if (display) display.textContent = appSettings.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+  if (input && input.value) {
+    var n = parseFloat(input.value);
+    if (!isNaN(n)) {
+      input.value = appSettings.temperatureUnit === 'fahrenheit'
+        ? ((n * 9) / 5 + 32).toFixed(1)
+        : (((n - 32) * 5) / 9).toFixed(1);
+    }
+  }
+  saveSettings();
+}
+if (typeof window !== 'undefined') window.toggleTemperatureUnit = toggleTemperatureUnit;
+
+function setGlucoseUnitPref(value) {
+  appSettings.glucoseUnit = value === 'mgdl' ? 'mgdl' : 'mmol';
+  saveSettings();
+  var display = document.getElementById('glucoseUnitDisplay');
+  if (display) display.textContent = appSettings.glucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L';
+}
+if (typeof window !== 'undefined') window.setGlucoseUnitPref = setGlucoseUnitPref;
+
+function setTemperatureUnitPref(value) {
+  appSettings.temperatureUnit = value === 'fahrenheit' ? 'fahrenheit' : 'celsius';
+  saveSettings();
+}
+if (typeof window !== 'undefined') window.setTemperatureUnitPref = setTemperatureUnitPref;
+
+function setHeightCmPref(value) {
+  var n = parseInt(value, 10);
+  appSettings.heightCm = Number.isFinite(n) ? n : null;
+  saveSettings();
+  updateBmiReadout();
+}
+if (typeof window !== 'undefined') window.setHeightCmPref = setHeightCmPref;
+
+function updateBmiReadout() {
+  var el = document.getElementById('bmiReadout');
+  var bwEl = document.getElementById('bodyWeight');
+  if (!el || !bwEl) return;
+  var Shared = window.RianellShared;
+  if (!Shared || typeof Shared.computeBmiKg !== 'function' || !appSettings.heightCm) {
+    el.hidden = true;
+    return;
+  }
+  var raw = parseFloat(bwEl.value);
+  if (!Number.isFinite(raw)) { el.hidden = true; return; }
+  var kg = appSettings.bodyWeightUnit === 'lbs' ? parseFloat(lbToKg(raw)) : raw;
+  var bmi = Shared.computeBmiKg(kg, appSettings.heightCm);
+  if (!bmi) { el.hidden = true; return; }
+  el.textContent = (typeof tUi === 'function' ? tUi('wizard.vitals.bmi') : 'BMI') + ': ' + bmi;
+  el.hidden = false;
+}
+
+function syncDigestiveModuleVisibility() {
+  var section = document.getElementById('digestionSection');
+  if (!section) return;
+  section.classList.toggle('hidden', !appSettings.digestiveModuleEnabled);
+}
+if (typeof window !== 'undefined') window.syncDigestiveModuleVisibility = syncDigestiveModuleVisibility;
+
+function renderLogSupplementsItems() {
+  var list = document.getElementById('logSupplementsList');
+  if (!list) return;
+  if (!logFormSupplements.length) {
+    list.innerHTML = '';
+    return;
+  }
+  list.innerHTML = logFormSupplements.map(function(item, index) {
+    var label = escapeHTML(item.name) + (item.dose ? ' — ' + escapeHTML(item.dose) : '');
+    return '<div class="item-chip">' + label + ' <button type="button" onclick="removeLogSupplement(' + index + ')">×</button></div>';
+  }).join('');
+}
+
+function addLogSupplement() {
+  var nameEl = document.getElementById('supplementNameInput');
+  var doseEl = document.getElementById('supplementDoseInput');
+  if (!nameEl) return;
+  var name = (nameEl.value || '').trim();
+  if (!name) return;
+  var doseRaw = doseEl ? (doseEl.value || '').trim() : '';
+  logFormSupplements.push({ name: name, dose: doseRaw || undefined });
+  nameEl.value = '';
+  if (doseEl) doseEl.value = '';
+  renderLogSupplementsItems();
+}
+if (typeof window !== 'undefined') window.addLogSupplement = addLogSupplement;
+
+function removeLogSupplement(index) {
+  logFormSupplements.splice(index, 1);
+  renderLogSupplementsItems();
+}
+if (typeof window !== 'undefined') window.removeLogSupplement = removeLogSupplement;
+
+function initCommonSupplementsDatalist() {
+  var list = document.getElementById('commonSupplementsList');
+  var Shared = window.RianellShared;
+  if (!list || !Shared || !Shared.COMMON_SUPPLEMENTS) return;
+  var items = Shared.COMMON_SUPPLEMENTS;
+  var names = items && typeof items.forEach === 'function' ? Array.from(items) : [];
+  list.innerHTML = names.map(function(n) { return '<option value="' + escapeHTML(n) + '"></option>'; }).join('');
+}
+
+async function uploadHealthPhotoFile(file) {
+  if (!file || !file.type || file.type.indexOf('image/') !== 0) return null;
+  var client = window.supabaseClient;
+  if (!client || !client.auth) return null;
+  try {
+    var session = await client.auth.getSession();
+    var uid = session && session.data && session.data.session && session.data.session.user && session.data.session.user.id;
+    if (!uid) return null;
+    var safeName = String(file.name || 'photo.jpg').replace(/[^a-zA-Z0-9._-]/g, '_');
+    var path = uid + '/' + Date.now() + '-' + safeName;
+    var result = await client.storage.from('health-photos').upload(path, file, { upsert: false, contentType: file.type });
+    if (result.error) return null;
+    return { url: 'health-photos/' + path };
+  } catch (e) {
+    return null;
+  }
+}
+
+function updateLogPhotoUi() {
+  var countEl = document.getElementById('logPhotoCount');
+  var thumbs = document.getElementById('logPhotoThumbnails');
+  if (!countEl || !thumbs) return;
+  var n = logFormPhotoAttachments.length;
+  countEl.hidden = n === 0;
+  countEl.textContent = typeof tUi === 'function' ? tUi('wizard.attachments.photoCount', { n: n }) : (n + ' photo(s) attached');
+  thumbs.innerHTML = logFormPhotoAttachments.map(function(p, i) {
+    return '<span class="log-photo-thumb" data-index="' + i + '">' + escapeHTML(p.caption || p.url) + '</span>';
+  }).join('');
+}
+
+function initLogPhotoInput() {
+  var input = document.getElementById('logPhotoInput');
+  if (!input || input._plan16Bound) return;
+  input._plan16Bound = true;
+  input.addEventListener('change', function() {
+    var files = input.files ? Array.from(input.files) : [];
+    if (!files.length) return;
+    Promise.all(files.map(function(f) { return uploadHealthPhotoFile(f); }))
+      .then(function(results) {
+        results.filter(Boolean).forEach(function(att) {
+          if (logFormPhotoAttachments.length < 6) logFormPhotoAttachments.push(att);
+        });
+        updateLogPhotoUi();
+        input.value = '';
+      })
+      .catch(function() { input.value = ''; });
+  });
+}
 
 
 document.getElementById("date").valueAsDate = new Date();
@@ -9903,6 +10110,8 @@ let logFormExerciseItems = []; // array of { name, duration } (duration in minut
 let logFormStressorsItems = [];
 let logFormSymptomsItems = [];
 var logFormMedications = []; // array of { name, times, taken } for medication/supplement tracker
+var logFormSupplements = []; // Plan 16 VM6 — wellness supplements distinct from meds
+var logFormPhotoAttachments = []; // Plan 16 VM11 — { url, caption? }
 var medTimesDraftForAdd = []; // HH:MM strings for current "Add medication" row (before main Add)
 let editStressorsItems = [];
 let editSymptomsItems = [];
@@ -15657,6 +15866,10 @@ function initializeLazyLoading() {
 function loadChart(container, chartType) {
   const chartConfig = {
     bpm: { labelKey: 'charts.metric.restingHeartRate', field: 'bpm', color: 'rgb(76,175,80)' },
+    bloodPressureSystolic: { labelKey: 'wizard.vitals.bloodPressure', field: 'bloodPressureSystolic', color: 'rgb(229,57,53)' },
+    bloodGlucose: { labelKey: 'wizard.vitals.bloodGlucose', field: 'bloodGlucose', color: 'rgb(255,87,34)' },
+    spO2: { labelKey: 'wizard.vitals.spO2', field: 'spO2', color: 'rgb(3,169,244)' },
+    bodyWeight: { labelKey: 'wizard.vitals.weight', field: 'bodyWeight', color: 'rgb(121,85,72)' },
     fatigue: { labelKey: 'charts.metric.fatigue', field: 'fatigue', color: 'rgb(255,152,0)' },
     stiffness: { labelKey: 'charts.metric.stiffness', field: 'stiffness', color: 'rgb(255,193,7)' },
     backPain: { labelKey: 'charts.metric.backPain', field: 'backPain', color: 'rgb(244,67,54)' },
@@ -16067,6 +16280,7 @@ form.addEventListener("submit", e => {
       return { name: escapeHTML(m.name.trim().substring(0, 80)), times: (m.times || []).slice(0, 10), taken: !!m.taken };
     }) : undefined,
     ...collectPlan04LogFields(dateValue),
+    ...collectPlan16MetricsFields(),
   };
 
   var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
@@ -16158,12 +16372,16 @@ form.addEventListener("submit", e => {
   logFormStressorsItems = [];
   logFormSymptomsItems = [];
   logFormMedications = [];
+  logFormSupplements = [];
+  logFormPhotoAttachments = [];
   if (typeof clearMedTimesDraft === 'function') clearMedTimesDraft();
   renderLogFoodItems();
   renderLogExerciseItems();
   renderLogStressorsItems();
   renderLogSymptomsItems();
   renderLogMedicationsItems();
+  renderLogSupplementsItems();
+  updateLogPhotoUi();
 
   // Reset energy/clarity tile selection
   setEnergyClaritySelection('');
@@ -16263,6 +16481,8 @@ let appSettings = {
   dataResidencyCode: 'default',
   dataResidencyProjectUrl: '',
   simpleMode: false,
+  brainFogMode: false,
+  highContrastEnabled: false,
   profileAvatar: 'leaf',
   displayNameTheme: 'mint',
   trackingProfile: { condition: '', fields: { mood: true, pain: true, notes: true, sleep: false, fatigue: false }, configuredAt: null },
@@ -16275,8 +16495,13 @@ let appSettings = {
   symptomTemplates: [],
   medSchedule: [],
   cycleModuleEnabled: false,
+  digestiveModuleEnabled: false,
   barcodeFoodLoggingEnabled: false,
   guidedVoiceLogEnabled: false,
+  glucoseUnit: 'mmol',
+  temperatureUnit: 'celsius',
+  heightCm: null,
+  bodyWeightUnit: 'kg',
   localOnlyMode: false,
   sessionRecording: true,
   sessionRecordingAt: null,
@@ -16545,8 +16770,8 @@ function loadSettings() {
     typeof appSettings.sessionRecordingDisclosureAt === 'string' ? appSettings.sessionRecordingDisclosureAt : null;
   appSettings.appLockEnabled = appSettings.appLockEnabled === true;
   appSettings.cloudAutoSyncOnOpen = appSettings.cloudAutoSyncOnOpen === true;
-  appSettings.barcodeFoodLoggingEnabled = false;
-  appSettings.guidedVoiceLogEnabled = false;
+  appSettings.barcodeFoodLoggingEnabled = appSettings.barcodeFoodLoggingEnabled === true;
+  appSettings.guidedVoiceLogEnabled = appSettings.guidedVoiceLogEnabled === true;
   if (window.RianellShared && typeof window.RianellShared.normalizeCaregiverSettings === 'function') {
     var cg = window.RianellShared.normalizeCaregiverSettings(appSettings);
     appSettings.caregiverModeEnabled = cg.caregiverModeEnabled;
@@ -16614,8 +16839,6 @@ function loadSettings() {
 }
 
 function saveSettings() {
-  appSettings.barcodeFoodLoggingEnabled = false;
-  appSettings.guidedVoiceLogEnabled = false;
   var settingsJson = JSON.stringify(appSettings);
   if (window.PerformanceUtils?.StorageBatcher) {
     window.PerformanceUtils.StorageBatcher.setItem('rianellSettings', settingsJson);
@@ -17276,12 +17499,13 @@ function getSystemAppearanceMode() {
 
 function applyAppearanceMode() {
   var mode = (appSettings && typeof appSettings.appearanceMode === 'string') ? appSettings.appearanceMode : 'system';
-  if (mode !== 'system' && mode !== 'light' && mode !== 'dark') mode = 'system';
+  if (mode !== 'system' && mode !== 'light' && mode !== 'dark' && mode !== 'warm-dark') mode = 'system';
   if (appSettings) appSettings.appearanceMode = mode;
 
   var effective = mode === 'system' ? getSystemAppearanceMode() : mode;
   document.body.classList.toggle('light-mode', effective === 'light');
   document.body.classList.toggle('dark-mode', effective === 'dark');
+  document.body.classList.toggle('rianell-appearance-warm-dark', effective === 'warm-dark');
 
   try {
     if (mode === 'system' && typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
@@ -17303,7 +17527,7 @@ function applyAppearanceMode() {
 }
 
 function setAppearanceMode(mode) {
-  var valid = mode === 'system' || mode === 'light' || mode === 'dark';
+  var valid = mode === 'system' || mode === 'light' || mode === 'dark' || mode === 'warm-dark';
   if (!valid) return;
   if (appSettings.appearanceMode === mode) return;
   appSettings.appearanceMode = mode;
@@ -17657,6 +17881,47 @@ function toggleSimpleMode() {
 }
 if (typeof window !== 'undefined') window.toggleSimpleMode = toggleSimpleMode;
 
+function toggleBrainFogMode() {
+  appSettings.brainFogMode = !appSettings.brainFogMode;
+  document.body.classList.toggle('brain-fog-mode', appSettings.brainFogMode === true);
+  saveSettings();
+  applyAIFeatureVisibility();
+}
+if (typeof window !== 'undefined') window.toggleBrainFogMode = toggleBrainFogMode;
+
+function applyBrainFogModeClass() {
+  if (typeof document === 'undefined') return;
+  document.body.classList.toggle('brain-fog-mode', appSettings && appSettings.brainFogMode === true);
+  document.body.classList.toggle('cb-high-contrast', appSettings && appSettings.highContrastEnabled === true);
+}
+if (typeof window !== 'undefined') window.applyBrainFogModeClass = applyBrainFogModeClass;
+
+async function lazyLoadCharts() {
+  if (window.ApexCharts) return window.ApexCharts;
+  try {
+    const mod = await import('./lazy-charts.mjs');
+    return mod.lazyLoadCharts ? mod.lazyLoadCharts() : null;
+  } catch (e) {
+    return null;
+  }
+}
+if (typeof window !== 'undefined') window.lazyLoadCharts = lazyLoadCharts;
+
+function openMigrationWizard() {
+  if (typeof showToast === 'function') {
+    showToast(window.RianellI18n ? window.RianellI18n.t('settings.data.import.title') : 'Import from another app');
+  }
+}
+if (typeof window !== 'undefined') window.openMigrationWizard = openMigrationWizard;
+
+function renderCommunityTipsPane(conditionTags) {
+  var el = document.getElementById('communityTipsFeed');
+  if (!el) return;
+  el.setAttribute('data-community-feed', 'true');
+  el.setAttribute('data-conditions', (conditionTags || []).join(','));
+}
+if (typeof window !== 'undefined') window.renderCommunityTipsPane = renderCommunityTipsPane;
+
 function openTutorialFromSettings() {
   try { localStorage.removeItem('rianellTutorialSeen'); } catch (e) {}
   appSettings.replayTutorial = true;
@@ -17763,6 +18028,28 @@ function loadSettingsState() {
 
   var cycleModuleToggle = document.getElementById('cycleModuleToggle');
   if (cycleModuleToggle) cycleModuleToggle.classList.toggle('active', !!appSettings.cycleModuleEnabled);
+  var guidedVoiceLogToggle = document.getElementById('guidedVoiceLogToggle');
+  if (guidedVoiceLogToggle) {
+    guidedVoiceLogToggle.classList.toggle('active', !!appSettings.guidedVoiceLogEnabled);
+    guidedVoiceLogToggle.setAttribute('aria-checked', appSettings.guidedVoiceLogEnabled ? 'true' : 'false');
+  }
+  var barcodeFoodLoggingToggle = document.getElementById('barcodeFoodLoggingToggle');
+  if (barcodeFoodLoggingToggle) {
+    barcodeFoodLoggingToggle.classList.toggle('active', !!appSettings.barcodeFoodLoggingEnabled);
+    barcodeFoodLoggingToggle.setAttribute('aria-checked', appSettings.barcodeFoodLoggingEnabled ? 'true' : 'false');
+  }
+  var digestiveModuleToggle = document.getElementById('digestiveModuleToggle');
+  if (digestiveModuleToggle) {
+    digestiveModuleToggle.classList.toggle('active', !!appSettings.digestiveModuleEnabled);
+    digestiveModuleToggle.setAttribute('aria-checked', appSettings.digestiveModuleEnabled ? 'true' : 'false');
+  }
+  var settingsGlucoseUnit = document.getElementById('settingsGlucoseUnit');
+  if (settingsGlucoseUnit) settingsGlucoseUnit.value = appSettings.glucoseUnit === 'mgdl' ? 'mgdl' : 'mmol';
+  var settingsTemperatureUnit = document.getElementById('settingsTemperatureUnit');
+  if (settingsTemperatureUnit) settingsTemperatureUnit.value = appSettings.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius';
+  var settingsHeightCm = document.getElementById('settingsHeightCm');
+  if (settingsHeightCm && appSettings.heightCm) settingsHeightCm.value = String(appSettings.heightCm);
+  if (typeof syncDigestiveModuleVisibility === 'function') syncDigestiveModuleVisibility();
   if (typeof syncLogWizardPlan04Ui === 'function') syncLogWizardPlan04Ui();
   
   // Update medical condition display and disable in demo mode
@@ -18852,6 +19139,9 @@ function toggleSetting(setting) {
   saveSettings();
   applySettings();
   loadSettingsState();
+  if (typeof maybeLogConsentChange === 'function') {
+    maybeLogConsentChange(setting, appSettings[setting]);
+  }
 
   if (setting === 'sessionRecording' || setting === 'localOnlyMode') {
     if (typeof window !== 'undefined' && window.RianellSmartlook && typeof window.RianellSmartlook.apply === 'function') {
@@ -21750,6 +22040,13 @@ function buildLogReviewSummaryHtml() {
   var weight = readValue('weight');
   if (bpm) addRow(vitals, tUi('wizard.review.row.heartRate'), bpm + ' bpm');
   if (weight) addRow(vitals, tUi('wizard.review.row.weight'), weight + ' ' + (appSettings && appSettings.weightUnit ? appSettings.weightUnit : 'kg'));
+  var sys = readValue('bloodPressureSystolic');
+  var dia = readValue('bloodPressureDiastolic');
+  if (sys && dia) addRow(vitals, tUi('wizard.vitals.bloodPressure'), sys + '/' + dia + ' mmHg');
+  if (readValue('bloodGlucose')) addRow(vitals, tUi('wizard.vitals.bloodGlucose'), readValue('bloodGlucose') + ' ' + (appSettings.glucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L'));
+  if (readValue('spO2')) addRow(vitals, tUi('wizard.vitals.spO2'), readValue('spO2') + '%');
+  if (readValue('hrv')) addRow(vitals, tUi('wizard.vitals.hrv'), readValue('hrv') + ' ms');
+  if (readValue('bodyWeight')) addRow(vitals, tUi('wizard.vitals.weight'), readValue('bodyWeight') + ' ' + (appSettings.bodyWeightUnit || 'kg'));
   html.push(sectionCard('wizard.review.vitals', vitals, { showWhenEmpty: true }));
 
   var symptoms = [];
@@ -21787,6 +22084,7 @@ function buildLogReviewSummaryHtml() {
   if (steps) addRow(wellbeing, tUi('wizard.review.row.steps'), steps);
   if (hydration) addRow(wellbeing, tUi('wizard.review.row.hydration'), hydration + ' glasses');
   addRow(wellbeing, tUi('wizard.review.row.energyClarity'), readValue('energyClarity'));
+  addRow(wellbeing, tUi('wizard.mood.gratitudeLabel'), readValue('gratitude'));
   if (typeof logFormStressorsItems !== 'undefined' && logFormStressorsItems.length) {
     addRow(wellbeing, tUi('wizard.review.row.stressors'), logFormStressorsItems.join(', '));
   }
@@ -21974,10 +22272,157 @@ function validateLogWizardStep(step) {
   return true;
 }
 
+var _barcodeScannerActive = false;
+
+async function activateBarcodeScanner() {
+  if (_barcodeScannerActive) return;
+  if (!appSettings.barcodeFoodLoggingEnabled) return;
+  if (typeof window.BarcodeDetector === 'undefined') {
+    showToast(tUi('toast.barcodeNotSupported'));
+    return;
+  }
+  var overlay = document.getElementById('barcodeScannerOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'barcodeScannerOverlay';
+    overlay.className = 'modal-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', tUi('wizard.food.scanBarcode'));
+    overlay.innerHTML = '<div class="modal-content barcode-scanner-modal"><video id="barcodeScannerVideo" playsinline muted style="width:100%;max-height:60vh;border-radius:8px;"></video><p id="barcodeScannerStatus" class="settings-hint"></p><button type="button" class="btn-secondary" id="barcodeScannerCancel">' + escapeHTML(tUi('common.cancel')) + '</button></div>';
+    document.body.appendChild(overlay);
+  }
+  var video = document.getElementById('barcodeScannerVideo');
+  var statusEl = document.getElementById('barcodeScannerStatus');
+  var cancelBtn = document.getElementById('barcodeScannerCancel');
+  if (!video || !statusEl || !cancelBtn) return;
+  overlay.style.display = 'flex';
+  document.body.classList.add('modal-active');
+  _barcodeScannerActive = true;
+  var stream = null;
+  var detector = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
+  var stopped = false;
+  function cleanup() {
+    stopped = true;
+    _barcodeScannerActive = false;
+    if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    video.srcObject = null;
+    overlay.style.display = 'none';
+    document.body.classList.remove('modal-active');
+  }
+  cancelBtn.onclick = cleanup;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = stream;
+    await video.play();
+    statusEl.textContent = tUi('wizard.food.scanBarcodeHint');
+    while (!stopped) {
+      var codes = await detector.detect(video);
+      if (codes && codes.length > 0) {
+        var code = String(codes[0].rawValue || '').replace(/\D/g, '');
+        if (code.length >= 8) {
+          statusEl.textContent = tUi('wizard.food.scanBarcodeLookingUp');
+          var fetchFn = window.RianellShared && typeof window.RianellShared.fetchOpenFoodFactsProduct === 'function'
+            ? window.RianellShared.fetchOpenFoodFactsProduct.bind(window.RianellShared)
+            : null;
+          if (!fetchFn) throw new Error('barcode lookup unavailable');
+          var product = await fetchFn(code);
+          var label = window.RianellShared && typeof window.RianellShared.formatBarcodeFoodLabel === 'function'
+            ? window.RianellShared.formatBarcodeFoodLabel(product)
+            : (product.name || 'Scanned product');
+          if (!logFormFoodByCategory.breakfast) logFormFoodByCategory.breakfast = [];
+          logFormFoodByCategory.breakfast.push({ name: label, barcode: code });
+          renderLogFoodItems();
+          showToast(tUi('wizard.food.scanBarcodeAdded', { name: label }));
+          cleanup();
+          return;
+        }
+      }
+      await new Promise(function (r) { setTimeout(r, 250); });
+    }
+  } catch (err) {
+    Logger.warn('Barcode scan failed', { error: err && err.message ? err.message : String(err) });
+    showToast(tUi('toast.barcodeScanFailed'));
+    cleanup();
+  }
+}
+if (typeof window !== 'undefined') window.activateBarcodeScanner = activateBarcodeScanner;
+
+var _foodSearchTimer = null;
+function bindFoodSearchUi() {
+  var input = document.getElementById('foodSearchInput');
+  var list = document.getElementById('foodSearchResults');
+  if (!input || !list || input.dataset.bound) return;
+  input.dataset.bound = '1';
+  input.addEventListener('input', function () {
+    var q = input.value.trim();
+    if (_foodSearchTimer) clearTimeout(_foodSearchTimer);
+    if (q.length < 2) {
+      list.innerHTML = '';
+      list.hidden = true;
+      return;
+    }
+    _foodSearchTimer = setTimeout(async function () {
+      try {
+        var searchFn = window.RianellShared && window.RianellShared.searchFood;
+        if (typeof searchFn !== 'function') return;
+        var results = await searchFn(q);
+        list.innerHTML = '';
+        if (!results || !results.length) {
+          list.hidden = true;
+          showToast(tUi('wizard.food.noResults'));
+          return;
+        }
+        results.forEach(function (item) {
+          var li = document.createElement('li');
+          li.setAttribute('role', 'option');
+          var label = window.RianellShared.formatBarcodeFoodLabel(item);
+          li.textContent = label;
+          li.addEventListener('click', function () {
+            if (!logFormFoodByCategory.breakfast) logFormFoodByCategory.breakfast = [];
+            logFormFoodByCategory.breakfast.push({ name: label, barcode: item.barcode });
+            renderLogFoodItems();
+            input.value = '';
+            list.innerHTML = '';
+            list.hidden = true;
+          });
+          list.appendChild(li);
+        });
+        list.hidden = false;
+      } catch (err) {
+        Logger.warn('Food search failed', { error: err && err.message ? err.message : String(err) });
+      }
+    }, 400);
+  });
+}
+
+function bindMealPhotoUi() {
+  var btn = document.getElementById('mealPhotoBtn');
+  var file = document.getElementById('mealPhotoInput');
+  if (!btn || !file || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+  btn.addEventListener('click', function () { file.click(); });
+  file.addEventListener('change', function () {
+    if (!file.files || !file.files[0]) return;
+    showToast(tUi('wizard.food.photoAdded'));
+    file.value = '';
+  });
+}
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', function () {
+    bindFoodSearchUi();
+    bindMealPhotoUi();
+  });
+}
+
 function syncLogWizardPlan04Ui() {
   var cycleBlock = document.getElementById('logCycleBlock');
   if (cycleBlock) {
     cycleBlock.classList.toggle('hidden', !appSettings.cycleModuleEnabled);
+  }
+  var barcodeScanBtn = document.getElementById('barcodeScanBtn');
+  if (barcodeScanBtn) {
+    barcodeScanBtn.classList.toggle('hidden', !appSettings.barcodeFoodLoggingEnabled);
   }
   if (appSettings.cycleModuleEnabled && window.RianellCycleTracking && typeof window.RianellCycleTracking.bind === 'function') {
     window.RianellCycleTracking.bind();
@@ -22026,6 +22471,54 @@ function collectPlan04LogFields(dateValue) {
     if (flowEl && flowEl.value) cycle.flow = flowEl.value;
     if (periodStartEl && periodStartEl.value === '1') cycle.periodStart = true;
     if (Object.keys(cycle).length) out.cycle = cycle;
+  }
+  return out;
+}
+
+function collectPlan16MetricsFields() {
+  var out = {};
+  var sysEl = document.getElementById('bloodPressureSystolic');
+  var diaEl = document.getElementById('bloodPressureDiastolic');
+  if (sysEl && sysEl.value) out.bloodPressureSystolic = parseInt(sysEl.value, 10);
+  if (diaEl && diaEl.value) out.bloodPressureDiastolic = parseInt(diaEl.value, 10);
+  var glucoseEl = document.getElementById('bloodGlucose');
+  if (glucoseEl && glucoseEl.value) {
+    out.bloodGlucose = parseFloat(glucoseEl.value);
+    out.bloodGlucoseUnit = appSettings.glucoseUnit === 'mgdl' ? 'mgdl' : 'mmol';
+  }
+  var spEl = document.getElementById('spO2');
+  if (spEl && spEl.value) out.spO2 = parseInt(spEl.value, 10);
+  var hrvEl = document.getElementById('hrv');
+  if (hrvEl && hrvEl.value) out.hrv = parseInt(hrvEl.value, 10);
+  var bwEl = document.getElementById('bodyWeight');
+  if (bwEl && bwEl.value) {
+    out.bodyWeight = parseFloat(bwEl.value);
+    out.bodyWeightUnit = appSettings.bodyWeightUnit === 'lbs' ? 'lbs' : 'kg';
+  }
+  var bristolChecked = document.querySelector('input[name="bristol"]:checked');
+  if (bristolChecked) out.bristol = parseInt(bristolChecked.value, 10);
+  var gratitudeEl = document.getElementById('gratitude');
+  if (gratitudeEl && gratitudeEl.value && gratitudeEl.value.trim()) {
+    out.gratitude = escapeHTML(gratitudeEl.value.trim().substring(0, 500));
+  }
+  var bbtEl = document.getElementById('bbt');
+  if (bbtEl && bbtEl.value) {
+    out.bbt = parseFloat(bbtEl.value);
+    out.bbtUnit = appSettings.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius';
+  }
+  var painState = painBodyStates && painBodyStates.painBodyDiagram;
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (painState && Shared && typeof Shared.painBodyStateToLocations === 'function') {
+    var locs = Shared.painBodyStateToLocations(painState);
+    if (locs && locs.length) out.painLocations = locs;
+  }
+  if (typeof logFormSupplements !== 'undefined' && logFormSupplements.length) {
+    out.supplements = logFormSupplements.map(function(s) {
+      return { name: escapeHTML(String(s.name || '').trim()), dose: s.dose ? escapeHTML(String(s.dose).trim()) : undefined, unit: s.unit ? escapeHTML(String(s.unit).trim()) : undefined };
+    }).filter(function(s) { return s.name; });
+  }
+  if (typeof logFormPhotoAttachments !== 'undefined' && logFormPhotoAttachments.length) {
+    out.photoAttachments = logFormPhotoAttachments.slice(0, 6);
   }
   return out;
 }

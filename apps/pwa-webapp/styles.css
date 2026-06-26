@@ -386,9 +386,56 @@ button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible,
 [type="button"]:focus-visible,
-[type="submit"]:focus-visible {
+[type="submit"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
   outline: none;
   box-shadow: var(--shadow-focus);
+  scroll-margin-bottom: 80px;
+}
+
+@media (forced-colors: active) {
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  [type="button"]:focus-visible,
+  [type="submit"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 3px solid ButtonText;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+}
+
+/* Plan 26 A11Y5 — brain fog mode */
+body.brain-fog-mode {
+  --font-scale: 1.2;
+  font-size: calc(1rem * var(--font-scale, 1.2));
+}
+
+body.brain-fog-mode .home-card:not(.home-streak-card):not(.home-log-cta-card) {
+  display: none;
+}
+
+body.brain-fog-mode .log-wizard-next-btn {
+  min-height: 64px;
+}
+
+/* Plan 26 A11Y14 — warm dark theme */
+body.rianell-appearance-warm-dark {
+  --bg-primary: #1A1510;
+  --bg-secondary: #221C14;
+  --bg-card: #2A2118;
+  --text-primary: #F5ECD7;
+  --text-secondary: #C9B99A;
+  --accent-primary: #D4A853;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .voice-input-host {

@@ -1634,6 +1634,15 @@ async function syncToCloud(options) {
     if (upsertError) {
       throw upsertError;
     }
+
+    if (client.functions && typeof client.functions.invoke === 'function' && cloudSyncState.user) {
+      const latestDate = Array.isArray(mergedLogs) && mergedLogs.length
+        ? mergedLogs[mergedLogs.length - 1].date
+        : '';
+      client.functions.invoke('deliver-webhook', {
+        body: { event: 'log.created', log_date: latestDate, user_id: cloudSyncState.user.id, ts: Date.now() },
+      }).catch(function () {});
+    }
     
     // Update local storage with merged data (compressed)
     if (typeof compressData === 'function') {
@@ -2593,5 +2602,48 @@ function clearSyncedKeys(condition = null) {
     localStorage.removeItem('anonymizedDataSyncedDates');
     console.log('[clearSyncedKeys] Cleared all synced keys and dates');
   }
+}
+
+const CONSENT_AUDIT_FIELDS = new Set([
+  'healthDataConsent',
+  'cookieConsent',
+  'sessionRecording',
+  'contributeAnonData',
+  'pushNotificationsEnabled',
+  'notificationsEnabled',
+  'aiModelDownloadConsent',
+  'localOnlyMode',
+  'barcodeFoodLoggingEnabled',
+  'guidedVoiceLogEnabled',
+]);
+
+async function logConsentEventToCloud(field, value) {
+  try {
+    const client = initSupabase();
+    if (!client || typeof client.auth?.getSession !== 'function') return;
+    const sessionRes = await client.auth.getSession();
+    const session = sessionRes && sessionRes.data ? sessionRes.data.session : null;
+    if (!session) return;
+    const S = window.RianellShared || {};
+    const metadata = typeof S.buildConsentAuditPayload === 'function'
+      ? S.buildConsentAuditPayload(field, value, 'pwa')
+      : { field, value, ts: Date.now(), platform: 'pwa' };
+    await client.rpc('log_consent_event', {
+      p_consent_type: String(field || 'consent_changed'),
+      p_metadata: metadata,
+    });
+  } catch (e) {
+    console.warn('[logConsentEventToCloud]', e && e.message ? e.message : e);
+  }
+}
+
+function maybeLogConsentChange(setting, value) {
+  if (!CONSENT_AUDIT_FIELDS.has(setting)) return;
+  logConsentEventToCloud(setting, value);
+}
+
+if (typeof window !== 'undefined') {
+  window.logConsentEventToCloud = logConsentEventToCloud;
+  window.maybeLogConsentChange = maybeLogConsentChange;
 }
 

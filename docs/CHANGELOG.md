@@ -2,7 +2,88 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.97.0** - Achievements overhaul + Engagement & UX overhaul: expanded catalog, warm empty states, onboarding, tasteful gamification (PWA + RN parity).
+**Latest: v1.133.1** - Plans 15–26 rollout: i18n Tier A coverage gate, chart loading keys, duplicate plan docs removed.
+
+### v1.133.1 - 2026-06-26 - Plans 15–26 rollout hygiene
+- **i18n:** Tier A locale packs translated for Plan 15–26 keys; `verify:i18n` passes at 13% identical threshold.
+- **PWA:** Chart loading skeleton `data-i18n-aria` for blood pressure, glucose, SpO₂, and weight charts.
+- **Docs:** Removed duplicate plan stubs (`plan-16-metrics`, `plan-18-api`, `plan-20-selfhost`); MASTER progress **26/26**.
+
+### v1.133.0 - 2026-06-26 - Accessibility & UI Principles (Plan 26, A11Y1–A11Y14)
+- **Brain fog mode:** PWA `toggleBrainFogMode`, `.brain-fog-mode` CSS, larger wizard CTA.
+- **WCAG 2.2:** `forced-colors` focus outlines, scroll-margin on focus, warm-dark theme.
+- **Shared:** `@rianell/shared/a11y/wcagHelpers.mjs`.
+- **CI:** `verify:a11y` axe dry-run contract; `docs/ui-principles.md`.
+
+### v1.132.0 - 2026-06-26 - Data Migration Toolkit (Plan 25, DM1–DM9)
+- **Adapters:** Cara Care, Oura, Daylio + `MigrationAdapter` interface.
+- **Import:** `parseMigrationFile`, conflict detection, PWA `openMigrationWizard`.
+
+### v1.131.0 - 2026-06-26 - Docs & Changelog Automation (Plan 24, DC1–DC5)
+- **Scripts:** `auto-changelog.mjs`, `sync-master-plans.mjs`, `verify-openapi.mjs`.
+- **Docs:** `CONTRIBUTING.md`, `docs/api/openapi.yaml`, GitHub issue/PR templates.
+
+### v1.130.0 - 2026-06-26 - Community & Cohort (Plan 23, CM1–CM4)
+- **Schema:** `community_tips`, `community_triggers`, `get_community_triggers` RPC.
+- **Shared:** `@rianell/shared/community/*` — tips, cohort cards, triggers (k≥5).
+
+### v1.129.0 - 2026-06-26 - Performance Optimization (Plan 22, PF1–PF7)
+- **Lazy load:** `lazy-charts.mjs`, `lazyLoadCharts()`; `docs/performance-budgets.md`.
+- **CI:** CWV, Lighthouse, memory profile scripts; WebP/AVIF icon pipeline.
+
+### v1.128.0 - 2026-06-26 - Security Hardening & DAST CI (Plan 21, SEC1–SEC12)
+- **CI:** `security-dast.yml` (ZAP + axe), Dependabot, MobSF schedule job.
+- **CSP:** `csp-report` edge function; `secureStorage.mjs`; SBOM generator.
+
+### v1.127.0 - 2026-06-26 - Self-Hosted & FHIR R4 (Plan 20, SH1–SH5)
+- **SH1:** `docker-compose.yml`, `docker/nginx.conf`, `.env.example`, `docs/self-hosted/README.md`.
+- **SH2/SH3:** `supabase/functions/fhir-r4`, Python `server/routes/fhir.py` (`GET /fhir/r4/*`, `POST $import`).
+- **SH4:** `packages/shared/src/fhir/hl7Parser.mjs` — `parseORU`, `mapLabResultsToLogFields`.
+- **SH5:** `docs/connectors/fasten-health.md` compatibility guide.
+- **Tests:** `plan20-selfhost.test.mjs`.
+
+### v1.126.0 - 2026-06-26 - OAuth2 & Third-Party Connectors (Plan 19, CN1–CN7)
+- **CN1:** `oauth2-authorize` / `oauth2-token` edge functions; `oauth2_clients` + `oauth2_auth_codes` schema.
+- **CN2:** `packages/n8n-nodes-rianell` community node stub.
+- **CN3:** Zapier/Make webhook templates in `docs/connectors/`.
+- **CN4–CN7:** Connector edge functions (Google Sheets, Withings, Strava); RN `HealthConnectSync.ts`, `SettingsConnectorsPane`.
+- **Tests:** `plan19-connectors.test.mjs`.
+
+### v1.125.0 - 2026-06-26 - REST API & Webhook Engine (Plan 18, API1–API6)
+- **API1:** `api_keys`, `user_webhooks`, `webhook_deliveries` tables + RLS.
+- **API2:** `supabase/functions/api-v1` REST router (logs, metrics, goals, me).
+- **API3:** `docs/api/openapi.yaml` + `verify:api-spec`.
+- **API4:** `generate-api-key` edge function; Developer settings pane (PWA/RN).
+- **API5:** `deliver-webhook` with HMAC signatures + retries; PWA/RN fire-and-forget on sync.
+- **Tests:** `plan18-api.test.mjs`.
+
+### v1.123.0 - 2026-06-26 - Extended Vital Signs & Metrics (Plan 16, VM1–VM11)
+- **VM1–VM5:** Blood pressure, blood glucose (mmol/L storage + unit toggle), SpO₂, HRV, body weight/BMI in PWA + RN wizards and chart series.
+- **VM6–VM7:** Supplement library (distinct from meds) and Bristol stool scale (digestion module setting).
+- **VM8–VM9:** `painLocations` array from body-map; gratitude journal field (private, not in research pool).
+- **VM10:** Basal body temperature with °C/°F unit pref on cycle step.
+- **VM11:** Photo attachments via private `health-photos` Supabase bucket; PWA upload when signed in.
+- **Shared:** `normalizeVitalMetrics`, `painBodyStateToLocations`, FHIR-lite codes for new vitals.
+- **Tests:** `plan16-metrics.test.mjs`; docs `data-model.md`, `platform-parity.json`, `plan-16-extended-metrics/`.
+
+### v1.124.0 - 2026-06-26 - Nutrition Deep-Dive (Plan 17, NU1–NU5)
+- **NU1:** `searchFood` in `barcodeFood.mjs`; PWA food search UI + RN `FoodSearchInput`.
+- **NU2:** `packages/shared/src/nutrition/fodmap.mjs` — FODMAP badges and digest correlation.
+- **NU3:** `detectFoodSensitivities` in `@rianell/ai-engine`.
+- **NU4:** `macroBreakdown.mjs` — per-serving macros and daily aggregation.
+- **NU5:** Meal photo capture in food wizard (PWA/RN); `mealPhoto.mjs` helpers.
+- **Tests:** `plan17-nutrition.test.mjs`.
+
+### v1.122.0 - 2026-06-26 - Foundation completions (Plan 15)
+- **FC1:** RN LogWizard applies `extractLogFieldsFromVoiceTranscript` when guided voice enabled.
+- **FC2:** PWA barcode scanner via `BarcodeDetector` + Open Food Facts; settings toggle no longer forced off.
+- **FC3:** `log_consent_event` RPC + PWA/RN consent audit write paths via `buildConsentAuditPayload`.
+- **FC4/FC5:** `keyManagement.mjs` (PBKDF2 310k, AES-KW/GCM); `user_keys.wrapped_dek` + `health_data.data_encrypted` schema columns.
+- **FC6:** VAPID CI injection via `prepare-pages-site` (existing); graceful disable when unconfigured.
+- **FC7:** `buildNotificationContent` iOS/Android parity; RN permissions use shared helper; `platform-parity.json` iOS → supported.
+- **FC8:** GGUF adapter resolves when `?gguf=1` or `__rianellGgufEnabled`; delegates to `RianellLlm.runTextGeneration`.
+- **FC9:** `i18n-pwa.js` sets `document.documentElement.lang` and `dir` on locale refresh.
+- **Tests:** `keyManagement`, `notificationParity`, `plan15-foundation` (+423 total unit tests).
 
 ### v1.97.0 - 2026-06-24 - Achievements overhaul + Engagement & UX
 - **Catalog:** `ALL_ACHIEVEMENTS` expands from 3 → 11 ids — logging (3), milestones (5), engagement (3); `tier` field for bronze/silver/gold/platinum UI accents.

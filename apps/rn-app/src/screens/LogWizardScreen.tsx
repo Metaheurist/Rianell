@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { CycleTrackingInput } from '../components/CycleTrackingInput';
+import { FoodSearchInput } from '../components/FoodSearchInput';
 import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
 import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
@@ -34,6 +35,9 @@ import {
   formatIsoDate,
   suggestCycleForDate,
   CYCLE_PHASES,
+  extractLogFieldsFromVoiceTranscript,
+  painBodyStateToLocations,
+  computeBmiKg,
 } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -713,6 +717,19 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
   const [bpm, setBpm] = useState('');
   const [weightKg, setWeightKg] = useState('');
+  const [bloodPressureSystolic, setBloodPressureSystolic] = useState('');
+  const [bloodPressureDiastolic, setBloodPressureDiastolic] = useState('');
+  const [bloodGlucose, setBloodGlucose] = useState('');
+  const [spO2, setSpO2] = useState('');
+  const [hrv, setHrv] = useState('');
+  const [bodyWeight, setBodyWeight] = useState('');
+  const [bristol, setBristol] = useState<number | null>(null);
+  const [gratitude, setGratitude] = useState('');
+  const [bbt, setBbt] = useState('');
+  const [supplements, setSupplements] = useState<Array<{ name: string; dose?: string }>>([]);
+  const [supplementName, setSupplementName] = useState('');
+  const [supplementDose, setSupplementDose] = useState('');
+  const [photoAttachments, setPhotoAttachments] = useState<Array<{ url: string; caption?: string }>>([]);
   const [sleep, setSleep] = useState('');
   const [mood, setMood] = useState('');
   const [fatigue, setFatigue] = useState('');
@@ -929,6 +946,21 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       flare,
       bpm: bpm ? Number(bpm) : undefined,
       weight: weightKg ? String(Number(weightKg).toFixed(1)) : undefined,
+      bloodPressureSystolic: bloodPressureSystolic ? Number(bloodPressureSystolic) : undefined,
+      bloodPressureDiastolic: bloodPressureDiastolic ? Number(bloodPressureDiastolic) : undefined,
+      bloodGlucose: bloodGlucose ? Number(bloodGlucose) : undefined,
+      bloodGlucoseUnit: prefs.glucoseUnit === 'mgdl' ? 'mgdl' : 'mmol',
+      spO2: spO2 ? Number(spO2) : undefined,
+      hrv: hrv ? Number(hrv) : undefined,
+      bodyWeight: bodyWeight ? Number(bodyWeight) : undefined,
+      bodyWeightUnit: prefs.bodyWeightUnit === 'lbs' ? 'lbs' : 'kg',
+      bristol: bristol ?? undefined,
+      gratitude: gratitude || undefined,
+      bbt: bbt ? Number(bbt) : undefined,
+      bbtUnit: prefs.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius',
+      painLocations: painBodyStateToLocations(painStates),
+      supplements: supplements.length ? supplements : undefined,
+      photoAttachments: photoAttachments.length ? photoAttachments : undefined,
       sleep: sleep ? Number(sleep) : undefined,
       mood: mood ? Number(mood) : undefined,
       fatigue: fatigue ? Number(fatigue) : undefined,
@@ -1113,7 +1145,34 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   }
 
   function applyNotesFromVoice(nextNotes: string) {
-    setNotes(nextNotes.slice(0, 500));
+    const raw = nextNotes.slice(0, 500);
+    if (!prefs.guidedVoiceLogEnabled) {
+      setNotes(raw);
+      return;
+    }
+    const extracted = extractLogFieldsFromVoiceTranscript(raw) as {
+      mood?: number;
+      fatigue?: number;
+      sleep?: number;
+      jointPain?: number;
+      flare?: 'Yes' | 'No';
+      notes?: string;
+    };
+    const structuredKeys = ['mood', 'fatigue', 'sleep', 'jointPain', 'flare', 'notes'] as const;
+    const hasStructured = structuredKeys.some((key) => extracted[key] !== undefined);
+    if (!hasStructured) {
+      setNotes(raw);
+      return;
+    }
+    if (extracted.mood != null) setMood(String(extracted.mood));
+    if (extracted.fatigue != null) setFatigue(String(extracted.fatigue));
+    if (extracted.sleep != null) setSleep(String(extracted.sleep));
+    if (extracted.flare === 'Yes' || extracted.flare === 'No') setFlare(extracted.flare);
+    let nextNote = typeof extracted.notes === 'string' ? extracted.notes : raw;
+    if (extracted.jointPain != null && !/pain\s*\d/i.test(nextNote)) {
+      nextNote = `Pain ${extracted.jointPain}/10. ${nextNote}`.trim();
+    }
+    setNotes(nextNote.slice(0, 500));
   }
 
   async function saveQuickMinimal() {
@@ -1266,6 +1325,12 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 }}
               />
             ) : null}
+            {prefs.cycleModuleEnabled ? (
+              <>
+                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14), marginTop: 10 }]}>{t('wizard.cycle.bbt')}</Text>
+                <TextInput value={bbt} onChangeText={setBbt} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
+              </>
+            ) : null}
 
             <Pressable
               onPress={() => void saveQuickMinimal()}
@@ -1299,6 +1364,26 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.weight.kg')}</Text>
             <TextInput value={weightKg} onChangeText={setWeightKg} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
 
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.bloodPressure')}</Text>
+            <View style={[styles.row, { flexDirection: rowDir, gap: 8 }]}>
+              <TextInput value={bloodPressureSystolic} onChangeText={setBloodPressureSystolic} style={[styles.input, { color: theme.tokens.color.text, flex: 1 }]} keyboardType="number-pad" placeholder={t('wizard.vitals.bp.systolic')} />
+              <Text style={{ color: theme.tokens.color.text, alignSelf: 'center' }}>/</Text>
+              <TextInput value={bloodPressureDiastolic} onChangeText={setBloodPressureDiastolic} style={[styles.input, { color: theme.tokens.color.text, flex: 1 }]} keyboardType="number-pad" placeholder={t('wizard.vitals.bp.diastolic')} />
+            </View>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.bloodGlucose')}</Text>
+            <TextInput value={bloodGlucose} onChangeText={setBloodGlucose} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.spO2')}</Text>
+            <TextInput value={spO2} onChangeText={setSpO2} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.hrv')}</Text>
+            <TextInput value={hrv} onChangeText={setHrv} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.weight')}</Text>
+            <TextInput value={bodyWeight} onChangeText={setBodyWeight} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
+            {prefs.heightCm && bodyWeight ? (
+              <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                {t('wizard.vitals.bmi')}: {computeBmiKg(Number(bodyWeight), prefs.heightCm) ?? '—'}
+              </Text>
+            ) : null}
+
             {/* Sleep / mood / fatigue inputs are part of the Energy & mental clarity step (Step 3, web parity). */}
 
             <View style={[styles.navRow, { flexDirection: rowDir }]}>
@@ -1317,6 +1402,16 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           </View>
         ) : step === 2 ? (
           <View>
+            {prefs.digestiveModuleEnabled ? (
+              <View style={{ marginBottom: 12 }}>
+                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.digestion.bristol.title')}</Text>
+                <View style={[styles.row, { flexWrap: 'wrap', gap: 6 }]}>
+                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                    <Choice key={n} label={String(n)} selected={bristol === n} onPress={() => setBristol(n)} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.pain.locations')}</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
               {t('wizard.pain.helper')}
@@ -1508,6 +1603,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               keyboardType="number-pad"
               accessibilityLabel={t('wizard.aria.moodScore')}
             />
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.mood.gratitudeLabel')}</Text>
+            <TextInput
+              value={gratitude}
+              onChangeText={(v) => setGratitude(v.slice(0, 500))}
+              style={[styles.input, { color: theme.tokens.color.text, minHeight: 64 }]}
+              multiline
+              placeholder={t('wizard.mood.gratitude')}
+              placeholderTextColor="rgba(255,255,255,0.6)"
+            />
+            <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{gratitude.length}/500</Text>
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('common.energy.amp.clarity')}</Text>
             <View style={{ marginTop: 8 }}>
@@ -1787,6 +1893,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               </>
             ) : (
               <>
+            <FoodSearchInput
+              onSelect={(label) => setBreakfastText((prev) => addCsvItem(prev, label))}
+            />
             {favoriteMeals.length > 0 ? (
               <View style={{ marginBottom: 8 }}>
                 <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.favoriteMeals')}</Text>
@@ -2068,6 +2177,28 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               </>
             ) : (
               <>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.supplements.title')}</Text>
+            {supplements.map((s, i) => (
+              <Text key={`${s.name}-${i}`} style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>
+                {s.name}{s.dose ? ` — ${s.dose}` : ''}
+              </Text>
+            ))}
+            <View style={[styles.row, { flexDirection: rowDir, gap: 8, marginBottom: 10 }]}>
+              <TextInput value={supplementName} onChangeText={setSupplementName} style={[styles.input, { color: theme.tokens.color.text, flex: 1 }]} placeholder={t('wizard.supplements.namePlaceholder')} />
+              <TextInput value={supplementDose} onChangeText={setSupplementDose} style={[styles.input, { color: theme.tokens.color.text, flex: 1 }]} placeholder={t('wizard.supplements.dosePlaceholder')} />
+            </View>
+            <Pressable
+              onPress={() => {
+                const name = supplementName.trim();
+                if (!name) return;
+                setSupplements((prev) => [...prev, { name, dose: supplementDose.trim() || undefined }]);
+                setSupplementName('');
+                setSupplementDose('');
+              }}
+              style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginBottom: 12 }]}
+            >
+              <Text style={styles.btnText}>{t('wizard.supplements.addBtn')}</Text>
+            </Pressable>
             {todayMedDoses.length > 0 ? (
               <View style={{ marginBottom: 10 }}>
                 <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.medSchedule.today')}</Text>
@@ -2149,6 +2280,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               placeholder={t('wizard.notes.placeholder')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
+            {photoAttachments.length > 0 ? (
+              <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                {t('wizard.attachments.photoCount', { n: photoAttachments.length })}
+              </Text>
+            ) : null}
             {prefs.aiEnabled !== false ? (
               <Pressable
                 onPress={() => void onSuggestNote()}

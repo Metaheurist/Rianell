@@ -1,3 +1,6 @@
+import { Platform } from 'react-native';
+import { buildNotificationContent } from '@rianell/shared';
+
 export type PermissionName = 'notifications' | 'microphone';
 
 export type PermissionStatus = 'unavailable' | 'denied' | 'granted';
@@ -49,6 +52,23 @@ const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
 const NOTIFICATION_MED_DOSE_CATEGORY_ID = 'rianell-med-dose-actions';
 const MED_DOSE_ID_PREFIX = 'rianell-med-dose-';
+
+function notificationPlatform(): 'ios' | 'android' {
+  return Platform.OS === 'ios' ? 'ios' : 'android';
+}
+
+function buildReminderNotificationContent(title: string, body: string, soundEnabled: boolean) {
+  const base = buildNotificationContent(notificationPlatform(), {
+    title,
+    body,
+    channelId: NOTIFICATION_CHANNEL_ID,
+    badge: 1,
+  });
+  return {
+    ...base,
+    sound: soundEnabled ? 'default' : null,
+  };
+}
 
 export function normalizeReminderActionIdentifier(
   actionIdentifier: unknown,
@@ -232,9 +252,11 @@ export const Permissions = {
       await Notifications.scheduleNotificationAsync({
         identifier: NOTIFICATION_REMINDER_ID,
         content: {
-          title: 'Rianell reminder',
-          body: 'Log today to keep your trends and AI insights up to date.',
-          sound: opts.soundEnabled ? 'default' : null,
+          ...buildReminderNotificationContent(
+            'Rianell reminder',
+            'Log today to keep your trends and AI insights up to date.',
+            opts.soundEnabled,
+          ),
           ...(categoryConfigured ? { categoryIdentifier: NOTIFICATION_CATEGORY_ID } : {}),
         },
         trigger: {
@@ -255,9 +277,11 @@ export const Permissions = {
             await Notifications.scheduleNotificationAsync({
               identifier: NOTIFICATION_SMART_MISSED_ID,
               content: {
-                title: 'Still time to log today',
-                body: 'A quick check-in keeps your health trends accurate.',
-                sound: opts.soundEnabled ? 'default' : null,
+                ...buildReminderNotificationContent(
+                  'Still time to log today',
+                  'A quick check-in keeps your health trends accurate.',
+                  opts.soundEnabled,
+                ),
                 ...(categoryConfigured ? { categoryIdentifier: NOTIFICATION_CATEGORY_ID } : {}),
               },
               trigger: {

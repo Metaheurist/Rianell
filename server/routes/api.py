@@ -561,4 +561,25 @@ class ApiRoutesMixin:
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
+        def handle_fhir_bundle(self):
+            """Plan 20 SH3 — return minimal FHIR R4 Bundle JSON for self-hosted clients."""
+            try:
+                body = {
+                    'resourceType': 'Bundle',
+                    'type': 'collection',
+                    'entry': [],
+                }
+                payload = json.dumps(body).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/fhir+json')
+                self.send_header('Content-Length', str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+            except Exception as e:
+                logger.error(f"FHIR bundle error: {e}", exc_info=True)
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     

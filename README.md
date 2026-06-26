@@ -10,6 +10,9 @@
 
 ### Tech stack
 
+[![API](https://img.shields.io/badge/API-v1-blue)](docs/api/openapi.yaml)
+[![FHIR R4](https://img.shields.io/badge/FHIR-R4-green)](docs/connectors/fasten-health.md)
+[![n8n](https://img.shields.io/badge/n8n-node-orange)](https://www.npmjs.com/package/n8n-nodes-rianell)
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla%20%2B%20modules-F7DF1E?style=flat-square&logo=javascript&logoColor=000)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)

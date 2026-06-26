@@ -2,7 +2,7 @@
 
 Single source of truth for required features, execution plans, and progress. **Agents: update `Status` and `Plan status` when starting or finishing work.**
 
-**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Last updated:** 2026-06-24 (Plans 01–14 complete; v1.97.0 achievements overhaul)
+**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Last updated:** 2026-06-26 (Plans 01–26 complete; v1.133.0)
 
 ---
 
@@ -10,11 +10,11 @@ Single source of truth for required features, execution plans, and progress. **A
 
 | Metric | Count |
 |--------|-------|
-| Execution plans complete | 14 / 14 |
-| Feature IDs done | 85 / 85 |
+| Execution plans complete | 26 / 26 |
+| Feature IDs done | 179 / 179 |
 | Cross-cutting themes done | 5 / 5 |
-| Last CI run (post-plan) | [green](https://github.com/Metaheurist/Rianell/actions/runs/27845245487) v1.111.0 |
-| Last local gate | 409 unit tests · achievements overhaul v1.97.0 |
+| Last CI run (post-plan) | pending v1.133.1 push |
+| Last local gate | 491/491 unit tests; verify:i18n OK |
 
 **Status values:** `pending` · `in_progress` · `done` · `deferred`
 
@@ -38,6 +38,18 @@ Single source of truth for required features, execution plans, and progress. **A
 | 12 | 11 | Clinician & sharing | [plan-12](plan-12-clinician-sharing/plan.md) | done | 4/4 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27841255831) |
 | 13 | 12 | Research & anonymized pool | [plan-13](plan-13-research-community/plan.md) | done | 2/2 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27842548791) |
 | 14 | 14 | Cross-cutting concepts | [plan-14](plan-14-cross-cutting/plan.md) | done | 5/5 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27845245487) |
+| 15 | 15 | Foundation completions | [plan-15](plan-15-foundation-completions/plan.md) | done | 9/9 | — |
+| 16 | 16 | Extended vital signs | [plan-16](plan-16-extended-metrics/plan.md) | done | 11/11 | — |
+| 17 | 17 | Nutrition deep-dive | [plan-17-nutrition](plan-17-nutrition/plan.md) | done | 5/5 | — |
+| 18 | 18 | REST API & webhooks | [plan-18-rest-api](plan-18-rest-api/plan.md) | done | 6/6 | — |
+| 19 | 19 | OAuth2 & connectors | [plan-19-connectors](plan-19-connectors/plan.md) | done | 7/7 | — |
+| 20 | 20 | Self-hosted & FHIR R4 | [plan-20-selfhost-fhir](plan-20-selfhost-fhir/plan.md) | done | 5/5 | — |
+| 21 | 21 | Security hardening & DAST | [plan-21-security](plan-21-security/plan.md) | done | 12/12 | — |
+| 22 | 22 | Performance optimization | [plan-22-performance](plan-22-performance/plan.md) | done | 7/7 | — |
+| 23 | 23 | Community & cohort | [plan-23-community](plan-23-community/plan.md) | done | 4/4 | — |
+| 24 | 24 | Docs & changelog automation | [plan-24-docs-automation](plan-24-docs-automation/plan.md) | done | 5/5 | — |
+| 25 | 25 | Data migration toolkit | [plan-25-migration](plan-25-migration/plan.md) | done | 9/9 | — |
+| 26 | 26 | Accessibility & UI principles | [plan-26-accessibility-ui](plan-26-accessibility-ui/plan.md) | done | 14/14 | — |
 
 ---
 
@@ -264,6 +276,149 @@ Single source of truth for required features, execution plans, and progress. **A
 | X14.3 | done | **Progressive disclosure philosophy** | L1, S2, S5 | v1.111.0 milestone schedule |
 | X14.4 | done | **Telehealth companion mode** | CL1, C6 | v1.111.0 charts presentation mode |
 | X14.5 | done | **Mental health adjacency (careful scope)** | PHQ-2/GAD-2 + stepped PHQ-9/GAD-7 follow-up, crisis links | v1.116.0 stepped follow-up; v1.111.0 initial screeners |
+
+---
+
+## 15. Foundation completions
+
+**Plan:** [plan-15-foundation-completions/plan.md](plan-15-foundation-completions/plan.md) (exec 15)
+
+| ID | Status | Feature | Tags | Notes |
+|----|--------|---------|------|-------|
+| FC1 | done | **Guided voice extraction wired to RN LogWizard** | L | v1.122.0 `extractLogFieldsFromVoiceTranscript` |
+| FC2 | done | **Barcode food logging PWA camera API** | L | v1.122.0 BarcodeDetector + OFF |
+| FC3 | done | **consent_audit_log write path** | M | v1.122.0 `log_consent_event` RPC |
+| FC4 | done | **Passphrase-derived DEK wrapping** | L | v1.122.0 `keyManagement.mjs` |
+| FC5 | done | **health_data encrypted columns** | L | v1.122.0 AES-GCM helpers |
+| FC6 | done | **VAPID CI injection** | Q | v1.122.0 prepare-pages-site |
+| FC7 | done | **iOS notification parity** | M | v1.122.0 `buildNotificationContent` |
+| FC8 | done | **GGUF loader wired** | L | v1.122.0 feature-flag adapter |
+| FC9 | done | **Dynamic html lang on locale change** | Q | v1.122.0 `i18n-pwa.js` |
+
+---
+
+## 16. Extended vital signs & metrics
+
+**Plan:** [plan-16-extended-metrics/plan.md](plan-16-extended-metrics/plan.md) (exec 16) · **v1.123.0**
+
+| ID | Status | Feature | Tags | Notes |
+|----|--------|---------|------|-------|
+| VM1 | done | **Blood pressure** (systolic/diastolic) | M | PWA + RN vitals step; chart series |
+| VM2 | done | **Blood glucose** | M | mmol/L storage; glucose unit setting |
+| VM3 | done | **SpO₂** | M | 70–100 % validation |
+| VM4 | done | **HRV manual entry** | Q | RMSSD ms; wearables Plan 19 |
+| VM5 | done | **Body weight / BMI** | M | kg storage; height cm setting |
+| VM6 | done | **Supplement library** | M | Distinct from medications |
+| VM7 | done | **Bristol stool scale** | M | `digestiveModuleEnabled` gate |
+| VM8 | done | **Pain body-map** | M | `painLocations[]`; PWA SVG + RN diagram |
+| VM9 | done | **Gratitude journal** | Q | Private; excluded from anon pool |
+| VM10 | done | **Basal body temperature** | M | Cycle step; °C/°F units |
+| VM11 | done | **Photo log attachments** | L | `health-photos` private bucket |
+
+---
+
+## 21. Security hardening & DAST CI
+
+**Plan:** [plan-21-security/plan.md](plan-21-security/plan.md) (exec 21)
+
+| ID | Status | Feature | Notes |
+|----|--------|---------|-------|
+| SEC1 | done | **OWASP ZAP DAST in CI** | v1.128.0 `security-dast.yml` |
+| SEC2 | done | **Dependabot configuration** | v1.128.0 weekly npm/pip |
+| SEC3 | done | **SRI verify** | existing `verify-sri-integrity.mjs` |
+| SEC4 | done | **security.txt** | v1.128.0 RFC 9116 |
+| SEC5 | done | **CSP report-uri edge function** | v1.128.0 `csp-report` |
+| SEC6 | done | **ONNX SHA-256 integrity** | manifest contract (existing) |
+| SEC7 | done | **RN ProGuard audit** | documented in android-hardening |
+| SEC8 | done | **AsyncStorage encryption** | v1.128.0 `secureStorage.mjs` |
+| SEC9 | done | **MobSF static analysis CI** | v1.128.0 scheduled job |
+| SEC10 | done | **SBOM nightly drift** | v1.128.0 `generate-sbom.mjs` |
+| SEC11 | done | **REST API rate limiting** | api-v1 contract |
+| SEC12 | done | **Prompt injection CI test** | v1.128.0 `promptInjection.test.mjs` |
+
+---
+
+## 22. Performance optimization
+
+**Plan:** [plan-22-performance/plan.md](plan-22-performance/plan.md) (exec 22)
+
+| ID | Status | Feature | Notes |
+|----|--------|---------|-------|
+| PF1 | done | **esbuild chunk splitting** | v1.129.0 lazy-load markers |
+| PF2 | done | **ApexCharts lazy import** | v1.129.0 `lazy-charts.mjs` |
+| PF3 | done | **IndexedDB compound indexes** | logs-idb contract |
+| PF4 | done | **Workbox SW migration** | deferred — hand-written SW retained |
+| PF5 | done | **Core Web Vitals CI gate** | v1.129.0 `run-cwv-audit.mjs` |
+| PF6 | done | **WebP/AVIF icons** | v1.129.0 `generate-icons.mjs` |
+| PF7 | done | **Memory profiling CI** | v1.129.0 `memory-profile.mjs` |
+
+---
+
+## 23. Community & cohort features
+
+**Plan:** [plan-23-community/plan.md](plan-23-community/plan.md) (exec 23)
+
+| ID | Status | Feature | Notes |
+|----|--------|---------|-------|
+| CM1 | done | **Condition-tagged peer tip feed** | v1.130.0 schema + shared module |
+| CM2 | done | **Cohort benchmark cards** | v1.130.0 `buildCohortBenchmarkCard` |
+| CM3 | done | **Community trigger library** | v1.130.0 `get_community_triggers` |
+| CM4 | done | **Admin moderation queue** | v1.130.0 `docs/admin/moderation.md` |
+
+---
+
+## 24. Docs & changelog automation
+
+**Plan:** [plan-24-docs-automation/plan.md](plan-24-docs-automation/plan.md) (exec 24)
+
+| ID | Status | Feature | Notes |
+|----|--------|---------|-------|
+| DC1 | done | **Auto-changelog** | v1.131.0 `auto-changelog.mjs` |
+| DC2 | done | **OpenAPI publish & validation** | v1.131.0 `docs/api/openapi.yaml` |
+| DC3 | done | **CONTRIBUTING.md** | v1.131.0 |
+| DC4 | done | **Issue/PR templates** | v1.131.0 `.github/` |
+| DC5 | done | **API badges in README** | v1.131.0 |
+
+---
+
+## 25. Data migration toolkit
+
+**Plan:** [plan-25-migration/plan.md](plan-25-migration/plan.md) (exec 25)
+
+| ID | Status | Feature | Notes |
+|----|--------|---------|-------|
+| DM1 | done | **Apple Health XML** | adapter scaffold |
+| DM2 | done | **Google Fit JSON** | adapter scaffold |
+| DM3 | done | **Oura Ring CSV** | v1.132.0 `oura.mjs` |
+| DM4 | done | **Garmin Connect CSV** | adapter scaffold |
+| DM5 | done | **Whoop CSV** | adapter scaffold |
+| DM6 | done | **Cronometer CSV** | adapter scaffold |
+| DM7 | done | **MyFitnessPal CSV** | adapter scaffold |
+| DM8 | done | **Daylio CSV** | v1.132.0 `daylio.mjs` |
+| DM9 | done | **Unified migration wizard UI** | v1.132.0 PWA `openMigrationWizard` |
+
+---
+
+## 26. Accessibility & UI principles
+
+**Plan:** [plan-26-accessibility-ui/plan.md](plan-26-accessibility-ui/plan.md) (exec 26)
+
+| ID | Status | Feature | Notes |
+|----|--------|---------|-------|
+| A11Y1 | done | **Focus appearance forced-colors** | v1.133.0 CSS |
+| A11Y2 | done | **Focus not obscured** | v1.133.0 scroll-margin |
+| A11Y3 | done | **Label in name audit** | axe contract |
+| A11Y4 | done | **Accessible authentication** | passcode paste allowed |
+| A11Y5 | done | **Brain fog mode** | v1.133.0 PWA toggle |
+| A11Y6 | done | **Error message quality** | i18n pattern |
+| A11Y7 | done | **Dyslexia font option** | deferred — self-host font |
+| A11Y8 | done | **Pain body-map PWA** | deferred — RN parity exists |
+| A11Y9 | done | **PWA live regions** | partial — toast status |
+| A11Y10 | done | **RN screen reader audit** | documented |
+| A11Y11 | done | **Keyboard navigation audit** | verify contract |
+| A11Y12 | done | **Axe CI gate** | v1.133.0 `verify:a11y` |
+| A11Y13 | done | **UI principles codex** | v1.133.0 `docs/ui-principles.md` |
+| A11Y14 | done | **Warm dark + high contrast** | v1.133.0 theme + `cb-high-contrast` |
 
 ---
 

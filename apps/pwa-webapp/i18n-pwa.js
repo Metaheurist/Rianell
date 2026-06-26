@@ -226,6 +226,13 @@
 
   function refreshLocaleUI() {
     return ensureMotdMessages(activeLocale).then(function () {
+      if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.lang = activeLocale || 'en-GB';
+        var rtlLocales = ['ar', 'he'];
+        var isRtlLocale = rtlLocales.indexOf(String(activeLocale || '').split('-')[0]) !== -1
+          || rtlLocales.indexOf(activeLocale) !== -1;
+        document.documentElement.dir = isRtlLocale ? 'rtl' : 'ltr';
+      }
       if (typeof global !== 'undefined') {
         if (global.__rianellMotdLoadedLocale !== activeLocale) {
           global.__rianellMotdSessionPick = null;
