@@ -10,6 +10,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ### Added
 
+- **PWA AI Analysis tab overhaul (2026-06-26)**:
+  - Five-chapter layout (Overview, Trends & vitals, Lifestyle, Mind & mood, Body & pain) with mobile pager slides.
+  - **Wellbeing score** ring (0–100), coaching **insight card**, quick-stat pills with sparklines and delta arrows.
+  - Skeleton loading UI replacing brain-pulse spinner; semantic `--ai-status-*` tokens and per-chapter tints.
+  - Ten custom SVG icons (`brain-wave`, `heart-pulse`, `shield-check`, `gut`, `pill-check`, `sparkle-ring`, `stressor-bolt`, `leaf`, `gauge`, `calendar-heatmap`).
+  - New visualizations: flare arc gauge, macro sparklines, exercise timeline bars, medication adherence heatmap, stressor chips, gratitude tags, Bristol/gut trend.
+  - **AIEngine** extended analysis: HRV trends, medication adherence, digestive/Bristol, intraday subEntry patterns, macro time-series, gratitude word frequency, wellbeing score, mental-health screening from settings.
+  - Coaching-style **summary note** (rule-based + LLM prompt update in `summary-llm.js`).
+
 - **Hosted share links** (`packages/shared/src/export/shareReadOnlyLink.mjs`):
   - `generateShareCode()` — cryptographically random, ambiguous-char-free 16-char code.
   - `buildShareSnapshot()` — filters logs by date range, strips sensitive free-text fields when `includeNotes` is off, optionally embeds condition name.
