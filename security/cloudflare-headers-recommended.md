@@ -197,6 +197,97 @@ Use **Cache Rules** (or legacy Page Rules) on zone **rianell.com** to balance fr
 - `connect-src` fetches (Open-Meteo, Hugging Face) are **browser** caches; edge rules apply only to same-origin static assets.
 - Align with [performance-budget.md](../docs/performance-budget.md) boot targets.
 
+## DNS hygiene — dangling A records and DMARC
+
+### Dangling A records (Moderate — subdomain takeover risk)
+
+A **dangling A record** is a DNS A record whose IP address is no longer under your control (the resource at that IP was released, expired, or reassigned). An attacker who claims that IP can then serve content under your subdomain.
+
+**How to audit:**
+
+1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) → zone **rianell.com**.
+2. **DNS** → **Records** — review all **A** and **AAAA** records.
+3. For each A record, verify the target IP still serves rianell.com content by running:
+   ```bash
+   curl -I -H "Host: rianell.com" https://<IP>
+   ```
+4. Remove any A record whose IP does not respond correctly to your hostname.
+
+**Common sources of dangling A records:**
+
+- Old GitHub Pages IPs (pre-custom-domain migration) — `185.199.108.153` through `185.199.111.153`
+- Cloudflare Tunnel or Argo IPs left over after tunnel deletion
+- Heroku/Render/Railway ephemeral IPs
+- Cloud VM IPs released when instance was deleted
+
+**Recommended action:** Delete A records that no longer correspond to active, verified resources. If the A record is for `www.rianell.com` and the site is now served via Cloudflare Pages or a CNAME, replace the A record with a CNAME (or Cloudflare CNAME flattening) to the appropriate target.
+
+---
+
+### DMARC missing / misconfigured (Low — email spoofing risk)
+
+Without a valid DMARC record, anyone can send email claiming to be from `rianell.com`. Add the following DNS TXT record:
+
+| DNS field | Value |
+|-----------|-------|
+| **Name** | `_dmarc` |
+| **Type** | `TXT` |
+| **TTL** | 3600 |
+| **Content** | `v=DMARC1; p=quarantine; rua=mailto:security@rianell.com; ruf=mailto:security@rianell.com; adkim=s; aspf=s; pct=100` |
+
+**Policy explanation:**
+
+- `p=quarantine` — suspicious mail goes to spam (use `p=reject` once confirmed no legitimate mail is lost)
+- `rua` — aggregate reports sent to your security inbox
+- `ruf` — forensic reports for individual failures
+- `adkim=s` / `aspf=s` — strict alignment with DKIM and SPF
+
+**Prerequisites:** Ensure you also have valid **SPF** and **DKIM** records:
+
+```dns
+; SPF — authorize only your mail service(s)
+rianell.com   TXT  "v=spf1 include:_spf.google.com ~all"
+
+; DKIM — check your email provider's dashboard for the public key
+mail._domainkey.rianell.com  TXT  "v=DKIM1; k=rsa; p=<public-key>"
+```
+
+Replace `_spf.google.com` with your actual mail provider's SPF include. If you do **not** send email from `rianell.com`, use:
+
+```dns
+rianell.com   TXT  "v=spf1 -all"
+_dmarc.rianell.com  TXT  "v=DMARC1; p=reject; adkim=s; aspf=s"
+```
+
+Verify with [MXToolbox DMARC check](https://mxtoolbox.com/DMARC.aspx) after DNS propagation (typically ≤ 1 hour at TTL 3600).
+
+---
+
+## AI crawler blocking
+
+### Cloudflare "Block AI bots" toggle
+
+Enable the native bot-blocking toggle in Cloudflare:
+
+1. [Cloudflare Dashboard](https://dash.cloudflare.com/) → zone **rianell.com**
+2. **Security** → **Bots** → **Bot Fight Mode** (or **Super Bot Fight Mode** on Pro+ plans)
+3. Toggle **Block AI scrapers and crawlers** → **On**
+4. Save.
+
+This blocks known AI training crawlers at the edge before they reach the origin.
+
+### robots.txt (HTTP-level declaration)
+
+`apps/pwa-webapp/robots.txt` is shipped with the site and declares `Disallow: /` for all major AI training agents (GPTBot, Google-Extended, Claude-Web, CCBot, Bytespider, PerplexityBot, and others). This is honoured by compliant crawlers and signals intent for legal/policy purposes even where edge blocking is not configured.
+
+**Verify the file is served after deploy:**
+
+```bash
+curl https://rianell.com/robots.txt
+```
+
+---
+
 ## Share link routing (`rianell.com/share/*`)
 
 Hosted encrypted share links use GitHub Pages `404.html` to redirect `/share/{CODE}` → `/#share/{CODE}`. Cloudflare should **not** cache these paths and should rate-limit abusive access.
