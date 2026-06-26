@@ -3,6 +3,7 @@
 
   var S = global.RianellShared || {};
   var _moodRangeDays = 14;
+  var _moodSelectedPeriod = null;
 
   function t(key, params) {
     if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
@@ -94,20 +95,21 @@
       ? S.completedCheckinPeriods(todayLog)
       : new Set();
     var periods = S && Array.isArray(S.HOME_CHECKIN_PERIODS) ? S.HOME_CHECKIN_PERIODS : ['AM', 'midday', 'PM'];
-    var doneLabel = t('home.checkin.done');
-    var html = '<section class="mood-checkin-section"><h3 class="mood-section-title">' + escapeHTML(t('mood.checkin.title')) + '</h3><div class="mood-checkin-periods">';
-    periods.forEach(function (period) {
-      var labelKey = period === 'AM' ? 'home.checkin.am' : period === 'PM' ? 'home.checkin.pm' : 'home.checkin.midday';
-      var label = t(labelKey);
-      var isDone = done.has(period);
-      html += '<button type="button" class="action-btn mood-checkin-btn' + (isDone ? ' is-done' : '') + '" data-mood-checkin-period="' + escapeHTML(period) + '"' + (isDone ? ' disabled' : '') + '>';
-      html += svgIcon(checkinPeriodIconName(period), 'mood-checkin-icon');
-      html += '<span class="mood-checkin-label">' + escapeHTML(label) + '</span>';
-      if (isDone) html += '<span class="mood-checkin-done">' + escapeHTML(doneLabel) + '</span>';
-      html += '</button>';
-    });
-    html += '</div></section>';
-    return html;
+    var defaultPeriod = typeof global.defaultCheckinPeriod === 'function'
+      ? global.defaultCheckinPeriod()
+      : 'AM';
+    if (!_moodSelectedPeriod || done.has(_moodSelectedPeriod)) {
+      _moodSelectedPeriod = defaultPeriod;
+      if (done.has(_moodSelectedPeriod)) {
+        var openPeriod = periods.find(function (p) { return !done.has(p); });
+        if (openPeriod) _moodSelectedPeriod = openPeriod;
+      }
+    }
+    var ctaLabel = t('home.checkin.cta');
+    var sliderHtml = typeof global.renderCheckinSliderHtml === 'function'
+      ? global.renderCheckinSliderHtml(periods, done, _moodSelectedPeriod, function (key) { return t(key); }, ctaLabel)
+      : '';
+    return '<section class="mood-checkin-section"><h3 class="mood-section-title">' + escapeHTML(t('mood.checkin.title')) + '</h3>' + sliderHtml + '</section>';
   }
 
   function renderMoodTab() {
@@ -173,13 +175,12 @@
 
     root.innerHTML = html;
 
-    root.querySelectorAll('[data-mood-checkin-period]').forEach(function (btn) {
-      if (btn.disabled) return;
-      btn.onclick = function () {
-        var period = btn.getAttribute('data-mood-checkin-period');
-        if (typeof global.openMicroCheckinModal === 'function') global.openMicroCheckinModal(period);
-      };
-    });
+    var moodCheckinSection = root.querySelector('.mood-checkin-section');
+    if (moodCheckinSection && typeof global.wireCheckinSliderEvents === 'function') {
+      global.wireCheckinSliderEvents(moodCheckinSection, function () { return _moodSelectedPeriod; }, function (period) {
+        _moodSelectedPeriod = period;
+      });
+    }
 
     var chartsBtn = document.getElementById('moodViewChartsBtn');
     if (chartsBtn) {
@@ -205,21 +206,29 @@
     if (typeof global.initRipple === 'function') global.initRipple(root);
   }
 
+  var MOOD_RANGE_VALUES = [7, 14, 30];
+
   function setMoodDateRange(days) {
     _moodRangeDays = days;
-    document.querySelectorAll('#moodTab .date-range-btn').forEach(function (btn) {
-      btn.classList.toggle('active', Number(btn.getAttribute('data-mood-days')) === days);
-    });
+    var pos = MOOD_RANGE_VALUES.indexOf(days);
+    if (pos === -1) pos = 1;
+    if (typeof global.updateRangeSlider === 'function') {
+      global.updateRangeSlider('moodRangeSlider', pos);
+    }
     withCatalogsReady(renderMoodTab);
   }
 
   function bindMoodTabModule() {
-    document.querySelectorAll('#moodTab .date-range-btn').forEach(function (btn) {
-      btn.onclick = function () {
-        var days = Number(btn.getAttribute('data-mood-days'));
-        if (Number.isFinite(days)) setMoodDateRange(days);
-      };
-    });
+    var moodSlider = document.getElementById('moodRangeSlider');
+    if (moodSlider) {
+      moodSlider.addEventListener('input', function () {
+        var days = MOOD_RANGE_VALUES[parseInt(this.value, 10)];
+        if (days) setMoodDateRange(days);
+      });
+      if (typeof global.updateRangeSlider === 'function') {
+        global.updateRangeSlider('moodRangeSlider', parseInt(moodSlider.value, 10));
+      }
+    }
     if (global.RianellI18n && typeof global.RianellI18n.onLocaleChange === 'function') {
       global.RianellI18n.onLocaleChange(function () {
         var panel = document.getElementById('moodTab');

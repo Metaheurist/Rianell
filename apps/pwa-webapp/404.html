@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Rianell</title>
+  <script>
+    var m = window.location.pathname.match(/^\/[Ss]hare\/([A-Za-z0-9_\-]{4,64})$/);
+    window.location.replace(m ? '/#share/' + m[1] : '/');
+  </script>
+</head>
+<body></body>
+</html>

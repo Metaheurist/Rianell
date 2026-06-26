@@ -1441,14 +1441,10 @@ function getLogsInCurrentViewRange() {
     });
   }
 
-  const activeRangeBtn = document.querySelector('.log-date-range-btn.active');
-  if (activeRangeBtn) {
-    const btnId = activeRangeBtn.id;
-    let days = 7;
-    if (btnId === 'logRange1Day') days = 1;
-    else if (btnId === 'logRange7Days') days = 7;
-    else if (btnId === 'logRange30Days') days = 30;
-    else if (btnId === 'logRange90Days') days = 90;
+  const logSlider = document.getElementById('logRangeSlider');
+  if (logSlider) {
+    const logSliderValues = [1, 7, 30, 90];
+    const days = logSliderValues[parseInt(logSlider.value, 10)] || 7;
     const end = new Date();
     end.setHours(23, 59, 59, 999);
     const start = new Date();
@@ -3380,6 +3376,7 @@ function escapeHTML(str) {
 function svgIcon(name, className, title) {
   var KNOWN_SVG_ICONS = new Set([
     'target', 'medal', 'food', 'run', 'pill', 'lock', 'calendar', 'sleep', 'cycle', 'star', 'check',
+    'checkin-am', 'checkin-midday', 'checkin-pm',
   ]);
   var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
   if (!KNOWN_SVG_ICONS.has(safeName)) safeName = 'target';
@@ -3388,6 +3385,11 @@ function svgIcon(name, className, title) {
   return '<svg class="' + cls + '"' + label + '><use href="#icon-' + safeName + '"></use></svg>';
 }
 if (typeof window !== 'undefined') window.svgIcon = svgIcon;
+
+function svgIconUnsafe(name, cls) {
+  var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
+  return '<svg class="' + (cls || 'ui-svg-icon') + '" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
+}
 
 function sanitizeHTML(html) {
   if (typeof html !== 'string') return '';
@@ -3876,89 +3878,378 @@ function openInStandalone() {
   }
 }
 
+function detectPWAInstallPlatform() {
+  var ua = navigator.userAgent;
+  var uaLower = ua.toLowerCase();
+  if (/iPad|iPhone|iPod/.test(ua) && /Safari/.test(ua) && !/Chrome|CriOS|FxiOS/.test(ua)) return 'ios-safari';
+  if (uaLower.includes('safari') && !uaLower.includes('chrome') && !uaLower.includes('iphone') && !uaLower.includes('ipad')) return 'macos-safari';
+  if (uaLower.includes('chrome') && !uaLower.includes('edg')) return 'chrome';
+  if (uaLower.includes('firefox')) return 'firefox';
+  if (uaLower.includes('edg')) return 'edge';
+  if (uaLower.includes('safari')) return 'ios-safari';
+  return 'default';
+}
+
+var PWA_GUIDE_CONTENT = {
+  'ios-safari': {
+    title: 'Add to Home Screen (Safari iOS)',
+    illus: '<svg class="pwa-guide-illus" viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><rect x="36" y="8" width="48" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="2"/><rect x="40" y="58" width="40" height="4" rx="2" fill="currentColor" opacity="0.3"/><rect x="48" y="44" width="24" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M60 38v-6M56 34l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    steps: [
+      'Tap the Share button at the bottom of Safari',
+      'Scroll down and tap "Add to Home Screen"',
+      'Tap "Add" in the top right',
+      'Open Rianell from your home screen'
+    ]
+  },
+  'macos-safari': {
+    title: 'Add to Dock (Safari macOS)',
+    illus: '<svg class="pwa-guide-illus" viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><rect x="8" y="16" width="104" height="48" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8" y="16" width="104" height="12" rx="6" fill="currentColor" opacity="0.15"/><circle cx="100" cy="22" r="5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    steps: [
+      'Click the Share button in the Safari toolbar',
+      'Select "Add to Dock"',
+      'Launch Rianell from your Dock'
+    ]
+  },
+  chrome: {
+    title: 'Install on Chrome',
+    illus: '<svg class="pwa-guide-illus" viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><rect x="8" y="12" width="104" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="28" width="72" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="92" y="26" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    steps: [
+      'Look for the install icon in the address bar, or',
+      'Open the menu (top right) → "Install Rianell"',
+      'Alternatively: More Tools → Create Shortcut → check "Open as window"'
+    ]
+  },
+  edge: {
+    title: 'Install on Edge',
+    illus: '<svg class="pwa-guide-illus" viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><rect x="8" y="12" width="104" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="16" y="28" width="72" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="98" cy="32" r="6" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+    steps: [
+      'Click the menu (⋯) in the top right',
+      'Select Apps → "Install this site as an app"',
+      'Click Install'
+    ]
+  },
+  firefox: {
+    title: 'Install on Firefox',
+    illus: '<svg class="pwa-guide-illus" viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><rect x="8" y="12" width="104" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="88" y="20" width="16" height="40" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M92 32h8M92 38h8M92 44h8" stroke="currentColor" stroke-width="1.5"/></svg>',
+    steps: [
+      'Click the menu (☰) in the top right',
+      'Select "Install this site as an app"',
+      'Choose a name and click Install'
+    ]
+  },
+  default: {
+    title: 'Install Rianell',
+    illus: '<svg class="pwa-guide-illus" viewBox="0 0 120 80" width="120" height="80" aria-hidden="true"><rect x="20" y="16" width="80" height="48" rx="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M60 28v16M52 44h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    steps: [
+      'Look for "Install" or "Add to Home Screen" in your browser menu',
+      'Most modern browsers support installing web apps'
+    ]
+  }
+};
+
+function openPWAGuideModal(platform) {
+  var overlay = document.getElementById('pwaGuideModal');
+  var body = document.getElementById('pwaGuideBody');
+  var titleEl = document.getElementById('pwaGuideTitle');
+  if (!overlay || !body) return;
+  var content = PWA_GUIDE_CONTENT[platform] || PWA_GUIDE_CONTENT.default;
+  if (titleEl) titleEl.textContent = content.title;
+  var stepsHtml = content.steps.map(function(step, i) {
+    return '<div class="pwa-step"><span class="pwa-step__num">' + (i + 1) + '</span><p class="pwa-step__text">' + step + '</p></div>';
+  }).join('');
+  body.innerHTML = content.illus + stepsHtml;
+  overlay.style.display = 'block';
+}
+
+function closePWAGuideModal() {
+  var overlay = document.getElementById('pwaGuideModal');
+  if (overlay) overlay.style.display = 'none';
+}
+
 function showInstallInstructions() {
-  const userAgent = navigator.userAgent.toLowerCase();
-  let instructions = '';
-  
-  // Safari on iOS
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent)) {
-    instructions = `Add to Home Screen (Safari iOS)
+  openPWAGuideModal(detectPWAInstallPlatform());
+}
 
-1. Tap the Share button (□↑) at the bottom of Safari
-2. Scroll down in the share menu
-3. Tap "Add to Home Screen"
-4. Tap "Add" in the top right
-5. The app will appear on your home screen!
+var _exportWizardState = { channel: 'download', step: 1, method: null, config: {} };
+var _importWizardState = { type: 'native', step: 1, source: null, file: null };
 
-✨ After installing:
-• Open the app from your home screen
-• Grant notification permission when prompted
-• You'll receive daily reminders to log your health data
-• The app works offline and feels like a native app`;
-  }
-  // Safari on macOS
-  else if (userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('iphone') && !userAgent.includes('ipad')) {
-    instructions = `Add to Dock (Safari macOS)
+var EXPORT_WIZARD_OPTIONS = {
+  download: [
+    { id: 'json', label: 'Export Data (JSON/CSV)', icon: 'icon-document', handler: 'exportData' },
+    { id: 'fhir', label: 'Export FHIR-lite bundle', icon: 'icon-bundle', handler: 'exportFhirBundle' },
+    { id: 'protected', label: 'Create protected export', icon: 'icon-lock', handler: 'exportEncryptedData' }
+  ],
+  sync: [
+    { id: 'shareLink', label: 'Create read-only share link', icon: 'icon-link', handler: 'exportReadOnlyShareLink' },
+    { id: 'webdav', label: 'Backup to WebDAV', icon: 'icon-cloud-up', handler: 'openWebDavBackupModal' },
+    { id: 'qr', label: 'QR handoff (in-office)', icon: 'icon-qr', handler: 'qrHandoff' }
+  ]
+};
 
-1. Click the Share button in Safari toolbar
-2. Select "Add to Dock"
-3. The app will appear in your Dock!
+var IMPORT_WIZARD_OPTIONS = {
+  native: [
+    { id: 'rianell-json', label: 'Rianell JSON backup', icon: 'icon-save' },
+    { id: 'csv', label: 'CSV file', icon: 'icon-document' }
+  ],
+  migration: [
+    { id: 'bearable', label: 'Bearable CSV', monogram: 'B' },
+    { id: 'flaredown', label: 'Flaredown CSV', monogram: 'F' }
+  ]
+};
 
-✨ After installing:
-• Click the app icon in Dock to launch
-• Grant notification permission when prompted
-• You'll receive daily reminders`;
-  }
-  else if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
-    instructions = `
-Install on Chrome:
+function renderExportWizardOptions() {
+  var container = document.getElementById('exportWizardOptions1');
+  if (!container) return;
+  var options = EXPORT_WIZARD_OPTIONS[_exportWizardState.channel] || [];
+  container.innerHTML = options.map(function(opt) {
+    var selected = _exportWizardState.method === opt.id ? ' selected' : '';
+    return '<button type="button" class="dm-option-card' + selected + '" data-method="' + opt.id + '" onclick="selectExportWizardMethod(\'' + opt.id + '\')">' +
+      '<svg class="dm-option-card__icon ui-svg-icon" aria-hidden="true"><use href="#' + opt.icon + '"></use></svg>' +
+      '<span class="dm-option-card__label">' + opt.label + '</span></button>';
+  }).join('');
+}
 
-METHOD 1 - Create Shortcut:
-1. Click ⋮ menu (top right)
-2. More Tools → Create Shortcut
-3. Name: "Rianell"
-4. Check "Open as window"
-5. Click "Create"
+function selectExportWizardMethod(methodId) {
+  _exportWizardState.method = methodId;
+  renderExportWizardOptions();
+}
 
-METHOD 2 - Install Button:
-• Look for install icon (⊞) in address bar
-• Or ⋮ menu → "Install Rianell"
-
-NOTE: Automatic install works best with:
-• http://localhost:8000 (local server)
-• Or hosted website (https://)
-    `;
-  } else if (userAgent.includes('firefox')) {
-    instructions = `
-Install on Firefox:
-1. Click the ☰ menu (top right)
-2. Select "Install this site as an app"
-3. Choose a name and click "Install"
-    `;
-  } else if (userAgent.includes('safari')) {
-    instructions = `
-Install on Safari:
-1. Tap the Share button (□↗)
-2. Scroll down and tap "Add to Home Screen"
-3. Tap "Add" to install
-    `;
-  } else if (userAgent.includes('edg')) {
-    instructions = `
-Install on Edge:
-1. Click the ⋯ menu (top right)
-2. Select "Apps" > "Install this site as an app"
-3. Click "Install"
-    `;
+function renderExportWizardConfig() {
+  var container = document.getElementById('exportWizardConfig');
+  if (!container) return;
+  var method = _exportWizardState.method;
+  if (method === 'json') {
+    container.innerHTML = '<div class="dm-wizard-config-row"><label><input type="radio" name="exportRange" value="all" checked> All data</label></div>' +
+      '<div class="dm-wizard-config-row"><label><input type="radio" name="exportRange" value="range"> Date range (optional)</label></div>' +
+      '<div class="dm-wizard-config-row"><input type="date" id="exportDateFrom" aria-label="From date"><input type="date" id="exportDateTo" aria-label="To date" style="margin-top:6px;"></div>';
+  } else if (method === 'protected') {
+    container.innerHTML = '<div class="dm-wizard-config-row"><label>Passphrase</label><input type="password" id="exportWizardPassphrase" placeholder="Enter passphrase" autocomplete="new-password"></div>' +
+      '<div class="dm-wizard-config-row"><label>Confirm passphrase</label><input type="password" id="exportWizardPassphraseConfirm" placeholder="Confirm passphrase" autocomplete="new-password"></div>';
+  } else if (method === 'webdav') {
+    container.innerHTML = '<div class="dm-wizard-config-row"><label>WebDAV URL</label><input type="url" id="exportWebdavUrl" placeholder="https://"></div>' +
+      '<div class="dm-wizard-config-row"><label>Username</label><input type="text" id="exportWebdavUser"></div>' +
+      '<div class="dm-wizard-config-row"><label>Password</label><input type="password" id="exportWebdavPass"></div>';
+  } else if (method === 'shareLink') {
+    container.innerHTML = '<p class="dm-wizard-hint">Creates a read-only link that expires in 7 days.</p>';
+  } else if (method === 'qr') {
+    container.innerHTML = '<p class="dm-wizard-hint">Opens the QR handoff screen for in-office transfer.</p>';
   } else {
-    instructions = `
-Install Instructions:
-Look for an "Install" or "Add to Home Screen" option in your browser's menu.
-
-Most modern browsers support installing web apps!
-    `;
+    container.innerHTML = '<p class="dm-wizard-hint">No additional configuration needed.</p>';
   }
-  
-  showAlertModal(instructions, 'Installation Instructions');
+}
+
+function updateExportWizardUI() {
+  var step = _exportWizardState.step;
+  for (var i = 1; i <= 3; i++) {
+    var el = document.getElementById('exportWizardStep' + i);
+    if (el) {
+      el.classList.toggle('dm-wizard-step--active', i === step);
+    }
+  }
+  var progress = document.getElementById('exportWizardProgress');
+  if (progress) progress.style.width = (step / 3 * 100) + '%';
+  var backBtn = document.getElementById('exportWizardBack');
+  var nextBtn = document.getElementById('exportWizardNext');
+  if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
+  if (nextBtn) nextBtn.textContent = step === 3 ? 'Export now' : 'Next';
+  if (step === 1) renderExportWizardOptions();
+  if (step === 2) renderExportWizardConfig();
+  if (step === 3) {
+    var summary = document.getElementById('exportWizardSummary');
+    var opt = (EXPORT_WIZARD_OPTIONS[_exportWizardState.channel] || []).find(function(o) { return o.id === _exportWizardState.method; });
+    if (summary) summary.textContent = 'Ready to run: ' + (opt ? opt.label : 'export');
+  }
+}
+
+function openExportWizard(channel) {
+  if (appSettings && appSettings.demoMode && channel === 'download') {
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
+    return;
+  }
+  _exportWizardState = { channel: channel || 'download', step: 1, method: null, config: {} };
+  var overlay = document.getElementById('exportWizardModal');
+  if (!overlay) return;
+  if (typeof closeSettingsModalIfOpen === 'function') closeSettingsModalIfOpen();
+  updateExportWizardUI();
+  overlay.style.display = 'block';
+}
+
+function closeExportWizard() {
+  var overlay = document.getElementById('exportWizardModal');
+  if (overlay) overlay.style.display = 'none';
+  _exportWizardState.step = 1;
+}
+
+function exportWizardStep(delta) {
+  var step = _exportWizardState.step;
+  if (delta > 0 && step === 1 && !_exportWizardState.method) {
+    showAlertModal('Please choose an export format.', 'Export data');
+    return;
+  }
+  if (delta > 0 && step === 3) {
+    exportWizardExecute();
+    return;
+  }
+  var next = step + delta;
+  if (next < 1 || next > 3) {
+    if (next < 1) closeExportWizard();
+    return;
+  }
+  var currentEl = document.getElementById('exportWizardStep' + step);
+  var nextEl = document.getElementById('exportWizardStep' + next);
+  if (currentEl) currentEl.classList.remove('dm-wizard-step--active', 'dm-wizard-step--enter-fwd', 'dm-wizard-step--enter-bwd');
+  _exportWizardState.step = next;
+  if (nextEl) {
+    nextEl.classList.add('dm-wizard-step--active', delta > 0 ? 'dm-wizard-step--enter-fwd' : 'dm-wizard-step--enter-bwd');
+  }
+  updateExportWizardUI();
+}
+
+function exportWizardExecute() {
+  var method = _exportWizardState.method;
+  closeExportWizard();
+  if (method === 'json' && typeof exportData === 'function') exportData();
+  else if (method === 'fhir' && typeof exportFhirBundle === 'function') exportFhirBundle();
+  else if (method === 'protected' && typeof exportEncryptedData === 'function') exportEncryptedData();
+  else if (method === 'shareLink' && typeof exportReadOnlyShareLink === 'function') exportReadOnlyShareLink();
+  else if (method === 'webdav' && typeof openWebDavBackupModal === 'function') openWebDavBackupModal();
+  else if (method === 'qr' && window.RianellQrHandoff && typeof window.RianellQrHandoff.open === 'function') window.RianellQrHandoff.open();
+}
+
+function renderImportWizardOptions() {
+  var container = document.getElementById('importWizardOptions1');
+  if (!container) return;
+  var options = IMPORT_WIZARD_OPTIONS[_importWizardState.type] || [];
+  container.innerHTML = options.map(function(opt) {
+    var selected = _importWizardState.source === opt.id ? ' selected' : '';
+    if (opt.monogram) {
+      return '<button type="button" class="dm-option-card' + selected + '" data-source="' + opt.id + '" onclick="selectImportWizardSource(\'' + opt.id + '\')">' +
+        '<span class="dm-source-monogram" aria-hidden="true">' + opt.monogram + '</span>' +
+        '<span class="dm-option-card__label">' + opt.label + '</span></button>';
+    }
+    return '<button type="button" class="dm-option-card' + selected + '" data-source="' + opt.id + '" onclick="selectImportWizardSource(\'' + opt.id + '\')">' +
+      '<svg class="dm-option-card__icon ui-svg-icon" aria-hidden="true"><use href="#' + opt.icon + '"></use></svg>' +
+      '<span class="dm-option-card__label">' + opt.label + '</span></button>';
+  }).join('');
+}
+
+function selectImportWizardSource(sourceId) {
+  _importWizardState.source = sourceId;
+  renderImportWizardOptions();
+}
+
+function bindImportWizardFileInput() {
+  var input = document.getElementById('importWizardFileInput');
+  var nameEl = document.getElementById('importWizardFileName');
+  if (!input || input._dmWizardBound) return;
+  input._dmWizardBound = true;
+  input.addEventListener('change', function() {
+    var file = input.files && input.files[0];
+    _importWizardState.file = file || null;
+    if (nameEl) nameEl.textContent = file ? file.name : 'No file chosen';
+    var arrows = document.querySelectorAll('#importWizardStep2 .import-dropzone__arrow');
+    arrows.forEach(function(el) { el.classList.toggle('file-selected', !!file); });
+  });
+}
+
+function updateImportWizardUI() {
+  var step = _importWizardState.step;
+  for (var i = 1; i <= 3; i++) {
+    var el = document.getElementById('importWizardStep' + i);
+    if (el) el.classList.toggle('dm-wizard-step--active', i === step);
+  }
+  var progress = document.getElementById('importWizardProgress');
+  if (progress) progress.style.width = (step / 3 * 100) + '%';
+  var backBtn = document.getElementById('importWizardBack');
+  var nextBtn = document.getElementById('importWizardNext');
+  if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
+  if (nextBtn) nextBtn.textContent = step === 3 ? 'Import now' : 'Next';
+  if (step === 1) renderImportWizardOptions();
+  if (step === 2) bindImportWizardFileInput();
+  if (step === 3) {
+    var summary = document.getElementById('importWizardSummary');
+    var file = _importWizardState.file;
+    if (summary) {
+      summary.textContent = file
+        ? 'Import "' + file.name + '" (' + (file.size < 1024 ? file.size + ' B' : Math.round(file.size / 1024) + ' KB') + ')'
+        : 'You can pick a file on the next screen after confirming.';
+    }
+  }
+}
+
+function openImportWizard(type) {
+  _importWizardState = { type: type || 'native', step: 1, source: null, file: null };
+  var overlay = document.getElementById('importWizardModal');
+  if (!overlay) return;
+  if (typeof closeSettingsModalIfOpen === 'function') closeSettingsModalIfOpen();
+  var input = document.getElementById('importWizardFileInput');
+  if (input) input.value = '';
+  var nameEl = document.getElementById('importWizardFileName');
+  if (nameEl) nameEl.textContent = 'No file chosen';
+  updateImportWizardUI();
+  overlay.style.display = 'block';
+}
+
+function closeImportWizard() {
+  var overlay = document.getElementById('importWizardModal');
+  if (overlay) overlay.style.display = 'none';
+  _importWizardState.step = 1;
+}
+
+function importWizardStep(delta) {
+  var step = _importWizardState.step;
+  if (delta > 0 && step === 1 && !_importWizardState.source) {
+    showAlertModal('Please choose an import source.', 'Import data');
+    return;
+  }
+  if (delta > 0 && step === 3) {
+    importWizardExecute();
+    return;
+  }
+  var next = step + delta;
+  if (next < 1 || next > 3) {
+    if (next < 1) closeImportWizard();
+    return;
+  }
+  var currentEl = document.getElementById('importWizardStep' + step);
+  var nextEl = document.getElementById('importWizardStep' + next);
+  if (currentEl) currentEl.classList.remove('dm-wizard-step--active', 'dm-wizard-step--enter-fwd', 'dm-wizard-step--enter-bwd');
+  _importWizardState.step = next;
+  if (nextEl) {
+    nextEl.classList.add('dm-wizard-step--active', delta > 0 ? 'dm-wizard-step--enter-fwd' : 'dm-wizard-step--enter-bwd');
+  }
+  updateImportWizardUI();
+}
+
+function importWizardExecute() {
+  var type = _importWizardState.type;
+  var source = _importWizardState.source;
+  closeImportWizard();
+  if (type === 'migration') {
+    var input = document.getElementById('importFileInput');
+    if (input) {
+      input.setAttribute('data-migration-source', source || 'bearable');
+      input.setAttribute('accept', '.csv');
+      input.click();
+    } else if (typeof importMigrationCsv === 'function') {
+      importMigrationCsv();
+    }
+    return;
+  }
+  if (typeof importData === 'function') importData();
+}
+
+if (typeof window !== 'undefined') {
+  window.openPWAGuideModal = openPWAGuideModal;
+  window.closePWAGuideModal = closePWAGuideModal;
+  window.openExportWizard = openExportWizard;
+  window.closeExportWizard = closeExportWizard;
+  window.exportWizardStep = exportWizardStep;
+  window.selectExportWizardMethod = selectExportWizardMethod;
+  window.openImportWizard = openImportWizard;
+  window.closeImportWizard = closeImportWizard;
+  window.importWizardStep = importWizardStep;
+  window.selectImportWizardSource = selectImportWizardSource;
 }
 
 function showUpdateNotification() {
@@ -4152,6 +4443,7 @@ window.addEventListener('DOMContentLoaded', function() {
   renderStressorTiles('logStressorsTiles');
   renderLogSymptomsItems(); // also populates logSymptomsTiles
   initPainBodyDiagram('painBodyDiagram', 'painLocation');
+  if (typeof initPasswordStrengthBindings === 'function') initPasswordStrengthBindings();
   initPainBodyDiagram('editPainBodyDiagram', 'editPainLocation');
   if (typeof initCommonSupplementsDatalist === 'function') initCommonSupplementsDatalist();
   if (typeof initLogPhotoInput === 'function') initLogPhotoInput();
@@ -5093,7 +5385,7 @@ function toggleChartView(viewType) {
   const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
   const predictionControls = document.querySelectorAll('.filter-group');
   predictionControls.forEach(group => {
-    if (group.querySelector('.prediction-range-buttons')) {
+    if (group.querySelector('.rs-prediction, .prediction-range-buttons')) {
       if (viewType === 'balance' || !aiOn) {
         group.style.display = 'none';
       } else {
@@ -10350,7 +10642,21 @@ function computeCurrentAchievementSnapshots() {
   var S = typeof window !== 'undefined' ? window.RianellShared : null;
   if (!S || typeof S.computeAchievementSnapshots !== 'function') return { snapshots: [] };
   var profile = appSettings && appSettings.trackingProfile ? appSettings.trackingProfile : null;
-  return S.computeAchievementSnapshots(profile, getAchievementState());
+  var result = S.computeAchievementSnapshots(profile, getAchievementState());
+  // In demo mode every achievement appears unlocked so users can see the full UI
+  if (appSettings && appSettings.demoMode && result.snapshots && result.snapshots.length) {
+    var now = new Date().toISOString();
+    result.snapshots = result.snapshots.map(function (s) {
+      return Object.assign({}, s, {
+        unlocked: true,
+        progress: 1,
+        daysRemaining: 0,
+        notifiedAt: s.notifiedAt || now,
+        seenAt: s.seenAt || now
+      });
+    });
+  }
+  return result;
 }
 
 function renderAchievementsPane() {
@@ -14635,14 +14941,11 @@ function setChartDateRange(range, options) {
   // Invalidate filtered logs cache
   invalidateFilteredLogsCache();
   
-  // Update button states (use DOMCache if available)
-  const buttons = document.querySelectorAll('.date-range-btn');
-  buttons.forEach(btn => btn.classList.remove('active'));
-  
+  const chartRangePosMap = { 1: 0, 7: 1, 30: 2, 90: 3, 'custom': 4 };
+  updateRangeSlider('chartRangeSlider', chartRangePosMap[range] ?? 1);
+
   if (range === 'custom') {
-    const customBtn = window.PerformanceUtils?.DOMCache?.getElement('rangeCustom') || document.getElementById('rangeCustom');
     const customSelector = window.PerformanceUtils?.DOMCache?.getElement('customDateRangeSelector') || document.getElementById('customDateRangeSelector');
-    if (customBtn) customBtn.classList.add('active');
     if (customSelector) customSelector.classList.remove('hidden');
     
     // Set default dates if not already set
@@ -14661,12 +14964,6 @@ function setChartDateRange(range, options) {
       chartDateRange.endDate = endInput.value;
     }
   } else {
-    // Handle "Today" (1 day) or other day ranges
-    const buttonId = range === 1 ? 'range1Day' : `range${range}Days`;
-    const button = document.getElementById(buttonId);
-    if (button) {
-      button.classList.add('active');
-    }
     document.getElementById('customDateRangeSelector').classList.add('hidden');
     
     // Set date range for charts
@@ -14702,57 +14999,51 @@ function applyCustomDateRange() {
   }
 }
 
+// ── Range Slider Utilities ─────────────────────────────────────────────────
+// Maps slider step-index → raw value for each slider
+const RANGE_SLIDER_MAPS = {
+  predictionRangeSlider: [null, 1, 7, 30, 90],  // null = off
+  chartRangeSlider:      [1, 7, 30, 90, 'custom'],
+  logRangeSlider:        [1, 7, 30, 90],
+  aiRangeSlider:         [7, 30, 90, 'custom'],
+  moodRangeSlider:       [7, 14, 30],
+};
+
+function updateRangeSlider(sliderId, pos) {
+  const slider = document.getElementById(sliderId);
+  if (!slider) return;
+  const min = parseInt(slider.min, 10) || 0;
+  const max = parseInt(slider.max, 10);
+  slider.value = pos;
+  const pct = max === min ? 0 : ((pos - min) / (max - min)) * 100;
+  const isOff = sliderId === 'predictionRangeSlider' && pos === 0;
+  const fillColor = isOff ? '#f44336' : (slider.classList.contains('rs-accent') ? 'var(--primary-color)' : '#ffc107');
+  slider.style.setProperty('--rs-pct', pct + '%');
+  slider.style.setProperty('--rs-fill', fillColor);
+  slider.classList.toggle('rs-off', isOff);
+  const labels = slider.nextElementSibling;
+  if (labels && labels.classList.contains('range-slider-labels')) {
+    labels.querySelectorAll('.range-slider-label').forEach((lbl) => {
+      lbl.classList.toggle('active', parseInt(lbl.getAttribute('data-idx'), 10) === pos);
+    });
+  }
+}
+// ──────────────────────────────────────────────────────────────────────────
+
 // Toggle predictions off (mutually exclusive with range buttons)
 function togglePredictions() {
-  // Turn off predictions
   predictionsEnabled = false;
-  
-  // Deselect all range buttons
-  document.querySelectorAll('.prediction-range-btn').forEach(btn => {
-    if (btn.id !== 'predictionToggle') {
-      btn.classList.remove('active');
-    }
-  });
-  
-  // Select the Off button
-  const toggleBtn = document.getElementById('predictionToggle');
-  if (toggleBtn) {
-    toggleBtn.classList.add('active');
-    toggleBtn.title = tUi('common.predictions.disabled');
-  }
-  
-  // Refresh charts
+  updateRangeSlider('predictionRangeSlider', 0);
   refreshCharts();
 }
 
 // Set prediction range
 function setPredictionRange(range) {
-  // Enable predictions when a range is selected
   predictionsEnabled = true;
   predictionRange = range;
   Logger.debug('Prediction range set', { days: range });
-  
-  // Deselect the Off button
-  const toggleBtn = document.getElementById('predictionToggle');
-  if (toggleBtn) {
-    toggleBtn.classList.remove('active');
-  }
-  
-  // Update button states - deselect all range buttons first
-  document.querySelectorAll('.prediction-range-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Handle "Tomorrow" button (1 day)
-  const buttonId = range === 1 ? 'predRange1Day' : `predRange${range}Days`;
-  const button = document.getElementById(buttonId);
-  if (button) {
-    button.classList.add('active');
-  } else {
-    console.warn(`Button with id '${buttonId}' not found`);
-  }
-  
-  // Refresh charts with new prediction range
+  const posMap = { 1: 1, 7: 2, 30: 3, 90: 4 };
+  updateRangeSlider('predictionRangeSlider', posMap[range] ?? 2);
   refreshCharts();
 }
 
@@ -17839,11 +18130,10 @@ function applyAIFeatureVisibility() {
   var on = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false && appSettings.simpleMode !== true;
   var tabAi = document.getElementById('tab-ai');
   var aiTabPanel = document.getElementById('aiTab');
-  var predictionGroup = document.querySelector('.filter-group');
-  if (predictionGroup && !predictionGroup.querySelector('.prediction-range-buttons')) predictionGroup = null;
+  var predictionGroup = null;
   var predGroup = document.querySelectorAll('.filter-group');
   for (var i = 0; i < predGroup.length; i++) {
-    if (predGroup[i].querySelector('.prediction-range-buttons')) {
+    if (predGroup[i].querySelector('.rs-prediction, .prediction-range-buttons')) {
       predictionGroup = predGroup[i];
       break;
     }
@@ -17964,11 +18254,11 @@ function renderMigrationSourceGrid() {
     { id: 'garmin', label: 'Garmin' },
   ];
   grid.innerHTML = sources.map(function(s) {
-    return '<button type="button" class="migration-source-btn" data-source="' + s.id + '" onclick="selectMigrationSource(\'' + s.id + '\')">' + s.label + '</button>';
+    return '<button type="button" class="migration-source-btn" data-source="' + s.id + '" onclick="selectMigrationWizardSource(\'' + s.id + '\')">' + s.label + '</button>';
   }).join('');
 }
 
-function selectMigrationSource(sourceId) {
+function selectMigrationWizardSource(sourceId) {
   _migrationSource = sourceId;
   var grid = document.getElementById('migrationSourceGrid');
   if (grid) {
@@ -17983,7 +18273,7 @@ function selectMigrationSource(sourceId) {
   var fileInput = document.getElementById('migrationFileInput');
   if (fileInput) fileInput.value = '';
 }
-if (typeof window !== 'undefined') window.selectMigrationSource = selectMigrationSource;
+if (typeof window !== 'undefined') window.selectMigrationWizardSource = selectMigrationWizardSource;
 
 function handleMigrationFileSelected(input) {
   var file = input && input.files && input.files[0];
@@ -18965,7 +19255,17 @@ async function toggleContributeAnonData(optionalToggleId) {
   const isPlaceholder = !condition || condition.trim() === '' || condition.trim().toLowerCase() === 'medical condition';
   
   if (isPlaceholder) {
-    openSettingsToMedicalCondition();
+    if (toggleId && toggleId.startsWith('tutorial') && typeof showTutorialSlide === 'function') {
+      showTutorialSlide(3);
+      setTimeout(function () {
+        var sel = document.getElementById('tutorialConditionSelector');
+        if (sel && sel.style.display === 'none' && typeof toggleTutorialConditionSelector === 'function') {
+          toggleTutorialConditionSelector();
+        }
+      }, 150);
+    } else {
+      openSettingsToMedicalCondition();
+    }
     return;
   }
   
@@ -19076,7 +19376,17 @@ async function toggleUseOpenData(optionalToggleId) {
   const isPlaceholder = !condition || condition.trim() === '' || condition.trim().toLowerCase() === 'medical condition';
 
   if (isPlaceholder) {
-    openSettingsToMedicalCondition();
+    if (toggleId && toggleId.startsWith('tutorial') && typeof showTutorialSlide === 'function') {
+      showTutorialSlide(3);
+      setTimeout(function () {
+        var sel = document.getElementById('tutorialConditionSelector');
+        if (sel && sel.style.display === 'none' && typeof toggleTutorialConditionSelector === 'function') {
+          toggleTutorialConditionSelector();
+        }
+      }, 150);
+    } else {
+      openSettingsToMedicalCondition();
+    }
     return;
   }
   
@@ -19260,11 +19570,82 @@ function syncPrivacyActivityLogUi() {
   }).join('\n');
 }
 
+function checkPasswordStrengthLocal(pw) {
+  var S = window.RianellShared;
+  if (S && typeof S.checkPasswordStrength === 'function') return S.checkPasswordStrength(pw);
+  return { score: pw && pw.length >= 12 ? 2 : 0, label: '', feedback: [] };
+}
+
+function updatePasswordStrengthUI(inputId, fillId, labelId) {
+  var input = document.getElementById(inputId);
+  var fill = document.getElementById(fillId);
+  var label = document.getElementById(labelId);
+  if (!input || !fill) return;
+  var result = checkPasswordStrengthLocal(input.value || '');
+  var pct = Math.min(100, Math.max(0, (result.score / 4) * 100));
+  fill.style.width = pct + '%';
+  var colors = ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50'];
+  fill.style.backgroundColor = colors[result.score] || colors[0];
+  if (label) {
+    label.textContent = result.feedback && result.feedback.length
+      ? result.feedback.join(' · ')
+      : (result.label || '');
+  }
+}
+
+function initPasswordStrengthBindings() {
+  bindPasswordStrengthInput('encryptedExportPassphrase', 'encryptedExportStrengthFill', 'encryptedExportStrengthLabel');
+  bindPasswordStrengthInput('shareCreatePassword', 'shareCreateStrengthFill', 'shareCreateStrengthLabel');
+  bindPasswordStrengthInput('appLockPinSetupInput', 'appLockSetupStrengthFill', 'appLockSetupStrengthLabel');
+  bindPasswordStrengthInput('appLockPinConfirmInput', 'appLockSetupStrengthFill', 'appLockSetupStrengthLabel');
+  bindPasswordStrengthInput('appLockPassphraseInput', 'appLockUnlockStrengthFill', 'appLockUnlockStrengthLabel');
+}
+if (typeof window !== 'undefined') window.initPasswordStrengthBindings = initPasswordStrengthBindings;
+
+function bindPasswordStrengthInput(inputId, fillId, labelId) {
+  var input = document.getElementById(inputId);
+  if (!input || input.__pwStrengthBound) return;
+  input.__pwStrengthBound = true;
+  input.addEventListener('input', function () {
+    updatePasswordStrengthUI(inputId, fillId, labelId);
+  });
+}
+
+function ensureSupabaseClient() {
+  if (window.supabaseClient) return window.supabaseClient;
+  var config = window.SUPABASE_CONFIG;
+  var hasUrl = config && typeof config.url === 'string' && config.url.trim().length > 0;
+  if (hasUrl && typeof supabase !== 'undefined') {
+    window.supabaseClient = supabase.createClient(config.url, config.anonKey || '');
+    return window.supabaseClient;
+  }
+  return null;
+}
+
+function setAppLockMode(mode) {
+  window._appLockSetupMode = mode === 'passphrase' ? 'passphrase' : 'pin';
+  var pinBtn = document.getElementById('appLockModePinBtn');
+  var passBtn = document.getElementById('appLockModePassBtn');
+  var pinUi = document.getElementById('appLockPinSetupUi');
+  var passUi = document.getElementById('appLockPassphraseSetupUi');
+  if (pinBtn) pinBtn.classList.toggle('active', window._appLockSetupMode === 'pin');
+  if (passBtn) passBtn.classList.toggle('active', window._appLockSetupMode === 'passphrase');
+  if (pinUi) pinUi.style.display = window._appLockSetupMode === 'pin' ? '' : 'none';
+  if (passUi) passUi.style.display = window._appLockSetupMode === 'passphrase' ? '' : 'none';
+  if (window.RianellAppLock && typeof window.RianellAppLock.resetSetupPinState === 'function') {
+    window.RianellAppLock.resetSetupPinState();
+  }
+}
+if (typeof window !== 'undefined') window.setAppLockMode = setAppLockMode;
+
 function clearAppLockSetupFields() {
   var pin = document.getElementById('appLockPinSetupInput');
   var confirm = document.getElementById('appLockPinConfirmInput');
   if (pin) pin.value = '';
   if (confirm) confirm.value = '';
+  if (window.RianellAppLock && typeof window.RianellAppLock.resetSetupPinState === 'function') {
+    window.RianellAppLock.resetSetupPinState();
+  }
 }
 
 function syncAppLockSetupPanelUi() {
@@ -19278,6 +19659,9 @@ function syncAppLockSetupPanelUi() {
   var showPanel = enabled || pending;
   if (panel) panel.style.display = showPanel ? 'block' : 'none';
   if (!showPanel) clearAppLockSetupFields();
+  if (showPanel && !window._appLockSetupMode) {
+    setAppLockMode('pin');
+  }
   if (statusRow) statusRow.style.display = enabled ? 'flex' : 'none';
   if (statusIcon) {
     var use = statusIcon.querySelector('use');
@@ -19321,14 +19705,47 @@ async function toggleAppLockSetting() {
 }
 if (typeof window !== 'undefined') window.toggleAppLockSetting = toggleAppLockSetting;
 
+async function saveAppLockPasscodeFromPin(pin) {
+  try {
+    if (window.RianellAppLock && typeof window.RianellAppLock.enableAppLock === 'function') {
+      await window.RianellAppLock.enableAppLock(pin, 'pin');
+      if (typeof window.RianellAppLock.bindAppLock === 'function') window.RianellAppLock.bindAppLock();
+    }
+    var toggle = document.getElementById('appLockToggle');
+    if (toggle) toggle.removeAttribute('data-pending');
+    clearAppLockSetupFields();
+    if (typeof notifySuccess === 'function') notifySuccess(tUi('settings.security.statusLocked'));
+  } catch (e) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal((e && e.message) ? e.message : 'Could not enable app lock.', tUi('settings.security.title'));
+    }
+  }
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.saveAppLockPasscodeFromPin = saveAppLockPasscodeFromPin;
+
 async function saveAppLockPasscode() {
+  var mode = window._appLockSetupMode || 'pin';
+  if (mode === 'pin') {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(tUi('settings.security.pinSetupHint'), tUi('settings.security.title'));
+    }
+    return;
+  }
   var pinEl = document.getElementById('appLockPinSetupInput');
   var confirmEl = document.getElementById('appLockPinConfirmInput');
   var passcode = pinEl && pinEl.value ? pinEl.value : '';
   var confirmPass = confirmEl && confirmEl.value ? confirmEl.value : '';
-  if (!passcode || passcode.length < 8) {
+  var strength = checkPasswordStrengthLocal(passcode);
+  if (!passcode || passcode.length < 12) {
     if (typeof showAlertModal === 'function') {
-      showAlertModal(tUi('settings.privacy.appLock.setupPrompt'), tUi('settings.security.title'));
+      showAlertModal(tUi('settings.export.encrypted.placeholder'), tUi('settings.security.title'));
+    }
+    return;
+  }
+  if (strength.score < 2) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(strength.feedback.join(' '), tUi('settings.security.title'));
     }
     return;
   }
@@ -19340,10 +19757,11 @@ async function saveAppLockPasscode() {
   }
   try {
     if (window.RianellAppLock && typeof window.RianellAppLock.enableAppLock === 'function') {
-      await window.RianellAppLock.enableAppLock(passcode);
+      await window.RianellAppLock.enableAppLock(passcode, 'passphrase');
       if (typeof window.RianellAppLock.bindAppLock === 'function') window.RianellAppLock.bindAppLock();
     } else {
       appSettings.appLockEnabled = true;
+      appSettings.appLockMode = 'passphrase';
       saveSettings();
     }
     var toggle = document.getElementById('appLockToggle');
@@ -19383,13 +19801,22 @@ async function exportEncryptedData() {
     showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
     return;
   }
+  closeSettingsModalIfOpen();
   var overlay = document.getElementById('encryptedExportModalOverlay');
   var input = document.getElementById('encryptedExportPassphrase');
   if (overlay) {
     if (input) input.value = '';
-    overlay.style.display = 'block';
-    document.body.classList.add('modal-active');
-    if (input) input.focus();
+    updatePasswordStrengthUI('encryptedExportPassphrase', 'encryptedExportStrengthFill', 'encryptedExportStrengthLabel');
+    if (typeof openModalOverlay === 'function') {
+      openModalOverlay(overlay, {
+        onEscape: closeEncryptedExportModal,
+        initialFocusSelector: '#encryptedExportPassphrase',
+      });
+    } else {
+      overlay.style.display = 'block';
+      document.body.classList.add('modal-active');
+      if (input) input.focus();
+    }
     return;
   }
   await submitEncryptedExportFromModal();
@@ -19398,8 +19825,13 @@ if (typeof window !== 'undefined') window.exportEncryptedData = exportEncryptedD
 
 function closeEncryptedExportModal() {
   var overlay = document.getElementById('encryptedExportModalOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.body.classList.remove('modal-active');
+  if (!overlay) return;
+  if (typeof closeModalOverlay === 'function') {
+    closeModalOverlay(overlay);
+  } else {
+    overlay.style.display = 'none';
+    document.body.classList.remove('modal-active');
+  }
 }
 if (typeof window !== 'undefined') window.closeEncryptedExportModal = closeEncryptedExportModal;
 
@@ -19410,8 +19842,13 @@ async function submitEncryptedExportFromModal() {
   }
   var input = document.getElementById('encryptedExportPassphrase');
   var passphrase = input ? input.value : '';
-  if (!passphrase || passphrase.length < 8) {
+  var strength = checkPasswordStrengthLocal(passphrase);
+  if (!passphrase || passphrase.length < 12) {
     showAlertModal(tUi('settings.export.encrypted.placeholder'), tUi('settings.export.encrypted.title'));
+    return;
+  }
+  if (strength.score < 2) {
+    showAlertModal(strength.feedback.join(' '), tUi('settings.export.encrypted.title'));
     return;
   }
   try {
@@ -19484,29 +19921,223 @@ async function exportReadOnlyShareLink() {
     showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
     return;
   }
-  var passphrase = window.prompt(tUi('settings.export.encrypted.placeholder'));
-  if (!passphrase || passphrase.length < 8) return;
-  var Shared = window.RianellShared;
-  if (!Shared || typeof Shared.createReadOnlyShareEnvelope !== 'function') return;
-  try {
-    var logs = typeof getAllHistoricalLogsSync === 'function' ? getAllHistoricalLogsSync() : [];
-    var envelope = await Shared.createReadOnlyShareEnvelope(logs, passphrase);
-    var json = Shared.shareEnvelopeToPortableJson ? Shared.shareEnvelopeToPortableJson(envelope) : JSON.stringify(envelope, null, 2);
-    var blob = new Blob([json], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement('a');
-    link.href = url;
-    link.download = 'rianell-share-link.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    recordProcessingActivityPwa({ type: 'export', detail: 'share_link' });
-  } catch (e) {
-    showAlertModal((e && e.message) ? e.message : tUi('settings.export.failed'), tUi('settings.export.title'));
+  closeSettingsModalIfOpen();
+  var toDate = new Date().toISOString().slice(0, 10);
+  var fromDate = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10);
+  var fromEl = document.getElementById('shareCreateFrom');
+  var toEl = document.getElementById('shareCreateTo');
+  var pwEl = document.getElementById('shareCreatePassword');
+  if (fromEl) fromEl.value = fromDate;
+  if (toEl) toEl.value = toDate;
+  if (pwEl) pwEl.value = '';
+  updatePasswordStrengthUI('shareCreatePassword', 'shareCreateStrengthFill', 'shareCreateStrengthLabel');
+  var overlay = document.getElementById('shareCreateModalOverlay');
+  if (!overlay) return;
+  if (typeof openModalOverlay === 'function') {
+    openModalOverlay(overlay, {
+      onEscape: closeShareCreateModal,
+      initialFocusSelector: '#shareCreatePassword',
+    });
+  } else {
+    overlay.style.display = 'block';
+    document.body.classList.add('modal-active');
+    if (pwEl) pwEl.focus();
   }
 }
 if (typeof window !== 'undefined') window.exportReadOnlyShareLink = exportReadOnlyShareLink;
+
+function closeShareCreateModal() {
+  var overlay = document.getElementById('shareCreateModalOverlay');
+  if (!overlay) return;
+  if (typeof closeModalOverlay === 'function') {
+    closeModalOverlay(overlay);
+  } else {
+    overlay.style.display = 'none';
+    document.body.classList.remove('modal-active');
+  }
+}
+if (typeof window !== 'undefined') window.closeShareCreateModal = closeShareCreateModal;
+
+function toggleShareCreateOption(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('active');
+}
+if (typeof window !== 'undefined') window.toggleShareCreateOption = toggleShareCreateOption;
+
+async function createShareLink() {
+  var Shared = window.RianellShared;
+  if (!Shared || typeof Shared.uploadShareLink !== 'function' || typeof Shared.buildShareSnapshot !== 'function') {
+    showAlertModal(tUi('settings.export.failed'), tUi('settings.data.export.shareLink'));
+    return;
+  }
+  var passwordEl = document.getElementById('shareCreatePassword');
+  var password = passwordEl ? passwordEl.value : '';
+  var strength = checkPasswordStrengthLocal(password);
+  if (!password || password.length < 12 || strength.score < 3) {
+    showAlertModal(
+      tUi('settings.share.weakPassword'),
+      tUi('settings.data.export.shareLink')
+    );
+    return;
+  }
+  var from = document.getElementById('shareCreateFrom')?.value || '';
+  var to = document.getElementById('shareCreateTo')?.value || '';
+  var ttlHours = parseInt(document.getElementById('shareCreateTtl')?.value || '168', 10);
+  var inclNotes = document.getElementById('shareCreateIncludeNotes')?.classList.contains('active');
+  var inclCond = document.getElementById('shareCreateIncludeCondition')?.classList.contains('active');
+  var allLogs = typeof getAllHistoricalLogsSync === 'function' ? getAllHistoricalLogsSync() : [];
+  var snapshot = Shared.buildShareSnapshot(allLogs, {
+    dateFrom: from,
+    dateTo: to,
+    includeNotes: inclNotes,
+    includeCondition: inclCond,
+    conditionName: inclCond ? (appSettings.medicalCondition || '') : '',
+  });
+  var client = ensureSupabaseClient();
+  if (!client) {
+    showAlertModal(tUi('settings.share.cloudUnavailable'), tUi('settings.data.export.shareLink'));
+    return;
+  }
+  try {
+    var result = await Shared.uploadShareLink(snapshot, password, client, {
+      ttlHours: ttlHours,
+      includeNotes: inclNotes,
+      includeCondition: inclCond,
+      conditionName: inclCond ? (appSettings.medicalCondition || '') : '',
+    });
+    closeShareCreateModal();
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      navigator.clipboard.writeText(result.url).catch(function () {});
+    }
+    showAlertModal(
+      tUi('settings.share.created') + '\n\n' + result.url + '\n\n' + tUi('settings.share.expires') + ' ' + result.expiresAt.slice(0, 10),
+      tUi('settings.share.createdTitle')
+    );
+    recordProcessingActivityPwa({ type: 'export', detail: 'share_link_hosted' });
+  } catch (e) {
+    showAlertModal((e && e.message) ? e.message : tUi('settings.export.failed'), tUi('settings.data.export.shareLink'));
+  }
+}
+if (typeof window !== 'undefined') window.createShareLink = createShareLink;
+
+function shareViewerEscapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderShareLogs(logs, container, meta) {
+  var el = container || document.getElementById('shareViewerContent');
+  if (!el) return;
+  var list = Array.isArray(logs) ? logs.slice().sort(function (a, b) {
+    return String(a.date || '').localeCompare(String(b.date || ''));
+  }) : [];
+  if (!list.length) {
+    el.innerHTML = '<p class="share-viewer-empty">' + shareViewerEscapeHtml(tUi('settings.share.noLogs')) + '</p>';
+    return;
+  }
+  var cols = ['date', 'fatigue', 'stiffness', 'sleep', 'jointPain', 'mobility', 'mood', 'flare'];
+  var html = '<div class="share-viewer-meta">';
+  if (meta && meta.condition) {
+    html += '<p class="share-viewer-condition">' + shareViewerEscapeHtml(meta.condition) + '</p>';
+  }
+  html += '<p class="share-viewer-count">' + shareViewerEscapeHtml(String(list.length)) + ' ' + shareViewerEscapeHtml(tUi('settings.share.dayCount')) + '</p>';
+  html += '</div><div class="share-viewer-table-wrap"><table class="share-viewer-table"><thead><tr>';
+  cols.forEach(function (col) {
+    html += '<th>' + shareViewerEscapeHtml(col) + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  list.forEach(function (log) {
+    html += '<tr>';
+    cols.forEach(function (col) {
+      var val = log[col];
+      if (Array.isArray(val)) val = val.join(', ');
+      else if (val == null) val = '';
+      html += '<td>' + shareViewerEscapeHtml(val) + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+if (typeof window !== 'undefined') window.renderShareLogs = renderShareLogs;
+
+function initShareViewer(shareCode) {
+  var overlay = document.getElementById('shareViewerOverlay');
+  var shell = document.getElementById('appShell');
+  var content = document.getElementById('shareViewerContent');
+  if (shell) shell.style.display = 'none';
+  if (overlay) {
+    overlay.style.display = 'flex';
+    overlay.dataset.shareCode = String(shareCode || '').trim();
+  }
+  if (content) {
+    content.innerHTML = '<p class="share-viewer-loading">' + shareViewerEscapeHtml(tUi('settings.share.loading')) + '</p>';
+  }
+  var code = String(shareCode || '').trim();
+  if (!code) {
+    if (content) content.innerHTML = '<p class="share-viewer-error">' + shareViewerEscapeHtml(tUi('settings.share.invalid')) + '</p>';
+    return;
+  }
+  function promptPassword() {
+    if (typeof showTextPromptModal !== 'function') {
+      var pass = window.prompt(tUi('settings.share.passwordHint'), '');
+      if (pass) void decryptAndRender(pass);
+      return;
+    }
+    showTextPromptModal(
+      {
+        title: tUi('settings.share.passwordTitle'),
+        hint: tUi('settings.share.passwordHint'),
+        placeholder: tUi('settings.export.encrypted.placeholder'),
+        type: 'password',
+        submitLabel: tUi('settings.share.view'),
+        minLength: 12,
+      },
+      function (password) { void decryptAndRender(password); },
+      function () {
+        if (content) {
+          content.innerHTML = '<p class="share-viewer-error">' + shareViewerEscapeHtml(tUi('settings.share.passwordRequired')) + '</p>';
+        }
+      }
+    );
+  }
+  async function decryptAndRender(password) {
+    var Shared = window.RianellShared;
+    var client = ensureSupabaseClient();
+    if (!Shared || !client) {
+      if (content) content.innerHTML = '<p class="share-viewer-error">' + shareViewerEscapeHtml(tUi('settings.share.cloudUnavailable')) + '</p>';
+      return;
+    }
+    if (content) content.innerHTML = '<p class="share-viewer-loading">' + shareViewerEscapeHtml(tUi('settings.share.decrypting')) + '</p>';
+    try {
+      var row = await Shared.fetchShareLink(code, client);
+      var envelope = Shared.shareRowToEnvelope ? Shared.shareRowToEnvelope(row) : {
+        format: 'rianell-encrypted-export-v1',
+        kdf: 'PBKDF2',
+        iterations: row.kdf_iterations,
+        salt: row.salt,
+        iv: row.iv,
+        ciphertext: row.encrypted_blob,
+      };
+      var data = await Shared.decryptExportWithPassphrase(envelope, password);
+      var logs = data && Array.isArray(data.logs) ? data.logs : [];
+      var meta = {};
+      if (data && data.condition) meta.condition = data.condition;
+      renderShareLogs(logs, content, meta);
+    } catch (e) {
+      if (content) {
+        content.innerHTML = '<p class="share-viewer-error">' + shareViewerEscapeHtml((e && e.message) ? e.message : tUi('settings.share.decryptFailed')) + '</p>'
+          + '<button type="button" class="modal-save-btn share-viewer-retry" onclick="initShareViewer(document.getElementById(\'shareViewerOverlay\').dataset.shareCode)">' + shareViewerEscapeHtml(tUi('common.retry')) + '</button>';
+      }
+    }
+  }
+  promptPassword();
+}
+if (typeof window !== 'undefined') window.initShareViewer = initShareViewer;
 
 function openWebDavBackupModal() {
   if (appSettings.demoMode) {
@@ -19518,7 +20149,7 @@ function openWebDavBackupModal() {
   var user = window.prompt('WebDAV username') || '';
   var pass = window.prompt('WebDAV password') || '';
   var passphrase = window.prompt(tUi('settings.export.encrypted.placeholder'));
-  if (!passphrase || passphrase.length < 8) return;
+  if (!passphrase || passphrase.length < 12) return;
   void submitWebDavBackup(url, user, pass, passphrase);
 }
 if (typeof window !== 'undefined') window.openWebDavBackupModal = openWebDavBackupModal;
@@ -19538,21 +20169,158 @@ async function submitWebDavBackup(url, user, pass, passphrase) {
 }
 if (typeof window !== 'undefined') window.submitWebDavBackup = submitWebDavBackup;
 
-function importMigrationCsv() {
-  var source = window.prompt('Migration source: bearable or flaredown', 'bearable');
-  if (!source) return;
-  var normalized = String(source).trim().toLowerCase();
-  if (normalized !== 'bearable' && normalized !== 'flaredown') {
-    showAlertModal('Use bearable or flaredown.', tUi('logs.import'));
+function showMigrationSourceModal(callback) {
+  var overlay = document.getElementById('migrationSourceModalOverlay');
+  if (!overlay) {
+    var source = window.prompt('Migration source: bearable or flaredown', 'bearable');
+    if (!source) return;
+    var normalized = String(source).trim().toLowerCase();
+    if (normalized === 'bearable' || normalized === 'flaredown') callback(normalized);
     return;
   }
-  var input = document.getElementById('importFileInput');
-  if (!input) return;
-  input.setAttribute('data-migration-source', normalized);
-  input.setAttribute('accept', '.csv');
-  input.click();
+  window._migrationSourceCallback = callback;
+  if (typeof openModalOverlay === 'function') {
+    openModalOverlay(overlay, { onEscape: closeMigrationSourceModal });
+  } else {
+    overlay.style.display = 'block';
+    document.body.classList.add('modal-active');
+  }
 }
-if (typeof window !== 'undefined') window.importMigrationCsv = importMigrationCsv;
+
+function closeMigrationSourceModal() {
+  var overlay = document.getElementById('migrationSourceModalOverlay');
+  if (!overlay) return;
+  if (typeof closeModalOverlay === 'function') {
+    closeModalOverlay(overlay);
+  } else {
+    overlay.style.display = 'none';
+    document.body.classList.remove('modal-active');
+  }
+  window._migrationSourceCallback = null;
+}
+
+function selectMigrationSource(source) {
+  var cb = window._migrationSourceCallback;
+  window._migrationSourceCallback = null;
+  // Fire callback (which calls input.click()) BEFORE any async modal close
+  // animation so that the user-activation token is still valid for the file picker.
+  if (typeof cb === 'function') cb(source);
+  closeMigrationSourceModal();
+}
+
+function importMigrationCsv() {
+  showMigrationSourceModal(function(source) {
+    var input = document.getElementById('importFileInput');
+    if (!input) return;
+    input.setAttribute('data-migration-source', source);
+    input.setAttribute('accept', '.csv');
+    input.click();
+  });
+}
+if (typeof window !== 'undefined') {
+  window.importMigrationCsv = importMigrationCsv;
+  window.closeMigrationSourceModal = closeMigrationSourceModal;
+  window.selectMigrationSource = selectMigrationSource;
+}
+
+/**
+ * Generic in-app text/password prompt modal.
+ * opts: { title, hint, placeholder, type ('text'|'password'), submitLabel, minLength }
+ * onSubmit(value) — called with trimmed value on OK
+ * onCancel()     — called on Cancel / Escape / backdrop click
+ */
+function showTextPromptModal(opts, onSubmit, onCancel) {
+  var overlay = document.getElementById('textPromptModalOverlay');
+  if (!overlay) {
+    var v = window.prompt(opts.hint || opts.title || '', '');
+    if (v == null) { if (typeof onCancel === 'function') onCancel(); return; }
+    if (typeof onSubmit === 'function') onSubmit(v.trim());
+    return;
+  }
+  var titleEl  = document.getElementById('textPromptModalTitle');
+  var hintEl   = document.getElementById('textPromptModalHint');
+  var inputEl  = document.getElementById('textPromptModalInput');
+  var submitEl = document.getElementById('textPromptModalSubmit');
+  if (titleEl)  titleEl.textContent  = opts.title || 'Enter value';
+  if (hintEl)   hintEl.textContent   = opts.hint  || '';
+  if (hintEl)   hintEl.style.display = opts.hint   ? '' : 'none';
+  if (inputEl) {
+    inputEl.value       = '';
+    inputEl.type        = opts.type        || 'text';
+    inputEl.placeholder = opts.placeholder || '';
+    inputEl.oninput = null;
+  }
+  var strengthBar = document.getElementById('textPromptStrengthBar');
+  var strengthLabel = document.getElementById('textPromptStrengthLabel');
+  var isPassword = (opts.type || 'text') === 'password';
+  if (strengthBar) strengthBar.style.display = isPassword ? '' : 'none';
+  if (strengthLabel) strengthLabel.style.display = isPassword ? '' : 'none';
+  if (isPassword && inputEl) {
+    updatePasswordStrengthUI('textPromptModalInput', 'textPromptStrengthFill', 'textPromptStrengthLabel');
+    inputEl.oninput = function () {
+      updatePasswordStrengthUI('textPromptModalInput', 'textPromptStrengthFill', 'textPromptStrengthLabel');
+    };
+  }
+  if (submitEl) submitEl.textContent = opts.submitLabel || 'OK';
+
+  function doSubmit() {
+    var val = inputEl ? inputEl.value.trim() : '';
+    var min = typeof opts.minLength === 'number' ? opts.minLength : 0;
+    if (min > 0 && val.length < min) {
+      if (inputEl) {
+        inputEl.classList.add('input-error');
+        inputEl.setAttribute('aria-invalid', 'true');
+        setTimeout(function () {
+          inputEl.classList.remove('input-error');
+          inputEl.removeAttribute('aria-invalid');
+        }, 1200);
+      }
+      return;
+    }
+    closeTextPromptModal();
+    if (typeof onSubmit === 'function') onSubmit(val);
+  }
+
+  function doCancel() {
+    closeTextPromptModal();
+    if (typeof onCancel === 'function') onCancel();
+  }
+
+  if (submitEl) submitEl.onclick = doSubmit;
+  if (inputEl) {
+    inputEl.onkeydown = function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); doSubmit(); }
+    };
+  }
+  overlay.onclick = function (e) { if (e.target === overlay) doCancel(); };
+
+  window._textPromptModalCancel = doCancel;
+
+  if (typeof openModalOverlay === 'function') {
+    openModalOverlay(overlay, { onEscape: doCancel, initialFocusSelector: '#textPromptModalInput' });
+  } else {
+    overlay.style.display = 'block';
+    document.body.classList.add('modal-active');
+    if (inputEl) inputEl.focus();
+  }
+}
+
+function closeTextPromptModal() {
+  var overlay = document.getElementById('textPromptModalOverlay');
+  if (!overlay) return;
+  if (typeof closeModalOverlay === 'function') {
+    closeModalOverlay(overlay);
+  } else {
+    overlay.style.display = 'none';
+    document.body.classList.remove('modal-active');
+  }
+  window._textPromptModalCancel = null;
+}
+
+if (typeof window !== 'undefined') {
+  window.showTextPromptModal = showTextPromptModal;
+  window.closeTextPromptModal = closeTextPromptModal;
+}
 
 function toggleSetting(setting) {
   var featureMap = {
@@ -19676,7 +20444,6 @@ async function loadAvailableConditions(optionalSelectId) {
     let client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
     
     if (!client) {
-      // Try to initialize from SUPABASE_CONFIG (require non-empty url so we never call createClient when config failed to load)
       var config = window.SUPABASE_CONFIG;
       var hasUrl = config && typeof config.url === 'string' && config.url.trim().length > 0;
       if (hasUrl && typeof supabase !== 'undefined') {
@@ -19692,52 +20459,25 @@ async function loadAvailableConditions(optionalSelectId) {
       }
     }
     
-    // Fetch unique conditions from anonymized_data table
-    // Use pagination to handle large datasets
-    let allConditions = [];
-    let from = 0;
-    const pageSize = 1000;
-    let hasMore = true;
-    
-    while (hasMore) {
-      const { data, error } = await client
-        .from('anonymized_data')
-        .select('medical_condition')
-        .range(from, from + pageSize - 1)
-        .order('medical_condition', { ascending: true });
-      
-      if (error) {
-        console.warn('Error loading conditions:', error);
-        break;
-      }
-      
-      if (data && data.length > 0) {
-        // Extract and filter out null/empty conditions
-        const conditions = data
-          .map(d => d.medical_condition)
-          .filter(c => c && c.trim() !== '');
-        allConditions = allConditions.concat(conditions);
-        hasMore = data.length === pageSize;
-        from += pageSize;
-      } else {
-        hasMore = false;
-      }
-    }
-    
-    // Get unique conditions and populate dropdown
-    if (allConditions.length > 0) {
-      const uniqueConditions = [...new Set(allConditions)].sort();
-      populateConditionsSelect(uniqueConditions, selectId);
-      console.log(`Loaded ${uniqueConditions.length} unique conditions from Supabase`);
-    } else {
+    // Use the security-definer RPC which is accessible to anon and authenticated roles
+    const { data, error } = await client.rpc('get_distinct_conditions');
+
+    if (error) {
+      console.warn('Error loading conditions:', error);
       populateConditionsSelect([], selectId);
-      console.log('No conditions found in Supabase');
+      select.disabled = false;
+      return;
     }
-    
+
+    const conditions = (data || [])
+      .map(function (row) { return row.medical_condition; })
+      .filter(function (c) { return c && c.trim() !== ''; });
+
+    populateConditionsSelect(conditions, selectId);
     select.disabled = false;
   } catch (error) {
-    console.error('Error loading conditions:', error);
-    fillSelectSingleOption(select, 'Error loading conditions');
+    console.warn('Error loading conditions:', error);
+    fillSelectSingleOption(select, '-- Select a condition --');
     select.disabled = false;
   }
 }
@@ -21043,28 +21783,11 @@ function setLogViewRange(days) {
   chartDateRange.startDate = startDateInput.value;
   chartDateRange.endDate = endDateInput.value;
   
-  // Update chart date range buttons
-  document.querySelectorAll('.date-range-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  const chartButtonId = days === 1 ? 'range1Day' : `range${days}Days`;
-  const chartButton = document.getElementById(chartButtonId);
-  if (chartButton) {
-    chartButton.classList.add('active');
-  }
-  
-  // Update log view range buttons
-  document.querySelectorAll('.log-date-range-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  const logButtonId = days === 1 ? 'logRange1Day' : `logRange${days}Days`;
-  const logButton = document.getElementById(logButtonId);
-  if (logButton) {
-    logButton.classList.add('active');
-    Logger.debug('View range button activated', { days, buttonId: logButtonId });
-  } else {
-    Logger.warn('View range button not found', { days, buttonId: logButtonId });
-  }
+  const logRangePosMap = { 1: 0, 7: 1, 30: 2, 90: 3 };
+  const logPos = logRangePosMap[days] ?? 0;
+  updateRangeSlider('logRangeSlider', logPos);
+  updateRangeSlider('chartRangeSlider', logPos);
+  Logger.debug('View range slider updated', { days, pos: logPos });
   
   // Hide custom date range selector if it was showing
   const customDateRangeSelector = document.getElementById('customDateRangeSelector');
@@ -21087,14 +21810,10 @@ function setAIDateRange(range) {
   appSettings.aiDateRange.type = range;
   saveSettings();
   
-  // Update button states
-  document.querySelectorAll('#aiTab .date-range-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
+  const aiRangePosMap = { 7: 0, 30: 1, 90: 2, 'custom': 3 };
+  updateRangeSlider('aiRangeSlider', aiRangePosMap[range] ?? 0);
+
   if (range === 'custom') {
-    const customBtn = document.getElementById('aiRangeCustom');
-    if (customBtn) customBtn.classList.add('active');
     const customSelector = document.getElementById('aiCustomDateRangeSelector');
     if (customSelector) customSelector.classList.remove('hidden');
     
@@ -21158,13 +21877,8 @@ function applyAICustomDateRange() {
   appSettings.aiDateRange.endDate = endInput.value;
   saveSettings();
   
-  // Update button states
-  document.querySelectorAll('#aiTab .date-range-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  const customBtn = document.getElementById('aiRangeCustom');
-  if (customBtn) customBtn.classList.add('active');
-  
+  updateRangeSlider('aiRangeSlider', 3);
+
   // Always refresh AI panel (empty state or analysis) when custom range is applied
   const deviceOptsCustom = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
@@ -21201,68 +21915,27 @@ function checkAndUpdateViewRangeButtons() {
   const isEndDateToday = endDateDiff < oneDayMs;
   
   if (!isEndDateToday) {
-    // End date is not today, so it's a custom range - deselect all buttons
-    document.querySelectorAll('.log-date-range-btn').forEach(btn => {
-      btn.classList.remove('active');
-    });
     return;
   }
   
-  // Calculate the number of days between start and end
-  // Both dates now have proper hours set, so calculation should be accurate
-  const daysDiff = Math.ceil((endDate - startDate) / oneDayMs) + 1; // +1 to include both start and end days
+  const daysDiff = Math.ceil((endDate - startDate) / oneDayMs) + 1;
+  const logRangePosMap2 = { 1: 0, 7: 1, 30: 2, 90: 3 };
   
-  // Check if it matches any predefined range (1, 7, 30, 90 days)
   if (daysDiff === 1 || daysDiff === 7 || daysDiff === 30 || daysDiff === 90) {
-    // Check if start date matches the expected start date for this range
     const expectedStartDate = new Date(today);
     expectedStartDate.setDate(expectedStartDate.getDate() - (daysDiff - 1));
     expectedStartDate.setHours(0, 0, 0, 0);
-    
-    // Create a copy of startDate for comparison (since we already set hours above)
     const startDateForComparison = new Date(startDate);
     startDateForComparison.setHours(0, 0, 0, 0);
-    
     const startDateMatch = Math.abs(startDateForComparison.getTime() - expectedStartDate.getTime()) < oneDayMs;
     
-    Logger.debug('View range button check', { 
-      daysDiff, 
-      startDate: startDateForComparison.toISOString().split('T')[0],
-      expectedStartDate: expectedStartDate.toISOString().split('T')[0],
-      match: startDateMatch 
-    });
+    Logger.debug('View range slider check', { daysDiff, match: startDateMatch });
     
     if (startDateMatch) {
-      // Matches a predefined range - select the appropriate button
-      document.querySelectorAll('.log-date-range-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      const logButtonId = daysDiff === 1 ? 'logRange1Day' : `logRange${daysDiff}Days`;
-      const logButton = document.getElementById(logButtonId);
-      if (logButton) {
-        logButton.classList.add('active');
-      }
-      
-      // Also update chart date range buttons
-      document.querySelectorAll('.date-range-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      const chartButtonId = daysDiff === 1 ? 'range1Day' : `range${daysDiff}Days`;
-      const chartButton = document.getElementById(chartButtonId);
-      if (chartButton) {
-        chartButton.classList.add('active');
-      }
-    } else {
-      // Doesn't match exactly - deselect all buttons
-      document.querySelectorAll('.log-date-range-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
+      const pos = logRangePosMap2[daysDiff] ?? 1;
+      updateRangeSlider('logRangeSlider', pos);
+      updateRangeSlider('chartRangeSlider', pos);
     }
-  } else {
-    // Doesn't match any predefined range - deselect all buttons
-    document.querySelectorAll('.log-date-range-btn').forEach(btn => {
-      btn.classList.remove('active');
-    });
   }
 }
 
@@ -21315,14 +21988,10 @@ function setSortOrder(order) {
       return logDate >= start && logDate <= end;
     });
   } else {
-    var activeRangeBtn = document.querySelector('.log-date-range-btn.active');
-    if (activeRangeBtn) {
-      var btnId = activeRangeBtn.id;
-      var days = 7;
-      if (btnId === 'logRange1Day') days = 1;
-      else if (btnId === 'logRange7Days') days = 7;
-      else if (btnId === 'logRange30Days') days = 30;
-      else if (btnId === 'logRange90Days') days = 90;
+    var logSlider2 = document.getElementById('logRangeSlider');
+    if (logSlider2) {
+      var logSliderVals2 = [1, 7, 30, 90];
+      var days = logSliderVals2[parseInt(logSlider2.value, 10)] || 7;
       var rangeEnd = new Date();
       rangeEnd.setHours(23, 59, 59, 999);
       var rangeStart = new Date();
@@ -21637,6 +22306,84 @@ function applyHomeCardLayout() {
 }
 
 var _microCheckinPeriod = null;
+var _homeSelectedPeriod = null;
+var _checkinDragMoved = false;
+
+function defaultCheckinPeriod() {
+  var h = new Date().getHours();
+  if (h < 12) return 'AM';
+  if (h < 17) return 'midday';
+  return 'PM';
+}
+
+function formatCheckinTime() {
+  var d = new Date();
+  var h = d.getHours();
+  var m = d.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  var h12 = h % 12 || 12;
+  return h12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
+}
+
+function checkinPeriodLabelKey(period) {
+  if (period === 'AM') return 'home.checkin.am';
+  if (period === 'PM') return 'home.checkin.pm';
+  return 'home.checkin.midday';
+}
+
+function renderCheckinSliderHtml(periods, done, selectedPeriod, labelFn, ctaLabel) {
+  var html = '<div class="checkin-slider-wrap"><div class="checkin-slider-track">';
+  periods.forEach(function(period, idx) {
+    if (idx > 0) html += '<div class="checkin-slider-line" aria-hidden="true"></div>';
+    var label = labelFn(checkinPeriodLabelKey(period), period);
+    var isDone = done.has(period);
+    var isSelected = period === selectedPeriod;
+    html += '<button type="button" class="checkin-slider-stop' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(label) + '">';
+    html += svgIcon(checkinPeriodIconName(period), 'checkin-slider-stop-icon');
+    html += '<span class="checkin-slider-stop-label">' + escapeHTML(label) + '</span>';
+    html += '</button>';
+  });
+  html += '</div>';
+  html += '<button type="button" class="checkin-cta-btn" data-checkin-cta aria-label="' + escapeAttr(ctaLabel) + '">' + escapeHTML(ctaLabel) + '</button>';
+  html += '</div>';
+  return html;
+}
+
+function _checkinSelectStop(container, period) {
+  if (!container) return;
+  container.querySelectorAll('.checkin-slider-stop').forEach(function(stop) {
+    var p = stop.getAttribute('data-period');
+    stop.setAttribute('data-selected', p === period ? 'true' : 'false');
+  });
+}
+
+function wireCheckinSliderEvents(container, getSelected, setSelected) {
+  if (!container) return;
+  var track = container.querySelector('.checkin-slider-track');
+  if (!track) return;
+  track.addEventListener('pointerdown', function() { _checkinDragMoved = false; }, { passive: true });
+  track.addEventListener('pointermove', function(e) {
+    if (e.buttons) _checkinDragMoved = true;
+  }, { passive: true });
+
+  container.querySelectorAll('.checkin-slider-stop:not(.is-done)').forEach(function(stop) {
+    stop.addEventListener('pointerup', function() {
+      var period = stop.getAttribute('data-period');
+      var wasSelected = stop.getAttribute('data-selected') === 'true';
+      _checkinSelectStop(container, period);
+      if (typeof setSelected === 'function') setSelected(period);
+      if (wasSelected && !_checkinDragMoved) openMicroCheckinModal(period);
+    });
+  });
+
+  var cta = container.querySelector('[data-checkin-cta]');
+  if (cta) {
+    cta.addEventListener('pointerup', function() {
+      var period = typeof getSelected === 'function' ? getSelected() : null;
+      openMicroCheckinModal(period || defaultCheckinPeriod());
+    });
+  }
+}
 
 function checkinPeriodIconName(period) {
   if (period === 'AM') return 'checkin-am';
@@ -21660,40 +22407,53 @@ function renderHomeCheckinCard(logArr, todayStr, ctx) {
   var periods = S && Array.isArray(S.HOME_CHECKIN_PERIODS) ? S.HOME_CHECKIN_PERIODS : ['AM', 'midday', 'PM'];
   card.hidden = false;
   var title = typeof tUi === 'function' ? tUi('home.checkin.title') : 'Quick check-in';
-  var doneLabel = typeof tUi === 'function' ? tUi('home.checkin.done') : 'Done';
-  var html = '<h3 class="home-checkin-title">' + escapeHTML(title) + '</h3><div class="home-checkin-periods">';
-  periods.forEach(function(period) {
-    var labelKey = period === 'AM' ? 'home.checkin.am' : period === 'PM' ? 'home.checkin.pm' : 'home.checkin.midday';
-    var label = typeof tUi === 'function' ? tUi(labelKey) : period;
-    var isDone = done.has(period);
-    var ariaLabel = isDone ? label + ', ' + doneLabel : label;
-    html += '<button type="button" class="action-btn home-checkin-btn' + (isDone ? ' is-done' : '') + '" data-checkin-period="' + escapeHTML(period) + '" data-ripple' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(ariaLabel) + '">';
-    html += svgIcon(checkinPeriodIconName(period), 'home-checkin-icon');
-    html += '<span class="home-checkin-label">' + escapeHTML(label) + '</span>';
-    if (isDone) html += '<span class="home-checkin-done-badge" aria-hidden="true">' + escapeHTML(doneLabel) + '</span>';
-    html += '</button>';
-  });
-  html += '</div>';
+  var ctaLabel = typeof tUi === 'function' ? tUi('home.checkin.cta') : 'Check in';
+  if (!_homeSelectedPeriod || done.has(_homeSelectedPeriod)) {
+    _homeSelectedPeriod = defaultCheckinPeriod();
+    if (done.has(_homeSelectedPeriod)) {
+      var openPeriod = periods.find(function(p) { return !done.has(p); });
+      if (openPeriod) _homeSelectedPeriod = openPeriod;
+    }
+  }
+  var html = '<h3 class="home-checkin-title">' + escapeHTML(title) + '</h3>';
+  html += renderCheckinSliderHtml(periods, done, _homeSelectedPeriod, function(key) {
+    return typeof tUi === 'function' ? tUi(key) : key;
+  }, ctaLabel);
   card.innerHTML = html;
-  card.querySelectorAll('[data-checkin-period]').forEach(function(btn) {
-    if (btn.disabled) return;
-    btn.addEventListener('click', function() {
-      openMicroCheckinModal(btn.getAttribute('data-checkin-period'));
-    });
+  wireCheckinSliderEvents(card, function() { return _homeSelectedPeriod; }, function(period) {
+    _homeSelectedPeriod = period;
   });
-  if (typeof initRipple === 'function') initRipple(card);
+}
+
+function mcsUpdate(slider, badgeId) {
+  var val = parseInt(slider.value, 10);
+  var pct = ((val - 1) / 9) * 100;
+  slider.style.setProperty('--mcs-pct', pct + '%');
+  var badge = document.getElementById(badgeId);
+  if (badge) {
+    badge.textContent = val;
+    badge.style.transform = 'scale(1.2)';
+    clearTimeout(badge._scaleTimer);
+    badge._scaleTimer = setTimeout(function() { badge.style.transform = ''; }, 160);
+  }
+}
+
+function mcsReset(sliderId, badgeId) {
+  var slider = document.getElementById(sliderId);
+  if (slider) { slider.value = 5; mcsUpdate(slider, badgeId); }
 }
 
 function openMicroCheckinModal(period) {
   _microCheckinPeriod = period;
   var overlay = document.getElementById('microCheckinModalOverlay');
   if (!overlay) return;
-  var mood = document.getElementById('microCheckinMood');
-  var sleep = document.getElementById('microCheckinSleep');
-  var fatigue = document.getElementById('microCheckinFatigue');
-  if (mood) mood.value = '';
-  if (sleep) sleep.value = '';
-  if (fatigue) fatigue.value = '';
+  mcsReset('microCheckinMood',    'microCheckinMoodBadge');
+  mcsReset('microCheckinSleep',   'microCheckinSleepBadge');
+  mcsReset('microCheckinFatigue', 'microCheckinFatigueBadge');
+  var iconEl = document.getElementById('microCheckinPeriodIcon');
+  if (iconEl) iconEl.innerHTML = svgIconUnsafe(checkinPeriodIconName(period));
+  var timeEl = document.getElementById('microCheckinTime');
+  if (timeEl) timeEl.textContent = formatCheckinTime();
   overlay.style.display = 'block';
   overlay.style.visibility = 'visible';
   overlay.style.opacity = '1';
@@ -21719,7 +22479,7 @@ function saveMicroCheckinAndClose() {
   var todayStr = getTodayDateStr();
   function parseScore(id) {
     var el = document.getElementById(id);
-    if (!el || el.value === '') return undefined;
+    if (!el) return undefined;
     var n = parseInt(el.value, 10);
     if (isNaN(n) || n < 1 || n > 10) return undefined;
     return n;
@@ -21760,6 +22520,10 @@ if (typeof window !== 'undefined') {
   window.openMicroCheckinModal = openMicroCheckinModal;
   window.closeMicroCheckinModal = closeMicroCheckinModal;
   window.saveMicroCheckinAndClose = saveMicroCheckinAndClose;
+  window.mcsUpdate = mcsUpdate;
+  window.renderCheckinSliderHtml = renderCheckinSliderHtml;
+  window.wireCheckinSliderEvents = wireCheckinSliderEvents;
+  window.defaultCheckinPeriod = defaultCheckinPeriod;
 }
 
 function homeInsetDismissButtonHtml() {
@@ -22218,10 +22982,15 @@ function renderHomeAiSuggestions() {
     container.hidden = true;
     return;
   }
+  var modelStatus = typeof window.getAiModelStatus === 'function' ? window.getAiModelStatus() : null;
+  var llmReady = !!(modelStatus && modelStatus.state === 'ready');
   container.hidden = false;
   container.innerHTML = chips.map(function(chip) {
+    var lockedAttr = llmReady ? '' : ' disabled aria-disabled="true"';
+    var lockedClass = llmReady ? '' : ' home-ai-suggestion--locked';
     return (
-      '<button type="button" class="action-btn home-ai-suggestion" data-ripple data-home-question-id="' +
+      '<button type="button" class="action-btn home-ai-suggestion' + lockedClass + '"' + lockedAttr +
+      ' data-ripple data-home-question-id="' +
       escapeHTML(chip.id) + '">' + escapeHTML(typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey) +
       '</button>'
     );
@@ -22231,6 +23000,7 @@ function renderHomeAiSuggestions() {
     container.addEventListener('click', function(e) {
       var btn = e.target && e.target.closest ? e.target.closest('[data-home-question-id]') : null;
       if (!btn || !container.contains(btn)) return;
+      if (btn.disabled || btn.getAttribute('aria-disabled') === 'true') return;
       openHomeQuestionModal(btn.getAttribute('data-home-question-id'));
     });
   }
@@ -23216,6 +23986,14 @@ function restoreLogDraftIfAny() {
 function parseAppHash() {
   var h = (typeof location !== 'undefined' && location.hash ? location.hash : '').replace(/^#/, '');
   if (h.toLowerCase() === 'demo') return { tab: 'home' };
+  if (h.indexOf('share/') === 0) {
+    var shareCode = h.slice(6).replace(/[^A-Za-z0-9_\-]/g, '');
+    if (shareCode.length >= 4) return { tab: 'share', shareCode: shareCode };
+  }
+  var pathMatch = (typeof location !== 'undefined' && location.pathname)
+    ? location.pathname.match(/^\/[Ss]hare\/([A-Za-z0-9_\-]{4,64})$/)
+    : null;
+  if (pathMatch) return { tab: 'share', shareCode: pathMatch[1] };
   if (!h || h === 'home') return { tab: 'home' };
   if (h.indexOf('log') === 0) {
     var m = h.match(/^log\/step\/(\d+)/);
@@ -23243,6 +24021,15 @@ function setAppHashFromTab(tab) {
 
 function applyHashRoute() {
   var r = parseAppHash();
+  if (r.tab === 'share' && r.shareCode) {
+    var shell = document.getElementById('appShell');
+    if (shell) shell.style.display = 'none';
+    var loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    document.body.classList.add('loaded');
+    if (typeof initShareViewer === 'function') initShareViewer(r.shareCode);
+    return;
+  }
   if (r.tab === 'ai' && typeof appSettings !== 'undefined' && appSettings.aiEnabled === false) {
     r.tab = 'home';
   }
@@ -23374,43 +24161,25 @@ function switchTab(tabName, skipHash) {
   
   // Special handling for AI tab - initialize date range
   if (tabName === 'ai') {
-    // Initialize AI date range if not set (default to 7 days)
     if (!appSettings.aiDateRange) {
       appSettings.aiDateRange = { type: 7 };
       saveSettings();
-      // Set the 7 days button as active
-      const ai7DaysBtn = document.getElementById('aiRange7Days');
-      if (ai7DaysBtn) {
-        ai7DaysBtn.classList.add('active');
-      }
+      updateRangeSlider('aiRangeSlider', 0);
     } else {
-      // Update button states based on saved preference
-      document.querySelectorAll('#aiTab .date-range-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      if (appSettings.aiDateRange.type === 'custom') {
-        const customBtn = document.getElementById('aiRangeCustom');
-        if (customBtn) customBtn.classList.add('active');
+      const aiRangePosMap2 = { 7: 0, 30: 1, 90: 2, 'custom': 3 };
+      const savedType2 = appSettings.aiDateRange.type || 7;
+      updateRangeSlider('aiRangeSlider', aiRangePosMap2[savedType2] ?? 0);
+      if (savedType2 === 'custom') {
         const customSelector = document.getElementById('aiCustomDateRangeSelector');
         if (customSelector) customSelector.classList.remove('hidden');
-        // Populate date inputs if they exist
         const startInput = document.getElementById('aiStartDate');
         const endInput = document.getElementById('aiEndDate');
-        if (startInput && appSettings.aiDateRange.startDate) {
-          startInput.value = appSettings.aiDateRange.startDate;
-        }
-        if (endInput && appSettings.aiDateRange.endDate) {
-          endInput.value = appSettings.aiDateRange.endDate;
-        }
-      } else {
-        const days = appSettings.aiDateRange.type || 7;
-        const buttonId = `aiRange${days}Days`;
-        const button = document.getElementById(buttonId);
-        if (button) button.classList.add('active');
+        if (startInput && appSettings.aiDateRange.startDate) startInput.value = appSettings.aiDateRange.startDate;
+        if (endInput && appSettings.aiDateRange.endDate) endInput.value = appSettings.aiDateRange.endDate;
       }
     }
     
-    // Always load AI panel: empty-state message or analysis (was gated on logs.length, leaving a blank area)
+    // Always load AI panel: empty-state message or analysis
     const deviceOptsAiTab = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
       ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
     const delayAiTab = deviceOptsAiTab.deferAI ? 800 : 100;
@@ -23608,6 +24377,11 @@ function runRianellBootAfterDomReady() {
         setChartDateRange(30, { skipRefresh: true });
         setPredictionRange(7);
         setLogViewRange(30);
+        // Initialise any sliders not driven by a boot-time setter
+        ['aiRangeSlider', 'moodRangeSlider'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) updateRangeSlider(id, parseInt(el.value, 10));
+        });
         if (appSettings.showCharts) {
           ensureChartsStylesLoaded();
           const chartSection = document.getElementById('chartSection');
@@ -23843,10 +24617,9 @@ function runRianellBootAfterDomReady() {
     if (typeof initLogMilestoneTracking === 'function') initLogMilestoneTracking();
     initializeOneOpenDetails();
     
-    const toggleBtn = document.getElementById('predictionToggle');
-    if (toggleBtn) {
-      toggleBtn.classList.remove('active');
-      toggleBtn.title = tUi('common.click.to.turn.off.predictions');
+    const predSlider = document.getElementById('predictionRangeSlider');
+    if (predSlider) {
+      predSlider.title = tUi('common.click.to.turn.off.predictions');
     }
     if (typeof NotificationManager !== 'undefined') {
       setTimeout(function () {
@@ -24117,6 +24890,7 @@ function attachInlineHandlersToWindow() {
     tutorialNextSlide,
     tutorialPrevSlide,
     updateUserName,
+    updateRangeSlider,
     showGDPRAgreementModal,
   };
   Object.keys(fns).forEach((name) => {

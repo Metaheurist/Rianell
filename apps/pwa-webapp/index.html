@@ -347,7 +347,7 @@
   <!-- Function trace runtime (before instrumented scripts; console-only, no network) -->
   <script src="trace-runtime.js?v=1"></script>
   <!-- Event Handlers Module (for CSP compliance) -->
-  <script src="event-handlers.js?v=3"></script>
+  <script src="event-handlers.js?v=4"></script>
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1068,11 +1068,34 @@
 
   <!-- App lock overlay (Plan 05 P7) -->
   <div class="modal-overlay app-lock-overlay" id="appLockOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="appLockTitle">
-    <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-content app-lock-content" onclick="event.stopPropagation()">
       <h3 id="appLockTitle" data-i18n="settings.privacy.appLock.title">App lock</h3>
-      <p data-i18n="settings.privacy.appLock.lead">Enter your passcode to unlock Rianell.</p>
-      <input type="password" id="appLockPinInput" class="item-input" autocomplete="off" inputmode="text" maxlength="64" data-i18n-placeholder="settings.privacy.appLock.setupPrompt" placeholder="Passcode (min 8 characters)" />
-      <button type="button" class="modal-save-btn" id="appLockUnlockBtn" data-i18n="settings.privacy.appLock.unlock">Unlock</button>
+      <p id="appLockLead" data-i18n="settings.privacy.appLock.pinLead">Enter your PIN to unlock.</p>
+      <div id="appLockPinUi">
+        <div class="pin-dots" id="pinDots" aria-label="PIN entry" aria-live="polite"></div>
+        <div class="pin-keypad" id="pinKeypad" role="group" aria-label="PIN keypad">
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('1')">1</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('2')">2</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('3')">3</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('4')">4</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('5')">5</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('6')">6</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('7')">7</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('8')">8</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('9')">9</button>
+          <button type="button" class="pin-key pin-key--del" onclick="RianellAppLock.keypadPress('del')" aria-label="Delete">⌫</button>
+          <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('0')">0</button>
+          <button type="button" class="pin-key pin-key--ok" onclick="RianellAppLock.keypadPress('ok')" aria-label="Unlock">✓</button>
+        </div>
+        <input type="tel" id="appLockPinInput" autocomplete="off" inputmode="numeric" class="pin-hidden-input" maxlength="8" tabindex="-1" aria-hidden="true" />
+      </div>
+      <div id="appLockPassphraseUi" style="display:none;">
+        <input type="password" id="appLockPassphraseInput" class="item-input app-lock-pin-input" autocomplete="off" maxlength="64" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Passphrase (min 12 characters)" />
+        <div class="password-strength-bar" id="appLockUnlockStrengthBar"><div class="password-strength-fill" id="appLockUnlockStrengthFill"></div></div>
+        <p class="password-strength-label" id="appLockUnlockStrengthLabel"></p>
+        <button type="button" class="modal-save-btn" id="appLockUnlockBtn" data-i18n="settings.privacy.appLock.unlock">Unlock</button>
+      </div>
+      <button type="button" class="pin-switch-mode-btn" id="pinSwitchModeBtn" onclick="RianellAppLock.switchUnlockMode()">Use passphrase instead</button>
     </div>
   </div>
 
@@ -1196,9 +1219,12 @@
           </summary>
           <div class="settings-performance-advanced-body settings-consent-dashboard-body" id="consentDashboardBody">
             <div id="consentDashboardList" class="consent-dashboard-list"></div>
+            <div class="consent-activity-log-section">
+              <p class="consent-activity-log-label" data-i18n="settings.privacy.activity.title">Recent activity</p>
+              <p class="settings-hint consent-activity-log-hint" id="privacyActivityLogHint" data-i18n="settings.privacy.activity.empty">No processing events recorded yet.</p>
+            </div>
           </div>
         </details>
-        <p class="settings-hint" id="privacyActivityLogHint" data-i18n="settings.privacy.activity.empty">No processing events recorded yet.</p>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Personal & cloud sync" data-i18n-title="settings.personal.title" data-settings-pane-i18n="settings.personal.title" role="tabpanel" aria-hidden="true">
@@ -1481,7 +1507,10 @@
       <div class="settings-section">
         <h4 data-i18n="settings.dataOptions.loggingSection">Logging modules</h4>
         <div class="settings-option">
-          <label data-i18n="settings.logging.cycleModule">Cycle tracking module</label>
+          <label class="settings-label-with-icon">
+            <svg class="settings-label-icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24"><use href="#icon-cycle-menstrual"/></svg>
+            <span data-i18n="settings.logging.cycleModule">Period &amp; cycle tracking</span>
+          </label>
           <div class="toggle-switch" id="cycleModuleToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('cycleModuleEnabled')"></div>
         </div>
         <div class="settings-option">
@@ -1635,22 +1664,10 @@
           <h4 class="data-management-group__title"><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-document"></use></svg><span data-i18n="settings.data.export.title">Export data</span></h4>
           <div class="data-management-buttons">
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="exportData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-document"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.export.data">Export Data</span></button>
+            <button type="button" class="settings-data-btn export-btn" onclick="openExportWizard('download')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-document"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.export.data">Export Data</span></button>
           </div>
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="exportEncryptedData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.encrypted.action">Create protected export</span></button>
-          </div>
-          <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="RianellQrHandoff && RianellQrHandoff.open()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-qr"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.qrHandoff.action">QR handoff (in-office)</span></button>
-          </div>
-          <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="exportFhirBundle()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-bundle"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.data.export.fhir">Export FHIR-lite bundle</span></button>
-          </div>
-          <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="exportReadOnlyShareLink()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-link"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.data.export.shareLink">Create read-only share link</span></button>
-          </div>
-          <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="openWebDavBackupModal()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-cloud-up"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.data.export.webdav">Backup to WebDAV</span></button>
+            <button type="button" class="settings-data-btn export-btn" onclick="openExportWizard('sync')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-cloud-up"></use></svg></span><span class="data-management-buttons__label">Sync &amp; Share</span></button>
           </div>
           </div>
         </div>
@@ -1659,10 +1676,10 @@
           <h4 class="data-management-group__title"><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-import-arrow"></use></svg><span data-i18n="settings.data.import.title">Import data</span></h4>
           <div class="data-management-buttons">
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn import-btn" onclick="importMigrationCsv()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-import-arrow"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.data.import.migrationSource">Import from Bearable or Flaredown</span></button>
+            <button type="button" class="settings-data-btn import-btn" onclick="openImportWizard('migration')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-import-arrow"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.data.import.migrationSource">Import from Bearable or Flaredown</span></button>
           </div>
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn import-btn" onclick="importData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-save"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.import.data">Import Data</span></button>
+            <button type="button" class="settings-data-btn import-btn" onclick="openImportWizard('native')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-save"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.import.data">Import Data</span></button>
           </div>
           </div>
         </div>
@@ -1745,13 +1762,39 @@
             <svg class="app-lock-status-icon ui-svg-icon" id="appLockStatusIcon" aria-hidden="true"><use href="#icon-lock"></use></svg>
             <span id="appLockStatusLabel" data-i18n="settings.security.statusLocked">Locked - passcode required</span>
           </div>
-          <div class="settings-option">
-            <label for="appLockPinSetupInput" data-i18n="settings.privacy.appLock.setupPrompt">Set a passcode (min 8 characters)</label>
-            <input type="password" id="appLockPinSetupInput" class="item-input app-lock-pin-input" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
+          <div class="app-lock-mode-selector">
+            <button type="button" class="app-lock-mode-btn active" id="appLockModePinBtn" onclick="setAppLockMode('pin')" data-i18n="settings.security.appLockModePin">PIN (4-8 digits)</button>
+            <button type="button" class="app-lock-mode-btn" id="appLockModePassBtn" onclick="setAppLockMode('passphrase')" data-i18n="settings.security.appLockModePass">Passphrase (12+ chars)</button>
           </div>
-          <div class="settings-option">
-            <label for="appLockPinConfirmInput" data-i18n="settings.privacy.appLock.confirmPrompt">Confirm passcode</label>
-            <input type="password" id="appLockPinConfirmInput" class="item-input app-lock-pin-input" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
+          <div id="appLockPinSetupUi">
+            <p class="settings-hint" data-i18n="settings.security.pinSetupHint">Choose a 4-8 digit PIN. Avoid simple sequences like 1234.</p>
+            <div class="pin-dots" id="appLockSetupPinDots" aria-live="polite"></div>
+            <div class="pin-keypad" id="appLockSetupKeypad" role="group" aria-label="PIN setup keypad">
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('1')">1</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('2')">2</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('3')">3</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('4')">4</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('5')">5</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('6')">6</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('7')">7</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('8')">8</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('9')">9</button>
+              <button type="button" class="pin-key pin-key--del" onclick="RianellAppLock.setupKeypadPress('del')" aria-label="Delete">⌫</button>
+              <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('0')">0</button>
+              <button type="button" class="pin-key pin-key--ok" onclick="RianellAppLock.setupKeypadPress('ok')" aria-label="Confirm">✓</button>
+            </div>
+          </div>
+          <div id="appLockPassphraseSetupUi" style="display:none;">
+            <div class="settings-option">
+              <label for="appLockPinSetupInput" data-i18n="settings.privacy.appLock.setupPrompt">Set a passcode (min 12 characters)</label>
+              <input type="password" id="appLockPinSetupInput" class="item-input app-lock-pin-input" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
+              <div class="password-strength-bar" id="appLockSetupStrengthBar"><div class="password-strength-fill" id="appLockSetupStrengthFill"></div></div>
+              <p class="password-strength-label" id="appLockSetupStrengthLabel"></p>
+            </div>
+            <div class="settings-option">
+              <label for="appLockPinConfirmInput" data-i18n="settings.privacy.appLock.confirmPrompt">Confirm passcode</label>
+              <input type="password" id="appLockPinConfirmInput" class="item-input app-lock-pin-input" autocomplete="new-password" inputmode="text" maxlength="64" spellcheck="false" />
+            </div>
           </div>
           <button type="button" class="modal-save-btn app-lock-save-btn" onclick="saveAppLockPasscode()" data-i18n="settings.security.savePasscode">Save passcode</button>
         </div>
@@ -1847,13 +1890,43 @@
         <button type="button" class="modal-close" onclick="closeMicroCheckinModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body micro-checkin-modal-body">
-        <p class="micro-checkin-lede" data-i18n="wizard.energy.instructions">Rate mood, sleep, and fatigue from 1-10.</p>
-        <label class="micro-checkin-label" for="microCheckinMood" data-i18n="wizard.mood.1.10">Mood (1-10)</label>
-        <input type="number" id="microCheckinMood" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
-        <label class="micro-checkin-label" for="microCheckinSleep" data-i18n="wizard.sleep.1.10">Sleep (1-10)</label>
-        <input type="number" id="microCheckinSleep" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
-        <label class="micro-checkin-label" for="microCheckinFatigue" data-i18n="wizard.fatigue.1.10">Fatigue (1-10)</label>
-        <input type="number" id="microCheckinFatigue" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
+        <div class="mcs-period-header" aria-hidden="true">
+          <span id="microCheckinPeriodIcon" class="mcs-period-icon"></span>
+          <span id="microCheckinTime" class="mcs-time-display"></span>
+        </div>
+        <div class="mcs-field" data-mcs="mood">
+          <div class="mcs-header">
+            <label class="micro-checkin-label" for="microCheckinMood" data-i18n="wizard.mood.1.10">Mood</label>
+            <span class="mcs-badge" id="microCheckinMoodBadge">5</span>
+          </div>
+          <div class="mcs-row">
+            <span class="mcs-end">1</span>
+            <input type="range" id="microCheckinMood" class="mcs-slider mcs-mood" min="1" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinMoodBadge')">
+            <span class="mcs-end">10</span>
+          </div>
+        </div>
+        <div class="mcs-field" data-mcs="sleep">
+          <div class="mcs-header">
+            <label class="micro-checkin-label" for="microCheckinSleep" data-i18n="wizard.sleep.1.10">Sleep</label>
+            <span class="mcs-badge" id="microCheckinSleepBadge">5</span>
+          </div>
+          <div class="mcs-row">
+            <span class="mcs-end">1</span>
+            <input type="range" id="microCheckinSleep" class="mcs-slider mcs-sleep" min="1" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinSleepBadge')">
+            <span class="mcs-end">10</span>
+          </div>
+        </div>
+        <div class="mcs-field" data-mcs="fatigue">
+          <div class="mcs-header">
+            <label class="micro-checkin-label" for="microCheckinFatigue" data-i18n="wizard.fatigue.1.10">Fatigue</label>
+            <span class="mcs-badge" id="microCheckinFatigueBadge">5</span>
+          </div>
+          <div class="mcs-row">
+            <span class="mcs-end">1</span>
+            <input type="range" id="microCheckinFatigue" class="mcs-slider mcs-fatigue" min="1" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinFatigueBadge')">
+            <span class="mcs-end">10</span>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="modal-cancel-btn" onclick="closeMicroCheckinModal()" data-i18n="common.cancel">Cancel</button>
@@ -2762,11 +2835,14 @@
         <div class="filter-section">
           <div class="log-view-range-buttons">
             <label class="filter-label" data-i18n="common.view.range">View Range:</label>
-            <div class="log-date-range-buttons">
-              <button class="log-date-range-btn active" onclick="setLogViewRange(1)" id="logRange1Day" data-i18n="home.greeting.today">Today</button>
-              <button class="log-date-range-btn" onclick="setLogViewRange(7)" id="logRange7Days">7 Days</button>
-              <button class="log-date-range-btn" onclick="setLogViewRange(30)" id="logRange30Days">30 Days</button>
-              <button class="log-date-range-btn" onclick="setLogViewRange(90)" id="logRange90Days">90 Days</button>
+            <div class="range-slider-group rs-accent" id="logRangeSliderGroup">
+              <input type="range" class="range-slider rs-accent" id="logRangeSlider" min="0" max="3" step="1" value="0" aria-label="Log view range">
+              <div class="range-slider-labels">
+                <span class="range-slider-label active" data-idx="0" data-i18n="home.greeting.today">Today</span>
+                <span class="range-slider-label" data-idx="1">7 Days</span>
+                <span class="range-slider-label" data-idx="2">30 Days</span>
+                <span class="range-slider-label" data-idx="3">90 Days</span>
+              </div>
             </div>
           </div>
           <p class="field-hint" data-i18n="common.choose.which.days.to.include">Choose which days to include.</p>
@@ -2800,10 +2876,13 @@
           <div class="filter-row">
             <div class="filter-group">
               <label class="filter-label" data-i18n="mood.rangeLabel">Recent period</label>
-              <div class="date-range-buttons">
-                <button type="button" class="date-range-btn" data-mood-days="7" id="moodRange7Days">7 Days</button>
-                <button type="button" class="date-range-btn active" data-mood-days="14" id="moodRange14Days">14 Days</button>
-                <button type="button" class="date-range-btn" data-mood-days="30" id="moodRange30Days">30 Days</button>
+              <div class="range-slider-group rs-accent" id="moodRangeSliderGroup">
+                <input type="range" class="range-slider rs-accent" id="moodRangeSlider" min="0" max="2" step="1" value="1" aria-label="Mood date range">
+                <div class="range-slider-labels">
+                  <span class="range-slider-label" data-idx="0">7 Days</span>
+                  <span class="range-slider-label active" data-idx="1">14 Days</span>
+                  <span class="range-slider-label" data-idx="2">30 Days</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2822,11 +2901,14 @@
             <div class="filter-group">
               <label class="filter-label" data-i18n="ai.filter.rangeLabel">Analysis Range:</label>
               <label class="filter-label-mobile" data-i18n="ai.filter.rangeLabel">Analysis Range:</label>
-              <div class="date-range-buttons">
-                <button class="date-range-btn active" onclick="setAIDateRange(7)" id="aiRange7Days">7 Days</button>
-                <button class="date-range-btn" onclick="setAIDateRange(30)" id="aiRange30Days">30 Days</button>
-                <button class="date-range-btn" onclick="setAIDateRange(90)" id="aiRange90Days">90 Days</button>
-                <button class="date-range-btn" onclick="setAIDateRange('custom')" id="aiRangeCustom" data-i18n="common.custom">Custom</button>
+              <div class="range-slider-group rs-accent" id="aiRangeSliderGroup">
+                <input type="range" class="range-slider rs-accent" id="aiRangeSlider" min="0" max="3" step="1" value="0" aria-label="AI analysis range">
+                <div class="range-slider-labels">
+                  <span class="range-slider-label active" data-idx="0">7 Days</span>
+                  <span class="range-slider-label" data-idx="1">30 Days</span>
+                  <span class="range-slider-label" data-idx="2">90 Days</span>
+                  <span class="range-slider-label" data-idx="3" data-i18n="common.custom">Custom</span>
+                </div>
               </div>
             </div>
             <div class="filter-group">
@@ -2870,26 +2952,30 @@
             <div class="filter-group">
               <label class="filter-label" data-i18n="common.view.range">View Range:</label>
               <label class="filter-label-mobile" data-i18n="common.view.range">View Range:</label>
-              <div class="date-range-buttons">
-                <button class="date-range-btn" onclick="setChartDateRange(1)" id="range1Day" data-i18n="home.greeting.today">Today</button>
-                <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
-                <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
-                <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>
-                <button class="date-range-btn" onclick="setChartDateRange('custom')" id="rangeCustom" data-i18n="common.custom">Custom</button>
+              <div class="range-slider-group rs-accent" id="chartRangeSliderGroup">
+                <input type="range" class="range-slider rs-accent" id="chartRangeSlider" min="0" max="4" step="1" value="1" aria-label="Chart view range">
+                <div class="range-slider-labels">
+                  <span class="range-slider-label" data-idx="0" data-i18n="home.greeting.today">Today</span>
+                  <span class="range-slider-label active" data-idx="1">7 Days</span>
+                  <span class="range-slider-label" data-idx="2">30 Days</span>
+                  <span class="range-slider-label" data-idx="3">90 Days</span>
+                  <span class="range-slider-label" data-idx="4" data-i18n="common.custom">Custom</span>
+                </div>
               </div>
             </div>
             <p class="field-hint" data-i18n="common.choose.which.days.to.include">Choose which days to include.</p>
             <div class="filter-group">
               <label class="filter-label" data-i18n="common.prediction.range">Prediction Range:</label>
               <label class="filter-label-mobile" data-i18n="common.prediction.range">Prediction Range:</label>
-              <div class="prediction-range-buttons">
-                <button class="prediction-range-btn" onclick="togglePredictions()" id="predictionToggle" title="Toggle predictions on/off" data-i18n-title="common.toggle.predictions.on.off">
-                  <span id="predictionToggleText" data-i18n="common.off">Off</span>
-                </button>
-                <button class="prediction-range-btn" onclick="setPredictionRange(1)" id="predRange1Day" data-i18n="common.tomorrow">Tomorrow</button>
-                <button class="prediction-range-btn active" onclick="setPredictionRange(7)" id="predRange7Days">7 Days</button>
-                <button class="prediction-range-btn" onclick="setPredictionRange(30)" id="predRange30Days">30 Days</button>
-                <button class="prediction-range-btn" onclick="setPredictionRange(90)" id="predRange90Days">90 Days</button>
+              <div class="range-slider-group rs-prediction" id="predRangeSliderGroup">
+                <input type="range" class="range-slider" id="predictionRangeSlider" min="0" max="4" step="1" value="2" aria-label="Prediction range" title="Toggle predictions on/off" data-i18n-title="common.toggle.predictions.on.off">
+                <div class="range-slider-labels">
+                  <span class="range-slider-label" data-idx="0" data-i18n="common.off">Off</span>
+                  <span class="range-slider-label" data-idx="1" data-i18n="common.tomorrow">Tomorrow</span>
+                  <span class="range-slider-label active" data-idx="2">7 Days</span>
+                  <span class="range-slider-label" data-idx="3">30 Days</span>
+                  <span class="range-slider-label" data-idx="4">90 Days</span>
+                </div>
               </div>
             </div>
           </div>
@@ -3436,6 +3522,85 @@
     </div>
   </div>
 
+  <!-- Migration source picker modal -->
+  <div class="modal-overlay" id="migrationSourceModalOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="migrationSourceModalTitle">
+    <div class="modal-content alert-modal-content migration-source-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="migrationSourceModalTitle">Import from</h3>
+        <button type="button" class="modal-close" onclick="closeMigrationSourceModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body">
+        <p class="migration-source-hint">Choose the app you're migrating data from</p>
+        <div class="migration-source-choices">
+          <button type="button" class="migration-source-btn" onclick="selectMigrationSource('bearable')" aria-label="Import from Bearable">
+            <svg class="migration-source-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <ellipse cx="24" cy="29" rx="12" ry="10" stroke="currentColor" stroke-width="2.2" fill="none"/>
+              <circle cx="24" cy="19" r="5.5" stroke="currentColor" stroke-width="2.2" fill="none"/>
+              <circle cx="13" cy="16" r="3.5" stroke="currentColor" stroke-width="2.2" fill="none"/>
+              <circle cx="35" cy="16" r="3.5" stroke="currentColor" stroke-width="2.2" fill="none"/>
+              <circle cx="20.5" cy="31.5" r="1.4" fill="currentColor"/>
+              <circle cx="27.5" cy="31.5" r="1.4" fill="currentColor"/>
+              <path d="M21 35.5c.8 1.2 2 1.8 3 1.8s2.2-.6 3-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span class="migration-source-label">Bearable</span>
+          </button>
+          <button type="button" class="migration-source-btn" onclick="selectMigrationSource('flaredown')" aria-label="Import from Flaredown">
+            <svg class="migration-source-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M24 8c0 0 6 7 6 14a6 6 0 0 1-12 0c0-3 1.5-5.5 3-7-0.5 3 1 5 3 5 1.5 0 3-1.5 3-3.5C27 13.5 24 8 24 8Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" fill="none"/>
+              <path d="M17 28c-2 2-3 4.5-3 7a10 10 0 0 0 20 0c0-4-2-7.5-5-10 0 3-1.5 5-4 6-1.5-2-2-4.5-1.5-7C22 21 17 28 17 28Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <span class="migration-source-label">Flaredown</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share link creation modal -->
+  <div class="modal-overlay" id="shareCreateModalOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="shareCreateModalTitle">
+    <div class="modal-content alert-modal-content share-create-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="shareCreateModalTitle" data-i18n="settings.data.export.shareLink">Create read-only share link</h3>
+        <button type="button" class="modal-close" onclick="closeShareCreateModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body">
+        <p class="share-create-hint" data-i18n="settings.share.createHint">Choose a date range and password. The link is encrypted — only people with the password can view your data.</p>
+        <div class="share-create-row">
+          <label for="shareCreateFrom" data-i18n="common.from">From</label>
+          <input type="date" id="shareCreateFrom" class="cloud-input" />
+          <label for="shareCreateTo" data-i18n="common.to">To</label>
+          <input type="date" id="shareCreateTo" class="cloud-input" />
+        </div>
+        <div class="share-create-row">
+          <label for="shareCreateTtl" data-i18n="settings.share.ttl">Link expires after</label>
+          <select id="shareCreateTtl" class="cloud-input">
+            <option value="24" data-i18n="settings.share.ttl24h">24 hours</option>
+            <option value="168" selected data-i18n="settings.share.ttl7d">7 days</option>
+            <option value="720" data-i18n="settings.share.ttl30d">30 days</option>
+            <option value="2160" data-i18n="settings.share.ttl90d">90 days</option>
+          </select>
+        </div>
+        <div class="share-create-toggles">
+          <div class="tutorial-toggle-option">
+            <label data-i18n="settings.share.includeNotes">Include free-text notes</label>
+            <div class="toggle-switch" id="shareCreateIncludeNotes" role="switch" tabindex="0" onclick="toggleShareCreateOption('shareCreateIncludeNotes')"></div>
+          </div>
+          <div class="tutorial-toggle-option">
+            <label data-i18n="settings.share.includeCondition">Include condition name</label>
+            <div class="toggle-switch" id="shareCreateIncludeCondition" role="switch" tabindex="0" onclick="toggleShareCreateOption('shareCreateIncludeCondition')"></div>
+          </div>
+        </div>
+        <input type="password" id="shareCreatePassword" class="cloud-input" autocomplete="new-password" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Password (min 12 characters)" />
+        <div class="password-strength-bar" id="shareCreateStrengthBar"><div class="password-strength-fill" id="shareCreateStrengthFill"></div></div>
+        <p class="password-strength-label" id="shareCreateStrengthLabel"></p>
+      </div>
+      <div class="modal-footer alert-modal-footer">
+        <button type="button" class="modal-save-btn" onclick="createShareLink()" data-i18n="settings.share.generate">Generate link</button>
+        <button type="button" class="modal-save-btn modal-cancel-btn" onclick="closeShareCreateModal()" data-i18n="common.cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Encrypted export modal (Plan 05 P4) -->
   <div class="modal-overlay" id="encryptedExportModalOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="encryptedExportModalTitle">
     <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
@@ -3445,7 +3610,9 @@
       </div>
       <div class="modal-body alert-modal-body">
         <p data-i18n="settings.export.encrypted.hint">Choose a password to lock this file. You will need it to open the export later. We cannot recover it if you forget.</p>
-        <input type="password" id="encryptedExportPassphrase" class="cloud-input" autocomplete="new-password" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Choose a password (at least 8 characters)" />
+        <input type="password" id="encryptedExportPassphrase" class="cloud-input" autocomplete="new-password" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Choose a password (at least 12 characters)" />
+        <div class="password-strength-bar" id="encryptedExportStrengthBar"><div class="password-strength-fill" id="encryptedExportStrengthFill"></div></div>
+        <p class="password-strength-label" id="encryptedExportStrengthLabel"></p>
       </div>
       <div class="modal-footer alert-modal-footer">
         <button type="button" class="modal-save-btn" onclick="submitEncryptedExportFromModal()" data-i18n="settings.export.encrypted.action">Create protected export</button>
@@ -3468,6 +3635,38 @@
       <div class="modal-footer alert-modal-footer">
         <button type="button" class="modal-save-btn modal-cancel-btn" onclick="RianellQrHandoff && RianellQrHandoff.close()" data-i18n="common.close">Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Generic text-prompt modal (used by QR handoff passphrase, import token, etc.) -->
+  <div class="modal-overlay" id="textPromptModalOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="textPromptModalTitle">
+    <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="textPromptModalTitle">Enter value</h3>
+        <button type="button" class="modal-close" onclick="closeTextPromptModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body">
+        <p id="textPromptModalHint" class="text-prompt-modal-hint"></p>
+        <input type="text" id="textPromptModalInput" class="cloud-input text-prompt-modal-input" autocomplete="off" />
+        <div class="password-strength-bar" id="textPromptStrengthBar" style="display:none;"><div class="password-strength-fill" id="textPromptStrengthFill"></div></div>
+        <p class="password-strength-label" id="textPromptStrengthLabel" style="display:none;"></p>
+      </div>
+      <div class="modal-footer alert-modal-footer">
+        <button type="button" class="modal-save-btn" id="textPromptModalSubmit">OK</button>
+        <button type="button" class="modal-save-btn modal-cancel-btn" onclick="closeTextPromptModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share link viewer (public read-only) -->
+  <div id="shareViewerOverlay" style="display:none;" role="main" class="share-viewer-overlay" aria-label="Shared health summary">
+    <div class="share-viewer-header">
+      <span class="share-viewer-brand">Rianell</span>
+      <span class="share-viewer-badge" data-i18n="settings.share.viewerBadge">View-only health summary</span>
+    </div>
+    <div id="shareViewerContent" class="share-viewer-content"></div>
+    <div class="share-viewer-footer">
+      <a href="/" class="share-viewer-cta" data-i18n="settings.share.openRianell">Open Rianell</a>
     </div>
   </div>
 
@@ -3734,6 +3933,106 @@
             <a id="installModalIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosLinkLabel" data-i18n="common.install.on.ios">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA install guide (visual step-by-step) -->
+  <div class="modal-overlay" id="pwaGuideModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="pwaGuideTitle">
+    <div class="modal-content pwa-guide-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="pwaGuideTitle">Installation Instructions</h3>
+        <button type="button" class="modal-close" onclick="closePWAGuideModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body" id="pwaGuideBody"></div>
+      <div class="pwa-guide-footer">
+        <button type="button" class="settings-data-btn" onclick="closePWAGuideModal()">OK, got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import data wizard -->
+  <div class="modal-overlay dm-wizard-modal" id="importWizardModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="importWizardTitle">
+    <div class="modal-content dm-wizard-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="importWizardTitle" data-i18n="settings.data.import.title">Import data</h3>
+        <button type="button" class="modal-close" onclick="closeImportWizard()" aria-label="Close">&times;</button>
+      </div>
+      <div class="dm-wizard-progress" aria-hidden="true">
+        <div class="dm-wizard-progress__fill" id="importWizardProgress"></div>
+      </div>
+      <div class="modal-body dm-wizard-body">
+        <div class="dm-wizard-step dm-wizard-step--active" id="importWizardStep1" data-step="1">
+          <div class="dm-wizard-step-illus" aria-hidden="true">
+            <svg viewBox="0 0 64 40" width="64" height="40" class="dm-wizard-illus-svg"><path d="M32 8v8M20 16l8 4M44 16l-8 4M16 28h32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="26" y="28" width="12" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <p class="dm-wizard-step-label">Choose source</p>
+          <div id="importWizardOptions1"></div>
+        </div>
+        <div class="dm-wizard-step" id="importWizardStep2" data-step="2">
+          <div class="dm-wizard-step-illus" aria-hidden="true">
+            <svg viewBox="0 0 64 40" width="64" height="40" class="dm-wizard-illus-svg"><rect x="12" y="6" width="40" height="28" rx="4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/><path class="import-dropzone__arrow" d="M32 14v10M28 20l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="24" y="26" width="16" height="4" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          </div>
+          <p class="dm-wizard-step-label">Select file</p>
+          <label class="import-dropzone" id="importDropzone">
+            <input type="file" id="importWizardFileInput" accept=".json,.csv,.txt" />
+            <svg class="import-dropzone__arrow ui-svg-icon" width="28" height="28" aria-hidden="true"><use href="#icon-import-arrow"></use></svg>
+            <span>Drop file here or tap to browse</span>
+          </label>
+          <p class="dm-wizard-hint" id="importWizardFileName">No file chosen</p>
+        </div>
+        <div class="dm-wizard-step" id="importWizardStep3" data-step="3">
+          <div class="dm-wizard-step-illus" aria-hidden="true">
+            <svg viewBox="0 0 64 40" width="64" height="40" class="dm-wizard-illus-svg"><circle cx="32" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/><path class="dm-check-path" d="m24 20 5 5 11-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="dm-wizard-step-label">Confirm import</p>
+          <p class="dm-wizard-summary" id="importWizardSummary"></p>
+          <p class="dm-wizard-warning" id="importWizardWarning">This will merge with your existing data.</p>
+        </div>
+      </div>
+      <div class="dm-wizard-footer">
+        <button type="button" class="settings-data-btn dm-btn-back" id="importWizardBack" onclick="importWizardStep(-1)" style="display:none;">Back</button>
+        <button type="button" class="settings-data-btn dm-btn-next" id="importWizardNext" onclick="importWizardStep(1)">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export data wizard -->
+  <div class="modal-overlay dm-wizard-modal" id="exportWizardModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="exportWizardTitle">
+    <div class="modal-content dm-wizard-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="exportWizardTitle" data-i18n="settings.data.export.title">Export data</h3>
+        <button type="button" class="modal-close" onclick="closeExportWizard()" aria-label="Close">&times;</button>
+      </div>
+      <div class="dm-wizard-progress" aria-hidden="true">
+        <div class="dm-wizard-progress__fill" id="exportWizardProgress"></div>
+      </div>
+      <div class="modal-body dm-wizard-body">
+        <div class="dm-wizard-step dm-wizard-step--active" id="exportWizardStep1" data-step="1">
+          <div class="dm-wizard-step-illus" aria-hidden="true">
+            <svg viewBox="0 0 64 40" width="64" height="40" class="dm-wizard-illus-svg"><rect x="26" y="4" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M20 20h-6M44 20h6M32 20v8M24 32h16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <p class="dm-wizard-step-label">Choose format</p>
+          <div id="exportWizardOptions1"></div>
+        </div>
+        <div class="dm-wizard-step" id="exportWizardStep2" data-step="2">
+          <div class="dm-wizard-step-illus" aria-hidden="true">
+            <svg viewBox="0 0 64 40" width="64" height="40" class="dm-wizard-illus-svg"><circle cx="32" cy="18" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M32 10v-2M32 28v2M24 18h-2M42 18h2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="14" y="30" width="36" height="4" rx="2" fill="currentColor" opacity="0.4"/></svg>
+          </div>
+          <p class="dm-wizard-step-label">Configure</p>
+          <div id="exportWizardConfig"></div>
+        </div>
+        <div class="dm-wizard-step" id="exportWizardStep3" data-step="3">
+          <div class="dm-wizard-step-illus" aria-hidden="true">
+            <svg viewBox="0 0 64 40" width="64" height="40" class="dm-wizard-illus-svg"><circle cx="32" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="1.5"/><path class="dm-check-path" d="m24 20 5 5 11-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="dm-wizard-step-label">Ready to export</p>
+          <p class="dm-wizard-summary" id="exportWizardSummary"></p>
+        </div>
+      </div>
+      <div class="dm-wizard-footer">
+        <button type="button" class="settings-data-btn dm-btn-back" id="exportWizardBack" onclick="exportWizardStep(-1)" style="display:none;">Back</button>
+        <button type="button" class="settings-data-btn dm-btn-next" id="exportWizardNext" onclick="exportWizardStep(1)">Next</button>
       </div>
     </div>
   </div>

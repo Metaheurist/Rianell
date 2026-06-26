@@ -1319,7 +1319,13 @@
 
           if (granted && typeof global.preloadSummaryLLM === 'function') {
 
-            global.preloadSummaryLLM().catch(function () {});
+            global.preloadSummaryLLM().then(function () {
+
+              if (typeof global.applyHomeCardLayout === 'function') global.applyHomeCardLayout();
+
+              if (typeof global.renderHomeAiSuggestions === 'function') global.renderHomeAiSuggestions();
+
+            }).catch(function () {});
 
           }
 

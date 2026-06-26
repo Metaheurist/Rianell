@@ -208,44 +208,67 @@ function settingsIconForTitle(title, idx, paneEl) {
   return idx % 2 === 0 ? 'chart-bars' : 'document';
 }
 
+function buildSettingsDot(paneIdx, paneEl, panes, svgIcon) {
+  var paneTitle = resolveSettingsPaneTitle(paneEl) || 'Section ' + String(paneIdx + 1);
+  var dot = document.createElement('button');
+  dot.type = 'button';
+  dot.className = 'settings-carousel-dot';
+  dot.setAttribute('aria-label', 'Go to settings section ' + String(paneIdx + 1) + (paneTitle ? ': ' + paneTitle : ''));
+  dot.setAttribute('title', paneTitle);
+  dot.setAttribute('data-settings-target', String(paneIdx));
+  dot.setAttribute('data-dist', '3');
+  dot.innerHTML = '<span class="settings-carousel-dot__icon" aria-hidden="true">' +
+    svgIcon(settingsIconForTitle(paneTitle, paneIdx, paneEl), 'ui-svg-icon') + '</span>';
+  dot.addEventListener('click', function (e) {
+    var idx = parseInt(e.currentTarget.getAttribute('data-settings-target') || '0', 10);
+    if (typeof window.settingsCarouselGo === 'function') window.settingsCarouselGo(idx);
+  });
+  return dot;
+}
+
 function initSettingsChapters(panes, svgIcon) {
   var root = document.getElementById('settingsChapters');
   if (!root) return;
-  if (root.getAttribute('data-chapters-built') === '1') {
-    refreshSettingsChapterDots(panes, svgIcon);
+
+  var strip = document.getElementById('settingsIconStrip');
+
+  if (root.getAttribute('data-chapters-built') === '1' && strip) {
+    // Refresh security lock icon if needed
+    panes && panes.forEach && panes.forEach(function (paneEl, i) {
+      var dot = strip.querySelector('[data-settings-target="' + i + '"]');
+      if (dot) {
+        var paneKey = paneEl && paneEl.getAttribute ? paneEl.getAttribute('data-settings-pane-i18n') : '';
+        if (paneKey === 'settings.security.title') {
+          var icon = dot.querySelector('.settings-carousel-dot__icon');
+          if (icon) icon.innerHTML = svgIcon(settingsIconForTitle('', i, paneEl), 'ui-svg-icon');
+        }
+      }
+    });
     return;
   }
+
   root.innerHTML = '';
-  SETTINGS_CHAPTERS.forEach(function (chapter) {
-    var section = document.createElement('section');
-    section.className = 'settings-chapter' + (chapter.defaultOpen ? ' settings-chapter--open' : '');
-    section.setAttribute('data-settings-chapter', chapter.id);
-    var toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'settings-chapter-toggle';
-    toggle.setAttribute('aria-expanded', chapter.defaultOpen ? 'true' : 'false');
-    toggle.innerHTML =
-      '<span class="settings-chapter-toggle__icon" aria-hidden="true">' +
-      svgIcon(chapter.icon, 'settings-chapter-icon-svg') +
-      '</span><span class="settings-chapter-toggle__label">' +
-      settingsChapterTitle(chapter.i18n) +
-      '</span><span class="settings-chapter-toggle__chevron" aria-hidden="true"></span>';
-    toggle.addEventListener('click', function () {
-      toggleSettingsChapter(chapter.id);
-    });
-    var body = document.createElement('div');
-    body.className = 'settings-chapter-body';
-    var dots = document.createElement('div');
-    dots.className = 'settings-carousel-dots settings-chapter-dots';
-    dots.setAttribute('data-chapter-id', chapter.id);
-    dots.setAttribute('role', 'tablist');
-    body.appendChild(dots);
-    section.appendChild(toggle);
-    section.appendChild(body);
-    root.appendChild(section);
-  });
+  root.className = 'settings-chapters settings-chapters--flat';
+
+  strip = document.createElement('div');
+  strip.className = 'settings-carousel-dots settings-icon-strip';
+  strip.id = 'settingsIconStrip';
+  strip.setAttribute('role', 'tablist');
+  strip.setAttribute('aria-label', root.getAttribute('aria-label') || 'Settings sections');
+
+  if (panes) {
+    for (var i = 0; i < panes.length; i++) {
+      strip.appendChild(buildSettingsDot(i, panes[i], panes, svgIcon));
+    }
+  }
+
+  root.appendChild(strip);
   root.setAttribute('data-chapters-built', '1');
-  refreshSettingsChapterDots(panes, svgIcon);
+
+  var track = document.getElementById('settingsCarouselTrack');
+  if (track) {
+    updateSettingsCarouselDots(parseInt(track.getAttribute('data-settings-index') || '0', 10));
+  }
 }
 
 function refreshSettingsChapterDots(panes, svgIcon) {
@@ -317,6 +340,7 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
     dot.setAttribute('aria-label', 'Go to settings section ' + String(i + 1) + (paneTitle ? ': ' + paneTitle : ''));
     dot.setAttribute('title', paneTitle);
     dot.setAttribute('data-settings-target', String(i));
+    dot.setAttribute('data-dist', '3');
     dot.innerHTML =
       '<span class="settings-carousel-dot__icon" aria-hidden="true">' +
       svgIcon(settingsIconForTitle(paneTitle, i, panes[i]), 'ui-svg-icon') +
@@ -332,11 +356,25 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
 function updateSettingsCarouselDots(activeIdx) {
   var dots = document.querySelectorAll('#settingsChapters .settings-carousel-dot, #settingsCarouselDots .settings-carousel-dot');
   if (!dots || !dots.length) return;
+  var activeDot = null;
   for (var i = 0; i < dots.length; i++) {
     var target = parseInt(dots[i].getAttribute('data-settings-target') || '-1', 10);
     var active = target === activeIdx;
+    var dist = Math.min(Math.abs(target - activeIdx), 3);
     dots[i].classList.toggle('settings-carousel-dot--active', active);
     dots[i].setAttribute('aria-current', active ? 'true' : 'false');
+    dots[i].setAttribute('data-dist', String(dist));
+    if (active) activeDot = dots[i];
+  }
+  // Scroll active dot to centre of strip
+  if (activeDot) {
+    var strip = activeDot.parentElement;
+    if (strip) {
+      var stripW = strip.offsetWidth;
+      var dotLeft = activeDot.offsetLeft;
+      var dotW = activeDot.offsetWidth;
+      strip.scrollTo({ left: dotLeft - stripW / 2 + dotW / 2, behavior: 'smooth' });
+    }
   }
 }
 
@@ -422,9 +460,7 @@ export function installSettingsModule(deps) {
     if (!track) return;
     var n = track.querySelectorAll('.settings-carousel-pane').length;
     if (n < 1) return;
-    var saved = typeof window.settingsModalPaneIndex === 'number' ? window.settingsModalPaneIndex : 0;
-    if (saved < 0 || saved >= n) saved = 0;
-    settingsCarouselGo(saved);
+    settingsCarouselGo(0);
   }
 
   var _settingsEscapeAndTrapHandler = null;
@@ -454,6 +490,26 @@ export function installSettingsModule(deps) {
     if (_settingsEscapeAndTrapHandler) {
       document.removeEventListener('keydown', _settingsEscapeAndTrapHandler);
       _settingsEscapeAndTrapHandler = null;
+    }
+  }
+
+  function resetSettingsStateOnClose() {
+    window.settingsModalPaneIndex = 0;
+    window.settingsModalScrollPosition = 0;
+    window.settingsModalConditionSelectorOpen = false;
+    var conditionSelector = document.getElementById('medicalConditionSelector');
+    var displayContainer = document.getElementById('medicalConditionDisplayContainer');
+    if (conditionSelector) conditionSelector.style.display = 'none';
+    if (displayContainer) displayContainer.style.display = 'block';
+    var root = document.getElementById('settingsChapters');
+    if (root) {
+      SETTINGS_CHAPTERS.forEach(function (chapter) {
+        var section = root.querySelector('[data-settings-chapter="' + chapter.id + '"]');
+        if (!section) return;
+        section.classList.toggle('settings-chapter--open', !!chapter.defaultOpen);
+        var toggle = section.querySelector('.settings-chapter-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', chapter.defaultOpen ? 'true' : 'false');
+      });
     }
   }
 
@@ -494,9 +550,7 @@ export function installSettingsModule(deps) {
     const isVisible = settingsOverlayIsOpen(overlay);
 
     if (isVisible) {
-      captureSettingsModalCarouselState(overlay);
-      const conditionSelector = document.getElementById('medicalConditionSelector');
-      if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
+      resetSettingsStateOnClose();
       removeSettingsKeydown();
       settingsOverlayCloseWithTransition(overlay, function () {
         if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
@@ -525,23 +579,6 @@ export function installSettingsModule(deps) {
         overlay.dataset.settingsState = 'open';
       });
       initSettingsCarouselUI();
-      setTimeout(function () {
-        var track = document.getElementById('settingsCarouselTrack');
-        var idx = parseInt((track && track.getAttribute('data-settings-index')) || '0', 10);
-        var panes = track ? track.querySelectorAll('.settings-carousel-pane') : [];
-        var pane = panes[idx];
-        if (pane && window.settingsModalScrollPosition !== undefined) pane.scrollTop = window.settingsModalScrollPosition;
-      }, 50);
-      if (window.settingsModalConditionSelectorOpen) {
-        if (typeof window.setMedicalConditionSelectorOpen === 'function') {
-          window.setMedicalConditionSelectorOpen(true);
-        } else {
-          const conditionSelector = document.getElementById('medicalConditionSelector');
-          const displayContainer = document.getElementById('medicalConditionDisplayContainer');
-          if (conditionSelector) conditionSelector.style.display = 'block';
-          if (displayContainer) displayContainer.style.display = 'none';
-        }
-      }
       _settingsEscapeAndTrapHandler = function (e) {
         if (e.key === 'Escape') {
           e.preventDefault();
@@ -587,9 +624,7 @@ export function installSettingsModule(deps) {
   window.closeSettings = function () {
     const overlay = document.getElementById('settingsOverlay');
     if (!overlay) return;
-    captureSettingsModalCarouselState(overlay);
-    const conditionSelector = document.getElementById('medicalConditionSelector');
-    if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
+    resetSettingsStateOnClose();
     removeSettingsKeydown();
     var focusBack = function () {
       if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
