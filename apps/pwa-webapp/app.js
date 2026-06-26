@@ -15639,7 +15639,8 @@ async function chart(id, label, dataField, color) {
       zoom: {
         enabled: !isSmallScreen, // Disable zoom on very small screens
         type: 'x',
-        autoScaleYaxis: true
+        autoScaleYaxis: true,
+        allowMouseWheelZoom: false
       },
       pan: {
         enabled: !isSmallScreen, // Disable pan on very small screens
@@ -22144,6 +22145,17 @@ function toggleSection(sectionId) {
 
 // Add touch event handling for mobile to prevent stuck animations
 document.addEventListener('DOMContentLoaded', function() {
+  // Prevent mouse-wheel from zooming charts — pass the scroll through to the page.
+  // ApexCharts allowMouseWheelZoom:false handles the config side; this guard catches
+  // any remaining wheel events that reach chart canvases before options are applied.
+  document.addEventListener('wheel', function(e) {
+    var canvas = e.target.closest('.apexcharts-canvas, .apexcharts-inner, .chart-container');
+    if (!canvas) return;
+    e.stopPropagation();
+    // Let the page scroll naturally (do NOT preventDefault — that would block page scroll too).
+    // We only stop propagation so ApexCharts cannot intercept the event for zoom.
+  }, { passive: true, capture: true });
+
   // Use event delegation to handle dynamically added section headers
   document.addEventListener('touchstart', function(e) {
     const header = e.target.closest('.section-header');
