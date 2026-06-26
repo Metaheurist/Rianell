@@ -747,7 +747,7 @@ jobs:
           if [ ${#release_apks[@]} -gt 0 ]; then
             cp -v "${release_apks[0]}" rncli-android-dist/app-release-signed.apk
           fi
-          echo "{\"version\":${RN_BUILD},\"file\":\"app-debug-beta.apk\"}" > rncli-android-dist/latest.json
+          echo "{\"version\":${RN_BUILD},\"file\":\"app-debug-beta.apk\",\"downloadUrl\":\"https://github.com/Metaheurist/Rianell/releases/latest/download/app-debug-beta.apk\"}" > rncli-android-dist/latest.json
 
       - name: Upload Android dist
         uses: actions/upload-artifact@v5
@@ -792,7 +792,7 @@ jobs:
           zip -r "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "apps/rn-app/ios"
           cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-ios-alpha-latest.zip"
           cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-simulator-alpha-${run}.zip"
-          echo "{\"version\":${run},\"file\":\"Health-Tracker-ios-alpha-build-${run}.zip\",\"simulatorFile\":\"Health-Tracker-simulator-alpha-${run}.zip\"}" > rncli-ios-dist/latest.json
+          echo "{\"version\":${run},\"file\":\"Health-Tracker-ios-alpha-build-${run}.zip\",\"simulatorFile\":\"Health-Tracker-simulator-alpha-${run}.zip\",\"installUrl\":\"https://rianell.com/artifacts/iOS/Health-Tracker-ios-alpha-latest.zip\"}" > rncli-ios-dist/latest.json
 
       - name: Upload iOS dist
         uses: actions/upload-artifact@v5
@@ -1163,7 +1163,8 @@ jobs:
       - name: Strip binaries from artifact dirs (manifest-only policy)
         run: |
           rm -f artifacts/RNCLI-Android/*.apk 2>/dev/null || true
-          rm -f artifacts/iOS/*.zip 2>/dev/null || true
+          rm -f "artifacts/iOS/Health-Tracker-ios-alpha-build-"*.zip 2>/dev/null || true
+          rm -f "artifacts/iOS/Health-Tracker-simulator-alpha-"*.zip 2>/dev/null || true
           rm -rf "artifacts/Expo/dist-expo-prod" 2>/dev/null || true
 
       - uses: ./.github/actions/setup-node-ci
@@ -1188,6 +1189,7 @@ jobs:
           for f in \
             "artifacts/RNCLI-Android/latest.json" \
             "artifacts/iOS/latest.json" \
+            "artifacts/iOS/Health-Tracker-ios-alpha-latest.zip" \
             "artifacts/Server/latest.json" \
             "artifacts/Server/latest-x64.json" \
             "artifacts/Server/latest-x86.json"; do
