@@ -14,6 +14,7 @@ const ROOT_JSON_ALLOW = new Set([
   'package-lock.json',
   'turbo.json',
   'tsconfig.json',
+  '.commitlintrc.json',
 ]);
 
 const FORBIDDEN_ROOT_FILES = [
