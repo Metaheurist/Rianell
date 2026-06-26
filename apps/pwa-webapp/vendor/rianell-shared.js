@@ -49,6 +49,7 @@ var RianellShared = (() => {
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
     ENCRYPTED_EXPORT_FORMAT: () => ENCRYPTED_EXPORT_FORMAT,
     ENCRYPTED_EXPORT_KDF_ITERATIONS: () => ENCRYPTED_EXPORT_KDF_ITERATIONS,
+    ENCRYPTED_EXPORT_MIN_LENGTH: () => ENCRYPTED_EXPORT_MIN_LENGTH,
     ENGAGEMENT_ACHIEVEMENTS: () => ENGAGEMENT_ACHIEVEMENTS,
     FIRST_RUN_STEP_IDS: () => FIRST_RUN_STEP_IDS,
     FIRST_RUN_STEP_META: () => FIRST_RUN_STEP_META,
@@ -120,11 +121,13 @@ var RianellShared = (() => {
     QR_HANDOFF_FORMAT: () => QR_HANDOFF_FORMAT,
     QR_HANDOFF_MAX_CHARS: () => QR_HANDOFF_MAX_CHARS,
     RE_ENGAGEMENT_IDLE_DAYS: () => RE_ENGAGEMENT_IDLE_DAYS,
+    SCORE_LABELS: () => SCORE_LABELS,
     SCREENING_RESPONSE_OPTIONS: () => SCREENING_RESPONSE_OPTIONS,
     SENSITIVE_STORAGE_KEYS: () => SENSITIVE_STORAGE_KEYS,
     SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
     SHARE_LINK_FORMAT: () => SHARE_LINK_FORMAT,
+    SHARE_LINK_KDF_ITERATIONS: () => SHARE_LINK_KDF_ITERATIONS,
     SHIPPED_LOCALES: () => SHIPPED_LOCALES,
     SMARTLOOK_PROJECT_KEY: () => SMARTLOOK_PROJECT_KEY,
     SMARTLOOK_REGION: () => SMARTLOOK_REGION,
@@ -201,6 +204,7 @@ var RianellShared = (() => {
     buildReEngagementNotificationContent: () => buildReEngagementNotificationContent,
     buildResearchFacetsFromLog: () => buildResearchFacetsFromLog,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
+    buildShareSnapshot: () => buildShareSnapshot,
     buildSleepFlareInsight: () => buildSleepFlareInsight,
     buildStreakReminderNotificationContent: () => buildStreakReminderNotificationContent,
     buildStructuredSummaryPrompt: () => buildStructuredSummaryPrompt,
@@ -225,6 +229,7 @@ var RianellShared = (() => {
     canOfferWeeklyReview: () => canOfferWeeklyReview,
     canSendWeekChatTurn: () => canSendWeekChatTurn,
     canViewPoolInsights: () => canViewPoolInsights,
+    checkPasswordStrength: () => checkPasswordStrength,
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
     clearMigrationPending: () => clearMigrationPending,
@@ -281,6 +286,7 @@ var RianellShared = (() => {
     extractMedDoseTakenMap: () => extractMedDoseTakenMap,
     fetchHomeWeatherSnapshot: () => fetchHomeWeatherSnapshot,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
+    fetchShareLink: () => fetchShareLink,
     fieldForLoinc: () => fieldForLoinc,
     filterLogsByDays: () => filterLogsByDays,
     filterLogsForAppointment: () => filterLogsForAppointment,
@@ -303,6 +309,7 @@ var RianellShared = (() => {
     generateDek: () => generateDek,
     generateRawApiKey: () => generateRawApiKey,
     generateSalt: () => generateSalt,
+    generateShareCode: () => generateShareCode,
     getAchievementToastQueueLength: () => getAchievementToastQueueLength,
     getBrainFogFontScale: () => getBrainFogFontScale,
     getCommunityTriggers: () => getCommunityTriggers,
@@ -376,6 +383,7 @@ var RianellShared = (() => {
     isValidPrivacyRegion: () => isValidPrivacyRegion,
     isValidWebhookUrl: () => isValidWebhookUrl,
     isVoicePromptInjection: () => isVoicePromptInjection,
+    isWeakPin: () => isWeakPin,
     isWeatherCacheFresh: () => isWeatherCacheFresh,
     isoWeekKey: () => isoWeekKey,
     isoWeekMondayKey: () => isoWeekMondayKey,
@@ -511,6 +519,7 @@ var RianellShared = (() => {
     secureStore: () => secureStore,
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
+    shareRowToEnvelope: () => shareRowToEnvelope,
     shouldActivateSessionRecording: () => shouldActivateSessionRecording,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
     shouldFireAchievementUnlockNotification: () => shouldFireAchievementUnlockNotification,
@@ -536,6 +545,7 @@ var RianellShared = (() => {
     textDirection: () => textDirection,
     touchLastActiveAt: () => touchLastActiveAt,
     unwrapDek: () => unwrapDek,
+    uploadShareLink: () => uploadShareLink,
     upsertSymptomTemplate: () => upsertSymptomTemplate,
     validateRemoteLlmEndpoint: () => validateRemoteLlmEndpoint,
     validateResearchFacets: () => validateResearchFacets,
@@ -2175,6 +2185,7 @@ var RianellShared = (() => {
   // packages/shared/src/privacy/encryptedExport.mjs
   var ENCRYPTED_EXPORT_FORMAT = "rianell-encrypted-export-v1";
   var ENCRYPTED_EXPORT_KDF_ITERATIONS = 12e4;
+  var ENCRYPTED_EXPORT_MIN_LENGTH = 12;
   function getSubtle(subtle) {
     const s = subtle || typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.subtle;
     if (!s) throw new Error("Web Crypto subtle not available");
@@ -2201,32 +2212,35 @@ var RianellShared = (() => {
     for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
     return out;
   }
-  async function deriveExportKey(passphrase, salt, subtle) {
+  async function deriveExportKey(passphrase, salt, subtle, iterations) {
     const enc = new TextEncoder();
     const cryptoSubtle = getSubtle(subtle);
+    const iters = iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
     const keyMaterial = await cryptoSubtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
     return cryptoSubtle.deriveKey(
-      { name: "PBKDF2", salt, iterations: ENCRYPTED_EXPORT_KDF_ITERATIONS, hash: "SHA-256" },
+      { name: "PBKDF2", salt, iterations: iters, hash: "SHA-256" },
       keyMaterial,
       { name: "AES-GCM", length: 256 },
       false,
       ["encrypt", "decrypt"]
     );
   }
-  async function encryptExportWithPassphrase(payload, passphrase, subtle) {
-    if (typeof passphrase !== "string" || passphrase.length < 8) {
-      throw new Error("Passphrase must be at least 8 characters");
+  async function encryptExportWithPassphrase(payload, passphrase, subtle, opts) {
+    const options = opts && typeof opts === "object" ? opts : {};
+    const iterations = options.iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
+    if (typeof passphrase !== "string" || passphrase.length < ENCRYPTED_EXPORT_MIN_LENGTH) {
+      throw new Error(`Passphrase must be at least ${ENCRYPTED_EXPORT_MIN_LENGTH} characters`);
     }
     const cryptoSubtle = getSubtle(subtle);
     const salt = randomBytes(16);
     const iv = randomBytes(12);
-    const key = await deriveExportKey(passphrase, salt, cryptoSubtle);
+    const key = await deriveExportKey(passphrase, salt, cryptoSubtle, iterations);
     const encoded = new TextEncoder().encode(JSON.stringify(payload));
     const cipher = await cryptoSubtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
     return {
       format: ENCRYPTED_EXPORT_FORMAT,
       kdf: "PBKDF2",
-      iterations: ENCRYPTED_EXPORT_KDF_ITERATIONS,
+      iterations,
       salt: bytesToBase64(salt),
       iv: bytesToBase64(iv),
       ciphertext: bytesToBase64(new Uint8Array(cipher))
@@ -2241,9 +2255,50 @@ var RianellShared = (() => {
     const salt = base64ToBytes(envelope.salt);
     const iv = base64ToBytes(envelope.iv);
     const cipher = base64ToBytes(envelope.ciphertext);
-    const key = await deriveExportKey(passphrase, salt, cryptoSubtle);
+    const iterations = envelope.iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
+    const key = await deriveExportKey(passphrase, salt, cryptoSubtle, iterations);
     const plain = await cryptoSubtle.decrypt({ name: "AES-GCM", iv }, key, cipher);
     return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  // packages/shared/src/privacy/passwordStrength.mjs
+  var SCORE_LABELS = ["Very weak", "Weak", "Fair", "Strong", "Very strong"];
+  var COMMON = ["password", "123456", "qwerty", "letmein", "welcome", "monkey"];
+  var WALKS = ["qwerty", "asdfgh", "zxcvbn", "12345678"];
+  function checkPasswordStrength(pw) {
+    if (!pw) {
+      return { score: 0, label: SCORE_LABELS[0], feedback: ["Enter a password"] };
+    }
+    let score = 0;
+    const feedback = [];
+    if (pw.length >= 12) score++;
+    else feedback.push("Use at least 12 characters");
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    else feedback.push("Mix upper and lower case");
+    if (/\d/.test(pw)) score++;
+    else feedback.push("Add a number");
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    else feedback.push("Add a special character");
+    const low = pw.toLowerCase();
+    if (COMMON.some((c) => low.includes(c)) || WALKS.some((w) => low.includes(w))) {
+      score = Math.max(0, score - 1);
+      feedback.push("Avoid common patterns");
+    }
+    const capped = Math.min(4, Math.max(0, score));
+    return {
+      score: capped,
+      label: SCORE_LABELS[capped],
+      feedback
+    };
+  }
+  function isWeakPin(pin) {
+    if (!pin || pin.length < 4) return true;
+    if (!/^\d+$/.test(pin)) return true;
+    if (/^(\d)\1+$/.test(pin)) return true;
+    const digits = pin.split("").map(Number);
+    const asc = digits.every((d, i) => i === 0 || d === digits[i - 1] + 1);
+    const desc = digits.every((d, i) => i === 0 || d === digits[i - 1] - 1);
+    return asc || desc;
   }
 
   // packages/shared/src/privacy/caregiverMode.mjs
@@ -5216,6 +5271,46 @@ ${hist}`);
 
   // packages/shared/src/export/shareReadOnlyLink.mjs
   var SHARE_LINK_FORMAT = "rianell-share-v1";
+  var SHARE_LINK_KDF_ITERATIONS = 31e4;
+  var SHARE_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  var STRIP_WHEN_NOTES_OFF = [
+    "notes",
+    "energyClarity",
+    "painLocation",
+    "food",
+    "barcodeFood",
+    "medications",
+    "medicationDoses"
+  ];
+  function generateShareCode(len = 16) {
+    const bytes = new Uint8Array(len);
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      crypto.getRandomValues(bytes);
+    } else {
+      throw new Error("crypto.getRandomValues not available");
+    }
+    return Array.from(bytes).map((b) => SHARE_CODE_CHARS[b % SHARE_CODE_CHARS.length]).join("");
+  }
+  function buildShareSnapshot(logs, opts = {}) {
+    const from = opts.dateFrom || null;
+    const to = opts.dateTo || null;
+    const includeNotes = opts.includeNotes === true;
+    const list = Array.isArray(logs) ? logs : [];
+    const filtered = list.filter((l) => l && l.date && (!from || l.date >= from) && (!to || l.date <= to)).map((l) => {
+      const entry = { ...l };
+      if (!includeNotes) {
+        STRIP_WHEN_NOTES_OFF.forEach((f) => {
+          delete entry[f];
+        });
+      }
+      return entry;
+    }).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const snapshot2 = { logs: filtered };
+    if (opts.includeCondition && opts.conditionName) {
+      snapshot2.condition = String(opts.conditionName).slice(0, 200);
+    }
+    return snapshot2;
+  }
   async function createReadOnlyShareEnvelope(logs, passphrase, expiresInHours = 72) {
     const hours = Math.min(168, Math.max(1, Number(expiresInHours) || 72));
     const expiresAt = new Date(Date.now() + hours * 3600 * 1e3).toISOString();
@@ -5232,6 +5327,78 @@ ${hist}`);
   }
   function shareEnvelopeToPortableJson(envelope) {
     return JSON.stringify(envelope, null, 2);
+  }
+  async function uploadShareLink(snapshot2, passphrase, supabaseClient, opts = {}) {
+    if (!supabaseClient || typeof supabaseClient.from !== "function") {
+      throw new Error("Supabase client unavailable");
+    }
+    const shareCode = generateShareCode();
+    const hours = Math.min(2160, Math.max(1, Number(opts.ttlHours) || 168));
+    const expiresAt = new Date(Date.now() + hours * 3600 * 1e3).toISOString();
+    const logs = snapshot2 && Array.isArray(snapshot2.logs) ? snapshot2.logs : [];
+    const payload = {
+      logs,
+      share: { readOnly: true, expiresAt }
+    };
+    if (snapshot2 && snapshot2.condition) {
+      payload.condition = snapshot2.condition;
+    }
+    const envelope = await encryptExportWithPassphrase(
+      payload,
+      passphrase,
+      void 0,
+      { iterations: SHARE_LINK_KDF_ITERATIONS }
+    );
+    const metadata = {
+      log_count: logs.length,
+      date_from: logs[0]?.date ?? null,
+      date_to: logs[logs.length - 1]?.date ?? null,
+      has_notes: opts.includeNotes === true,
+      has_condition: opts.includeCondition === true
+    };
+    const { error } = await supabaseClient.from("share_links").insert({
+      share_code: shareCode,
+      encrypted_blob: envelope.ciphertext,
+      salt: envelope.salt,
+      iv: envelope.iv,
+      kdf_iterations: envelope.iterations,
+      expires_at: expiresAt,
+      metadata
+    });
+    if (error) throw new Error(error.message || "Failed to upload share link");
+    return {
+      shareCode,
+      url: `https://rianell.com/share/${shareCode}`,
+      expiresAt
+    };
+  }
+  async function fetchShareLink(shareCode, supabaseClient) {
+    if (!supabaseClient || typeof supabaseClient.from !== "function") {
+      throw new Error("Supabase client unavailable");
+    }
+    const code = String(shareCode || "").trim();
+    if (!code) throw new Error("Share code required");
+    const { data, error } = await supabaseClient.from("share_links").select("encrypted_blob, salt, iv, kdf_iterations, expires_at, metadata").eq("share_code", code).single();
+    if (error || !data) {
+      throw new Error(error?.message || "Share link not found or expired");
+    }
+    if (typeof supabaseClient.rpc === "function") {
+      supabaseClient.rpc("increment_share_access", { p_code: code }).then(() => {
+      }).catch(() => {
+      });
+    }
+    return data;
+  }
+  function shareRowToEnvelope(row) {
+    if (!row) throw new Error("Share link data missing");
+    return {
+      format: ENCRYPTED_EXPORT_FORMAT,
+      kdf: "PBKDF2",
+      iterations: row.kdf_iterations || SHARE_LINK_KDF_ITERATIONS,
+      salt: row.salt,
+      iv: row.iv,
+      ciphertext: row.encrypted_blob
+    };
   }
 
   // packages/shared/src/export/webdavBackup.mjs
@@ -5825,8 +5992,8 @@ ${questionsBlock}
     return list.slice(-Math.max(1, Math.min(30, maxLogs)));
   }
   async function createQrHandoffPayload(logs, passphrase, opts = {}) {
-    if (typeof passphrase !== "string" || passphrase.length < 8) {
-      throw new Error("Passphrase must be at least 8 characters");
+    if (typeof passphrase !== "string" || passphrase.length < ENCRYPTED_EXPORT_MIN_LENGTH) {
+      throw new Error(`Passphrase must be at least ${ENCRYPTED_EXPORT_MIN_LENGTH} characters`);
     }
     const ttlMin = Math.min(180, Math.max(5, Number(opts.ttlMinutes) || QR_HANDOFF_DEFAULT_TTL_MINUTES));
     const expiresAt = new Date(Date.now() + ttlMin * 6e4).toISOString();

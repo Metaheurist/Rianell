@@ -199,58 +199,50 @@ function initializeEventHandlers() {
     });
   }
   
-  // Chart prediction range buttons
-  const predictionToggle = document.getElementById('predictionToggle');
-  const predRange1Day = document.getElementById('predRange1Day');
-  const predRange7Days = document.getElementById('predRange7Days');
-  const predRange30Days = document.getElementById('predRange30Days');
-  const predRange90Days = document.getElementById('predRange90Days');
-  
-  if (predictionToggle) {
-    predictionToggle.addEventListener('click', togglePredictions);
+  // Prediction range slider
+  const predictionRangeSlider = document.getElementById('predictionRangeSlider');
+  if (predictionRangeSlider) {
+    const predValues = [null, 1, 7, 30, 90];
+    predictionRangeSlider.addEventListener('input', function () {
+      const pos = parseInt(this.value, 10);
+      if (pos === 0) {
+        togglePredictions();
+      } else {
+        setPredictionRange(predValues[pos]);
+      }
+    });
+    // Initialise fill on load
+    if (typeof updateRangeSlider === 'function') updateRangeSlider('predictionRangeSlider', parseInt(predictionRangeSlider.value, 10));
   }
-  
-  if (predRange1Day) {
-    predRange1Day.addEventListener('click', () => setPredictionRange(1));
+
+  // Chart date range slider
+  const chartRangeSlider = document.getElementById('chartRangeSlider');
+  if (chartRangeSlider) {
+    const chartValues = [1, 7, 30, 90, 'custom'];
+    chartRangeSlider.addEventListener('input', function () {
+      setChartDateRange(chartValues[parseInt(this.value, 10)]);
+    });
+    if (typeof updateRangeSlider === 'function') updateRangeSlider('chartRangeSlider', parseInt(chartRangeSlider.value, 10));
   }
-  
-  if (predRange7Days) {
-    predRange7Days.addEventListener('click', () => setPredictionRange(7));
+
+  // Log date range slider
+  const logRangeSlider = document.getElementById('logRangeSlider');
+  if (logRangeSlider) {
+    const logValues = [1, 7, 30, 90];
+    logRangeSlider.addEventListener('input', function () {
+      setLogViewRange(logValues[parseInt(this.value, 10)]);
+    });
+    if (typeof updateRangeSlider === 'function') updateRangeSlider('logRangeSlider', parseInt(logRangeSlider.value, 10));
   }
-  
-  if (predRange30Days) {
-    predRange30Days.addEventListener('click', () => setPredictionRange(30));
-  }
-  
-  if (predRange90Days) {
-    predRange90Days.addEventListener('click', () => setPredictionRange(90));
-  }
-  
-  // Date range buttons
-  const range1Day = document.getElementById('range1Day');
-  const range7Days = document.getElementById('range7Days');
-  const range30Days = document.getElementById('range30Days');
-  const range90Days = document.getElementById('range90Days');
-  const rangeCustom = document.getElementById('rangeCustom');
-  
-  if (range1Day) {
-    range1Day.addEventListener('click', () => setChartDateRange(1));
-  }
-  
-  if (range7Days) {
-    range7Days.addEventListener('click', () => setChartDateRange(7));
-  }
-  
-  if (range30Days) {
-    range30Days.addEventListener('click', () => setChartDateRange(30));
-  }
-  
-  if (range90Days) {
-    range90Days.addEventListener('click', () => setChartDateRange(90));
-  }
-  
-  if (rangeCustom) {
-    rangeCustom.addEventListener('click', () => setChartDateRange('custom'));
+
+  // AI date range slider
+  const aiRangeSlider = document.getElementById('aiRangeSlider');
+  if (aiRangeSlider) {
+    const aiValues = [7, 30, 90, 'custom'];
+    aiRangeSlider.addEventListener('input', function () {
+      setAIDateRange(aiValues[parseInt(this.value, 10)]);
+    });
+    if (typeof updateRangeSlider === 'function') updateRangeSlider('aiRangeSlider', parseInt(aiRangeSlider.value, 10));
   }
   
   // Tab navigation handlers
