@@ -347,7 +347,7 @@
   <!-- Function trace runtime (before instrumented scripts; console-only, no network) -->
   <script src="trace-runtime.js?v=1"></script>
   <!-- Event Handlers Module (for CSP compliance) -->
-  <script src="event-handlers.js?v=4"></script>
+  <script src="event-handlers.js?v=5"></script>
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1000,6 +1000,7 @@
     <symbol id="icon-document" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6Z"/><path d="M14 3v4h4"/><path d="M8 11h8M8 15h8M8 18h5"/></symbol>
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-code" viewBox="0 0 24 24"><path d="M8 6L3 12L8 18M16 6L21 12L16 18M13 4L11 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-sleep" viewBox="0 0 24 24"><path d="M21 14.5A7.5 7.5 0 0 1 9.6 8.6 6.5 6.5 0 1 0 21 14.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></symbol>
     <symbol id="icon-cycle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
     <symbol id="icon-star" viewBox="0 0 24 24"><path d="M12 3.5 14.2 8.8 20 9.6 15.8 13.6 17 19.5 12 16.6 7 19.5 8.2 13.6 4 9.6 9.8 8.8Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></symbol>
@@ -1675,7 +1676,7 @@
           <h4 class="data-management-group__title"><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-document"></use></svg><span data-i18n="settings.data.export.title">Export data</span></h4>
           <div class="data-management-buttons">
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="openExportWizard('download')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-document"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.export.data">Export Data</span></button>
+            <button type="button" class="settings-data-btn export-btn" onclick="exportData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-document"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.export.data">Export Data</span></button>
           </div>
           <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="openExportWizard('sync')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-cloud-up"></use></svg></span><span class="data-management-buttons__label">Sync &amp; Share</span></button>
@@ -1687,10 +1688,10 @@
           <h4 class="data-management-group__title"><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-import-arrow"></use></svg><span data-i18n="settings.data.import.title">Import data</span></h4>
           <div class="data-management-buttons">
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn import-btn" onclick="openImportWizard('migration')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-import-arrow"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.data.import.migrationSource">Import from Bearable or Flaredown</span></button>
+            <button type="button" class="settings-data-btn import-btn" onclick="openMigrationWizard()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-import-arrow"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.data.import.migrationSource">Import from Bearable or Flaredown</span></button>
           </div>
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn import-btn" onclick="openImportWizard('native')"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-save"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.import.data">Import Data</span></button>
+            <button type="button" class="settings-data-btn import-btn" onclick="importData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-save"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.import.data">Import Data</span></button>
           </div>
           </div>
         </div>
@@ -1712,21 +1713,21 @@
               <svg class="ui-svg-icon connector-icon" aria-hidden="true"><use href="#icon-run"></use></svg>
               Strava
             </span>
-            <button type="button" class="settings-data-btn connector-connect-btn" data-connector="strava" onclick="openOAuthConnector('strava')" data-i18n="settings.connectors.connect">Connect</button>
+            <div class="connector-actions"></div>
           </div>
           <div class="connector-row" data-connector="withings">
             <span class="connector-name">
               <svg class="ui-svg-icon connector-icon" aria-hidden="true"><use href="#icon-stethoscope"></use></svg>
               Withings
             </span>
-            <button type="button" class="settings-data-btn connector-connect-btn" data-connector="withings" onclick="openOAuthConnector('withings')" data-i18n="settings.connectors.connect">Connect</button>
+            <div class="connector-actions"></div>
           </div>
           <div class="connector-row" data-connector="google-sheets">
             <span class="connector-name">
               <svg class="ui-svg-icon connector-icon" aria-hidden="true"><use href="#icon-document"></use></svg>
               Google Sheets
             </span>
-            <button type="button" class="settings-data-btn connector-connect-btn" data-connector="google-sheets" onclick="openOAuthConnector('google-sheets')" data-i18n="settings.connectors.connect">Connect</button>
+            <div class="connector-actions"></div>
           </div>
         </div>
         <div id="connectorStatusMsg" class="settings-hint connector-status-msg" hidden aria-live="polite"></div>
@@ -1735,38 +1736,6 @@
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-save"></use></svg><span data-i18n="settings.data.import.title">Import from another app</span></h4>
         <p class="settings-hint" data-i18n="settings.migration.lead">Import your health data from Bearable, Flaredown, Oura, Daylio, Apple Health, or Garmin.</p>
         <button type="button" class="settings-data-btn" onclick="openMigrationWizard()" data-i18n="settings.migration.openWizard">Open import wizard</button>
-      </div>
-      </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Developer" data-i18n-title="settings.developer.title" data-settings-pane-i18n="settings.developer.title" role="tabpanel" aria-hidden="true">
-      <div class="settings-section">
-        <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="settings.developer.title">Developer &amp; API</span></h4>
-        <p class="settings-hint" data-i18n="settings.developer.lead">Use API keys to read your health data from external tools. Requires Cloud Sync to be enabled.</p>
-        <div id="apiKeysSection" class="api-keys-section">
-          <div class="api-key-generate-row">
-            <button type="button" class="settings-data-btn" id="generateApiKeyBtn" onclick="generateApiKey()" data-i18n="settings.developer.generateKey">Generate API key</button>
-          </div>
-          <div id="apiKeyDisplay" class="api-key-display" hidden aria-live="polite"></div>
-          <div id="apiKeysList" class="api-keys-list" aria-live="polite"></div>
-        </div>
-      </div>
-      <div class="settings-section" style="margin-top: 16px;">
-        <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="settings.developer.webhooks">Webhooks</span></h4>
-        <p class="settings-hint" data-i18n="settings.developer.webhooksLead">Get notified when you log data. Enter an HTTPS URL to receive POST requests.</p>
-        <div class="settings-option settings-option--stacked" style="margin-top: 8px;">
-          <label for="webhookUrlInput" data-i18n="settings.developer.webhookUrl">Endpoint URL (HTTPS)</label>
-          <input type="url" id="webhookUrlInput" class="item-input" placeholder="https://your-server.com/hook" autocomplete="off" />
-        </div>
-        <div class="settings-option" style="margin-top: 8px;">
-          <label for="webhookEventSelect" data-i18n="settings.developer.webhookEvent">Trigger event</label>
-          <select id="webhookEventSelect" class="settings-select">
-            <option value="log.created">log.created</option>
-            <option value="flare.detected">flare.detected</option>
-            <option value="goal.achieved">goal.achieved</option>
-          </select>
-        </div>
-        <button type="button" class="settings-data-btn" style="margin-top: 8px;" onclick="saveWebhook()" data-i18n="settings.developer.saveWebhook">Save webhook</button>
-        <div id="webhookStatusMsg" class="settings-hint" hidden aria-live="polite"></div>
-        <div id="webhooksList" class="webhooks-list" style="margin-top: 10px;" aria-live="polite"></div>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Security lock" data-i18n-title="settings.security.title" data-settings-pane-i18n="settings.security.title" role="tabpanel" aria-hidden="true">
@@ -1956,6 +1925,30 @@
     </div>
   </div>
 
+  <!-- Google Sheets connector config (Plan 19 CN6) -->
+  <div class="modal-overlay sheets-config-overlay" id="sheetsConfigModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="sheetsConfigTitle">
+    <div class="modal-content sheets-config-content" onclick="event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h3 id="sheetsConfigTitle" data-i18n="settings.connectors.sheetsConfig">Configure spreadsheet</h3>
+        <button type="button" class="modal-close" onclick="closeSheetsConfigModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="sheetsConfigUrl" class="settings-label" data-i18n="common.google.sheets.url.or.id">Google Sheets URL or ID</label>
+        <input type="text" id="sheetsConfigUrl" class="settings-input" placeholder="https://docs.google.com/spreadsheets/d/..." />
+        <label for="sheetsImportRange" class="settings-label" data-i18n="settings.connectors.sheetsImportRange">Import range</label>
+        <input type="text" id="sheetsImportRange" class="settings-input" value="Sheet1!A1:O500" />
+        <label for="sheetsExportRange" class="settings-label" data-i18n="settings.connectors.sheetsExportRange">Export range</label>
+        <input type="text" id="sheetsExportRange" class="settings-input" value="Sheet1!A2:O" />
+        <p class="settings-hint" data-i18n="common.export.appends.rows.to.your.sheet.max.90">Export appends rows to your sheet (max 90 days / 500 rows per sync).</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-cancel-btn" onclick="closeSheetsConfigModal()" data-i18n="common.cancel">Cancel</button>
+        <button type="button" class="settings-data-btn" onclick="saveSheetsConfig()" data-i18n="common.save">Save</button>
+        <button type="button" class="settings-data-btn" onclick="syncConnector('google-sheets', { mode: 'export', force: true })" data-i18n="settings.connectors.exportNow">Export now</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Migration Wizard Modal (Plan 25) -->
   <div class="modal-overlay migration-wizard-overlay" id="migrationWizardModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="migrationWizardTitle">
     <div class="modal-content migration-wizard-content" onclick="event.stopPropagation()" role="document">
@@ -2015,7 +2008,12 @@
     <div class="modal-content bug-report-modal-content" onclick="event.stopPropagation()" role="document">
       <div class="modal-header">
         <h3  data-i18n="home.bugReport.title">Report a bug</h3>
-        <button type="button" class="modal-close" onclick="closeBugReportModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+        <div class="modal-header-actions">
+          <button type="button" class="modal-dev-btn" id="openDevPanelFromBug" onclick="openDevPanel()" aria-label="Developer panel" title="Developer" data-i18n-aria="developer.panel.title">
+            <svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-code"></use></svg>
+          </button>
+          <button type="button" class="modal-close" onclick="closeBugReportModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+        </div>
       </div>
       <div class="bug-report-modal-scroll">
         <div class="modal-body bug-report-modal-body">
@@ -2048,6 +2046,120 @@
       <div class="modal-footer">
         <button type="button" class="modal-save-btn modal-cancel-btn" onclick="closeBugReportModal()" data-i18n="common.cancel">Cancel</button>
         <button type="submit" form="bugReportForm" class="modal-save-btn" id="bugReportSubmitButton" data-i18n="common.submit">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay dev-panel-overlay" id="devPanelOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Developer and API" data-i18n-aria="developer.panel.title">
+    <div class="dev-panel-menu" onclick="event.stopPropagation()" role="document">
+      <div class="dev-panel-header">
+        <div class="dev-panel-header-text">
+          <h3 class="dev-panel-title">
+            <svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-code"></use></svg>
+            <span data-i18n="developer.panel.title">Developer &amp; API</span>
+          </h3>
+          <p class="dev-panel-lead" data-i18n="settings.developer.lead">Use API keys to access your health data from external tools.</p>
+        </div>
+        <button type="button" class="modal-close" onclick="closeDevPanel()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <nav class="dev-panel-tabs" role="tablist" aria-label="Developer panel sections" data-i18n-aria="common.developer.panel.sections">
+        <button type="button" class="dev-panel-tab-btn dev-panel-tab-btn--active" data-dev-tab="keys" role="tab" aria-selected="true" onclick="devPanelSwitchTab('keys')" data-i18n="developer.panel.tabs.keys">Keys</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="webhooks" role="tab" aria-selected="false" onclick="devPanelSwitchTab('webhooks')" data-i18n="developer.panel.tabs.webhooks">Webhooks</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="data" role="tab" aria-selected="false" onclick="devPanelSwitchTab('data')" data-i18n="developer.panel.tabs.data">Data</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="delivery" role="tab" aria-selected="false" onclick="devPanelSwitchTab('delivery')" data-i18n="developer.panel.tabs.delivery">Delivery log</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="fhir" role="tab" aria-selected="false" onclick="devPanelSwitchTab('fhir')" data-i18n="developer.panel.tabs.fhir">FHIR</button>
+      </nav>
+      <div class="dev-panel-body">
+        <div class="dev-panel-tab dev-panel-tab--active" data-dev-tab-panel="keys" role="tabpanel">
+          <div class="settings-section">
+            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-code"></use></svg><span data-i18n="settings.developer.apiKeys">API keys</span></h4>
+            <p class="settings-hint" data-i18n="developer.panel.keysHint">Requires Cloud Sync. Keys are shown once when generated.</p>
+            <div id="apiKeysSection" class="api-keys-section">
+              <div class="settings-option settings-option--stacked">
+                <label for="apiKeyLabelInput" data-i18n="developer.panel.keyLabel">Label (optional)</label>
+                <input type="text" id="apiKeyLabelInput" class="item-input" maxlength="80" autocomplete="off" placeholder="My integration" data-i18n-placeholder="developer.panel.keyLabelPlaceholder" />
+              </div>
+              <fieldset class="dev-api-scopes" aria-labelledby="devApiScopesLegend">
+                <legend id="devApiScopesLegend" data-i18n="developer.panel.scopes">Scopes</legend>
+                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="logs:read" checked /> logs:read</label>
+                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="logs:write" /> logs:write</label>
+                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="fhir:read" /> fhir:read</label>
+                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="webhooks:read" /> webhooks:read</label>
+              </fieldset>
+              <div class="api-key-generate-row">
+                <button type="button" class="settings-data-btn" id="generateApiKeyBtn" onclick="generateApiKey()" data-i18n="settings.developer.generateKey">Generate new key</button>
+              </div>
+              <div id="apiKeyDisplay" class="api-key-display" hidden aria-live="polite"></div>
+              <div id="apiKeysList" class="api-keys-list" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+        <div class="dev-panel-tab" data-dev-tab-panel="webhooks" role="tabpanel" hidden>
+          <div class="settings-section">
+            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="settings.developer.webhooks">Webhooks</span></h4>
+            <p class="settings-hint" data-i18n="settings.developer.webhooksLead">Get notified when you log data. Endpoint must use HTTPS.</p>
+            <div class="settings-option settings-option--stacked" style="margin-top: 8px;">
+              <label for="webhookUrlInput" data-i18n="settings.developer.webhookUrl">Endpoint URL (HTTPS)</label>
+              <input type="url" id="webhookUrlInput" class="item-input" placeholder="https://your-server.com/hook" autocomplete="off" />
+            </div>
+            <div class="settings-option" style="margin-top: 8px;">
+              <label for="webhookEventSelect" data-i18n="settings.developer.webhookEvent">Trigger event</label>
+              <select id="webhookEventSelect" class="settings-select">
+                <option value="log.created">log.created</option>
+                <option value="flare.detected">flare.detected</option>
+                <option value="goal.achieved">goal.achieved</option>
+                <option value="sync.completed">sync.completed</option>
+                <option value="export.created">export.created</option>
+              </select>
+            </div>
+            <button type="button" class="settings-data-btn" style="margin-top: 8px;" onclick="saveWebhook()" data-i18n="settings.developer.saveWebhook">Save webhook</button>
+            <div id="webhookStatusMsg" class="settings-hint" hidden aria-live="polite"></div>
+            <div id="webhooksList" class="webhooks-list" style="margin-top: 10px;" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="dev-panel-tab" data-dev-tab-panel="data" role="tabpanel" hidden>
+          <div class="settings-section">
+            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-document"></use></svg><span data-i18n="developer.panel.tabs.data">Data</span></h4>
+            <p class="settings-hint" data-i18n="developer.panel.dataHint">Browse recent local log entries. Cloud Sync stats appear when signed in.</p>
+            <div id="devDataStats" class="dev-data-stats" aria-live="polite"></div>
+            <div class="dev-data-actions">
+              <button type="button" class="settings-data-btn" onclick="loadDevDataExplorer()" data-i18n="developer.panel.refreshData">Refresh</button>
+              <button type="button" class="settings-data-btn" onclick="copyDevDataJson()" data-i18n="developer.panel.copyJson">Copy as JSON</button>
+            </div>
+            <div id="devDataTableWrap" class="dev-data-table-wrap" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="dev-panel-tab" data-dev-tab-panel="delivery" role="tabpanel" hidden>
+          <div class="settings-section">
+            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="developer.panel.tabs.delivery">Delivery log</span></h4>
+            <p class="settings-hint" data-i18n="developer.panel.deliveryHint">Recent webhook delivery attempts from Cloud Sync.</p>
+            <button type="button" class="settings-data-btn" onclick="loadDevDeliveryLog()" data-i18n="developer.panel.refreshDelivery">Refresh</button>
+            <div id="devDeliveryLog" class="dev-delivery-log" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="dev-panel-tab" data-dev-tab-panel="fhir" role="tabpanel" hidden>
+          <div class="settings-section">
+            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-stethoscope"></use></svg><span data-i18n="developer.panel.tabs.fhir">FHIR</span></h4>
+            <p class="settings-hint" data-i18n="developer.panel.fhirHint">Query your FHIR R4 resources using your current session.</p>
+            <div class="settings-option" style="margin-top: 8px;">
+              <label for="devFhirResourceSelect" data-i18n="developer.panel.fhirResource">Resource type</label>
+              <select id="devFhirResourceSelect" class="settings-select">
+                <option value="Observation">Observation</option>
+                <option value="Patient">Patient</option>
+                <option value="metadata">CapabilityStatement (metadata)</option>
+              </select>
+            </div>
+            <div class="settings-option settings-option--stacked" style="margin-top: 8px;">
+              <label for="devFhirCodeInput" data-i18n="developer.panel.fhirCode">LOINC code (Observation only, optional)</label>
+              <input type="text" id="devFhirCodeInput" class="item-input" placeholder="72133-2" autocomplete="off" />
+            </div>
+            <div class="dev-data-actions">
+              <button type="button" class="settings-data-btn" onclick="devFhirQuery()" data-i18n="developer.panel.runFhir">Run query</button>
+              <button type="button" class="settings-data-btn" onclick="copyDevFhirOutput()" data-i18n="developer.panel.copyJson">Copy JSON</button>
+            </div>
+            <pre id="devFhirOutput" class="dev-fhir-output" aria-live="polite"></pre>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -2478,15 +2590,15 @@
           <span class="section-title" data-i18n="wizard.digestion.bristol.title">Stool type (Bristol scale)</span>
         </button>
         <div class="section-content" id="digestion">
-          <div class="bristol-scale-row" role="radiogroup" aria-labelledby="bristol-scale-label">
-            <span id="bristol-scale-label" class="visually-hidden" data-i18n="wizard.digestion.bristol.title">Stool type (Bristol scale)</span>
-            <label class="bristol-option"><input type="radio" name="bristol" value="1" /> <span data-i18n="wizard.digestion.bristol.1">1</span></label>
-            <label class="bristol-option"><input type="radio" name="bristol" value="2" /> <span data-i18n="wizard.digestion.bristol.2">2</span></label>
-            <label class="bristol-option"><input type="radio" name="bristol" value="3" /> <span data-i18n="wizard.digestion.bristol.3">3</span></label>
-            <label class="bristol-option"><input type="radio" name="bristol" value="4" /> <span data-i18n="wizard.digestion.bristol.4">4</span></label>
-            <label class="bristol-option"><input type="radio" name="bristol" value="5" /> <span data-i18n="wizard.digestion.bristol.5">5</span></label>
-            <label class="bristol-option"><input type="radio" name="bristol" value="6" /> <span data-i18n="wizard.digestion.bristol.6">6</span></label>
-            <label class="bristol-option"><input type="radio" name="bristol" value="7" /> <span data-i18n="wizard.digestion.bristol.7">7</span></label>
+          <div class="slider-container bristol-slider-container">
+            <input type="range" id="bristol" name="bristol" min="1" max="7" step="1" value="4" aria-describedby="bristolTypeHint" />
+            <label for="bristol" class="slider-label" data-i18n="wizard.digestion.bristol.title">Stool type (Bristol scale)</label>
+            <p class="bristol-type-hint" id="bristolTypeHint" data-i18n="wizard.digestion.bristol.4">Type 4 - smooth sausage (ideal)</p>
+            <div class="slider-good-bad bristol-scale-hints" aria-hidden="true">
+              <span class="slider-hint-bad" data-i18n="common.hard">Hard</span>
+              <span class="slider-hint-good" data-i18n="common.good">Good</span>
+              <span class="slider-hint-bad" data-i18n="common.loose">Loose</span>
+            </div>
           </div>
         </div>
       </div>
@@ -4546,7 +4658,7 @@
   <script defer src="modules/app-lock.js?v=2"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=3"></script>
   <script defer src="modules/weekly-review.js?v=6"></script>
-  <script defer src="modules/mood-tab.js?v=2"></script>
+  <script defer src="modules/mood-tab.js?v=3"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=8"></script>
   <script defer src="first-run-wizard.js?v=2"></script>

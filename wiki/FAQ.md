@@ -43,6 +43,9 @@ Only you (encrypted per user; Supabase RLS enforces owner-only access).
 **Who can see a hosted share link?**  
 Only someone with both the link URL and the password you set. Data is encrypted with PBKDF2 (310 000 iterations) before upload. Links expire automatically (max 90 days) and have an access count limit.
 
+**Can I import from Strava or Withings?**  
+Yes, if cloud sync is enabled. Settings → **Integrations** → Connect → **Sync now**. OAuth tokens stay encrypted on the server; disconnect anytime.
+
 ---
 
 ## AI

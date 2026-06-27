@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — Rianell</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.7;
+      padding: 2rem 1rem 4rem;
+    }
+    .container { max-width: 760px; margin: 0 auto; }
+    a { color: #60a5fa; }
+    header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #2d3748; }
+    header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+    header p { color: #94a3b8; font-size: 0.9rem; }
+    h2 { font-size: 1.15rem; font-weight: 600; margin: 2rem 0 0.5rem; color: #f1f5f9; }
+    p, ul { color: #cbd5e1; margin-bottom: 0.75rem; }
+    ul { padding-left: 1.5rem; }
+    li { margin-bottom: 0.35rem; }
+    .back { display: inline-block; margin-top: 2.5rem; color: #60a5fa; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Privacy Policy</h1>
+      <p>Rianell Health App &mdash; Last updated: 27 June 2026</p>
+    </header>
+
+    <h2>1. Who we are</h2>
+    <p>Rianell ("<strong>we</strong>", "<strong>our</strong>", "<strong>us</strong>") is a personal health-tracking application available at <a href="https://rianell.com">rianell.com</a>. We are committed to protecting your privacy.</p>
+
+    <h2>2. Data we collect</h2>
+    <p>We collect only what is necessary to provide the service:</p>
+    <ul>
+      <li><strong>Account data</strong> — email address and password hash (via Supabase Auth).</li>
+      <li><strong>Health logs</strong> — symptom scores, weight, heart rate, exercise entries, and notes you enter manually.</li>
+      <li><strong>Connector data</strong> — if you connect Strava, Withings, or Google Sheets, we store OAuth access tokens (AES-256-GCM encrypted at rest) and any health metrics fetched through those integrations.</li>
+      <li><strong>Device / usage data</strong> — anonymous crash reports and performance metrics only, never tied to your identity.</li>
+    </ul>
+
+    <h2>3. How we use your data</h2>
+    <ul>
+      <li>To store and display your health logs across devices (Cloud Sync).</li>
+      <li>To sync data from third-party services you explicitly authorise.</li>
+      <li>To improve app reliability and fix bugs.</li>
+    </ul>
+    <p>We do <strong>not</strong> sell your data, share it with advertisers, or use it for AI training without your explicit consent.</p>
+
+    <h2>4. Data storage &amp; security</h2>
+    <p>All cloud data is stored in a Supabase (PostgreSQL) database hosted in the EU (Ireland, eu-west-1). OAuth tokens are encrypted with AES-256-GCM before being written to the database. Row-Level Security (RLS) ensures each user can access only their own data.</p>
+
+    <h2>5. Third-party integrations</h2>
+    <p>Connecting an integration (Strava, Withings, Google Sheets) is optional and requires your explicit authorisation. We request only the minimum scopes needed. You can disconnect any integration at any time from Settings → Connectors.</p>
+
+    <h2>6. Data retention &amp; deletion</h2>
+    <p>Your data is retained for as long as your account is active. You can delete your account and all associated data at any time from Settings → Privacy → Delete Account, or by emailing us at <a href="mailto:privacy@rianell.com">privacy@rianell.com</a>. Deletion is permanent and takes effect within 30 days.</p>
+
+    <h2>7. Cookies &amp; local storage</h2>
+    <p>We use browser local storage to cache your health logs for offline use. We do not use third-party tracking cookies.</p>
+
+    <h2>8. Your rights</h2>
+    <p>Under GDPR you have the right to access, correct, export, or delete your personal data. Contact us at <a href="mailto:privacy@rianell.com">privacy@rianell.com</a> to exercise any of these rights.</p>
+
+    <h2>9. Changes to this policy</h2>
+    <p>We may update this policy from time to time. The latest version is always available at <a href="https://rianell.com/privacy.html">rianell.com/privacy.html</a>. Continued use of the app after changes constitutes acceptance.</p>
+
+    <h2>10. Contact</h2>
+    <p>Questions? Email <a href="mailto:privacy@rianell.com">privacy@rianell.com</a>.</p>
+
+    <a class="back" href="/">&larr; Back to Rianell</a>
+  </div>
+</body>
+</html>

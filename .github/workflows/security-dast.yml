@@ -7,6 +7,9 @@ on:
 jobs:
   zap-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-node-ci
@@ -20,14 +23,13 @@ jobs:
           npx serve apps/pwa-webapp -p 8080 &
           sleep 8
       - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:8080'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a -j'
           fail_action: true
           allow_issue_writing: false
-          artifact_name: zap-baseline-report
       - name: Upload ZAP report
         if: always()
         uses: actions/upload-artifact@v5

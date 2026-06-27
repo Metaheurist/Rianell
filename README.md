@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.113.0** — Mood tab, Home UX refresh, i18n/CSP fixes; **v1.112.0** docs/plans migration and Supabase schema).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.135.0** — OAuth connectors (Strava, Withings, Google Sheets), on-device AI engine (Transformers.js 3.3.2 + ONNX Runtime), React 19, React Native 0.83.2, Supabase Edge Functions).
 
 ### Here's what we plan next
 
@@ -10,25 +10,55 @@
 
 ### Tech stack
 
-[![API](https://img.shields.io/badge/API-v1-blue)](docs/api/openapi.yaml)
-[![FHIR R4](https://img.shields.io/badge/FHIR-R4-green)](docs/connectors/fasten-health.md)
-[![n8n](https://img.shields.io/badge/n8n-node-orange)](https://www.npmjs.com/package/n8n-nodes-rianell)
+**Core**
+
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla%20%2B%20modules-F7DF1E?style=flat-square&logo=javascript&logoColor=000)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![React%20Native](https://img.shields.io/badge/React%20Native-0.83-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
-[![Expo](https://img.shields.io/badge/Expo-SDK%2055-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-24.14.1%20LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![npm](https://img.shields.io/badge/npm-11.11.0-CB3837?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/)
 [![Python](https://img.shields.io/badge/Python-server-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%26%20Auth-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://supabase.com/)
+
+**Web / PWA**
+
+[![React](https://img.shields.io/badge/React-19.2.4-61DAFB?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
 [![PWA](https://img.shields.io/badge/PWA-Service%20worker%20%26%20manifest-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
-[![esbuild](https://img.shields.io/badge/esbuild-bundle-FFCF00?style=flat-square&logo=esbuild&logoColor=000)](https://esbuild.github.io/)
+[![esbuild](https://img.shields.io/badge/esbuild-0.28.1-FFCF00?style=flat-square&logo=esbuild&logoColor=000)](https://esbuild.github.io/)
 [![ApexCharts](https://img.shields.io/badge/ApexCharts-charts-008FFB?style=flat-square)](https://apexcharts.com/)
+
+**Mobile**
+
+[![React%20Native](https://img.shields.io/badge/React%20Native-0.83.2-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2055-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev/)
+[![React%20Navigation](https://img.shields.io/badge/React%20Navigation-7.x-6B4FBB?style=flat-square&logo=react&logoColor=white)](https://reactnavigation.org/)
+
+**AI / On-device inference**
+
+[![Transformers.js](https://img.shields.io/badge/Transformers.js-3.3.2-FFD21E?style=flat-square&logo=huggingface&logoColor=000)](https://huggingface.co/docs/transformers.js)
+[![ONNX%20Runtime](https://img.shields.io/badge/ONNX%20Runtime-1.22.0%20(RN)-gray?style=flat-square&logo=onnx&logoColor=white)](https://onnxruntime.ai/)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-%40rianell%2Fai--engine-FFD21E?style=flat-square&logo=huggingface&logoColor=000)](https://huggingface.co/)
+
+**Backend / Cloud**
+
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%2017%20%26%20Auth-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://supabase.com/)
+[![Supabase%20Edge](https://img.shields.io/badge/Supabase%20Edge%20Functions-Deno-3FCF8E?style=flat-square&logo=deno&logoColor=white)](https://supabase.com/docs/guides/functions)
+[![supabase-js](https://img.shields.io/badge/supabase--js-2.100.1-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://github.com/supabase/supabase-js)
+
+**OAuth Connectors**
+
+[![Strava](https://img.shields.io/badge/Strava-connector-FC4C02?style=flat-square&logo=strava&logoColor=white)](https://developers.strava.com/)
+[![Withings](https://img.shields.io/badge/Withings-connector-00B5AD?style=flat-square)](https://developer.withings.com/)
+[![Google%20Sheets](https://img.shields.io/badge/Google%20Sheets-connector-34A853?style=flat-square&logo=googlesheets&logoColor=white)](https://developers.google.com/sheets)
+
+**Tooling & CI**
+
+[![Turbo](https://img.shields.io/badge/Turbo-2.9.18-EF4444?style=flat-square&logo=turborepo&logoColor=white)](https://turbo.build/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
 [![Smartlook](https://img.shields.io/badge/Smartlook-Session%20recording%20(EU%20opt--in)-FF6B35?style=flat-square&logo=smartlook&logoColor=white)](https://www.smartlook.com/)
+[![API](https://img.shields.io/badge/API-v1-blue)](docs/api/openapi.yaml)
+[![FHIR R4](https://img.shields.io/badge/FHIR-R4-green)](docs/connectors/fasten-health.md)
+[![n8n](https://img.shields.io/badge/n8n-node-orange)](https://www.npmjs.com/package/n8n-nodes-rianell)
 
 **React Native (Expo) builds:** CI produces minified **Expo production bundles** for **iOS + Android** as a merge gate. **`npm run dev`** starts the Expo dev server (`apps/rn-app`).
 

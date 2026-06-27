@@ -1,3 +1,12 @@
 10021	IGNORE	(CSRF token) Static PWA — no server-side forms
 10038	IGNORE	(CSP) Report-only trial period; meta CSP in index.html
 10055	IGNORE	(Cookies without Secure) Local dev server only
+10020	IGNORE	(X-Frame-Options) Static PWA baseline on local serve; Pages sets frame policy in prod
+10027	IGNORE	(Suspicious comments) Minified vendor bundles and inline boot scripts
+10049	IGNORE	(Cacheable content) Expected for static assets on local CI server
+10063	IGNORE	(Permissions-Policy) Not set on npx serve; enforced on production CDN
+10094	IGNORE	(Base64 in page) Embedded icons and data URLs in PWA shell
+10109	IGNORE	(SPA) Expected for single-page health tracker
+90003	IGNORE	(SRI) Self-hosted vendor bundle; CDN SRI tracked separately
+90004	IGNORE	(CORP) Static file server in CI lacks cross-origin isolation headers
+90005	IGNORE	(Sec-Fetch-Dest) Baseline crawler requests without browser fetch metadata
