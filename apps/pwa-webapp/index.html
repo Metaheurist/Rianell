@@ -1933,13 +1933,13 @@
         <button type="button" class="modal-close" onclick="closeSheetsConfigModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body">
-        <label for="sheetsConfigUrl" class="settings-label">Google Sheets URL or ID</label>
+        <label for="sheetsConfigUrl" class="settings-label" data-i18n="common.google.sheets.url.or.id">Google Sheets URL or ID</label>
         <input type="text" id="sheetsConfigUrl" class="settings-input" placeholder="https://docs.google.com/spreadsheets/d/..." />
         <label for="sheetsImportRange" class="settings-label" data-i18n="settings.connectors.sheetsImportRange">Import range</label>
         <input type="text" id="sheetsImportRange" class="settings-input" value="Sheet1!A1:O500" />
         <label for="sheetsExportRange" class="settings-label" data-i18n="settings.connectors.sheetsExportRange">Export range</label>
         <input type="text" id="sheetsExportRange" class="settings-input" value="Sheet1!A2:O" />
-        <p class="settings-hint">Export appends rows to your sheet (max 90 days / 500 rows per sync).</p>
+        <p class="settings-hint" data-i18n="common.export.appends.rows.to.your.sheet.max.90">Export appends rows to your sheet (max 90 days / 500 rows per sync).</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="modal-cancel-btn" onclick="closeSheetsConfigModal()" data-i18n="common.cancel">Cancel</button>
@@ -2062,7 +2062,7 @@
         </div>
         <button type="button" class="modal-close" onclick="closeDevPanel()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
-      <nav class="dev-panel-tabs" role="tablist" aria-label="Developer panel sections">
+      <nav class="dev-panel-tabs" role="tablist" aria-label="Developer panel sections" data-i18n-aria="common.developer.panel.sections">
         <button type="button" class="dev-panel-tab-btn dev-panel-tab-btn--active" data-dev-tab="keys" role="tab" aria-selected="true" onclick="devPanelSwitchTab('keys')" data-i18n="developer.panel.tabs.keys">Keys</button>
         <button type="button" class="dev-panel-tab-btn" data-dev-tab="webhooks" role="tab" aria-selected="false" onclick="devPanelSwitchTab('webhooks')" data-i18n="developer.panel.tabs.webhooks">Webhooks</button>
         <button type="button" class="dev-panel-tab-btn" data-dev-tab="data" role="tab" aria-selected="false" onclick="devPanelSwitchTab('data')" data-i18n="developer.panel.tabs.data">Data</button>
@@ -2595,9 +2595,9 @@
             <label for="bristol" class="slider-label" data-i18n="wizard.digestion.bristol.title">Stool type (Bristol scale)</label>
             <p class="bristol-type-hint" id="bristolTypeHint" data-i18n="wizard.digestion.bristol.4">Type 4 - smooth sausage (ideal)</p>
             <div class="slider-good-bad bristol-scale-hints" aria-hidden="true">
-              <span class="slider-hint-bad">Hard</span>
+              <span class="slider-hint-bad" data-i18n="common.hard">Hard</span>
               <span class="slider-hint-good" data-i18n="common.good">Good</span>
-              <span class="slider-hint-bad">Loose</span>
+              <span class="slider-hint-bad" data-i18n="common.loose">Loose</span>
             </div>
           </div>
         </div>

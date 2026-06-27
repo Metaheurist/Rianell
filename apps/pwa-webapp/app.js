@@ -18420,7 +18420,7 @@ async function loadApiKeysList() {
     });
     html += '</ul>';
     listEl.innerHTML = html;
-  } catch (e) { listEl.innerHTML = '<p class="settings-hint">Could not load API keys.</p>'; }
+  } catch (e) { listEl.innerHTML = '<p class="settings-hint">' + escapeHTML(tUi('common.could.not.load.api.keys')) + '</p>'; }
 }
 if (typeof window !== 'undefined') window.loadApiKeysList = loadApiKeysList;
 
@@ -18466,7 +18466,7 @@ async function loadWebhooksList() {
   try {
     var r = await client.from('user_webhooks').select('id, url, events, enabled, last_delivered_at, failure_count').order('created_at', { ascending: false }).limit(10);
     var rows = r && r.data || [];
-    if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">No webhooks yet.</p>'; return; }
+    if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">' + escapeHTML(tUi('common.no.webhooks.yet')) + '</p>'; return; }
     var html = '<ul class="webhooks-list-inner">';
     rows.forEach(function (w) {
       var events = Array.isArray(w.events) ? w.events.join(', ') : '';
@@ -18482,7 +18482,7 @@ async function loadWebhooksList() {
     });
     html += '</ul>';
     listEl.innerHTML = html;
-  } catch (e) { listEl.innerHTML = '<p class="settings-hint">Could not load webhooks.</p>'; }
+  } catch (e) { listEl.innerHTML = '<p class="settings-hint">' + escapeHTML(tUi('common.could.not.load.webhooks')) + '</p>'; }
 }
 if (typeof window !== 'undefined') window.loadWebhooksList = loadWebhooksList;
 
@@ -18555,7 +18555,7 @@ async function loadDevDataExplorer() {
       + '<div class="dev-data-stat"><span>' + escapeHTML(tUi('developer.panel.statsWebhooks')) + '</span><strong>' + webhookCount + '</strong></div>';
   }
   if (!_devDataExplorerRows.length) {
-    tableWrap.innerHTML = '<p class="settings-hint">No log entries to show.</p>';
+    tableWrap.innerHTML = '<p class="settings-hint">' + escapeHTML(tUi('common.no.log.entries.to.show')) + '</p>';
     return;
   }
   var html = '<table class="dev-data-table"><thead><tr><th>Date</th><th>Type</th><th>Value</th><th>Source</th></tr></thead><tbody>';
@@ -18584,7 +18584,7 @@ async function loadDevDeliveryLog() {
   try {
     var r = await client.from('webhook_deliveries').select('id, event_type, response_status, attempt, delivered_at, webhook_id, user_webhooks(url)').order('delivered_at', { ascending: false }).limit(20);
     var rows = r && r.data || [];
-    if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">No deliveries yet.</p>'; return; }
+    if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">' + escapeHTML(tUi('common.no.deliveries.yet')) + '</p>'; return; }
     var html = '<table class="dev-data-table dev-delivery-table"><thead><tr><th>Endpoint</th><th>Event</th><th>Status</th><th>Attempt</th><th>Delivered</th></tr></thead><tbody>';
     rows.forEach(function (row) {
       var url = row.user_webhooks && row.user_webhooks.url ? row.user_webhooks.url : row.webhook_id;
@@ -18596,7 +18596,7 @@ async function loadDevDeliveryLog() {
     html += '</tbody></table>';
     listEl.innerHTML = html;
   } catch (e) {
-    listEl.innerHTML = '<p class="settings-hint">Could not load delivery log.</p>';
+    listEl.innerHTML = '<p class="settings-hint">' + escapeHTML(tUi('common.could.not.load.delivery.log')) + '</p>';
   }
 }
 if (typeof window !== 'undefined') window.loadDevDeliveryLog = loadDevDeliveryLog;
@@ -18612,12 +18612,12 @@ async function devFhirQuery() {
     var sessionRes = await client.auth.getSession();
     var session = sessionRes && sessionRes.data && sessionRes.data.session;
     if (!session || !session.access_token) {
-      outputEl.textContent = 'Sign in with Cloud Sync to query FHIR.';
+      outputEl.textContent = tUi('common.sign.in.with.cloud.sync.to.query.fhir');
       return;
     }
     var baseUrl = getDevSupabaseProjectUrl(client);
     if (!baseUrl) {
-      outputEl.textContent = 'Supabase project URL not configured.';
+      outputEl.textContent = tUi('common.supabase.project.url.not.configured');
       return;
     }
     var resource = resourceSelect && resourceSelect.value ? resourceSelect.value : 'Observation';
@@ -18638,7 +18638,7 @@ async function devFhirQuery() {
     _devFhirLastOutput = JSON.stringify(body, null, 2);
     outputEl.textContent = _devFhirLastOutput;
   } catch (err) {
-    outputEl.textContent = 'FHIR query failed: ' + (err.message || 'unknown error');
+    outputEl.textContent = tUi('common.fhir.query.failed.message').replace('{message}', err.message || 'unknown error');
     _devFhirLastOutput = outputEl.textContent;
   }
 }
@@ -18936,7 +18936,7 @@ async function saveSheetsConfig() {
     ? Shared.parseGoogleSheetId(rawUrl)
     : rawUrl.trim();
   if (!sheetId) {
-    notifyError('Enter a valid Google Sheets URL or ID.');
+    notifyError(tUi('settings.connectors.sheetsInvalidUrl'));
     return;
   }
   var client = getDevSupabaseClient();
