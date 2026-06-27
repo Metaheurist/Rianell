@@ -695,6 +695,25 @@ var RianellAIEngine = (() => {
   // packages/shared/src/home/homeWeather.mjs
   var WEATHER_CACHE_MS = 60 * 60 * 1e3;
 
+  // packages/shared/src/export/logCsv.mjs
+  var LOG_CSV_FIELD_IDS = [
+    "date",
+    "bpm",
+    "weight",
+    "fatigue",
+    "stiffness",
+    "backPain",
+    "sleep",
+    "jointPain",
+    "mobility",
+    "dailyFunction",
+    "swelling",
+    "flare",
+    "mood",
+    "irritability",
+    "notes"
+  ];
+
   // packages/shared/src/crossCutting/mentalHealthScreening.mjs
   var PHQ9_QUESTIONS = [
     { id: "phq9_1", i18n: "mentalHealth.phq2.q1" },
@@ -921,6 +940,11 @@ var RianellAIEngine = (() => {
   var KEYWORD_MAP = Object.entries(FODMAP_CATEGORIES).flatMap(([key, status]) => {
     return [{ pattern: key, status }];
   });
+
+  // packages/shared/src/connectors/googleSheets.mjs
+  var DEFAULT_SHEET_COLUMN_MAP = Object.fromEntries(
+    LOG_CSV_FIELD_IDS.map((id) => [id.toLowerCase(), id])
+  );
 
   // packages/shared/src/fhir/loincMap.mjs
   var LOINC_MAP = {

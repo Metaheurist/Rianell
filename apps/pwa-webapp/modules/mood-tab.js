@@ -4,6 +4,12 @@
   var S = global.RianellShared || {};
   var _moodRangeDays = 14;
   var _moodSelectedPeriod = null;
+  var _moodPeriodUserPick = false;
+
+  function resetCheckinSelection() {
+    _moodPeriodUserPick = false;
+    _moodSelectedPeriod = null;
+  }
 
   function t(key, params) {
     if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
@@ -98,7 +104,7 @@
     var defaultPeriod = typeof global.defaultCheckinPeriod === 'function'
       ? global.defaultCheckinPeriod()
       : 'AM';
-    if (!_moodSelectedPeriod || done.has(_moodSelectedPeriod)) {
+    if (!_moodPeriodUserPick || done.has(_moodSelectedPeriod)) {
       _moodSelectedPeriod = defaultPeriod;
       if (done.has(_moodSelectedPeriod)) {
         var openPeriod = periods.find(function (p) { return !done.has(p); });
@@ -179,6 +185,7 @@
     if (moodCheckinSection && typeof global.wireCheckinSliderEvents === 'function') {
       global.wireCheckinSliderEvents(moodCheckinSection, function () { return _moodSelectedPeriod; }, function (period) {
         _moodSelectedPeriod = period;
+        _moodPeriodUserPick = true;
       });
     }
 
@@ -241,5 +248,6 @@
     renderMoodTab: function () { withCatalogsReady(renderMoodTab); },
     bindMoodTabModule: bindMoodTabModule,
     setMoodDateRange: setMoodDateRange,
+    resetCheckinSelection: resetCheckinSelection,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
