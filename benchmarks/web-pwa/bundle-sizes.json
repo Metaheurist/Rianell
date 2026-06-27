@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-27T02:33:25.698Z",
+  "generatedAt": "2026-06-27T10:37:40.006Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4542034,
-    "cssBytes": 524581,
-    "jsGzipBytes": 1081152,
-    "cssGzipBytes": 90548
+    "jsBytes": 4583542,
+    "cssBytes": 554037,
+    "jsGzipBytes": 1090017,
+    "cssGzipBytes": 95201
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1078939,
-      "gzipBytes": 234792
+      "bytes": 1087908,
+      "gzipBytes": 236688
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.d2dfafbc4838.min.js",
-      "bytes": 792425,
-      "gzipBytes": 183456
+      "file": "ci-minified/site/app.0e1b77a7558d.min.js",
+      "bytes": 799777,
+      "gzipBytes": 185115
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.6f798caa70c5.css",
-      "bytes": 507687,
-      "gzipBytes": 86332
+      "file": "ci-minified/site/styles.be304051c467.css",
+      "bytes": 537143,
+      "gzipBytes": 90985
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 354158,
-      "gzipBytes": 82037
+      "bytes": 353634,
+      "gzipBytes": 81742
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -45,13 +45,13 @@
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 105622,
-      "gzipBytes": 22671
+      "bytes": 105595,
+      "gzipBytes": 22659
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 77677,
-      "gzipBytes": 17227
+      "bytes": 77808,
+      "gzipBytes": 17287
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -70,8 +70,8 @@
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
-      "bytes": 35770,
-      "gzipBytes": 7868
+      "bytes": 37373,
+      "gzipBytes": 8186
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -94,14 +94,24 @@
       "gzipBytes": 5296
     },
     {
+      "file": "ci-minified/site/modules/mood-tab.js",
+      "bytes": 25004,
+      "gzipBytes": 5731
+    },
+    {
       "file": "ci-minified/site/notifications.js",
-      "bytes": 23798,
-      "gzipBytes": 5760
+      "bytes": 24042,
+      "gzipBytes": 5824
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 21224,
-      "gzipBytes": 5118
+      "bytes": 22128,
+      "gzipBytes": 5246
+    },
+    {
+      "file": "ci-minified/site/modules/cycle-tracking-ui.js",
+      "bytes": 21849,
+      "gzipBytes": 4958
     },
     {
       "file": "ci-minified/site/import-utils.js",
@@ -109,19 +119,14 @@
       "gzipBytes": 5029
     },
     {
-      "file": "ci-minified/site/modules/cycle-tracking-ui.js",
-      "bytes": 18533,
-      "gzipBytes": 4231
+      "file": "ci-minified/site/modules/app-lock.js",
+      "bytes": 17770,
+      "gzipBytes": 4071
     },
     {
       "file": "ci-minified/site/event-handlers.js",
       "bytes": 17437,
       "gzipBytes": 3375
-    },
-    {
-      "file": "ci-minified/site/modules/app-lock.js",
-      "bytes": 15635,
-      "gzipBytes": 3567
     },
     {
       "file": "ci-minified/site/styles-charts.css",
@@ -134,11 +139,6 @@
       "gzipBytes": 3787
     },
     {
-      "file": "ci-minified/site/modules/mood-tab.js",
-      "bytes": 11461,
-      "gzipBytes": 3114
-    },
-    {
       "file": "ci-minified/site/i18n-pwa.js",
       "bytes": 10964,
       "gzipBytes": 2642
@@ -149,6 +149,11 @@
       "gzipBytes": 2511
     },
     {
+      "file": "ci-minified/site/modules/vitals-suggest-ui.js",
+      "bytes": 7600,
+      "gzipBytes": 2102
+    },
+    {
       "file": "ci-minified/site/device-module.js",
       "bytes": 7306,
       "gzipBytes": 2118
@@ -157,11 +162,6 @@
       "file": "ci-minified/site/print-utils.js",
       "bytes": 6849,
       "gzipBytes": 2113
-    },
-    {
-      "file": "ci-minified/site/modules/vitals-suggest-ui.js",
-      "bytes": 6682,
-      "gzipBytes": 1871
     },
     {
       "file": "ci-minified/site/encryption-utils.js",
@@ -202,6 +202,11 @@
       "file": "ci-minified/site/push-subscribe.js",
       "bytes": 4964,
       "gzipBytes": 1572
+    },
+    {
+      "file": "ci-minified/site/appointment-pdf.js",
+      "bytes": 4959,
+      "gzipBytes": 1771
     },
     {
       "file": "ci-minified/site/android-update-check.js",
@@ -247,11 +252,6 @@
       "file": "ci-minified/site/llm-load-ladder-sync.js",
       "bytes": 2376,
       "gzipBytes": 872
-    },
-    {
-      "file": "ci-minified/site/appointment-pdf.js",
-      "bytes": 2015,
-      "gzipBytes": 803
     },
     {
       "file": "ci-minified/site/llm-runtime-profiles-sync.js",
