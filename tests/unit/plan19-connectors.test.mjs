@@ -38,15 +38,21 @@ test('OAUTH2_SCOPES includes logs:read', () => {
 test('CONNECTOR_PROVIDERS lists withings and strava', () => {
   assert.ok(CONNECTOR_PROVIDERS.withings);
   assert.ok(CONNECTOR_PROVIDERS.strava);
+  assert.ok(CONNECTOR_PROVIDERS['google-sheets']);
   const android = listConnectorsForPlatform('android');
   assert.ok(android.some((c) => c.id === 'health_connect'));
 });
 
-test('Schema.sql defines oauth2 tables', () => {
+test('Schema.sql defines connector_tokens table', () => {
   const schema = readFileSync(join(root, 'supabase/Schema.sql'), 'utf8');
-  assert.match(schema, /oauth2_clients/);
-  assert.match(schema, /oauth2_auth_codes/);
+  assert.match(schema, /connector_tokens/);
   assert.match(schema, /user_integrations/);
+});
+
+test('Connector OAuth edge functions exist', () => {
+  assert.ok(existsSync(join(root, 'supabase/functions/connector-auth/index.ts')));
+  assert.ok(existsSync(join(root, 'supabase/functions/connector-callback/index.ts')));
+  assert.ok(existsSync(join(root, 'supabase/functions/connector-disconnect/index.ts')));
 });
 
 test('OAuth2 edge functions exist', () => {
@@ -67,4 +73,30 @@ test('Health Connect sync module exists', () => {
 
 test('Zapier connector docs exist', () => {
   assert.ok(existsSync(join(root, 'docs/connectors/zapier-template.md')));
+});
+
+test('Connector operator SETUP.md exists', () => {
+  assert.ok(existsSync(join(root, 'docs/connectors/SETUP.md')));
+  const setup = readFileSync(join(root, 'docs/connectors/SETUP.md'), 'utf8');
+  assert.match(setup, /connector-auth/);
+  assert.match(setup, /CONNECTOR_TOKEN_SECRET/);
+});
+
+test('PWA connector-success.html exists', () => {
+  assert.ok(existsSync(join(root, 'apps/pwa-webapp/connector-success.html')));
+  const html = readFileSync(join(root, 'apps/pwa-webapp/connector-success.html'), 'utf8');
+  assert.match(html, /connector-oauth-success/);
+});
+
+test('Connector hardening migration exists', () => {
+  assert.ok(existsSync(join(root, 'supabase/migrations/20260627100000_connectors_hardening.sql')));
+  const sql = readFileSync(join(root, 'supabase/migrations/20260627100000_connectors_hardening.sql'), 'utf8');
+  assert.match(sql, /connector_tokens/);
+});
+
+test('RN oauthConnect module exists', () => {
+  assert.ok(existsSync(join(root, 'apps/rn-app/src/connectors/oauthConnect.ts')));
+  const src = readFileSync(join(root, 'apps/rn-app/src/connectors/oauthConnect.ts'), 'utf8');
+  assert.match(src, /parseConnectorCallbackUrl/);
+  assert.match(src, /rianell:/);
 });
