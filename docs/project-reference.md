@@ -4,6 +4,14 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.1 documentation sync (Post–2.0.0 polish)
+
+- **Barcode food logging (PWA):** Settings toggle + consent dashboard row; scan icon in food modal; Open Food Facts lookup; wiki privacy section for camera + lookup.
+- **App lock:** PIN encryption via `minPassphraseLength: 4`; i18n fallbacks in `app-lock.js`; `window.tUi` exposed for deferred modules.
+- **Removed:** Guided voice log extraction (`voiceLogExtract.mjs`, `guidedVoiceLogEnabled` pref).
+- **UX:** Mood reading ribbon (PWA + RN); cycle ribbon with integrated flow (PWA); BBT thermometer widget; brain fog toggle fix; passkey button styling; Developer & API panel scaling; check-in slider icons; AI download modal stability; settings nav spacing.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.1; [wiki/Privacy-and-Your-Data.md](../wiki/Privacy-and-Your-Data.md) § Barcode food logging.
+
 ### v2.0.0 documentation sync (Rianell 2.0 production)
 
 - **Version:** Root `@rianell` workspace **2.0.0**; PWA and RN app packages aligned.
@@ -58,7 +66,7 @@
 
 - **Cycle tracking:** Log wizard step 1 when `cycleModuleEnabled` — **Period started today**, day pills (1–35, expand to 45), phase tiles (SVG), flow levels; auto-suggest from last period start; first-run tutorial slide 8 to enable.
 - **Cycle day range:** Selector defaults 1–35 (`CYCLE_DAY_SELECTOR_MAX`); storage cap 45 (`CYCLE_DAY_MAX`); late hint above 35 (`CYCLE_DAY_NORMAL_MAX`).
-- **Logging modules:** Settings → Data options shows **cycle module only**; barcode food and guided voice prefs exist but are forced off and hidden until a future release ships scanner/extraction UI.
+- **Logging modules:** Settings → Data options — **cycle module** and **barcode food logging** (camera + Open Food Facts lookup).
 - **Home:** Recent patterns inset (icon + streak summary); Weekly review card gates on LLM ready — **Enable AI** triggers download consent when model not loaded.
 - **Mood tab:** Sparkline in metrics grid scales to card width on narrow viewports.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.119.0; [platform-parity.md](platform-parity.md) v1.119.0 note; [data-model.md](data-model.md) § Cycle.
@@ -103,7 +111,7 @@
 - **Home:** Single hero status card merges streak nudge when applicable; pacing/energy-budget card removed.
 - **Charts:** Insights side panel removed; core chart series and presentation mode unchanged.
 - **Screening:** PHQ-2/GAD-2 sliders in weekly-review modal (PWA) and Mood tab (RN).
-- **Logging modules** (Settings → Data options): `cycleModuleEnabled` shows cycle fields on **log wizard step 1** (SVG icons, phase suggest from last log). **Barcode food** and **guided voice extraction** are **deferred** — toggles removed from Settings; prefs forced off until scanner/extraction UI ships.
+- **Logging modules** (Settings → Data options): `cycleModuleEnabled` shows cycle fields on **log wizard step 1** (SVG icons, phase suggest from last log). **Barcode food** uses camera + Open Food Facts lookup.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0; [platform-parity.md](platform-parity.md) v1.114.0 note.
 
 ### v1.113.0 documentation sync (Mood tab and Home UX)

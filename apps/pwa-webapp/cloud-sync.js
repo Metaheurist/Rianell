@@ -2740,7 +2740,6 @@ const CONSENT_AUDIT_FIELDS = new Set([
   'aiModelDownloadConsent',
   'localOnlyMode',
   'barcodeFoodLoggingEnabled',
-  'guidedVoiceLogEnabled',
 ]);
 
 async function logConsentEventToCloud(field, value) {

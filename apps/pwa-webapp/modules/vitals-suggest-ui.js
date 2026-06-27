@@ -122,6 +122,27 @@
     if (typeof global.scheduleLogDraftPersist === 'function') global.scheduleLogDraftPersist();
   }
 
+  function renderHintContent(btn, row) {
+    var value = row.displayValue;
+    var dateStr = formatSuggestDate(row.fromDate);
+    var action = t('wizard.vitals.useLastValue.action');
+    btn.setAttribute(
+      'aria-label',
+      t('wizard.vitals.useLastValue.aria', { value: value, date: dateStr }),
+    );
+    btn.innerHTML =
+      '<span class="vitals-last-value-hint__icon" aria-hidden="true">' +
+      '<svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-import-arrow"></use></svg></span>' +
+      '<span class="vitals-last-value-hint__copy">' +
+      '<span class="vitals-last-value-hint__value"></span>' +
+      '<span class="vitals-last-value-hint__date"></span>' +
+      '</span>' +
+      '<span class="vitals-last-value-hint__action"></span>';
+    btn.querySelector('.vitals-last-value-hint__value').textContent = value;
+    btn.querySelector('.vitals-last-value-hint__date').textContent = dateStr;
+    btn.querySelector('.vitals-last-value-hint__action').textContent = action;
+  }
+
   function refresh(logs, targetDateIso) {
     if (typeof buildSuggestions !== 'function') return;
     latestSuggestions = buildSuggestions(logs || [], targetDateIso || '', {
@@ -135,12 +156,10 @@
       if (!row || !isFieldEmpty(fieldId)) {
         btn.hidden = true;
         btn.textContent = '';
+        btn.innerHTML = '';
         return;
       }
-      btn.textContent = t('wizard.vitals.useLastValue', {
-        value: row.displayValue,
-        date: formatSuggestDate(row.fromDate),
-      });
+      renderHintContent(btn, row);
       btn.hidden = false;
     });
   }

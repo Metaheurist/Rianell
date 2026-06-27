@@ -36,7 +36,6 @@ import {
   formatIsoDate,
   suggestCycleForDate,
   CYCLE_PHASES,
-  extractLogFieldsFromVoiceTranscript,
   painBodyStateToLocations,
   computeBmiKg,
   buildVitalSuggestions,
@@ -969,7 +968,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       if (!isEmpty || !row) return null;
       return (
         <VitalsLastValueHint
-          label={t('wizard.vitals.useLastValue', {
+          displayValue={row.displayValue}
+          dateLabel={formatIsoDate(row.fromDate, locale, { dateStyle: 'medium' })}
+          actionLabel={t('wizard.vitals.useLastValue.action')}
+          accessibilityLabel={t('wizard.vitals.useLastValue.aria', {
             value: row.displayValue,
             date: formatIsoDate(row.fromDate, locale, { dateStyle: 'medium' }),
           })}
@@ -1232,34 +1234,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const canWizardNext = step < WIZARD_STEPS - 1;
 
   function applyNotesFromVoice(nextNotes: string) {
-    const raw = nextNotes.slice(0, 500);
-    if (!prefs.guidedVoiceLogEnabled) {
-      setNotes(raw);
-      return;
-    }
-    const extracted = extractLogFieldsFromVoiceTranscript(raw) as {
-      mood?: number;
-      fatigue?: number;
-      sleep?: number;
-      jointPain?: number;
-      flare?: 'Yes' | 'No';
-      notes?: string;
-    };
-    const structuredKeys = ['mood', 'fatigue', 'sleep', 'jointPain', 'flare', 'notes'] as const;
-    const hasStructured = structuredKeys.some((key) => extracted[key] !== undefined);
-    if (!hasStructured) {
-      setNotes(raw);
-      return;
-    }
-    if (extracted.mood != null) setMood(String(extracted.mood));
-    if (extracted.fatigue != null) setFatigue(String(extracted.fatigue));
-    if (extracted.sleep != null) setSleep(String(extracted.sleep));
-    if (extracted.flare === 'Yes' || extracted.flare === 'No') setFlare(extracted.flare);
-    let nextNote = typeof extracted.notes === 'string' ? extracted.notes : raw;
-    if (extracted.jointPain != null && !/pain\s*\d/i.test(nextNote)) {
-      nextNote = `Pain ${extracted.jointPain}/10. ${nextNote}`.trim();
-    }
-    setNotes(nextNote.slice(0, 500));
+    setNotes(nextNotes.slice(0, 500));
   }
 
   async function saveQuickMinimal() {

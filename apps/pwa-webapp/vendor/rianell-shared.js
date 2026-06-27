@@ -22,7 +22,6 @@ var RianellShared = (() => {
   __export(index_exports, {
     ACHIEVEMENTS_STORAGE_KEY: () => ACHIEVEMENTS_STORAGE_KEY,
     ALLOWED_LLM_MODEL_HOSTS: () => ALLOWED_LLM_MODEL_HOSTS,
-    ALLOWED_VOICE_LOG_FIELDS: () => ALLOWED_VOICE_LOG_FIELDS,
     ALL_ACHIEVEMENTS: () => ALL_ACHIEVEMENTS,
     ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
     ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
@@ -168,6 +167,7 @@ var RianellShared = (() => {
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
     appointmentCountdownLabelKey: () => appointmentCountdownLabelKey,
     auditGoldenPrompt: () => auditGoldenPrompt,
+    barcodeProductToFoodItem: () => barcodeProductToFoodItem,
     base64ToSalt: () => base64ToSalt,
     base64ToWrappedDek: () => base64ToWrappedDek,
     buildAchievementUnlockNotificationContent: () => buildAchievementUnlockNotificationContent,
@@ -292,7 +292,6 @@ var RianellShared = (() => {
     enqueueAchievementToast: () => enqueueAchievementToast,
     evaluateFatigueWeekAnomaly: () => evaluateFatigueWeekAnomaly,
     existsSync: () => existsSync,
-    extractLogFieldsFromVoiceTranscript: () => extractLogFieldsFromVoiceTranscript,
     extractMedDoseTakenMap: () => extractMedDoseTakenMap,
     fetchHomeWeatherSnapshot: () => fetchHomeWeatherSnapshot,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
@@ -395,7 +394,6 @@ var RianellShared = (() => {
     isValidMedicalConditionForPool: () => isValidMedicalConditionForPool,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
     isValidWebhookUrl: () => isValidWebhookUrl,
-    isVoicePromptInjection: () => isVoicePromptInjection,
     isWeakPin: () => isWeakPin,
     isWeatherCacheFresh: () => isWeatherCacheFresh,
     isoWeekKey: () => isoWeekKey,
@@ -533,7 +531,6 @@ var RianellShared = (() => {
     runGoldenPromptAudit: () => runGoldenPromptAudit,
     saltToBase64: () => saltToBase64,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
-    sanitizeVoiceExtractResult: () => sanitizeVoiceExtractResult,
     scoreGad7FromResponses: () => scoreGad7FromResponses,
     scorePhq9FromResponses: () => scorePhq9FromResponses,
     scoreScreeningResponses: () => scoreScreeningResponses,
@@ -2146,6 +2143,7 @@ var RianellShared = (() => {
     { id: "cloudSync", labelKey: "settings.privacy.localOnly.cloudSync" },
     { id: "anonymizedSync", labelKey: "settings.privacy.localOnly.anonymizedSync" },
     { id: "modelDownload", labelKey: "settings.privacy.localOnly.modelDownload" },
+    { id: "barcodeFood", labelKey: "settings.privacy.localOnly.barcodeFood" },
     { id: "bugReport", labelKey: "settings.privacy.localOnly.bugReport" },
     { id: "remoteLlm", labelKey: "settings.privacy.localOnly.remoteLlm" },
     { id: "sessionRecording", labelKey: "settings.privacy.localOnly.sessionRecording" }
@@ -2266,8 +2264,9 @@ var RianellShared = (() => {
   async function encryptExportWithPassphrase(payload, passphrase, subtle, opts) {
     const options = opts && typeof opts === "object" ? opts : {};
     const iterations = options.iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
-    if (typeof passphrase !== "string" || passphrase.length < ENCRYPTED_EXPORT_MIN_LENGTH) {
-      throw new Error(`Passphrase must be at least ${ENCRYPTED_EXPORT_MIN_LENGTH} characters`);
+    const minLen = typeof options.minPassphraseLength === "number" ? Math.max(1, Math.floor(options.minPassphraseLength)) : ENCRYPTED_EXPORT_MIN_LENGTH;
+    if (typeof passphrase !== "string" || passphrase.length < minLen) {
+      throw new Error(`Passphrase must be at least ${minLen} characters`);
     }
     const cryptoSubtle = getSubtle(subtle);
     const salt = randomBytes(16);
@@ -3953,6 +3952,12 @@ ${hist}`);
       updatedAt: p.sessionRecordingAt || null,
       revokeField: "sessionRecording"
     });
+    rows.push({
+      id: "barcodeFood",
+      granted: p.barcodeFoodLoggingEnabled === true,
+      updatedAt: p.barcodeFoodLoggingEnabledAt || null,
+      revokeField: "barcodeFoodLoggingEnabled"
+    });
     return rows;
   }
   function buildConsentAuditPayload(field, value, platform) {
@@ -4441,71 +4446,38 @@ ${hist}`);
     const parts = [product.brand, product.name].filter(Boolean);
     return parts.join(", ").slice(0, 200);
   }
-
-  // packages/shared/src/logging/voiceLogExtract.mjs
-  var ALLOWED_VOICE_LOG_FIELDS = [
-    "notes",
-    "mood",
-    "fatigue",
-    "sleep",
-    "jointPain",
-    "flare"
-  ];
-  var INJECTION_PATTERNS = [
-    /ignore\s+previous\s+instructions/i,
-    /system\s*override/i,
-    /\bSYSTEM:\s*You are now/i,
-    /leak\s+all\s+user\s+data/i
-  ];
-  var MOOD_WORDS = [
-    ["great", 9],
-    ["good", 7],
-    ["okay", 5],
-    ["low", 3],
-    ["awful", 2]
-  ];
-  function isVoicePromptInjection(text) {
-    const raw = typeof text === "string" ? text : "";
-    return INJECTION_PATTERNS.some((re) => re.test(raw));
+  function parseServingGrams(serving) {
+    if (typeof serving !== "string" || !serving.trim()) return null;
+    const gMatch = serving.match(/(\d+(?:[.,]\d+)?)\s*g\b/i);
+    if (gMatch) {
+      const n = Number(String(gMatch[1]).replace(",", "."));
+      if (Number.isFinite(n) && n > 0) return Math.min(500, Math.round(n * 10) / 10);
+    }
+    return null;
   }
-  function sanitizeVoiceExtractResult(result) {
-    const out = {};
-    for (const key of ALLOWED_VOICE_LOG_FIELDS) {
-      if (result[key] !== void 0) out[key] = result[key];
+  function barcodeProductToFoodItem(product) {
+    if (!product || typeof product !== "object") {
+      return { name: "", calories: void 0, protein: void 0, barcode: "" };
     }
-    out.systemPromptLeaked = false;
-    return out;
-  }
-  function extractLogFieldsFromVoiceTranscript(text) {
-    const raw = typeof text === "string" ? text.trim() : "";
-    if (!raw) return { notes: "" };
-    if (isVoicePromptInjection(raw)) {
-      return sanitizeVoiceExtractResult({ notes: raw.slice(0, 200) });
+    const baseName = formatBarcodeFoodLabel(product);
+    const nutrients = product.nutrients && typeof product.nutrients === "object" ? product.nutrients : {};
+    const grams = parseServingGrams(product.serving) ?? 100;
+    const factor = grams / 100;
+    let name = baseName;
+    if (product.serving && grams !== 100) {
+      name = `${baseName} (${String(product.serving).slice(0, 48)})`;
+    } else if (grams === 100 && !product.serving) {
+      name = `${baseName} (100g)`;
     }
-    const lower = raw.toLowerCase();
-    let mood;
-    for (const [word, score] of MOOD_WORDS) {
-      if (lower.includes(word)) {
-        mood = score;
-        break;
-      }
-    }
-    const fatigueMatch = lower.match(/fatigue(?: level)?\s*(?:was|is|at)?\s*(\d{1,2})/);
-    const sleepMatch = lower.match(/sleep(?: was| is| score)?\s*(?:was|is|at)?\s*(\d{1,2})/);
-    const painMatch = lower.match(/pain(?: level)?\s*(?:was|is|at)?\s*(\d{1,2})/);
-    const flare = /\bflare\b|\bflaring\b/.test(lower) ? "Yes" : void 0;
-    const out = {
-      notes: raw.slice(0, 500),
-      mood: mood ?? (fatigueMatch ? void 0 : 5),
-      fatigue: fatigueMatch ? Math.min(10, parseInt(fatigueMatch[1], 10)) : void 0,
-      sleep: sleepMatch ? Math.min(10, parseInt(sleepMatch[1], 10)) : void 0,
-      jointPain: painMatch ? Math.min(10, parseInt(painMatch[1], 10)) : void 0,
-      flare
+    const calories = nutrients.energy_kcal != null ? Math.round(nutrients.energy_kcal * factor) : void 0;
+    const protein = nutrients.proteins_g != null ? Math.round(nutrients.proteins_g * factor * 10) / 10 : void 0;
+    return {
+      name: name.slice(0, 200),
+      calories,
+      protein,
+      barcode: String(product.barcode || "").replace(/\D/g, ""),
+      source: "barcode"
     };
-    Object.keys(out).forEach((k) => {
-      if (out[k] === void 0) delete out[k];
-    });
-    return sanitizeVoiceExtractResult(out);
   }
 
   // packages/shared/src/notifications/smartReminder.mjs

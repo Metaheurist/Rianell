@@ -15,10 +15,45 @@
   var _setupPinConfirm = '';
   var _setupConfirmStep = false;
   var _unlockMode = 'pin';
+  var _localeRefreshBound = false;
 
-  function t(key) {
-    if (typeof global.tUi === 'function') return global.tUi(key);
-    return key;
+  var I18N_FALLBACKS = {
+    'settings.security.pinSetupHint': 'Choose a 4-8 digit PIN. Avoid simple sequences like 1234.',
+    'settings.privacy.appLock.confirmPrompt': 'Confirm passcode',
+    'settings.privacy.appLock.confirmStepToast': 'Enter your PIN again to confirm',
+    'settings.privacy.appLock.pinLead': 'Enter your PIN to unlock.',
+    'settings.privacy.appLock.lead': 'Enter your passcode to unlock Rianell.',
+    'settings.security.usePassphraseInstead': 'Use passphrase instead',
+    'settings.security.usePinInstead': 'Use PIN instead',
+    'settings.security.pinTooShort': 'PIN is too short.',
+    'settings.security.pinTooWeak': 'That PIN is too easy to guess. Try a different one.',
+    'settings.privacy.appLock.failed': 'Authentication failed. Try again.',
+    'settings.privacy.appLock.mismatch': 'Passcodes do not match.',
+    'settings.security.title': 'Security lock',
+    'settings.privacy.appLock.title': 'App lock',
+    'settings.export.encrypted.placeholder': 'Passphrase (min 12 characters)',
+  };
+
+  function t(key, params) {
+    if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
+      var translated = global.RianellI18n.t(key, params);
+      if (translated !== key) return translated;
+    }
+    if (typeof global.tUi === 'function') {
+      var viaUi = global.tUi(key, params);
+      if (viaUi !== key) return viaUi;
+    }
+    return I18N_FALLBACKS[key] || key;
+  }
+
+  function bindLocaleRefresh() {
+    if (_localeRefreshBound) return;
+    if (!global.RianellI18n || typeof global.RianellI18n.onLocaleChange !== 'function') return;
+    _localeRefreshBound = true;
+    global.RianellI18n.onLocaleChange(function () {
+      updateSetupHint();
+      syncUnlockUi();
+    });
   }
 
   function getAppLockMode() {
@@ -260,6 +295,7 @@
   function bindListeners() {
     if (listenersBound) return;
     listenersBound = true;
+    bindLocaleRefresh();
     document.addEventListener('visibilitychange', onVisibilityChange);
     window.addEventListener('pagehide', onPageHide);
     window.addEventListener('pageshow', onPageShow);
@@ -277,7 +313,9 @@
     if (_unlockMode === 'pin') {
       passcode = _currentPin;
       if (passcode.length < PIN_MIN) {
-        if (typeof global.showToast === 'function') global.showToast(t('settings.security.pinTooShort'), 'error');
+        if (typeof global.showToast === 'function') {
+          global.showToast(t('settings.security.pinTooShort'), { type: 'error' });
+        }
         return false;
       }
     } else {
@@ -304,7 +342,7 @@
     var passInput3 = document.getElementById('appLockPassphraseInput');
     if (passInput3) passInput3.value = '';
     if (typeof global.showToast === 'function') {
-      global.showToast(t('settings.privacy.appLock.failed'), 'error');
+      global.showToast(t('settings.privacy.appLock.failed'), { type: 'error' });
     } else if (typeof global.showAlertModal === 'function') {
       global.showAlertModal(t('settings.privacy.appLock.failed'), t('settings.privacy.appLock.title'));
     }
@@ -348,8 +386,17 @@
     var key = _setupConfirmStep
       ? 'settings.privacy.appLock.confirmPrompt'
       : 'settings.security.pinSetupHint';
-    hint.textContent = t(key);
+    var text = t(key);
+    if (text === key && hint.textContent && hint.textContent.indexOf('.') === -1) {
+      text = hint.textContent;
+    }
+    hint.textContent = text;
     hint.setAttribute('data-i18n', key);
+  }
+
+  function refreshSetupUi() {
+    updateSetupHint();
+    syncUnlockUi();
   }
 
   function resetSetupPinState() {
@@ -387,7 +434,7 @@
         updatePinDots('appLockSetupPinDots', 0, PIN_MAX);
         updateSetupHint();
         if (typeof global.showToast === 'function') {
-          global.showToast(t('settings.privacy.appLock.confirmPrompt'), 'info');
+          global.showToast(t('settings.privacy.appLock.confirmStepToast'), { type: 'info' });
         }
         return;
       }
@@ -399,6 +446,7 @@
         _setupConfirmStep = false;
         _setupPin = '';
         updatePinDots('appLockSetupPinDots', 0, PIN_MAX);
+        updateSetupHint();
         return;
       }
       if (typeof global.saveAppLockPasscodeFromPin === 'function') {
@@ -437,7 +485,8 @@
       throw new Error('Passphrase must be at least 12 characters');
     }
     if (!S.encryptExportWithPassphrase) throw new Error('Crypto helpers unavailable');
-    var envelope = await S.encryptExportWithPassphrase({ pinCheck: 'ok' }, passcode);
+    var encryptOpts = lockMode === 'pin' ? { minPassphraseLength: PIN_MIN } : undefined;
+    var envelope = await S.encryptExportWithPassphrase({ pinCheck: 'ok' }, passcode, undefined, encryptOpts);
     writeStored(envelope);
     if (global.appSettings) {
       global.appSettings.appLockEnabled = true;
@@ -482,6 +531,7 @@
     setupKeypadPress: setupKeypadPress,
     switchUnlockMode: switchUnlockMode,
     resetSetupPinState: resetSetupPinState,
+    refreshSetupUi: refreshSetupUi,
     getSetupPin: getSetupPin,
     getSetupState: getSetupState,
     PIN_MIN: PIN_MIN,

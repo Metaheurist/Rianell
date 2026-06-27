@@ -166,6 +166,7 @@ function tUi(key, params) {
   }
   return key;
 }
+if (typeof window !== 'undefined') window.tUi = tUi;
 
 /** Content catalog label (food, exercise, stressor, etc.) with English fallback. */
 function tContent(prefix, id, fallback) {
@@ -796,6 +797,7 @@ function showAlertModal(message, title, onClose, options) {
   const messageEl = document.getElementById('alertModalMessage');
   const opts = options && typeof options === 'object' ? options : {};
   const useHtml = opts.html === true;
+  const iconId = typeof opts.icon === 'string' && opts.icon ? opts.icon : '';
   
   if (!overlay || !titleEl || !messageEl) {
     // Fallback to native alert if modal elements not found
@@ -811,7 +813,15 @@ function showAlertModal(message, title, onClose, options) {
   // Set content
   titleEl.textContent = title;
   messageEl.classList.toggle('alert-modal-message--html', useHtml);
-  if (useHtml) {
+  messageEl.classList.toggle('alert-modal-message--icon', !!iconId && !useHtml);
+  if (iconId && !useHtml) {
+    messageEl.innerHTML =
+      '<span class="alert-modal-message-with-icon">' +
+      '<svg class="ui-svg-icon alert-modal-icon" aria-hidden="true"><use href="#' + iconId + '"></use></svg>' +
+      '<span class="alert-modal-message-text"></span></span>';
+    const textEl = messageEl.querySelector('.alert-modal-message-text');
+    if (textEl) textEl.textContent = message;
+  } else if (useHtml) {
     messageEl.innerHTML = message;
   } else {
     messageEl.textContent = message;
@@ -4992,8 +5002,11 @@ if (typeof window !== 'undefined') window.toggleBodyWeightUnit = toggleBodyWeigh
 function toggleTemperatureUnit() {
   appSettings.temperatureUnit = appSettings.temperatureUnit === 'fahrenheit' ? 'celsius' : 'fahrenheit';
   var display = document.getElementById('temperatureUnitDisplay');
+  var suffix = document.getElementById('bbtValueUnitSuffix');
+  var unitLabel = appSettings.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+  if (display) display.textContent = unitLabel;
+  if (suffix) suffix.textContent = unitLabel;
   var input = document.getElementById('bbt');
-  if (display) display.textContent = appSettings.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
   if (input && input.value) {
     var n = parseFloat(input.value);
     if (!isNaN(n)) {
@@ -5049,10 +5062,17 @@ function bbtTempColor(ratio) {
   return 'hsl(' + hue + ', ' + sat + '%, ' + light + '%)';
 }
 
+function bbtTempGlowColor(hslColor, alpha) {
+  var m = /^hsl\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)$/.exec(hslColor);
+  if (!m) return 'rgba(94, 184, 255, ' + (alpha || 0.55) + ')';
+  return 'hsla(' + m[1] + ', ' + m[2] + '%, ' + m[3] + '%, ' + (alpha || 0.55) + ')';
+}
+
 function syncBbtSliderRange(preserveActiveValue) {
   var slider = document.getElementById('bbtSlider');
   var hidden = document.getElementById('bbt');
   var scaleLow = document.querySelector('.bbt-thermo-scale-low');
+  var scaleMid = document.querySelector('.bbt-thermo-scale-mid');
   var scaleHigh = document.querySelector('.bbt-thermo-scale-high');
   if (!slider) return;
   var range = getBbtDisplayRange();
@@ -5069,6 +5089,7 @@ function syncBbtSliderRange(preserveActiveValue) {
   }
   if (scaleLow) scaleLow.textContent = range.min.toFixed(1);
   if (scaleHigh) scaleHigh.textContent = range.max.toFixed(1);
+  if (scaleMid) scaleMid.textContent = ((range.min + range.max) / 2).toFixed(1);
   updateBbtThermometer(false);
 }
 
@@ -5091,23 +5112,51 @@ function updateBbtThermometer(markActive) {
   var range = getBbtDisplayRange();
   var ratio = bbtTempRatio(val, range);
   var color = bbtTempColor(ratio);
-  var glowPx = 4 + ratio * 16;
+  var colorWarm = bbtTempColor(Math.min(1, ratio + 0.12));
+  var colorCool = bbtTempColor(Math.max(0, ratio - 0.18));
+  var glowPx = 6 + ratio * 20;
 
   widget.style.setProperty('--bbt-mercury-color', color);
-  widget.style.setProperty('--bbt-glow-color', color.replace(/\)$/, ', 0.55)').replace(/^hsl\(/, 'hsla('));
+  widget.style.setProperty('--bbt-glow-color', bbtTempGlowColor(color, 0.55));
+  widget.style.setProperty('--bbt-glow-color-soft', bbtTempGlowColor(color, 0.22));
   widget.style.setProperty('--bbt-glow-size', glowPx + 'px');
+  widget.style.setProperty('--bbt-fill-pct', (ratio * 100).toFixed(1) + '%');
+  widget.setAttribute('data-bbt-ratio', ratio.toFixed(3));
+
+  var gradStops = document.querySelectorAll('#bbtMercuryGrad stop');
+  if (gradStops.length >= 2) {
+    gradStops[0].setAttribute('stop-color', colorCool);
+    gradStops[1].setAttribute('stop-color', colorWarm);
+  }
 
   if (valueDisplay) {
     valueDisplay.textContent = active ? val.toFixed(1) : '—';
+    valueDisplay.classList.toggle('bbt-thermo-value--pulse', !!markActive);
+    if (markActive) {
+      window.setTimeout(function () {
+        valueDisplay.classList.remove('bbt-thermo-value--pulse');
+      }, 280);
+    }
   }
 
   if (mercury) {
-    var fillScale = 0.06 + ratio * 0.94;
+    var fillScale = 0.08 + ratio * 0.92;
     mercury.style.transform = 'scaleY(' + fillScale.toFixed(3) + ')';
   }
 
   var glowBlur = document.querySelector('#bbtThermoGlowFilter feGaussianBlur');
-  if (glowBlur) glowBlur.setAttribute('stdDeviation', String(2 + ratio * 7));
+  if (glowBlur) glowBlur.setAttribute('stdDeviation', String(2.5 + ratio * 8));
+
+  var tickIdx = Math.round(ratio * 4);
+  document.querySelectorAll('.bbt-thermo-tick').forEach(function (line) {
+    var idx = parseInt(line.getAttribute('data-bbt-tick'), 10);
+    line.classList.toggle('bbt-thermo-tick--active', active && idx === tickIdx);
+    if (active && idx === tickIdx) {
+      line.style.stroke = colorWarm;
+    } else {
+      line.style.stroke = '';
+    }
+  });
 
   slider.style.setProperty('--rs-pct', (ratio * 100).toFixed(1) + '%');
   slider.style.setProperty('--rs-fill', color);
@@ -13395,7 +13444,7 @@ function renderFoodItems() {
       return `<div class="food-group" data-group="${escapeHTML(grp.id)}"><div class="food-group__title">${escapeHTML(grp.label)}</div><div class="food-chips">${chipsHtml}</div></div>`;
     }).join('');
     return `
-    <div class="food-category-block food-meal-collapsible">
+    <div class="food-category-block food-meal-collapsible" data-meal="${cat}">
       <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">${labels[cat]}</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
       <div class="tile-picker-slot">
         <div class="tile-picker-anchor">
@@ -13409,9 +13458,12 @@ function renderFoodItems() {
   }).join('');
 
   container.innerHTML = `
-    <div class="tile-picker-search-wrap">
+    <div class="tile-picker-search-wrap tile-picker-search-wrap--with-action">
       <label class="visually-hidden" for="foodModalTileSearch">${tUi('common.filter.foods') || 'Filter foods'}</label>
       <input type="search" class="tile-picker-search" id="foodModalTileSearch" placeholder="${tUi('logs.picker.filterFoods') || 'Search foods\u2026'}" autocomplete="off" aria-label="${tUi('common.filter.foods') || 'Filter foods'}" />
+      <button type="button" class="tile-picker-scan-btn" id="foodModalBarcodeScanBtn" aria-label="${escapeHTML(tUi('wizard.food.scanBarcode'))}" title="${escapeHTML(tUi('wizard.food.scanBarcode'))}">
+        <svg class="ui-svg-icon tile-picker-scan-icon" aria-hidden="true"><use href="#icon-barcode-scan"></use></svg>
+      </button>
     </div>
     <div class="modal-search-flat" id="foodModalSearchFlat" hidden></div>
     ${categoryBlocksHtml}
@@ -13437,6 +13489,19 @@ function renderFoodItems() {
     }
     foodModalSearch.addEventListener('input', function() { window._foodModalSearchQ = foodModalSearch.value; });
   }
+
+  var foodModalScanBtn = document.getElementById('foodModalBarcodeScanBtn');
+  if (foodModalScanBtn && !foodModalScanBtn.dataset.bound) {
+    foodModalScanBtn.dataset.bound = '1';
+    foodModalScanBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof requestBarcodeFoodScan === 'function') {
+        requestBarcodeFoodScan({ target: 'foodModal', meal: getActiveFoodMealCategory() });
+      }
+    });
+  }
+  syncFoodModalBarcodeScanBtn();
 
   // Keep food card selection badges in sync while editing an existing log (per meal category).
   container.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
@@ -16850,7 +16915,7 @@ let appSettings = {
   cycleModuleEnabled: false,
   digestiveModuleEnabled: false,
   barcodeFoodLoggingEnabled: false,
-  guidedVoiceLogEnabled: false,
+  barcodeFoodLoggingEnabledAt: null,
   glucoseUnit: 'mmol',
   temperatureUnit: 'celsius',
   heightCm: null,
@@ -17124,7 +17189,7 @@ function loadSettings() {
   appSettings.appLockEnabled = appSettings.appLockEnabled === true;
   appSettings.cloudAutoSyncOnOpen = appSettings.cloudAutoSyncOnOpen === true;
   appSettings.barcodeFoodLoggingEnabled = appSettings.barcodeFoodLoggingEnabled === true;
-  appSettings.guidedVoiceLogEnabled = appSettings.guidedVoiceLogEnabled === true;
+  appSettings.brainFogMode = appSettings.brainFogMode === true;
   if (window.RianellShared && typeof window.RianellShared.normalizeCaregiverSettings === 'function') {
     var cg = window.RianellShared.normalizeCaregiverSettings(appSettings);
     appSettings.caregiverModeEnabled = cg.caregiverModeEnabled;
@@ -18243,8 +18308,9 @@ if (typeof window !== 'undefined') window.toggleSimpleMode = toggleSimpleMode;
 
 function toggleBrainFogMode() {
   appSettings.brainFogMode = !appSettings.brainFogMode;
-  document.body.classList.toggle('brain-fog-mode', appSettings.brainFogMode === true);
+  if (typeof applyBrainFogModeClass === 'function') applyBrainFogModeClass();
   saveSettings();
+  loadSettingsState();
   applyAIFeatureVisibility();
 }
 if (typeof window !== 'undefined') window.toggleBrainFogMode = toggleBrainFogMode;
@@ -19419,11 +19485,6 @@ function loadSettingsState() {
 
   var cycleModuleToggle = document.getElementById('cycleModuleToggle');
   if (cycleModuleToggle) cycleModuleToggle.classList.toggle('active', !!appSettings.cycleModuleEnabled);
-  var guidedVoiceLogToggle = document.getElementById('guidedVoiceLogToggle');
-  if (guidedVoiceLogToggle) {
-    guidedVoiceLogToggle.classList.toggle('active', !!appSettings.guidedVoiceLogEnabled);
-    guidedVoiceLogToggle.setAttribute('aria-checked', appSettings.guidedVoiceLogEnabled ? 'true' : 'false');
-  }
   var barcodeFoodLoggingToggle = document.getElementById('barcodeFoodLoggingToggle');
   if (barcodeFoodLoggingToggle) {
     barcodeFoodLoggingToggle.classList.toggle('active', !!appSettings.barcodeFoodLoggingEnabled);
@@ -19439,13 +19500,17 @@ function loadSettingsState() {
   var settingsTemperatureUnit = document.getElementById('settingsTemperatureUnit');
   if (settingsTemperatureUnit) settingsTemperatureUnit.value = appSettings.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius';
   var temperatureUnitDisplay = document.getElementById('temperatureUnitDisplay');
-  if (temperatureUnitDisplay) temperatureUnitDisplay.textContent = appSettings.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+  var bbtValueUnitSuffix = document.getElementById('bbtValueUnitSuffix');
+  var tempUnitLabel = appSettings.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+  if (temperatureUnitDisplay) temperatureUnitDisplay.textContent = tempUnitLabel;
+  if (bbtValueUnitSuffix) bbtValueUnitSuffix.textContent = tempUnitLabel;
   if (typeof initBbtThermometer === 'function') initBbtThermometer();
   if (typeof syncBbtSliderRange === 'function') syncBbtSliderRange(true);
   var settingsHeightCm = document.getElementById('settingsHeightCm');
   if (settingsHeightCm && appSettings.heightCm) settingsHeightCm.value = String(appSettings.heightCm);
   if (typeof syncDigestiveModuleVisibility === 'function') syncDigestiveModuleVisibility();
   if (typeof syncLogWizardPlan04Ui === 'function') syncLogWizardPlan04Ui();
+  if (typeof syncFoodModalBarcodeScanBtn === 'function') syncFoodModalBarcodeScanBtn();
   
   // Update medical condition display and disable in demo mode
   const medicalConditionDisplay = document.getElementById('medicalConditionDisplay');
@@ -20168,6 +20233,9 @@ function revokeConsentDashboardRow(rowId) {
       if (typeof window !== 'undefined' && window.RianellSmartlook && typeof window.RianellSmartlook.apply === 'function') {
         window.RianellSmartlook.apply();
       }
+    } else if (rowId === 'barcodeFood') {
+      appSettings.barcodeFoodLoggingEnabled = false;
+      appSettings.barcodeFoodLoggingEnabledAt = null;
     }
     saveSettings();
     loadSettingsState();
@@ -20199,6 +20267,44 @@ function syncConsentDashboardUi() {
     };
   }
 }
+
+function toggleBarcodeFoodLoggingSetting() {
+  if (appSettings.demoMode) {
+    showAlertModal(tUi('common.disabled.in.demo.mode'), tUi('settings.demo.title'));
+    return;
+  }
+  if (appSettings.localOnlyMode) {
+    showAlertModal(tUi('settings.privacy.localOnly.barcodeFoodBlocked'), tUi('settings.privacy.localOnly.title'));
+    return;
+  }
+  if (appSettings.barcodeFoodLoggingEnabled) {
+    appSettings.barcodeFoodLoggingEnabled = false;
+    appSettings.barcodeFoodLoggingEnabledAt = null;
+    saveSettings();
+    applySettings();
+    loadSettingsState();
+    if (typeof maybeLogConsentChange === 'function') {
+      maybeLogConsentChange('barcodeFoodLoggingEnabled', false);
+    }
+    return;
+  }
+  var body = tUi('settings.logging.barcodeFood.consentBody');
+  var title = tUi('settings.logging.barcodeFood.consentTitle');
+  var onConfirm = function () {
+    appSettings.barcodeFoodLoggingEnabled = true;
+    appSettings.barcodeFoodLoggingEnabledAt = new Date().toISOString();
+    saveSettings();
+    applySettings();
+    loadSettingsState();
+    if (typeof maybeLogConsentChange === 'function') {
+      maybeLogConsentChange('barcodeFoodLoggingEnabled', true);
+    }
+  };
+  if (typeof showConfirmModal === 'function') {
+    showConfirmModal(body, title, onConfirm, null, { confirmText: tUi('common.enable') });
+  } else if (typeof confirm === 'function' && confirm(body)) onConfirm();
+}
+if (typeof window !== 'undefined') window.toggleBarcodeFoodLoggingSetting = toggleBarcodeFoodLoggingSetting;
 
 function toggleSessionRecordingSetting() {
   if (appSettings.demoMode) {
@@ -20346,6 +20452,14 @@ function syncAppLockSetupPanelUi() {
       ? tUi('settings.security.statusLocked')
       : tUi('settings.security.statusUnlocked');
     statusLabel.setAttribute('data-i18n', enabled ? 'settings.security.statusLocked' : 'settings.security.statusUnlocked');
+  }
+  if (showPanel && typeof window !== 'undefined' && window.RianellI18n && typeof window.RianellI18n.ensureCatalogs === 'function') {
+    var locale = typeof window.RianellI18n.getLocale === 'function' ? window.RianellI18n.getLocale() : 'en-GB';
+    window.RianellI18n.ensureCatalogs(locale).then(function () {
+      if (window.RianellAppLock && typeof window.RianellAppLock.refreshSetupUi === 'function') {
+        window.RianellAppLock.refreshSetupUi();
+      }
+    });
   }
 }
 
@@ -23049,7 +23163,9 @@ function renderCheckinSliderHtml(periods, done, selectedPeriod, labelFn, ctaLabe
     var isDone = done.has(period);
     var isSelected = period === selectedPeriod;
     html += '<button type="button" class="checkin-slider-stop' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(label) + '">';
+    html += '<span class="checkin-slider-icon-slot" aria-hidden="true">';
     html += svgIcon(checkinPeriodIconName(period), 'checkin-slider-stop-icon');
+    html += '</span>';
     html += '<span class="checkin-slider-stop-label">' + escapeHTML(label) + '</span>';
     html += '</button>';
   });
@@ -24236,9 +24352,96 @@ function validateLogWizardStep(step) {
 
 var _barcodeScannerActive = false;
 
-async function activateBarcodeScanner() {
+function mealLabelForBarcodeToast(meal) {
+  var labels = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
+  return labels[meal] || labels.breakfast;
+}
+
+function getActiveFoodMealCategory() {
+  var expanded = document.querySelector('#foodItemsList .food-category-summary[aria-expanded="true"]');
+  if (expanded) {
+    var block = expanded.closest('.food-category-block');
+    var meal = block && block.getAttribute('data-meal');
+    if (meal) return meal;
+  }
+  return 'breakfast';
+}
+
+function syncFoodModalBarcodeScanBtn() {
+  var btn = document.getElementById('foodModalBarcodeScanBtn');
+  if (!btn) return;
+  var enabled = appSettings.barcodeFoodLoggingEnabled === true;
+  btn.classList.toggle('tile-picker-scan-btn--off', !enabled);
+  btn.disabled = appSettings.localOnlyMode === true;
+}
+
+function barcodeProductToLogItem(product) {
+  if (window.RianellShared && typeof window.RianellShared.barcodeProductToFoodItem === 'function') {
+    return window.RianellShared.barcodeProductToFoodItem(product);
+  }
+  var label = window.RianellShared && typeof window.RianellShared.formatBarcodeFoodLabel === 'function'
+    ? window.RianellShared.formatBarcodeFoodLabel(product)
+    : (product && product.name) || 'Scanned product';
+  return { name: label, barcode: product && product.barcode ? String(product.barcode) : '' };
+}
+
+function applyBarcodeProduct(product, opts) {
+  opts = opts || {};
+  var target = opts.target || 'logWizard';
+  var meal = opts.meal || 'breakfast';
+  var item = barcodeProductToLogItem(product);
+  if (!item.name) return;
+  if (target === 'foodModal') {
+    if (!currentFoodByCategory[meal]) currentFoodByCategory[meal] = [];
+    currentFoodByCategory[meal].push(item);
+    renderFoodItems();
+  } else {
+    if (!logFormFoodByCategory[meal]) logFormFoodByCategory[meal] = [];
+    logFormFoodByCategory[meal].push(item);
+    renderLogFoodItems();
+  }
+  var mealLabel = mealLabelForBarcodeToast(meal);
+  showToast(tUi('wizard.food.scanBarcodeAddedMeal', { name: item.name, meal: mealLabel }));
+}
+
+function requestBarcodeFoodScan(opts) {
+  opts = opts || {};
+  if (appSettings.localOnlyMode) {
+    showAlertModal(tUi('settings.privacy.localOnly.barcodeFoodBlocked'), tUi('settings.privacy.localOnly.title'));
+    return;
+  }
+  if (!appSettings.barcodeFoodLoggingEnabled) {
+    var body = tUi('settings.logging.barcodeFood.consentBody');
+    var title = tUi('settings.logging.barcodeFood.consentTitle');
+    var pending = opts;
+    var onConfirm = function () {
+      appSettings.barcodeFoodLoggingEnabled = true;
+      appSettings.barcodeFoodLoggingEnabledAt = new Date().toISOString();
+      saveSettings();
+      applySettings();
+      loadSettingsState();
+      if (typeof maybeLogConsentChange === 'function') {
+        maybeLogConsentChange('barcodeFoodLoggingEnabled', true);
+      }
+      activateBarcodeScanner(pending);
+    };
+    if (typeof showConfirmModal === 'function') {
+      showConfirmModal(body, title, onConfirm, null, { confirmText: tUi('common.enable') });
+    }
+    return;
+  }
+  activateBarcodeScanner(opts);
+}
+if (typeof window !== 'undefined') window.requestBarcodeFoodScan = requestBarcodeFoodScan;
+
+async function activateBarcodeScanner(opts) {
+  opts = opts || {};
   if (_barcodeScannerActive) return;
   if (!appSettings.barcodeFoodLoggingEnabled) return;
+  if (appSettings.localOnlyMode) {
+    showAlertModal(tUi('settings.privacy.localOnly.barcodeFoodBlocked'), tUi('settings.privacy.localOnly.title'));
+    return;
+  }
   if (typeof window.BarcodeDetector === 'undefined') {
     showToast(tUi('toast.barcodeNotSupported'));
     return;
@@ -24247,11 +24450,16 @@ async function activateBarcodeScanner() {
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.id = 'barcodeScannerOverlay';
-    overlay.className = 'modal-overlay';
+    overlay.className = 'modal-overlay barcode-scanner-overlay';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', tUi('wizard.food.scanBarcode'));
-    overlay.innerHTML = '<div class="modal-content barcode-scanner-modal"><video id="barcodeScannerVideo" playsinline muted style="width:100%;max-height:60vh;border-radius:8px;"></video><p id="barcodeScannerStatus" class="settings-hint"></p><button type="button" class="btn-secondary" id="barcodeScannerCancel">' + escapeHTML(tUi('common.cancel')) + '</button></div>';
+    overlay.innerHTML = '<div class="modal-content barcode-scanner-modal">' +
+      '<div class="barcode-scanner-frame">' +
+      '<video id="barcodeScannerVideo" class="barcode-scanner-video" playsinline muted></video>' +
+      '<div class="barcode-scanner-reticle" aria-hidden="true"></div></div>' +
+      '<p id="barcodeScannerStatus" class="barcode-scanner-status settings-hint"></p>' +
+      '<button type="button" class="settings-data-btn" id="barcodeScannerCancel">' + escapeHTML(tUi('common.cancel')) + '</button></div>';
     document.body.appendChild(overlay);
   }
   var video = document.getElementById('barcodeScannerVideo');
@@ -24289,13 +24497,10 @@ async function activateBarcodeScanner() {
             : null;
           if (!fetchFn) throw new Error('barcode lookup unavailable');
           var product = await fetchFn(code);
-          var label = window.RianellShared && typeof window.RianellShared.formatBarcodeFoodLabel === 'function'
-            ? window.RianellShared.formatBarcodeFoodLabel(product)
-            : (product.name || 'Scanned product');
-          if (!logFormFoodByCategory.breakfast) logFormFoodByCategory.breakfast = [];
-          logFormFoodByCategory.breakfast.push({ name: label, barcode: code });
-          renderLogFoodItems();
-          showToast(tUi('wizard.food.scanBarcodeAdded', { name: label }));
+          applyBarcodeProduct(product, {
+            target: opts.target || 'logWizard',
+            meal: opts.meal || 'breakfast',
+          });
           cleanup();
           return;
         }
@@ -24335,14 +24540,22 @@ function bindFoodSearchUi() {
           showToast(tUi('wizard.food.noResults'));
           return;
         }
-        results.forEach(function (item) {
+        results.forEach(function (hit) {
           var li = document.createElement('li');
           li.setAttribute('role', 'option');
-          var label = window.RianellShared.formatBarcodeFoodLabel(item);
-          li.textContent = label;
+          var label = window.RianellShared.formatBarcodeFoodLabel(hit);
+          var foodItem = barcodeProductToLogItem(hit);
+          if (foodItem.calories != null || foodItem.protein != null) {
+            var parts = [label];
+            if (foodItem.calories != null) parts.push(foodItem.calories + ' cal');
+            if (foodItem.protein != null) parts.push(foodItem.protein + 'g P');
+            li.textContent = parts.join(' · ');
+          } else {
+            li.textContent = label;
+          }
           li.addEventListener('click', function () {
             if (!logFormFoodByCategory.breakfast) logFormFoodByCategory.breakfast = [];
-            logFormFoodByCategory.breakfast.push({ name: label, barcode: item.barcode });
+            logFormFoodByCategory.breakfast.push(foodItem);
             renderLogFoodItems();
             input.value = '';
             list.innerHTML = '';

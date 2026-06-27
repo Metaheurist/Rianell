@@ -33,7 +33,6 @@ Generated: 2026-06-23T21:24:45.967Z
 | medSchedule | yes | yes |
 | cycleModuleEnabled | yes | yes |
 | barcodeFoodLoggingEnabled | yes | yes |
-| guidedVoiceLogEnabled | yes | yes |
 | localOnlyMode | yes | yes |
 | appLockEnabled | yes | yes |
 | processingActivityLog | yes | yes |

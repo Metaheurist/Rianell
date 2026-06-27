@@ -7,4 +7,3 @@ export * from './symptomTemplates.mjs';
 export * from './medSchedule.mjs';
 export * from './progressiveTracking.mjs';
 export * from './barcodeFood.mjs';
-export * from './voiceLogExtract.mjs';

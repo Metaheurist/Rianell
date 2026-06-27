@@ -10,6 +10,7 @@ import {
 } from '../../packages/shared/src/export/shareReadOnlyLink.mjs';
 import {
   encryptExportWithPassphrase,
+  decryptExportWithPassphrase,
   ENCRYPTED_EXPORT_MIN_LENGTH,
 } from '../../packages/shared/src/privacy/encryptedExport.mjs';
 
@@ -154,4 +155,10 @@ test('encryptExportWithPassphrase rejects passphrase shorter than 12 chars', asy
 test('encryptExportWithPassphrase accepts exactly 12-char passphrase', async () => {
   const env = await encryptExportWithPassphrase({ x: 1 }, 'Abc123456789');
   assert.ok(env.ciphertext);
+});
+
+test('encryptExportWithPassphrase accepts short PIN when minPassphraseLength override set', async () => {
+  const env = await encryptExportWithPassphrase({ pinCheck: 'ok' }, '1234', undefined, { minPassphraseLength: 4 });
+  const plain = await decryptExportWithPassphrase(env, '1234');
+  assert.equal(plain.pinCheck, 'ok');
 });

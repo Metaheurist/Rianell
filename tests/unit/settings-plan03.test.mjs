@@ -28,9 +28,13 @@ test('settings profile export round-trip', () => {
   assert.equal(parsed.goals.steps, 5000);
 });
 
-test('consent dashboard lists six consent rows', () => {
+test('consent dashboard lists seven consent rows including barcode food', () => {
   const rows = buildConsentDashboardEntries({ healthDataConsent: true, contributeAnonData: false });
-  assert.equal(rows.length, 6);
+  assert.equal(rows.length, 7);
   assert.equal(rows[0].id, 'healthData');
   assert.ok(rows.some((r) => r.id === 'sessionRecording'));
+  const withBarcode = buildConsentDashboardEntries({ barcodeFoodLoggingEnabled: true, barcodeFoodLoggingEnabledAt: '2026-01-01' });
+  const barcodeRow = withBarcode.find((r) => r.id === 'barcodeFood');
+  assert.ok(barcodeRow);
+  assert.equal(barcodeRow.granted, true);
 });

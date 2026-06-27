@@ -90,3 +90,46 @@ export function formatBarcodeFoodLabel(product) {
   const parts = [product.brand, product.name].filter(Boolean);
   return parts.join(', ').slice(0, 200);
 }
+
+function parseServingGrams(serving) {
+  if (typeof serving !== 'string' || !serving.trim()) return null;
+  const gMatch = serving.match(/(\d+(?:[.,]\d+)?)\s*g\b/i);
+  if (gMatch) {
+    const n = Number(String(gMatch[1]).replace(',', '.'));
+    if (Number.isFinite(n) && n > 0) return Math.min(500, Math.round(n * 10) / 10);
+  }
+  return null;
+}
+
+/**
+ * Map Open Food Facts product to a log food item (name + calories + protein like predefined tiles).
+ * Uses per-100g nutrients; scales by serving grams when parseable, otherwise 100 g portion.
+ */
+export function barcodeProductToFoodItem(product) {
+  if (!product || typeof product !== 'object') {
+    return { name: '', calories: undefined, protein: undefined, barcode: '' };
+  }
+  const baseName = formatBarcodeFoodLabel(product);
+  const nutrients = product.nutrients && typeof product.nutrients === 'object' ? product.nutrients : {};
+  const grams = parseServingGrams(product.serving) ?? 100;
+  const factor = grams / 100;
+  let name = baseName;
+  if (product.serving && grams !== 100) {
+    name = `${baseName} (${String(product.serving).slice(0, 48)})`;
+  } else if (grams === 100 && !product.serving) {
+    name = `${baseName} (100g)`;
+  }
+  const calories = nutrients.energy_kcal != null
+    ? Math.round(nutrients.energy_kcal * factor)
+    : undefined;
+  const protein = nutrients.proteins_g != null
+    ? Math.round(nutrients.proteins_g * factor * 10) / 10
+    : undefined;
+  return {
+    name: name.slice(0, 200),
+    calories,
+    protein,
+    barcode: String(product.barcode || '').replace(/\D/g, ''),
+    source: 'barcode',
+  };
+}
