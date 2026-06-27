@@ -3395,7 +3395,7 @@ function svgIcon(name, className, title) {
   var KNOWN_SVG_ICONS = new Set([
     'accessibility', 'activity', 'android', 'apple', 'balance', 'bandage', 'brain', 'brain-wave', 'bundle',
     'calendar', 'calendar-heatmap', 'chart-bars', 'chart-down', 'chart-up', 'check', 'checkin-am', 'checkin-midday',
-    'checkin-pm', 'cloud', 'cloud-up', 'cycle', 'cycle-follicular', 'cycle-luteal',
+    'checkin-pm', 'cloud', 'cloud-up', 'code', 'cycle', 'cycle-follicular', 'cycle-luteal',
     'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
     'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal', 'notice',
     'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring',
@@ -5336,6 +5336,53 @@ function updateSliderColor(slider) {
   } catch (e) { /* ignore */ }
 }
 
+function updateBristolSlider(slider) {
+  if (!slider) return;
+  var value = parseInt(slider.value, 10);
+  if (isNaN(value)) value = 4;
+  var percentage = ((value - 1) / 6) * 100;
+  var fillColor;
+  if (value <= 2) {
+    fillColor = '#F44336';
+  } else if (value <= 4) {
+    fillColor = '#4CAF50';
+  } else if (value <= 5) {
+    fillColor = '#FF9800';
+  } else {
+    fillColor = '#F44336';
+  }
+
+  slider.style.setProperty('--slider-fill-pct', percentage + '%');
+  slider.style.setProperty('--slider-fill-color', fillColor);
+  slider.classList.remove('green', 'orange', 'red');
+  if (fillColor === '#4CAF50') slider.classList.add('green');
+  else if (fillColor === '#FF9800') slider.classList.add('orange');
+  else slider.classList.add('red');
+
+  try {
+    var lab = slider.parentElement && slider.parentElement.querySelector('label[for="' + slider.id + '"]');
+    if (lab) {
+      var badge = lab.querySelector('.slider-value-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'slider-value-badge';
+        badge.setAttribute('aria-hidden', 'true');
+        lab.appendChild(badge);
+      }
+      badge.textContent = String(value);
+    }
+  } catch (e) { /* ignore */ }
+
+  var hint = document.getElementById('bristolTypeHint');
+  if (hint) {
+    var key = 'wizard.digestion.bristol.' + value;
+    hint.setAttribute('data-i18n', key);
+    if (typeof tUi === 'function') {
+      hint.textContent = tUi(key);
+    }
+  }
+}
+
 sliders.forEach(sliderId => {
   const slider = document.getElementById(sliderId);
   slider.value = 5; // Set default value
@@ -5345,6 +5392,16 @@ sliders.forEach(sliderId => {
     updateSliderColor(this);
   });
 });
+
+(function initBristolSlider() {
+  var bristolSlider = document.getElementById('bristol');
+  if (!bristolSlider) return;
+  bristolSlider.value = bristolSlider.getAttribute('value') || '4';
+  updateBristolSlider(bristolSlider);
+  bristolSlider.addEventListener('input', function() {
+    updateBristolSlider(this);
+  });
+})();
 
 /** Which chart layout is active (balance | combined | individual). */
 function getCurrentChartView() {
@@ -16564,6 +16621,11 @@ form.addEventListener("submit", e => {
     slider.value = 5;
     updateSliderColor(slider);
   });
+  var bristolSlider = document.getElementById('bristol');
+  if (bristolSlider) {
+    bristolSlider.value = '4';
+    updateBristolSlider(bristolSlider);
+  }
 });
 
 function isExtreme(log) {
@@ -18079,14 +18141,30 @@ function openMigrationWizard() {
   if (btn) btn.hidden = true;
   var fileRow = document.getElementById('migrationFileRow');
   if (fileRow) fileRow.hidden = true;
-  modal.style.display = '';
-  if (typeof closeSettings === 'function') closeSettings();
+  if (typeof closeSettingsModalIfOpen === 'function') closeSettingsModalIfOpen();
+  else if (typeof closeSettings === 'function') closeSettings();
+  if (typeof openModalOverlay === 'function') {
+    openModalOverlay(modal, { onEscape: closeMigrationWizard });
+  } else {
+    modal.style.display = 'block';
+    modal.classList.add('modal-overlay--open');
+    document.body.classList.add('modal-active');
+    document.body.style.overflow = 'hidden';
+  }
 }
 if (typeof window !== 'undefined') window.openMigrationWizard = openMigrationWizard;
 
 function closeMigrationWizard() {
   var modal = document.getElementById('migrationWizardModal');
-  if (modal) modal.style.display = 'none';
+  if (!modal) return;
+  if (typeof closeModalOverlay === 'function') {
+    closeModalOverlay(modal);
+  } else {
+    modal.style.display = 'none';
+    modal.classList.remove('modal-overlay--open');
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
 }
 if (typeof window !== 'undefined') window.closeMigrationWizard = closeMigrationWizard;
 
@@ -18220,14 +18298,26 @@ async function generateApiKey() {
   try {
     var rawKey = Shared.generateRawApiKey();
     var hash = await Shared.hashApiKey(rawKey);
-    var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+    var keyPrefix = rawKey.slice(0, 16);
+    var labelEl = document.getElementById('apiKeyLabelInput');
+    var label = labelEl && labelEl.value.trim ? labelEl.value.trim() : '';
+    var scopes = getSelectedDevApiScopes();
+    if (!scopes.length) scopes = Shared.DEFAULT_API_SCOPES || ['logs:read'];
+    var client = getDevSupabaseClient();
     if (client) {
-      await client.from('api_keys').insert({ key_hash: hash, scopes: Shared.DEFAULT_API_SCOPES || ['logs:read'] });
+      var insertRow = {
+        key_hash: hash,
+        key_prefix: keyPrefix,
+        scopes: scopes,
+      };
+      if (label) insertRow.label = label.slice(0, 80);
+      await client.from('api_keys').insert(insertRow);
     }
     if (displayEl) {
-      displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + rawKey + '</code><p class="settings-hint">' + escapeHTML(tUi('settings.developer.apiKeyCopyOnceHint')) + '</p>';
+      displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + escapeHTML(rawKey) + '</code><p class="settings-hint">' + escapeHTML(tUi('settings.developer.apiKeyCopyOnceHint')) + '</p>';
       displayEl.hidden = false;
     }
+    if (labelEl) labelEl.value = '';
     if (btn) btn.disabled = false;
     loadApiKeysList();
   } catch (err) {
@@ -18236,32 +18326,111 @@ async function generateApiKey() {
 }
 if (typeof window !== 'undefined') window.generateApiKey = generateApiKey;
 
+function getDevSupabaseClient() {
+  if (typeof window.getSupabaseClient === 'function') {
+    var fromGetter = window.getSupabaseClient();
+    if (fromGetter) return fromGetter;
+  }
+  if (typeof window !== 'undefined' && window.supabaseClient) return window.supabaseClient;
+  if (typeof window !== 'undefined' && typeof window.initSupabase === 'function') return window.initSupabase();
+  return null;
+}
+
+function getSelectedDevApiScopes() {
+  var boxes = document.querySelectorAll('input[name="apiScope"]:checked');
+  var scopes = [];
+  boxes.forEach(function (box) {
+    if (box && box.value) scopes.push(box.value);
+  });
+  return scopes;
+}
+
+function getDevSupabaseProjectUrl(client) {
+  if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) return String(window.SUPABASE_CONFIG.url).replace(/\/$/, '');
+  if (client && client.supabaseUrl) return String(client.supabaseUrl).replace(/\/$/, '');
+  return '';
+}
+
+function getDevSupabaseAnonKey() {
+  if (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.anonKey) return window.SUPABASE_CONFIG.anonKey;
+  return '';
+}
+
+var _devDataExplorerRows = [];
+var _devFhirLastOutput = '';
+
+function openDevPanel() {
+  var overlay = document.getElementById('devPanelOverlay');
+  if (!overlay) return;
+  if (typeof openModalOverlay === 'function') {
+    openModalOverlay(overlay, { onEscape: closeDevPanel });
+  } else {
+    overlay.style.display = 'block';
+    overlay.style.visibility = 'visible';
+    overlay.style.opacity = '1';
+    document.body.classList.add('modal-active');
+  }
+  devPanelSwitchTab('keys');
+}
+if (typeof window !== 'undefined') window.openDevPanel = openDevPanel;
+
+function closeDevPanel() {
+  var overlay = document.getElementById('devPanelOverlay');
+  if (!overlay) return;
+  if (typeof closeModalOverlay === 'function') closeModalOverlay(overlay);
+  else overlay.style.display = 'none';
+}
+if (typeof window !== 'undefined') window.closeDevPanel = closeDevPanel;
+
+function devPanelSwitchTab(tabName) {
+  document.querySelectorAll('.dev-panel-tab-btn').forEach(function (btn) {
+    var active = btn.getAttribute('data-dev-tab') === tabName;
+    btn.classList.toggle('dev-panel-tab-btn--active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('.dev-panel-tab').forEach(function (panel) {
+    var active = panel.getAttribute('data-dev-tab-panel') === tabName;
+    panel.classList.toggle('dev-panel-tab--active', active);
+    panel.hidden = !active;
+  });
+  if (tabName === 'keys') loadApiKeysList();
+  else if (tabName === 'webhooks') loadWebhooksList();
+  else if (tabName === 'data') loadDevDataExplorer();
+  else if (tabName === 'delivery') loadDevDeliveryLog();
+}
+if (typeof window !== 'undefined') window.devPanelSwitchTab = devPanelSwitchTab;
+
 async function loadApiKeysList() {
   var listEl = document.getElementById('apiKeysList');
   if (!listEl) return;
-  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
-  if (!client) { listEl.innerHTML = ''; return; }
-  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  var client = getDevSupabaseClient();
+  if (!client) { listEl.innerHTML = '<p class="settings-hint">Cloud Sync required.</p>'; return; }
   try {
-    var r = await client.from('api_keys').select('id, created_at, scopes, key_hash').order('created_at', { ascending: false }).limit(10);
+    var r = await client.from('api_keys').select('id, created_at, scopes, key_prefix, label, last_used_at').is('revoked_at', null).order('created_at', { ascending: false }).limit(10);
     var rows = r && r.data || [];
     if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">No API keys yet.</p>'; return; }
     var html = '<ul class="api-keys-list-inner">';
-    rows.forEach(function(k) {
-      var prefix = Shared && typeof Shared.apiKeyDisplayPrefix === 'function' ? Shared.apiKeyDisplayPrefix(k.key_hash || '') : k.key_hash.slice(0,12) + '…';
-      var date = k.created_at ? new Date(k.created_at).toLocaleDateString() : '';
-      html += '<li class="api-key-row"><code>' + prefix + '</code><span class="api-key-meta">' + date + '</span><button class="api-key-revoke-btn" onclick="revokeApiKey(\'' + k.id + '\')" data-i18n="common.revoke">Revoke</button></li>';
+    rows.forEach(function (k) {
+      var prefix = k.key_prefix || 'rn_live_…';
+      var label = k.label ? escapeHTML(k.label) + ' · ' : '';
+      var scopes = Array.isArray(k.scopes) ? escapeHTML(k.scopes.join(', ')) : '';
+      var created = k.created_at ? new Date(k.created_at).toLocaleDateString() : '';
+      var lastUsed = k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : tUi('developer.panel.neverUsed');
+      html += '<li class="api-key-row"><code title="' + scopes + '">' + label + escapeHTML(prefix) + '</code><span class="api-key-meta">' + escapeHTML(created) + ' · ' + escapeHTML(lastUsed) + '</span><button type="button" class="api-key-revoke-btn" onclick="revokeApiKey(\'' + k.id + '\')" data-i18n="common.revoke">Revoke</button></li>';
     });
     html += '</ul>';
     listEl.innerHTML = html;
-  } catch(e) { listEl.innerHTML = ''; }
+  } catch (e) { listEl.innerHTML = '<p class="settings-hint">Could not load API keys.</p>'; }
 }
 if (typeof window !== 'undefined') window.loadApiKeysList = loadApiKeysList;
 
 async function revokeApiKey(id) {
-  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+  var client = getDevSupabaseClient();
   if (!client) return;
-  try { await client.from('api_keys').delete().eq('id', id); loadApiKeysList(); } catch(e) {}
+  try {
+    await client.from('api_keys').update({ revoked_at: new Date().toISOString() }).eq('id', id);
+    loadApiKeysList();
+  } catch (e) {}
 }
 if (typeof window !== 'undefined') window.revokeApiKey = revokeApiKey;
 
@@ -18276,14 +18445,14 @@ async function saveWebhook() {
   if (Shared && typeof Shared.isValidWebhookUrl === 'function' && !Shared.isValidWebhookUrl(url)) {
     if (statusEl) { statusEl.textContent = 'URL must start with https://'; statusEl.hidden = false; } return;
   }
-  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+  var client = getDevSupabaseClient();
   if (!client) { if (statusEl) { statusEl.textContent = 'Cloud Sync required.'; statusEl.hidden = false; } return; }
   try {
-    await client.from('user_webhooks').insert({ endpoint_url: url, event_type: event, enabled: true });
+    await client.from('user_webhooks').insert({ url: url, events: [event], enabled: true });
     if (urlInput) urlInput.value = '';
     if (statusEl) { statusEl.textContent = 'Webhook saved.'; statusEl.hidden = false; }
     loadWebhooksList();
-  } catch(err) {
+  } catch (err) {
     if (statusEl) { statusEl.textContent = 'Error: ' + (err.message || ''); statusEl.hidden = false; }
   }
 }
@@ -18292,103 +18461,533 @@ if (typeof window !== 'undefined') window.saveWebhook = saveWebhook;
 async function loadWebhooksList() {
   var listEl = document.getElementById('webhooksList');
   if (!listEl) return;
-  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
-  if (!client) { listEl.innerHTML = ''; return; }
+  var client = getDevSupabaseClient();
+  if (!client) { listEl.innerHTML = '<p class="settings-hint">Cloud Sync required.</p>'; return; }
   try {
-    var r = await client.from('user_webhooks').select('id, endpoint_url, event_type, enabled').order('created_at', { ascending: false }).limit(10);
+    var r = await client.from('user_webhooks').select('id, url, events, enabled, last_delivered_at, failure_count').order('created_at', { ascending: false }).limit(10);
     var rows = r && r.data || [];
-    if (!rows.length) { listEl.innerHTML = ''; return; }
+    if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">No webhooks yet.</p>'; return; }
     var html = '<ul class="webhooks-list-inner">';
-    rows.forEach(function(w) {
-      html += '<li class="webhook-row"><span class="webhook-url">' + escapeHTML(w.endpoint_url) + '</span><span class="webhook-event">' + escapeHTML(w.event_type) + '</span><button class="api-key-revoke-btn" onclick="deleteWebhook(\'' + w.id + '\')">Delete</button></li>';
+    rows.forEach(function (w) {
+      var events = Array.isArray(w.events) ? w.events.join(', ') : '';
+      var delivered = w.last_delivered_at ? new Date(w.last_delivered_at).toLocaleString() : tUi('developer.panel.neverDelivered');
+      var statusClass = w.enabled ? 'webhook-status--enabled' : 'webhook-status--disabled';
+      html += '<li class="webhook-row">'
+        + '<span class="webhook-url">' + escapeHTML(w.url) + '</span>'
+        + '<span class="webhook-event">' + escapeHTML(events) + '</span>'
+        + '<span class="webhook-meta ' + statusClass + '">' + escapeHTML(delivered) + ' · ' + String(w.failure_count || 0) + ' fails</span>'
+        + '<button type="button" class="webhook-toggle-btn" onclick="toggleWebhookEnabled(\'' + w.id + '\',' + (w.enabled ? 'false' : 'true') + ')">' + (w.enabled ? 'Disable' : 'Enable') + '</button>'
+        + '<button type="button" class="api-key-revoke-btn" onclick="deleteWebhook(\'' + w.id + '\')">Delete</button>'
+        + '</li>';
     });
     html += '</ul>';
     listEl.innerHTML = html;
-  } catch(e) { listEl.innerHTML = ''; }
+  } catch (e) { listEl.innerHTML = '<p class="settings-hint">Could not load webhooks.</p>'; }
 }
 if (typeof window !== 'undefined') window.loadWebhooksList = loadWebhooksList;
 
-async function deleteWebhook(id) {
-  var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
+async function toggleWebhookEnabled(id, enabled) {
+  var client = getDevSupabaseClient();
   if (!client) return;
-  try { await client.from('user_webhooks').delete().eq('id', id); loadWebhooksList(); } catch(e) {}
+  try {
+    await client.from('user_webhooks').update({ enabled: !!enabled }).eq('id', id);
+    loadWebhooksList();
+  } catch (e) {}
+}
+if (typeof window !== 'undefined') window.toggleWebhookEnabled = toggleWebhookEnabled;
+
+async function deleteWebhook(id) {
+  var client = getDevSupabaseClient();
+  if (!client) return;
+  try { await client.from('user_webhooks').delete().eq('id', id); loadWebhooksList(); } catch (e) {}
 }
 if (typeof window !== 'undefined') window.deleteWebhook = deleteWebhook;
 
-// Third-party connector registry — add client IDs when credentials are configured.
-var CONNECTOR_PROVIDERS = [
-  {
-    id: 'strava',
-    label: 'Strava',
-    icon: 'run',
-    clientId: '',
-    defaultScopes: ['activity:read_all'],
-    comingSoon: true
-  },
-  {
-    id: 'withings',
-    label: 'Withings',
-    icon: 'stethoscope',
-    clientId: '',
-    defaultScopes: ['user.metrics', 'user.sleepevents'],
-    comingSoon: true
-  },
-  {
-    id: 'google-sheets',
-    label: 'Google Sheets',
-    icon: 'document',
-    clientId: '',
-    defaultScopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    comingSoon: true
-  }
-];
+function summarizeDevLogEntry(entry) {
+  if (!entry || typeof entry !== 'object') return '';
+  if (entry.mood != null) return 'mood: ' + entry.mood;
+  if (entry.pain != null) return 'pain: ' + entry.pain;
+  if (entry.fatigue != null) return 'fatigue: ' + entry.fatigue;
+  if (entry.sleep_hours != null) return 'sleep: ' + entry.sleep_hours + 'h';
+  if (entry.weight != null) return 'weight: ' + entry.weight;
+  var keys = Object.keys(entry).filter(function (k) { return k !== 'date' && k !== 'source' && entry[k] != null; });
+  if (!keys.length) return '';
+  return keys[0] + ': ' + String(entry[keys[0]]);
+}
 
-function openOAuthConnector(providerSlug) {
-  var provider = CONNECTOR_PROVIDERS.find(function(p) { return p.id === providerSlug; });
+function inferDevLogType(entry) {
+  if (!entry || typeof entry !== 'object') return 'log';
+  if (entry.food && entry.food.length) return 'food';
+  if (entry.exercise && entry.exercise.length) return 'exercise';
+  if (entry.mood != null) return 'mood';
+  if (entry.pain != null) return 'pain';
+  return 'daily';
+}
+
+async function loadDevDataExplorer() {
+  var statsEl = document.getElementById('devDataStats');
+  var tableWrap = document.getElementById('devDataTableWrap');
+  if (!tableWrap) return;
+  var localLogs = typeof window !== 'undefined' && window.logs ? window.logs : (typeof logs !== 'undefined' ? logs : []);
+  _devDataExplorerRows = localLogs.slice(-50).reverse().map(function (entry) {
+    return {
+      date: entry && entry.date ? entry.date : '',
+      type: inferDevLogType(entry),
+      value: summarizeDevLogEntry(entry),
+      source: entry && entry.source ? entry.source : 'local',
+      raw: entry,
+    };
+  });
+  var keyCount = '—';
+  var webhookCount = '—';
+  var client = getDevSupabaseClient();
+  if (client) {
+    try {
+      var keyRes = await client.from('api_keys').select('id', { count: 'exact', head: true }).is('revoked_at', null);
+      var hookRes = await client.from('user_webhooks').select('id', { count: 'exact', head: true });
+      keyCount = String((keyRes && keyRes.count) || 0);
+      webhookCount = String((hookRes && hookRes.count) || 0);
+    } catch (e) {}
+  }
+  if (statsEl) {
+    statsEl.innerHTML = '<div class="dev-data-stat"><span>' + escapeHTML(tUi('developer.panel.statsLogs')) + '</span><strong>' + String(_devDataExplorerRows.length) + '</strong></div>'
+      + '<div class="dev-data-stat"><span>' + escapeHTML(tUi('developer.panel.statsKeys')) + '</span><strong>' + keyCount + '</strong></div>'
+      + '<div class="dev-data-stat"><span>' + escapeHTML(tUi('developer.panel.statsWebhooks')) + '</span><strong>' + webhookCount + '</strong></div>';
+  }
+  if (!_devDataExplorerRows.length) {
+    tableWrap.innerHTML = '<p class="settings-hint">No log entries to show.</p>';
+    return;
+  }
+  var html = '<table class="dev-data-table"><thead><tr><th>Date</th><th>Type</th><th>Value</th><th>Source</th></tr></thead><tbody>';
+  _devDataExplorerRows.forEach(function (row) {
+    html += '<tr><td>' + escapeHTML(row.date) + '</td><td>' + escapeHTML(row.type) + '</td><td>' + escapeHTML(row.value) + '</td><td>' + escapeHTML(row.source) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  tableWrap.innerHTML = html;
+}
+if (typeof window !== 'undefined') window.loadDevDataExplorer = loadDevDataExplorer;
+
+function copyDevDataJson() {
+  var payload = _devDataExplorerRows.map(function (row) { return row.raw || row; });
+  var text = JSON.stringify(payload, null, 2);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(function () {});
+  }
+}
+if (typeof window !== 'undefined') window.copyDevDataJson = copyDevDataJson;
+
+async function loadDevDeliveryLog() {
+  var listEl = document.getElementById('devDeliveryLog');
+  if (!listEl) return;
+  var client = getDevSupabaseClient();
+  if (!client) { listEl.innerHTML = '<p class="settings-hint">Cloud Sync required.</p>'; return; }
+  try {
+    var r = await client.from('webhook_deliveries').select('id, event_type, response_status, attempt, delivered_at, webhook_id, user_webhooks(url)').order('delivered_at', { ascending: false }).limit(20);
+    var rows = r && r.data || [];
+    if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">No deliveries yet.</p>'; return; }
+    var html = '<table class="dev-data-table dev-delivery-table"><thead><tr><th>Endpoint</th><th>Event</th><th>Status</th><th>Attempt</th><th>Delivered</th></tr></thead><tbody>';
+    rows.forEach(function (row) {
+      var url = row.user_webhooks && row.user_webhooks.url ? row.user_webhooks.url : row.webhook_id;
+      var status = row.response_status;
+      var statusClass = status >= 200 && status < 300 ? 'dev-status--ok' : (status >= 400 ? 'dev-status--err' : 'dev-status--warn');
+      var delivered = row.delivered_at ? new Date(row.delivered_at).toLocaleString() : '';
+      html += '<tr><td>' + escapeHTML(String(url || '')) + '</td><td>' + escapeHTML(row.event_type || '') + '</td><td class="' + statusClass + '">' + escapeHTML(String(status != null ? status : '—')) + '</td><td>' + escapeHTML(String(row.attempt != null ? row.attempt : 1)) + '</td><td>' + escapeHTML(delivered) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    listEl.innerHTML = html;
+  } catch (e) {
+    listEl.innerHTML = '<p class="settings-hint">Could not load delivery log.</p>';
+  }
+}
+if (typeof window !== 'undefined') window.loadDevDeliveryLog = loadDevDeliveryLog;
+
+async function devFhirQuery() {
+  var outputEl = document.getElementById('devFhirOutput');
+  var resourceSelect = document.getElementById('devFhirResourceSelect');
+  var codeInput = document.getElementById('devFhirCodeInput');
+  if (!outputEl) return;
+  var client = getDevSupabaseClient();
+  if (!client) { outputEl.textContent = 'Cloud Sync required.'; return; }
+  try {
+    var sessionRes = await client.auth.getSession();
+    var session = sessionRes && sessionRes.data && sessionRes.data.session;
+    if (!session || !session.access_token) {
+      outputEl.textContent = 'Sign in with Cloud Sync to query FHIR.';
+      return;
+    }
+    var baseUrl = getDevSupabaseProjectUrl(client);
+    if (!baseUrl) {
+      outputEl.textContent = 'Supabase project URL not configured.';
+      return;
+    }
+    var resource = resourceSelect && resourceSelect.value ? resourceSelect.value : 'Observation';
+    var userId = session.user && session.user.id ? session.user.id : '';
+    var path = '';
+    if (resource === 'metadata') path = 'metadata';
+    else if (resource === 'Patient') path = 'Patient/' + encodeURIComponent(userId);
+    else {
+      path = 'Observation?patient=' + encodeURIComponent(userId);
+      var code = codeInput && codeInput.value ? codeInput.value.trim() : '';
+      if (code) path += '&code=' + encodeURIComponent(code);
+    }
+    var headers = { Authorization: 'Bearer ' + session.access_token };
+    var anonKey = getDevSupabaseAnonKey();
+    if (anonKey) headers.apikey = anonKey;
+    var res = await fetch(baseUrl + '/functions/v1/fhir-r4/' + path, { headers: headers });
+    var body = await res.json();
+    _devFhirLastOutput = JSON.stringify(body, null, 2);
+    outputEl.textContent = _devFhirLastOutput;
+  } catch (err) {
+    outputEl.textContent = 'FHIR query failed: ' + (err.message || 'unknown error');
+    _devFhirLastOutput = outputEl.textContent;
+  }
+}
+if (typeof window !== 'undefined') window.devFhirQuery = devFhirQuery;
+
+function copyDevFhirOutput() {
+  var text = _devFhirLastOutput || (document.getElementById('devFhirOutput') && document.getElementById('devFhirOutput').textContent) || '';
+  if (text && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(function () {});
+  }
+}
+if (typeof window !== 'undefined') window.copyDevFhirOutput = copyDevFhirOutput;
+
+// Third-party OAuth connectors (Plan 19 CN4–CN7)
+var PWA_OAUTH_CONNECTORS = [
+  { id: 'strava', label: 'Strava', icon: 'run', syncFn: 'connector-strava' },
+  { id: 'withings', label: 'Withings', icon: 'stethoscope', syncFn: 'connector-withings' },
+  { id: 'google-sheets', label: 'Google Sheets', icon: 'document', syncFn: 'connector-google-sheets' }
+];
+var _connectorStatusById = {};
+var _connectorSyncCooldownUntil = 0;
+var _connectorOAuthWin = null;
+
+function connectorsBlockedReason() {
+  if (appSettings && appSettings.localOnlyMode) return 'local-only';
+  if (typeof cloudSyncState !== 'undefined' && !cloudSyncState.isAuthenticated) return 'cloud';
+  if (!getDevSupabaseClient()) return 'cloud';
+  return '';
+}
+
+function formatConnectorLastSync(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleString();
+  } catch (e) {
+    return String(iso);
+  }
+}
+
+function showConnectorStatusMsg(text, isError) {
+  var msgEl = document.getElementById('connectorStatusMsg');
+  if (!msgEl) return;
+  msgEl.textContent = text || '';
+  msgEl.hidden = !text;
+  msgEl.classList.toggle('connector-status-msg--error', !!isError);
+  clearTimeout(msgEl._hideTimer);
+  if (text) {
+    msgEl._hideTimer = setTimeout(function () { msgEl.hidden = true; }, 8000);
+  }
+}
+
+async function loadConnectorStatuses() {
+  var client = getDevSupabaseClient();
+  if (!client || connectorsBlockedReason()) {
+    _connectorStatusById = {};
+    renderConnectorRows();
+    return;
+  }
+  try {
+    var user = cloudSyncState && cloudSyncState.user;
+    if (!user || !user.id) {
+      var sessionRes = await client.auth.getUser();
+      user = sessionRes && sessionRes.data && sessionRes.data.user;
+    }
+    if (!user || !user.id) {
+      renderConnectorRows();
+      return;
+    }
+    var res = await client
+      .from('user_integrations')
+      .select('provider, last_sync_at, sync_status, sheet_id, sheet_range, metadata, updated_at')
+      .eq('user_id', user.id);
+    _connectorStatusById = {};
+    (res.data || []).forEach(function (row) {
+      if (row && row.provider) _connectorStatusById[row.provider] = row;
+    });
+  } catch (err) {
+    console.warn('loadConnectorStatuses', err);
+  }
+  renderConnectorRows();
+}
+
+function renderConnectorRows() {
+  var pane = document.getElementById('connectorsPane');
+  if (!pane) return;
+  PWA_OAUTH_CONNECTORS.forEach(function (provider) {
+    var row = pane.querySelector('.connector-row[data-connector="' + provider.id + '"]');
+    if (!row) return;
+    var status = _connectorStatusById[provider.id];
+    var connected = !!(status && (status.sync_status === 'connected' || status.sync_status === 'synced' || status.sync_status === 'idle' || status.sync_status === 'error'));
+    row.classList.toggle('connector-row--connected', connected);
+    var metaEl = row.querySelector('.connector-sync-meta');
+    if (!metaEl) {
+      metaEl = document.createElement('div');
+      metaEl.className = 'connector-sync-meta settings-hint';
+      var actionsEl = row.querySelector('.connector-actions');
+      if (actionsEl) row.insertBefore(metaEl, actionsEl);
+      else row.appendChild(metaEl);
+    }
+    if (connected && status.last_sync_at) {
+      metaEl.textContent = (tUi('settings.connectors.lastSync') || 'Last synced: {time}').replace('{time}', formatConnectorLastSync(status.last_sync_at));
+      metaEl.hidden = false;
+    } else if (connected) {
+      metaEl.textContent = tUi('settings.connectors.connected') || 'Connected';
+      metaEl.hidden = false;
+    } else {
+      metaEl.textContent = '';
+      metaEl.hidden = true;
+    }
+    var actions = row.querySelector('.connector-actions');
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = 'connector-actions';
+      row.appendChild(actions);
+    }
+    actions.innerHTML = '';
+    if (connected) {
+      var syncBtn = document.createElement('button');
+      syncBtn.type = 'button';
+      syncBtn.className = 'settings-data-btn connector-sync-btn';
+      syncBtn.textContent = tUi('settings.connectors.syncNow') || 'Sync now';
+      syncBtn.disabled = Date.now() < _connectorSyncCooldownUntil;
+      syncBtn.onclick = function () { syncConnector(provider.id); };
+      actions.appendChild(syncBtn);
+      if (provider.id === 'google-sheets') {
+        var cfgBtn = document.createElement('button');
+        cfgBtn.type = 'button';
+        cfgBtn.className = 'settings-data-btn connector-config-btn';
+        cfgBtn.textContent = tUi('settings.connectors.sheetsConfig') || 'Configure spreadsheet';
+        cfgBtn.onclick = function () { openSheetsConfigModal(status); };
+        actions.appendChild(cfgBtn);
+      }
+      var discBtn = document.createElement('button');
+      discBtn.type = 'button';
+      discBtn.className = 'settings-data-btn connector-disconnect-btn';
+      discBtn.textContent = tUi('settings.connectors.disconnect') || 'Disconnect';
+      discBtn.onclick = function () { disconnectConnector(provider.id); };
+      actions.appendChild(discBtn);
+    } else {
+      var connectBtn = document.createElement('button');
+      connectBtn.type = 'button';
+      connectBtn.className = 'settings-data-btn connector-connect-btn';
+      connectBtn.textContent = tUi('settings.connectors.connect') || 'Connect';
+      connectBtn.onclick = function () { openOAuthConnector(provider.id); };
+      actions.appendChild(connectBtn);
+    }
+  });
+}
+
+function mergeConnectorEntries(entries) {
+  if (!Array.isArray(entries) || !entries.length) return 0;
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!Shared || typeof Shared.normalizeLogEntry !== 'function') return 0;
+  var merged = 0;
+  entries.forEach(function (incoming) {
+    if (!incoming || !incoming.date) return;
+    var idx = logs.findIndex(function (l) { return l && l.date === incoming.date; });
+    if (idx < 0) {
+      logs.push(Shared.normalizeLogEntry(incoming));
+      merged += 1;
+      return;
+    }
+    if (typeof Shared.mergeLogEntriesForDate === 'function') {
+      logs[idx] = Shared.normalizeLogEntry(Shared.mergeLogEntriesForDate(logs[idx], incoming));
+    } else {
+      logs[idx] = Shared.normalizeLogEntry(Object.assign({}, logs[idx], incoming));
+    }
+    merged += 1;
+  });
+  if (merged > 0) {
+    saveLogsToStorage();
+    if (typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated && typeof syncToCloud === 'function') {
+      syncToCloud().catch(function () {});
+    }
+    if (typeof refreshDashboard === 'function') refreshDashboard();
+  }
+  return merged;
+}
+
+async function openOAuthConnector(providerSlug) {
+  var provider = PWA_OAUTH_CONNECTORS.find(function (p) { return p.id === providerSlug; });
   if (!provider) {
     notifyError(tUi('settings.connectors.unsupported') || ('Unknown connector: ' + providerSlug));
     return;
   }
-
-  // Show coming-soon notice if credentials are not yet configured
-  if (provider.comingSoon || !provider.clientId) {
-    var msgEl = document.getElementById('connectorStatusMsg');
-    if (msgEl) {
-      msgEl.textContent = (provider.label || providerSlug) + ' integration is coming soon. Stay tuned for updates.';
-      msgEl.hidden = false;
-      // Auto-hide after 6 s
-      clearTimeout(msgEl._hideTimer);
-      msgEl._hideTimer = setTimeout(function() { msgEl.hidden = true; }, 6000);
-    } else {
-      notifySuccess((provider.label || providerSlug) + ' integration coming soon.');
-    }
+  if (connectorsBlockedReason()) {
+    notifyError(tUi('settings.connectors.cloudRequired') || 'Connectors require Cloud Sync and are disabled in local-only mode.');
     return;
   }
-
-  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
-  if (!Shared || typeof Shared.generateCodeVerifier !== 'function' || typeof Shared.buildAuthorizeUrl !== 'function') {
-    notifyError(tUi('settings.connectors.cloudRequired') || 'OAuth connector requires Cloud Sync to be enabled.');
+  var client = getDevSupabaseClient();
+  if (!client) {
+    notifyError(tUi('settings.connectors.cloudRequired') || 'Connectors require Cloud Sync.');
     return;
   }
   try {
-    var verifier = Shared.generateCodeVerifier();
-    Shared.deriveCodeChallenge(verifier).then(function(challenge) {
-      sessionStorage.setItem('oauth_verifier_' + providerSlug, verifier);
-      var baseUrl = window.location.origin + '/functions/v1/oauth2-authorize';
-      var url = Shared.buildAuthorizeUrl(baseUrl, {
-        clientId: provider.clientId,
-        redirectUri: window.location.origin + '/auth/callback',
-        scope: (provider.defaultScopes || []).join(' '),
-        codeChallenge: challenge,
-        providerSlug: providerSlug
-      });
-      window.open(url, '_blank', 'noopener,noreferrer');
-    });
-  } catch(e) {
+    var result = await client.functions.invoke('connector-auth', { body: { provider: providerSlug } });
+    if (result.error) throw result.error;
+    var data = result.data;
+    if (!data || !data.authorizeUrl) throw new Error((data && data.error) || 'Auth failed');
+    _connectorOAuthWin = window.open(data.authorizeUrl, 'connector_oauth', 'width=520,height=720,noopener');
+    showConnectorStatusMsg((provider.label || providerSlug) + ': complete sign-in in the popup window.', false);
+  } catch (e) {
     notifyError('Could not initiate OAuth: ' + (e.message || ''));
   }
 }
-if (typeof window !== 'undefined') window.openOAuthConnector = openOAuthConnector;
+
+async function disconnectConnector(providerSlug) {
+  var client = getDevSupabaseClient();
+  if (!client) return;
+  try {
+    var result = await client.functions.invoke('connector-disconnect', { body: { provider: providerSlug } });
+    if (result.error) throw result.error;
+    delete _connectorStatusById[providerSlug];
+    renderConnectorRows();
+    showConnectorStatusMsg(tUi('settings.connectors.disconnected') || 'Disconnected.', false);
+  } catch (e) {
+    notifyError((e.message || 'Disconnect failed'));
+  }
+}
+
+async function syncConnector(providerSlug, opts) {
+  opts = opts || {};
+  var provider = PWA_OAUTH_CONNECTORS.find(function (p) { return p.id === providerSlug; });
+  if (!provider) return;
+  if (Date.now() < _connectorSyncCooldownUntil && !opts.force) return;
+  var client = getDevSupabaseClient();
+  if (!client) return;
+  _connectorSyncCooldownUntil = Date.now() + 60000;
+  renderConnectorRows();
+  try {
+    var body = {};
+    if (providerSlug === 'google-sheets') {
+      var status = _connectorStatusById[providerSlug] || {};
+      body.mode = opts.mode || 'import';
+      body.sheetId = opts.sheetId || status.sheet_id || '';
+      body.range = opts.range || status.sheet_range || 'Sheet1!A1:O500';
+      body.exportRange = (status.metadata && status.metadata.exportRange) || body.range;
+      if (body.mode === 'export') {
+        body.logs = (typeof getAllHistoricalLogsSync === 'function' ? getAllHistoricalLogsSync() : logs).slice(-90);
+      }
+    }
+    var result = await client.functions.invoke(provider.syncFn, { body: body });
+    if (result.error) throw result.error;
+    var data = result.data || {};
+    if (data.error) throw new Error(data.error);
+    var count = 0;
+    if (Array.isArray(data.entries)) {
+      count = mergeConnectorEntries(data.entries);
+    } else if (data.exported != null) {
+      count = Number(data.exported) || 0;
+    }
+    await loadConnectorStatuses();
+    var msg = (tUi('settings.connectors.syncSuccess') || 'Synced {count} entries').replace('{count}', String(count));
+    showConnectorStatusMsg(msg, false);
+    notifySuccess(msg);
+  } catch (e) {
+    await loadConnectorStatuses();
+    var errMsg = (tUi('settings.connectors.syncError') || 'Sync failed: {message}').replace('{message}', e.message || '');
+    showConnectorStatusMsg(errMsg, true);
+    notifyError(errMsg);
+  }
+}
+
+function openSheetsConfigModal(existing) {
+  existing = existing || _connectorStatusById['google-sheets'] || {};
+  var modal = document.getElementById('sheetsConfigModal');
+  if (!modal) return;
+  var urlInput = document.getElementById('sheetsConfigUrl');
+  var importRange = document.getElementById('sheetsImportRange');
+  var exportRange = document.getElementById('sheetsExportRange');
+  if (urlInput) urlInput.value = existing.sheet_id ? ('https://docs.google.com/spreadsheets/d/' + existing.sheet_id) : '';
+  if (importRange) importRange.value = existing.sheet_range || 'Sheet1!A1:O500';
+  if (exportRange) exportRange.value = (existing.metadata && existing.metadata.exportRange) || 'Sheet1!A2:O';
+  if (typeof openModalOverlay === 'function') {
+    openModalOverlay(modal, { onEscape: closeSheetsConfigModal });
+  } else {
+    modal.style.display = '';
+  }
+}
+
+function closeSheetsConfigModal() {
+  var modal = document.getElementById('sheetsConfigModal');
+  if (!modal) return;
+  if (typeof closeModalOverlay === 'function') closeModalOverlay(modal);
+  else modal.style.display = 'none';
+}
+
+async function saveSheetsConfig() {
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  var urlInput = document.getElementById('sheetsConfigUrl');
+  var importRangeEl = document.getElementById('sheetsImportRange');
+  var exportRangeEl = document.getElementById('sheetsExportRange');
+  var rawUrl = urlInput ? urlInput.value : '';
+  var sheetId = Shared && typeof Shared.parseGoogleSheetId === 'function'
+    ? Shared.parseGoogleSheetId(rawUrl)
+    : rawUrl.trim();
+  if (!sheetId) {
+    notifyError('Enter a valid Google Sheets URL or ID.');
+    return;
+  }
+  var client = getDevSupabaseClient();
+  if (!client || !cloudSyncState || !cloudSyncState.user) return;
+  var importRange = (importRangeEl && importRangeEl.value) || 'Sheet1!A1:O500';
+  var exportRange = (exportRangeEl && exportRangeEl.value) || 'Sheet1!A2:O';
+  try {
+    await client.from('user_integrations').upsert({
+      user_id: cloudSyncState.user.id,
+      provider: 'google-sheets',
+      sheet_id: sheetId,
+      sheet_range: importRange,
+      metadata: { exportRange: exportRange },
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,provider' });
+    closeSheetsConfigModal();
+    await loadConnectorStatuses();
+    notifySuccess(tUi('settings.connectors.sheetsSaved') || 'Spreadsheet settings saved.');
+  } catch (e) {
+    notifyError(e.message || 'Could not save sheet settings.');
+  }
+}
+
+function handleConnectorOAuthMessage(event) {
+  if (!event || !event.data || event.data.type !== 'connector-oauth-success') return;
+  var provider = event.data.provider;
+  loadConnectorStatuses().then(function () {
+    if (provider) syncConnector(provider, { force: true });
+  });
+}
+
+if (typeof window !== 'undefined') {
+  window.openOAuthConnector = openOAuthConnector;
+  window.loadConnectorStatuses = loadConnectorStatuses;
+  window.disconnectConnector = disconnectConnector;
+  window.syncConnector = syncConnector;
+  window.openSheetsConfigModal = openSheetsConfigModal;
+  window.closeSheetsConfigModal = closeSheetsConfigModal;
+  window.saveSheetsConfig = saveSheetsConfig;
+  window.addEventListener('message', handleConnectorOAuthMessage);
+  document.addEventListener('DOMContentLoaded', function () {
+    var pane = document.querySelector('[data-settings-pane-i18n="settings.connectors.title"]');
+    if (pane && typeof MutationObserver !== 'undefined') {
+      var obs = new MutationObserver(function () {
+        if (pane.getAttribute('aria-hidden') === 'false') loadConnectorStatuses();
+      });
+      obs.observe(pane, { attributes: true, attributeFilter: ['aria-hidden'] });
+    }
+    loadConnectorStatuses();
+  });
+}
 
 async function renderCommunityTipsPane(conditionTags) {
   var el = document.getElementById('communityTipsFeed');
@@ -22228,8 +22827,8 @@ var _checkinDragMoved = false;
 
 function defaultCheckinPeriod() {
   var h = new Date().getHours();
-  if (h < 12) return 'AM';
-  if (h < 17) return 'midday';
+  if (h >= 5 && h < 12) return 'AM';
+  if (h >= 12 && h < 17) return 'midday';
   return 'PM';
 }
 
@@ -23618,8 +24217,13 @@ function collectPlan16MetricsFields() {
     out.bodyWeight = parseFloat(bwEl.value);
     out.bodyWeightUnit = appSettings.bodyWeightUnit === 'lbs' ? 'lbs' : 'kg';
   }
-  var bristolChecked = document.querySelector('input[name="bristol"]:checked');
-  if (bristolChecked) out.bristol = parseInt(bristolChecked.value, 10);
+  if (appSettings.digestiveModuleEnabled) {
+    var bristolEl = document.getElementById('bristol');
+    if (bristolEl) {
+      var bv = parseInt(bristolEl.value, 10);
+      if (bv >= 1 && bv <= 7) out.bristol = bv;
+    }
+  }
   var gratitudeEl = document.getElementById('gratitude');
   if (gratitudeEl && gratitudeEl.value && gratitudeEl.value.trim()) {
     out.gratitude = escapeHTML(gratitudeEl.value.trim().substring(0, 500));
@@ -23731,7 +24335,11 @@ function resetLogWizardFieldToDefault(el) {
     } else {
       el.value = '0';
     }
-    if (typeof updateSliderColor === 'function') updateSliderColor(el);
+    if (el.id === 'bristol' && typeof updateBristolSlider === 'function') {
+      updateBristolSlider(el);
+    } else if (typeof updateSliderColor === 'function') {
+      updateSliderColor(el);
+    }
     return;
   }
   if (type === 'number') {
@@ -24069,6 +24677,9 @@ function switchTab(tabName, skipHash) {
   }
 
   if (tabName === 'mood') {
+    if (window.RianellMoodTab && typeof window.RianellMoodTab.resetCheckinSelection === 'function') {
+      window.RianellMoodTab.resetCheckinSelection();
+    }
     if (window.RianellMoodTab && typeof window.RianellMoodTab.renderMoodTab === 'function') {
       window.RianellMoodTab.renderMoodTab();
     }

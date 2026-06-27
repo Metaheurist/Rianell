@@ -169,20 +169,10 @@ function initializeEventHandlers() {
   
   // Settings action buttons
   const installAppBtn = document.querySelector('.install-app-btn');
-  const exportBtn = document.querySelector('.export-btn');
-  const importBtn = document.querySelector('.import-btn');
   const printBtn = document.querySelector('.print-btn');
   
   if (installAppBtn) {
     installAppBtn.addEventListener('click', installOrLaunchPWA);
-  }
-  
-  if (exportBtn) {
-    exportBtn.addEventListener('click', exportData);
-  }
-  
-  if (importBtn) {
-    importBtn.addEventListener('click', importData);
   }
   
   if (printBtn) {

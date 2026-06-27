@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connector connected</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 2rem; text-align: center; }
+    .ok { color: #2e7d50; }
+    .err { color: #b00020; }
+  </style>
+</head>
+<body>
+  <p id="msg">Completing connection…</p>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var provider = params.get('provider') || '';
+      var status = params.get('status') || '';
+      var message = params.get('message') || '';
+      var el = document.getElementById('msg');
+      if (status === 'success') {
+        el.textContent = 'Connected! You can close this window.';
+        el.className = 'ok';
+        if (window.opener) {
+          window.opener.postMessage({ type: 'connector-oauth-success', provider: provider }, '*');
+        }
+        setTimeout(function () { window.close(); }, 1500);
+      } else {
+        el.textContent = 'Connection failed' + (message ? ': ' + message : '.');
+        el.className = 'err';
+      }
+    })();
+  </script>
+</body>
+</html>

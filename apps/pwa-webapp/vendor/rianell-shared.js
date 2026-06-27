@@ -35,6 +35,7 @@ var RianellShared = (() => {
     COMMON_SUPPLEMENTS: () => COMMON_SUPPLEMENTS,
     COMMUNITY_TIP_CATEGORIES: () => COMMUNITY_TIP_CATEGORIES,
     CONNECTOR_PROVIDERS: () => CONNECTOR_PROVIDERS,
+    CONNECTOR_PROVIDER_SPECS: () => CONNECTOR_PROVIDER_SPECS,
     CONTRIBUTION_EXPORT_FORMAT: () => CONTRIBUTION_EXPORT_FORMAT,
     CYCLE_DAY_MAX: () => CYCLE_DAY_MAX,
     CYCLE_DAY_MIN: () => CYCLE_DAY_MIN,
@@ -47,6 +48,7 @@ var RianellShared = (() => {
     DEFAULT_GOALS: () => DEFAULT_GOALS,
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
+    DEFAULT_SHEET_COLUMN_MAP: () => DEFAULT_SHEET_COLUMN_MAP,
     ENCRYPTED_EXPORT_FORMAT: () => ENCRYPTED_EXPORT_FORMAT,
     ENCRYPTED_EXPORT_KDF_ITERATIONS: () => ENCRYPTED_EXPORT_KDF_ITERATIONS,
     ENCRYPTED_EXPORT_MIN_LENGTH: () => ENCRYPTED_EXPORT_MIN_LENGTH,
@@ -94,6 +96,7 @@ var RianellShared = (() => {
     MIN_TOUCH_TARGET_PX: () => MIN_TOUCH_TARGET_PX,
     MOOD_CHECKIN_PERIODS: () => MOOD_CHECKIN_PERIODS,
     OAUTH2_SCOPES: () => OAUTH2_SCOPES,
+    OAUTH_CONNECTOR_IDS: () => OAUTH_CONNECTOR_IDS,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
     ON_DEVICE_MOAT_BULLET_KEYS: () => ON_DEVICE_MOAT_BULLET_KEYS,
     PAIN_REGIONS: () => PAIN_REGIONS,
@@ -254,6 +257,7 @@ var RianellShared = (() => {
     contrastRatioPasses: () => contrastRatioPasses,
     countDistinctLogDays: () => countDistinctLogDays,
     countHighFodmapDays: () => countHighFodmapDays,
+    createOAuthState: () => createOAuthState,
     createOnboardingProgressSession: () => createOnboardingProgressSession,
     createQrHandoffPayload: () => createQrHandoffPayload,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
@@ -313,6 +317,7 @@ var RianellShared = (() => {
     getAchievementToastQueueLength: () => getAchievementToastQueueLength,
     getBrainFogFontScale: () => getBrainFogFontScale,
     getCommunityTriggers: () => getCommunityTriggers,
+    getConnectorProvider: () => getConnectorProvider,
     getConsentBlockReason: () => getConsentBlockReason,
     getCrisisResourcesForRegion: () => getCrisisResourcesForRegion,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
@@ -393,6 +398,7 @@ var RianellShared = (() => {
     listConnectorsForPlatform: () => listConnectorsForPlatform,
     listMigrationAdapters: () => listMigrationAdapters,
     listMigrationSources: () => listMigrationSources,
+    listOAuthConnectors: () => listOAuthConnectors,
     listTodayMedDoseReminders: () => listTodayMedDoseReminders,
     loadPolicyPackFromDisk: () => loadPolicyPackFromDisk,
     loadPromptPack: () => loadPromptPack,
@@ -407,6 +413,9 @@ var RianellShared = (() => {
     lookupBarcode: () => lookupBarcode,
     macroPercentages: () => macroPercentages,
     mapLabResultsToLogFields: () => mapLabResultsToLogFields,
+    mapStravaActivitiesToPartialLogs: () => mapStravaActivitiesToPartialLogs,
+    mapWithingsActivityToPartialLogs: () => mapWithingsActivityToPartialLogs,
+    mapWithingsMeasuresToPartialLogs: () => mapWithingsMeasuresToPartialLogs,
     markAchievementNotified: () => markAchievementNotified,
     markAchievementSeen: () => markAchievementSeen,
     markAchievementToastDismissed: () => markAchievementToastDismissed,
@@ -418,6 +427,8 @@ var RianellShared = (() => {
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     mergePhq9Responses: () => mergePhq9Responses,
+    mergeSheetRoundTrip: () => mergeSheetRoundTrip,
+    mergeWithingsPartialLogs: () => mergeWithingsPartialLogs,
     mgdlToMmol: () => mgdlToMmol,
     migrateFirstRunWizardPrefs: () => migrateFirstRunWizardPrefs,
     minutesToHHMM: () => minutesToHHMM,
@@ -467,6 +478,7 @@ var RianellShared = (() => {
     painBodyStateToLocations: () => painBodyStateToLocations,
     parseAppointmentDate: () => parseAppointmentDate,
     parseDoctorQuestionsResponse: () => parseDoctorQuestionsResponse,
+    parseGoogleSheetId: () => parseGoogleSheetId,
     parseIsoDateLocal: () => parseIsoDateLocal,
     parseLogsCsv: () => parseLogsCsv,
     parseMigrationCsv: () => parseMigrationCsv,
@@ -476,6 +488,7 @@ var RianellShared = (() => {
     parseSettingsProfileImport: () => parseSettingsProfileImport,
     parseStructuredLlmOutput: () => parseStructuredLlmOutput,
     parseWeatherApiResponse: () => parseWeatherApiResponse,
+    partialLogsToRows: () => partialLogsToRows,
     periodForHour: () => periodForHour,
     pickDailyHomeGapQuestion: () => pickDailyHomeGapQuestion,
     pickHomeAiSuggestionBundle: () => pickHomeAiSuggestionBundle,
@@ -508,6 +521,7 @@ var RianellShared = (() => {
     resolveUnifiedOnboardingProgress: () => resolveUnifiedOnboardingProgress,
     resolveWeatherIconTone: () => resolveWeatherIconTone,
     roundWeatherCoord: () => roundWeatherCoord,
+    rowsToPartialLogs: () => rowsToPartialLogs,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
     saltToBase64: () => saltToBase64,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
@@ -550,6 +564,7 @@ var RianellShared = (() => {
     validateRemoteLlmEndpoint: () => validateRemoteLlmEndpoint,
     validateResearchFacets: () => validateResearchFacets,
     validateTipSubmission: () => validateTipSubmission,
+    verifyOAuthState: () => verifyOAuthState,
     wrapDek: () => wrapDek,
     wrappedDekToBase64: () => wrappedDekToBase64
   });
@@ -2513,7 +2528,7 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
         "motd.user": "Write one healthy-lifestyle quote.",
-        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "summary.system": "You write a coaching summary from health tracking data in 2-3 short sentences. Lead with the single most important finding. Reference the user's actual date range when provided (e.g. Over the last 30 days). End with one concrete suggestion tied to a specific tracked metric. Use active voice. No medical disclaimers or diagnosis language. Reply with only the summary text.",
         "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
         "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
         "clinicianBrief.system": "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text.",
@@ -2530,7 +2545,7 @@ var RianellShared = (() => {
         "context.dataLine": "{dayCount} day(s) of data.",
         "context.flares": "Flares: {count} day(s).",
         "context.topStressor": "Top stressor: {name}{pct}.",
-        "summary.system.plain": "You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text."
+        "summary.system.plain": "You write a coaching summary from health tracking data in 2-3 short sentences using plain B1 English. Lead with the most important finding. Reference the date range when given. End with one actionable suggestion tied to a metric. Active voice only. No disclaimers. Reply with only the summary text."
       }
     },
     "en-US": {
@@ -2540,14 +2555,15 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
         "motd.user": "Write one healthy-lifestyle quote.",
-        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "summary.system": "You write a coaching summary from health tracking data in 2-3 short sentences. Lead with the single most important finding. Reference the user's actual date range when provided (e.g. Over the last 30 days). End with one concrete suggestion tied to a specific tracked metric. Use active voice. No medical disclaimers or diagnosis language. Reply with only the summary text.",
         "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
         "context.improving": "Improving: {metrics}.",
         "context.worsening": "Worsening: {metrics}.",
         "context.stable": "Stable: {metrics}.",
         "context.dataLine": "{dayCount} day(s) of data.",
         "context.flares": "Flares: {count} day(s).",
-        "context.topStressor": "Top stressor: {name}{pct}."
+        "context.topStressor": "Top stressor: {name}{pct}.",
+        "summary.system.plain": "You write a coaching summary from health tracking data in 2-3 short sentences using plain B1 English. Lead with the most important finding. Reference the date range when given. End with one actionable suggestion tied to a metric. Active voice only. No disclaimers. Reply with only the summary text."
       }
     },
     "es-ES": {
@@ -7397,7 +7413,7 @@ ${questionsBlock}
     return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
   }
   var DEFAULT_API_SCOPES = ["logs:read"];
-  var WEBHOOK_EVENTS = ["log.created", "flare.detected", "goal.achieved"];
+  var WEBHOOK_EVENTS = ["log.created", "flare.detected", "goal.achieved", "sync.completed", "export.created"];
   function isValidWebhookUrl(url) {
     try {
       const u = new URL(String(url || ""));
@@ -7455,14 +7471,256 @@ ${questionsBlock}
     return u.toString();
   }
   var CONNECTOR_PROVIDERS = {
-    google_sheets: { id: "google_sheets", label: "Google Sheets", oauth: true },
+    "google-sheets": { id: "google-sheets", label: "Google Sheets", oauth: true },
     withings: { id: "withings", label: "Withings", oauth: true },
     strava: { id: "strava", label: "Strava", oauth: true },
     health_connect: { id: "health_connect", label: "Health Connect", oauth: false, platform: "android" },
     fhir_import: { id: "fhir_import", label: "FHIR Import", oauth: false }
   };
+
+  // packages/shared/src/connectors/providers.mjs
+  var CONNECTOR_PROVIDER_SPECS = {
+    strava: {
+      id: "strava",
+      label: "Strava",
+      oauth: true,
+      authUrl: "https://www.strava.com/oauth/authorize",
+      tokenUrl: "https://www.strava.com/oauth/token",
+      scopes: ["activity:read_all"],
+      syncMode: "import"
+    },
+    withings: {
+      id: "withings",
+      label: "Withings",
+      oauth: true,
+      authUrl: "https://account.withings.com/oauth2_user/authorize2",
+      tokenUrl: "https://wbsapi.withings.net/v2/oauth2",
+      scopes: ["user.metrics", "user.activity"],
+      syncMode: "import"
+    },
+    "google-sheets": {
+      id: "google-sheets",
+      label: "Google Sheets",
+      oauth: true,
+      authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
+      tokenUrl: "https://oauth2.googleapis.com/token",
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      syncMode: "bidirectional"
+    },
+    health_connect: {
+      id: "health_connect",
+      label: "Health Connect",
+      oauth: false,
+      platform: "android",
+      syncMode: "import"
+    },
+    fhir_import: {
+      id: "fhir_import",
+      label: "FHIR Import",
+      oauth: false,
+      syncMode: "import"
+    }
+  };
+  var OAUTH_CONNECTOR_IDS = ["strava", "withings", "google-sheets"];
+  function getConnectorProvider(id) {
+    return CONNECTOR_PROVIDER_SPECS[id] || null;
+  }
+  function listOAuthConnectors() {
+    return OAUTH_CONNECTOR_IDS.map((id) => CONNECTOR_PROVIDER_SPECS[id]).filter(Boolean);
+  }
   function listConnectorsForPlatform(platform) {
-    return Object.values(CONNECTOR_PROVIDERS).filter((c) => !c.platform || c.platform === platform);
+    return Object.values(CONNECTOR_PROVIDER_SPECS).filter((c) => !c.platform || c.platform === platform);
+  }
+  function parseGoogleSheetId(input) {
+    const raw = String(input || "").trim();
+    if (!raw) return "";
+    if (/^[a-zA-Z0-9_-]{20,}$/.test(raw)) return raw;
+    const m = raw.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    return m ? m[1] : "";
+  }
+
+  // packages/shared/src/connectors/strava.mjs
+  function activityDate(activity) {
+    const raw = activity.start_date_local || activity.start_date || "";
+    return String(raw).slice(0, 10);
+  }
+  function mapStravaActivitiesToPartialLogs(activities) {
+    const byDate = /* @__PURE__ */ new Map();
+    for (const act of activities || []) {
+      const date = activityDate(act);
+      if (!date || date.length < 10) continue;
+      const name = String(act.name || act.type || "Activity").slice(0, 120);
+      const seconds = Number(act.moving_time ?? act.elapsed_time ?? 0);
+      const duration = Number.isFinite(seconds) ? Math.max(0, Math.round(seconds / 60)) : 0;
+      const exercise = { name, duration };
+      const existing = byDate.get(date) || { date, exercise: [] };
+      existing.exercise = [...existing.exercise || [], exercise];
+      byDate.set(date, existing);
+    }
+    return [...byDate.values()];
+  }
+
+  // packages/shared/src/connectors/withings.mjs
+  var TYPE_WEIGHT = 1;
+  var TYPE_BPM = 11;
+  var TYPE_SLEEP = 38;
+  function toDateFromUnix(ts) {
+    const n = Number(ts);
+    if (!Number.isFinite(n) || n <= 0) return "";
+    return new Date(n * 1e3).toISOString().slice(0, 10);
+  }
+  function pickMeasureValue(measures, type) {
+    for (const m of measures || []) {
+      if (Number(m.type) !== type) continue;
+      const value = Number(m.value);
+      const unit = Number(m.unit ?? 0);
+      if (!Number.isFinite(value)) continue;
+      return value * Math.pow(10, unit);
+    }
+    return null;
+  }
+  function mapWithingsMeasuresToPartialLogs(groups) {
+    const byDate = /* @__PURE__ */ new Map();
+    for (const group of groups || []) {
+      const date = toDateFromUnix(group.date ?? group.startdate ?? group.created);
+      if (!date) continue;
+      const measures = group.measures || group.data || [];
+      const partial = byDate.get(date) || { date };
+      const weight = pickMeasureValue(measures, TYPE_WEIGHT);
+      const bpm = pickMeasureValue(measures, TYPE_BPM);
+      const sleepHours = pickMeasureValue(measures, TYPE_SLEEP);
+      if (weight != null) partial.weight = String(Math.round(weight * 10) / 10);
+      if (bpm != null) partial.bpm = Math.round(bpm);
+      if (sleepHours != null) partial.sleep = Math.round(sleepHours * 10) / 10;
+      byDate.set(date, partial);
+    }
+    return [...byDate.values()];
+  }
+  function mapWithingsActivityToPartialLogs(activities) {
+    const byDate = /* @__PURE__ */ new Map();
+    for (const row of activities || []) {
+      const date = String(row.date || "").slice(0, 10);
+      if (!date) continue;
+      const partial = byDate.get(date) || { date };
+      const steps = Number(row.steps ?? row.data?.steps);
+      if (Number.isFinite(steps) && steps > 0) partial.steps = Math.round(steps);
+      byDate.set(date, partial);
+    }
+    return [...byDate.values()];
+  }
+  function mergeWithingsPartialLogs(...lists) {
+    const byDate = /* @__PURE__ */ new Map();
+    for (const list of lists) {
+      for (const entry of list || []) {
+        const date = entry.date;
+        if (!date) continue;
+        byDate.set(date, { ...byDate.get(date) || {}, ...entry, date });
+      }
+    }
+    return [...byDate.values()];
+  }
+
+  // packages/shared/src/connectors/googleSheets.mjs
+  var DEFAULT_SHEET_COLUMN_MAP = Object.fromEntries(
+    LOG_CSV_FIELD_IDS.map((id) => [id.toLowerCase(), id])
+  );
+  function normalizeHeader(h) {
+    return String(h || "").trim().toLowerCase().replace(/\s+/g, "");
+  }
+  function cellToFieldValue(fieldId, raw) {
+    const v = String(raw ?? "").trim();
+    if (!v) return void 0;
+    if (fieldId === "date") return v.slice(0, 10);
+    if (fieldId === "bpm" || fieldId === "fatigue" || fieldId === "sleep") {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : void 0;
+    }
+    return v;
+  }
+  function rowsToPartialLogs(rows, columnMap = DEFAULT_SHEET_COLUMN_MAP) {
+    if (!Array.isArray(rows) || rows.length < 2) return [];
+    const headers = (rows[0] || []).map(normalizeHeader);
+    const fieldByCol = headers.map((h) => columnMap[h] || columnMap[h.replace(/_/g, "")] || null);
+    const out = [];
+    for (let r = 1; r < rows.length; r++) {
+      const row = rows[r] || [];
+      const partial = {};
+      fieldByCol.forEach((fieldId, i) => {
+        if (!fieldId) return;
+        const val = cellToFieldValue(fieldId, row[i]);
+        if (val !== void 0 && val !== "") partial[fieldId] = val;
+      });
+      if (partial.date) out.push(partial);
+    }
+    return out.slice(0, 500);
+  }
+  function partialLogsToRows(logs, fieldIds = LOG_CSV_FIELD_IDS) {
+    const header = [...fieldIds];
+    const body = (logs || []).slice(0, 500).map(
+      (log) => fieldIds.map((id) => {
+        const v = log[id];
+        if (v == null) return "";
+        return String(v);
+      })
+    );
+    return [header, ...body];
+  }
+  function mergeSheetRoundTrip(logs) {
+    const rows = partialLogsToRows(logs);
+    return rowsToPartialLogs(rows);
+  }
+
+  // packages/shared/src/connectors/oauthState.mjs
+  function base64UrlEncode2(bytes) {
+    if (typeof Buffer !== "undefined") {
+      return Buffer.from(bytes).toString("base64url");
+    }
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function base64UrlDecode(str) {
+    if (typeof Buffer !== "undefined") {
+      return new Uint8Array(Buffer.from(String(str || ""), "base64url"));
+    }
+    const padded = String(str || "").replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(padded);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  async function importHmacKey(secret) {
+    const raw = new TextEncoder().encode(String(secret || ""));
+    return crypto.subtle.importKey("raw", raw, { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+  }
+  async function createOAuthState({ userId, provider, secret, ttlSec = 600 }) {
+    const payload = {
+      userId: String(userId),
+      provider: String(provider),
+      nonce: crypto.randomUUID(),
+      exp: Math.floor(Date.now() / 1e3) + ttlSec
+    };
+    const key = await importHmacKey(secret);
+    const data = new TextEncoder().encode(JSON.stringify(payload));
+    const sig = await crypto.subtle.sign("HMAC", key, data);
+    return `${base64UrlEncode2(data)}.${base64UrlEncode2(new Uint8Array(sig))}`;
+  }
+  async function verifyOAuthState(state, secret) {
+    const parts = String(state || "").split(".");
+    if (parts.length !== 2) return null;
+    const data = base64UrlDecode(parts[0]);
+    const sig = base64UrlDecode(parts[1]);
+    const key = await importHmacKey(secret);
+    const ok = await crypto.subtle.verify("HMAC", key, sig, data);
+    if (!ok) return null;
+    let payload;
+    try {
+      payload = JSON.parse(new TextDecoder().decode(data));
+    } catch {
+      return null;
+    }
+    if (!payload || payload.exp < Math.floor(Date.now() / 1e3)) return null;
+    return payload;
   }
 
   // packages/shared/src/fhir/loincMap.mjs
