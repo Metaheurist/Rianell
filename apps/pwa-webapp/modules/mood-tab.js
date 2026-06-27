@@ -118,6 +118,73 @@
       escapeHTML(String(s)) + '</text></svg>';
   }
 
+  function renderMoodTargetProgressRing(pct, size) {
+    var p = Math.min(100, Math.max(0, Number(pct) || 0));
+    var tone = p >= 80 ? 'good' : p >= 50 ? 'okay' : p > 0 ? 'moderate' : 'neutral';
+    var r = (size - 8) / 2;
+    var cx = size / 2;
+    var cy = size / 2;
+    var circ = 2 * Math.PI * r;
+    var offset = circ * (1 - p / 100);
+    return '<svg class="mood-readings-ring mood-ring mood-ring--' + tone + '" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" aria-hidden="true">' +
+      '<circle class="mood-ring-bg" cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>' +
+      '<circle class="mood-ring-fill" cx="' + cx + '" cy="' + cy + '" r="' + r + '" ' +
+      'transform="rotate(-90 ' + cx + ' ' + cy + ')" ' +
+      'stroke-dasharray="' + circ.toFixed(2) + '" stroke-dashoffset="' + circ.toFixed(2) + '" ' +
+      'style="--mood-ring-circ:' + circ.toFixed(2) + ';--mood-ring-offset:' + offset.toFixed(2) + '"/>' +
+      '<text class="mood-readings-ring-pct" x="' + cx + '" y="' + cy + '" dominant-baseline="central" text-anchor="middle">' +
+      escapeHTML(String(Math.round(p))) + '%</text></svg>';
+  }
+
+  function renderMoodReadingsSummaryCard(summary) {
+    var count = summary.count || 0;
+    var atTarget = summary.atTargetCount || 0;
+    var below = summary.belowTargetCount || 0;
+    var target = summary.moodTarget != null ? summary.moodTarget : moodTarget();
+    var pct = count > 0 ? Math.round((atTarget / count) * 100) : 0;
+    var allHit = count > 0 && below === 0;
+    var cardClass = 'mood-metric-card mood-metric-card--readings' + (allHit ? ' mood-metric-card--readings-success' : '');
+    var html = '<div class="' + cardClass + '">';
+    html += '<span class="mood-metric-label">' + escapeHTML(t('mood.readings.title')) + '</span>';
+    html += '<div class="mood-readings-summary" aria-label="' + escapeHTML(t('mood.readings.summaryAria', {
+      count: String(count),
+      pct: String(pct),
+      target: String(target),
+      atTarget: String(atTarget),
+      below: String(below),
+    })) + '">';
+    html += '<div class="mood-readings-hero">';
+    html += '<div class="mood-readings-count-wrap">';
+    html += '<span class="mood-readings-count">' + escapeHTML(String(count)) + '</span>';
+    html += '<span class="mood-readings-count-caption">' + escapeHTML(t('mood.readings.inPeriod')) + '</span>';
+    html += '</div>';
+    html += renderMoodTargetProgressRing(pct, 54);
+    html += '</div>';
+    html += '<p class="mood-readings-goal">' + svgIcon('target', 'mood-readings-goal-icon') +
+      '<span>' + escapeHTML(t('mood.readings.goal', { target: String(target) })) + '</span></p>';
+    html += '<div class="mood-readings-bar" role="presentation" aria-hidden="true">' +
+      '<div class="mood-readings-bar-fill" style="width:' + pct + '%"></div></div>';
+    html += '<div class="mood-readings-stats">';
+    html += '<div class="mood-readings-stat mood-readings-stat--hit">';
+    html += '<span class="mood-readings-stat-icon" aria-hidden="true">' + svgIcon('check', 'mood-readings-stat-svg') + '</span>';
+    html += '<span class="mood-readings-stat-value">' + escapeHTML(String(atTarget)) + '</span>';
+    html += '<span class="mood-readings-stat-label">' + escapeHTML(t('mood.readings.onTargetShort')) + '</span>';
+    html += '</div>';
+    html += '<div class="mood-readings-stat mood-readings-stat--miss' + (below === 0 ? ' mood-readings-stat--zero' : '') + '">';
+    html += '<span class="mood-readings-stat-icon" aria-hidden="true">' + svgIcon('chart-down', 'mood-readings-stat-svg') + '</span>';
+    html += '<span class="mood-readings-stat-value">' + escapeHTML(String(below)) + '</span>';
+    html += '<span class="mood-readings-stat-label">' + escapeHTML(t('mood.readings.belowTargetShort')) + '</span>';
+    html += '</div>';
+    html += '</div>';
+    if (allHit) {
+      html += '<p class="mood-readings-kudos">' + escapeHTML(t('mood.readings.allOnTarget')) + '</p>';
+    } else if (count > 0) {
+      html += '<p class="mood-readings-pct-label">' + escapeHTML(t('mood.readings.pctOnTarget', { pct: String(pct) })) + '</p>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
   function renderMoodReadingWave(readings, cardW) {
     if (!readings || readings.length < 2) return '';
     var h = 88;
@@ -425,9 +492,7 @@
       html += '<span class="mood-metric-hint">' + escapeHTML(t(qualKey)) + '</span></div>';
       html += '<div class="mood-metric-card"><span class="mood-metric-label">' + escapeHTML(t(trendKey)) + '</span>';
       html += renderMoodSparkline(summary.dailyAverages) + '</div>';
-      html += '<div class="mood-metric-card"><span class="mood-metric-label">' + escapeHTML(t('mood.count', { count: String(summary.count) })) + '</span>';
-      html += '<span class="mood-metric-hint">' + escapeHTML(t('mood.atTarget', { target: String(summary.moodTarget) })) + ': ' + summary.atTargetCount + '</span>';
-      html += '<span class="mood-metric-hint">' + escapeHTML(t('mood.belowTarget', { target: String(summary.moodTarget) })) + ': ' + summary.belowTargetCount + '</span></div>';
+      html += renderMoodReadingsSummaryCard(summary);
       html += '</div>';
 
       html += '<section class="mood-recent-section"><h3 class="mood-section-title">' + escapeHTML(t('mood.recent.title')) + '</h3>';

@@ -186,15 +186,32 @@ function toggleSettingsChapter(chapterId) {
   if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
+/** One unique sprite id per settings pane (`data-settings-pane-i18n`). */
+var SETTINGS_PANE_ICON_BY_KEY = {
+  'settings.privacy.title': 'check',
+  'settings.personal.title': 'user',
+  'settings.ai.title': 'brain',
+  'settings.display.title': 'chart-bars',
+  'settings.customisation.title': 'palette',
+  'settings.accessibility.title': 'accessibility',
+  'settings.dataOptions.title': 'save',
+  'settings.performance.title': 'zap',
+  'settings.dataManagement.title': 'cloud-up',
+  'settings.connectors.title': 'link',
+  'settings.security.title': 'lock-open',
+};
+
 function settingsIconForTitle(title, idx, paneEl) {
   var paneKey = paneEl && paneEl.getAttribute ? paneEl.getAttribute('data-settings-pane-i18n') : '';
-  if (paneKey === 'settings.privacy.title') return 'check';
   if (paneKey === 'settings.security.title') {
     var enabled = typeof window !== 'undefined' && window.appSettings && window.appSettings.appLockEnabled;
     return enabled ? 'lock' : 'lock-open';
   }
+  if (paneKey && SETTINGS_PANE_ICON_BY_KEY[paneKey]) {
+    return SETTINGS_PANE_ICON_BY_KEY[paneKey];
+  }
   var t = String(title || '').toLowerCase();
-  if (t.indexOf('privacy') !== -1 || t.indexOf('region') !== -1) return 'document';
+  if (t.indexOf('privacy') !== -1 || t.indexOf('region') !== -1) return 'check';
   if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'user';
   if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'brain';
   if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'chart-bars';
@@ -202,8 +219,8 @@ function settingsIconForTitle(title, idx, paneEl) {
   if (t.indexOf('access') !== -1) return 'accessibility';
   if (t.indexOf('data option') !== -1) return 'save';
   if (t.indexOf('performance') !== -1) return 'zap';
-  if (t.indexOf('install') !== -1) return 'save';
-  if (t.indexOf('data management') !== -1) return 'save';
+  if (t.indexOf('data management') !== -1) return 'cloud-up';
+  if (t.indexOf('integration') !== -1 || t.indexOf('connector') !== -1) return 'link';
   if (t.indexOf('security') !== -1) return 'lock-open';
   return idx % 2 === 0 ? 'chart-bars' : 'document';
 }
@@ -233,15 +250,12 @@ function initSettingsChapters(panes, svgIcon) {
   var strip = document.getElementById('settingsIconStrip');
 
   if (root.getAttribute('data-chapters-built') === '1' && strip) {
-    // Refresh security lock icon if needed
     panes && panes.forEach && panes.forEach(function (paneEl, i) {
       var dot = strip.querySelector('[data-settings-target="' + i + '"]');
       if (dot) {
-        var paneKey = paneEl && paneEl.getAttribute ? paneEl.getAttribute('data-settings-pane-i18n') : '';
-        if (paneKey === 'settings.security.title') {
-          var icon = dot.querySelector('.settings-carousel-dot__icon');
-          if (icon) icon.innerHTML = svgIcon(settingsIconForTitle('', i, paneEl), 'ui-svg-icon');
-        }
+        var paneTitle = resolveSettingsPaneTitle(paneEl) || 'Section ' + String(i + 1);
+        var icon = dot.querySelector('.settings-carousel-dot__icon');
+        if (icon) icon.innerHTML = svgIcon(settingsIconForTitle(paneTitle, i, paneEl), 'ui-svg-icon');
       }
     });
     return;

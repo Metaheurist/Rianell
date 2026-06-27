@@ -12,12 +12,12 @@
     weight: { inputs: ['weight'], insertAfter: '#weight' },
     bloodPressure: {
       inputs: ['bloodPressureSystolic', 'bloodPressureDiastolic'],
-      insertAfter: '#bpStep .vitals-inline-row',
+      insertAfter: '#bpStep .bp-dial-widget',
     },
-    bloodGlucose: { inputs: ['bloodGlucose'], insertAfter: '#bloodGlucose' },
-    spO2: { inputs: ['spO2'], insertAfter: '#spO2' },
-    hrv: { inputs: ['hrv'], insertAfter: '#hrv' },
-    bodyWeight: { inputs: ['bodyWeight'], insertAfter: '#bodyWeight' },
+    bloodGlucose: { inputs: ['bloodGlucose'], insertAfter: '#glucoseWidget' },
+    spO2: { inputs: ['spO2'], insertAfter: '#spo2Widget' },
+    hrv: { inputs: ['hrv'], insertAfter: '#hrvWidget' },
+    bodyWeight: { inputs: ['bodyWeight'], insertAfter: '#bodyWeightWidget' },
   };
 
   var latestSuggestions = {};
@@ -104,18 +104,33 @@
       var diaEl = document.getElementById('bloodPressureDiastolic');
       if (sysEl) sysEl.value = String(vals.bloodPressureSystolic);
       if (diaEl) diaEl.value = String(vals.bloodPressureDiastolic);
+      if (global.RianellBpInput && typeof global.RianellBpInput.setValues === 'function') {
+        global.RianellBpInput.setValues(vals.bloodPressureSystolic, vals.bloodPressureDiastolic, true);
+      }
     } else if (fieldId === 'bloodGlucose' && vals.bloodGlucose != null) {
       var glucoseEl = document.getElementById('bloodGlucose');
       if (glucoseEl) glucoseEl.value = String(vals.bloodGlucose);
+      if (global.RianellAdvancedVitals && typeof global.RianellAdvancedVitals.setVitalValues === 'function') {
+        global.RianellAdvancedVitals.setVitalValues('bloodGlucose', vals.bloodGlucose);
+      }
     } else if (fieldId === 'spO2' && vals.spO2 != null) {
       var spEl = document.getElementById('spO2');
       if (spEl) spEl.value = String(vals.spO2);
+      if (global.RianellAdvancedVitals && typeof global.RianellAdvancedVitals.setVitalValues === 'function') {
+        global.RianellAdvancedVitals.setVitalValues('spO2', vals.spO2);
+      }
     } else if (fieldId === 'hrv' && vals.hrv != null) {
       var hrvEl = document.getElementById('hrv');
       if (hrvEl) hrvEl.value = String(vals.hrv);
+      if (global.RianellAdvancedVitals && typeof global.RianellAdvancedVitals.setVitalValues === 'function') {
+        global.RianellAdvancedVitals.setVitalValues('hrv', vals.hrv);
+      }
     } else if (fieldId === 'bodyWeight' && vals.bodyWeight != null) {
       var bwEl = document.getElementById('bodyWeight');
       if (bwEl) bwEl.value = String(vals.bodyWeight);
+      if (global.RianellAdvancedVitals && typeof global.RianellAdvancedVitals.setVitalValues === 'function') {
+        global.RianellAdvancedVitals.setVitalValues('bodyWeight', vals.bodyWeight);
+      }
     }
     refresh([], document.getElementById('date') ? document.getElementById('date').value : '');
     if (typeof global.updateBmiReadout === 'function') global.updateBmiReadout();
