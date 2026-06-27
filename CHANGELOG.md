@@ -6,6 +6,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.2] — 2026-06-27
+
+PWA mobile UX polish: animated vitals inputs, weather icons, log wizard nav, mood tile, barcode desktop, and settings icon parity.
+
+### Added
+
+- **Animated vitals widgets (PWA log wizard):** BP dial (`bp-input-widget.js`); glucose, SpO₂, HRV, and body-weight sliders (`advanced-vitals-widgets.js`); steps footprint trail and hydration glass fill (`lifestyle-vitals-widgets.js`); “use last value” chips sync with widget state.
+- **Barcode food logging (desktop PWA):** Webcam scan via `BarcodeDetector` with ZXing fallback; round scan button and clearer barcode SVG icon.
+- **Mood readings summary card (PWA):** Redesigned “readings logged” tile with count, progress ring, goal line, and stat chips.
+
+### Changed
+
+- **Weather SVG icons (PWA):** All 18 home-weather symbols redrawn for crisp stroke rendering; tighter drop-shadow and `shape-rendering` on `.home-weather-icon`.
+- **Log wizard mobile nav (PWA):** Side prev/next arrows (settings-carousel style); compact Skip in dots row; bottom Back/Skip/Next bar desktop-only; reduced bottom padding so review step is not clipped.
+- **View logs filters (PWA mobile):** Date range, Filter, and sort stack cleanly on narrow viewports.
+- **Import wizard button (PWA):** Accent token colours and spacing between hint and “Open import wizard”.
+- **Settings carousel icons (PWA + RN):** Unique icon per pane (`SETTINGS_PANE_ICON_BY_KEY`); connectors use link icon; data management uses cloud-upload.
+- **First-run install step (PWA):** Dedicated inline “Skip for now” button on the install pane.
+
+### Fixed
+
+- **Weather icons:** Partly cloudy and metric icons no longer look blurry on high-DPI mobile (e.g. iPhone 14 Pro Max).
+- **Barcode toast copy:** Camera-required message when scanning is unavailable in the browser.
+
+---
+
 ## [2.0.1] — 2026-06-27
 
 Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across PWA + RN.

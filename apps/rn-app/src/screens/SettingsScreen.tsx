@@ -84,8 +84,25 @@ const PANE_TITLE_KEYS = [
 ] as const;
 
 /**
- * Ionicons names aligned with `settingsIconForTitle` in `apps/pwa-webapp/app.js` (Font Awesome → Ionicons).
+ * Ionicons names aligned with `SETTINGS_PANE_ICON_BY_KEY` in `apps/pwa-webapp/modules/settings.js`.
  */
+const SETTINGS_PANE_ICON_BY_KEY: Record<
+  string,
+  React.ComponentProps<typeof Ionicons>['name']
+> = {
+  'settings.privacy.title': 'shield-checkmark-outline',
+  'settings.personal.title': 'person-outline',
+  'settings.ai.title': 'medical-outline',
+  'settings.display.title': 'bar-chart-outline',
+  'settings.customisation.title': 'color-palette-outline',
+  'settings.accessibility.title': 'accessibility-outline',
+  'settings.dataOptions.title': 'save-outline',
+  'settings.performance.title': 'flash-outline',
+  'settings.dataManagement.title': 'cloud-upload-outline',
+  'settings.connectors.title': 'link-outline',
+  'settings.security.title': 'lock-open-outline',
+};
+
 function settingsPaneIconName(
   title: string,
   idx: number,
@@ -93,20 +110,23 @@ function settingsPaneIconName(
   appLockEnabled?: boolean,
 ): React.ComponentProps<typeof Ionicons>['name'] {
   if (paneKey === 'settings.security.title') {
-    return appLockEnabled ? 'lock-closed' : 'lock-open';
+    return appLockEnabled ? 'lock-closed' : 'lock-open-outline';
+  }
+  if (paneKey && SETTINGS_PANE_ICON_BY_KEY[paneKey]) {
+    return SETTINGS_PANE_ICON_BY_KEY[paneKey];
   }
   const t = title.toLowerCase();
-  if (t.includes('privacy') || t.includes('region')) return 'shield-outline';
+  if (t.includes('privacy') || t.includes('region')) return 'shield-checkmark-outline';
   if (t.includes('personal') || t.includes('cloud')) return 'person-outline';
   if (t.includes('ai') || t.includes('goal')) return 'medical-outline';
   if (t.includes('display') || t.includes('reminder')) return 'bar-chart-outline';
   if (t.includes('custom') || t.includes('theme')) return 'color-palette-outline';
   if (t.includes('access')) return 'accessibility-outline';
-  if (t.includes('data option')) return 'settings-outline';
+  if (t.includes('data option')) return 'save-outline';
   if (t.includes('performance')) return 'flash-outline';
-  if (t.includes('install')) return 'phone-portrait-outline';
-  if (t.includes('data management')) return 'save-outline';
-  if (t.includes('security')) return 'lock-open';
+  if (t.includes('data management')) return 'cloud-upload-outline';
+  if (t.includes('integration') || t.includes('connector')) return 'link-outline';
+  if (t.includes('security')) return 'lock-open-outline';
   return idx % 2 === 0 ? 'ellipse-outline' : 'ellipse';
 }
 
