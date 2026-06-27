@@ -1,18 +1,18 @@
 # PWA bundle sizes
 
-Generated: 2026-06-27T13:37:07.189Z
+Generated: 2026-06-27T15:32:12.235Z
 
 | File | Raw | Gzip |
 |------|-----|------|
-| ci-minified/site/app.js | 1095434 | 238212 |
+| ci-minified/site/app.js | 1101594 | 239357 |
 | ci-minified/site/vendor/transformers/transformers.min.js | 818481 | 207722 |
-| ci-minified/site/app.b6dbd338532c.min.js | 807053 | 187035 |
+| ci-minified/site/app.5fb5bae34cab.min.js | 811942 | 188078 |
+| ci-minified/site/styles.918854125c2c.css | 577688 | 97531 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
-| ci-minified/site/styles.f135e22820a2.css | 565642 | 95280 |
 | ci-minified/site/vendor/rianell-shared.js | 353634 | 81742 |
 | ci-minified/site/AIEngine.js | 175506 | 38766 |
 | ci-minified/site/cloud-sync.js | 105595 | 22659 |
-| ci-minified/site/summary-llm.js | 77808 | 17287 |
+| ci-minified/site/summary-llm.js | 78966 | 17601 |
 | ci-minified/site/vendor/rianell-ai-engine.js | 60506 | 14694 |
 | ci-minified/site/export-utils.js | 49307 | 11830 |
 | ci-minified/site/device-benchmark.js | 41563 | 9232 |
@@ -25,5 +25,5 @@ Generated: 2026-06-27T13:37:07.189Z
 | ci-minified/site/notifications.js | 24042 | 5824 |
 | ci-minified/site/ui-feedback.js | 22684 | 5371 |
 
-**JS total (gzip):** 1104296 bytes
-**CSS total (gzip):** 99496 bytes
+**JS total (gzip):** 1112847 bytes
+**CSS total (gzip):** 101747 bytes
