@@ -348,11 +348,11 @@
     {
       "id": "PA-11",
       "name": "REST API keys and webhooks",
-      "description": "Authenticated users may create API keys and outbound webhooks for log sync integrations.",
+      "description": "Authenticated users may create API keys, outbound webhooks, and OAuth connector integrations (Strava, Withings, Google Sheets) for log sync.",
       "purposes": ["Data portability", "Third-party integrations"],
       "legal_basis_art6": "consent_6_1_a",
       "legal_basis_art9": "explicit_consent_9_2_a",
-      "data_categories": ["api_key_hashes", "webhook_urls", "delivery_metadata"],
+      "data_categories": ["api_key_hashes", "webhook_urls", "delivery_metadata", "oauth_integration_metadata"],
       "data_subjects": ["authenticated_users"],
       "special_category": true,
       "recipients": ["supabase_postgres"],
@@ -373,7 +373,9 @@
         "webhook_deliveries",
         "oauth2_clients",
         "oauth2_auth_codes",
-        "user_integrations"
+        "user_integrations",
+        "connector_tokens",
+        "connector_oauth_states"
       ],
       "international_transfers": true,
       "data_subject_rights": ["access", "erasure", "withdraw_consent"]

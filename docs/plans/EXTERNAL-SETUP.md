@@ -26,6 +26,7 @@
 | 12 | Clinician | None (uses P4 crypto locally) |
 | 13 | Research | Supabase `anonymized_data` + aggregation |
 | 14 | Cross-cutting | Crisis URLs in region packs |
+| 19 | Connectors | **Strava / Withings / Google Sheets OAuth**; Supabase Edge secrets; [docs/connectors/SETUP.md](../connectors/SETUP.md) |
 
 ---
 
@@ -176,6 +177,42 @@ RN: `expo-notifications` — request permissions in Settings; document iOS deliv
 
 - Maintain HTTPS crisis URLs in `privacy-region.js` / locale policy packs.
 - No external API — static URLs only.
+
+---
+
+## § Plan 19 — Third-party connectors (CN4–CN7)
+
+Operator guide: [docs/connectors/SETUP.md](../connectors/SETUP.md)
+
+### Secrets (Supabase Edge only)
+
+| Secret | Purpose |
+|--------|---------|
+| `CONNECTOR_TOKEN_SECRET` | AES-256-GCM key for OAuth tokens (32-byte base64) |
+| `CONNECTOR_STATE_SECRET` | HMAC key for OAuth CSRF state |
+| `STRAVA_CLIENT_ID` / `STRAVA_CLIENT_SECRET` | Strava developer app |
+| `WITHINGS_CLIENT_ID` / `WITHINGS_CLIENT_SECRET` | Withings developer app |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth (Sheets API) |
+| `CONNECTOR_SUCCESS_REDIRECT` | PWA: `https://<host>/connector-success.html`; RN: `rianell://connector/callback` |
+
+### SQL
+
+Apply migration `supabase/migrations/20260627100000_connectors_hardening.sql` (or fresh install `Schema-fresh-install.sql`).
+
+### Deploy
+
+```bash
+supabase functions deploy connector-auth connector-callback connector-disconnect \
+  connector-strava connector-withings connector-google-sheets
+```
+
+### Callback URLs (exact)
+
+| Provider | Redirect URI |
+|----------|--------------|
+| Strava | `https://<project-ref>.supabase.co/functions/v1/connector-callback?provider=strava` |
+| Withings | `https://<project-ref>.supabase.co/functions/v1/connector-callback?provider=withings` |
+| Google Sheets | `https://<project-ref>.supabase.co/functions/v1/connector-callback?provider=google-sheets` |
 
 ---
 

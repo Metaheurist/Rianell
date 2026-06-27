@@ -28,6 +28,9 @@
 | Web Push | VAPID (self-generated) | $0 | 11, 14 | Private key server-side only |
 | Session recording (opt-in) | [Smartlook](https://www.smartlook.com/) free tier | $0 | All | EU region; off by default; consent-gated in Settings |
 | User cloud backup | WebDAV (user's own server) | $0 to user | 06 (D7) | Google Drive / iCloud OAuth **deferred** |
+| Strava activity import | [Strava API](https://developers.strava.com/) developer app | $0 dev tier | 19 (CN4) | OAuth; rate limits ~200/15min; manual sync only |
+| Withings vitals import | [Withings Health API](https://developer.withings.com/) | $0 dev tier | 19 (CN5) | OAuth; batch fetch since last sync |
+| Google Sheets sync | [Google Sheets API](https://developers.google.com/sheets/api) | $0 quota | 19 (CN6) | User-owned spreadsheet import+export; not Drive backup (D7) |
 
 ---
 
