@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { encryptToken, verifySignedState } from '../_shared/connectorCrypto.ts';
 import { exchangeCodeForTokens } from '../_shared/connectorProviders.ts';
 
-const OAUTH_PROVIDERS = new Set(['strava', 'withings', 'google-sheets']);
+const OAUTH_PROVIDERS = new Set(['strava', 'withings']);
 
 Deno.serve(async (req: Request) => {
   if (req.method !== 'GET') return new Response('Method not allowed', { status: 405 });

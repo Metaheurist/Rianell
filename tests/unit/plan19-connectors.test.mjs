@@ -101,12 +101,13 @@ test('RN oauthConnect module exists', () => {
   assert.match(src, /rianell:/);
 });
 
-test('Wiki documents v1.135.0 connectors', () => {
+test('Wiki documents v2.0.0 release and connectors', () => {
   const features = readFileSync(join(root, 'wiki/Features-Guide.md'), 'utf8');
   const release = readFileSync(join(root, 'wiki/Release-Notes.md'), 'utf8');
   const faq = readFileSync(join(root, 'wiki/FAQ.md'), 'utf8');
   assert.match(features, /Third-party connectors/);
   assert.match(features, /Strava/);
-  assert.match(release, /v1\.135\.0/);
+  assert.match(release, /v2\.0\.0/);
+  assert.match(release, /Rianell 2\.0/);
   assert.match(faq, /Strava/);
 });

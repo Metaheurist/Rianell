@@ -4415,7 +4415,10 @@ window.addEventListener('DOMContentLoaded', function() {
   var skipBtn = document.getElementById('logWizardSkipBtn');
   if (backBtn) backBtn.addEventListener('click', function() { logWizardGoBack(); });
   if (nextBtn) nextBtn.addEventListener('click', function() { logWizardGoNext(); });
+  var sideNextBtn = document.getElementById('logWizardSideNextBtn');
+  if (sideNextBtn) sideNextBtn.addEventListener('click', function() { logWizardGoNext(); });
   if (skipBtn) skipBtn.addEventListener('click', function() { logWizardSkipCurrentStep(); });
+  bindLogWizardSwipeOnce();
   var logFormEl = document.getElementById('logForm');
   if (logFormEl) {
     logFormEl.addEventListener('input', scheduleLogDraftPersist);
@@ -4999,9 +5002,149 @@ function toggleTemperatureUnit() {
         : (((n - 32) * 5) / 9).toFixed(1);
     }
   }
+  if (typeof syncBbtSliderRange === 'function') syncBbtSliderRange(true);
   saveSettings();
 }
 if (typeof window !== 'undefined') window.toggleTemperatureUnit = toggleTemperatureUnit;
+
+var BBT_CELSIUS_MIN = 35;
+var BBT_CELSIUS_MAX = 38.5;
+var BBT_CELSIUS_DEFAULT = 36.5;
+
+function bbtCelsiusToFahrenheit(c) {
+  return (c * 9) / 5 + 32;
+}
+
+function bbtFahrenheitToCelsius(f) {
+  return ((f - 32) * 5) / 9;
+}
+
+function getBbtDisplayRange() {
+  var unit = (typeof appSettings !== 'undefined' && appSettings && appSettings.temperatureUnit) || 'celsius';
+  if (unit === 'fahrenheit') {
+    return {
+      min: bbtCelsiusToFahrenheit(BBT_CELSIUS_MIN),
+      max: bbtCelsiusToFahrenheit(BBT_CELSIUS_MAX),
+      default: bbtCelsiusToFahrenheit(BBT_CELSIUS_DEFAULT),
+      step: 0.1,
+    };
+  }
+  return {
+    min: BBT_CELSIUS_MIN,
+    max: BBT_CELSIUS_MAX,
+    default: BBT_CELSIUS_DEFAULT,
+    step: 0.1,
+  };
+}
+
+function bbtTempRatio(value, range) {
+  var ratio = (value - range.min) / (range.max - range.min);
+  return Math.max(0, Math.min(1, ratio));
+}
+
+function bbtTempColor(ratio) {
+  var hue = 205 - ratio * 205;
+  var sat = 65 + ratio * 35;
+  var light = 58 - ratio * 12;
+  return 'hsl(' + hue + ', ' + sat + '%, ' + light + '%)';
+}
+
+function syncBbtSliderRange(preserveActiveValue) {
+  var slider = document.getElementById('bbtSlider');
+  var hidden = document.getElementById('bbt');
+  var scaleLow = document.querySelector('.bbt-thermo-scale-low');
+  var scaleHigh = document.querySelector('.bbt-thermo-scale-high');
+  if (!slider) return;
+  var range = getBbtDisplayRange();
+  var prevVal = preserveActiveValue && hidden && hidden.value ? parseFloat(hidden.value) : parseFloat(slider.value);
+  slider.min = String(range.min);
+  slider.max = String(range.max);
+  slider.step = String(range.step);
+  if (preserveActiveValue && hidden && hidden.value && !isNaN(prevVal)) {
+    slider.value = String(prevVal);
+  } else if (isNaN(prevVal)) {
+    slider.value = String(range.default);
+  } else {
+    slider.value = String(Math.max(range.min, Math.min(range.max, prevVal)));
+  }
+  if (scaleLow) scaleLow.textContent = range.min.toFixed(1);
+  if (scaleHigh) scaleHigh.textContent = range.max.toFixed(1);
+  updateBbtThermometer(false);
+}
+
+function updateBbtThermometer(markActive) {
+  var slider = document.getElementById('bbtSlider');
+  var hidden = document.getElementById('bbt');
+  var valueDisplay = document.getElementById('bbtValueDisplay');
+  var widget = document.getElementById('bbtThermoWidget');
+  var mercury = document.getElementById('bbtMercuryGroup');
+  if (!slider || !widget) return;
+
+  if (markActive) widget.setAttribute('data-bbt-active', 'true');
+
+  var active = widget.getAttribute('data-bbt-active') === 'true';
+  var val = parseFloat(slider.value);
+  if (isNaN(val)) val = getBbtDisplayRange().default;
+
+  if (active && hidden) hidden.value = val.toFixed(1);
+
+  var range = getBbtDisplayRange();
+  var ratio = bbtTempRatio(val, range);
+  var color = bbtTempColor(ratio);
+  var glowPx = 4 + ratio * 16;
+
+  widget.style.setProperty('--bbt-mercury-color', color);
+  widget.style.setProperty('--bbt-glow-color', color.replace(/\)$/, ', 0.55)').replace(/^hsl\(/, 'hsla('));
+  widget.style.setProperty('--bbt-glow-size', glowPx + 'px');
+
+  if (valueDisplay) {
+    valueDisplay.textContent = active ? val.toFixed(1) : '—';
+  }
+
+  if (mercury) {
+    var fillScale = 0.06 + ratio * 0.94;
+    mercury.style.transform = 'scaleY(' + fillScale.toFixed(3) + ')';
+  }
+
+  var glowBlur = document.querySelector('#bbtThermoGlowFilter feGaussianBlur');
+  if (glowBlur) glowBlur.setAttribute('stdDeviation', String(2 + ratio * 7));
+
+  slider.style.setProperty('--rs-pct', (ratio * 100).toFixed(1) + '%');
+  slider.style.setProperty('--rs-fill', color);
+  slider.setAttribute('aria-valuenow', String(val));
+  slider.setAttribute('aria-valuemin', String(range.min));
+  slider.setAttribute('aria-valuemax', String(range.max));
+}
+
+function resetBbtThermometer() {
+  var slider = document.getElementById('bbtSlider');
+  var hidden = document.getElementById('bbt');
+  var widget = document.getElementById('bbtThermoWidget');
+  if (!slider) return;
+  var range = getBbtDisplayRange();
+  slider.value = String(range.default);
+  if (hidden) hidden.value = '';
+  if (widget) widget.setAttribute('data-bbt-active', 'false');
+  updateBbtThermometer(false);
+}
+
+function initBbtThermometer() {
+  var slider = document.getElementById('bbtSlider');
+  if (!slider || slider.dataset.bbtBound === '1') return;
+  slider.dataset.bbtBound = '1';
+  syncBbtSliderRange(false);
+  slider.addEventListener('input', function () {
+    updateBbtThermometer(true);
+  });
+  slider.addEventListener('change', function () {
+    updateBbtThermometer(true);
+  });
+}
+if (typeof window !== 'undefined') {
+  window.updateBbtThermometer = updateBbtThermometer;
+  window.syncBbtSliderRange = syncBbtSliderRange;
+  window.resetBbtThermometer = resetBbtThermometer;
+}
 
 function setGlucoseUnitPref(value) {
   appSettings.glucoseUnit = value === 'mgdl' ? 'mgdl' : 'mmol';
@@ -5402,6 +5545,8 @@ sliders.forEach(sliderId => {
     updateBristolSlider(this);
   });
 })();
+
+initBbtThermometer();
 
 /** Which chart layout is active (balance | combined | individual). */
 function getCurrentChartView() {
@@ -18168,6 +18313,26 @@ function closeMigrationWizard() {
 }
 if (typeof window !== 'undefined') window.closeMigrationWizard = closeMigrationWizard;
 
+function migrationSourceDisplayLabel(source) {
+  if (!source) return '';
+  if (source.label) return source.label;
+  if (source.labelKey && typeof tUi === 'function') {
+    var translated = tUi(source.labelKey);
+    if (translated && translated !== source.labelKey) return translated;
+  }
+  var fallbacks = {
+    bearable: 'Bearable',
+    flaredown: 'Flaredown',
+    cara: 'Cara Care',
+    oura: 'Oura Ring',
+    daylio: 'Daylio',
+    generic: 'Generic CSV',
+    'apple-health': 'Apple Health',
+    garmin: 'Garmin',
+  };
+  return fallbacks[source.id] || String(source.id || '');
+}
+
 function renderMigrationSourceGrid() {
   var grid = document.getElementById('migrationSourceGrid');
   if (!grid) return;
@@ -18185,7 +18350,8 @@ function renderMigrationSourceGrid() {
     { id: 'garmin', label: 'Garmin' },
   ];
   grid.innerHTML = sources.map(function(s) {
-    return '<button type="button" class="migration-source-btn" data-source="' + s.id + '" onclick="selectMigrationWizardSource(\'' + s.id + '\')">' + s.label + '</button>';
+    var label = migrationSourceDisplayLabel(s);
+    return '<button type="button" class="migration-source-btn" data-source="' + s.id + '" onclick="selectMigrationWizardSource(\'' + s.id + '\')">' + label + '</button>';
   }).join('');
 }
 
@@ -18200,7 +18366,7 @@ function selectMigrationWizardSource(sourceId) {
   var fileRow = document.getElementById('migrationFileRow');
   var fileLabel = document.getElementById('migrationFileLabel');
   if (fileRow) fileRow.hidden = false;
-  if (fileLabel) fileLabel.textContent = 'Upload your ' + sourceId + ' export (.csv or .json)';
+  if (fileLabel) fileLabel.textContent = 'Upload your ' + migrationSourceDisplayLabel({ id: sourceId }) + ' export (.csv or .json)';
   var fileInput = document.getElementById('migrationFileInput');
   if (fileInput) fileInput.value = '';
 }
@@ -18365,7 +18531,7 @@ function openDevPanel() {
   if (typeof openModalOverlay === 'function') {
     openModalOverlay(overlay, { onEscape: closeDevPanel });
   } else {
-    overlay.style.display = 'block';
+    overlay.style.display = 'flex';
     overlay.style.visibility = 'visible';
     overlay.style.opacity = '1';
     document.body.classList.add('modal-active');
@@ -18656,7 +18822,6 @@ if (typeof window !== 'undefined') window.copyDevFhirOutput = copyDevFhirOutput;
 var PWA_OAUTH_CONNECTORS = [
   { id: 'strava', label: 'Strava', icon: 'run', syncFn: 'connector-strava' },
   { id: 'withings', label: 'Withings', icon: 'stethoscope', syncFn: 'connector-withings' },
-  { id: 'google-sheets', label: 'Google Sheets', icon: 'document', syncFn: 'connector-google-sheets' }
 ];
 var _connectorStatusById = {};
 var _connectorSyncCooldownUntil = 0;
@@ -19273,6 +19438,10 @@ function loadSettingsState() {
   if (settingsGlucoseUnit) settingsGlucoseUnit.value = appSettings.glucoseUnit === 'mgdl' ? 'mgdl' : 'mmol';
   var settingsTemperatureUnit = document.getElementById('settingsTemperatureUnit');
   if (settingsTemperatureUnit) settingsTemperatureUnit.value = appSettings.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : 'celsius';
+  var temperatureUnitDisplay = document.getElementById('temperatureUnitDisplay');
+  if (temperatureUnitDisplay) temperatureUnitDisplay.textContent = appSettings.temperatureUnit === 'fahrenheit' ? '°F' : '°C';
+  if (typeof initBbtThermometer === 'function') initBbtThermometer();
+  if (typeof syncBbtSliderRange === 'function') syncBbtSliderRange(true);
   var settingsHeightCm = document.getElementById('settingsHeightCm');
   if (settingsHeightCm && appSettings.heightCm) settingsHeightCm.value = String(appSettings.heightCm);
   if (typeof syncDigestiveModuleVisibility === 'function') syncDigestiveModuleVisibility();
@@ -20232,9 +20401,34 @@ if (typeof window !== 'undefined') window.saveAppLockPasscodeFromPin = saveAppLo
 async function saveAppLockPasscode() {
   var mode = window._appLockSetupMode || 'pin';
   if (mode === 'pin') {
-    if (typeof showAlertModal === 'function') {
-      showAlertModal(tUi('settings.security.pinSetupHint'), tUi('settings.security.title'));
+    var lock = window.RianellAppLock;
+    if (!lock || typeof lock.setupKeypadPress !== 'function') {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('App lock is not ready. Refresh and try again.', tUi('settings.security.title'));
+      }
+      return;
     }
+    var state = typeof lock.getSetupState === 'function'
+      ? lock.getSetupState()
+      : { pin: lock.getSetupPin ? lock.getSetupPin() : '', confirm: '', confirmStep: false };
+    var minLen = lock.PIN_MIN || 4;
+    if (!state.confirmStep) {
+      if (!state.pin || state.pin.length < minLen) {
+        if (typeof showAlertModal === 'function') {
+          showAlertModal(tUi('settings.security.pinSetupHint'), tUi('settings.security.title'));
+        }
+        return;
+      }
+      lock.setupKeypadPress('ok');
+      return;
+    }
+    if (!state.confirm || state.confirm.length < minLen) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal(tUi('settings.privacy.appLock.confirmPrompt'), tUi('settings.security.title'));
+      }
+      return;
+    }
+    lock.setupKeypadPress('ok');
     return;
   }
   var pinEl = document.getElementById('appLockPinSetupInput');
@@ -23922,7 +24116,45 @@ function updateLogWizardChrome() {
     nextBtn.setAttribute('aria-hidden', canNext ? 'false' : 'true');
     nextBtn.tabIndex = canNext ? 0 : -1;
   }
+  var sideNextBtn = document.getElementById('logWizardSideNextBtn');
+  if (sideNextBtn) {
+    var canSideNext = currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
+    if (canSideNext) {
+      sideNextBtn.hidden = false;
+      sideNextBtn.disabled = false;
+      sideNextBtn.tabIndex = 0;
+    } else {
+      sideNextBtn.hidden = true;
+      sideNextBtn.disabled = true;
+      sideNextBtn.tabIndex = -1;
+    }
+  }
   if (saveBtn) saveBtn.style.display = currentLogWizardStep === LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
+}
+
+function bindLogWizardSwipeOnce() {
+  if (typeof window !== 'undefined' && window._logWizardSwipeBound) return;
+  var surface = document.getElementById('logWizardSteps');
+  if (!surface) return;
+  if (typeof window !== 'undefined') window._logWizardSwipeBound = true;
+  var startX = null;
+  var startY = null;
+  surface.addEventListener('touchstart', function (e) {
+    if (!e.changedTouches || !e.changedTouches.length) return;
+    startX = e.changedTouches[0].screenX;
+    startY = e.changedTouches[0].screenY;
+  }, { passive: true });
+  surface.addEventListener('touchend', function (e) {
+    if (startX == null || startY == null || !e.changedTouches || !e.changedTouches.length) return;
+    var dx = e.changedTouches[0].screenX - startX;
+    var dy = e.changedTouches[0].screenY - startY;
+    startX = null;
+    startY = null;
+    if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (window.matchMedia && window.matchMedia('(min-width: 769px)').matches) return;
+    if (dx < 0) logWizardGoNext();
+    else logWizardGoBack();
+  }, { passive: true });
 }
 
 function setLogWizardStep(step, skipHashUpdate) {
@@ -23961,6 +24193,14 @@ function setLogWizardStep(step, skipHashUpdate) {
   updateLogWizardChrome();
   if (typeof syncLogWizardProgressiveLocks === 'function') syncLogWizardProgressiveLocks();
   if (step === 0 && typeof syncLogWizardPlan04Ui === 'function') syncLogWizardPlan04Ui();
+  if (step === 1 && window.RianellVitalsSuggest) {
+    if (typeof window.RianellVitalsSuggest.bind === 'function') window.RianellVitalsSuggest.bind();
+    if (typeof window.RianellVitalsSuggest.refresh === 'function') {
+      var vitalsDateEl = document.getElementById('date');
+      var vitalsLogList = typeof logs !== 'undefined' && Array.isArray(logs) ? logs : [];
+      window.RianellVitalsSuggest.refresh(vitalsLogList, vitalsDateEl && vitalsDateEl.value ? vitalsDateEl.value : '');
+    }
+  }
   var panel = document.getElementById('logTab');
   if (panel) {
     if (step === LOG_WIZARD_TOTAL_STEPS - 1) {
@@ -24167,8 +24407,17 @@ function syncLogWizardPlan04Ui() {
     var logList = typeof logs !== 'undefined' && Array.isArray(logs) ? logs : [];
     window.RianellCycleTracking.applySuggestionFromLogs(logList, dateEl.value || '');
   }
-  dateEl.addEventListener('change', onLogDateForCycle);
-  dateEl.addEventListener('input', onLogDateForCycle);
+  function onLogDateForVitals() {
+    if (!window.RianellVitalsSuggest || typeof window.RianellVitalsSuggest.refresh !== 'function') return;
+    var logList = typeof logs !== 'undefined' && Array.isArray(logs) ? logs : [];
+    window.RianellVitalsSuggest.refresh(logList, dateEl.value || '');
+  }
+  function onLogDateChange() {
+    onLogDateForCycle();
+    onLogDateForVitals();
+  }
+  dateEl.addEventListener('change', onLogDateChange);
+  dateEl.addEventListener('input', onLogDateChange);
 })();
 
 function collectPlan04LogFields(dateValue) {
@@ -24335,11 +24584,20 @@ function resetLogWizardFieldToDefault(el) {
     } else {
       el.value = '0';
     }
+    if (el.id === 'bbtSlider') {
+      if (typeof resetBbtThermometer === 'function') resetBbtThermometer();
+      return;
+    }
     if (el.id === 'bristol' && typeof updateBristolSlider === 'function') {
       updateBristolSlider(el);
     } else if (typeof updateSliderColor === 'function') {
       updateSliderColor(el);
     }
+    return;
+  }
+  if (type === 'hidden') {
+    el.value = '';
+    if (el.id === 'bbt' && typeof resetBbtThermometer === 'function') resetBbtThermometer();
     return;
   }
   if (type === 'number') {
@@ -25389,6 +25647,9 @@ function attachInlineHandlersToWindow() {
     setSortOrder,
     setTutorialAIChoice,
     settingsCarouselStep,
+    showAlertModal,
+    showConfirmModal,
+    showGDPRAgreementModal,
     switchTab,
     toggleAIFeatures,
     toggleAccessibilityLargeText,
@@ -25417,7 +25678,6 @@ function attachInlineHandlersToWindow() {
     tutorialPrevSlide,
     updateUserName,
     updateRangeSlider,
-    showGDPRAgreementModal,
   };
   Object.keys(fns).forEach((name) => {
     if (typeof fns[name] === 'function') window[name] = fns[name];

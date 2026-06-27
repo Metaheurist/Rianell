@@ -6,6 +6,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.0] — 2026-06-27
+
+**Rianell 2.0** — production release. Open-beta branding removed; PWA uses production icons and copy.
+
+### Added
+
+- **Unified cycle timeline (PWA + RN):** 45-day phase-grouped scale with SVG icons; day ↔ phase inference.
+- **Vitals last-value hints (PWA + RN):** “Use last value” chips on log wizard vitals when a recent log exists (`@rianell/shared` `vitalSuggestions`).
+- **Log wizard mobile navigation (PWA + RN):** Side next arrow + swipe; desktop keeps Back | Skip | Next bar.
+- **BBT sliding thermometer (PWA):** Animated SVG thermometer replaces number input.
+- **Third-party connectors (Plan 19):** Strava, Withings, Google Sheets OAuth via Supabase Edge Functions.
+
+### Changed
+
+- **Goals modal:** Viewport height follows active tab (no wasted space on Goals vs Achievements).
+- **Desktop benchmark boot:** Full CPU suite runs on desktop when cache is missing or heuristic-only; mobile keeps fast heuristic tier.
+- **Developer & API modal:** Centered layout and UI polish.
+- **Privacy policies button:** Fixed `showAlertModal` export so in-app policy viewer opens.
+- **Version:** Monorepo root, PWA, and RN app packages bumped to **2.0.0**.
+- **Branding:** Removed floating Beta chip, install Beta badges, and beta icon set from production PWA; meta/OG copy updated.
+
+### Fixed
+
+- Cycle tracking UI consolidated to single timeline (replaces separate day pills + phase grid).
+- Benchmark God-mode view message clarified for heuristic vs full-suite results.
+
+---
+
 ## [1.135.0] — 2026-06-27
 
 ### Added

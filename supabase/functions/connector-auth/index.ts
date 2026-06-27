@@ -3,7 +3,7 @@ import { corsHeaders, handleCors, jsonResponse } from '../_shared/cors.ts';
 import { createSignedState } from '../_shared/connectorCrypto.ts';
 import { buildAuthorizeUrl } from '../_shared/connectorProviders.ts';
 
-const OAUTH_PROVIDERS = new Set(['strava', 'withings', 'google-sheets']);
+const OAUTH_PROVIDERS = new Set(['strava', 'withings']);
 
 Deno.serve(async (req: Request) => {
   const cors = handleCors(req);

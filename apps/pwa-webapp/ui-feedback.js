@@ -178,7 +178,8 @@
     }
     var useFlex = overlay.classList.contains('ai-model-download-consent')
       || overlay.classList.contains('health-data-consent-overlay')
-      || overlay.classList.contains('privacy-region-gate-overlay');
+      || overlay.classList.contains('privacy-region-gate-overlay')
+      || overlay.classList.contains('dev-panel-overlay');
     overlay.style.display = useFlex ? 'flex' : 'block';
     overlay.style.visibility = 'visible';
     overlay.style.opacity = '1';
