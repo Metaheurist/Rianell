@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-27T15:32:12.235Z",
+  "generatedAt": "2026-06-27T18:07:36.535Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4683445,
-    "cssBytes": 594582,
-    "jsGzipBytes": 1112847,
-    "cssGzipBytes": 101747
+    "jsBytes": 4692770,
+    "cssBytes": 604747,
+    "jsGzipBytes": 1114355,
+    "cssGzipBytes": 103213
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1101594,
-      "gzipBytes": 239357
+      "bytes": 1101027,
+      "gzipBytes": 239214
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,14 +19,14 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.5fb5bae34cab.min.js",
-      "bytes": 811942,
-      "gzipBytes": 188078
+      "file": "ci-minified/site/app.81c5c8a05fda.min.js",
+      "bytes": 811498,
+      "gzipBytes": 188037
     },
     {
-      "file": "ci-minified/site/styles.918854125c2c.css",
-      "bytes": 577688,
-      "gzipBytes": 97531
+      "file": "ci-minified/site/styles.ab2bb7fbfc13.css",
+      "bytes": 587853,
+      "gzipBytes": 98997
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,23 +35,23 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 353634,
-      "gzipBytes": 81742
+      "bytes": 352795,
+      "gzipBytes": 81581
     },
     {
       "file": "ci-minified/site/AIEngine.js",
-      "bytes": 175506,
-      "gzipBytes": 38766
+      "bytes": 175488,
+      "gzipBytes": 38746
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 105595,
-      "gzipBytes": 22659
+      "bytes": 105593,
+      "gzipBytes": 22655
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 78966,
-      "gzipBytes": 17601
+      "bytes": 78958,
+      "gzipBytes": 17587
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -72,6 +72,11 @@
       "file": "ci-minified/site/modules/weekly-review.js",
       "bytes": 37373,
       "gzipBytes": 8186
+    },
+    {
+      "file": "ci-minified/site/modules/log-metric-widgets.js",
+      "bytes": 29054,
+      "gzipBytes": 6092
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -110,23 +115,18 @@
     },
     {
       "file": "ci-minified/site/modules/cycle-tracking-ui.js",
-      "bytes": 22426,
-      "gzipBytes": 5078
+      "bytes": 22422,
+      "gzipBytes": 5068
     },
     {
       "file": "ci-minified/site/modules/advanced-vitals-widgets.js",
-      "bytes": 21062,
-      "gzipBytes": 4377
+      "bytes": 22397,
+      "gzipBytes": 4705
     },
     {
       "file": "ci-minified/site/import-utils.js",
       "bytes": 19409,
       "gzipBytes": 5029
-    },
-    {
-      "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 18228,
-      "gzipBytes": 4348
     },
     {
       "file": "ci-minified/site/modules/app-lock.js",
@@ -150,18 +150,18 @@
     },
     {
       "file": "ci-minified/site/modules/lifestyle-vitals-widgets.js",
-      "bytes": 12433,
-      "gzipBytes": 3045
-    },
-    {
-      "file": "ci-minified/site/modules/bp-input-widget.js",
-      "bytes": 11082,
-      "gzipBytes": 2768
+      "bytes": 12425,
+      "gzipBytes": 3036
     },
     {
       "file": "ci-minified/site/i18n-pwa.js",
       "bytes": 10964,
       "gzipBytes": 2642
+    },
+    {
+      "file": "ci-minified/site/modules/bp-input-widget.js",
+      "bytes": 10687,
+      "gzipBytes": 2690
     },
     {
       "file": "ci-minified/site/modules/goals-carousel.js",
@@ -170,8 +170,8 @@
     },
     {
       "file": "ci-minified/site/modules/vitals-suggest-ui.js",
-      "bytes": 8610,
-      "gzipBytes": 2215
+      "bytes": 8059,
+      "gzipBytes": 2131
     },
     {
       "file": "ci-minified/site/device-module.js",
