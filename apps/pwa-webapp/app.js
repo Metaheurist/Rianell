@@ -25390,6 +25390,16 @@ function runRianellBootAfterDomReady() {
   if (window.__rianellBootAfterDomStarted) return;
   window.__rianellBootAfterDomStarted = true;
   if (typeof ensureAppShellDomPlacement === 'function') ensureAppShellDomPlacement();
+  if (!window.__rianellBootWatchdogId) {
+    var bootWatchdogMs = (typeof window.isMobileViewport === 'function' && window.isMobileViewport()) ? 12000 : 22000;
+    window.__rianellBootWatchdogId = setTimeout(function () {
+      window.__rianellBootWatchdogId = null;
+      if (document.body && document.body.classList.contains('loaded')) return;
+      if (typeof window.__rianellForceRevealBootShell === 'function') {
+        window.__rianellForceRevealBootShell();
+      }
+    }, bootWatchdogMs);
+  }
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
@@ -25549,6 +25559,10 @@ function runRianellBootAfterDomReady() {
   }
 
   function revealAppShell() {
+    if (typeof window !== 'undefined' && window.__rianellBootWatchdogId) {
+      clearTimeout(window.__rianellBootWatchdogId);
+      window.__rianellBootWatchdogId = null;
+    }
     clearPrivacyGateShellLock();
     document.body.classList.remove('loading');
     document.body.classList.add('loaded');
@@ -25690,11 +25704,16 @@ function runRianellBootAfterDomReady() {
     }
   }
 
+  var awaitAiDuringBoot = shouldAwaitAiDownloadBeforeShell();
   if (typeof window.setAiModelDownloadUiMode === 'function') {
-    window.setAiModelDownloadUiMode(shouldAwaitAiDownloadBeforeShell() ? 'blocking' : undefined);
+    window.setAiModelDownloadUiMode(awaitAiDuringBoot ? 'blocking' : undefined);
   }
 
-  if (shouldAwaitAiDownloadBeforeShell()) {
+  /* Reveal the shell before AI preload so consent modals and onboarding overlays stay tappable. */
+  revealAppShellWithLocale();
+  schedulePostShellIdleWork(awaitAiDuringBoot);
+
+  if (awaitAiDuringBoot) {
     var aiBootChain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
       ? window.PerformanceUtils.ensureAIEngineLoaded()
       : Promise.resolve();
@@ -25705,15 +25724,10 @@ function runRianellBootAfterDomReady() {
         }
       });
     }).catch(function () {
-      /* deferred consent or download failure - still reveal shell */
+      /* deferred consent or download failure */
     }).then(function () {
       window.__rianellAiPreloadedDuringBoot = true;
-      revealAppShellWithLocale();
-      schedulePostShellIdleWork(true);
     });
-  } else {
-    revealAppShellWithLocale();
-    schedulePostShellIdleWork(false);
   }
 
   if (!appSettings.weightUnit) {
@@ -25811,6 +25825,11 @@ function runRianellBootAfterDomReady() {
       }
       document.body.classList.add('loaded');
       logBootState('revealAndStart');
+      if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame(function () { markShellPainted(); });
+      } else {
+        markShellPainted();
+      }
       if (meta && (meta.cached || meta.heuristic)) {
         startAppAfterPrivacyGate();
         return;
@@ -25859,6 +25878,26 @@ function runRianellBootAfterDomReady() {
   } else {
     startAppAfterPrivacyGate();
   }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.__rianellForceRevealBootShell = function () {
+      logBootState('bootWatchdog:forceReveal');
+      if (typeof window.__rianellRunAppInit === 'function' && !window.__rianellAppInitStarted) {
+        startAppAfterPrivacyGate();
+      }
+      if (document.body && !document.body.classList.contains('loaded')) {
+        revealAppShellWithLocale();
+      } else if (typeof ensureShellContentVisible === 'function') {
+        ensureShellContentVisible();
+      }
+      var stuckLoading = document.getElementById('loadingOverlay');
+      if (stuckLoading && !stuckLoading.classList.contains('hidden')) {
+        stuckLoading.classList.add('hidden');
+        document.body.classList.remove('loading');
+        if (document.body) document.body.classList.add('loaded');
+      }
+    };
   }
 
   startAfterMotd();

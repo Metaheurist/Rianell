@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.3 documentation sync (Mobile first-launch boot fix)
+
+- **Boot (PWA):** Shell reveals before AI preload on installed mobile PWAs; `__rianellForceRevealBootShell` watchdog at 12s on mobile.
+- **Privacy gate (PWA):** `isOnboardingInteractionTarget` whitelists `#aiModelDownloadOverlay`, `#aiModelDownloadProgressOverlay`, `#alertModalOverlay`, `#appLockOverlay`, `#rianellBootRecoveryOverlay`, `#loadingOverlay`.
+- **Modals (PWA):** `isAnyModalOverlayOpen()` in `ui-feedback.js`; first-run wizard uses it on close; `body.modal-active` pointer-events extended to first-run, perf benchmark, and AI download overlays.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.3.
+
 ### v2.0.2 documentation sync (Vitals widgets and mobile UX)
 
 - **Log wizard (PWA):** Animated widgets — BP dial (`modules/bp-input-widget.js`), advanced vitals sliders (`modules/advanced-vitals-widgets.js`), lifestyle steps/hydration (`modules/lifestyle-vitals-widgets.js`); mobile side prev/next nav; desktop-only bottom nav bar.
