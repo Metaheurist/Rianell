@@ -53,6 +53,11 @@ import {
   type UnlockCategory,
 } from '../utils/engagementGamification';
 
+type VitalSuggestionsMap = Record<
+  string,
+  { fromDate: string; displayValue: string; values: Record<string, number | string> }
+>;
+
 /** Matches web `LOG_WIZARD_TOTAL_STEPS` (10 steps: Date…Review). */
 const WIZARD_STEPS = 10;
 type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -770,9 +775,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const [cyclePeriodStart, setCyclePeriodStart] = useState(false);
   const [cyclePeriodAnchorDate, setCyclePeriodAnchorDate] = useState<string | null>(null);
   const [cycleSuggestHint, setCycleSuggestHint] = useState<string | null>(null);
-  const [vitalSuggestions, setVitalSuggestions] = useState<
-    Record<string, { fromDate: string; displayValue: string; values: Record<string, number | string> }>
-  >({});
+  const [vitalSuggestions, setVitalSuggestions] = useState<VitalSuggestionsMap>({});
   const cycleAutoFilledRef = useRef(false);
   const cycleSuggestedDateRef = useRef('');
   const cycleStateRef = useRef({
@@ -948,7 +951,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     loadLogs()
       .then((loadedLogs) => {
         if (cancelled) return;
-        setVitalSuggestions(buildVitalSuggestions(loadedLogs, date, { unitPrefs: vitalUnitPrefs }));
+        setVitalSuggestions(
+          buildVitalSuggestions(loadedLogs, date, { unitPrefs: vitalUnitPrefs }) as VitalSuggestionsMap,
+        );
       })
       .catch(() => {
         if (!cancelled) setVitalSuggestions({});
