@@ -11,3 +11,21 @@ max_rows = 1000
 
 [functions.delete-user-data]
 verify_jwt = true
+
+[functions.connector-auth]
+verify_jwt = true
+
+[functions.connector-callback]
+verify_jwt = false
+
+[functions.connector-disconnect]
+verify_jwt = true
+
+[functions.connector-strava]
+verify_jwt = true
+
+[functions.connector-withings]
+verify_jwt = true
+
+[functions.connector-google-sheets]
+verify_jwt = true

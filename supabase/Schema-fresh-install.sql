@@ -233,8 +233,31 @@ CREATE TABLE IF NOT EXISTS public.user_integrations (
   sheet_id                 text,
   sheet_range              text,
   metadata                 jsonb DEFAULT '{}'::jsonb,
+  last_sync_at             timestamptz,
+  sync_status              text DEFAULT 'idle',
   created_at               timestamptz DEFAULT now(),
-  updated_at               timestamptz DEFAULT now()
+  updated_at               timestamptz DEFAULT now(),
+  UNIQUE (user_id, provider)
+);
+
+CREATE TABLE IF NOT EXISTS public.connector_tokens (
+  id                       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id                  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  provider                 text NOT NULL,
+  access_token_encrypted   text NOT NULL,
+  refresh_token_encrypted  text,
+  expires_at               timestamptz,
+  updated_at               timestamptz DEFAULT now(),
+  UNIQUE (user_id, provider)
+);
+
+CREATE TABLE IF NOT EXISTS public.connector_oauth_states (
+  id                       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id                  uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  provider                 text NOT NULL,
+  nonce                    text NOT NULL,
+  expires_at               timestamptz NOT NULL,
+  created_at               timestamptz DEFAULT now()
 );
 
 -- ── CSP violation reports (Plan 21) ──────────────────────────────────────────
@@ -301,6 +324,8 @@ ALTER TABLE public.webhook_deliveries     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oauth2_clients         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.oauth2_auth_codes      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_integrations      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.connector_tokens       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.connector_oauth_states ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.csp_violations         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.community_tips         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.community_triggers     ENABLE ROW LEVEL SECURITY;
@@ -681,6 +706,8 @@ BEGIN
   DELETE FROM public.user_webhooks      WHERE user_id = p_user_id;
   DELETE FROM public.api_keys           WHERE user_id = p_user_id;
   DELETE FROM public.oauth2_auth_codes  WHERE user_id = p_user_id;
+  DELETE FROM public.connector_oauth_states WHERE user_id = p_user_id;
+  DELETE FROM public.connector_tokens   WHERE user_id = p_user_id;
   DELETE FROM public.user_integrations  WHERE user_id = p_user_id;
   DELETE FROM public.consent_audit_log  WHERE user_id = p_user_id;
   DELETE FROM public.anonymized_data    WHERE user_id = p_user_id;
