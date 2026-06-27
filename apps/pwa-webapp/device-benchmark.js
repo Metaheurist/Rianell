@@ -636,6 +636,7 @@
       if (!data || typeof data.tier !== 'number' || data.tier < 1 || data.tier > MAX_TIER) return null;
       if (!data.platformType || (data.platformType !== 'mobile' && data.platformType !== 'desktop')) return null;
       if (data.version != null && data.version < BENCHMARK_VERSION) return null;
+      if (getPlatformType() === 'desktop' && isHeuristicOnlyResult(data)) return null;
       return data;
     } catch (e) {
       return null;
@@ -674,8 +675,14 @@
     } catch (e) { return false; }
   }
 
+  function isHeuristicOnlyResult(data) {
+    return !!(data && data.heuristic && (!Array.isArray(data.tests) || data.tests.length === 0));
+  }
+
   function shouldUseHeuristicBoot() {
-    return typeof window !== 'undefined' && !isNativeApp();
+    if (typeof window === 'undefined') return false;
+    if (isNativeApp()) return false;
+    return getPlatformType() === 'mobile';
   }
 
   function saveBenchmarkResultMinimal(obj) {

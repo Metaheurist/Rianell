@@ -512,8 +512,8 @@ const NotificationManager = {
     const silent = !isSoundEnabled();
     const opts = {
       body: body,
-      icon: '/Icons/beta/Icon-192.png',
-      badge: '/Icons/beta/Icon-72.png',
+      icon: '/Icons/Icon-192.png',
+      badge: '/Icons/Icon-72.png',
       tag: 'health-reminder',
       requireInteraction: false,
       silent: silent,

@@ -1,5 +1,6 @@
 export * from './logSchema.mjs';
 export * from './cycleTracking.mjs';
+export * from './vitalSuggestions.mjs';
 export * from './microCheckin.mjs';
 export * from './favorites.mjs';
 export * from './symptomTemplates.mjs';

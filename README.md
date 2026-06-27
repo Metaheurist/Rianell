@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.135.0** — OAuth connectors (Strava, Withings, Google Sheets), on-device AI engine (Transformers.js 3.3.2 + ONNX Runtime), React 19, React Native 0.83.2, Supabase Edge Functions).
+**Latest changes:** **[CHANGELOG.md](CHANGELOG.md)** (current **v2.0.0** — production release: OAuth connectors, unified cycle timeline, vitals suggestions, log-wizard UX, desktop full benchmark, beta branding removed).
 
 ### Here's what we plan next
 
@@ -120,14 +120,15 @@ Support contact: **jan.andersson@rianell.com**
 
 ## App icons (favicon, PWA, Android source)
 
-Master rasters live under **`apps/pwa-webapp/Icons/`** (`Icon-*.png`, **`logo-source.png`**) without a beta badge.
+Master rasters live under **`apps/pwa-webapp/Icons/`** (`Icon-*.png`, **`logo-source.png`**). The PWA uses this production set in **`index.html`**, **`manifest.json`**, **`sw.js`**, and **`notifications.js`**.
 
-A separate **beta** set is generated into **`apps/pwa-webapp/Icons/beta/`** with the same filenames and a theme-green **BETA** badge placed in the **top-right** corner (matching the floating **+** beta chip style). The web app currently points **`index.html`**, **`manifest.json`**, and **`notifications.js`** at this beta set. Regenerate after editing masters:
+Regenerate after editing the master source:
 
 ```bash
 npm run icons:generate -- --source "C:/path/to/new-icon-source.png"
-npm run icons:beta
 ```
+
+Optional beta-badge variants for preview builds: `npm run icons:beta` → **`apps/pwa-webapp/Icons/beta/`** (not used in v2 production deploy).
 
 Native app icons are generated via Expo / RN CLI asset pipelines (`apps/rn-app`); PWA icons under **`apps/pwa-webapp/Icons/`** feed the web manifest and GitHub Pages deploy.
 

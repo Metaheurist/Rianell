@@ -128,6 +128,8 @@ function initializeEventHandlers() {
   const passwordToggle = document.getElementById('passwordToggle');
   const cloudSignUpBtn = document.getElementById('cloudSignUpBtn');
   const cloudLoginBtn = document.getElementById('cloudLoginBtn');
+  const cloudPasskeySignInBtn = document.getElementById('cloudPasskeySignInBtn');
+  const cloudPasskeyEnrollBtn = document.getElementById('cloudPasskeyEnrollBtn');
   const cloudSyncBtn = document.getElementById('cloudSyncBtn');
   const cloudLogoutBtn = document.getElementById('cloudLogoutBtn');
   
@@ -152,7 +154,19 @@ function initializeEventHandlers() {
       }
     });
   }
-  
+
+  if (cloudPasskeySignInBtn) {
+    cloudPasskeySignInBtn.addEventListener('click', function() {
+      if (typeof handlePasskeySignIn === 'function') handlePasskeySignIn();
+    });
+  }
+
+  if (cloudPasskeyEnrollBtn) {
+    cloudPasskeyEnrollBtn.addEventListener('click', function() {
+      if (typeof handlePasskeyEnroll === 'function') handlePasskeyEnroll();
+    });
+  }
+
   if (cloudSyncBtn) {
     cloudSyncBtn.addEventListener('click', syncToCloud);
   }
