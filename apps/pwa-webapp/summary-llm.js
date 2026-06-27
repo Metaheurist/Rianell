@@ -875,11 +875,15 @@
     } else if (data.status === 'done') {
       pct = 100;
     }
+    // Per-file 'done'/'ready' from transformers.js must not hide the modal mid-download.
+    var active = data.active === false
+      ? false
+      : (!!loadInFlight || downloadProgressState.active);
     downloadProgressState = {
       pct: pct,
       status: data.status || downloadProgressState.status,
       file: sanitizeDownloadFileLabel(data.file || ''),
-      active: data.status !== 'done' && data.status !== 'ready'
+      active: active
     };
     if (typeof window !== 'undefined') {
       window.__rianellLlmDownloadProgress = downloadProgressState;
@@ -893,8 +897,7 @@
   }
 
   function finishDownloadProgress() {
-    reportDownloadProgress({ status: 'done', progress: 1 });
-    downloadProgressState.active = false;
+    reportDownloadProgress({ status: 'done', progress: 1, active: false });
     if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
       window.hideAiModelDownloadProgressUI();
     }

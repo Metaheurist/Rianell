@@ -23163,7 +23163,9 @@ function renderCheckinSliderHtml(periods, done, selectedPeriod, labelFn, ctaLabe
     var isDone = done.has(period);
     var isSelected = period === selectedPeriod;
     html += '<button type="button" class="checkin-slider-stop' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(label) + '">';
+    html += '<span class="checkin-slider-icon-slot" aria-hidden="true">';
     html += svgIcon(checkinPeriodIconName(period), 'checkin-slider-stop-icon');
+    html += '</span>';
     html += '<span class="checkin-slider-stop-label">' + escapeHTML(label) + '</span>';
     html += '</button>';
   });
