@@ -2024,6 +2024,13 @@
     "wizard.vitals.advanced": "Advanced vitals",
     "wizard.vitals.advanced.hint": "(optional)",
     "wizard.weather.sensitivity.1.10": "Weather sensitivity (1-10)",
-    "wizard.weight.kg": "Weight (kg)"
+    "wizard.weight.kg": "Weight (kg)",
+    "common.sign.in.with.a.passkey.biometrics.or.sec": "Sign in with a passkey (biometrics or security key)",
+    "common.register.a.passkey.biometrics.or.securit": "Register a passkey (biometrics or security key) for faster login",
+    "common.logs.read": "logs:read",
+    "common.logs.write": "logs:write",
+    "common.fhir.read": "fhir:read",
+    "common.webhooks.read": "webhooks:read",
+    "common.slide.to.set.temperature": "Slide to set temperature"
   }
 }
