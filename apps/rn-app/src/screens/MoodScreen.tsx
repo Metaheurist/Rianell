@@ -20,7 +20,6 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useToast } from '../components/ui/Toast';
-import { formatIsoDate } from '@rianell/shared';
 import type { MainTabParamList } from '../navigation/RootNavigator';
 import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
@@ -91,11 +90,104 @@ function defaultCheckinPeriod(): CheckinPeriod {
 const CHECKIN_SLIDER_SELECTED_SCALE = 1.8;
 const CHECKIN_SLIDER_UNSELECTED_SCALE = 1;
 
-function periodMetaLabel(period: string | null, t: (key: string) => string): string {
-  if (period === 'AM') return t('mood.period.am');
-  if (period === 'PM') return t('mood.period.pm');
-  if (period === 'midday') return t('mood.period.midday');
-  return '';
+type MoodTone = 'low' | 'moderate' | 'okay' | 'good' | 'neutral';
+
+function moodToneFromScore(score: number): MoodTone {
+  if (!Number.isFinite(score)) return 'neutral';
+  if (score <= 3) return 'low';
+  if (score <= 5) return 'moderate';
+  if (score <= 7) return 'okay';
+  return 'good';
+}
+
+const MOOD_TONE_COLORS: Record<MoodTone, string> = {
+  low: '#9575cd',
+  moderate: '#ffb74d',
+  okay: '#81c784',
+  good: '#7bdf8c',
+  neutral: 'rgba(255,255,255,0.35)',
+};
+
+function formatMoodTimelineDate(dateStr: string): string {
+  if (!dateStr || dateStr.length < 10) return dateStr;
+  const m = parseInt(dateStr.slice(5, 7), 10);
+  const d = parseInt(dateStr.slice(8, 10), 10);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (!Number.isFinite(m) || m < 1 || m > 12) return dateStr.slice(5);
+  return `${months[m - 1]} ${d}`;
+}
+
+function MoodTimeline({
+  dailyAverages,
+  accent,
+  textMuted,
+}: {
+  dailyAverages: Array<{ date: string; average: number; count: number }>;
+  accent: string;
+  textMuted: string;
+}) {
+  const scrollRef = useRef<ScrollView>(null);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 120);
+    return () => clearTimeout(t);
+  }, [dailyAverages.length]);
+
+  return (
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.moodTimelineContent}
+      accessibilityRole="list"
+    >
+      {dailyAverages.map((d, i) => {
+        const tone = moodToneFromScore(d.average);
+        const orbColor = tone === 'good' ? accent : MOOD_TONE_COLORS[tone];
+        const orbSize = 12 + (d.average / 10) * 14;
+        const isLatest = i === dailyAverages.length - 1;
+        return (
+          <View
+            key={d.date}
+            accessibilityRole="listitem"
+            accessibilityLabel={`${d.date}, ${d.average} out of 10`}
+            style={[
+              styles.moodTimelineNode,
+              { paddingTop: 52 - (d.average / 10) * 28 },
+            ]}
+          >
+            <View style={styles.moodTimelineOrbWrap}>
+              {isLatest ? (
+                <View style={[styles.moodTimelinePulse, { borderColor: `${accent}88` }]} />
+              ) : null}
+              <View
+                style={[
+                  styles.moodTimelineOrb,
+                  {
+                    width: orbSize,
+                    height: orbSize,
+                    backgroundColor: orbColor,
+                    borderColor: isLatest ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.35)',
+                    transform: [{ scale: isLatest ? 1.12 : 1 }],
+                  },
+                ]}
+              />
+              {d.count > 1 ? (
+                <View style={styles.moodTimelinePips}>
+                  {Array.from({ length: Math.min(d.count, 4) }).map((_, pipIdx) => (
+                    <View key={pipIdx} style={[styles.moodTimelinePip, { backgroundColor: orbColor }]} />
+                  ))}
+                </View>
+              ) : null}
+            </View>
+            <Text style={[styles.moodTimelineScore, { color: accent }]}>{d.average}</Text>
+            <Text style={[styles.moodTimelineDate, { color: textMuted }]}>{formatMoodTimelineDate(d.date)}</Text>
+          </View>
+        );
+      })}
+    </ScrollView>
+  );
 }
 
 function ScreeningFrequencySlider({
@@ -464,22 +556,11 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
             </View>
 
             <Text style={[styles.sectionTitle, { color: theme.tokens.color.textPrimary }]}>{t('mood.recent.title')}</Text>
-            {summary.readings.map((r, idx) => {
-              const src = r.source === 'checkin' ? t('mood.source.checkin') : t('mood.source.daily');
-              const period = r.period ? periodMetaLabel(r.period, t) : '';
-              const meta = period ? `${src} · ${period}` : src;
-              return (
-                <View key={`${r.date}-${r.period ?? 'daily'}-${idx}`} style={[styles.readingRow, { borderColor: theme.tokens.color.border }]}>
-                  <Text style={[styles.readingScore, { color: accent }]}>{r.mood}/10</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: theme.tokens.color.textPrimary }}>{formatIsoDate(r.date, locale, { dateStyle: 'medium' })}</Text>
-                    <Text style={{ color: theme.tokens.color.textMuted, fontSize: theme.font(12) }}>
-                      {meta} · {t(moodQualitativeKey(r.mood))}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
+            <MoodTimeline
+              dailyAverages={summary.dailyAverages}
+              accent={accent}
+              textMuted={theme.tokens.color.textMuted}
+            />
           </>
         )}
 
@@ -768,14 +849,21 @@ const styles = StyleSheet.create({
   metricLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4 },
   metricValue: { fontSize: 22, fontWeight: '700' },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
-  readingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+  moodTimelineContent: { paddingVertical: 6, paddingHorizontal: 4, gap: 0, minHeight: 116 },
+  moodTimelineNode: { width: 56, alignItems: 'center', gap: 3 },
+  moodTimelineOrbWrap: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  moodTimelineOrb: { borderRadius: 999, borderWidth: 2 },
+  moodTimelinePulse: {
+    position: 'absolute',
+    width: 38,
+    height: 38,
+    borderRadius: 999,
+    borderWidth: 2,
   },
-  readingScore: { fontWeight: '700', minWidth: 48 },
+  moodTimelinePips: { position: 'absolute', top: 2, flexDirection: 'row', gap: 2 },
+  moodTimelinePip: { width: 5, height: 5, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)' },
+  moodTimelineScore: { fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  moodTimelineDate: { fontSize: 10, textAlign: 'center', maxWidth: 54 },
   checkinRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   checkinSliderWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4, width: '100%' },
   checkinSliderTrack: { flexDirection: 'row', alignItems: 'center', flex: 1 },

@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.0** — Production release (Rianell 2): beta branding removed, cycle timeline, vitals suggestions, log-wizard UX, desktop full benchmark, Goals modal sizing.
+**Latest: v2.0.1** — Post–2.0.0 polish: barcode food logging, app lock PIN fix, brain fog toggle, mood/cycle UX, guided voice removal.
+
+### v2.0.1 - 2026-06-27 - Post–2.0.0 polish
+
+- **Barcode food logging (PWA):** Camera + Open Food Facts scan from food modal; consent dashboard + privacy wiki.
+- **App lock:** PIN save fixed (`minPassphraseLength: 4`); i18n fallbacks for setup hints; lock overlay on return.
+- **Removed:** Guided voice log extraction (module, settings, RN parsing).
+- **UX:** Mood timeline ribbon; integrated cycle/flow ribbon; BBT thermometer polish; passkey button styling; brain fog toggle fix; dev panel tabs visible.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.1.
 
 ### v2.0.0 - 2026-06-27 - Rianell 2.0 (production)
 

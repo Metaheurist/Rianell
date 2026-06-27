@@ -31,12 +31,25 @@ Settings → **Privacy & region** controls language and regional policies.
 | **Access / portability** | Settings → Export JSON backup; or create an encrypted share link |
 | **Rectification** | View logs → Edit entry |
 | **Erasure** | Delete entry; Delete cloud data; clear local storage |
-| **Withdraw consent** | Decline or revoke in Settings; disable cloud sync; revoke **Session recording (Smartlook)** |
+| **Withdraw consent** | Decline or revoke in Settings; disable cloud sync; revoke **Session recording (Smartlook)** or **Barcode food logging (camera)** in the consent dashboard |
 | **Object to research use** | Turn off anonymised contribution |
 
 Target response time for operator-assisted requests: **30 days** (GDPR Art. 12).
 
 Contact: **jan.andersson@rianell.com** for account deletion or access requests the app cannot fulfil alone.
+
+---
+
+## Optional barcode food logging
+
+When you enable **Barcode food logging** in Settings → Data options, Rianell can:
+
+| | |
+|---|---|
+| **Camera use** | Your browser asks for camera access only while the scanner is open |
+| **What is sent** | The barcode number is sent to [Open Food Facts](https://world.openfoodfacts.org/) to look up product name and nutrition |
+| **What stays local** | Your meal log; camera video is not uploaded |
+| **How to stop** | Turn off the toggle in Settings, or **Consent dashboard → Revoke** for barcode food logging |
 
 ---
 

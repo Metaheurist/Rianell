@@ -6,6 +6,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.1] — 2026-06-27
+
+Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across PWA + RN.
+
+### Added
+
+- **Barcode food logging (PWA):** Settings toggle with camera consent; scan icon beside food-modal search; Open Food Facts lookup populates food tile fields; consent dashboard row + wiki privacy section.
+- **Mood timeline (PWA + RN):** Horizontal daily-average ribbon replaces vertical recent-readings list.
+- **Cycle ribbon (PWA):** Merged menstrual day pills with integrated flow levels; removed duplicate Flow section.
+- **App lock PIN encryption:** `encryptExportWithPassphrase` accepts `minPassphraseLength: 4` for 4–8 digit PINs (export passphrases still require 12+).
+
+### Changed
+
+- **Removed guided voice log extraction:** Settings toggle, prefs, shared `voiceLogExtract` module, and RN structured voice parsing removed; voice notes remain plain text.
+- **Passkey sign-in button:** Black background with white label and icon.
+- **BBT widget (PWA):** Integrated card layout with gradient thermometer slider.
+- **Developer panel:** Tab buttons no longer hidden by global `button { width: 100% }` rule.
+
+### Fixed
+
+- **Brain fog mode toggle:** Calls `loadSettingsState()` so the switch UI updates and persists.
+- **App lock i18n:** Expose `window.tUi`; app-lock module uses `RianellI18n.t` with English fallbacks; PIN setup hint no longer shows raw keys.
+- **App lock PIN save:** 4-digit PINs no longer rejected with “Passphrase must be at least 12 characters”; lock overlay prompts on return when PIN is saved.
+- **Dev panel tabs:** All Developer & API tabs visible (Keys, Webhooks, etc.).
+
+---
+
 ## [2.0.0] — 2026-06-27
 
 **Rianell 2.0** — production release. Open-beta branding removed; PWA uses production icons and copy.

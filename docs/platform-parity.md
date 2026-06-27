@@ -475,7 +475,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Home:** Merged hero streak nudge; pacing widget card removed (Charts C9 series may still exist).
 - **Charts:** Insights panel removed on both platforms.
 - **Screening:** PHQ-2/GAD-2 slider UX aligned PWA/RN.
-- **Logging modules:** Cycle wizard fields both platforms when enabled; **barcode food** and **guided voice extraction** deferred (Settings toggles removed).
+- **Logging modules:** Cycle wizard fields both platforms when enabled; **barcode food logging** optional (Settings toggle + consent).
 
 ### v1.113.0 parity note (Mood tab and Home UX)
 

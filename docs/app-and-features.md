@@ -400,7 +400,7 @@ flowchart LR
 - **Home:** Hero status card includes streak nudge text when relevant; energy-budget/pacing card removed.
 - **Charts:** Correlation/forecast/compare/pacing insights panel removed.
 - **Screening:** PHQ-2/GAD-2 slider UX and friendlier copy on PWA and RN.
-- **Logging modules:** Cycle wizard fields both platforms when enabled; barcode food and guided voice **deferred** (Settings toggles removed; prefs forced off).
+- **Logging modules:** Cycle wizard fields both platforms when enabled; barcode food logging optional (camera + Open Food Facts).
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0.
 
 ### v1.113.0 documentation sync
