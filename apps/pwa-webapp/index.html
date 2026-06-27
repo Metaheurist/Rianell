@@ -2481,23 +2481,23 @@
                     <div class="bp-drum-col">
                       <span class="bp-drum-label" data-i18n="wizard.vitals.bp.systolic">Systolic</span>
                       <div class="bp-drum-shell">
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="-1" aria-label="Decrease systolic">−</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="-1" aria-label="Decrease systolic" data-i18n-aria="common.decrease.systolic">−</button>
                         <div class="bp-drum-window">
                           <div class="bp-drum-highlight" aria-hidden="true"></div>
-                          <div class="bp-drum-scroll" id="bpSystolicDrum" role="listbox" aria-label="Systolic blood pressure" tabindex="0"></div>
+                          <div class="bp-drum-scroll" id="bpSystolicDrum" role="listbox" aria-label="Systolic blood pressure" data-i18n-aria="common.systolic.blood.pressure" tabindex="0"></div>
                         </div>
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="1" aria-label="Increase systolic">+</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="1" aria-label="Increase systolic" data-i18n-aria="common.increase.systolic">+</button>
                       </div>
                     </div>
                     <div class="bp-drum-col">
                       <span class="bp-drum-label" data-i18n="wizard.vitals.bp.diastolic">Diastolic</span>
                       <div class="bp-drum-shell">
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="-1" aria-label="Decrease diastolic">−</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="-1" aria-label="Decrease diastolic" data-i18n-aria="common.decrease.diastolic">−</button>
                         <div class="bp-drum-window">
                           <div class="bp-drum-highlight" aria-hidden="true"></div>
-                          <div class="bp-drum-scroll" id="bpDiastolicDrum" role="listbox" aria-label="Diastolic blood pressure" tabindex="0"></div>
+                          <div class="bp-drum-scroll" id="bpDiastolicDrum" role="listbox" aria-label="Diastolic blood pressure" data-i18n-aria="common.diastolic.blood.pressure" tabindex="0"></div>
                         </div>
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="1" aria-label="Increase diastolic">+</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="1" aria-label="Increase diastolic" data-i18n-aria="common.increase.diastolic">+</button>
                       </div>
                     </div>
                   </div>
@@ -2539,13 +2539,13 @@
                     <div class="vital-widget__controls">
                       <div class="vital-readout" aria-live="polite">
                         <span class="vital-readout__value" id="glucoseValueDisplay">—</span>
-                        <span class="vital-readout__unit" id="glucoseUnitSuffix">mmol/L</span>
+                        <span class="vital-readout__unit" id="glucoseUnitSuffix" data-i18n="units.mmol">mmol/L</span>
                       </div>
                       <span class="vital-zone-badge" id="glucoseZoneBadge"></span>
-                      <input type="range" id="glucoseSlider" class="vital-slider" aria-label="Blood glucose" />
+                      <input type="range" id="glucoseSlider" class="vital-slider" aria-label="Blood glucose" data-i18n-aria="wizard.vitals.bloodGlucose" />
                       <div class="vital-stepper-row">
-                        <button type="button" class="vital-stepper-btn" data-vital-nudge="glucose" data-delta="-0.1" aria-label="Decrease glucose">−</button>
-                        <button type="button" class="vital-stepper-btn" data-vital-nudge="glucose" data-delta="0.1" aria-label="Increase glucose">+</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="glucose" data-delta="-0.1" aria-label="Decrease glucose" data-i18n-aria="common.decrease.glucose">−</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="glucose" data-delta="0.1" aria-label="Increase glucose" data-i18n-aria="common.increase.glucose">+</button>
                       </div>
                     </div>
                   </div>
@@ -2574,12 +2574,12 @@
                       </div>
                       <span class="vital-zone-badge" id="spo2ZoneBadge"></span>
                       <div class="vital-drum-shell vital-drum-shell--compact">
-                        <button type="button" class="vital-drum-nudge" data-vital-nudge="spo2" data-delta="-1" aria-label="Decrease SpO2">−</button>
+                        <button type="button" class="vital-drum-nudge" data-vital-nudge="spo2" data-delta="-1" aria-label="Decrease SpO2" data-i18n-aria="common.decrease.spo2">−</button>
                         <div class="vital-drum-window">
                           <div class="vital-drum-highlight" aria-hidden="true"></div>
-                          <div class="vital-drum-scroll" id="spo2Drum" role="listbox" aria-label="Oxygen saturation" tabindex="0"></div>
+                          <div class="vital-drum-scroll" id="spo2Drum" role="listbox" aria-label="Oxygen saturation" data-i18n-aria="common.oxygen.saturation" tabindex="0"></div>
                         </div>
-                        <button type="button" class="vital-drum-nudge" data-vital-nudge="spo2" data-delta="1" aria-label="Increase SpO2">+</button>
+                        <button type="button" class="vital-drum-nudge" data-vital-nudge="spo2" data-delta="1" aria-label="Increase SpO2" data-i18n-aria="common.increase.spo2">+</button>
                       </div>
                     </div>
                   </div>
@@ -2603,10 +2603,10 @@
                         <span class="vital-readout__unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
                       </div>
                       <span class="vital-zone-badge" id="hrvZoneBadge"></span>
-                      <input type="range" id="hrvSlider" class="vital-slider" aria-label="Heart rate variability" min="0" max="300" step="1" value="55" />
+                      <input type="range" id="hrvSlider" class="vital-slider" aria-label="Heart rate variability" data-i18n-aria="common.heart.rate.variability" min="0" max="300" step="1" value="55" />
                       <div class="vital-stepper-row">
-                        <button type="button" class="vital-stepper-btn" data-vital-nudge="hrv" data-delta="-5" aria-label="Decrease HRV">−</button>
-                        <button type="button" class="vital-stepper-btn" data-vital-nudge="hrv" data-delta="5" aria-label="Increase HRV">+</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="hrv" data-delta="-5" aria-label="Decrease HRV" data-i18n-aria="common.decrease.hrv">−</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="hrv" data-delta="5" aria-label="Increase HRV" data-i18n-aria="common.increase.hrv">+</button>
                       </div>
                     </div>
                   </div>
@@ -2643,10 +2643,10 @@
                         <span class="vital-readout__unit" id="bodyWeightUnitSuffix">kg</span>
                       </div>
                       <span class="vital-zone-badge" id="bodyWeightZoneBadge"></span>
-                      <input type="range" id="bodyWeightSlider" class="vital-slider" aria-label="Body weight" />
+                      <input type="range" id="bodyWeightSlider" class="vital-slider" aria-label="Body weight" data-i18n-aria="wizard.vitals.weight" />
                       <div class="vital-stepper-row">
-                        <button type="button" class="vital-stepper-btn" data-vital-nudge="bodyWeight" data-delta="-0.5" aria-label="Decrease weight">−</button>
-                        <button type="button" class="vital-stepper-btn" data-vital-nudge="bodyWeight" data-delta="0.5" aria-label="Increase weight">+</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="bodyWeight" data-delta="-0.5" aria-label="Decrease weight" data-i18n-aria="common.decrease.weight">−</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="bodyWeight" data-delta="0.5" aria-label="Increase weight" data-i18n-aria="common.increase.weight">+</button>
                       </div>
                       <p class="field-hint" id="bmiReadout" hidden></p>
                     </div>
@@ -2903,13 +2903,13 @@
               <div class="vital-widget__controls">
                 <div class="vital-readout" aria-live="polite">
                   <span class="vital-readout__value" id="stepsValueDisplay">—</span>
-                  <span class="vital-readout__unit">steps</span>
+                  <span class="vital-readout__unit" data-i18n="common.steps.unit">steps</span>
                 </div>
                 <span class="vital-zone-badge" id="stepsZoneBadge"></span>
-                <input type="range" id="stepsSlider" class="vital-slider" min="0" max="30000" step="500" value="0" aria-label="Steps" />
+                <input type="range" id="stepsSlider" class="vital-slider" min="0" max="30000" step="500" value="0" aria-label="Steps" data-i18n-aria="wizard.aria.steps" />
                 <div class="vital-stepper-row">
-                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="steps" data-delta="-500" aria-label="Decrease steps">−</button>
-                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="steps" data-delta="500" aria-label="Increase steps">+</button>
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="steps" data-delta="-500" aria-label="Decrease steps" data-i18n-aria="common.decrease.steps">−</button>
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="steps" data-delta="500" aria-label="Increase steps" data-i18n-aria="common.increase.steps">+</button>
                 </div>
               </div>
             </div>
@@ -2935,10 +2935,10 @@
                   <span class="vital-readout__unit" data-i18n="common.glasses">glasses</span>
                 </div>
                 <span class="vital-zone-badge" id="hydrationZoneBadge"></span>
-                <input type="range" id="hydrationSlider" class="vital-slider" min="0" max="20" step="0.5" value="0" aria-label="Hydration" />
+                <input type="range" id="hydrationSlider" class="vital-slider" min="0" max="20" step="0.5" value="0" aria-label="Hydration" data-i18n-aria="wizard.aria.hydration" />
                 <div class="vital-stepper-row">
-                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="hydration" data-delta="-0.5" aria-label="Decrease hydration">−</button>
-                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="hydration" data-delta="0.5" aria-label="Increase hydration">+</button>
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="hydration" data-delta="-0.5" aria-label="Decrease hydration" data-i18n-aria="common.decrease.hydration">−</button>
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="hydration" data-delta="0.5" aria-label="Increase hydration" data-i18n-aria="common.increase.hydration">+</button>
                 </div>
               </div>
             </div>
