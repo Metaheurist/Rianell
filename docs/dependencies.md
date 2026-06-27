@@ -76,10 +76,10 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `@huggingface/transformers` | 3.3.2 |
 | `@react-native-async-storage/async-storage` | ^3.0.1 |
 | `@react-native-community/netinfo` | ^11.4.1 |
-| `@react-navigation/bottom-tabs` | ^7.15.7 |
-| `@react-navigation/core` | ^7.17.0 |
+| `@react-navigation/bottom-tabs` | ^7.18.3 |
+| `@react-navigation/core` | ^7.21.2 |
 | `@react-navigation/native` | ^7.2.0 |
-| `@react-navigation/native-stack` | ^7.14.8 |
+| `@react-navigation/native-stack` | ^7.17.6 |
 | `@rianell/ai-engine` | file:../../packages/ai-engine |
 | `@rianell/cloud-sync` | file:../../packages/cloud-sync |
 | `@rianell/llm` | file:../../packages/llm |

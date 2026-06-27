@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.2** — Animated vitals widgets, weather icon redraw, log wizard mobile nav, mood readings tile, desktop barcode scan, and settings icon parity (PWA + RN).
+**Latest: v2.0.3** — Mobile PWA first-launch boot fix: shell reveals before AI preload; onboarding overlays stay tappable; boot watchdog fallback.
+
+### v2.0.3 - 2026-06-27 - Mobile first-launch boot fix
+
+- **Boot (PWA):** Reveal shell before blocking AI preload on installed mobile PWAs; 12s watchdog force-reveals if init stalls.
+- **Privacy gate (PWA):** Whitelist AI download, alert, and boot recovery overlays in capture-phase interaction blocker.
+- **First-run wizard (PWA):** Fix `modal-active` stuck after close when overlay uses flex layout.
+- **Modal helper (PWA):** `isAnyModalOverlayOpen()` shared detector for consistent overlay cleanup.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.3.
 
 ### v2.0.2 - 2026-06-27 - Vitals widgets and mobile UX polish
 

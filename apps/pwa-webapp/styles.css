@@ -9747,7 +9747,12 @@ body.modal-active .modal-overlay,
 body.modal-active .settings-overlay,
 body.modal-active .ai-modal-overlay,
 body.modal-active .health-data-consent-overlay,
-body.modal-active .dev-panel-overlay {
+body.modal-active .dev-panel-overlay,
+body.modal-active .first-run-wizard-overlay,
+body.modal-active .perf-benchmark-overlay,
+body.modal-active .ai-model-download-consent,
+body.modal-active .ai-model-download-progress,
+body.modal-active .app-lock-overlay {
   pointer-events: all;
 }
 

@@ -167,6 +167,17 @@
     document.body.appendChild(overlay);
   }
 
+  function isAnyModalOverlayOpen() {
+    if (typeof document === 'undefined') return false;
+    if (document.querySelector('.modal-overlay--open, .settings-overlay--open')) return true;
+    var overlays = document.querySelectorAll('.modal-overlay, .settings-overlay, .ai-modal-overlay');
+    for (var i = 0; i < overlays.length; i++) {
+      var display = overlays[i].style.display;
+      if (display === 'flex' || display === 'block' || display === 'grid') return true;
+    }
+    return false;
+  }
+
   function openModalOverlay(overlay, options) {
     if (!overlay) return;
     options = options || {};
@@ -586,6 +597,7 @@
   global.showToast = showToast;
   global.dismissToast = dismissToast;
   global.haptic = haptic;
+  global.isAnyModalOverlayOpen = isAnyModalOverlayOpen;
   global.openModalOverlay = openModalOverlay;
   global.closeModalOverlay = closeModalOverlay;
   global.initRipple = initRipple;
