@@ -6,6 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.3] — 2026-06-27
+
+Mobile first-launch boot reliability for the PWA.
+
+### Fixed
+
+- **Mobile first launch (PWA):** Installed mobile PWAs could look frozen until reload — the shell now reveals before AI model preload so onboarding and consent modals stay tappable.
+- **Privacy interaction gate:** AI download, boot recovery, and alert overlays are whitelisted so the capture-phase consent blocker no longer swallows taps during boot.
+- **First-run wizard:** `modal-active` clears correctly when the wizard uses `display: flex` (not only `display: block`).
+- **Boot watchdog:** 12s mobile fallback force-reveals the shell and starts init if the boot chain stalls.
+
+---
+
 ## [2.0.2] — 2026-06-27
 
 PWA mobile UX polish: animated vitals inputs, weather icons, log wizard nav, mood tile, barcode desktop, and settings icon parity.

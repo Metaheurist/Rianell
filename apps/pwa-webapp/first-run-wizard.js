@@ -607,8 +607,12 @@
       overlay.style.opacity = '0';
     }
     document.body.classList.remove('first-run-wizard-active');
-    if (!document.querySelector('.modal-overlay[style*="display: block"], .modal-overlay--open')) {
+    var anyModalOpen = typeof global.isAnyModalOverlayOpen === 'function'
+      ? global.isAnyModalOverlayOpen()
+      : !!document.querySelector('.modal-overlay--open, .settings-overlay--open, .modal-overlay[style*="display: block"], .modal-overlay[style*="display: flex"]');
+    if (!anyModalOpen) {
       document.body.classList.remove('modal-active');
+      document.body.style.overflow = '';
     }
     if (_focusTrapTeardown) {
       try { _focusTrapTeardown(); } catch (e) {}

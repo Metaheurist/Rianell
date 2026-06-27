@@ -67,7 +67,9 @@
     if (isFirstRunWizardActive()) return true;
     return !!target.closest(
       '#privacyRegionGateOverlay, #firstRunWizardOverlay, #firstRunWizardTutorialMount, ' +
-      '#tutorialModalOverlay, #healthDataConsentOverlay, #cookieBanner, #perfBenchmarkOverlay'
+      '#tutorialModalOverlay, #healthDataConsentOverlay, #cookieBanner, #perfBenchmarkOverlay, ' +
+      '#aiModelDownloadOverlay, #aiModelDownloadProgressOverlay, #alertModalOverlay, ' +
+      '#appLockOverlay, #rianellBootRecoveryOverlay, #loadingOverlay'
     );
   }
 
