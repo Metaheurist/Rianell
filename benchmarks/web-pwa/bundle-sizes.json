@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-26T23:09:07.968Z",
+  "generatedAt": "2026-06-27T01:19:54.265Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4443929,
-    "cssBytes": 505242,
-    "jsGzipBytes": 1058776,
-    "cssGzipBytes": 87448
+    "jsBytes": 4501454,
+    "cssBytes": 513281,
+    "jsGzipBytes": 1071633,
+    "cssGzipBytes": 88718
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1042838,
-      "gzipBytes": 227100
+      "bytes": 1069352,
+      "gzipBytes": 232547
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.a6ff98f69a20.min.js",
-      "bytes": 763588,
-      "gzipBytes": 176439
+      "file": "ci-minified/site/app.31141aa5d646.min.js",
+      "bytes": 784794,
+      "gzipBytes": 181524
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.71ecf0f65b49.css",
-      "bytes": 488348,
-      "gzipBytes": 83232
+      "file": "ci-minified/site/styles.3eb19daee750.css",
+      "bytes": 496387,
+      "gzipBytes": 84502
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 336732,
-      "gzipBytes": 78153
+      "bytes": 346482,
+      "gzipBytes": 80419
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -55,8 +55,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 60034,
-      "gzipBytes": 14560
+      "bytes": 60506,
+      "gzipBytes": 14694
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -80,8 +80,8 @@
     },
     {
       "file": "ci-minified/site/modules/settings.js",
-      "bytes": 28761,
-      "gzipBytes": 5887
+      "bytes": 28392,
+      "gzipBytes": 5809
     },
     {
       "file": "ci-minified/site/privacy-region.js",
@@ -115,8 +115,8 @@
     },
     {
       "file": "ci-minified/site/event-handlers.js",
-      "bytes": 17181,
-      "gzipBytes": 3358
+      "bytes": 16905,
+      "gzipBytes": 3312
     },
     {
       "file": "ci-minified/site/modules/app-lock.js",
@@ -135,8 +135,8 @@
     },
     {
       "file": "ci-minified/site/modules/mood-tab.js",
-      "bytes": 11233,
-      "gzipBytes": 3065
+      "bytes": 11461,
+      "gzipBytes": 3114
     },
     {
       "file": "ci-minified/site/i18n-pwa.js",
