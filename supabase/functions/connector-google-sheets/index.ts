@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
 
   const body = await req.json().catch(() => ({}));
   const mode = String(body.mode || 'import');
-  const sheetId = String(body.sheetId || body.sheet_id || '');
+  let sheetId = String(body.sheetId || body.sheet_id || '');
   const range = String(body.range || body.sheet_range || 'Sheet1!A1:O500');
   const exportRange = String(body.exportRange || body.metadata?.exportRange || range);
   const logs = Array.isArray(body.logs) ? body.logs : [];
