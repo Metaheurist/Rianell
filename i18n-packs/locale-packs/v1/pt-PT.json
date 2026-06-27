@@ -1879,6 +1879,7 @@
     "wizard.cycle.suggestedFromLast": "Suggested from your last entry: day {day}, {phase} phase.",
     "wizard.cycle.suggestedPhase": "{phase} phase",
     "wizard.cycle.title": "Registo do ciclo",
+    "wizard.cycle.timeline": "Cycle timeline",
     "wizard.daily.function.0.10": "Função diária (0-10)",
     "wizard.digestion.bristol.1": "Type 1 - separate hard lumps",
     "wizard.digestion.bristol.2": "Type 2 - lumpy sausage",
@@ -2018,11 +2019,19 @@
     "wizard.vitals.hrv.unit": "ms",
     "wizard.vitals.spO2": "Oxygen saturation (SpO₂)",
     "wizard.vitals.spO2.unit": "%",
+    "wizard.vitals.useLastValue": "Use last value: {value} ({date})",
     "wizard.vitals.weight": "Body weight",
     "wizard.vitals.advanced": "Advanced vitals",
     "wizard.vitals.advanced.hint": "(optional)",
     "wizard.weather.sensitivity.1.10": "Sensibilidade climática (1-10)",
-    "wizard.weight.kg": "Peso (kg)"
+    "wizard.weight.kg": "Peso (kg)",
+    "common.sign.in.with.a.passkey.biometrics.or.sec": "Iniciar sessão com chave de acesso (biometria ou chave de segurança)",
+    "common.register.a.passkey.biometrics.or.securit": "Registar chave de acesso (biometria ou chave de segurança) para login mais rápido",
+    "common.logs.read": "Leitura de registos (logs:read)",
+    "common.logs.write": "Escrita de registos (logs:write)",
+    "common.fhir.read": "Leitura FHIR (fhir:read)",
+    "common.webhooks.read": "Leitura de webhooks (webhooks:read)",
+    "common.slide.to.set.temperature": "Deslize para definir a temperatura"
   },
   "machineTranslatedUi": true
 }

@@ -1314,7 +1314,7 @@
               </button>
             </div>
             <div class="cloud-passkey-row">
-              <button id="cloudPasskeySignInBtn" class="cloud-btn passkey-btn" onclick="handlePasskeySignIn()" title="Sign in with a passkey (biometrics or security key)">
+              <button id="cloudPasskeySignInBtn" class="cloud-btn passkey-btn" onclick="handlePasskeySignIn()" title="Sign in with a passkey (biometrics or security key)" data-i18n-title="common.sign.in.with.a.passkey.biometrics.or.sec">
                 <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Sign in with Passkey</span>
               </button>
             </div>
@@ -1333,7 +1333,7 @@
             </button>
           </div>
           <div class="cloud-passkey-row">
-            <button id="cloudPasskeyEnrollBtn" class="cloud-btn passkey-btn" onclick="handlePasskeyEnroll()" title="Register a passkey (biometrics or security key) for faster login">
+            <button id="cloudPasskeyEnrollBtn" class="cloud-btn passkey-btn" onclick="handlePasskeyEnroll()" title="Register a passkey (biometrics or security key) for faster login" data-i18n-title="common.register.a.passkey.biometrics.or.securit">
               <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Register Passkey</span>
             </button>
           </div>
@@ -2059,10 +2059,10 @@
             </div>
             <fieldset class="dev-api-scopes" aria-labelledby="devApiScopesLegend">
               <legend id="devApiScopesLegend" data-i18n="developer.panel.scopes">Scopes</legend>
-              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="logs:read" checked /><span>logs:read</span></label>
-              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="logs:write" /><span>logs:write</span></label>
-              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="fhir:read" /><span>fhir:read</span></label>
-              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="webhooks:read" /><span>webhooks:read</span></label>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="logs:read" checked /><span data-i18n="common.logs.read">logs:read</span></label>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="logs:write" /><span data-i18n="common.logs.write">logs:write</span></label>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="fhir:read" /><span data-i18n="common.fhir.read">fhir:read</span></label>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="webhooks:read" /><span data-i18n="common.webhooks.read">webhooks:read</span></label>
             </fieldset>
             <div class="api-key-generate-row">
               <button type="button" class="settings-data-btn dev-panel-primary-btn" id="generateApiKeyBtn" onclick="generateApiKey()" data-i18n="settings.developer.generateKey">Generate new key</button>
@@ -2387,7 +2387,7 @@
                   </button>
                 </div>
                 <input type="range" id="bbtSlider" class="bbt-thermo-slider range-slider" min="35" max="38.5" step="0.1" value="36.5" aria-valuemin="35" aria-valuemax="38.5" aria-valuenow="36.5" aria-describedby="bbtSliderHint" />
-                <p class="bbt-thermo-hint settings-hint" id="bbtSliderHint">Slide to set temperature</p>
+                <p class="bbt-thermo-hint settings-hint" id="bbtSliderHint" data-i18n="common.slide.to.set.temperature">Slide to set temperature</p>
                 <div class="bbt-thermo-scale" aria-hidden="true">
                   <span class="bbt-thermo-scale-low">35</span>
                   <span class="bbt-thermo-scale-high">38.5</span>
