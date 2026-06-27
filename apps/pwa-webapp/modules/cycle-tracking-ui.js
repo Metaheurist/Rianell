@@ -159,8 +159,27 @@
     return '';
   }
 
+  function refreshFlowOpts() {
+    document.querySelectorAll('#logCycleTimelineInner .cycle-day-node__flow-opt').forEach(function (btn) {
+      var flowId = btn.getAttribute('data-flow');
+      var fMeta = flowMeta(flowId);
+      var legacyKey = btn.getAttribute('data-i18n');
+      if (legacyKey) {
+        btn.removeAttribute('data-i18n');
+        if (!btn.getAttribute('data-i18n-aria')) btn.setAttribute('data-i18n-aria', legacyKey);
+      }
+      var key = btn.getAttribute('data-i18n-aria');
+      if (key) btn.setAttribute('aria-label', t(key));
+      if (!fMeta) return;
+      if (!btn.querySelector('.cycle-flow-drops')) {
+        btn.textContent = '';
+        btn.appendChild(buildFlowDrops(fMeta.drops, true));
+      }
+    });
+  }
+
   function refreshLabels() {
-    document.querySelectorAll('#logCycleBlock [data-i18n]').forEach(function (el) {
+    document.querySelectorAll('#logCycleBlock [data-i18n]:not(.cycle-day-node__flow-opt)').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
     });
@@ -168,10 +187,7 @@
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
     });
-    document.querySelectorAll('#logCycleTimelineInner .cycle-day-node__flow-opt[data-i18n]').forEach(function (el) {
-      var key = el.getAttribute('data-i18n');
-      if (key) el.setAttribute('aria-label', t(key));
-    });
+    refreshFlowOpts();
     var suggestEl = document.getElementById('logCycleSuggestHint');
     if (suggestEl && suggestEl.dataset.suggestKey) {
       var params = {
@@ -413,7 +429,7 @@
         opt.type = 'button';
         opt.className = 'cycle-day-node__flow-opt';
         opt.setAttribute('data-flow', flow.id);
-        opt.setAttribute('data-i18n', flow.i18n);
+        opt.setAttribute('data-i18n-aria', flow.i18n);
         opt.setAttribute('aria-label', t(flow.i18n));
         opt.setAttribute('aria-pressed', 'false');
         opt.appendChild(buildFlowDrops(flow.drops, true));
