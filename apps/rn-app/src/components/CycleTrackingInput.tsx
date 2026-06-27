@@ -1,12 +1,12 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import {
-  CYCLE_DAY_MAX,
-  CYCLE_DAY_SELECTOR_MAX,
   CYCLE_FLOW_LEVELS,
+  CYCLE_PHASE_RANGES,
   CYCLE_PHASES,
   daysSincePeriodStart,
+  defaultCycleDayForPhase,
   isCycleDayLate,
   suggestCyclePhaseForDay,
 } from '@rianell/shared';
@@ -97,18 +97,16 @@ function FlowDrops({ count, accent }: { count: number; accent: string }) {
   );
 }
 
+function dayInPhaseRange(day: number, phaseId: string) {
+  const row = CYCLE_PHASE_RANGES.find((r) => r.id === phaseId);
+  if (!row) return false;
+  return day >= row.start && day <= row.end;
+}
+
 export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, periodAnchorDate }: Props) {
   const theme = useTheme();
   const { t } = useT();
   const phaseManualRef = useRef(false);
-  const [longCycleExpanded, setLongCycleExpanded] = useState(
-    value.cycleDay != null && value.cycleDay > CYCLE_DAY_SELECTOR_MAX,
-  );
-
-  const visibleDays = useMemo(() => {
-    const max = longCycleExpanded ? CYCLE_DAY_MAX : CYCLE_DAY_SELECTOR_MAX;
-    return Array.from({ length: max }, (_, i) => i + 1);
-  }, [longCycleExpanded]);
 
   const selectDay = useCallback(
     (day: number) => {
@@ -122,8 +120,8 @@ export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, p
       if (nextDay == null) {
         phaseManualRef.current = false;
         nextPeriodStart = false;
+        nextPhase = '';
       }
-      if (nextDay != null && nextDay > CYCLE_DAY_SELECTOR_MAX) setLongCycleExpanded(true);
       onChange({ ...value, cycleDay: nextDay, cyclePhase: nextPhase, periodStart: nextPeriodStart });
     },
     [onChange, value],
@@ -141,9 +139,22 @@ export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, p
 
   const selectPhase = useCallback(
     (phaseId: string) => {
-      const next = value.cyclePhase === phaseId ? '' : phaseId;
-      phaseManualRef.current = !!next;
-      onChange({ ...value, cyclePhase: next });
+      const nextPhase = value.cyclePhase === phaseId ? '' : phaseId;
+      phaseManualRef.current = !!nextPhase;
+      let nextDay = value.cycleDay;
+      let nextPeriodStart = value.periodStart;
+      if (nextPhase) {
+        if (nextDay == null || !dayInPhaseRange(nextDay, nextPhase)) {
+          const fallback = defaultCycleDayForPhase(nextPhase);
+          if (fallback != null) nextDay = fallback;
+        }
+        if (nextDay !== 1) nextPeriodStart = false;
+      } else {
+        nextDay = null;
+        phaseManualRef.current = false;
+        nextPeriodStart = false;
+      }
+      onChange({ ...value, cycleDay: nextDay, cyclePhase: nextPhase, periodStart: nextPeriodStart });
     },
     [onChange, value],
   );
@@ -158,14 +169,19 @@ export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, p
 
   const clearAll = useCallback(() => {
     phaseManualRef.current = false;
-    setLongCycleExpanded(false);
     onChange({ cycleDay: null, cyclePhase: '', cycleFlow: '', periodStart: false });
   }, [onChange]);
+
+  const activePhase = useMemo(() => {
+    if (value.cyclePhase) return value.cyclePhase;
+    if (value.cycleDay != null) return suggestCyclePhaseForDay(value.cycleDay) || '';
+    return '';
+  }, [value.cycleDay, value.cyclePhase]);
 
   const dayReadout = useMemo(() => {
     if (value.cycleDay == null) return '';
     let hint = t('wizard.cycle.dayHint', { day: String(value.cycleDay) });
-    if (value.cyclePhase && !phaseManualRef.current) {
+    if (value.cyclePhase) {
       const phaseMeta = CYCLE_PHASES.find((p) => p.id === value.cyclePhase);
       if (phaseMeta) {
         hint += ` · ${t('wizard.cycle.suggestedPhase', { phase: t(phaseMeta.i18n) })}`;
@@ -185,6 +201,17 @@ export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, p
   }, [logDateIso, periodAnchorDate, t, value.cycleDay, value.cyclePhase, value.periodStart]);
 
   const periodStartedActive = value.periodStart === true && value.cycleDay === 1;
+
+  const timelineBands = useMemo(
+    () =>
+      CYCLE_PHASE_RANGES.map((range) => {
+        const meta = CYCLE_PHASES.find((p) => p.id === range.id);
+        const toneColor = PHASE_TONE[meta?.tone || range.id] || theme.tokens.color.accent;
+        const days = Array.from({ length: range.end - range.start + 1 }, (_, i) => range.start + i);
+        return { range, meta, toneColor, days };
+      }),
+    [theme.tokens.color.accent],
+  );
 
   return (
     <View style={[styles.panel, { borderColor: `${theme.tokens.color.accent}44` }]}>
@@ -224,72 +251,67 @@ export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, p
       </Pressable>
 
       <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-        {t('wizard.cycle.day')}
+        {t('wizard.cycle.timeline')}
       </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayRow}>
-        {visibleDays.map((day) => {
-          const tone = suggestCyclePhaseForDay(day) || 'unknown';
-          const selected = value.cycleDay === day;
-          const late = isCycleDayLate(day);
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.timelineRow}>
+        {timelineBands.map(({ range, meta, toneColor, days }) => {
+          if (!meta) return null;
+          const bandActive = activePhase === range.id;
           return (
-            <Pressable
-              key={day}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-              accessibilityLabel={`${t('wizard.cycle.day')} ${day}`}
-              onPress={() => selectDay(day)}
+            <View
+              key={range.id}
               style={[
-                styles.dayPill,
-                DAY_TONE_STYLE[tone as keyof typeof DAY_TONE_STYLE] ?? styles.dayTone_unknown,
-                late && !selected ? styles.dayTone_late : null,
-                selected ? { borderColor: theme.tokens.color.accent, transform: [{ scale: 1.06 }] } : null,
+                styles.timelineBand,
+                { borderColor: `${toneColor}55` },
+                bandActive ? { borderColor: theme.tokens.color.accent, backgroundColor: `${theme.tokens.color.accent}14` } : null,
               ]}
             >
-              <Text style={{ color: theme.tokens.color.text, fontWeight: '700', fontSize: theme.font(13) }}>{day}</Text>
-            </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: value.cyclePhase === range.id }}
+                onPress={() => selectPhase(range.id)}
+                style={styles.timelineBandHead}
+              >
+                <View style={styles.phaseIconWrap}>
+                  <CyclePhaseIcon phaseId={range.id} color={toneColor} />
+                </View>
+                <Text style={[styles.phaseLabel, { color: theme.tokens.color.text, fontSize: theme.font(11) }]}>
+                  {t(meta.i18n)}
+                </Text>
+                <Text style={[styles.bandRange, { color: theme.tokens.color.text, fontSize: theme.font(10) }]}>
+                  {range.start}–{range.end}
+                </Text>
+              </Pressable>
+              <View style={styles.timelineDays}>
+                {days.map((day) => {
+                  const selected = value.cycleDay === day;
+                  const late = isCycleDayLate(day);
+                  return (
+                    <Pressable
+                      key={day}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      accessibilityLabel={`${t('wizard.cycle.day')} ${day}, ${t(meta.i18n)}`}
+                      onPress={() => selectDay(day)}
+                      style={[
+                        styles.timelineDay,
+                        DAY_TONE_STYLE[meta.tone as keyof typeof DAY_TONE_STYLE] ?? styles.dayTone_unknown,
+                        late && !selected ? styles.dayTone_late : null,
+                        selected ? { borderColor: theme.tokens.color.accent, transform: [{ scale: 1.08 }] } : null,
+                      ]}
+                    >
+                      <Text style={{ color: theme.tokens.color.text, fontWeight: '700', fontSize: theme.font(11) }}>{day}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
           );
         })}
       </ScrollView>
-      {!longCycleExpanded ? (
-        <Pressable accessibilityRole="button" onPress={() => setLongCycleExpanded(true)} style={styles.longToggle}>
-          <Text style={{ color: theme.tokens.color.accent, fontSize: theme.font(12), textDecorationLine: 'underline' }}>
-            {t('wizard.cycle.showLongCycle')}
-          </Text>
-        </Pressable>
-      ) : null}
       {dayReadout ? (
         <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{dayReadout}</Text>
       ) : null}
-
-      <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 10 }]}>
-        {t('wizard.cycle.phase')}
-      </Text>
-      <View style={styles.phaseGrid}>
-        {CYCLE_PHASES.map((phase) => {
-          const selected = value.cyclePhase === phase.id;
-          const toneColor = PHASE_TONE[phase.tone] || theme.tokens.color.accent;
-          return (
-            <Pressable
-              key={phase.id}
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-              onPress={() => selectPhase(phase.id)}
-              style={[
-                styles.phaseTile,
-                { borderColor: `${toneColor}66` },
-                selected ? { borderColor: theme.tokens.color.accent, backgroundColor: `${theme.tokens.color.accent}22` } : null,
-              ]}
-            >
-              <View style={styles.phaseIconWrap}>
-                <CyclePhaseIcon phaseId={phase.id} color={toneColor} />
-              </View>
-              <Text style={[styles.phaseLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                {t(phase.i18n)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
 
       <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 10 }]}>
         {t('wizard.cycle.flow')}
@@ -348,11 +370,31 @@ const styles = StyleSheet.create({
   },
   label: { fontWeight: '600', marginBottom: 6 },
   hint: { opacity: 0.75, marginTop: 2 },
-  longToggle: { alignSelf: 'flex-start', marginTop: 4, marginBottom: 2 },
-  dayRow: { gap: 6, paddingVertical: 4 },
-  dayPill: {
-    width: 38,
-    height: 38,
+  timelineRow: { gap: 8, paddingVertical: 4 },
+  timelineBand: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    overflow: 'hidden',
+  },
+  timelineBandHead: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    gap: 2,
+  },
+  bandRange: { opacity: 0.65 },
+  timelineDays: {
+    flexDirection: 'row',
+    flexWrap: 'nowrap',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingBottom: 8,
+  },
+  timelineDay: {
+    minWidth: 26,
+    height: 26,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.18)',
@@ -366,19 +408,7 @@ const styles = StyleSheet.create({
   dayTone_luteal: { backgroundColor: 'rgba(156,39,176,0.2)', borderColor: 'rgba(156,39,176,0.42)' },
   dayTone_late: { borderColor: 'rgba(255,183,77,0.55)', backgroundColor: 'rgba(255,183,77,0.14)' },
   dayTone_unknown: {},
-  phaseGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  phaseTile: {
-    width: '48%',
-    minHeight: 72,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 8,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  phaseIconWrap: { marginBottom: 4, alignItems: 'center', justifyContent: 'center' },
+  phaseIconWrap: { marginBottom: 2, alignItems: 'center', justifyContent: 'center' },
   phaseLabel: { textAlign: 'center', fontWeight: '600' },
   flowRow: { flexDirection: 'row', gap: 8 },
   flowBtn: {

@@ -1879,6 +1879,7 @@
     "wizard.cycle.suggestedFromLast": "Suggested from your last entry: day {day}, {phase} phase.",
     "wizard.cycle.suggestedPhase": "{phase} phase",
     "wizard.cycle.title": "Cyclus tracking",
+    "wizard.cycle.timeline": "Cycle timeline",
     "wizard.daily.function.0.10": "Dagelijkse functie (0-10)",
     "wizard.digestion.bristol.1": "Type 1 - separate hard lumps",
     "wizard.digestion.bristol.2": "Type 2 - lumpy sausage",
@@ -2018,11 +2019,19 @@
     "wizard.vitals.hrv.unit": "ms",
     "wizard.vitals.spO2": "Oxygen saturation (SpO₂)",
     "wizard.vitals.spO2.unit": "%",
+    "wizard.vitals.useLastValue": "Use last value: {value} ({date})",
     "wizard.vitals.weight": "Body weight",
     "wizard.vitals.advanced": "Advanced vitals",
     "wizard.vitals.advanced.hint": "(optional)",
     "wizard.weather.sensitivity.1.10": "Weersgevoeligheid (1-10)",
-    "wizard.weight.kg": "Gewicht (kg)"
+    "wizard.weight.kg": "Gewicht (kg)",
+    "common.sign.in.with.a.passkey.biometrics.or.sec": "Inloggen met passkey (biometrie of beveiligingssleutel)",
+    "common.register.a.passkey.biometrics.or.securit": "Passkey registreren (biometrie of beveiligingssleutel) voor sneller inloggen",
+    "common.logs.read": "Logs lezen (logs:read)",
+    "common.logs.write": "Logs schrijven (logs:write)",
+    "common.fhir.read": "FHIR lezen (fhir:read)",
+    "common.webhooks.read": "Webhooks lezen (webhooks:read)",
+    "common.slide.to.set.temperature": "Schuif om de temperatuur in te stellen"
   },
   "machineTranslatedUi": true
 }

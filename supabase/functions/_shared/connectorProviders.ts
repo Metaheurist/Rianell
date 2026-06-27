@@ -1,4 +1,4 @@
-export type ConnectorProviderId = 'strava' | 'withings' | 'google-sheets';
+export type ConnectorProviderId = 'strava' | 'withings';
 
 export const CONNECTOR_SPECS: Record<ConnectorProviderId, {
   authUrl: string;
@@ -21,14 +21,6 @@ export const CONNECTOR_SPECS: Record<ConnectorProviderId, {
     scopes: ['user.metrics', 'user.activity'],
     clientIdEnv: 'WITHINGS_CLIENT_ID',
     clientSecretEnv: 'WITHINGS_CLIENT_SECRET',
-  },
-  'google-sheets': {
-    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-    tokenUrl: 'https://oauth2.googleapis.com/token',
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    clientIdEnv: 'GOOGLE_CLIENT_ID',
-    clientSecretEnv: 'GOOGLE_CLIENT_SECRET',
-    extraAuthParams: { access_type: 'offline', prompt: 'consent' },
   },
 };
 

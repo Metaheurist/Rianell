@@ -16,6 +16,14 @@ export const CYCLE_PHASES = [
   { id: 'luteal', i18n: 'wizard.cycle.phase.luteal', tone: 'luteal', icon: 'cycle-luteal' },
 ];
 
+/** Inclusive day ranges for the 45-day wizard timeline (phase ↔ day inference). */
+export const CYCLE_PHASE_RANGES = [
+  { id: 'menstrual', start: 1, end: 5, defaultDay: 1 },
+  { id: 'follicular', start: 6, end: 13, defaultDay: 9 },
+  { id: 'ovulation', start: 14, end: 16, defaultDay: 15 },
+  { id: 'luteal', start: 17, end: CYCLE_DAY_MAX, defaultDay: 22 },
+];
+
 export const CYCLE_FLOW_LEVELS = [
   { id: 'none', i18n: 'wizard.cycle.flow.none', drops: 0 },
   { id: 'light', i18n: 'wizard.cycle.flow.light', drops: 1 },
@@ -50,6 +58,18 @@ export function suggestCyclePhaseForDay(day) {
   if (n <= 13) return 'follicular';
   if (n <= 16) return 'ovulation';
   return 'luteal';
+}
+
+/** Representative cycle day when the user picks a phase band on the timeline. */
+export function defaultCycleDayForPhase(phaseId) {
+  const row = CYCLE_PHASE_RANGES.find((r) => r.id === phaseId);
+  return row ? row.defaultDay : undefined;
+}
+
+export function cyclePhaseRangeForDay(day) {
+  const n = typeof day === 'number' ? day : typeof day === 'string' ? parseInt(day, 10) : NaN;
+  if (!Number.isFinite(n)) return undefined;
+  return CYCLE_PHASE_RANGES.find((r) => n >= r.start && n <= r.end);
 }
 
 /** Whole-day difference between ISO dates (YYYY-MM-DD). */

@@ -120,8 +120,11 @@
   }
 
   function showPolicyViewerModal(regionId, readOnly) {
+    var resolvedRegion = regionId || getPrivacyFields().privacyRegion || 'other';
+    var settingsSelect = document.getElementById('privacyRegionSettingsSelect');
+    if (settingsSelect && settingsSelect.value) resolvedRegion = settingsSelect.value;
     var docs = typeof S.getPolicyDocumentsForRegion === 'function'
-      ? S.getPolicyDocumentsForRegion(regionId || getPrivacyFields().privacyRegion || 'other')
+      ? S.getPolicyDocumentsForRegion(resolvedRegion)
       : [];
     var html = docs.map(function (d) {
       var title = t('policy.' + d.id + '.title');
@@ -144,6 +147,10 @@
     }
     if (typeof global.showAlertModal === 'function') {
       global.showAlertModal(html || t('gate.policiesTitle'), t('gate.policiesTitle'), undefined, { html: true });
+      return;
+    }
+    if (typeof global.open === 'function') {
+      global.open('privacy.html', '_blank', 'noopener,noreferrer');
     }
   }
 

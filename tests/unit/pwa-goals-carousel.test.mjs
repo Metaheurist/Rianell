@@ -24,6 +24,8 @@ test('goals-carousel.js resolves i18n via RianellI18n.t', () => {
   const src = fs.readFileSync(carouselPath, 'utf8');
   assert.match(src, /RianellI18n\.t/);
   assert.match(src, /refreshGoalsCarouselI18n/);
+  assert.match(src, /scheduleGoalsCarouselHeightSync/);
+  assert.match(src, /syncGoalsCarouselViewportHeight/);
 });
 
 test('goals-carousel dot icons use ui-svg-icon for theme stroke', () => {
@@ -32,14 +34,15 @@ test('goals-carousel dot icons use ui-svg-icon for theme stroke', () => {
   assert.match(src, /goals-carousel-dot__icon/);
 });
 
-test('cycle-tracking-ui uses period-start anchor and 1-35 selector', () => {
+test('cycle-tracking-ui uses unified 45-day timeline and period-start anchor', () => {
   const cyclePath = path.join(root, 'apps/pwa-webapp/modules/cycle-tracking-ui.js');
   const html = fs.readFileSync(htmlPath, 'utf8');
   const src = fs.readFileSync(cyclePath, 'utf8');
   assert.match(html, /logCyclePeriodStartBtn/);
   assert.match(html, /logCyclePeriodStartFlag/);
-  assert.match(html, /logCycleShowLong/);
-  assert.match(src, /CYCLE_DAY_SELECTOR_MAX/);
+  assert.match(html, /logCycleTimelineInner/);
+  assert.match(src, /PHASE_RANGES/);
+  assert.match(src, /buildTimeline/);
   assert.match(src, /markPeriodStartedToday/);
   assert.match(src, /RianellI18n\.t/);
 });
