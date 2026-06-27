@@ -4425,9 +4425,13 @@ window.addEventListener('DOMContentLoaded', function() {
   var skipBtn = document.getElementById('logWizardSkipBtn');
   if (backBtn) backBtn.addEventListener('click', function() { logWizardGoBack(); });
   if (nextBtn) nextBtn.addEventListener('click', function() { logWizardGoNext(); });
+  var sidePrevBtn = document.getElementById('logWizardSidePrevBtn');
+  if (sidePrevBtn) sidePrevBtn.addEventListener('click', function() { logWizardGoBack(); });
   var sideNextBtn = document.getElementById('logWizardSideNextBtn');
   if (sideNextBtn) sideNextBtn.addEventListener('click', function() { logWizardGoNext(); });
   if (skipBtn) skipBtn.addEventListener('click', function() { logWizardSkipCurrentStep(); });
+  var mobileSkipBtn = document.getElementById('logWizardMobileSkipBtn');
+  if (mobileSkipBtn) mobileSkipBtn.addEventListener('click', function() { logWizardSkipCurrentStep(); });
   bindLogWizardSwipeOnce();
   var logFormEl = document.getElementById('logForm');
   if (logFormEl) {
@@ -4974,9 +4978,8 @@ function toggleGlucoseUnit() {
       }
     }
   }
-  if (input) {
-    input.min = appSettings.glucoseUnit === 'mgdl' ? '18' : '1';
-    input.max = appSettings.glucoseUnit === 'mgdl' ? '600' : '35';
+  if (window.RianellAdvancedVitals && typeof window.RianellAdvancedVitals.syncGlucoseUnit === 'function') {
+    window.RianellAdvancedVitals.syncGlucoseUnit(true);
   }
   saveSettings();
 }
@@ -4993,6 +4996,9 @@ function toggleBodyWeightUnit() {
       if (appSettings.bodyWeightUnit === 'lbs') input.value = parseFloat(kgToLb(n));
       else input.value = parseFloat(lbToKg(n));
     }
+  }
+  if (window.RianellAdvancedVitals && typeof window.RianellAdvancedVitals.syncBodyWeightUnit === 'function') {
+    window.RianellAdvancedVitals.syncBodyWeightUnit(true);
   }
   saveSettings();
   updateBmiReadout();
@@ -19505,6 +19511,9 @@ function loadSettingsState() {
   if (temperatureUnitDisplay) temperatureUnitDisplay.textContent = tempUnitLabel;
   if (bbtValueUnitSuffix) bbtValueUnitSuffix.textContent = tempUnitLabel;
   if (typeof initBbtThermometer === 'function') initBbtThermometer();
+  if (typeof initBloodPressureWidget === 'function') initBloodPressureWidget();
+  if (typeof initAdvancedVitalsWidgets === 'function') initAdvancedVitalsWidgets();
+  if (typeof initLifestyleVitalsWidgets === 'function') initLifestyleVitalsWidgets();
   if (typeof syncBbtSliderRange === 'function') syncBbtSliderRange(true);
   var settingsHeightCm = document.getElementById('settingsHeightCm');
   if (settingsHeightCm && appSettings.heightCm) settingsHeightCm.value = String(appSettings.heightCm);
@@ -24224,6 +24233,13 @@ function updateLogWizardChrome() {
     skipBtn.setAttribute('aria-hidden', canSkip ? 'false' : 'true');
     skipBtn.tabIndex = canSkip ? 0 : -1;
   }
+  var mobileSkipBtn = document.getElementById('logWizardMobileSkipBtn');
+  if (mobileSkipBtn) {
+    var canSkipMobile = currentLogWizardStep > 0 && currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
+    mobileSkipBtn.hidden = !canSkipMobile;
+    mobileSkipBtn.tabIndex = canSkipMobile ? 0 : -1;
+    mobileSkipBtn.setAttribute('aria-hidden', canSkipMobile ? 'false' : 'true');
+  }
   if (nextBtn) {
     var canNext = currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
     nextBtn.style.display = '';
@@ -24231,6 +24247,15 @@ function updateLogWizardChrome() {
     nextBtn.style.pointerEvents = canNext ? '' : 'none';
     nextBtn.setAttribute('aria-hidden', canNext ? 'false' : 'true');
     nextBtn.tabIndex = canNext ? 0 : -1;
+  }
+  var sidePrevBtn = document.getElementById('logWizardSidePrevBtn');
+  if (sidePrevBtn) {
+    sidePrevBtn.hidden = false;
+    sidePrevBtn.disabled = false;
+    sidePrevBtn.tabIndex = 0;
+    sidePrevBtn.setAttribute('aria-label', currentLogWizardStep > 0
+      ? (typeof tUi === 'function' ? tUi('wizard.aria.previousStep') : 'Previous step')
+      : (typeof tUi === 'function' ? tUi('wizard.aria.closeReturnHome') : 'Close and return to home'));
   }
   var sideNextBtn = document.getElementById('logWizardSideNextBtn');
   if (sideNextBtn) {
@@ -24244,6 +24269,10 @@ function updateLogWizardChrome() {
       sideNextBtn.disabled = true;
       sideNextBtn.tabIndex = -1;
     }
+  }
+  var logFormEl = document.getElementById('logForm');
+  if (logFormEl) {
+    logFormEl.classList.toggle('log-wizard-form--review', currentLogWizardStep === LOG_WIZARD_TOTAL_STEPS - 1);
   }
   if (saveBtn) saveBtn.style.display = currentLogWizardStep === LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
 }
@@ -24351,6 +24380,87 @@ function validateLogWizardStep(step) {
 }
 
 var _barcodeScannerActive = false;
+var _barcodeEnginePromise = null;
+
+var BARCODE_SCAN_FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'];
+
+function hasBarcodeCameraSupport() {
+  return !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function');
+}
+
+function ensureBarcodeEngine() {
+  if (_barcodeEnginePromise) return _barcodeEnginePromise;
+  _barcodeEnginePromise = (async function () {
+    if (typeof window.BarcodeDetector !== 'undefined') {
+      try {
+        return { type: 'native', detector: new window.BarcodeDetector({ formats: BARCODE_SCAN_FORMATS }) };
+      } catch (nativeErr) { /* try fallback */ }
+    }
+    try {
+      var zxing = await import('https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm');
+      return { type: 'zxing', reader: new zxing.BrowserMultiFormatReader() };
+    } catch (zxingErr) {
+      try {
+        var poly = await import('https://cdn.jsdelivr.net/npm/@undecaf/barcode-detector-polyfill@0.9.21/dist/es/index.min.js');
+        var Ctor = poly.BarcodeDetectorPolyfill || poly.default;
+        return { type: 'native', detector: new Ctor({ formats: BARCODE_SCAN_FORMATS }) };
+      } catch (polyErr) {
+        return null;
+      }
+    }
+  })();
+  return _barcodeEnginePromise;
+}
+
+async function openBarcodeCameraStream() {
+  var attempts = [
+    { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } } },
+    { video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 } } },
+    { video: { width: { ideal: 1280 }, height: { ideal: 720 } } },
+    { video: true },
+  ];
+  var lastErr = null;
+  for (var i = 0; i < attempts.length; i++) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(attempts[i]);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('camera unavailable');
+}
+
+async function detectBarcodeFromVideo(engine, video, isStopped) {
+  if (engine.type === 'native') {
+    while (!isStopped()) {
+      var codes = await engine.detector.detect(video);
+      if (codes && codes.length > 0) {
+        var code = String(codes[0].rawValue || '').replace(/\D/g, '');
+        if (code.length >= 8) return code;
+      }
+      await new Promise(function (r) { setTimeout(r, 250); });
+    }
+    return null;
+  }
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d', { willReadFrequently: true });
+  while (!isStopped()) {
+    if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA && video.videoWidth > 0) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      try {
+        var result = await engine.reader.decodeFromCanvas(canvas);
+        if (result) {
+          var zCode = String(result.getText()).replace(/\D/g, '');
+          if (zCode.length >= 8) return zCode;
+        }
+      } catch (scanErr) { /* not found this frame */ }
+    }
+    await new Promise(function (r) { setTimeout(r, 200); });
+  }
+  return null;
+}
 
 function mealLabelForBarcodeToast(meal) {
   var labels = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
@@ -24442,7 +24552,12 @@ async function activateBarcodeScanner(opts) {
     showAlertModal(tUi('settings.privacy.localOnly.barcodeFoodBlocked'), tUi('settings.privacy.localOnly.title'));
     return;
   }
-  if (typeof window.BarcodeDetector === 'undefined') {
+  if (!hasBarcodeCameraSupport()) {
+    showToast(tUi('toast.barcodeNotSupported'));
+    return;
+  }
+  var engine = await ensureBarcodeEngine();
+  if (!engine) {
     showToast(tUi('toast.barcodeNotSupported'));
     return;
   }
@@ -24470,8 +24585,8 @@ async function activateBarcodeScanner(opts) {
   document.body.classList.add('modal-active');
   _barcodeScannerActive = true;
   var stream = null;
-  var detector = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
   var stopped = false;
+  function isStopped() { return stopped; }
   function cleanup() {
     stopped = true;
     _barcodeScannerActive = false;
@@ -24482,31 +24597,23 @@ async function activateBarcodeScanner(opts) {
   }
   cancelBtn.onclick = cleanup;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    statusEl.textContent = tUi('wizard.food.scanBarcodeHint');
+    stream = await openBarcodeCameraStream();
     video.srcObject = stream;
     await video.play();
-    statusEl.textContent = tUi('wizard.food.scanBarcodeHint');
-    while (!stopped) {
-      var codes = await detector.detect(video);
-      if (codes && codes.length > 0) {
-        var code = String(codes[0].rawValue || '').replace(/\D/g, '');
-        if (code.length >= 8) {
-          statusEl.textContent = tUi('wizard.food.scanBarcodeLookingUp');
-          var fetchFn = window.RianellShared && typeof window.RianellShared.fetchOpenFoodFactsProduct === 'function'
-            ? window.RianellShared.fetchOpenFoodFactsProduct.bind(window.RianellShared)
-            : null;
-          if (!fetchFn) throw new Error('barcode lookup unavailable');
-          var product = await fetchFn(code);
-          applyBarcodeProduct(product, {
-            target: opts.target || 'logWizard',
-            meal: opts.meal || 'breakfast',
-          });
-          cleanup();
-          return;
-        }
-      }
-      await new Promise(function (r) { setTimeout(r, 250); });
-    }
+    var code = await detectBarcodeFromVideo(engine, video, isStopped);
+    if (!code || stopped) return;
+    statusEl.textContent = tUi('wizard.food.scanBarcodeLookingUp');
+    var fetchFn = window.RianellShared && typeof window.RianellShared.fetchOpenFoodFactsProduct === 'function'
+      ? window.RianellShared.fetchOpenFoodFactsProduct.bind(window.RianellShared)
+      : null;
+    if (!fetchFn) throw new Error('barcode lookup unavailable');
+    var product = await fetchFn(code);
+    applyBarcodeProduct(product, {
+      target: opts.target || 'logWizard',
+      meal: opts.meal || 'breakfast',
+    });
+    cleanup();
   } catch (err) {
     Logger.warn('Barcode scan failed', { error: err && err.message ? err.message : String(err) });
     showToast(tUi('toast.barcodeScanFailed'));
@@ -24811,10 +24918,17 @@ function resetLogWizardFieldToDefault(el) {
   if (type === 'hidden') {
     el.value = '';
     if (el.id === 'bbt' && typeof resetBbtThermometer === 'function') resetBbtThermometer();
+    if ((el.id === 'bloodPressureSystolic' || el.id === 'bloodPressureDiastolic') &&
+        typeof resetBloodPressureWidget === 'function') {
+      resetBloodPressureWidget();
+    }
     return;
   }
   if (type === 'number') {
     el.value = '';
+    if (el.id === 'bloodPressureSystolic' || el.id === 'bloodPressureDiastolic') {
+      if (typeof resetBloodPressureWidget === 'function') resetBloodPressureWidget();
+    }
     return;
   }
   if (tag === 'textarea' || tag === 'input') {
@@ -24838,6 +24952,9 @@ function clearLogWizardStepData(step) {
     if (window.RianellCycleTracking && typeof window.RianellCycleTracking.clear === 'function') {
       window.RianellCycleTracking.clear();
     }
+  } else if (step === 1) {
+    if (typeof resetBloodPressureWidget === 'function') resetBloodPressureWidget();
+    if (typeof resetAdvancedVitalsWidgets === 'function') resetAdvancedVitalsWidgets();
   } else if (step === 2) {
     if (typeof resetPainBodyDiagram === 'function') resetPainBodyDiagram('painBodyDiagram', 'painLocation');
     if (typeof logFormSymptomsItems !== 'undefined') logFormSymptomsItems = [];
@@ -24847,6 +24964,8 @@ function clearLogWizardStepData(step) {
   } else if (step === 4) {
     if (typeof logFormStressorsItems !== 'undefined') logFormStressorsItems = [];
     if (typeof renderLogStressorsItems === 'function') renderLogStressorsItems();
+  } else if (step === 5) {
+    if (typeof resetLifestyleVitalsWidgets === 'function') resetLifestyleVitalsWidgets();
   } else if (step === 6) {
     if (typeof logFormFoodByCategory !== 'undefined') {
       logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
@@ -24967,6 +25086,16 @@ function restoreLogDraftIfAny() {
         if (el.type === 'checkbox') el.checked = !!snap.fields[id];
         else el.value = snap.fields[id];
       });
+      if (snap.fields.bloodPressureSystolic && snap.fields.bloodPressureDiastolic &&
+          typeof setBloodPressureWidgetValues === 'function') {
+        setBloodPressureWidgetValues(snap.fields.bloodPressureSystolic, snap.fields.bloodPressureDiastolic, true);
+      }
+      if (window.RianellAdvancedVitals && typeof window.RianellAdvancedVitals.restoreFromHiddenInputs === 'function') {
+        window.RianellAdvancedVitals.restoreFromHiddenInputs();
+      }
+      if (window.RianellLifestyleVitals && typeof window.RianellLifestyleVitals.restoreFromHiddenInputs === 'function') {
+        window.RianellLifestyleVitals.restoreFromHiddenInputs();
+      }
     }
     ['fatigue', 'stiffness', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'weatherSensitivity'].forEach(function(id) {
       var sl = document.getElementById(id);

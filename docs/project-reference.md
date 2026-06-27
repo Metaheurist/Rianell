@@ -4,6 +4,16 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.2 documentation sync (Vitals widgets and mobile UX)
+
+- **Log wizard (PWA):** Animated widgets — BP dial (`modules/bp-input-widget.js`), advanced vitals sliders (`modules/advanced-vitals-widgets.js`), lifestyle steps/hydration (`modules/lifestyle-vitals-widgets.js`); mobile side prev/next nav; desktop-only bottom nav bar.
+- **Weather (PWA):** Redrawn `#icon-weather-*` sprite set; `.home-weather-icon` uses lighter drop-shadow and `geometricPrecision`.
+- **Mood tab (PWA):** `renderMoodReadingsSummaryCard()` — count, ring, goal, stat chips (`mood.readings.*` i18n).
+- **Barcode (PWA):** Desktop webcam via `BarcodeDetector` / ZXing; `#icon-barcode-scan` SVG.
+- **View logs (PWA):** `.filter-section` mobile stack for date/filter/sort.
+- **Settings (PWA + RN):** `SETTINGS_PANE_ICON_BY_KEY` per-pane icons; import section accent button tokens.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.2.
+
 ### v2.0.1 documentation sync (Post–2.0.0 polish)
 
 - **Barcode food logging (PWA):** Settings toggle + consent dashboard row; scan icon in food modal; Open Food Facts lookup; wiki privacy section for camera + lookup.

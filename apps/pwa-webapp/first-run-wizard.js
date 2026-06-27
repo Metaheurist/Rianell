@@ -394,9 +394,19 @@
     } else {
       mount.innerHTML = '<p class="first-run-wizard-lead">' + escapeHtml(t('common.add.rianell.to.your.device.for.quick.acc')) + '</p>';
     }
+    var skipInline = document.createElement('button');
+    skipInline.type = 'button';
+    skipInline.className = 'modal-save-btn modal-cancel-btn first-run-wizard-inline-btn first-run-wizard-install-skip';
+    skipInline.id = 'firstRunWizardInstallSkipBtn';
+    skipInline.textContent = t('common.skip.for.now');
+    skipInline.addEventListener('click', completeInstallStep);
+    mount.appendChild(skipInline);
     var continueBtn = document.getElementById('firstRunWizardContinueBtn');
     var backBtn = document.getElementById('firstRunWizardBackBtn');
-    if (continueBtn) continueBtn.textContent = t('common.skip.for.now');
+    if (continueBtn) {
+      continueBtn.textContent = t('common.skip.for.now');
+      continueBtn.style.display = 'inline-block';
+    }
     if (backBtn) backBtn.style.display = stepIndex > 0 ? 'inline-block' : 'none';
   }
 

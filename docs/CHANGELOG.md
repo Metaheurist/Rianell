@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.1** — Post–2.0.0 polish: barcode food logging, app lock PIN fix, brain fog toggle, mood/cycle UX, guided voice removal, and mobile UI polish (download modal, dev panel, check-in slider).
+**Latest: v2.0.2** — Animated vitals widgets, weather icon redraw, log wizard mobile nav, mood readings tile, desktop barcode scan, and settings icon parity (PWA + RN).
+
+### v2.0.2 - 2026-06-27 - Vitals widgets and mobile UX polish
+
+- **Log wizard (PWA):** Animated BP dial; glucose/SpO₂/HRV/weight sliders; steps + hydration lifestyle widgets; mobile side-arrow navigation; review step bottom clip fix.
+- **Weather (PWA):** 18 SVG symbols redrawn; sharper `.home-weather-icon` rendering on high-DPI screens.
+- **Mood tab (PWA):** Redesigned readings-logged summary card with progress ring and stat chips.
+- **Barcode (PWA):** Desktop webcam scan (BarcodeDetector + ZXing); round scan button.
+- **View logs (PWA):** Filter row stacks on mobile.
+- **Settings (PWA + RN):** Unique carousel icon per pane; import wizard accent button styling.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.2.
 
 ### v2.0.1 - 2026-06-27 - Post–2.0.0 polish
 
