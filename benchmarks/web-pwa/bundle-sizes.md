@@ -1,14 +1,14 @@
 # PWA bundle sizes
 
-Generated: 2026-06-27T12:55:17.630Z
+Generated: 2026-06-27T13:37:07.189Z
 
 | File | Raw | Gzip |
 |------|-----|------|
-| ci-minified/site/app.js | 1093714 | 237934 |
+| ci-minified/site/app.js | 1095434 | 238212 |
 | ci-minified/site/vendor/transformers/transformers.min.js | 818481 | 207722 |
-| ci-minified/site/app.55df3b8b77a4.min.js | 805807 | 186811 |
+| ci-minified/site/app.b6dbd338532c.min.js | 807053 | 187035 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
-| ci-minified/site/styles.899f5add2a63.css | 565424 | 95243 |
+| ci-minified/site/styles.f135e22820a2.css | 565642 | 95280 |
 | ci-minified/site/vendor/rianell-shared.js | 353634 | 81742 |
 | ci-minified/site/AIEngine.js | 175506 | 38766 |
 | ci-minified/site/cloud-sync.js | 105595 | 22659 |
@@ -20,10 +20,10 @@ Generated: 2026-06-27T12:55:17.630Z
 | ci-minified/site/performance-utils.js | 28978 | 7090 |
 | ci-minified/site/modules/settings.js | 28917 | 5961 |
 | ci-minified/site/modules/mood-tab.js | 28729 | 6294 |
-| ci-minified/site/privacy-region.js | 28056 | 5887 |
-| ci-minified/site/first-run-wizard.js | 26267 | 5379 |
+| ci-minified/site/privacy-region.js | 28219 | 5938 |
+| ci-minified/site/first-run-wizard.js | 26510 | 5444 |
 | ci-minified/site/notifications.js | 24042 | 5824 |
-| ci-minified/site/ui-feedback.js | 22128 | 5246 |
+| ci-minified/site/ui-feedback.js | 22684 | 5371 |
 
-**JS total (gzip):** 1103553 bytes
-**CSS total (gzip):** 99459 bytes
+**JS total (gzip):** 1104296 bytes
+**CSS total (gzip):** 99496 bytes
