@@ -6,6 +6,7 @@
 
   var STEPS = { min: 0, max: 30000, step: 500, default: 0 };
   var HYDRATION = { min: 0, max: 20, step: 0.5, default: 0 };
+  var HYDRATION_GLASS = { top: 6, bottom: 79, left: 14, width: 28, idlePuddle: 0.05 };
 
   function t(key, fallback) {
     if (typeof global.tUi === 'function') {
@@ -81,12 +82,54 @@
     }
   }
 
+  function hydrationFillRatio(active, val) {
+    if (!active) return HYDRATION_GLASS.idlePuddle;
+    return 0.06 + ratio(val, 0, HYDRATION.max) * 0.94;
+  }
+
+  function updateHydrationLiquid(active, val, rising) {
+    var fill = document.getElementById('hydrationGlassFill');
+    var surface = document.getElementById('hydrationLiquidSurface');
+    var widget = document.getElementById('hydrationWidget');
+    var fillRatio = hydrationFillRatio(active, val);
+    var innerH = HYDRATION_GLASS.bottom - HYDRATION_GLASS.top;
+    var height = innerH * fillRatio;
+    var top = HYDRATION_GLASS.bottom - height;
+    if (fill) {
+      fill.setAttribute('y', String(top));
+      fill.setAttribute('height', String(height));
+    }
+    if (surface) {
+      surface.setAttribute('transform', 'translate(' + HYDRATION_GLASS.left + ' ' + top + ')');
+      surface.style.opacity = active && height > 2 ? '1' : '0';
+    }
+    if (widget && rising) {
+      widget.classList.add('hydration-widget--pouring');
+      global.setTimeout(function () {
+        widget.classList.remove('hydration-widget--pouring');
+      }, 620);
+    }
+  }
+
+  function stampFootprints(widget, prevLit, nextLit) {
+    if (!widget || nextLit <= prevLit) return;
+    widget.querySelectorAll('.steps-footprint').forEach(function (fp, i) {
+      if (i >= prevLit && i < nextLit) {
+        fp.classList.remove('steps-footprint--stamping');
+        void fp.offsetWidth;
+        fp.classList.add('steps-footprint--stamping');
+        global.setTimeout(function () {
+          fp.classList.remove('steps-footprint--stamping');
+        }, 480);
+      }
+    });
+  }
+
   function updateSteps(markActive) {
     var widget = document.getElementById('stepsWidget');
     var slider = document.getElementById('stepsSlider');
     var display = document.getElementById('stepsValueDisplay');
     var badge = document.getElementById('stepsZoneBadge');
-    var runner = document.getElementById('stepsRunner');
     if (!widget || !slider) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
@@ -102,13 +145,13 @@
     }
     if (badge) badge.textContent = active && val > 0 ? zone.label : t('wizard.lifestyle.steps.hint', 'Slide to set steps');
     slider.style.setProperty('--vital-fill-pct', (ratio(val, STEPS.min, STEPS.max) * 100).toFixed(1) + '%');
-    var lit = Math.ceil(ratio(val, 0, 10000) * 5);
+    var lit = active ? Math.ceil(ratio(val, 0, 10000) * 5) : 0;
+    var prevLit = parseInt(widget.dataset.stepsLit || '0', 10);
+    if (markActive) stampFootprints(widget, prevLit, lit);
+    widget.dataset.stepsLit = String(lit);
     widget.querySelectorAll('.steps-footprint').forEach(function (fp, i) {
-      fp.classList.toggle('steps-footprint--lit', active && i < lit);
+      fp.classList.toggle('steps-footprint--lit', i < lit);
     });
-    if (runner) {
-      runner.style.setProperty('--steps-x', (4 + ratio(val, 0, STEPS.max) * 84).toFixed(1) + 'px');
-    }
   }
 
   function updateHydration(markActive) {
@@ -116,12 +159,13 @@
     var slider = document.getElementById('hydrationSlider');
     var display = document.getElementById('hydrationValueDisplay');
     var badge = document.getElementById('hydrationZoneBadge');
-    var fill = document.getElementById('hydrationGlassFill');
     if (!widget || !slider) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
     var val = parseFloat(slider.value);
     if (active) val = clamp(isNaN(val) ? 0 : val, HYDRATION.min, HYDRATION.max);
+    var prevVal = parseFloat(widget.dataset.hydrationPrev || '0');
+    var rising = markActive && active && val > prevVal;
     setHidden('hydration', val, active && val > 0);
     var zone = classifyHydration(active ? val : null);
     applyZone(widget, zone, 1.4 - ratio(val, 0, HYDRATION.max) * 0.6);
@@ -132,12 +176,21 @@
     }
     if (badge) badge.textContent = active && val > 0 ? zone.label : t('wizard.lifestyle.hydration.hint', 'Slide to set hydration');
     slider.style.setProperty('--vital-fill-pct', (ratio(val, HYDRATION.min, HYDRATION.max) * 100).toFixed(1) + '%');
-    if (fill) fill.style.transform = 'scaleY(' + (active ? 0.1 + ratio(val, 0, HYDRATION.max) * 0.9 : 0.06).toFixed(3) + ')';
+    updateHydrationLiquid(active, val, rising);
+    widget.dataset.hydrationPrev = String(active ? val : 0);
     var row = document.getElementById('hydrationGlassesRow');
     if (row) {
       var filled = Math.min(8, Math.ceil(ratio(val, 0, 8) * 8));
       row.querySelectorAll('.hydration-mini-glass').forEach(function (g, i) {
-        g.classList.toggle('hydration-mini-glass--filled', active && i < filled);
+        var shouldFill = active && i < filled;
+        var wasFilled = g.classList.contains('hydration-mini-glass--filled');
+        g.classList.toggle('hydration-mini-glass--filled', shouldFill);
+        if (shouldFill && !wasFilled) {
+          g.classList.add('hydration-mini-glass--just-filled');
+          global.setTimeout(function () {
+            g.classList.remove('hydration-mini-glass--just-filled');
+          }, 520);
+        }
       });
     }
   }
@@ -162,7 +215,11 @@
     var stepsWidget = document.getElementById('stepsWidget');
     var hydrationWidget = document.getElementById('hydrationWidget');
     if (stepsWidget) stepsWidget.setAttribute('data-vital-active', 'false');
-    if (hydrationWidget) hydrationWidget.setAttribute('data-vital-active', 'false');
+    if (hydrationWidget) {
+      hydrationWidget.setAttribute('data-vital-active', 'false');
+      hydrationWidget.dataset.hydrationPrev = '0';
+    }
+    if (stepsWidget) stepsWidget.dataset.stepsLit = '0';
     var stepsSlider = document.getElementById('stepsSlider');
     var hydrationSlider = document.getElementById('hydrationSlider');
     if (stepsSlider) stepsSlider.value = String(STEPS.default);

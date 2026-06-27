@@ -2499,6 +2499,10 @@ body.light-mode .vitals-advanced-body {
   cursor: pointer;
   box-shadow: none;
   animation: none;
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
+  overflow: hidden;
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
@@ -3762,50 +3766,69 @@ body.light-mode .vitals-last-value-hint__value {
   .vital-widget[data-vital-active="true"] .hrv-wave-line,
   .vital-widget[data-vital-active="true"] .spo2-bubble,
   .vital-widget--weight[data-vital-active="true"] .weight-pivot,
-  .vital-widget--steps[data-vital-active="true"] .steps-runner,
-  .vital-widget--hydration[data-vital-active="true"] .hydration-mini-glass--filled {
+  .vital-widget--steps[data-vital-active="true"] .steps-footprint--stamping,
+  .vital-widget--hydration[data-vital-active="true"] .hydration-wave,
+  .vital-widget--hydration[data-vital-active="true"] .hydration-bubble,
+  .vital-widget--hydration[data-vital-active="true"] .hydration-mini-glass--just-filled {
     animation: none;
   }
 }
 
 /* Lifestyle: steps + hydration */
+.vital-widget--steps .steps-visual {
+  align-items: center;
+  justify-content: center;
+}
+
 .vital-widget--steps .steps-path-svg {
   width: 100%;
-  max-width: 120px;
+  max-width: 72px;
   height: auto;
 }
 
 .steps-path-line {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.18);
-  stroke-width: 2;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 1.75;
   stroke-linecap: round;
 }
 
 .steps-footprint {
-  opacity: 0.22;
-  color: rgba(232, 238, 236, 0.55);
-  transition: opacity 0.28s ease, color 0.28s ease, transform 0.28s ease;
+  opacity: 0.18;
+  color: rgba(232, 238, 236, 0.5);
+  transform: translateY(-8px) scale(0.82);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.32s ease, color 0.32s ease;
 }
 
 .steps-footprint--lit {
   opacity: 1;
   color: var(--vital-color);
-  transform: scale(1.05);
+  transform: translateY(0) scale(1);
 }
 
-.steps-runner {
-  color: var(--vital-color);
-  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+.steps-footprint--stamping {
+  animation: stepsFootprintStamp 0.46s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.vital-widget--steps[data-vital-active="true"] .steps-runner {
-  animation: stepsRunnerBounce var(--vital-pulse-rate, 1s) ease-in-out infinite;
+@keyframes stepsFootprintStamp {
+  0% {
+    opacity: 0.15;
+    transform: translateY(-14px) scale(0.65);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-@keyframes stepsRunnerBounce {
-  0%, 100% { transform: translate(var(--steps-x, 4px), 8px); }
-  50% { transform: translate(var(--steps-x, 4px), 4px); }
+.vital-widget--steps[data-vital-active="true"] .steps-footprint--lit:not(.steps-footprint--stamping) {
+  filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--vital-color) 45%, transparent));
 }
 
 .hydration-visual {
@@ -3814,7 +3837,7 @@ body.light-mode .vitals-last-value-hint__value {
 }
 
 .hydration-glass-svg {
-  width: 44px;
+  width: 48px;
   height: auto;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
 }
@@ -3825,11 +3848,102 @@ body.light-mode .vitals-last-value-hint__value {
   stroke-width: 1.5;
 }
 
+.hydration-liquid-stop-deep {
+  stop-color: color-mix(in srgb, var(--vital-color) 88%, #0a1620 12%);
+}
+
+.hydration-liquid-stop-mid {
+  stop-color: color-mix(in srgb, var(--vital-color) 72%, #fff 28%);
+}
+
+.hydration-liquid-stop-shine {
+  stop-color: color-mix(in srgb, var(--vital-color) 55%, #fff 45%);
+}
+
 .hydration-glass-fill {
-  fill: var(--vital-color);
-  transform-origin: 28px 80px;
-  transform: scaleY(0.06);
-  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), fill 0.3s ease;
+  fill: url(#hydrationLiquidGrad);
+  transition: y 0.42s cubic-bezier(0.22, 1, 0.36, 1), height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hydration-liquid-surface {
+  opacity: 0;
+  transition: opacity 0.28s ease, transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.hydration-wave {
+  fill: color-mix(in srgb, var(--vital-color) 78%, #fff 22%);
+}
+
+.hydration-wave--1 {
+  opacity: 0.95;
+}
+
+.hydration-wave--2 {
+  opacity: 0.55;
+}
+
+.hydration-bubble {
+  fill: color-mix(in srgb, var(--vital-color) 40%, #fff 60%);
+  opacity: 0;
+}
+
+.vital-widget--hydration[data-vital-active="true"] .hydration-wave--1 {
+  animation: hydrationWaveShift 2.8s linear infinite;
+}
+
+.vital-widget--hydration[data-vital-active="true"] .hydration-wave--2 {
+  animation: hydrationWaveShift 2s linear infinite reverse;
+}
+
+.vital-widget--hydration[data-vital-active="true"] .hydration-bubble--1 {
+  animation: hydrationBubbleRise 2.4s ease-in-out infinite;
+}
+
+.vital-widget--hydration[data-vital-active="true"] .hydration-bubble--2 {
+  animation: hydrationBubbleRise 3.1s ease-in-out infinite 0.6s;
+}
+
+.vital-widget--hydration[data-vital-active="true"] .hydration-bubble--3 {
+  animation: hydrationBubbleRise 2.7s ease-in-out infinite 1.1s;
+}
+
+.vital-widget--hydration.hydration-widget--pouring .hydration-glass-fill {
+  transition-duration: 0.52s;
+}
+
+.vital-widget--hydration.hydration-widget--pouring .hydration-wave--1 {
+  animation: hydrationPourSloshWave 0.58s ease-out, hydrationWaveShift 2.8s linear infinite 0.58s;
+}
+
+.vital-widget--hydration.hydration-widget--pouring .hydration-wave--2 {
+  animation: hydrationPourSloshWave 0.58s ease-out reverse, hydrationWaveShift 2s linear infinite reverse 0.58s;
+}
+
+.vital-widget--hydration.hydration-widget--pouring .hydration-glass-outline {
+  animation: hydrationGlassShimmer 0.58s ease-out;
+}
+
+@keyframes hydrationWaveShift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-14px); }
+}
+
+@keyframes hydrationPourSloshWave {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  30% { transform: translateX(-5px) translateY(-3px); }
+  65% { transform: translateX(4px) translateY(1px); }
+}
+
+@keyframes hydrationBubbleRise {
+  0%, 100% { opacity: 0; transform: translateY(0); }
+  20% { opacity: 0.75; }
+  80% { opacity: 0.35; transform: translateY(-10px); }
+}
+
+@keyframes hydrationGlassShimmer {
+  0%, 100% { filter: none; }
+  45% { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--vital-color) 55%, transparent)); }
 }
 
 .hydration-glasses-row {
@@ -3860,8 +3974,8 @@ body.light-mode .vitals-last-value-hint__value {
   transform: translateY(-1px);
 }
 
-.vital-widget--hydration[data-vital-active="true"] .hydration-mini-glass--filled {
-  animation: hydrationGlassPop 0.45s ease-out;
+.vital-widget--hydration[data-vital-active="true"] .hydration-mini-glass--just-filled {
+  animation: hydrationGlassPop 0.48s ease-out;
 }
 
 @keyframes hydrationGlassPop {
@@ -8589,6 +8703,357 @@ body.light-mode .character-counter {
 .slider-container:nth-child(8) { animation-delay: 0.45s; }
 .slider-container:nth-child(9) { animation-delay: 0.5s; }
 .slider-container:nth-child(10) { animation-delay: 0.55s; }
+
+/* Log metric widgets (animated SVG sliders) */
+.slider-container.metric-widget {
+  margin: 14px 0;
+  padding: 12px 14px 14px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 48%, rgba(0, 0, 0, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 10px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.metric-widget[data-metric-active="true"] {
+  border-color: color-mix(in srgb, var(--metric-color, #8aa89a) 42%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--metric-color, #8aa89a) 16%, transparent);
+}
+
+.metric-widget--focused {
+  border-color: color-mix(in srgb, var(--metric-color, var(--primary-color)) 55%, transparent);
+}
+
+.metric-widget__label {
+  order: 0 !important;
+  pointer-events: auto !important;
+  margin-bottom: 2px !important;
+}
+
+.metric-widget__body {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+
+.metric-widget__visual {
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--metric-color, #8aa89a);
+}
+
+.metric-svg {
+  width: 100%;
+  max-width: 56px;
+  height: auto;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3));
+}
+
+.metric-widget__controls {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-readout__value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-light, #e8eeec);
+}
+
+.metric-readout__scale {
+  font-size: 0.78rem;
+  color: rgba(224, 242, 241, 0.5);
+}
+
+.metric-readout--pulse {
+  animation: metricReadoutPulse 0.28s ease-out;
+}
+
+@keyframes metricReadoutPulse {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.metric-zone-badge {
+  align-self: flex-start;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--metric-color) 45%, transparent);
+  color: color-mix(in srgb, var(--metric-color) 80%, #fff 20%);
+  background: color-mix(in srgb, var(--metric-color) 12%, transparent);
+}
+
+.metric-slider {
+  --metric-fill: var(--metric-fill-color, var(--metric-color, #ffb74d));
+  --metric-fill-pct: 50%;
+  order: 0;
+  width: 100%;
+  height: 8px;
+  padding: 10px 0;
+  margin: 0;
+  min-height: 28px;
+  border-radius: 999px;
+  appearance: none;
+  background: linear-gradient(
+    90deg,
+    var(--metric-fill) 0%,
+    var(--metric-fill) var(--metric-fill-pct),
+    rgba(255, 255, 255, 0.12) var(--metric-fill-pct),
+    rgba(255, 255, 255, 0.12) 100%
+  );
+}
+
+.metric-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.metric-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  background: linear-gradient(145deg, #fff 0%, var(--metric-fill) 55%, color-mix(in srgb, var(--metric-fill) 75%, #000) 100%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--metric-fill) 45%, transparent);
+}
+
+.metric-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.metric-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  background: var(--metric-fill);
+}
+
+.metric-stepper-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.metric-stepper-btn {
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-light, #e8eeec);
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.metric-stepper-btn:hover {
+  border-color: color-mix(in srgb, var(--metric-color) 40%, transparent);
+  background: color-mix(in srgb, var(--metric-color) 10%, rgba(255, 255, 255, 0.06));
+}
+
+.metric-widget .slider-good-bad {
+  order: 0;
+  margin-top: 0;
+}
+
+/* Stiffness: gear spins slower when stiff (high value) */
+.metric-widget--stiffness[data-metric-active="true"] .metric-stiffness-gear {
+  animation: metricGearSpin var(--metric-stiffness-speed, 2s) linear infinite;
+  transform-origin: 32px 32px;
+}
+
+@keyframes metricGearSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Joint pain: pulsing rings */
+.metric-widget--jointPain[data-metric-active="true"] .metric-pain-ring--1 {
+  animation: metricPainPulse 1.4s ease-out infinite;
+}
+
+.metric-widget--jointPain[data-metric-active="true"] .metric-pain-ring--2 {
+  animation: metricPainPulse 1.4s ease-out infinite 0.35s;
+}
+
+@keyframes metricPainPulse {
+  0%, 100% { transform: scale(1); opacity: 0.35; }
+  50% { transform: scale(1.08); opacity: 0.95; }
+}
+
+.metric-pain-ring,
+.metric-pain-core {
+  transform-origin: 32px 36px;
+}
+
+/* Mobility footsteps */
+.metric-mobility-step {
+  opacity: 0.2;
+  color: rgba(232, 238, 236, 0.45);
+  transition: opacity 0.28s ease, color 0.28s ease, transform 0.28s ease;
+}
+
+.metric-mobility-step--lit {
+  opacity: 1;
+  color: var(--metric-color);
+  transform: scale(1.05);
+}
+
+.metric-svg--mobility {
+  max-width: 48px;
+}
+
+/* Swelling blob */
+.metric-swell-blob {
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: 32px 38px;
+}
+
+.metric-widget--swelling[data-metric-zone="bad"] .metric-swell-blob {
+  animation: metricSwellPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes metricSwellPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+/* Battery / fatigue */
+.metric-battery-fill {
+  transition: y 0.35s ease, height 0.35s ease, fill 0.3s ease;
+}
+
+.metric-widget--fatigue[data-metric-zone="bad"] .metric-battery-fill {
+  animation: metricBatteryDrain 2s ease-in-out infinite alternate;
+}
+
+@keyframes metricBatteryDrain {
+  from { opacity: 0.85; }
+  to { opacity: 1; }
+}
+
+/* Sleep stars twinkle */
+.metric-widget--sleep[data-metric-active="true"] .metric-sleep-star {
+  animation: metricStarTwinkle 2.2s ease-in-out infinite;
+}
+
+.metric-sleep-star--2 { animation-delay: 0.4s !important; }
+.metric-sleep-star--3 { animation-delay: 0.8s !important; }
+.metric-sleep-star--4 { animation-delay: 1.2s !important; }
+
+@keyframes metricStarTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Mood sun rays */
+.metric-widget--mood[data-metric-active="true"] .metric-mood-rays {
+  animation: metricSunRays 3s linear infinite;
+  transform-origin: 24px 26px;
+}
+
+@keyframes metricSunRays {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Irritability steam */
+.metric-widget--irritability[data-metric-active="true"] .metric-steam-line {
+  animation: metricSteamRise 1.8s ease-in-out infinite;
+}
+
+.metric-steam-line--2 { animation-delay: 0.25s !important; }
+.metric-steam-line--3 { animation-delay: 0.5s !important; }
+
+@keyframes metricSteamRise {
+  0%, 100% { transform: translateY(0); opacity: 0.15; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
+.metric-steam-gauge-fill {
+  transition: y 0.35s ease, height 0.35s ease;
+}
+
+/* Weather rain */
+.metric-rain {
+  opacity: 0.12;
+  transition: opacity 0.25s ease;
+}
+
+.metric-rain--on {
+  opacity: 1;
+}
+
+.metric-widget--weatherSensitivity[data-metric-active="true"] .metric-rain--on {
+  animation: metricRainFall 0.9s ease-in infinite;
+}
+
+.metric-rain--2.metric-rain--on { animation-delay: 0.12s; }
+.metric-rain--3.metric-rain--on { animation-delay: 0.24s; }
+.metric-rain--4.metric-rain--on { animation-delay: 0.36s; }
+.metric-rain--5.metric-rain--on { animation-delay: 0.48s; }
+
+@keyframes metricRainFall {
+  0% { transform: translateY(0); opacity: 0.35; }
+  70% { opacity: 1; }
+  100% { transform: translateY(6px); opacity: 0.2; }
+}
+
+/* Daily function ring */
+.metric-ring-progress {
+  transition: stroke-dashoffset 0.38s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.3s ease;
+}
+
+.metric-ring-check {
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 380px) {
+  .metric-widget__body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .metric-widget__visual {
+    flex-basis: auto;
+    padding: 4px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metric-widget[data-metric-active="true"] .metric-stiffness-gear,
+  .metric-widget[data-metric-active="true"] .metric-pain-ring,
+  .metric-widget[data-metric-active="true"] .metric-sleep-star,
+  .metric-widget[data-metric-active="true"] .metric-mood-rays,
+  .metric-widget[data-metric-active="true"] .metric-steam-line,
+  .metric-widget[data-metric-active="true"] .metric-rain--on,
+  .metric-widget[data-metric-active="true"] .metric-swell-blob,
+  .metric-widget[data-metric-active="true"] .metric-battery-fill {
+    animation: none !important;
+  }
+}
 
 /* Label row above track (order); value badge injected by updateSliderColor */
 .slider-label {

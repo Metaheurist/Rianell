@@ -358,7 +358,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
   <link rel="preload" href="styles.css?v=115" as="style">
-  <link rel="modulepreload" href="app.js?v=53" crossorigin>
+  <link rel="modulepreload" href="app.js?v=56" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
   <link rel="stylesheet" href="styles.css?v=115" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=115&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
@@ -2890,14 +2890,23 @@
             </label>
             <div class="vital-widget__body">
               <div class="vital-widget__visual steps-visual" aria-hidden="true">
-                <svg class="steps-path-svg" viewBox="0 0 120 56" focusable="false">
-                  <path class="steps-path-line" d="M8 40 H112" stroke-dasharray="4 6"/>
-                  <g class="steps-footprint steps-footprint--1" transform="translate(12 34)"><use href="#icon-footprint" width="14" height="14"/></g>
-                  <g class="steps-footprint steps-footprint--2" transform="translate(32 34)"><use href="#icon-footprint" width="14" height="14"/></g>
-                  <g class="steps-footprint steps-footprint--3" transform="translate(52 34)"><use href="#icon-footprint" width="14" height="14"/></g>
-                  <g class="steps-footprint steps-footprint--4" transform="translate(72 34)"><use href="#icon-footprint" width="14" height="14"/></g>
-                  <g class="steps-footprint steps-footprint--5" transform="translate(92 34)"><use href="#icon-footprint" width="14" height="14"/></g>
-                  <g class="steps-runner" id="stepsRunner" transform="translate(4 8)"><use href="#icon-run" width="22" height="22"/></g>
+                <svg class="steps-path-svg" viewBox="0 0 72 96" focusable="false">
+                  <path class="steps-path-line" d="M36 18 C42 32 30 46 42 58 C32 72 38 84" stroke-dasharray="3 5"/>
+                  <g class="steps-footprint-anchor" transform="translate(28 8) rotate(-14)">
+                    <g class="steps-footprint steps-footprint--1"><use href="#icon-footprint" width="16" height="16"/></g>
+                  </g>
+                  <g class="steps-footprint-anchor" transform="translate(46 26) rotate(16)">
+                    <g class="steps-footprint steps-footprint--2"><use href="#icon-footprint" width="16" height="16"/></g>
+                  </g>
+                  <g class="steps-footprint-anchor" transform="translate(24 44) rotate(-14)">
+                    <g class="steps-footprint steps-footprint--3"><use href="#icon-footprint" width="16" height="16"/></g>
+                  </g>
+                  <g class="steps-footprint-anchor" transform="translate(44 62) rotate(16)">
+                    <g class="steps-footprint steps-footprint--4"><use href="#icon-footprint" width="16" height="16"/></g>
+                  </g>
+                  <g class="steps-footprint-anchor" transform="translate(22 80) rotate(-14)">
+                    <g class="steps-footprint steps-footprint--5"><use href="#icon-footprint" width="16" height="16"/></g>
+                  </g>
                 </svg>
               </div>
               <div class="vital-widget__controls">
@@ -2923,9 +2932,25 @@
             <div class="vital-widget__body">
               <div class="vital-widget__visual hydration-visual" aria-hidden="true">
                 <svg class="hydration-glass-svg" viewBox="0 0 56 88" focusable="false">
+                  <defs>
+                    <clipPath id="hydrationGlassClip"><path d="M14 4 H42 L38 80 H18 L14 4 Z"/></clipPath>
+                    <linearGradient id="hydrationLiquidGrad" x1="28" y1="80" x2="28" y2="4" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" class="hydration-liquid-stop-deep"/>
+                      <stop offset="55%" class="hydration-liquid-stop-mid"/>
+                      <stop offset="100%" class="hydration-liquid-stop-shine"/>
+                    </linearGradient>
+                  </defs>
                   <path class="hydration-glass-outline" d="M14 4 H42 L38 80 H18 L14 4 Z"/>
-                  <clipPath id="hydrationGlassClip"><path d="M14 4 H42 L38 80 H18 L14 4 Z"/></clipPath>
-                  <rect class="hydration-glass-fill" id="hydrationGlassFill" x="14" y="80" width="28" height="76" clip-path="url(#hydrationGlassClip)"/>
+                  <g clip-path="url(#hydrationGlassClip)" class="hydration-liquid-clip">
+                    <rect class="hydration-glass-fill" id="hydrationGlassFill" x="14" y="79" width="28" height="0"/>
+                    <g class="hydration-liquid-surface" id="hydrationLiquidSurface" transform="translate(14 79)">
+                      <path class="hydration-wave hydration-wave--1" d="M0 0 C7 -5 14 4 21 0 S35 -4 42 0 L42 10 L0 10 Z"/>
+                      <path class="hydration-wave hydration-wave--2" d="M0 2 C9 -3 18 5 27 1 S36 -2 42 2 L42 12 L0 12 Z"/>
+                      <circle class="hydration-bubble hydration-bubble--1" cx="12" cy="-6" r="1.6"/>
+                      <circle class="hydration-bubble hydration-bubble--2" cx="28" cy="-12" r="1.1"/>
+                      <circle class="hydration-bubble hydration-bubble--3" cx="34" cy="-4" r="0.9"/>
+                    </g>
+                  </g>
                 </svg>
                 <div class="hydration-glasses-row" id="hydrationGlassesRow" aria-hidden="true"></div>
               </div>
@@ -4837,6 +4862,8 @@
   <script defer src="llm-load-ladder-sync.js?v=3"></script>
   <script defer src="device-benchmark.js?v=7"></script>
   <script defer src="performance-utils.js"></script>
+  <script defer src="modules/log-metric-widgets.js?v=1"></script>
+  <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=3"></script>
   <script defer src="push-subscribe.js?v=1"></script>
   <script defer src="appointment-pdf.js?v=2"></script>
@@ -4879,7 +4906,7 @@
   <script defer src="modules/vitals-suggest-ui.js?v=3"></script>
   <script defer src="modules/bp-input-widget.js?v=1"></script>
   <script defer src="modules/advanced-vitals-widgets.js?v=1"></script>
-  <script defer src="modules/lifestyle-vitals-widgets.js?v=1"></script>
+  <script defer src="modules/lifestyle-vitals-widgets.js?v=2"></script>
   <script defer src="modules/weekly-review.js?v=7"></script>
   <script defer src="modules/mood-tab.js?v=6"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
@@ -4887,7 +4914,7 @@
   <script defer src="first-run-wizard.js?v=3"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script type="module" defer src="app.js?v=53"></script>
+  <script type="module" defer src="app.js?v=56"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="modules/goals-carousel.js?v=5"></script>
