@@ -36,13 +36,9 @@ export function buildAuthorizeUrl(baseUrl, params) {
 
 /** Connector provider registry (CN4–CN7). */
 export const CONNECTOR_PROVIDERS = {
-  google_sheets: { id: 'google_sheets', label: 'Google Sheets', oauth: true },
+  'google-sheets': { id: 'google-sheets', label: 'Google Sheets', oauth: true },
   withings: { id: 'withings', label: 'Withings', oauth: true },
   strava: { id: 'strava', label: 'Strava', oauth: true },
   health_connect: { id: 'health_connect', label: 'Health Connect', oauth: false, platform: 'android' },
   fhir_import: { id: 'fhir_import', label: 'FHIR Import', oauth: false },
 };
-
-export function listConnectorsForPlatform(platform) {
-  return Object.values(CONNECTOR_PROVIDERS).filter((c) => !c.platform || c.platform === platform);
-}
