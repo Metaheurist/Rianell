@@ -22,7 +22,7 @@ export async function hashApiKey(rawKey) {
 
 export const DEFAULT_API_SCOPES = ['logs:read'];
 
-export const WEBHOOK_EVENTS = ['log.created', 'flare.detected', 'goal.achieved'];
+export const WEBHOOK_EVENTS = ['log.created', 'flare.detected', 'goal.achieved', 'sync.completed', 'export.created'];
 
 export function isValidWebhookUrl(url) {
   try {
