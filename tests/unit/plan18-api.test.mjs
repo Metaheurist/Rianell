@@ -39,6 +39,11 @@ test('WEBHOOK_EVENTS includes log.created', () => {
   assert.ok(WEBHOOK_EVENTS.includes('log.created'));
 });
 
+test('WEBHOOK_EVENTS includes sync.completed and export.created', () => {
+  assert.ok(WEBHOOK_EVENTS.includes('sync.completed'));
+  assert.ok(WEBHOOK_EVENTS.includes('export.created'));
+});
+
 test('Schema.sql defines api_keys and user_webhooks', () => {
   const schema = readFileSync(join(root, 'supabase/Schema.sql'), 'utf8');
   assert.match(schema, /CREATE TABLE IF NOT EXISTS public\.api_keys/);
