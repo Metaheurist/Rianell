@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.0 documentation sync (Rianell 2.0 production)
+
+- **Version:** Root `@rianell` workspace **2.0.0**; PWA and RN app packages aligned.
+- **Branding:** Production PWA icons (`Icons/`), no open-beta chip or install Beta badges.
+- **Log wizard:** Cycle timeline, vitals last-value hints, mobile nav parity (PWA + RN).
+- **Benchmark:** Desktop full suite on cold boot when cache lacks per-test data.
+- **Connectors:** Strava, Withings, Google Sheets (Plan 19); operator guide `docs/connectors/SETUP.md`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.0; [EXTERNAL-SETUP.md](plans/EXTERNAL-SETUP.md) § Plan 19; wiki [[Release-Notes]] / [[Features-Guide]].
+
 ### v1.135.0 documentation sync (Third-party connectors CN4–CN7)
 
 - **Connectors:** Strava, Withings, Google Sheets OAuth via Supabase Edge Functions (`connector-auth`, `connector-callback`, `connector-disconnect`, provider sync functions).

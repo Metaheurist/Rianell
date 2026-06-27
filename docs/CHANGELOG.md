@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.134.0** - AI Analysis tab overhaul: five-chapter layout, wellbeing score, extended engine inputs, skeleton loading.
+**Latest: v2.0.0** — Production release (Rianell 2): beta branding removed, cycle timeline, vitals suggestions, log-wizard UX, desktop full benchmark, Goals modal sizing.
+
+### v2.0.0 - 2026-06-27 - Rianell 2.0 (production)
+
+- **Release:** Major version **2.0.0**; open-beta UI badges and beta icon set removed from production PWA.
+- **Log wizard:** Unified 45-day cycle timeline; vitals “use last value” hints; mobile side-arrow + swipe navigation; BBT thermometer slider.
+- **Goals modal:** Dynamic height per carousel tab.
+- **Benchmark:** Desktop runs full suite when cache is incomplete; mobile keeps heuristic boot.
+- **Connectors:** Strava / Withings / Google Sheets OAuth (Plan 19); Supabase Edge Functions.
+- **Fixes:** Developer modal centering; privacy policies button; dev panel and cycle/vitals modules.
+- **See also:** [CHANGELOG.md](../CHANGELOG.md) at repo root (Keep a Changelog format).
 
 ### v1.134.0 - 2026-06-26 - AI Analysis tab overhaul (PWA)
 - **PWA:** AI Analysis restructured into five chapters (Overview, Trends & vitals, Lifestyle, Mind & mood, Body & pain) with wellbeing score ring, coaching insight card, sparklines, skeleton loading, and custom SVG icons.

@@ -1225,6 +1225,132 @@ async function handleCloudLogin(context) {
   }
 }
 
+// ============================================
+// Passkey (WebAuthn) sign-in
+// ============================================
+async function handlePasskeySignIn() {
+  const btn = document.getElementById('cloudPasskeySignInBtn');
+  const emailInput = document.getElementById('cloudEmail');
+
+  if (!window.PublicKeyCredential) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Your browser does not support passkeys. Try Chrome, Safari, or Edge.', 'Passkeys Not Supported');
+    } else {
+      alert('Passkeys are not supported in this browser.');
+    }
+    return;
+  }
+
+  const client = initSupabase();
+  if (!client) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Supabase client not available. Please check your connection.', 'Connection Error');
+    }
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>Authenticating…</span>'; }
+
+  try {
+    const email = emailInput?.value?.trim() || undefined;
+    const { data, error } = await client.auth.signInWithPasskey(email ? { email } : {});
+    if (error) throw error;
+
+    if (data?.user) {
+      cloudSyncState.isAuthenticated = true;
+      cloudSyncState.user = { id: data.user.id, email: data.user.email };
+      saveCloudSyncState();
+      updateCloudSyncUI();
+      if (cloudSyncState.autoSync) setTimeout(() => syncToCloud(), 500);
+    }
+  } catch (err) {
+    console.error('Passkey sign-in error:', err);
+    const msg = err?.message?.includes('cancelled') || err?.name === 'NotAllowedError'
+      ? 'Passkey sign-in was cancelled.'
+      : (err?.message || 'Passkey sign-in failed. Make sure you have a registered passkey.');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(msg, 'Passkey Sign-In');
+    } else {
+      alert(msg);
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Sign in with Passkey</span>';
+    }
+  }
+}
+
+// ============================================
+// Passkey (WebAuthn) enrollment (must be signed in)
+// ============================================
+async function handlePasskeyEnroll() {
+  const btn = document.getElementById('cloudPasskeyEnrollBtn');
+
+  if (!window.PublicKeyCredential) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Your browser does not support passkeys. Try Chrome, Safari, or Edge.', 'Passkeys Not Supported');
+    }
+    return;
+  }
+
+  const client = initSupabase();
+  if (!client) return;
+
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('You must be signed in to register a passkey.', 'Not Signed In');
+    }
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>Registering…</span>'; }
+
+  try {
+    const { data, error } = await client.auth.mfa.enroll({
+      factorType: 'webauthn',
+      friendlyName: 'Rianell Passkey',
+    });
+    if (error) throw error;
+
+    // Supabase returns a challenge — verify it to complete enrollment
+    const { data: challengeData, error: challengeErr } = await client.auth.mfa.challenge({ factorId: data.id });
+    if (challengeErr) throw challengeErr;
+
+    const { data: verifyData, error: verifyErr } = await client.auth.mfa.verify({
+      factorId: data.id,
+      challengeId: challengeData.id,
+      code: challengeData.webAuthn?.credentialId || '',
+    });
+    if (verifyErr) throw verifyErr;
+
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Passkey registered! You can now sign in with your biometrics or security key.', 'Passkey Registered');
+    }
+  } catch (err) {
+    console.error('Passkey enroll error:', err);
+    const msg = err?.name === 'NotAllowedError' || err?.message?.includes('cancelled')
+      ? 'Passkey registration was cancelled.'
+      : (err?.message || 'Failed to register passkey. Please try again.');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(msg, 'Passkey Registration');
+    } else {
+      alert(msg);
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Register Passkey</span>';
+    }
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.handlePasskeySignIn = handlePasskeySignIn;
+  window.handlePasskeyEnroll = handlePasskeyEnroll;
+}
+
 // Handle cloud logout
 async function handleCloudLogout() {
   const client = initSupabase();

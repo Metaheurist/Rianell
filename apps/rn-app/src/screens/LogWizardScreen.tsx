@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { CycleTrackingInput } from '../components/CycleTrackingInput';
+import { VitalsLastValueHint } from '../components/VitalsLastValueHint';
 import { FoodSearchInput } from '../components/FoodSearchInput';
 import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
 import { useT } from '../i18n/I18nProvider';
@@ -38,6 +39,7 @@ import {
   extractLogFieldsFromVoiceTranscript,
   painBodyStateToLocations,
   computeBmiKg,
+  buildVitalSuggestions,
 } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -768,6 +770,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const [cyclePeriodStart, setCyclePeriodStart] = useState(false);
   const [cyclePeriodAnchorDate, setCyclePeriodAnchorDate] = useState<string | null>(null);
   const [cycleSuggestHint, setCycleSuggestHint] = useState<string | null>(null);
+  const [vitalSuggestions, setVitalSuggestions] = useState<
+    Record<string, { fromDate: string; displayValue: string; values: Record<string, number | string> }>
+  >({});
   const cycleAutoFilledRef = useRef(false);
   const cycleSuggestedDateRef = useRef('');
   const cycleStateRef = useRef({
@@ -927,6 +932,48 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       cancelled = true;
     };
   }, [date, prefs.cycleModuleEnabled, t]);
+
+  const vitalUnitPrefs = useMemo(
+    () => ({
+      weightUnit: prefs.weightUnit === 'lb' ? 'lb' : 'kg',
+      glucoseUnit: prefs.glucoseUnit === 'mgdl' ? 'mgdl' : 'mmol',
+      bodyWeightUnit: prefs.bodyWeightUnit === 'lbs' ? 'lbs' : 'kg',
+    }),
+    [prefs.bodyWeightUnit, prefs.glucoseUnit, prefs.weightUnit],
+  );
+
+  useEffect(() => {
+    if (step !== 1) return;
+    let cancelled = false;
+    loadLogs()
+      .then((loadedLogs) => {
+        if (cancelled) return;
+        setVitalSuggestions(buildVitalSuggestions(loadedLogs, date, { unitPrefs: vitalUnitPrefs }));
+      })
+      .catch(() => {
+        if (!cancelled) setVitalSuggestions({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [date, step, vitalUnitPrefs]);
+
+  const renderVitalHint = useCallback(
+    (fieldId: string, isEmpty: boolean, onApply: () => void) => {
+      const row = vitalSuggestions[fieldId];
+      if (!isEmpty || !row) return null;
+      return (
+        <VitalsLastValueHint
+          label={t('wizard.vitals.useLastValue', {
+            value: row.displayValue,
+            date: formatIsoDate(row.fromDate, locale, { dateStyle: 'medium' }),
+          })}
+          onPress={onApply}
+        />
+      );
+    },
+    [locale, t, vitalSuggestions],
+  );
 
   useEffect(() => {
     loadLogs()
@@ -1144,6 +1191,41 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     setStep(next);
   }
 
+  const wizardTouchStart = useRef<{ x: number; y: number } | null>(null);
+
+  function handleWizardNext() {
+    if (step === 0 && !validateStep0()) return;
+    if (step >= WIZARD_STEPS - 1) return;
+    goToStep((step + 1) as Step);
+  }
+
+  function handleWizardBack() {
+    if (step > 0) goToStep((step - 1) as Step);
+    else navigation.goBack();
+  }
+
+  function handleWizardSkip() {
+    if (step <= 0 || step >= WIZARD_STEPS - 1) return;
+    goToStep((step + 1) as Step);
+  }
+
+  function onWizardTouchStart(e: { nativeEvent: { pageX: number; pageY: number } }) {
+    wizardTouchStart.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+  }
+
+  function onWizardTouchEnd(e: { nativeEvent: { pageX: number; pageY: number } }) {
+    if (!wizardTouchStart.current) return;
+    const dx = e.nativeEvent.pageX - wizardTouchStart.current.x;
+    const dy = e.nativeEvent.pageY - wizardTouchStart.current.y;
+    wizardTouchStart.current = null;
+    if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (dx < 0) handleWizardNext();
+    else handleWizardBack();
+  }
+
+  const canWizardSkip = step > 0 && step < WIZARD_STEPS - 1;
+  const canWizardNext = step < WIZARD_STEPS - 1;
+
   function applyNotesFromVoice(nextNotes: string) {
     const raw = nextNotes.slice(0, 500);
     if (!prefs.guidedVoiceLogEnabled) {
@@ -1245,7 +1327,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
-      <View style={styles.card}>
+      <View
+        style={styles.card}
+        onTouchStart={onWizardTouchStart}
+        onTouchEnd={onWizardTouchEnd}
+      >
         <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(20) }]}>
           {t('wizard.header')}
         </Text>
@@ -1360,9 +1446,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.bpm.30.120')}</Text>
             <TextInput value={bpm} onChangeText={setBpm} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
+            {renderVitalHint('bpm', !bpm.trim(), () => {
+              const row = vitalSuggestions.bpm;
+              if (row?.values.bpm != null) setBpm(String(row.values.bpm));
+            })}
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.weight.kg')}</Text>
             <TextInput value={weightKg} onChangeText={setWeightKg} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
+            {renderVitalHint('weight', !weightKg.trim(), () => {
+              const row = vitalSuggestions.weight;
+              if (row?.values.weight != null) setWeightKg(String(row.values.weight));
+            })}
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.bloodPressure')}</Text>
             <View style={[styles.row, { flexDirection: rowDir, gap: 8 }]}>
@@ -1370,14 +1464,39 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               <Text style={{ color: theme.tokens.color.text, alignSelf: 'center' }}>/</Text>
               <TextInput value={bloodPressureDiastolic} onChangeText={setBloodPressureDiastolic} style={[styles.input, { color: theme.tokens.color.text, flex: 1 }]} keyboardType="number-pad" placeholder={t('wizard.vitals.bp.diastolic')} />
             </View>
+            {renderVitalHint('bloodPressure', !bloodPressureSystolic.trim() && !bloodPressureDiastolic.trim(), () => {
+              const row = vitalSuggestions.bloodPressure;
+              if (row?.values.bloodPressureSystolic != null) setBloodPressureSystolic(String(row.values.bloodPressureSystolic));
+              if (row?.values.bloodPressureDiastolic != null) setBloodPressureDiastolic(String(row.values.bloodPressureDiastolic));
+            })}
+
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.bloodGlucose')}</Text>
             <TextInput value={bloodGlucose} onChangeText={setBloodGlucose} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
+            {renderVitalHint('bloodGlucose', !bloodGlucose.trim(), () => {
+              const row = vitalSuggestions.bloodGlucose;
+              if (row?.values.bloodGlucose != null) setBloodGlucose(String(row.values.bloodGlucose));
+            })}
+
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.spO2')}</Text>
             <TextInput value={spO2} onChangeText={setSpO2} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
+            {renderVitalHint('spO2', !spO2.trim(), () => {
+              const row = vitalSuggestions.spO2;
+              if (row?.values.spO2 != null) setSpO2(String(row.values.spO2));
+            })}
+
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.hrv')}</Text>
             <TextInput value={hrv} onChangeText={setHrv} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
+            {renderVitalHint('hrv', !hrv.trim(), () => {
+              const row = vitalSuggestions.hrv;
+              if (row?.values.hrv != null) setHrv(String(row.values.hrv));
+            })}
+
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.vitals.weight')}</Text>
             <TextInput value={bodyWeight} onChangeText={setBodyWeight} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
+            {renderVitalHint('bodyWeight', !bodyWeight.trim(), () => {
+              const row = vitalSuggestions.bodyWeight;
+              if (row?.values.bodyWeight != null) setBodyWeight(String(row.values.bodyWeight));
+            })}
             {prefs.heightCm && bodyWeight ? (
               <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 {t('wizard.vitals.bmi')}: {computeBmiKg(Number(bodyWeight), prefs.heightCm) ?? '—'}
@@ -2335,6 +2454,56 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           </View>
         )}
         </ScrollView>
+
+        {step === WIZARD_STEPS - 1 ? (
+          <Pressable
+            onPress={() => void save()}
+            style={[styles.mobileSaveBtn, { backgroundColor: theme.tokens.color.accent }]}
+            accessibilityRole="button"
+            accessibilityLabel={t('wizard.aria.saveEntry')}
+          >
+            <Text style={[styles.mobileSaveBtnText, { fontSize: theme.font(14) }]}>{t('wizard.save')}</Text>
+          </Pressable>
+        ) : null}
+
+        <View style={[styles.mobileDock, { flexDirection: rowDir, borderTopColor: theme.tokens.color.accent + '33' }]}>
+          <Pressable
+            onPress={handleWizardBack}
+            style={styles.mobileDockBtnSecondary}
+            accessibilityRole="button"
+            accessibilityLabel={step > 0 ? t('wizard.aria.previousStep') : t('wizard.aria.closeReturnHome')}
+          >
+            <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>
+              {step > 0 ? t('wizard.action.back') : t('common.close')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleWizardSkip}
+            style={[styles.mobileDockBtnSkip, !canWizardSkip && styles.mobileDockBtnHidden]}
+            disabled={!canWizardSkip}
+            accessibilityRole="button"
+            accessibilityLabel={t('wizard.action.skip')}
+          >
+            <Text style={[styles.btnText, { fontSize: theme.font(14), opacity: canWizardSkip ? 1 : 0 }]}>
+              {t('wizard.action.skip')}
+            </Text>
+          </Pressable>
+        </View>
+
+        {canWizardNext ? (
+          <Pressable
+            onPress={handleWizardNext}
+            style={[
+              styles.sideNextBtn,
+              isRtl ? styles.sideNextBtnRtl : null,
+              { backgroundColor: theme.tokens.color.accent, borderColor: theme.tokens.color.accent + '88' },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t('wizard.aria.nextStep')}
+          >
+            <Text style={[styles.sideNextIcon, { fontSize: theme.font(28) }]}>{isRtl ? '‹' : '›'}</Text>
+          </Pressable>
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -2425,9 +2594,9 @@ function BodyRegionChoice({
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
-  card: { flex: 1, borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
+  card: { flex: 1, borderRadius: 16, padding: 16, paddingEnd: 52, backgroundColor: 'rgba(0,0,0,0.18)' },
   scroll: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingBottom: 24 },
+  scrollContent: { flexGrow: 1, paddingBottom: 108 },
   unlockBanner: {
     marginBottom: 12,
     padding: 12,
@@ -2487,7 +2656,80 @@ const styles = StyleSheet.create({
   choiceIcon: { color: '#fff', fontWeight: '900' },
   choiceText: { color: '#fff', fontWeight: '800' },
   choiceTextSelected: { color: '#fff' },
-  navRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, gap: 10 },
+  navRow: { display: 'none' },
+  mobileDock: {
+    position: 'absolute',
+    left: 0,
+    right: 52,
+    bottom: 0,
+    gap: 8,
+    paddingTop: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  mobileDockBtnSecondary: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileDockBtnSkip: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileDockBtnHidden: {
+    opacity: 0,
+  },
+  mobileSaveBtn: {
+    position: 'absolute',
+    left: 0,
+    right: 52,
+    bottom: 62,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileSaveBtnText: { color: '#0a0c08', fontWeight: '900' },
+  sideNextBtn: {
+    position: 'absolute',
+    right: 0,
+    top: '38%',
+    width: 44,
+    height: 92,
+    borderTopLeftRadius: 14,
+    borderBottomLeftRadius: 14,
+    borderWidth: 1,
+    borderRightWidth: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    shadowOffset: { width: -2, height: 0 },
+    elevation: 4,
+  },
+  sideNextBtnRtl: {
+    right: undefined,
+    left: 0,
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    borderTopRightRadius: 14,
+    borderBottomRightRadius: 14,
+    borderRightWidth: 1,
+    borderLeftWidth: 0,
+  },
+  sideNextIcon: { color: '#0a0c08', fontWeight: '900', lineHeight: 32 },
   primaryBtn: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.22)' },
   secondaryBtn: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)' },
   btnText: { color: '#fff', fontWeight: '900' },

@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Rianell - Personal health dashboard (beta)</title>
+  <title>Rianell - Personal health dashboard</title>
 
   <!-- Primary + social / link previews (og:* stops crawlers from using random headings e.g. privacy copy) -->
-  <meta name="description" content="Rianell - personal health dashboard in open beta (web & Android). Track symptoms, medications, and wellness; optional AI-assisted insights; encryption and privacy-first design. Share metrics with your care team.">
+  <meta name="description" content="Rianell - personal health dashboard (web & Android). Track symptoms, medications, and wellness; optional AI-assisted insights; encryption and privacy-first design. Share metrics with your care team.">
   <link rel="canonical" href="https://rianell.com/">
 
-  <meta property="og:title" content="Rianell - Personal health dashboard (beta)">
-  <meta property="og:description" content="Open beta: track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics - your data stays yours.">
+  <meta property="og:title" content="Rianell - Personal health dashboard">
+  <meta property="og:description" content="Track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics - your data stays yours.">
   <meta property="og:url" content="https://rianell.com/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Rianell">
@@ -21,8 +21,8 @@
   <meta property="og:image:alt" content="Rianell health dashboard">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Rianell - Personal health dashboard (beta)">
-  <meta name="twitter:description" content="Open beta: track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics.">
+  <meta name="twitter:title" content="Rianell - Personal health dashboard">
+  <meta name="twitter:description" content="Track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics.">
   <meta name="twitter:image" content="https://rianell.com/Icons/screenshot-wide.png">
   
   <!-- PWA Manifest -->
@@ -320,22 +320,22 @@
     })();
   </script>
 
-  <!-- Apple Touch Icons (beta set: web/Icons/beta/; originals remain in web/Icons/) -->
-  <link rel="apple-touch-icon" href="Icons/beta/Icon-180.png">
-  <link rel="apple-touch-icon" sizes="57x57" href="Icons/beta/Icon-57.png">
-  <link rel="apple-touch-icon" sizes="60x60" href="Icons/beta/Icon-60.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="Icons/beta/Icon-72.png">
-  <link rel="apple-touch-icon" sizes="76x76" href="Icons/beta/Icon-76.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="Icons/beta/Icon-114.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="Icons/beta/Icon-120.png">
-  <link rel="apple-touch-icon" sizes="144x144" href="Icons/beta/Icon-144.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="Icons/beta/Icon-152.png">
-  <link rel="apple-touch-icon" sizes="167x167" href="Icons/beta/Icon-167.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="Icons/beta/Icon-180.png">
+  <!-- Apple Touch Icons (production set: web/Icons/) -->
+  <link rel="apple-touch-icon" href="Icons/Icon-180.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="Icons/Icon-57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="Icons/Icon-60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="Icons/Icon-72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="Icons/Icon-76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="Icons/Icon-114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="Icons/Icon-120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="Icons/Icon-144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="Icons/Icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="Icons/Icon-167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="Icons/Icon-180.png">
   
   <!-- Favicon -->
-  <link rel="icon" type="image/png" sizes="32x32" href="Icons/beta/Icon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="Icons/beta/Icon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="Icons/Icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png">
   
   <!-- Prefer HTTP Cache-Control for production. max-age=0 still revalidates (lighter than no-store for repeat visits). -->
   <meta http-equiv="Cache-Control" content="max-age=0, must-revalidate">
@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=96" as="style">
-  <link rel="modulepreload" href="app.js?v=42" crossorigin>
+  <link rel="preload" href="styles.css?v=102" as="style">
+  <link rel="modulepreload" href="app.js?v=49" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=96" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=96&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=102" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=102&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -1313,6 +1313,11 @@
                 <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg> Sign In</span>
               </button>
             </div>
+            <div class="cloud-passkey-row">
+              <button id="cloudPasskeySignInBtn" class="cloud-btn passkey-btn" onclick="handlePasskeySignIn()" title="Sign in with a passkey (biometrics or security key)">
+                <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Sign in with Passkey</span>
+              </button>
+            </div>
           </div>
         </div>
         <div id="cloudSyncSection" class="cloud-sync-section" style="display: none;">
@@ -1325,6 +1330,11 @@
             </button>
             <button id="cloudLogoutBtn" class="cloud-btn logout-btn" onclick="handleCloudLogout()">
               <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg> Sign Out</span>
+            </button>
+          </div>
+          <div class="cloud-passkey-row">
+            <button id="cloudPasskeyEnrollBtn" class="cloud-btn passkey-btn" onclick="handlePasskeyEnroll()" title="Register a passkey (biometrics or security key) for faster login">
+              <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Register Passkey</span>
             </button>
           </div>
           <div class="cloud-sync-info">
@@ -1656,18 +1666,18 @@
         <div class="settings-option app-install-section data-management-group" id="appInstallSection">
           <h4 id="appInstallSectionTitle" class="app-install-section__title data-management-group__title"><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-globe"></use></svg><span data-i18n="settings.data.install.title">Install</span></h4>
           <div id="installOnIosDevice" class="settings-option settings-option--stacked app-install-ios-device" style="display: none; padding: 0;">
-            <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span id="installOnIosDeviceLabel" data-i18n="common.install.on.this.iphone">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+            <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span id="installOnIosDeviceLabel" data-i18n="common.install.on.this.iphone">Install on this iPhone</span></button>
             <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
           </div>
           <div class="data-management-buttons data-management-buttons--install">
             <div class="data-management-buttons__cell" id="androidRnCliDownloadOption">
-              <a id="downloadRnCliApkLink" class="settings-data-btn install-android-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon ui-svg-icon--brand" aria-hidden="true"><use href="#icon-android"></use></svg></span><span class="app-install-store-link__text"><span id="downloadRnCliAndroidLabel" data-i18n="common.download.android.react.native.cli">Download Android (React Native CLI)</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="android-version app-install-build-meta" aria-hidden="true"></span></a>
+              <a id="downloadRnCliApkLink" class="settings-data-btn install-android-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon ui-svg-icon--brand" aria-hidden="true"><use href="#icon-android"></use></svg></span><span class="app-install-store-link__text"><span id="downloadRnCliAndroidLabel" data-i18n="common.download.android.react.native.cli">Download Android (React Native CLI)</span></span><span class="android-version app-install-build-meta" aria-hidden="true"></span></a>
             </div>
             <div class="data-management-buttons__cell" id="iosDownloadOption">
               <a id="downloadIosLink" class="settings-data-btn install-ios-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon ui-svg-icon--brand" aria-hidden="true"><use href="#icon-apple"></use></svg></span><span class="app-install-store-link__text"><span id="downloadIosLabel" data-i18n="common.download.for.ios">Download for iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span></span><span class="ios-version app-install-build-meta" aria-hidden="true"></span></a>
             </div>
             <div class="data-management-buttons__cell" id="installWebAppOption">
-              <button type="button" class="settings-data-btn install-app-btn app-install-store-link" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span class="app-install-store-link__text"><span id="installWebAppLabel" data-i18n="common.install.web.app">Install web app</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="app-install-build-meta app-install-build-meta--spacer" aria-hidden="true"></span></button>
+              <button type="button" class="settings-data-btn install-app-btn app-install-store-link" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span class="app-install-store-link__text"><span id="installWebAppLabel" data-i18n="common.install.web.app">Install web app</span></span><span class="app-install-build-meta app-install-build-meta--spacer" aria-hidden="true"></span></button>
             </div>
           </div>
         </div>
@@ -1722,13 +1732,6 @@
             </span>
             <div class="connector-actions"></div>
           </div>
-          <div class="connector-row" data-connector="google-sheets">
-            <span class="connector-name">
-              <svg class="ui-svg-icon connector-icon" aria-hidden="true"><use href="#icon-document"></use></svg>
-              Google Sheets
-            </span>
-            <div class="connector-actions"></div>
-          </div>
         </div>
         <div id="connectorStatusMsg" class="settings-hint connector-status-msg" hidden aria-live="polite"></div>
       </div>
@@ -1756,7 +1759,7 @@
             <button type="button" class="app-lock-mode-btn" id="appLockModePassBtn" onclick="setAppLockMode('passphrase')" data-i18n="settings.security.appLockModePass">Passphrase (12+ chars)</button>
           </div>
           <div id="appLockPinSetupUi">
-            <p class="settings-hint" data-i18n="settings.security.pinSetupHint">Choose a 4-8 digit PIN. Avoid simple sequences like 1234.</p>
+            <p class="settings-hint" id="appLockPinSetupHint" data-i18n="settings.security.pinSetupHint">Choose a 4-8 digit PIN. Avoid simple sequences like 1234.</p>
             <div class="pin-dots" id="appLockSetupPinDots" aria-live="polite"></div>
             <div class="pin-keypad" id="appLockSetupKeypad" role="group" aria-label="PIN setup keypad">
               <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('1')">1</button>
@@ -1925,29 +1928,6 @@
     </div>
   </div>
 
-  <!-- Google Sheets connector config (Plan 19 CN6) -->
-  <div class="modal-overlay sheets-config-overlay" id="sheetsConfigModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="sheetsConfigTitle">
-    <div class="modal-content sheets-config-content" onclick="event.stopPropagation()" role="document">
-      <div class="modal-header">
-        <h3 id="sheetsConfigTitle" data-i18n="settings.connectors.sheetsConfig">Configure spreadsheet</h3>
-        <button type="button" class="modal-close" onclick="closeSheetsConfigModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <label for="sheetsConfigUrl" class="settings-label" data-i18n="common.google.sheets.url.or.id">Google Sheets URL or ID</label>
-        <input type="text" id="sheetsConfigUrl" class="settings-input" placeholder="https://docs.google.com/spreadsheets/d/..." />
-        <label for="sheetsImportRange" class="settings-label" data-i18n="settings.connectors.sheetsImportRange">Import range</label>
-        <input type="text" id="sheetsImportRange" class="settings-input" value="Sheet1!A1:O500" />
-        <label for="sheetsExportRange" class="settings-label" data-i18n="settings.connectors.sheetsExportRange">Export range</label>
-        <input type="text" id="sheetsExportRange" class="settings-input" value="Sheet1!A2:O" />
-        <p class="settings-hint" data-i18n="common.export.appends.rows.to.your.sheet.max.90">Export appends rows to your sheet (max 90 days / 500 rows per sync).</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="modal-cancel-btn" onclick="closeSheetsConfigModal()" data-i18n="common.cancel">Cancel</button>
-        <button type="button" class="settings-data-btn" onclick="saveSheetsConfig()" data-i18n="common.save">Save</button>
-        <button type="button" class="settings-data-btn" onclick="syncConnector('google-sheets', { mode: 'export', force: true })" data-i18n="settings.connectors.exportNow">Export now</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Migration Wizard Modal (Plan 25) -->
   <div class="modal-overlay migration-wizard-overlay" id="migrationWizardModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="migrationWizardTitle">
@@ -2051,10 +2031,10 @@
   </div>
 
   <div class="modal-overlay dev-panel-overlay" id="devPanelOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Developer and API" data-i18n-aria="developer.panel.title">
-    <div class="dev-panel-menu" onclick="event.stopPropagation()" role="document">
-      <div class="dev-panel-header">
+    <div class="modal-content dev-panel-menu" onclick="event.stopPropagation()" role="document">
+      <div class="dev-panel-header modal-header">
         <div class="dev-panel-header-text">
-          <h3 class="dev-panel-title">
+          <h3 class="dev-panel-title" id="devPanelTitle">
             <svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-code"></use></svg>
             <span data-i18n="developer.panel.title">Developer &amp; API</span>
           </h3>
@@ -2063,46 +2043,42 @@
         <button type="button" class="modal-close" onclick="closeDevPanel()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <nav class="dev-panel-tabs" role="tablist" aria-label="Developer panel sections" data-i18n-aria="common.developer.panel.sections">
-        <button type="button" class="dev-panel-tab-btn dev-panel-tab-btn--active" data-dev-tab="keys" role="tab" aria-selected="true" onclick="devPanelSwitchTab('keys')" data-i18n="developer.panel.tabs.keys">Keys</button>
-        <button type="button" class="dev-panel-tab-btn" data-dev-tab="webhooks" role="tab" aria-selected="false" onclick="devPanelSwitchTab('webhooks')" data-i18n="developer.panel.tabs.webhooks">Webhooks</button>
-        <button type="button" class="dev-panel-tab-btn" data-dev-tab="data" role="tab" aria-selected="false" onclick="devPanelSwitchTab('data')" data-i18n="developer.panel.tabs.data">Data</button>
-        <button type="button" class="dev-panel-tab-btn" data-dev-tab="delivery" role="tab" aria-selected="false" onclick="devPanelSwitchTab('delivery')" data-i18n="developer.panel.tabs.delivery">Delivery log</button>
-        <button type="button" class="dev-panel-tab-btn" data-dev-tab="fhir" role="tab" aria-selected="false" onclick="devPanelSwitchTab('fhir')" data-i18n="developer.panel.tabs.fhir">FHIR</button>
+        <button type="button" class="dev-panel-tab-btn dev-panel-tab-btn--active" data-dev-tab="keys" role="tab" aria-selected="true" aria-controls="devPanelTabKeys" onclick="devPanelSwitchTab('keys')" data-i18n="developer.panel.tabs.keys">Keys</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="webhooks" role="tab" aria-selected="false" aria-controls="devPanelTabWebhooks" onclick="devPanelSwitchTab('webhooks')" data-i18n="developer.panel.tabs.webhooks">Webhooks</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="data" role="tab" aria-selected="false" aria-controls="devPanelTabData" onclick="devPanelSwitchTab('data')" data-i18n="developer.panel.tabs.data">Data</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="delivery" role="tab" aria-selected="false" aria-controls="devPanelTabDelivery" onclick="devPanelSwitchTab('delivery')" data-i18n="developer.panel.tabs.delivery">Delivery log</button>
+        <button type="button" class="dev-panel-tab-btn" data-dev-tab="fhir" role="tab" aria-selected="false" aria-controls="devPanelTabFhir" onclick="devPanelSwitchTab('fhir')" data-i18n="developer.panel.tabs.fhir">FHIR</button>
       </nav>
-      <div class="dev-panel-body">
-        <div class="dev-panel-tab dev-panel-tab--active" data-dev-tab-panel="keys" role="tabpanel">
-          <div class="settings-section">
-            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-code"></use></svg><span data-i18n="settings.developer.apiKeys">API keys</span></h4>
-            <p class="settings-hint" data-i18n="developer.panel.keysHint">Requires Cloud Sync. Keys are shown once when generated.</p>
-            <div id="apiKeysSection" class="api-keys-section">
-              <div class="settings-option settings-option--stacked">
-                <label for="apiKeyLabelInput" data-i18n="developer.panel.keyLabel">Label (optional)</label>
-                <input type="text" id="apiKeyLabelInput" class="item-input" maxlength="80" autocomplete="off" placeholder="My integration" data-i18n-placeholder="developer.panel.keyLabelPlaceholder" />
-              </div>
-              <fieldset class="dev-api-scopes" aria-labelledby="devApiScopesLegend">
-                <legend id="devApiScopesLegend" data-i18n="developer.panel.scopes">Scopes</legend>
-                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="logs:read" checked /> logs:read</label>
-                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="logs:write" /> logs:write</label>
-                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="fhir:read" /> fhir:read</label>
-                <label class="dev-scope-option"><input type="checkbox" name="apiScope" value="webhooks:read" /> webhooks:read</label>
-              </fieldset>
-              <div class="api-key-generate-row">
-                <button type="button" class="settings-data-btn" id="generateApiKeyBtn" onclick="generateApiKey()" data-i18n="settings.developer.generateKey">Generate new key</button>
-              </div>
-              <div id="apiKeyDisplay" class="api-key-display" hidden aria-live="polite"></div>
-              <div id="apiKeysList" class="api-keys-list" aria-live="polite"></div>
+      <div class="dev-panel-body modal-body">
+        <div class="dev-panel-tab dev-panel-tab--active" id="devPanelTabKeys" data-dev-tab-panel="keys" role="tabpanel" aria-labelledby="devPanelTitle">
+          <p class="dev-panel-tab-lead" data-i18n="developer.panel.keysHint">Requires Cloud Sync. Keys are shown once when generated.</p>
+          <div id="apiKeysSection" class="dev-panel-card api-keys-section">
+            <div class="dev-panel-field">
+              <label for="apiKeyLabelInput" data-i18n="developer.panel.keyLabel">Label (optional)</label>
+              <input type="text" id="apiKeyLabelInput" class="item-input" maxlength="80" autocomplete="off" placeholder="My integration" data-i18n-placeholder="developer.panel.keyLabelPlaceholder" />
             </div>
+            <fieldset class="dev-api-scopes" aria-labelledby="devApiScopesLegend">
+              <legend id="devApiScopesLegend" data-i18n="developer.panel.scopes">Scopes</legend>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="logs:read" checked /><span>logs:read</span></label>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="logs:write" /><span>logs:write</span></label>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="fhir:read" /><span>fhir:read</span></label>
+              <label class="dev-scope-chip"><input type="checkbox" name="apiScope" value="webhooks:read" /><span>webhooks:read</span></label>
+            </fieldset>
+            <div class="api-key-generate-row">
+              <button type="button" class="settings-data-btn dev-panel-primary-btn" id="generateApiKeyBtn" onclick="generateApiKey()" data-i18n="settings.developer.generateKey">Generate new key</button>
+            </div>
+            <div id="apiKeyDisplay" class="api-key-display" hidden aria-live="polite"></div>
+            <div id="apiKeysList" class="api-keys-list" aria-live="polite"></div>
           </div>
         </div>
-        <div class="dev-panel-tab" data-dev-tab-panel="webhooks" role="tabpanel" hidden>
-          <div class="settings-section">
-            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="settings.developer.webhooks">Webhooks</span></h4>
-            <p class="settings-hint" data-i18n="settings.developer.webhooksLead">Get notified when you log data. Endpoint must use HTTPS.</p>
-            <div class="settings-option settings-option--stacked" style="margin-top: 8px;">
+        <div class="dev-panel-tab" id="devPanelTabWebhooks" data-dev-tab-panel="webhooks" role="tabpanel" hidden>
+          <p class="dev-panel-tab-lead" data-i18n="settings.developer.webhooksLead">Get notified when you log data. Endpoint must use HTTPS.</p>
+          <div class="dev-panel-card">
+            <div class="dev-panel-field">
               <label for="webhookUrlInput" data-i18n="settings.developer.webhookUrl">Endpoint URL (HTTPS)</label>
               <input type="url" id="webhookUrlInput" class="item-input" placeholder="https://your-server.com/hook" autocomplete="off" />
             </div>
-            <div class="settings-option" style="margin-top: 8px;">
+            <div class="dev-panel-field">
               <label for="webhookEventSelect" data-i18n="settings.developer.webhookEvent">Trigger event</label>
               <select id="webhookEventSelect" class="settings-select">
                 <option value="log.created">log.created</option>
@@ -2112,15 +2088,14 @@
                 <option value="export.created">export.created</option>
               </select>
             </div>
-            <button type="button" class="settings-data-btn" style="margin-top: 8px;" onclick="saveWebhook()" data-i18n="settings.developer.saveWebhook">Save webhook</button>
+            <button type="button" class="settings-data-btn dev-panel-primary-btn" onclick="saveWebhook()" data-i18n="settings.developer.saveWebhook">Save webhook</button>
             <div id="webhookStatusMsg" class="settings-hint" hidden aria-live="polite"></div>
-            <div id="webhooksList" class="webhooks-list" style="margin-top: 10px;" aria-live="polite"></div>
+            <div id="webhooksList" class="webhooks-list" aria-live="polite"></div>
           </div>
         </div>
-        <div class="dev-panel-tab" data-dev-tab-panel="data" role="tabpanel" hidden>
-          <div class="settings-section">
-            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-document"></use></svg><span data-i18n="developer.panel.tabs.data">Data</span></h4>
-            <p class="settings-hint" data-i18n="developer.panel.dataHint">Browse recent local log entries. Cloud Sync stats appear when signed in.</p>
+        <div class="dev-panel-tab" id="devPanelTabData" data-dev-tab-panel="data" role="tabpanel" hidden>
+          <p class="dev-panel-tab-lead" data-i18n="developer.panel.dataHint">Browse recent local log entries. Cloud Sync stats appear when signed in.</p>
+          <div class="dev-panel-card">
             <div id="devDataStats" class="dev-data-stats" aria-live="polite"></div>
             <div class="dev-data-actions">
               <button type="button" class="settings-data-btn" onclick="loadDevDataExplorer()" data-i18n="developer.panel.refreshData">Refresh</button>
@@ -2129,19 +2104,17 @@
             <div id="devDataTableWrap" class="dev-data-table-wrap" aria-live="polite"></div>
           </div>
         </div>
-        <div class="dev-panel-tab" data-dev-tab-panel="delivery" role="tabpanel" hidden>
-          <div class="settings-section">
-            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg><span data-i18n="developer.panel.tabs.delivery">Delivery log</span></h4>
-            <p class="settings-hint" data-i18n="developer.panel.deliveryHint">Recent webhook delivery attempts from Cloud Sync.</p>
+        <div class="dev-panel-tab" id="devPanelTabDelivery" data-dev-tab-panel="delivery" role="tabpanel" hidden>
+          <p class="dev-panel-tab-lead" data-i18n="developer.panel.deliveryHint">Recent webhook delivery attempts from Cloud Sync.</p>
+          <div class="dev-panel-card">
             <button type="button" class="settings-data-btn" onclick="loadDevDeliveryLog()" data-i18n="developer.panel.refreshDelivery">Refresh</button>
             <div id="devDeliveryLog" class="dev-delivery-log" aria-live="polite"></div>
           </div>
         </div>
-        <div class="dev-panel-tab" data-dev-tab-panel="fhir" role="tabpanel" hidden>
-          <div class="settings-section">
-            <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-stethoscope"></use></svg><span data-i18n="developer.panel.tabs.fhir">FHIR</span></h4>
-            <p class="settings-hint" data-i18n="developer.panel.fhirHint">Query your FHIR R4 resources using your current session.</p>
-            <div class="settings-option" style="margin-top: 8px;">
+        <div class="dev-panel-tab" id="devPanelTabFhir" data-dev-tab-panel="fhir" role="tabpanel" hidden>
+          <p class="dev-panel-tab-lead" data-i18n="developer.panel.fhirHint">Query your FHIR R4 resources using your current session.</p>
+          <div class="dev-panel-card">
+            <div class="dev-panel-field">
               <label for="devFhirResourceSelect" data-i18n="developer.panel.fhirResource">Resource type</label>
               <select id="devFhirResourceSelect" class="settings-select">
                 <option value="Observation">Observation</option>
@@ -2149,12 +2122,12 @@
                 <option value="metadata">CapabilityStatement (metadata)</option>
               </select>
             </div>
-            <div class="settings-option settings-option--stacked" style="margin-top: 8px;">
+            <div class="dev-panel-field">
               <label for="devFhirCodeInput" data-i18n="developer.panel.fhirCode">LOINC code (Observation only, optional)</label>
               <input type="text" id="devFhirCodeInput" class="item-input" placeholder="72133-2" autocomplete="off" />
             </div>
             <div class="dev-data-actions">
-              <button type="button" class="settings-data-btn" onclick="devFhirQuery()" data-i18n="developer.panel.runFhir">Run query</button>
+              <button type="button" class="settings-data-btn dev-panel-primary-btn" onclick="devFhirQuery()" data-i18n="developer.panel.runFhir">Run query</button>
               <button type="button" class="settings-data-btn" onclick="copyDevFhirOutput()" data-i18n="developer.panel.copyJson">Copy JSON</button>
             </div>
             <pre id="devFhirOutput" class="dev-fhir-output" aria-live="polite"></pre>
@@ -2360,15 +2333,12 @@
           <input type="hidden" id="logCycleFlow" value="" />
           <input type="hidden" id="logCyclePeriodStartFlag" value="" />
           <button type="button" class="cycle-period-start-btn" id="logCyclePeriodStartBtn" data-i18n="wizard.cycle.periodStartedToday">Period started today</button>
-          <div class="cycle-track-section">
-            <span class="cycle-track-label" id="logCycleDayLabel" data-i18n="wizard.cycle.day">Cycle day</span>
-            <div class="cycle-day-scroll" id="logCycleDayScroll" role="group" aria-labelledby="logCycleDayLabel"></div>
-            <button type="button" class="cycle-long-toggle" id="logCycleShowLong" aria-expanded="false" data-i18n="wizard.cycle.showLongCycle">Longer or irregular cycle (days 36–45)</button>
+          <div class="cycle-track-section cycle-timeline-section">
+            <span class="cycle-track-label" id="logCycleTimelineLabel" data-i18n="wizard.cycle.timeline">Cycle timeline</span>
+            <div class="cycle-timeline-scroll" id="logCycleTimelineScroll" role="group" aria-labelledby="logCycleTimelineLabel">
+              <div class="cycle-timeline-inner" id="logCycleTimelineInner"></div>
+            </div>
             <p class="cycle-day-readout" id="logCycleDayReadout" aria-live="polite"></p>
-          </div>
-          <div class="cycle-track-section">
-            <span class="cycle-track-label" id="logCyclePhaseLabel" data-i18n="wizard.cycle.phase">Phase</span>
-            <div class="cycle-phase-grid" id="logCyclePhaseGrid" role="group" aria-labelledby="logCyclePhaseLabel"></div>
           </div>
           <div class="cycle-track-section">
             <span class="cycle-track-label" id="logCycleFlowLabel" data-i18n="wizard.cycle.flow">Flow</span>
@@ -2376,12 +2346,54 @@
           </div>
           <button type="button" class="cycle-track-clear" id="logCycleClear" data-i18n="wizard.cycle.clear">Clear cycle info</button>
           <div class="cycle-bbt-row" id="logCycleBbtRow">
-            <label for="bbt" data-i18n="wizard.cycle.bbt">Basal body temperature</label>
-            <div class="input-container vitals-inline-row">
-              <input type="number" id="bbt" min="35" max="38.5" step="0.1" />
-              <button type="button" id="temperatureUnitToggle" class="unit-toggle-btn" onclick="toggleTemperatureUnit()">
-                <span id="temperatureUnitDisplay" data-i18n="units.celsius">°C</span>
-              </button>
+            <label for="bbtSlider" data-i18n="wizard.cycle.bbt">Basal body temperature</label>
+            <div class="bbt-thermo-widget" id="bbtThermoWidget" data-bbt-active="false">
+              <div class="bbt-thermo-visual" aria-hidden="true">
+                <svg class="bbt-thermo-svg" viewBox="0 0 80 220" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                  <defs>
+                    <linearGradient id="bbtMercuryGrad" x1="0" y1="1" x2="0" y2="0">
+                      <stop offset="0%" class="bbt-grad-stop-low" />
+                      <stop offset="100%" class="bbt-grad-stop-high" />
+                    </linearGradient>
+                    <filter id="bbtThermoGlowFilter" x="-80%" y="-40%" width="260%" height="180%">
+                      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <rect class="bbt-thermo-tube-bg" x="31" y="22" width="18" height="150" rx="9" />
+                  <circle class="bbt-thermo-bulb-bg" cx="40" cy="188" r="24" />
+                  <g class="bbt-thermo-mercury-wrap" id="bbtMercuryGroup" filter="url(#bbtThermoGlowFilter)">
+                    <rect class="bbt-thermo-mercury-tube" x="35" y="30" width="10" height="136" rx="5" />
+                    <circle class="bbt-thermo-mercury-bulb" cx="40" cy="188" r="19" />
+                  </g>
+                  <g class="bbt-thermo-ticks" stroke="rgba(255,255,255,0.22)" stroke-width="1">
+                    <line x1="52" y1="40" x2="58" y2="40" />
+                    <line x1="52" y1="68" x2="58" y2="68" />
+                    <line x1="52" y1="96" x2="58" y2="96" />
+                    <line x1="52" y1="124" x2="58" y2="124" />
+                    <line x1="52" y1="152" x2="58" y2="152" />
+                  </g>
+                  <rect class="bbt-thermo-tube-shine" x="33" y="24" width="5" height="140" rx="2.5" opacity="0.35" />
+                </svg>
+              </div>
+              <div class="bbt-thermo-controls">
+                <div class="bbt-thermo-readout">
+                  <span class="bbt-thermo-value" id="bbtValueDisplay" aria-live="polite">—</span>
+                  <button type="button" id="temperatureUnitToggle" class="unit-toggle-btn" onclick="toggleTemperatureUnit()">
+                    <span id="temperatureUnitDisplay" data-i18n="units.celsius">°C</span>
+                  </button>
+                </div>
+                <input type="range" id="bbtSlider" class="bbt-thermo-slider range-slider" min="35" max="38.5" step="0.1" value="36.5" aria-valuemin="35" aria-valuemax="38.5" aria-valuenow="36.5" aria-describedby="bbtSliderHint" />
+                <p class="bbt-thermo-hint settings-hint" id="bbtSliderHint">Slide to set temperature</p>
+                <div class="bbt-thermo-scale" aria-hidden="true">
+                  <span class="bbt-thermo-scale-low">35</span>
+                  <span class="bbt-thermo-scale-high">38.5</span>
+                </div>
+                <input type="hidden" id="bbt" name="bbt" value="" />
+              </div>
             </div>
           </div>
         </div>
@@ -2993,6 +3005,9 @@
           </button>
         </div>
       </div>
+      <button type="button" class="log-wizard-side-next" id="logWizardSideNextBtn" aria-label="Next step" data-i18n-aria="wizard.aria.nextStep">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
     </form>
     </div>
 
@@ -3261,7 +3276,6 @@
 
   <!-- Beta + FAB: desktop = badge top-right, + bottom-right; mobile = badge beside + above tab bar -->
   <div class="app-fab-wrap" id="appFabWrap">
-    <span class="app-beta-badge" aria-hidden="true" data-i18n="home.fab.betaBadge">Beta</span>
     <span class="app-fab-pulse" id="appFabPulse" aria-hidden="true"></span>
     <button type="button" class="app-log-fab" id="appLogFab" data-ripple onclick="openLogWizardFromHome()" title="Log health entry" data-i18n-title="common.log.health.entry" aria-label="Add health log entry" data-i18n-aria="common.add.health.log.entry">+</button>
   </div>
@@ -4088,13 +4102,13 @@
         <p class="install-modal-hint" data-i18n="common.add.rianell.to.your.device.for.quick.acc">Add Rianell to your device for quick access and offline use.</p>
         <div class="install-modal-buttons">
           <div class="settings-option" id="installModalIosDevice" style="display: none;">
-            <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosDeviceLabel" data-i18n="common.install.on.this.iphone">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+            <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosDeviceLabel" data-i18n="common.install.on.this.iphone">Install on this iPhone</span></button>
           </div>
           <div class="settings-option">
-            <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-solid fa-globe"></i></span> Install web app<span class="install-channel-badge install-channel-badge--beta" data-i18n="home.fab.betaBadge">Beta</span></button>
+            <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-solid fa-globe"></i></span> Install web app</button>
           </div>
           <div class="settings-option">
-            <a id="installModalRnCliApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-android"></i></span> Install on Android (React Native CLI)<span class="install-channel-badge install-channel-badge--beta" data-i18n="home.fab.betaBadge">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
+            <a id="installModalRnCliApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-android"></i></span> Install on Android (React Native CLI) <span class="android-version" aria-hidden="true"></span></a>
           </div>
           <div class="settings-option">
             <a id="installModalIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosLinkLabel" data-i18n="common.install.on.ios">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
@@ -4616,9 +4630,9 @@
   <script defer src="llm-tier-benchmark-sync.js?v=1"></script>
   <script defer src="llm-runtime-profiles-sync.js?v=1"></script>
   <script defer src="llm-load-ladder-sync.js?v=3"></script>
-  <script defer src="device-benchmark.js?v=6"></script>
+  <script defer src="device-benchmark.js?v=7"></script>
   <script defer src="performance-utils.js"></script>
-  <script defer src="ui-feedback.js?v=1"></script>
+  <script defer src="ui-feedback.js?v=2"></script>
   <script defer src="push-subscribe.js?v=1"></script>
   <script defer src="appointment-pdf.js?v=1"></script>
   <script defer src="qr-handoff.js?v=1"></script>
@@ -4655,19 +4669,20 @@
   })();
   </script>
   <script defer src="vendor/rianell-shared.js?v=6"></script>
-  <script defer src="modules/app-lock.js?v=2"></script>
-  <script defer src="modules/cycle-tracking-ui.js?v=3"></script>
+  <script defer src="modules/app-lock.js?v=3"></script>
+  <script defer src="modules/cycle-tracking-ui.js?v=4"></script>
+  <script defer src="modules/vitals-suggest-ui.js?v=1"></script>
   <script defer src="modules/weekly-review.js?v=6"></script>
   <script defer src="modules/mood-tab.js?v=3"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
-  <script defer src="privacy-region.js?v=8"></script>
+  <script defer src="privacy-region.js?v=9"></script>
   <script defer src="first-run-wizard.js?v=2"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script type="module" defer src="app.js?v=42"></script>
+  <script type="module" defer src="app.js?v=49"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
-  <script defer src="modules/goals-carousel.js?v=4"></script>
+  <script defer src="modules/goals-carousel.js?v=5"></script>
   <script defer src="achievements-sync.js?v=1"></script>
   <script defer src="cloud-sync.js?v=2"></script>
   <script>

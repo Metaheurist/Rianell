@@ -342,11 +342,30 @@
     }
   }
 
+  function updateSetupHint() {
+    var hint = document.getElementById('appLockPinSetupHint');
+    if (!hint) return;
+    var key = _setupConfirmStep
+      ? 'settings.privacy.appLock.confirmPrompt'
+      : 'settings.security.pinSetupHint';
+    hint.textContent = t(key);
+    hint.setAttribute('data-i18n', key);
+  }
+
   function resetSetupPinState() {
     _setupPin = '';
     _setupPinConfirm = '';
     _setupConfirmStep = false;
     updatePinDots('appLockSetupPinDots', 0, PIN_MAX);
+    updateSetupHint();
+  }
+
+  function getSetupState() {
+    return {
+      pin: _setupPin,
+      confirm: _setupPinConfirm,
+      confirmStep: _setupConfirmStep,
+    };
   }
 
   function setupKeypadPress(key) {
@@ -366,6 +385,10 @@
         }
         _setupConfirmStep = true;
         updatePinDots('appLockSetupPinDots', 0, PIN_MAX);
+        updateSetupHint();
+        if (typeof global.showToast === 'function') {
+          global.showToast(t('settings.privacy.appLock.confirmPrompt'), 'info');
+        }
         return;
       }
       if (_setupPinConfirm !== _setupPin) {
@@ -460,6 +483,7 @@
     switchUnlockMode: switchUnlockMode,
     resetSetupPinState: resetSetupPinState,
     getSetupPin: getSetupPin,
+    getSetupState: getSetupState,
     PIN_MIN: PIN_MIN,
     PIN_MAX: PIN_MAX,
   };

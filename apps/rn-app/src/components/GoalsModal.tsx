@@ -10,6 +10,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   TextInput,
+  type LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeProvider';
@@ -28,6 +29,7 @@ type Props = {
 };
 
 const PANE_KEYS = ['common.goals.targets', 'achievements.title'] as const;
+const MAX_CAROUSEL_HEIGHT = 420;
 
 export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onClose }: Props) {
   const theme = useTheme();
@@ -37,6 +39,21 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
     null,
   );
   const [paneIndex, setPaneIndex] = useState(initialPane);
+  const [carouselHeight, setCarouselHeight] = useState(280);
+  const paneHeightsRef = useRef<number[]>([0, 0]);
+
+  const syncCarouselHeight = useCallback((idx: number) => {
+    const measured = paneHeightsRef.current[idx];
+    if (measured > 0) setCarouselHeight(Math.min(measured, MAX_CAROUSEL_HEIGHT));
+  }, []);
+
+  const onPaneLayout = useCallback(
+    (idx: number) => (event: LayoutChangeEvent) => {
+      paneHeightsRef.current[idx] = event.nativeEvent.layout.height;
+      if (idx === paneIndex) syncCarouselHeight(idx);
+    },
+    [paneIndex, syncCarouselHeight],
+  );
 
   const paneTitles = PANE_KEYS.map((k) => t(k));
 
@@ -56,6 +73,10 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
       scrollRef.current?.scrollTo({ x: initialPane * width, animated: false });
     });
   }, [visible, initialPane, width]);
+
+  useEffect(() => {
+    syncCarouselHeight(paneIndex);
+  }, [paneIndex, prefs.goalsModalSeenCount, syncCarouselHeight]);
 
   useEffect(() => {
     if (!visible || paneIndex !== 1) return;
@@ -145,9 +166,10 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={onPaneScrollEnd}
-            style={styles.carousel}
+            style={[styles.carousel, { height: carouselHeight, maxHeight: MAX_CAROUSEL_HEIGHT }]}
           >
             <ScrollView style={{ width }} contentContainerStyle={styles.pane} nestedScrollEnabled>
+              <View onLayout={onPaneLayout(0)}>
               {!prefs.goalsModalSeenCount ? (
                 <View style={[styles.orientationCard, { borderColor: theme.tokens.color.accent + '55', backgroundColor: theme.tokens.color.accent + '12' }]}>
                   <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(14), lineHeight: 20 }}>
@@ -193,13 +215,16 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
                 onChangeText={(v) => updateGoal({ goodDaysPerWeek: clampInt(v, 0, 7) ?? prefs.goals.goodDaysPerWeek })}
                 theme={theme}
               />
+              </View>
             </ScrollView>
 
             <ScrollView style={{ width }} contentContainerStyle={styles.pane} nestedScrollEnabled>
+              <View onLayout={onPaneLayout(1)}>
               <Text style={[styles.hint, { color: `${theme.tokens.color.text}BB`, fontSize: theme.font(13) }]}>
                 {t('achievements.subtitle')}
               </Text>
               <AchievementsPane trackingProfile={prefs.trackingProfile} achievementState={prefs.achievements} />
+              </View>
             </ScrollView>
           </ScrollView>
 
@@ -296,7 +321,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   navBtn: { padding: 8 },
-  carousel: { maxHeight: 420 },
+  carousel: { flexGrow: 0 },
   pane: { padding: 16, paddingBottom: 24 },
   orientationCard: { borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 8 },
   hint: { marginBottom: 12 },
