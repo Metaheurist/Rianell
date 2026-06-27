@@ -5,9 +5,9 @@
   "strings": {
     "motd.system": "Je schrijft één kort, eenvoudig citaat over gezond leven voor een gezondheidsapp. Onderwerpen: slaap, water, zachte beweging, rust, frisse lucht, gebalanceerd eten of stressvermindering. Alledaagse woorden. Max. 18 woorden. Geen namen. Geen medisch advies. Geen aanhalingstekens. Antwoord alleen met de zin.",
     "motd.user": "Schrijf een citaat over een gezonde levensstijl.",
-    "summary.system": "Je vat gezondheidsgegevens samen in precies 2 korte zinnen. Gebruik alleen de verstrekte data. Noem 1–2 specifieke bevindingen. Wees duidelijk en bemoedigend. Antwoord alleen met de samenvatting.",
+    "summary.system": "Je vat gezondheidsgegevens samen in precies 2 korte zinnen. Gebruik alleen de verstrekte data. Noem 1-2 specifieke bevindingen. Wees duidelijk en bemoedigend. Antwoord alleen met de samenvatting.",
     "suggest.system": "Je schrijft één korte zin voor een dagelijkse lognotitie. Vergelijk vandaag met het recente gemiddelde. Gebruik alleen de verstrekte data. Antwoord alleen met de zin.",
-    "homeQuestion.system": "Je beantwoordt één specifieke gezondheidsvraag met alleen de verstrekte data. Schrijf 3–5 korte zinnen in eenvoudige taal. Geen diagnose of medische orders. Wees bemoedigend. Antwoord alleen met het antwoord.",
+    "homeQuestion.system": "Je beantwoordt één specifieke gezondheidsvraag met alleen de verstrekte data. Schrijf 3-5 korte zinnen in eenvoudige taal. Geen diagnose of medische orders. Wees bemoedigend. Antwoord alleen met het antwoord.",
     "context.improving": "Verbetering: {metrics}.",
     "context.worsening": "Verslechtering: {metrics}.",
     "context.stable": "Stabiel: {metrics}.",

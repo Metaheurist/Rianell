@@ -84,7 +84,7 @@ export function AiInsightEmptyPreview() {
               backgroundColor: theme.color.accent + '18',
             },
           ]}
-          accessibilityLabel={`${t(key)} — locked until 3 logs`}
+          accessibilityLabel={`${t(key)} - locked until 3 logs`}
         >
           <Ionicons
             name="lock-closed-outline"

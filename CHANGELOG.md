@@ -6,7 +6,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
-## [2.0.4] — 2026-06-27
+## [2.0.5] - 2026-06-27
+
+Log wizard vitals layout, richer metric animations, achievement toast fix, and ASCII dash normalization across UI copy.
+
+### Added
+
+- **BP + BPM dual drum (PWA):** Basic Metrics blood pressure widget uses systolic mmHg + resting BPM drums (replaces systolic/diastolic split); hidden `#bpm` lives in the widget.
+- **BP i18n (PWA):** `wizard.vitals.bp.slideHint`, zone labels, and `common.bpm` in all locale packs.
+- **Metric animations (PWA):** Blood glucose droplet liquid fill; mobility footprint trail + walker; joint swelling fluid/heat SVG; mood slider animated face (sad to happy).
+
+### Changed
+
+- **Basic vitals layout (PWA):** Removed duplicate top-level Weight and Resting BPM fields; body weight stays in Advanced vitals only.
+- **Vital suggestions (shared):** Blood pressure hints include optional BPM; weight/BPM standalone suggestion rows removed.
+- **Typography (PWA + RN + i18n):** User-visible em/en dashes normalized to ASCII hyphen in locale packs, widgets, and static pages.
+
+### Fixed
+
+- **Achievement unlock toast (PWA):** Action button no longer stretched by global `button { width: 100% }` rule; toast copy layout restored.
+
+---
+
+## [2.0.4] - 2026-06-27
 
 Log wizard animated metrics, lifestyle widget polish, cycle timeline fix, and main-thread responsiveness during on-device AI.
 

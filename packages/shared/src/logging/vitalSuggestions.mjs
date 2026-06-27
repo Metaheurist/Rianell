@@ -3,8 +3,6 @@ import { kgToLbs, lbsToKg, mgdlToMmol, mmolToMgdl } from './logSchema.mjs';
 export const VITAL_SUGGESTION_LOOKBACK_DAYS = 90;
 
 export const VITAL_SUGGESTION_FIELD_IDS = [
-  'bpm',
-  'weight',
   'bloodPressure',
   'bloodGlucose',
   'spO2',
@@ -38,12 +36,8 @@ function sortLogsDesc(logs) {
 
 function logHasVitalField(log, fieldId) {
   switch (fieldId) {
-    case 'bpm':
-      return parsePositiveInt(log.bpm) != null;
-    case 'weight':
-      return parsePositiveNumber(log.weight) != null;
     case 'bloodPressure':
-      return parsePositiveInt(log.bloodPressureSystolic) != null && parsePositiveInt(log.bloodPressureDiastolic) != null;
+      return parsePositiveInt(log.bloodPressureSystolic) != null;
     case 'bloodGlucose':
       return parsePositiveNumber(log.bloodGlucose) != null;
     case 'spO2':
@@ -59,22 +53,13 @@ function logHasVitalField(log, fieldId) {
 
 function extractVitalValues(log, fieldId, unitPrefs = {}) {
   switch (fieldId) {
-    case 'bpm': {
-      const bpm = parsePositiveInt(log.bpm);
-      return bpm != null ? { bpm } : null;
-    }
-    case 'weight': {
-      const kg = parsePositiveNumber(log.weight);
-      if (kg == null) return null;
-      const unit = unitPrefs.weightUnit === 'lb' ? 'lb' : 'kg';
-      const value = unit === 'lb' ? kgToLbs(kg) : kg;
-      return { weight: Number(value.toFixed(1)), weightUnit: unit };
-    }
     case 'bloodPressure': {
       const systolic = parsePositiveInt(log.bloodPressureSystolic);
-      const diastolic = parsePositiveInt(log.bloodPressureDiastolic);
-      if (systolic == null || diastolic == null) return null;
-      return { bloodPressureSystolic: systolic, bloodPressureDiastolic: diastolic };
+      if (systolic == null) return null;
+      const bpm = parsePositiveInt(log.bpm);
+      const out = { bloodPressureSystolic: systolic };
+      if (bpm != null) out.bpm = bpm;
+      return out;
     }
     case 'bloodGlucose': {
       const raw = parsePositiveNumber(log.bloodGlucose);
@@ -117,12 +102,12 @@ function extractVitalValues(log, fieldId, unitPrefs = {}) {
 export function formatVitalSuggestionDisplay(fieldId, values, unitPrefs = {}) {
   if (!values) return '';
   switch (fieldId) {
-    case 'bpm':
-      return `${values.bpm} bpm`;
-    case 'weight':
-      return `${values.weight} ${values.weightUnit || unitPrefs.weightUnit || 'kg'}`;
-    case 'bloodPressure':
-      return `${values.bloodPressureSystolic}/${values.bloodPressureDiastolic} mmHg`;
+    case 'bloodPressure': {
+      const sys = values.bloodPressureSystolic;
+      const bpm = values.bpm;
+      if (bpm != null) return `${sys} mmHg / ${bpm} bpm`;
+      return `${sys} mmHg`;
+    }
     case 'bloodGlucose':
       return `${values.bloodGlucose} ${values.bloodGlucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L'}`;
     case 'spO2':

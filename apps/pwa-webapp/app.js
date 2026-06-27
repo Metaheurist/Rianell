@@ -1190,7 +1190,7 @@ function openPerfBenchmarkModal(options) {
     }
   }
 
-  // Profile summary (key settings) – use full profile already computed above when available
+  // Profile summary (key settings) - use full profile already computed above when available
   let profileSummary = null;
   try {
     if (full && tier != null) {
@@ -2953,7 +2953,7 @@ function setDemoHashPendingOnboardingIfEligible() {
   } catch (e) {}
 }
 
-// Backtick ` key opens God mode – test all UI elements
+// Backtick ` key opens God mode - test all UI elements
 function openModalTestOverlay() {
   const overlay = document.getElementById('modalTestOverlay');
   const container = document.getElementById('godModeSections');
@@ -4930,6 +4930,7 @@ function lbToKg(lb) {
 
 function toggleWeightUnit() {
   const weightInput = document.getElementById('weight');
+  if (!weightInput) return;
   const unitDisplay = document.getElementById('weightUnitDisplay');
   const currentValue = parseFloat(weightInput.value);
   
@@ -4968,7 +4969,7 @@ function toggleWeightUnit() {
 function updateWeightInputConstraints() {
   const weightInput = document.getElementById('weight');
   const unitDisplay = document.getElementById('weightUnitDisplay');
-  
+  if (!weightInput || !unitDisplay) return;
   if (appSettings.weightUnit === 'kg') {
     weightInput.min = 20;
     weightInput.max = 300;
@@ -5168,7 +5169,7 @@ function updateBbtThermometer(markActive) {
   }
 
   if (valueDisplay) {
-    valueDisplay.textContent = active ? val.toFixed(1) : '—';
+    valueDisplay.textContent = active ? val.toFixed(1) : '-';
     valueDisplay.classList.toggle('bbt-thermo-value--pulse', !!markActive);
     if (markActive) {
       window.setTimeout(function () {
@@ -9128,7 +9129,7 @@ function renderMedicationHeatmap(adherence) {
     else if (d.rate >= 100) cls += ' ai-med-heatmap__cell--taken';
     else if (d.rate >= 50) cls += ' ai-med-heatmap__cell--partial';
     else cls += ' ai-med-heatmap__cell--missed';
-    return '<span class="' + cls + '" title="' + escapeAttr(d.date + ': ' + (d.rate != null ? d.rate + '%' : '—')) + '" aria-hidden="true"></span>';
+    return '<span class="' + cls + '" title="' + escapeAttr(d.date + ': ' + (d.rate != null ? d.rate + '%' : '-')) + '" aria-hidden="true"></span>';
   }).join('');
   return '<div class="ai-med-heatmap" role="img" aria-label="' + escapeAttr(tUi('ai.medication.heatmapAria', { rate: String(adherence.rate) })) + '">' + cells + '</div>';
 }
@@ -9355,7 +9356,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     html += '<h2 class="ai-results-heading" id="ai-results-main-heading">' + escapeHTML(tUi('ai.analysisFor', { range: dateRangeText })) + '</h2>';
   }
 
-  // —— Chapter 1: Overview ——
+  // -- Chapter 1: Overview --
   var overviewInner = '';
   var wellbeingScore = analysis.wellbeingScore != null ? analysis.wellbeingScore : 0;
   var insightText = '';
@@ -9378,10 +9379,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   var flareLevel = analysis.flareUpRisk ? analysis.flareUpRisk.level : 'low';
   var daysSymptoms = logs.filter(function(l) { return l.symptoms && Array.isArray(l.symptoms) && l.symptoms.length > 0; }).length;
   var quickStats = [
-    { labelKey: 'ai.quick.flareRisk', value: flareLevel, spark: null, delta: analysis.flareUpRisk ? analysis.flareUpRisk.matchingMetrics + '/5' : '—' },
-    { labelKey: 'ai.quick.mood', value: moodTrend ? Math.round(moodTrend.average) + '/10' : '—', spark: moodTrend ? moodTrend.recentSeries : [], delta: moodTrend && moodTrend.statusFromAverage === 'improving' ? '↑' : moodTrend && moodTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
-    { labelKey: 'ai.quick.sleep', value: sleepTrend ? Math.round(sleepTrend.average) + '/10' : '—', spark: sleepTrend ? sleepTrend.recentSeries : [], delta: sleepTrend && sleepTrend.statusFromAverage === 'improving' ? '↑' : sleepTrend && sleepTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
-    { labelKey: 'ai.stats.symptoms', value: daysSymptoms || '—', spark: getAIMetricSparkSeries(logs, 'fatigue'), delta: '' }
+    { labelKey: 'ai.quick.flareRisk', value: flareLevel, spark: null, delta: analysis.flareUpRisk ? analysis.flareUpRisk.matchingMetrics + '/5' : '-' },
+    { labelKey: 'ai.quick.mood', value: moodTrend ? Math.round(moodTrend.average) + '/10' : '-', spark: moodTrend ? moodTrend.recentSeries : [], delta: moodTrend && moodTrend.statusFromAverage === 'improving' ? '↑' : moodTrend && moodTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
+    { labelKey: 'ai.quick.sleep', value: sleepTrend ? Math.round(sleepTrend.average) + '/10' : '-', spark: sleepTrend ? sleepTrend.recentSeries : [], delta: sleepTrend && sleepTrend.statusFromAverage === 'improving' ? '↑' : sleepTrend && sleepTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
+    { labelKey: 'ai.stats.symptoms', value: daysSymptoms || '-', spark: getAIMetricSparkSeries(logs, 'fatigue'), delta: '' }
   ];
   overviewInner += '<div class="ai-quick-stats" role="list">';
   quickStats.forEach(function(q) {
@@ -9397,7 +9398,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   html += wrapAIChapter('overview', 'ai.chapter.overview', 'sparkle-ring', overviewInner, chapterDelay);
   chapterDelay += chapterStep;
 
-  // —— Chapter 2: Trends & Vitals ——
+  // -- Chapter 2: Trends & Vitals --
   var trendsInner = '<p class="ai-section-intro">' + escapeHTML(tUi('ai.chapter.trendsIntro')) + '</p>';
   trendsInner += '<div class="ai-trends-grid" role="list">';
   Object.keys(analysis.trends || {}).forEach(function(metric, index) {
@@ -9418,7 +9419,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   html += wrapAIChapter('trends', 'ai.chapter.trends', 'heart-pulse', trendsInner, chapterDelay);
   chapterDelay += chapterStep;
 
-  // —— Chapter 3: Lifestyle ——
+  // -- Chapter 3: Lifestyle --
   var lifeInner = '';
   var numericWithData = Object.keys(analysis.trends || {}).filter(function(m) { return analysis.trends[m]; });
   var daysFlare = logs.filter(function(l) { return l.flare === 'Yes'; }).length;
@@ -9437,8 +9438,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.macroTrends || (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories)) {
     var nut = analysis.nutritionAnalysis || {};
     var macro = analysis.macroTrends || {};
-    lifeInner += '<div class="ai-nutrition-visual" style="margin-top:1rem;"><div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgCalories || '—') + '</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.cal')) + '</span></div>';
-    lifeInner += '<div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgProtein || '—') + 'g</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.protein')) + '</span></div></div>';
+    lifeInner += '<div class="ai-nutrition-visual" style="margin-top:1rem;"><div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgCalories || '-') + '</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.cal')) + '</span></div>';
+    lifeInner += '<div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgProtein || '-') + 'g</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.protein')) + '</span></div></div>';
     if (macro.calories && macro.calories.length >= 2) {
       lifeInner += '<div class="ai-macro-sparklines"><div class="ai-macro-sparkline-card"><div class="ai-macro-sparkline-card__label">' + escapeHTML(tUi('ai.macro.calories')) + '</div><div class="ai-macro-sparkline-card__value">' + macro.avgCalories + '</div>' + buildAISparklineSvg(macro.calories, { animate: !reduceUIAnimations }) + '</div>';
       lifeInner += '<div class="ai-macro-sparkline-card"><div class="ai-macro-sparkline-card__label">' + escapeHTML(tUi('common.protein')) + '</div><div class="ai-macro-sparkline-card__value">' + macro.avgProtein + 'g</div>' + buildAISparklineSvg(macro.protein, { animate: !reduceUIAnimations }) + '</div></div>';
@@ -9473,7 +9474,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   html += wrapAIChapter('lifestyle', 'ai.chapter.lifestyle', 'food', lifeInner, chapterDelay);
   chapterDelay += chapterStep;
 
-  // —— Chapter 4: Mind & Mood ——
+  // -- Chapter 4: Mind & Mood --
   var mindInner = '';
   if (analysis.stressorAnalysis && analysis.stressorAnalysis.topStressors && analysis.stressorAnalysis.topStressors.length > 0) {
     mindInner += '<p>' + formatAIValueText(analysis.stressorAnalysis.summary) + '</p>' + renderStressorWheel(analysis.stressorAnalysis);
@@ -9502,7 +9503,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   html += wrapAIChapter('mind', 'ai.chapter.mind', 'brain-wave', mindInner, chapterDelay);
   chapterDelay += chapterStep;
 
-  // —— Chapter 5: Body & Pain ——
+  // -- Chapter 5: Body & Pain --
   var bodyInner = '';
   if (analysis.symptomsAndPainAnalysis) {
     var sa = analysis.symptomsAndPainAnalysis;
@@ -11822,7 +11823,7 @@ function filterTilePickerScope(scopeEl, query) {
   const q = (query || '').trim().toLowerCase();
   const qTrim = (query || '').trim();
 
-  // Flat search results panel (exercise / food modals) — takes priority when active
+  // Flat search results panel (exercise / food modals) - takes priority when active
   var flatPanel = scopeEl.querySelector('.modal-search-flat');
   if (flatPanel) {
     if (qTrim) {
@@ -16736,13 +16737,9 @@ form.addEventListener("submit", e => {
     return;
   }
   
-  // Get weight value and convert to kg if needed
-  let weightValue = parseFloat(document.getElementById("weight").value);
-  if (appSettings.weightUnit === 'lb') {
-    weightValue = parseFloat(lbToKg(weightValue));
-  }
-  
-  // Security: Sanitize and validate form inputs
+  // Get BPM from blood pressure widget hidden input
+  var bpmEl = document.getElementById('bpm');
+  var bpmRaw = bpmEl && bpmEl.value ? parseInt(bpmEl.value, 10) : NaN;
   const dateValue = document.getElementById("date").value.trim();
   // Validate date format (YYYY-MM-DD)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
@@ -16775,8 +16772,7 @@ form.addEventListener("submit", e => {
   
   let newEntry = {
     date: dateValue,
-    bpm: Math.max(30, Math.min(120, parseInt(document.getElementById("bpm").value) || 0)), // Clamp between 30-120
-    weight: weightValue.toFixed(1), // Always store as kg
+    bpm: Number.isFinite(bpmRaw) ? Math.max(30, Math.min(120, bpmRaw)) : undefined,
     fatigue: Math.max(0, Math.min(10, parseInt(document.getElementById("fatigue").value) || 0)), // Clamp 0-10
     stiffness: Math.max(0, Math.min(10, parseInt(document.getElementById("stiffness").value) || 0)), // Clamp 0-10
     sleep: Math.max(0, Math.min(10, parseInt(document.getElementById("sleep").value) || 0)), // Clamp 0-10
@@ -18880,8 +18876,8 @@ async function loadDevDataExplorer() {
       raw: entry,
     };
   });
-  var keyCount = '—';
-  var webhookCount = '—';
+  var keyCount = '-';
+  var webhookCount = '-';
   var client = getDevSupabaseClient();
   if (client) {
     try {
@@ -18933,7 +18929,7 @@ async function loadDevDeliveryLog() {
       var status = row.response_status;
       var statusClass = status >= 200 && status < 300 ? 'dev-status--ok' : (status >= 400 ? 'dev-status--err' : 'dev-status--warn');
       var delivered = row.delivered_at ? new Date(row.delivered_at).toLocaleString() : '';
-      html += '<tr><td>' + escapeHTML(String(url || '')) + '</td><td>' + escapeHTML(row.event_type || '') + '</td><td class="' + statusClass + '">' + escapeHTML(String(status != null ? status : '—')) + '</td><td>' + escapeHTML(String(row.attempt != null ? row.attempt : 1)) + '</td><td>' + escapeHTML(delivered) + '</td></tr>';
+      html += '<tr><td>' + escapeHTML(String(url || '')) + '</td><td>' + escapeHTML(row.event_type || '') + '</td><td class="' + statusClass + '">' + escapeHTML(String(status != null ? status : '-')) + '</td><td>' + escapeHTML(String(row.attempt != null ? row.attempt : 1)) + '</td><td>' + escapeHTML(delivered) + '</td></tr>';
     });
     html += '</tbody></table>';
     listEl.innerHTML = html;
@@ -18994,7 +18990,7 @@ function copyDevFhirOutput() {
 }
 if (typeof window !== 'undefined') window.copyDevFhirOutput = copyDevFhirOutput;
 
-// Third-party OAuth connectors (Plan 19 CN4–CN7)
+// Third-party OAuth connectors (Plan 19 CN4-CN7)
 var PWA_OAUTH_CONNECTORS = [
   { id: 'strava', label: 'Strava', icon: 'run', syncFn: 'connector-strava' },
   { id: 'withings', label: 'Withings', icon: 'stethoscope', syncFn: 'connector-withings' },
@@ -22306,7 +22302,7 @@ function generateDemoData(numDays) {
 }
 
 function toggleDemoMode() {
-  // Prevent multiple runs from rapid clicks – only one toggle in progress
+  // Prevent multiple runs from rapid clicks - only one toggle in progress
   if (window._demoModeToggling) {
     return;
   }
@@ -23017,14 +23013,14 @@ function toggleSection(sectionId) {
 
 // Add touch event handling for mobile to prevent stuck animations
 document.addEventListener('DOMContentLoaded', function() {
-  // Prevent mouse-wheel from zooming charts — pass the scroll through to the page.
+  // Prevent mouse-wheel from zooming charts - pass the scroll through to the page.
   // ApexCharts allowMouseWheelZoom:false handles the config side; this guard catches
   // any remaining wheel events that reach chart canvases before options are applied.
   document.addEventListener('wheel', function(e) {
     var canvas = e.target.closest('.apexcharts-canvas, .apexcharts-inner, .chart-container');
     if (!canvas) return;
     e.stopPropagation();
-    // Let the page scroll naturally (do NOT preventDefault — that would block page scroll too).
+    // Let the page scroll naturally (do NOT preventDefault - that would block page scroll too).
     // We only stop propagation so ApexCharts cannot intercept the event for zoom.
   }, { passive: true, capture: true });
 
@@ -24181,13 +24177,15 @@ function buildLogReviewSummaryHtml() {
   html.push(sectionCard('wizard.review.basics', basics, { showWhenEmpty: true }));
 
   var vitals = [];
-  var bpm = readValue('bpm');
-  var weight = readValue('weight');
-  if (bpm) addRow(vitals, tUi('wizard.review.row.heartRate'), bpm + ' bpm');
-  if (weight) addRow(vitals, tUi('wizard.review.row.weight'), weight + ' ' + (appSettings && appSettings.weightUnit ? appSettings.weightUnit : 'kg'));
   var sys = readValue('bloodPressureSystolic');
-  var dia = readValue('bloodPressureDiastolic');
-  if (sys && dia) addRow(vitals, tUi('wizard.vitals.bloodPressure'), sys + '/' + dia + ' mmHg');
+  var bpm = readValue('bpm');
+  if (sys && bpm) {
+    addRow(vitals, tUi('wizard.vitals.bloodPressure'), sys + ' mmHg / ' + bpm + ' bpm');
+  } else if (sys) {
+    addRow(vitals, tUi('wizard.vitals.bloodPressure'), sys + ' mmHg');
+  } else if (bpm) {
+    addRow(vitals, tUi('wizard.review.row.heartRate'), bpm + ' bpm');
+  }
   if (readValue('bloodGlucose')) addRow(vitals, tUi('wizard.vitals.bloodGlucose'), readValue('bloodGlucose') + ' ' + (appSettings.glucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L'));
   if (readValue('spO2')) addRow(vitals, tUi('wizard.vitals.spO2'), readValue('spO2') + '%');
   if (readValue('hrv')) addRow(vitals, tUi('wizard.vitals.hrv'), readValue('hrv') + ' ms');
@@ -24873,9 +24871,7 @@ function collectPlan04LogFields(dateValue) {
 function collectPlan16MetricsFields() {
   var out = {};
   var sysEl = document.getElementById('bloodPressureSystolic');
-  var diaEl = document.getElementById('bloodPressureDiastolic');
   if (sysEl && sysEl.value) out.bloodPressureSystolic = parseInt(sysEl.value, 10);
-  if (diaEl && diaEl.value) out.bloodPressureDiastolic = parseInt(diaEl.value, 10);
   var glucoseEl = document.getElementById('bloodGlucose');
   if (glucoseEl && glucoseEl.value) {
     out.bloodGlucose = parseFloat(glucoseEl.value);
@@ -25022,7 +25018,7 @@ function resetLogWizardFieldToDefault(el) {
   if (type === 'hidden') {
     el.value = '';
     if (el.id === 'bbt' && typeof resetBbtThermometer === 'function') resetBbtThermometer();
-    if ((el.id === 'bloodPressureSystolic' || el.id === 'bloodPressureDiastolic') &&
+    if ((el.id === 'bloodPressureSystolic' || el.id === 'bpm') &&
         typeof resetBloodPressureWidget === 'function') {
       resetBloodPressureWidget();
     }
@@ -25030,7 +25026,7 @@ function resetLogWizardFieldToDefault(el) {
   }
   if (type === 'number') {
     el.value = '';
-    if (el.id === 'bloodPressureSystolic' || el.id === 'bloodPressureDiastolic') {
+    if (el.id === 'bloodPressureSystolic' || el.id === 'bpm') {
       if (typeof resetBloodPressureWidget === 'function') resetBloodPressureWidget();
     }
     return;
@@ -25190,9 +25186,8 @@ function restoreLogDraftIfAny() {
         if (el.type === 'checkbox') el.checked = !!snap.fields[id];
         else el.value = snap.fields[id];
       });
-      if (snap.fields.bloodPressureSystolic && snap.fields.bloodPressureDiastolic &&
-          typeof setBloodPressureWidgetValues === 'function') {
-        setBloodPressureWidgetValues(snap.fields.bloodPressureSystolic, snap.fields.bloodPressureDiastolic, true);
+      if (snap.fields.bloodPressureSystolic && typeof setBloodPressureWidgetValues === 'function') {
+        setBloodPressureWidgetValues(snap.fields.bloodPressureSystolic, snap.fields.bpm, true);
       }
       if (window.RianellAdvancedVitals && typeof window.RianellAdvancedVitals.restoreFromHiddenInputs === 'function') {
         window.RianellAdvancedVitals.restoreFromHiddenInputs();
