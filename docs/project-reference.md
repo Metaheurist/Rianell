@@ -4,6 +4,16 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.135.0 documentation sync (Third-party connectors CN4–CN7)
+
+- **Connectors:** Strava, Withings, Google Sheets OAuth via Supabase Edge Functions (`connector-auth`, `connector-callback`, `connector-disconnect`, provider sync functions).
+- **Token storage:** Encrypted `connector_tokens` (service-role only); client-safe status in `user_integrations` (`last_sync_at`, `sync_status`, sheet config).
+- **PWA:** Settings → Integrations — Connect, Sync now, Disconnect, Google Sheets configure/export modal, `connector-success.html` OAuth popup bridge.
+- **RN:** `oauthConnect.ts` + `SettingsConnectorsPane` with `rianell://connector/callback` deep link.
+- **Shared:** `@rianell/shared` mappers (`strava`, `withings`, `googleSheets`, `oauthState`, `providers`).
+- **Operator setup:** [docs/connectors/SETUP.md](connectors/SETUP.md); policy rows in [FREE-TIER-POLICY.md](plans/FREE-TIER-POLICY.md).
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.135.0; [EXTERNAL-SETUP.md](plans/EXTERNAL-SETUP.md) § Plan 19; wiki [[Release-Notes]] / [[Features-Guide]].
+
 ### v1.97.0 documentation sync (Achievements + Engagement & UX)
 
 - **Achievements:** 11-id catalog with tier accents, per-card progress bars, completion counter, in-app unlock toast queue, unseen badge on Goals header (`markAchievementSeen` on achievements pane).
