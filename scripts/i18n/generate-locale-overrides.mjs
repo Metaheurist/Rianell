@@ -21,6 +21,7 @@ import { PLAN14_TIER_A_OVERRIDES } from '../lib/plan14-tier-a-overrides.mjs';
 import { ACHIEVEMENTS_TIER_A_OVERRIDES } from '../lib/achievements-tier-a-overrides.mjs';
 import { ENGAGEMENT_TIER_A_OVERRIDES } from '../lib/engagement-tier-a-overrides.mjs';
 import { AI_ANALYSIS_TIER_A_OVERRIDES } from '../lib/ai-analysis-tier-a-overrides.mjs';
+import { PLAN19_TIER_A_OVERRIDES } from '../lib/plan19-tier-a-overrides.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -108,6 +109,10 @@ function applyTierATranslations(strings, locale) {
   }
   const aiAnalysis = AI_ANALYSIS_TIER_A_OVERRIDES[locale] || {};
   for (const [key, val] of Object.entries(aiAnalysis)) {
+    if (typeof val === 'string' && val.trim()) out[key] = val;
+  }
+  const plan19 = PLAN19_TIER_A_OVERRIDES[locale] || {};
+  for (const [key, val] of Object.entries(plan19)) {
     if (typeof val === 'string' && val.trim()) out[key] = val;
   }
   return out;
