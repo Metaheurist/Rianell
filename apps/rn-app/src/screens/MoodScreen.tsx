@@ -10,6 +10,7 @@ import {
   Text,
   TextInput,
   View,
+  type ScrollViewImperativeMethods,
 } from 'react-native';
 import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -126,7 +127,7 @@ function MoodTimeline({
   accent: string;
   textMuted: string;
 }) {
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewImperativeMethods | null>(null);
   useEffect(() => {
     const t = setTimeout(() => {
       scrollRef.current?.scrollToEnd({ animated: true });
