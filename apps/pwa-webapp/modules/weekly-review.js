@@ -1235,25 +1235,105 @@
 
   function finishWeeklyReviewPdf() {
 
-    if (typeof global.printOrShareAppointmentReport === 'function') {
+    var pdfBtn = document.getElementById('weeklyReviewPdfBtn');
 
-      global.printOrShareAppointmentReport({ briefText: _briefText, doctorQuestions: [] });
+    var actionLabel = t('weeklyReview.pdf.action');
+
+    var busyLabel = t('weeklyReview.pdf.busy');
+
+    if (pdfBtn) {
+
+      pdfBtn.disabled = true;
+
+      var labelSpan = pdfBtn.querySelector('span');
+
+      if (labelSpan) labelSpan.textContent = busyLabel;
 
     }
 
-    var today = new Date().toISOString().slice(0, 10);
 
-    if (S.isoWeekMondayKey) {
 
-      saveSettingsPatch({ weeklyReviewDismissedWeek: S.isoWeekMondayKey(today), weeklyReviewCompletedAt: new Date().toISOString() });
+    var generate = global.RianellAppointmentPdf && typeof global.RianellAppointmentPdf.generate === 'function'
+
+      ? global.RianellAppointmentPdf.generate.bind(global.RianellAppointmentPdf)
+
+      : (typeof global.printOrShareAppointmentReport === 'function'
+
+        ? global.printOrShareAppointmentReport
+
+        : null);
+
+
+
+    if (!generate) {
+
+      if (typeof global.showToast === 'function') {
+
+        global.showToast(t('weeklyReview.pdf.errorUnavailable'), { type: 'error' });
+
+      }
+
+      if (pdfBtn) {
+
+        pdfBtn.disabled = false;
+
+        var spanReset = pdfBtn.querySelector('span');
+
+        if (spanReset) spanReset.textContent = actionLabel;
+
+      }
+
+      return;
 
     }
 
-    _weeklyReviewCompleted = true;
 
-    closeWeeklyReviewModal();
 
-    if (typeof global.applyHomeCardLayout === 'function') global.applyHomeCardLayout();
+    Promise.resolve(generate({ briefText: _briefText, doctorQuestions: [], logs: getLogs() }))
+
+      .then(function () {
+
+        var today = new Date().toISOString().slice(0, 10);
+
+        if (S.isoWeekMondayKey) {
+
+          saveSettingsPatch({ weeklyReviewDismissedWeek: S.isoWeekMondayKey(today), weeklyReviewCompletedAt: new Date().toISOString() });
+
+        }
+
+        _weeklyReviewCompleted = true;
+
+        closeWeeklyReviewModal();
+
+        if (typeof global.applyHomeCardLayout === 'function') global.applyHomeCardLayout();
+
+      })
+
+      .catch(function (err) {
+
+        var msg = (err && err.message) ? err.message : t('weeklyReview.pdf.errorFailed');
+
+        if (typeof global.showToast === 'function') {
+
+          global.showToast(msg, { type: 'error' });
+
+        } else if (typeof global.showAlertModal === 'function') {
+
+          global.showAlertModal(msg, t('weeklyReview.pdf.action'));
+
+        }
+
+        if (pdfBtn) {
+
+          pdfBtn.disabled = false;
+
+          var spanErr = pdfBtn.querySelector('span');
+
+          if (spanErr) spanErr.textContent = actionLabel;
+
+        }
+
+      });
 
   }
 

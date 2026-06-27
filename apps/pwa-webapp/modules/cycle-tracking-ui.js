@@ -108,12 +108,20 @@
     return dayNum >= row.start && dayNum <= row.end;
   }
 
+  function isMenstrualDayNum(dayNum) {
+    return Number.isFinite(dayNum) && dayNum >= 1 && dayNum <= 5;
+  }
+
+  function flowMeta(flowId) {
+    return FLOWS.find(function (f) { return f.id === flowId; }) || null;
+  }
+
   function updateReadout() {
     var readout = document.getElementById('logCycleDayReadout');
     if (!readout) return;
     var vals = syncHidden();
     if (!vals.day) {
-      readout.textContent = '';
+      readout.textContent = t('wizard.cycle.lead');
       return;
     }
     var dayNum = parseInt(vals.day, 10);
@@ -123,6 +131,14 @@
       if (meta) {
         hint += ' · ' + t('wizard.cycle.suggestedPhase', { phase: t(meta.i18n) });
       }
+    }
+    if (vals.flow) {
+      var fMeta = flowMeta(vals.flow);
+      if (fMeta) hint += ' · ' + t('wizard.cycle.flow') + ': ' + t(fMeta.i18n);
+    } else if (isMenstrualDayNum(dayNum)) {
+      var tapHint = t('wizard.cycle.tapFlowHint');
+      if (!tapHint || tapHint === 'wizard.cycle.tapFlowHint') tapHint = 'tap droplets on your day';
+      hint += ' · ' + tapHint;
     }
     if (lastPeriodStartDate && typeof daysSincePeriodStart === 'function') {
       var since = daysSincePeriodStart(lastPeriodStartDate, getWizardDateIso());
@@ -148,9 +164,13 @@
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
     });
-    document.querySelectorAll('#logCycleTimelineInner .cycle-phase-label[data-i18n]').forEach(function (el) {
+    document.querySelectorAll('#logCycleTimelineInner .cycle-ribbon-marker-label[data-i18n]').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
+    });
+    document.querySelectorAll('#logCycleTimelineInner .cycle-day-node__flow-opt[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (key) el.setAttribute('aria-label', t(key));
     });
     var suggestEl = document.getElementById('logCycleSuggestHint');
     if (suggestEl && suggestEl.dataset.suggestKey) {
@@ -166,7 +186,7 @@
 
   function scrollActiveDayIntoView() {
     var scroll = document.getElementById('logCycleTimelineScroll');
-    var active = scroll && scroll.querySelector('.cycle-timeline-day--active');
+    var active = scroll && scroll.querySelector('.cycle-day-node--active');
     if (!active) return;
     try {
       active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
@@ -185,31 +205,43 @@
       periodBtn.classList.toggle('cycle-period-start-btn--active', vals.periodStart && vals.day === '1');
     }
 
-    var timeline = document.getElementById('logCycleTimelineInner');
-    if (timeline) {
-      timeline.querySelectorAll('.cycle-timeline-band').forEach(function (band) {
-        var phaseId = band.getAttribute('data-phase');
-        band.classList.toggle('cycle-timeline-band--active', phaseId === activePhase);
-        var head = band.querySelector('.cycle-timeline-band-head');
-        if (head) head.setAttribute('aria-pressed', phaseId === vals.phase ? 'true' : 'false');
+    var ribbon = document.getElementById('logCycleTimelineInner');
+    if (ribbon) {
+      ribbon.querySelectorAll('.cycle-ribbon-phase').forEach(function (seg) {
+        var phaseId = seg.getAttribute('data-phase');
+        seg.classList.toggle('cycle-ribbon-phase--active', phaseId === activePhase);
       });
-      timeline.querySelectorAll('.cycle-timeline-day').forEach(function (btn) {
-        var day = btn.getAttribute('data-day');
+      ribbon.querySelectorAll('.cycle-ribbon-marker').forEach(function (head) {
+        var phaseId = head.getAttribute('data-phase');
+        head.setAttribute('aria-pressed', phaseId === vals.phase ? 'true' : 'false');
+      });
+      ribbon.querySelectorAll('.cycle-day-node').forEach(function (node) {
+        var day = node.getAttribute('data-day');
+        var dNum = parseInt(day, 10);
         var active = day === vals.day;
-        btn.classList.toggle('cycle-timeline-day--active', active);
-        btn.classList.toggle('cycle-timeline-day--late', isCycleDayLate(parseInt(day, 10)));
-        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        var menstrual = isMenstrualDayNum(dNum);
+        node.classList.toggle('cycle-day-node--active', active);
+        node.classList.toggle('cycle-day-node--expanded', active && menstrual);
+        node.classList.toggle('cycle-day-node--late', isCycleDayLate(dNum));
+        node.setAttribute('aria-pressed', active ? 'true' : 'false');
+        var flowPreview = node.querySelector('.cycle-day-node__flow-preview');
+        if (flowPreview) {
+          var showPreview = menstrual && vals.flow && active;
+          flowPreview.hidden = !showPreview;
+          if (showPreview) {
+            flowPreview.querySelectorAll('.cycle-flow-drop').forEach(function (drop, idx) {
+              var fMeta = flowMeta(vals.flow);
+              drop.classList.toggle('cycle-flow-drop--on', fMeta ? idx < fMeta.drops : false);
+            });
+          }
+        }
+        node.querySelectorAll('.cycle-day-node__flow-opt').forEach(function (btn) {
+          var on = active && btn.getAttribute('data-flow') === vals.flow;
+          btn.classList.toggle('cycle-day-node__flow-opt--active', on);
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
       });
       scrollActiveDayIntoView();
-    }
-
-    var flowRow = document.getElementById('logCycleFlowRow');
-    if (flowRow) {
-      flowRow.querySelectorAll('.cycle-flow-btn').forEach(function (btn) {
-        var active = btn.getAttribute('data-flow') === vals.flow;
-        btn.classList.toggle('cycle-flow-btn--active', active);
-        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
     }
     updateReadout();
   }
@@ -220,6 +252,7 @@
     var nextDay = vals.day === String(day) ? '' : String(day);
     var nextPhase = vals.phase;
     var nextPeriodStart = vals.periodStart;
+    var nextFlow = vals.flow;
     if (nextDay && nextDay !== '1') nextPeriodStart = false;
     if (nextDay && !phaseManual) {
       nextPhase = suggestPhase(nextDay) || '';
@@ -228,8 +261,11 @@
       phaseManual = false;
       nextPeriodStart = false;
       nextPhase = '';
+      nextFlow = '';
+    } else if (!isMenstrualDayNum(parseInt(nextDay, 10))) {
+      nextFlow = '';
     }
-    setHidden(nextDay, nextPhase, vals.flow, nextPeriodStart);
+    setHidden(nextDay, nextPhase, nextFlow, nextPeriodStart);
     refreshActiveStates();
   }
 
@@ -287,9 +323,9 @@
     refreshActiveStates();
   }
 
-  function buildFlowDrops(count) {
+  function buildFlowDrops(count, mini) {
     var wrap = document.createElement('span');
-    wrap.className = 'cycle-flow-drops';
+    wrap.className = mini ? 'cycle-flow-drops cycle-flow-drops--mini' : 'cycle-flow-drops';
     wrap.setAttribute('aria-hidden', 'true');
     for (var i = 0; i < 3; i += 1) {
       var drop = document.createElement('span');
@@ -316,82 +352,147 @@
       { passive: false },
     );
 
-    el.addEventListener('mousedown', function (e) {
+    el.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
       dragging = true;
       startX = e.pageX;
       startScroll = el.scrollLeft;
-      el.classList.add('cycle-timeline-scroll--dragging');
+      el.classList.add('cycle-ribbon-scroll--dragging');
+      if (el.setPointerCapture) el.setPointerCapture(e.pointerId);
     });
-    global.addEventListener('mouseup', function () {
+    el.addEventListener('pointerup', function (e) {
       if (!dragging) return;
       dragging = false;
-      el.classList.remove('cycle-timeline-scroll--dragging');
+      el.classList.remove('cycle-ribbon-scroll--dragging');
+      if (el.releasePointerCapture) {
+        try { el.releasePointerCapture(e.pointerId); } catch (_err) { /* noop */ }
+      }
     });
-    global.addEventListener('mousemove', function (e) {
+    el.addEventListener('pointercancel', function () {
+      dragging = false;
+      el.classList.remove('cycle-ribbon-scroll--dragging');
+    });
+    el.addEventListener('pointermove', function (e) {
       if (!dragging) return;
       el.scrollLeft = startScroll - (e.pageX - startX);
     });
+  }
+
+  function createDayNode(dayNum, meta) {
+    var node = document.createElement('button');
+    node.type = 'button';
+    node.className = 'cycle-day-node cycle-day-node--' + meta.tone;
+    node.setAttribute('data-day', String(dayNum));
+    node.setAttribute('aria-pressed', 'false');
+    node.setAttribute('aria-label', t('wizard.cycle.day') + ' ' + dayNum + ', ' + t(meta.i18n));
+
+    var num = document.createElement('span');
+    num.className = 'cycle-day-node__num';
+    num.textContent = String(dayNum);
+    node.appendChild(num);
+
+    var iconWrap = document.createElement('span');
+    iconWrap.className = 'cycle-day-node__phase-icon';
+    iconWrap.innerHTML = phaseSvg(meta.icon, 'cycle-day-node__phase-svg ui-svg-icon');
+    iconWrap.setAttribute('aria-hidden', 'true');
+    node.appendChild(iconWrap);
+
+    if (isMenstrualDayNum(dayNum)) {
+      var preview = document.createElement('span');
+      preview.className = 'cycle-day-node__flow-preview';
+      preview.hidden = true;
+      preview.appendChild(buildFlowDrops(0, true));
+      node.appendChild(preview);
+
+      var dock = document.createElement('div');
+      dock.className = 'cycle-day-node__flow';
+      dock.setAttribute('role', 'group');
+      dock.setAttribute('aria-label', t('wizard.cycle.flow'));
+      FLOWS.forEach(function (flow) {
+        var opt = document.createElement('button');
+        opt.type = 'button';
+        opt.className = 'cycle-day-node__flow-opt';
+        opt.setAttribute('data-flow', flow.id);
+        opt.setAttribute('data-i18n', flow.i18n);
+        opt.setAttribute('aria-label', t(flow.i18n));
+        opt.setAttribute('aria-pressed', 'false');
+        opt.appendChild(buildFlowDrops(flow.drops, true));
+        opt.addEventListener('click', function (e) {
+          e.stopPropagation();
+          e.preventDefault();
+          var vals = syncHidden();
+          if (vals.day !== String(dayNum)) {
+            autoFilled = false;
+            var nextPhase = phaseManual ? vals.phase : (suggestPhase(dayNum) || 'menstrual');
+            setHidden(String(dayNum), nextPhase, vals.flow, dayNum === 1 ? vals.periodStart : false);
+          }
+          selectFlow(flow.id);
+        });
+        dock.appendChild(opt);
+      });
+      node.appendChild(dock);
+    }
+
+    node.addEventListener('click', function () {
+      selectDay(dayNum);
+    });
+    return node;
   }
 
   function buildTimeline() {
     var inner = document.getElementById('logCycleTimelineInner');
     if (!inner || inner.childElementCount) return;
 
-    PHASE_RANGES.forEach(function (range) {
+    var ribbon = document.createElement('div');
+    ribbon.className = 'cycle-ribbon';
+
+    PHASE_RANGES.forEach(function (range, phaseIdx) {
       var meta = phaseMeta(range.id);
       if (!meta) return;
 
-      var band = document.createElement('div');
-      band.className = 'cycle-timeline-band cycle-timeline-band--' + meta.tone;
-      band.setAttribute('data-phase', range.id);
+      var seg = document.createElement('div');
+      seg.className = 'cycle-ribbon-phase cycle-ribbon-phase--' + meta.tone;
+      seg.setAttribute('data-phase', range.id);
+      seg.style.setProperty('--phase-i', String(phaseIdx));
 
-      var head = document.createElement('button');
-      head.type = 'button';
-      head.className = 'cycle-timeline-band-head cycle-timeline-band-head--' + meta.tone;
-      head.setAttribute('data-phase', range.id);
-      head.setAttribute('aria-pressed', 'false');
-      head.setAttribute('aria-label', t(meta.i18n) + ', ' + t('wizard.cycle.day') + ' ' + range.start + '–' + range.end);
+      var marker = document.createElement('button');
+      marker.type = 'button';
+      marker.className = 'cycle-ribbon-marker cycle-ribbon-marker--' + meta.tone;
+      marker.setAttribute('data-phase', range.id);
+      marker.setAttribute('aria-pressed', 'false');
+      marker.setAttribute('aria-label', t(meta.i18n) + ', ' + t('wizard.cycle.day') + ' ' + range.start + '–' + range.end);
 
-      var iconWrap = document.createElement('span');
-      iconWrap.className = 'cycle-phase-icon';
-      iconWrap.innerHTML = phaseSvg(meta.icon || 'cycle-menstrual');
-      head.appendChild(iconWrap);
+      var markerIcon = document.createElement('span');
+      markerIcon.className = 'cycle-ribbon-marker-icon';
+      markerIcon.innerHTML = phaseSvg(meta.icon || 'cycle-menstrual');
+      marker.appendChild(markerIcon);
 
-      var label = document.createElement('span');
-      label.className = 'cycle-phase-label';
-      label.setAttribute('data-i18n', meta.i18n);
-      label.textContent = t(meta.i18n);
-      head.appendChild(label);
+      var markerLabel = document.createElement('span');
+      markerLabel.className = 'cycle-ribbon-marker-label';
+      markerLabel.setAttribute('data-i18n', meta.i18n);
+      markerLabel.textContent = t(meta.i18n);
+      marker.appendChild(markerLabel);
 
-      var span = document.createElement('span');
-      span.className = 'cycle-timeline-band-range';
-      span.textContent = range.start + '–' + range.end;
-      head.appendChild(span);
+      var markerRange = document.createElement('span');
+      markerRange.className = 'cycle-ribbon-marker-range';
+      markerRange.textContent = range.start + '–' + range.end;
+      marker.appendChild(markerRange);
 
-      head.addEventListener('click', function () {
+      marker.addEventListener('click', function () {
         selectPhase(range.id);
       });
-      band.appendChild(head);
+      seg.appendChild(marker);
 
       var daysWrap = document.createElement('div');
-      daysWrap.className = 'cycle-timeline-days';
+      daysWrap.className = 'cycle-ribbon-days';
       for (var d = range.start; d <= range.end; d += 1) {
-        var dayBtn = document.createElement('button');
-        dayBtn.type = 'button';
-        dayBtn.className = 'cycle-timeline-day cycle-timeline-day--' + meta.tone;
-        dayBtn.setAttribute('data-day', String(d));
-        dayBtn.setAttribute('aria-pressed', 'false');
-        dayBtn.setAttribute('aria-label', t('wizard.cycle.day') + ' ' + d + ', ' + t(meta.i18n));
-        dayBtn.textContent = String(d);
-        dayBtn.addEventListener('click', function () {
-          selectDay(parseInt(this.getAttribute('data-day'), 10));
-        });
-        daysWrap.appendChild(dayBtn);
+        daysWrap.appendChild(createDayNode(d, meta));
       }
-      band.appendChild(daysWrap);
-      inner.appendChild(band);
+      seg.appendChild(daysWrap);
+      ribbon.appendChild(seg);
     });
+
+    inner.appendChild(ribbon);
 
     var scroll = document.getElementById('logCycleTimelineScroll');
     initHorizontalScroll(scroll);
@@ -411,27 +512,6 @@
     }
 
     buildTimeline();
-
-    var flowRow = document.getElementById('logCycleFlowRow');
-    if (flowRow && !flowRow.childElementCount) {
-      FLOWS.forEach(function (flow) {
-        var btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'cycle-flow-btn';
-        btn.setAttribute('data-flow', flow.id);
-        btn.setAttribute('aria-pressed', 'false');
-        btn.appendChild(buildFlowDrops(flow.drops));
-        var flowLabel = document.createElement('span');
-        flowLabel.className = 'cycle-flow-label';
-        flowLabel.setAttribute('data-i18n', flow.i18n);
-        flowLabel.textContent = t(flow.i18n);
-        btn.appendChild(flowLabel);
-        btn.addEventListener('click', function () {
-          selectFlow(flow.id);
-        });
-        flowRow.appendChild(btn);
-      });
-    }
 
     var clearBtn = document.getElementById('logCycleClear');
     if (clearBtn && !clearBtn.dataset.bound) {

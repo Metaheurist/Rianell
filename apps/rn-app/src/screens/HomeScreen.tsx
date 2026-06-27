@@ -1028,7 +1028,14 @@ export function HomeScreen({
                               animateSliderTo(period);
                             }
                           }}
-                          style={styles.checkinSliderStop}
+                          style={[
+                            styles.checkinSliderStop,
+                            isSelected && {
+                              borderColor: `${accent}66`,
+                              backgroundColor: `${accent}14`,
+                              paddingTop: 8,
+                            },
+                          ]}
                           accessibilityRole="button"
                           accessibilityLabel={
                             done
@@ -1036,18 +1043,20 @@ export function HomeScreen({
                               : t(checkinPeriodLabelKey(period))
                           }
                         >
-                          <Animated.View
-                            style={{
-                              transform: [{ scale: sliderScales[period] }],
-                              opacity: done ? 0.42 : 1,
-                            }}
-                          >
-                            <Ionicons
-                              name={checkinPeriodIcon(period)}
-                              size={theme.font(22)}
-                              color={isSelected ? accent : `${accent}55`}
-                            />
-                          </Animated.View>
+                          <View style={styles.checkinIconSlot}>
+                            <Animated.View
+                              style={{
+                                transform: [{ scale: sliderScales[period] }],
+                                opacity: done ? 0.42 : 1,
+                              }}
+                            >
+                              <Ionicons
+                                name={checkinPeriodIcon(period)}
+                                size={theme.font(22)}
+                                color={isSelected ? accent : `${accent}55`}
+                              />
+                            </Animated.View>
+                          </View>
                           <Text
                             style={{
                               fontSize: theme.font(isSelected ? 11 : 10),
@@ -1724,7 +1733,23 @@ const styles = StyleSheet.create({
   checkinSliderWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4, width: '100%' },
   checkinSliderTrack: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   checkinSliderLine: { flex: 1, height: 2, borderRadius: 1 },
-  checkinSliderStop: { alignItems: 'center', gap: 3, paddingHorizontal: 4, paddingVertical: 6 },
+  checkinSliderStop: {
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    overflow: 'visible',
+  },
+  checkinIconSlot: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
+  },
   checkinCtaBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   checkinCtaBtnText: { fontWeight: '700', fontSize: 13, color: '#000' },
   heroCheckinWrap: { marginTop: 12, width: '100%' },

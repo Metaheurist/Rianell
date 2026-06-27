@@ -40,6 +40,12 @@ export function buildConsentDashboardEntries(input) {
     updatedAt: p.sessionRecordingAt || null,
     revokeField: 'sessionRecording',
   });
+  rows.push({
+    id: 'barcodeFood',
+    granted: p.barcodeFoodLoggingEnabled === true,
+    updatedAt: p.barcodeFoodLoggingEnabledAt || null,
+    revokeField: 'barcodeFoodLoggingEnabled',
+  });
 
   return rows;
 }

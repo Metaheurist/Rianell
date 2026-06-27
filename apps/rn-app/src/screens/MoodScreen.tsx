@@ -10,17 +10,18 @@ import {
   Text,
   TextInput,
   View,
+  type ScrollViewImperativeMethods,
 } from 'react-native';
 import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useToast } from '../components/ui/Toast';
-import { formatIsoDate } from '@rianell/shared';
 import type { MainTabParamList } from '../navigation/RootNavigator';
 import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
@@ -91,11 +92,177 @@ function defaultCheckinPeriod(): CheckinPeriod {
 const CHECKIN_SLIDER_SELECTED_SCALE = 1.8;
 const CHECKIN_SLIDER_UNSELECTED_SCALE = 1;
 
-function periodMetaLabel(period: string | null, t: (key: string) => string): string {
-  if (period === 'AM') return t('mood.period.am');
-  if (period === 'PM') return t('mood.period.pm');
-  if (period === 'midday') return t('mood.period.midday');
-  return '';
+type MoodTone = 'low' | 'moderate' | 'okay' | 'good' | 'neutral';
+
+function moodToneFromScore(score: number): MoodTone {
+  if (!Number.isFinite(score)) return 'neutral';
+  if (score <= 3) return 'low';
+  if (score <= 5) return 'moderate';
+  if (score <= 7) return 'okay';
+  return 'good';
+}
+
+const MOOD_TONE_COLORS: Record<MoodTone, string> = {
+  low: '#9575cd',
+  moderate: '#ffb74d',
+  okay: '#81c784',
+  good: '#7bdf8c',
+  neutral: 'rgba(255,255,255,0.35)',
+};
+
+function formatMoodTimelineDate(dateStr: string): string {
+  if (!dateStr || dateStr.length < 10) return dateStr;
+  const m = parseInt(dateStr.slice(5, 7), 10);
+  const d = parseInt(dateStr.slice(8, 10), 10);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  if (!Number.isFinite(m) || m < 1 || m > 12) return dateStr.slice(5);
+  return `${months[m - 1]} ${d}`;
+}
+
+function MoodRing({ score, tone, size, accent }: { score: number; tone: MoodTone; size: number; accent: string }) {
+  const stroke = tone === 'good' ? accent : MOOD_TONE_COLORS[tone];
+  const r = (size - 8) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.min(1, Math.max(0, score / 10));
+  const offset = circ * (1 - pct);
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Circle cx={cx} cy={cy} r={r} stroke="rgba(255,255,255,0.12)" strokeWidth={4} fill="none" />
+      <Circle
+        cx={cx}
+        cy={cy}
+        r={r}
+        stroke={stroke}
+        strokeWidth={4}
+        fill="none"
+        strokeLinecap="round"
+        strokeDasharray={`${circ} ${circ}`}
+        strokeDashoffset={offset}
+        rotation={-90}
+        origin={`${cx}, ${cy}`}
+      />
+      <SvgText
+        x={cx}
+        y={cy + 1}
+        fill="#e0f2f1"
+        fontSize={11}
+        fontWeight="800"
+        textAnchor="middle"
+        alignmentBaseline="middle"
+      >
+        {String(score)}
+      </SvgText>
+    </Svg>
+  );
+}
+
+function readingSourceLabel(
+  r: { source: string; period: string | null },
+  t: (key: string) => string,
+): string {
+  if (r.source === 'checkin') {
+    if (r.period === 'AM' || r.period === 'midday' || r.period === 'PM') {
+      return t(checkinPeriodLabelKey(r.period));
+    }
+    return t('mood.source.checkin');
+  }
+  return t('mood.source.daily');
+}
+
+function MoodReadingRibbon({
+  readings,
+  accent,
+  textMuted,
+  t,
+}: {
+  readings: Array<{ date: string; period: string | null; mood: number; source: string }>;
+  accent: string;
+  textMuted: string;
+  t: (key: string) => string;
+}) {
+  const scrollRef = useRef<ScrollViewImperativeMethods | null>(null);
+  const ordered = useMemo(() => [...readings].reverse(), [readings]);
+  const [activeIndex, setActiveIndex] = useState(Math.max(0, ordered.length - 1));
+  const active = ordered[activeIndex] ?? ordered[ordered.length - 1];
+
+  useEffect(() => {
+    setActiveIndex(Math.max(0, ordered.length - 1));
+    const timer = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120);
+    return () => clearTimeout(timer);
+  }, [ordered.length]);
+
+  if (!active) return null;
+  const activeTone = moodToneFromScore(active.mood);
+  const activeQual = t(moodQualitativeKey(active.mood));
+
+  return (
+    <View style={styles.moodReadingRibbon}>
+      <View style={[styles.moodReadingFocus, { borderColor: `${accent}44` }]}>
+        <MoodRing score={active.mood} tone={activeTone} size={52} accent={accent} />
+        <View style={styles.moodReadingFocusCopy}>
+          <Text style={[styles.moodReadingFocusScore, { color: accent }]}>
+            {active.mood}
+            <Text style={styles.moodReadingFocusSuffix}>/10</Text>
+          </Text>
+          <Text style={[styles.moodReadingFocusMeta, { color: textMuted }]}>
+            {active.date} · {readingSourceLabel(active, t)} · {activeQual}
+          </Text>
+        </View>
+      </View>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.moodReadingTrack}
+        accessibilityRole="list"
+      >
+        {ordered.map((r, i) => {
+          const tone = moodToneFromScore(r.mood);
+          const qual = t(moodQualitativeKey(r.mood));
+          const isActive = i === activeIndex;
+          const isLatest = i === ordered.length - 1;
+          const iconName =
+            r.source === 'checkin' ? checkinPeriodIcon((r.period as CheckinPeriod) || 'midday') : 'bar-chart-outline';
+          return (
+            <Pressable
+              key={`${r.date}-${r.period ?? 'daily'}-${i}`}
+              accessibilityRole="listitem"
+              accessibilityLabel={`${r.mood} out of 10, ${r.date}, ${readingSourceLabel(r, t)}, ${qual}`}
+              onPress={() => setActiveIndex(i)}
+              style={[
+                styles.moodReadingCard,
+                { borderColor: isActive ? `${accent}88` : `${accent}33` },
+                isActive && styles.moodReadingCardActive,
+              ]}
+            >
+              {isLatest ? <View style={[styles.moodReadingCardPulse, { borderColor: `${accent}66` }]} /> : null}
+              <MoodRing score={r.mood} tone={tone} size={44} accent={accent} />
+              <Text style={[styles.moodReadingCardDate, { color: textMuted }]}>{formatMoodTimelineDate(r.date)}</Text>
+              <View style={styles.moodReadingCardSource}>
+                <Ionicons name={iconName} size={11} color={textMuted} />
+                <Text style={[styles.moodReadingCardSourceText, { color: textMuted }]} numberOfLines={1}>
+                  {readingSourceLabel(r, t)}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.moodReadingCardQual,
+                  tone === 'low' && styles.moodReadingQualLow,
+                  tone === 'moderate' && styles.moodReadingQualModerate,
+                  tone === 'okay' && styles.moodReadingQualOkay,
+                  tone === 'good' && styles.moodReadingQualGood,
+                ]}
+              >
+                {qual}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
 }
 
 function ScreeningFrequencySlider({
@@ -464,22 +631,12 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
             </View>
 
             <Text style={[styles.sectionTitle, { color: theme.tokens.color.textPrimary }]}>{t('mood.recent.title')}</Text>
-            {summary.readings.map((r, idx) => {
-              const src = r.source === 'checkin' ? t('mood.source.checkin') : t('mood.source.daily');
-              const period = r.period ? periodMetaLabel(r.period, t) : '';
-              const meta = period ? `${src} · ${period}` : src;
-              return (
-                <View key={`${r.date}-${r.period ?? 'daily'}-${idx}`} style={[styles.readingRow, { borderColor: theme.tokens.color.border }]}>
-                  <Text style={[styles.readingScore, { color: accent }]}>{r.mood}/10</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: theme.tokens.color.textPrimary }}>{formatIsoDate(r.date, locale, { dateStyle: 'medium' })}</Text>
-                    <Text style={{ color: theme.tokens.color.textMuted, fontSize: theme.font(12) }}>
-                      {meta} · {t(moodQualitativeKey(r.mood))}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
+            <MoodReadingRibbon
+              readings={summary.readings}
+              accent={accent}
+              textMuted={theme.tokens.color.textMuted}
+              t={t}
+            />
           </>
         )}
 
@@ -506,7 +663,14 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                             animateSliderTo(period);
                           }
                         }}
-                        style={styles.checkinSliderStop}
+                        style={[
+                          styles.checkinSliderStop,
+                          isSelected && {
+                            borderColor: `${accent}66`,
+                            backgroundColor: `${accent}14`,
+                            paddingTop: 8,
+                          },
+                        ]}
                         accessibilityRole="button"
                         accessibilityLabel={
                           done
@@ -514,18 +678,20 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                             : t(checkinPeriodLabelKey(period))
                         }
                       >
-                        <Animated.View
-                          style={{
-                            transform: [{ scale: sliderScales[period] }],
-                            opacity: done ? 0.42 : 1,
-                          }}
-                        >
-                          <Ionicons
-                            name={checkinPeriodIcon(period)}
-                            size={theme.font(22)}
-                            color={isSelected ? accent : `${accent}55`}
-                          />
-                        </Animated.View>
+                        <View style={styles.checkinIconSlot}>
+                          <Animated.View
+                            style={{
+                              transform: [{ scale: sliderScales[period] }],
+                              opacity: done ? 0.42 : 1,
+                            }}
+                          >
+                            <Ionicons
+                              name={checkinPeriodIcon(period)}
+                              size={theme.font(22)}
+                              color={isSelected ? accent : `${accent}55`}
+                            />
+                          </Animated.View>
+                        </View>
                         <Text
                           style={{
                             fontSize: theme.font(isSelected ? 11 : 10),
@@ -768,19 +934,77 @@ const styles = StyleSheet.create({
   metricLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4 },
   metricValue: { fontSize: 22, fontWeight: '700' },
   sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
-  readingRow: {
+  moodReadingRibbon: { gap: 10, marginBottom: 4 },
+  moodReadingFocus: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 12,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  readingScore: { fontWeight: '700', minWidth: 48 },
+  moodReadingFocusCopy: { flex: 1, gap: 2 },
+  moodReadingFocusScore: { fontSize: 22, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  moodReadingFocusSuffix: { fontSize: 14, fontWeight: '600', opacity: 0.65 },
+  moodReadingFocusMeta: { fontSize: 12, lineHeight: 17 },
+  moodReadingTrack: { paddingVertical: 6, paddingHorizontal: 2, gap: 8, alignItems: 'flex-end', minHeight: 118 },
+  moodReadingCard: {
+    width: 76,
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    backgroundColor: 'rgba(8,12,11,0.85)',
+  },
+  moodReadingCardActive: {
+    transform: [{ translateY: -3 }, { scale: 1.03 }],
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  moodReadingCardPulse: {
+    position: 'absolute',
+    top: 3,
+    left: 3,
+    right: 3,
+    bottom: 3,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  moodReadingCardDate: { fontSize: 10, textAlign: 'center' },
+  moodReadingCardSource: { flexDirection: 'row', alignItems: 'center', gap: 3, maxWidth: 68 },
+  moodReadingCardSourceText: { fontSize: 9, flexShrink: 1 },
+  moodReadingCardQual: { fontSize: 9, fontWeight: '700', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999, overflow: 'hidden' },
+  moodReadingQualLow: { backgroundColor: 'rgba(149,117,205,0.22)', color: '#ce93d8' },
+  moodReadingQualModerate: { backgroundColor: 'rgba(255,183,77,0.2)', color: '#ffcc80' },
+  moodReadingQualOkay: { backgroundColor: 'rgba(129,199,132,0.2)', color: '#a5d6a7' },
+  moodReadingQualGood: { backgroundColor: 'rgba(123,223,140,0.22)', color: '#7bdf8c' },
   checkinRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   checkinSliderWrap: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4, width: '100%' },
   checkinSliderTrack: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   checkinSliderLine: { flex: 1, height: 2, borderRadius: 1 },
-  checkinSliderStop: { alignItems: 'center', gap: 3, paddingHorizontal: 4, paddingVertical: 6 },
+  checkinSliderStop: {
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    overflow: 'visible',
+  },
+  checkinIconSlot: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
+  },
   checkinCtaBtn: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   checkinCtaBtnText: { fontWeight: '700', fontSize: 13, color: '#000' },
   checkinBtn: {

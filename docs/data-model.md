@@ -61,8 +61,7 @@ Stored in app settings / RN `Preferences` (not in each log entry):
 | `temperatureUnit` | `'celsius'` \| `'fahrenheit'` | BBT display preference (VM10) |
 | `heightCm` | number | User height for BMI on log card (VM5) |
 | `bodyWeightUnit` | `'kg'` \| `'lbs'` | Body weight display preference (VM5) |
-| `barcodeFoodLoggingEnabled` | boolean | **Deferred** — pref forced off; Settings toggle removed (L5 planned) |
-| `guidedVoiceLogEnabled` | boolean | **Deferred** — pref forced off; Settings toggle removed (L11 planned) |
+| `barcodeFoodLoggingEnabled` | boolean | Optional — camera barcode scan + Open Food Facts lookup |
 
 `trackingProfile` (Plan 03) gates progressive wizard categories (L1): food, exercise, medications unlock on a day schedule.
 

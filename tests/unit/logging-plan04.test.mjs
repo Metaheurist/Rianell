@@ -10,7 +10,6 @@ import {
   buildTodayMedDoseStatuses,
   getUnlockedLogCategories,
   shouldShowWizardCategory,
-  extractLogFieldsFromVoiceTranscript,
   formatBarcodeFoodLabel,
   mergeLogEntriesForDate,
 } from '@rianell/shared';
@@ -89,13 +88,21 @@ test('progressive tracking unlocks categories over time', () => {
   assert.equal(shouldShowWizardCategory(profile, 'medications'), false);
 });
 
-test('voice extract maps wellness transcript fields', () => {
-  const fields = extractLogFieldsFromVoiceTranscript('Feeling low today, fatigue level 8, pain level 6');
-  assert.equal(fields.fatigue, 8);
-  assert.equal(fields.jointPain, 6);
-  assert.match(fields.notes, /low/i);
-});
-
 test('barcode food label formats product', () => {
   assert.equal(formatBarcodeFoodLabel({ brand: 'Brand', name: 'Bar' }), 'Brand, Bar');
+});
+
+test('barcodeProductToFoodItem maps nutrients to food tile fields', async () => {
+  const { barcodeProductToFoodItem } = await import('../../packages/shared/src/logging/barcodeFood.mjs');
+  const item = barcodeProductToFoodItem({
+    barcode: '1234567890123',
+    brand: 'Acme',
+    name: 'Protein Bar',
+    serving: '50 g',
+    nutrients: { energy_kcal: 400, proteins_g: 20 },
+  });
+  assert.equal(item.name, 'Acme, Protein Bar (50 g)');
+  assert.equal(item.calories, 200);
+  assert.equal(item.protein, 10);
+  assert.equal(item.barcode, '1234567890123');
 });
