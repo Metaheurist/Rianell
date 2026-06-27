@@ -72,17 +72,73 @@
           '<circle class="metric-pain-ring metric-pain-ring--1" cx="32" cy="36" r="14" fill="none" stroke="currentColor" stroke-width="2"/>' +
           '<circle class="metric-pain-core" cx="32" cy="36" r="9" fill="currentColor" opacity="0.35"/></svg>';
       case 'mobility':
-        return '<svg class="metric-svg metric-svg--mobility" viewBox="0 0 64 80" focusable="false" aria-hidden="true">' +
-          '<path class="metric-mobility-path" d="M32 8 C38 22 26 36 38 50 C30 64 34 72" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1.5" stroke-dasharray="3 4"/>' +
-          '<g class="metric-mobility-step metric-mobility-step--1" transform="translate(26 6)"><use href="#icon-footprint" width="12" height="12"/></g>' +
-          '<g class="metric-mobility-step metric-mobility-step--2" transform="translate(36 20)"><use href="#icon-footprint" width="12" height="12"/></g>' +
-          '<g class="metric-mobility-step metric-mobility-step--3" transform="translate(24 34)"><use href="#icon-footprint" width="12" height="12"/></g>' +
-          '<g class="metric-mobility-step metric-mobility-step--4" transform="translate(36 48)"><use href="#icon-footprint" width="12" height="12"/></g>' +
-          '<g class="metric-mobility-step metric-mobility-step--5" transform="translate(26 62)"><use href="#icon-footprint" width="12" height="12"/></g></svg>';
+        return '<svg class="metric-svg metric-svg--mobility" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
+          '<defs>' +
+          '<linearGradient id="metricMobilityTrailGrad" x1="36" y1="10" x2="36" y2="78" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0%" class="metric-mobility-grad-top"/><stop offset="100%" class="metric-mobility-grad-bot"/>' +
+          '</linearGradient>' +
+          '</defs>' +
+          '<path class="metric-mobility-trail-bg" d="M36 10 C44 24 28 38 44 52 C32 66 38 78" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6"/>' +
+          '<path class="metric-mobility-trail-fill" d="M36 10 C44 24 28 38 44 52 C32 66 38 78" fill="none" stroke="url(#metricMobilityTrailGrad)" stroke-width="2.5" stroke-linecap="round"/>' +
+          '<g class="metric-mobility-print metric-mobility-print--1" transform="translate(28 4) rotate(-14)">' +
+          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
+          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
+          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
+          '</g>' +
+          '<g class="metric-mobility-print metric-mobility-print--2" transform="translate(44 20) rotate(16)">' +
+          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
+          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
+          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
+          '</g>' +
+          '<g class="metric-mobility-print metric-mobility-print--3" transform="translate(22 36) rotate(-14)">' +
+          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
+          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
+          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
+          '</g>' +
+          '<g class="metric-mobility-print metric-mobility-print--4" transform="translate(42 52) rotate(16)">' +
+          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
+          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
+          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
+          '</g>' +
+          '<g class="metric-mobility-print metric-mobility-print--5" transform="translate(26 68) rotate(-14)">' +
+          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
+          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
+          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
+          '</g>' +
+          '<g class="metric-mobility-walker">' +
+          '<circle class="metric-mobility-head" cx="0" cy="0" r="5" fill="currentColor"/>' +
+          '<path class="metric-mobility-torso" d="M0 5 v16" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 21 L-7 36" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 21 L7 36" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 9 L-9 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 9 L9 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
+          '</g>' +
+          '<g class="metric-mobility-speed" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
+          '<line class="metric-mobility-speed-line metric-mobility-speed-line--1" x1="4" y1="44" x2="14" y2="44"/>' +
+          '<line class="metric-mobility-speed-line metric-mobility-speed-line--2" x1="2" y1="50" x2="12" y2="50"/>' +
+          '<line class="metric-mobility-speed-line metric-mobility-speed-line--3" x1="6" y1="56" x2="16" y2="56"/>' +
+          '</g></svg>';
       case 'swelling':
-        return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
-          '<ellipse class="metric-swell-outline" cx="32" cy="38" rx="14" ry="18" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>' +
-          '<ellipse class="metric-swell-blob" cx="32" cy="38" rx="10" ry="12" fill="currentColor" opacity="0.5"/></svg>';
+        return '<svg class="metric-svg metric-svg--swelling" viewBox="0 0 64 72" focusable="false" aria-hidden="true">' +
+          '<defs>' +
+          '<radialGradient id="metricSwellFluidGrad" cx="32" cy="40" r="18" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0%" class="metric-swell-grad-core"/><stop offset="72%" class="metric-swell-grad-mid"/><stop offset="100%" class="metric-swell-grad-edge"/>' +
+          '</radialGradient>' +
+          '</defs>' +
+          '<ellipse class="metric-swell-ring metric-swell-ring--3" cx="32" cy="40" rx="22" ry="26" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
+          '<ellipse class="metric-swell-ring metric-swell-ring--2" cx="32" cy="40" rx="17" ry="21" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+          '<ellipse class="metric-swell-ring metric-swell-ring--1" cx="32" cy="40" rx="12" ry="15" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+          '<path class="metric-swell-bone-h" d="M6 40 H58" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>' +
+          '<path class="metric-swell-bone-v" d="M32 16 V64" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>' +
+          '<ellipse class="metric-swell-fluid" cx="32" cy="40" rx="8" ry="10" fill="url(#metricSwellFluidGrad)"/>' +
+          '<ellipse class="metric-swell-shine" cx="28" cy="36" rx="3" ry="4" fill="rgba(255,255,255,0.22)"/>' +
+          '<g class="metric-swell-heat" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
+          '<path class="metric-swell-heat-line metric-swell-heat-line--1" d="M32 8 Q28 4 24 8"/>' +
+          '<path class="metric-swell-heat-line metric-swell-heat-line--2" d="M48 18 Q52 14 48 10"/>' +
+          '<path class="metric-swell-heat-line metric-swell-heat-line--3" d="M16 18 Q12 14 16 10"/>' +
+          '<path class="metric-swell-heat-line metric-swell-heat-line--4" d="M52 40 Q56 40 56 36"/>' +
+          '<path class="metric-swell-heat-line metric-swell-heat-line--5" d="M12 40 Q8 40 8 36"/>' +
+          '</g></svg>';
       case 'fatigue':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<rect class="metric-battery-cap" x="28" y="14" width="8" height="4" rx="1" fill="rgba(255,255,255,0.35)"/>' +
@@ -97,14 +153,28 @@
           '<circle class="metric-sleep-star metric-sleep-star--3" cx="16" cy="32" r="1.4" fill="currentColor"/>' +
           '<circle class="metric-sleep-star metric-sleep-star--4" cx="22" cy="40" r="1" fill="currentColor"/></svg>';
       case 'mood':
-        return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
-          '<circle class="metric-mood-sun" cx="24" cy="26" r="14" fill="currentColor" opacity="0.9"/>' +
-          '<g class="metric-mood-rays" stroke="currentColor" stroke-width="2" stroke-linecap="round">' +
-          '<line x1="24" y1="6" x2="24" y2="10"/><line x1="24" y1="42" x2="24" y2="46"/>' +
-          '<line x1="4" y1="26" x2="8" y2="26"/><line x1="40" y1="26" x2="44" y2="26"/>' +
-          '<line x1="10" y1="12" x2="13" y2="15"/><line x1="35" y1="37" x2="38" y2="40"/>' +
-          '<line x1="38" y1="12" x2="35" y2="15"/><line x1="13" y1="37" x2="10" y2="40"/></g>' +
-          '<path class="metric-mood-cloud" d="M44 38h-4a10 10 0 1 0-2-18a8 8 0 0 1 14 6a6 6 0 0 1 1 12z" fill="rgba(255,255,255,0.2)" stroke="currentColor" stroke-width="1.5"/></svg>';
+        return '<svg class="metric-svg metric-svg--mood" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
+          '<defs>' +
+          '<radialGradient id="metricMoodFaceGrad" cx="32" cy="28" r="30" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0%" class="metric-mood-grad-top"/><stop offset="100%" class="metric-mood-grad-bot"/>' +
+          '</radialGradient>' +
+          '</defs>' +
+          '<circle class="metric-mood-head" cx="32" cy="32" r="27" fill="url(#metricMoodFaceGrad)" stroke="rgba(255,255,255,0.16)" stroke-width="1.5"/>' +
+          '<ellipse class="metric-mood-cheek metric-mood-cheek--L" cx="18" cy="38" rx="5.5" ry="3.2" fill="currentColor"/>' +
+          '<ellipse class="metric-mood-cheek metric-mood-cheek--R" cx="46" cy="38" rx="5.5" ry="3.2" fill="currentColor"/>' +
+          '<path class="metric-mood-brow metric-mood-brow--L" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<path class="metric-mood-brow metric-mood-brow--R" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<ellipse class="metric-mood-eye metric-mood-eye--L" cx="22" cy="28" rx="3.6" ry="4.2" fill="currentColor"/>' +
+          '<ellipse class="metric-mood-eye metric-mood-eye--R" cx="42" cy="28" rx="3.6" ry="4.2" fill="currentColor"/>' +
+          '<circle class="metric-mood-shine metric-mood-shine--L" cx="23.2" cy="26.4" r="1.3" fill="rgba(255,255,255,0.75)"/>' +
+          '<circle class="metric-mood-shine metric-mood-shine--R" cx="43.2" cy="26.4" r="1.3" fill="rgba(255,255,255,0.75)"/>' +
+          '<path class="metric-mood-mouth" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
+          '<path class="metric-mood-tear metric-mood-tear--L" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+          '<path class="metric-mood-tear metric-mood-tear--R" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+          '<g class="metric-mood-sparkles" fill="currentColor">' +
+          '<path class="metric-mood-spark metric-mood-spark--1" d="M52 12 l1.8 3.6 l3.6 1.8 l-3.6 1.8 l-1.8 3.6 l-1.8-3.6 l-3.6-1.8 l3.6-1.8z"/>' +
+          '<path class="metric-mood-spark metric-mood-spark--2" d="M10 18 l1.2 2.4 l2.4 1.2 l-2.4 1.2 l-1.2 2.4 l-1.2-2.4 l-2.4-1.2 l2.4-1.2z"/>' +
+          '</g></svg>';
       case 'irritability':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<rect class="metric-steam-gauge-bg" x="24" y="16" width="16" height="36" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>' +
@@ -130,6 +200,65 @@
     }
   }
 
+  var MOBILITY_WALKER = [
+    { x: 38, y: 12, rot: -14 },
+    { x: 54, y: 28, rot: 16 },
+    { x: 32, y: 44, rot: -14 },
+    { x: 52, y: 60, rot: 16 },
+    { x: 36, y: 76, rot: -14 },
+  ];
+
+  function stampMobilityPrints(visual, prevLit, nextLit) {
+    if (nextLit <= prevLit) return;
+    visual.querySelectorAll('.metric-mobility-print').forEach(function (print, i) {
+      if (i >= prevLit && i < nextLit) {
+        print.classList.remove('metric-mobility-print--stamping');
+        void print.offsetWidth;
+        print.classList.add('metric-mobility-print--stamping');
+        global.setTimeout(function () {
+          print.classList.remove('metric-mobility-print--stamping');
+        }, 520);
+      }
+    });
+  }
+
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+
+  function updateMoodFace(visual, r) {
+    var mouth = visual.querySelector('.metric-mood-mouth');
+    if (mouth) {
+      var midY = lerp(47, 33, r);
+      var wingY = lerp(38, 40, r);
+      mouth.setAttribute('d', 'M19 ' + wingY.toFixed(1) + ' Q32 ' + midY.toFixed(1) + ' 45 ' + wingY.toFixed(1));
+    }
+    visual.querySelectorAll('.metric-mood-eye').forEach(function (eye) {
+      eye.setAttribute('ry', lerp(1.8, 4.6, r).toFixed(2));
+      eye.setAttribute('cy', lerp(30, 28, r).toFixed(2));
+    });
+    var browL = visual.querySelector('.metric-mood-brow--L');
+    var browR = visual.querySelector('.metric-mood-brow--R');
+    if (browL) {
+      browL.setAttribute('d', 'M16 ' + lerp(24, 21, r).toFixed(1) + ' Q22 ' + lerp(22, 18, r).toFixed(1) + ' 28 ' + lerp(24, 21, r).toFixed(1));
+    }
+    if (browR) {
+      browR.setAttribute('d', 'M36 ' + lerp(24, 21, r).toFixed(1) + ' Q42 ' + lerp(22, 18, r).toFixed(1) + ' 48 ' + lerp(24, 21, r).toFixed(1));
+    }
+    visual.querySelectorAll('.metric-mood-cheek').forEach(function (cheek) {
+      cheek.style.opacity = String(clamp((r - 0.45) / 0.55, 0, 0.55));
+    });
+    var tearL = visual.querySelector('.metric-mood-tear--L');
+    var tearR = visual.querySelector('.metric-mood-tear--R');
+    var tearOn = clamp((0.42 - r) / 0.42, 0, 1);
+    if (tearL) tearL.setAttribute('d', tearOn > 0.05 ? 'M22 33 Q21 38 22 42' : 'M22 33');
+    if (tearR) tearR.setAttribute('d', tearOn > 0.05 ? 'M42 33 Q43 38 42 42' : 'M42 33');
+    if (tearL) tearL.style.opacity = String(tearOn);
+    if (tearR) tearR.style.opacity = String(tearOn);
+    var sparkles = visual.querySelector('.metric-mood-sparkles');
+    if (sparkles) sparkles.style.opacity = String(clamp((r - 0.55) / 0.45, 0, 1));
+  }
+
   function applyVisualState(widget, id, value) {
     var v = parseInt(value, 10);
     if (isNaN(v)) v = 5;
@@ -153,18 +282,52 @@
       var core = visual.querySelector('.metric-pain-core');
       if (core) core.setAttribute('opacity', String(0.2 + sev * 0.75));
     } else if (kind === 'mobility') {
-      var lit = Math.ceil(r * 5);
-      visual.querySelectorAll('.metric-mobility-step').forEach(function (step, i) {
-        step.classList.toggle('metric-mobility-step--lit', i < lit);
+      var lit = Math.max(1, Math.ceil(r * 5));
+      var prevLit = parseInt(widget.dataset.mobilityLit || '0', 10);
+      stampMobilityPrints(visual, prevLit, lit);
+      widget.dataset.mobilityLit = String(lit);
+      visual.querySelectorAll('.metric-mobility-print').forEach(function (print, i) {
+        print.classList.toggle('metric-mobility-print--lit', i < lit);
       });
-    } else if (kind === 'swelling') {
-      var blob = visual.querySelector('.metric-swell-blob');
-      if (blob) {
-        var sx = 0.55 + r * 0.55;
-        var sy = 0.55 + r * 0.65;
-        blob.setAttribute('transform', 'scale(' + sx.toFixed(2) + ' ' + sy.toFixed(2) + ')');
-        blob.setAttribute('transform-origin', '32px 38px');
+      var trail = visual.querySelector('.metric-mobility-trail-fill');
+      if (trail) {
+        var trailLen = trail.getTotalLength ? trail.getTotalLength() : 120;
+        trail.style.strokeDasharray = trailLen.toFixed(1);
+        trail.style.strokeDashoffset = String(trailLen * (1 - r));
       }
+      var walker = visual.querySelector('.metric-mobility-walker');
+      if (walker) {
+        var pos = MOBILITY_WALKER[Math.min(lit, MOBILITY_WALKER.length) - 1];
+        walker.setAttribute('transform', 'translate(' + pos.x + ' ' + pos.y + ') rotate(' + pos.rot + ')');
+        walker.style.opacity = r > 0.08 ? '1' : '0.35';
+      }
+      var speed = visual.querySelector('.metric-mobility-speed');
+      if (speed) speed.style.opacity = String(clamp((r - 0.35) / 0.65, 0, 1));
+    } else if (kind === 'swelling') {
+      var fluid = visual.querySelector('.metric-swell-fluid');
+      var shine = visual.querySelector('.metric-swell-shine');
+      if (fluid) {
+        var rx = 4 + r * 14;
+        var ry = 5 + r * 16;
+        fluid.setAttribute('rx', rx.toFixed(1));
+        fluid.setAttribute('ry', ry.toFixed(1));
+      }
+      if (shine) shine.style.opacity = r > 0.25 ? String(0.15 + r * 0.35) : '0';
+      visual.querySelectorAll('.metric-swell-ring').forEach(function (ring, i) {
+        var threshold = 0.22 + i * 0.22;
+        var on = r >= threshold;
+        ring.classList.toggle('metric-swell-ring--on', on);
+        if (on) {
+          var scale = 0.88 + (r - threshold) * 0.35;
+          ring.setAttribute('transform', 'translate(32 40) scale(' + scale.toFixed(2) + ') translate(-32 -40)');
+        } else {
+          ring.removeAttribute('transform');
+        }
+      });
+      var heatLines = Math.ceil(r * 5);
+      visual.querySelectorAll('.metric-swell-heat-line').forEach(function (line, i) {
+        line.classList.toggle('metric-swell-heat-line--on', i < heatLines);
+      });
     } else if (kind === 'fatigue') {
       var fill = visual.querySelector('.metric-battery-fill');
       if (fill) {
@@ -179,14 +342,9 @@
         star.style.opacity = r >= (i + 1) * 0.22 ? '1' : '0.15';
       });
     } else if (kind === 'mood') {
-      var sunOp = 0.15 + r * 0.85;
-      var cloudOp = 0.85 - r * 0.7;
-      var sun = visual.querySelector('.metric-mood-sun');
-      var rays = visual.querySelector('.metric-mood-rays');
-      var cloud = visual.querySelector('.metric-mood-cloud');
-      if (sun) sun.setAttribute('opacity', String(sunOp));
-      if (rays) rays.style.opacity = String(sunOp);
-      if (cloud) cloud.setAttribute('opacity', String(cloudOp));
+      updateMoodFace(visual, r);
+      widget.classList.toggle('metric-widget--mood-happy', r >= 0.72);
+      widget.classList.toggle('metric-widget--mood-sad', r <= 0.28);
     } else if (kind === 'irritability') {
       var gauge = visual.querySelector('.metric-steam-gauge-fill');
       if (gauge) {

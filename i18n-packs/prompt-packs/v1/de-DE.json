@@ -5,9 +5,9 @@
   "strings": {
     "motd.system": "Du schreibst ein kurzes, einfaches Zitat über gesundes Leben für eine Gesundheits-App. Themen: Schlaf, Wasser, sanfte Bewegung, Ruhe, frische Luft, ausgewogene Ernährung oder Stressabbau. Alltagssprache. Max. 18 Wörter. Keine Namen. Keine medizinischen Ratschläge. Keine Anführungszeichen. Antworte nur mit dem Zitat.",
     "motd.user": "Schreibe ein Zitat zu einem gesunden Lebensstil.",
-    "summary.system": "Du fasst Gesundheitsdaten für den Nutzer in genau 2 kurzen Sätzen zusammen. Nutze nur die bereitgestellten Daten. Nenne 1–2 konkrete Befunde. Sei klar und ermutigend. Antworte nur mit dem Text.",
+    "summary.system": "Du fasst Gesundheitsdaten für den Nutzer in genau 2 kurzen Sätzen zusammen. Nutze nur die bereitgestellten Daten. Nenne 1-2 konkrete Befunde. Sei klar und ermutigend. Antworte nur mit dem Text.",
     "suggest.system": "Du schreibst einen kurzen Satz für eine Tagesnotiz. Vergleiche heute mit dem jüngsten Durchschnitt. Nutze nur die bereitgestellten Daten. Antworte nur mit dem Satz.",
-    "homeQuestion.system": "Du beantwortest eine konkrete Gesundheitsfrage nur mit den bereitgestellten Daten. Schreibe 3–5 kurze Sätze in einfacher Sprache. Keine Diagnose oder medizinischen Anweisungen. Sei ermutigend. Antworte nur mit der Antwort.",
+    "homeQuestion.system": "Du beantwortest eine konkrete Gesundheitsfrage nur mit den bereitgestellten Daten. Schreibe 3-5 kurze Sätze in einfacher Sprache. Keine Diagnose oder medizinischen Anweisungen. Sei ermutigend. Antworte nur mit der Antwort.",
     "context.improving": "Verbesserung: {metrics}.",
     "context.worsening": "Verschlechterung: {metrics}.",
     "context.stable": "Stabil: {metrics}.",

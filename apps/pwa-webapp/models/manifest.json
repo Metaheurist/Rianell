@@ -6,7 +6,7 @@
       "id": "onnx-community/SmolLM2-360M-Instruct-ONNX",
       "sourceRepo": "onnx-community/SmolLM2-360M-Instruct-ONNX",
       "revision": "main",
-      "label": "Tier 1–2 package",
+      "label": "Tier 1-2 package",
       "approxMb": 660,
       "files": [
         "config.json",
@@ -49,7 +49,7 @@
       "id": "onnx-community/Llama-3.2-1B-Instruct-ONNX",
       "sourceRepo": "onnx-community/Llama-3.2-1B-Instruct-ONNX",
       "revision": "main",
-      "label": "Tier 3–5 package",
+      "label": "Tier 3-5 package",
       "approxMb": 2800,
       "licenseNote": "Accept upstream model license on Hugging Face; set HF_TOKEN when downloading.",
       "files": [

@@ -206,7 +206,7 @@ function NeuralAnalysisNetwork(engine) {
     const predictionState = (options && options.predictionState) || { lastPredictions: {}, blendWeights: {} };
     const context = { trainingLogs, recentLogs, analysis, predictionState };
 
-    // Layer 1: Input – single pass over all data to build feature space (GPU correlation when available)
+    // Layer 1: Input - single pass over all data to build feature space (GPU correlation when available)
     await this.layerInput(context);
     await yieldToMain();
 
@@ -226,7 +226,7 @@ function NeuralAnalysisNetwork(engine) {
     this.layerRiskFlare(context);
     await yieldToMain();
 
-    // Layer 6: Cross-section (food, exercise, stressors, symptoms – all logs)
+    // Layer 6: Cross-section (food, exercise, stressors, symptoms - all logs)
     this.layerCrossSection(context);
     // Layer 7a: Clustering (full data for better clusters)
     this.layerClustering(context);
@@ -240,9 +240,9 @@ function NeuralAnalysisNetwork(engine) {
 
     // Layer 8: Output / advice
     this.layerAdvice(context);
-    // Layer 9: Interpretation – prioritise and dedupe insights for "what matters most"
+    // Layer 9: Interpretation - prioritise and dedupe insights for "what matters most"
     this.layerInterpretation(context);
-    // Layer 10: Summary – plain-language 2–3 sentence headline
+    // Layer 10: Summary - plain-language 2-3 sentence headline
     this.layerSummary(context);
     await yieldToMain();
 
@@ -3285,11 +3285,11 @@ const AIEngine = {
       else if (t.statusFromAverage === 'worsening' && worsening.length < 2) worsening.push(name);
     });
     if (worsening.length > 0) {
-      leadParts.push(`${worsening[0]} needs attention — track it daily and note what changed on harder days.`);
+      leadParts.push(`${worsening[0]} needs attention - track it daily and note what changed on harder days.`);
     } else if (improving.length > 0) {
-      leadParts.push(`${improving.slice(0, 2).join(' and ')} ${improving.length === 1 ? 'is' : 'are'} trending in a good direction — keep what is working.`);
+      leadParts.push(`${improving.slice(0, 2).join(' and ')} ${improving.length === 1 ? 'is' : 'are'} trending in a good direction - keep what is working.`);
     } else if (analysis.flareUpRisk && analysis.flareUpRisk.level === 'high') {
-      leadParts.push('Several flare warning signs showed up — prioritise rest and reach out to your care team if symptoms concern you.');
+      leadParts.push('Several flare warning signs showed up - prioritise rest and reach out to your care team if symptoms concern you.');
     } else if (analysis.prioritisedInsights && analysis.prioritisedInsights.length > 0) {
       leadParts.push(analysis.prioritisedInsights[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim());
     } else if (analysis.summary && analysis.summary.trim()) {
@@ -3314,7 +3314,7 @@ const AIEngine = {
     }
 
     const sentences = [...leadParts.slice(0, 2), ...actionParts.slice(0, 1)];
-    return sentences.filter(Boolean).join(' ') || 'Keep logging daily — your next insight appears as more entries build up.';
+    return sentences.filter(Boolean).join(' ') || 'Keep logging daily - your next insight appears as more entries build up.';
   },
 
   // Suggest a short note for a single log based on how today compares to recent baseline

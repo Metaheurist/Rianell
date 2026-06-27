@@ -1060,7 +1060,7 @@
     <symbol id="icon-weather-aqi-good" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="m9 11 2 2 4-4"/></symbol>
     <symbol id="icon-weather-aqi-moderate" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="M12 8v5"/><circle class="icon-fill" cx="12" cy="16" r="1"/></symbol>
     <symbol id="icon-weather-aqi-poor" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="M9.5 14.5h5"/></symbol>
-    <!-- AI Analysis tab — custom icons (2026 overhaul) -->
+    <!-- AI Analysis tab - custom icons (2026 overhaul) -->
     <symbol id="icon-brain-wave" viewBox="0 0 24 24"><path d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z"/><path d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z"/><path d="M3 12h2M19 12h2M6 16h1.5M16.5 16H18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="icon-heart-pulse" viewBox="0 0 24 24"><path d="M12 20s-6-3.5-6-9a4 4 0 0 1 7-2.5A4 4 0 0 1 20 11c0 5.5-6 9-6 9Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M4 12h3l2-3 3 6 2-4h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-shield-check" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 8.7 7 9.8 4-1.1 7-5.3 7-9.8V6l-7-3Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -2394,7 +2394,7 @@
                 <div class="bbt-thermo-controls">
                   <div class="bbt-thermo-readout-row">
                     <div class="bbt-thermo-readout">
-                      <span class="bbt-thermo-value" id="bbtValueDisplay" aria-live="polite">—</span>
+                      <span class="bbt-thermo-value" id="bbtValueDisplay" aria-live="polite">-</span>
                       <span class="bbt-thermo-value-unit" id="bbtValueUnitSuffix" aria-hidden="true">°C</span>
                     </div>
                     <button type="button" id="temperatureUnitToggle" class="bbt-thermo-unit-btn unit-toggle-btn" onclick="toggleTemperatureUnit()" aria-label="Toggle temperature unit" data-i18n-aria="common.toggle.temperature.unit">
@@ -2430,36 +2430,13 @@
           <span class="section-title">Basic Metrics <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="basicMetrics">
-      <label for="bpm" class="field-label-with-icon" data-i18n="common.resting.bpm">
-        <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-activity"></use></svg>
-        Resting BPM
-      </label>
-      <div class="input-container">
-        <input type="number" id="bpm" min="30" max="120" />
-        <div class="validation-message" id="bpm-error"></div>
-      </div>
-
-          <div class="weight-label-container">
-            <label for="weight" class="field-label-with-icon" data-i18n="charts.metric.weight">
-              <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-balance"></use></svg>
-              Weight
-            </label>
-            <button type="button" id="weightUnitToggle" class="unit-toggle-btn" onclick="toggleWeightUnit()" title="Toggle between kg and lb" data-i18n-title="common.toggle.between.kg.and.lb">
-              <span id="weightUnitDisplay" data-i18n="units.kg">kg</span>
-            </button>
-          </div>
-      <div class="input-container">
-        <input type="number" id="weight" min="40" max="200" step="0.1" />
-        <div class="validation-message" id="weight-error"></div>
-          </div>
-
           <div id="bpStep" class="vitals-extended-block">
             <label class="field-label-with-icon" data-i18n="wizard.vitals.bloodPressure">
               <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-stethoscope"></use></svg>
               Blood pressure
             </label>
             <div class="bp-dial-widget" id="bpDialWidget" data-bp-active="false" data-bp-zone="idle" aria-labelledby="bpDialLabel">
-              <p class="bp-dial-hint" id="bpDialLabel" data-i18n="wizard.vitals.bp.slideHint">Slide drums to set systolic and diastolic</p>
+              <p class="bp-dial-hint" id="bpDialLabel" data-i18n="wizard.vitals.bp.slideHint">Slide drums to set blood pressure and heart rate</p>
               <div class="bp-dial-body">
                 <div class="bp-dial-visual" aria-hidden="true">
                   <div class="bp-dial-glow"></div>
@@ -2470,41 +2447,42 @@
                 </div>
                 <div class="bp-dial-main">
                   <div class="bp-dial-readout" aria-live="polite">
-                    <span class="bp-dial-value" id="bpSysDisplay">—</span>
-                    <span class="bp-dial-sep" aria-hidden="true">/</span>
-                    <span class="bp-dial-value" id="bpDiaDisplay">—</span>
+                    <span class="bp-dial-value" id="bpSysDisplay">-</span>
                     <span class="bp-dial-unit" data-i18n="wizard.vitals.bp.unit">mmHg</span>
+                    <span class="bp-dial-sep" aria-hidden="true">/</span>
+                    <span class="bp-dial-value" id="bpBpmDisplay">-</span>
+                    <span class="bp-dial-unit bp-dial-unit--bpm" data-i18n="common.bpm">bpm</span>
                   </div>
-                  <span class="bp-zone-badge" id="bpZoneBadge">—</span>
+                  <span class="bp-zone-badge" id="bpZoneBadge">-</span>
                   <p class="bp-validation-hint" id="bpValidationHint" hidden></p>
                   <div class="bp-drum-row">
                     <div class="bp-drum-col">
-                      <span class="bp-drum-label" data-i18n="wizard.vitals.bp.systolic">Systolic</span>
+                      <span class="bp-drum-label" data-i18n="wizard.vitals.bloodPressure">Blood pressure</span>
                       <div class="bp-drum-shell">
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="-1" aria-label="Decrease systolic" data-i18n-aria="common.decrease.systolic">−</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="-1" aria-label="Decrease blood pressure" data-i18n-aria="common.decrease.blood.pressure">−</button>
                         <div class="bp-drum-window">
                           <div class="bp-drum-highlight" aria-hidden="true"></div>
-                          <div class="bp-drum-scroll" id="bpSystolicDrum" role="listbox" aria-label="Systolic blood pressure" data-i18n-aria="common.systolic.blood.pressure" tabindex="0"></div>
+                          <div class="bp-drum-scroll" id="bpSystolicDrum" role="listbox" aria-label="Blood pressure" data-i18n-aria="wizard.vitals.bloodPressure" tabindex="0"></div>
                         </div>
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="1" aria-label="Increase systolic" data-i18n-aria="common.increase.systolic">+</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="1" aria-label="Increase blood pressure" data-i18n-aria="common.increase.blood.pressure">+</button>
                       </div>
                     </div>
                     <div class="bp-drum-col">
-                      <span class="bp-drum-label" data-i18n="wizard.vitals.bp.diastolic">Diastolic</span>
+                      <span class="bp-drum-label" data-i18n="common.resting.bpm">Resting BPM</span>
                       <div class="bp-drum-shell">
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="-1" aria-label="Decrease diastolic" data-i18n-aria="common.decrease.diastolic">−</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="bpm" data-delta="-1" aria-label="Decrease resting BPM" data-i18n-aria="common.decrease.resting.bpm">−</button>
                         <div class="bp-drum-window">
                           <div class="bp-drum-highlight" aria-hidden="true"></div>
-                          <div class="bp-drum-scroll" id="bpDiastolicDrum" role="listbox" aria-label="Diastolic blood pressure" data-i18n-aria="common.diastolic.blood.pressure" tabindex="0"></div>
+                          <div class="bp-drum-scroll" id="bpBpmDrum" role="listbox" aria-label="Resting BPM" data-i18n-aria="common.resting.bpm" tabindex="0"></div>
                         </div>
-                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="1" aria-label="Increase diastolic" data-i18n-aria="common.increase.diastolic">+</button>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="bpm" data-delta="1" aria-label="Increase resting BPM" data-i18n-aria="common.increase.resting.bpm">+</button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
               <input type="hidden" id="bloodPressureSystolic" name="bloodPressureSystolic" value="" />
-              <input type="hidden" id="bloodPressureDiastolic" name="bloodPressureDiastolic" value="" />
+              <input type="hidden" id="bpm" name="bpm" value="" />
             </div>
 
             <!-- Advanced vitals - collapsed by default -->
@@ -2530,15 +2508,28 @@
                     <div class="vital-widget__visual glucose-visual" aria-hidden="true">
                       <div class="glucose-droplet-wrap">
                         <svg class="glucose-droplet-svg" viewBox="0 0 64 96" focusable="false">
+                          <defs>
+                            <clipPath id="glucoseDropletClip"><path d="M32 4 C18 30 8 48 8 62 C8 78 18 90 32 92 C46 90 56 78 56 62 C56 48 46 30 32 4 Z"/></clipPath>
+                            <linearGradient id="glucoseLiquidGrad" x1="32" y1="92" x2="32" y2="8" gradientUnits="userSpaceOnUse">
+                              <stop offset="0%" class="glucose-liquid-stop-deep"/>
+                              <stop offset="55%" class="glucose-liquid-stop-mid"/>
+                              <stop offset="100%" class="glucose-liquid-stop-shine"/>
+                            </linearGradient>
+                          </defs>
                           <path class="glucose-droplet-outline" d="M32 4 C18 30 8 48 8 62 C8 78 18 90 32 92 C46 90 56 78 56 62 C56 48 46 30 32 4 Z"/>
-                          <clipPath id="glucoseDropletClip"><path d="M32 4 C18 30 8 48 8 62 C8 78 18 90 32 92 C46 90 56 78 56 62 C56 48 46 30 32 4 Z"/></clipPath>
-                          <rect class="glucose-droplet-fill" id="glucoseDropletFill" x="8" y="92" width="48" height="88" clip-path="url(#glucoseDropletClip)"/>
+                          <g clip-path="url(#glucoseDropletClip)" class="glucose-liquid-clip">
+                            <rect class="glucose-droplet-fill" id="glucoseDropletFill" x="8" y="92" width="48" height="0"/>
+                            <g class="glucose-liquid-surface" id="glucoseLiquidSurface" transform="translate(8 92)">
+                              <path class="glucose-wave glucose-wave--1" d="M0 0 C8 -4 16 3 24 0 S40 -3 48 0 L48 8 L0 8 Z"/>
+                              <path class="glucose-wave glucose-wave--2" d="M0 1 C10 -2 20 4 30 1 S44 -1 48 1 L48 9 L0 9 Z"/>
+                            </g>
+                          </g>
                         </svg>
                       </div>
                     </div>
                     <div class="vital-widget__controls">
                       <div class="vital-readout" aria-live="polite">
-                        <span class="vital-readout__value" id="glucoseValueDisplay">—</span>
+                        <span class="vital-readout__value" id="glucoseValueDisplay">-</span>
                         <span class="vital-readout__unit" id="glucoseUnitSuffix" data-i18n="units.mmol">mmol/L</span>
                       </div>
                       <span class="vital-zone-badge" id="glucoseZoneBadge"></span>
@@ -2569,7 +2560,7 @@
                     </div>
                     <div class="vital-widget__controls">
                       <div class="vital-readout" aria-live="polite">
-                        <span class="vital-readout__value" id="spo2ValueDisplay">—</span>
+                        <span class="vital-readout__value" id="spo2ValueDisplay">-</span>
                         <span class="vital-readout__unit" data-i18n="wizard.vitals.spO2.unit">%</span>
                       </div>
                       <span class="vital-zone-badge" id="spo2ZoneBadge"></span>
@@ -2599,7 +2590,7 @@
                     </div>
                     <div class="vital-widget__controls">
                       <div class="vital-readout" aria-live="polite">
-                        <span class="vital-readout__value" id="hrvValueDisplay">—</span>
+                        <span class="vital-readout__value" id="hrvValueDisplay">-</span>
                         <span class="vital-readout__unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
                       </div>
                       <span class="vital-zone-badge" id="hrvZoneBadge"></span>
@@ -2639,7 +2630,7 @@
                     </div>
                     <div class="vital-widget__controls">
                       <div class="vital-readout" aria-live="polite">
-                        <span class="vital-readout__value" id="bodyWeightValueDisplay">—</span>
+                        <span class="vital-readout__value" id="bodyWeightValueDisplay">-</span>
                         <span class="vital-readout__unit" id="bodyWeightUnitSuffix">kg</span>
                       </div>
                       <span class="vital-zone-badge" id="bodyWeightZoneBadge"></span>
@@ -2911,7 +2902,7 @@
               </div>
               <div class="vital-widget__controls">
                 <div class="vital-readout" aria-live="polite">
-                  <span class="vital-readout__value" id="stepsValueDisplay">—</span>
+                  <span class="vital-readout__value" id="stepsValueDisplay">-</span>
                   <span class="vital-readout__unit" data-i18n="common.steps.unit">steps</span>
                 </div>
                 <span class="vital-zone-badge" id="stepsZoneBadge"></span>
@@ -2956,7 +2947,7 @@
               </div>
               <div class="vital-widget__controls">
                 <div class="vital-readout" aria-live="polite">
-                  <span class="vital-readout__value" id="hydrationValueDisplay">—</span>
+                  <span class="vital-readout__value" id="hydrationValueDisplay">-</span>
                   <span class="vital-readout__unit" data-i18n="common.glasses">glasses</span>
                 </div>
                 <span class="vital-zone-badge" id="hydrationZoneBadge"></span>
@@ -4862,7 +4853,7 @@
   <script defer src="llm-load-ladder-sync.js?v=3"></script>
   <script defer src="device-benchmark.js?v=7"></script>
   <script defer src="performance-utils.js"></script>
-  <script defer src="modules/log-metric-widgets.js?v=1"></script>
+  <script defer src="modules/log-metric-widgets.js?v=3"></script>
   <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=3"></script>
   <script defer src="push-subscribe.js?v=1"></script>
@@ -4904,8 +4895,8 @@
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
   <script defer src="modules/vitals-suggest-ui.js?v=3"></script>
-  <script defer src="modules/bp-input-widget.js?v=1"></script>
-  <script defer src="modules/advanced-vitals-widgets.js?v=1"></script>
+  <script defer src="modules/bp-input-widget.js?v=2"></script>
+  <script defer src="modules/advanced-vitals-widgets.js?v=2"></script>
   <script defer src="modules/lifestyle-vitals-widgets.js?v=2"></script>
   <script defer src="modules/weekly-review.js?v=7"></script>
   <script defer src="modules/mood-tab.js?v=6"></script>

@@ -83,7 +83,7 @@ export function buildHomeQuestionPrompt(locale, context, options = {}) {
       pack,
       'homeQuestion.system',
       'You answer one specific health-tracking question using only the data provided. '
-        + 'Write 3–5 short sentences in plain language. No diagnosis or medical orders. '
+        + 'Write 3-5 short sentences in plain language. No diagnosis or medical orders. '
         + 'Be encouraging. Reply with only the answer text.',
     ),
     pack,

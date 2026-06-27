@@ -317,7 +317,7 @@ export function buildHomeQuestionFallback(suggestion, analysis) {
     return `You logged ${snap.flareDays} flare day(s) recently. Note sleep, stress, and activity around those dates.`;
   }
   if (id.startsWith('trend-') && snap.avgFatigue != null) {
-    return `Recent averages - fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : '-'}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : '-'} (1–10).`;
+    return `Recent averages - fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : '-'}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : '-'} (1-10).`;
   }
   if (id === 'stressor' && suggestion.labelParams?.stressor) {
     return `${suggestion.labelParams.stressor} shows up in your stress logs - consider pacing and recovery after high-stress days.`;
