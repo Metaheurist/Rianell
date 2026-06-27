@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=104" as="style">
-  <link rel="modulepreload" href="app.js?v=50" crossorigin>
+  <link rel="preload" href="styles.css?v=114" as="style">
+  <link rel="modulepreload" href="app.js?v=52" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=104" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=104&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=114" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=114&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -1007,7 +1007,18 @@
     <symbol id="icon-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51 15.42 17.49"/><path d="M15.41 6.51 8.59 10.49"/></symbol>
     <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18"/><path d="M12 3a15 15 0 0 0 0 18"/></symbol>
     <symbol id="icon-qr" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v6h-2zM14 18h2v2h-2z"/></symbol>
-    <symbol id="icon-barcode-scan" viewBox="0 0 24 24"><path d="M4 7V5a1 1 0 0 1 1-1h2M4 17v2a1 1 0 0 0 1 1h2M20 7V5a1 1 0 0 0-1-1h-2M20 17v2a1 1 0 0 1-1 1h-2" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M5 8h2.5v8H5zM9 8h1v8H9zM11.5 8H13v8h-1.5zM15 8h1v8h-1zM18.5 8H20v8h-1.5z" fill="currentColor" stroke="none" opacity="0.92"/><path d="M3 12h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.55"/></symbol>
+    <symbol id="icon-barcode-scan" viewBox="0 0 24 24">
+      <path d="M3 7V5a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M3 17v2a2 2 0 0 0 2 2h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M21 7V5a2 2 0 0 0-2-2h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M21 17v2a2 2 0 0 1-2 2h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <rect x="6" y="8" width="2" height="8" rx="0.5" fill="currentColor"/>
+      <rect x="9.25" y="8" width="1.25" height="8" rx="0.4" fill="currentColor"/>
+      <rect x="11.75" y="8" width="2.5" height="8" rx="0.4" fill="currentColor"/>
+      <rect x="15.75" y="8" width="1.25" height="8" rx="0.4" fill="currentColor"/>
+      <rect x="18" y="8" width="2" height="8" rx="0.5" fill="currentColor"/>
+      <path class="barcode-scan-line" d="M5 12h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.65"/>
+    </symbol>
     <symbol id="icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"/><path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"/></symbol>
     <symbol id="icon-bundle" viewBox="0 0 24 24"><path d="M8 3h9l3 3v14H8Z"/><path d="M16 3v4h4"/><path d="M5 7h9l2 2v12H5Z"/><path d="M12 7v3h3"/></symbol>
     <symbol id="icon-cloud-up" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/><path d="M12 11v6"/><path d="m9.5 14.5 2.5-3.5 2.5 3.5"/></symbol>
@@ -1016,6 +1027,8 @@
     <symbol id="icon-apple" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M16.365 20.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C2.905 17 1.595 12.45 3.355 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M12.655 4.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></symbol>
     <symbol id="icon-life-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
     <symbol id="icon-run" viewBox="0 0 24 24"><circle cx="14.5" cy="4.5" r="2.2"/><path d="M12 8 9 12 7.5 19"/><path d="M12 8 15.5 10.5 19.5 9"/><path d="M9 12 13.5 14"/><path d="M13.5 14 17 20"/></symbol>
+    <symbol id="icon-footprint" viewBox="0 0 24 24"><ellipse cx="12" cy="16.5" rx="4.2" ry="5.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="9.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="11.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="14.8" cy="9.2" r="1.6" fill="currentColor" stroke="none"/><circle cx="16.8" cy="12.2" r="1.4" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="icon-glass-water" viewBox="0 0 24 24"><path d="M8 2h8l-1.2 18.5H9.2L8 2Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M8.5 20.5h7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M9.5 6h5" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.45"/></symbol>
     <symbol id="icon-stethoscope" viewBox="0 0 24 24"><path d="M7 5.5a2.5 2.5 0 1 1 5 0"/><path d="M9.5 8v5.5a4 4 0 0 0 8 0V9"/><circle cx="19" cy="17" r="2.8"/><path d="M19 14.2V12"/></symbol>
     <symbol id="icon-bandage" viewBox="0 0 24 24"><rect x="5" y="9" width="14" height="7" rx="1.8"/><path d="M9 12.5h6M12 9v7"/></symbol>
     <symbol id="icon-pill" viewBox="0 0 24 24"><path d="M8.2 5.2a4.8 4.8 0 0 1 6.8 0l2.8 2.8a4.8 4.8 0 0 1 0 6.8l-2.8 2.8a4.8 4.8 0 0 1-6.8 0L5.4 12a4.8 4.8 0 0 1 0-6.8Z"/><path d="m14.8 7.2 2 2"/></symbol>
@@ -1029,24 +1042,24 @@
     <symbol id="icon-cycle-follicular" viewBox="0 0 24 24"><path d="M12 20V8.5M12 8.5C10.2 8.5 8.8 7 8.8 5.2S10.2 1.8 12 1.8 15.2 3.4 15.2 5.2 13.8 8.5 12 8.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 14.5c.8 1.6 2.2 2.5 2.5 2.5s1.7-.9 2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
     <symbol id="icon-cycle-ovulation" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
     <symbol id="icon-cycle-luteal" viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 19 14.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-    <symbol id="icon-weather-clear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
-    <symbol id="icon-weather-partly-cloudy" viewBox="0 0 24 24"><circle cx="8.5" cy="9" r="3"/><path d="M8.5 5.5V4M8.5 14v1.5M4.5 9H3M14 9h1.5M5.4 5.4 4.3 4.3M11.7 12.7l1.1 1.1M5.4 12.6 4.3 13.7M11.7 5.4 12.8 4.3"/><path d="M7 18h10.5a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.5 1.8A4 4 0 0 0 7 18Z"/></symbol>
-    <symbol id="icon-weather-cloudy" viewBox="0 0 24 24"><path d="M7 18h11a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/></symbol>
-    <symbol id="icon-weather-fog" viewBox="0 0 24 24"><path d="M6 14h12M4 18h16M8 10h8"/><path d="M7 18h10a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.2-1.8A4 4 0 0 0 7 18Z"/></symbol>
-    <symbol id="icon-weather-rain" viewBox="0 0 24 24"><path d="M7 13h10a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 13Z"/><path d="m9 17 1 2M12 16l1 2M15 17l1 2"/></symbol>
-    <symbol id="icon-weather-snow" viewBox="0 0 24 24"><path d="M7 13h10a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 13Z"/><path d="M10 16v3M12 15v4M14 16v3M11 17h2M11 18h2"/></symbol>
-    <symbol id="icon-weather-thunder" viewBox="0 0 24 24"><path d="M7 13h10a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 13Z"/><path d="m11 16-2 4h3l-1 4 4-6h-3l1-2"/></symbol>
-    <symbol id="icon-weather-unknown" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.2 1.8c0 1.5-1.2 2.2-2 2.8-.5.4-.7.7-.7 1.2"/><circle cx="12" cy="17.2" r=".8" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="icon-weather-temp-cold" viewBox="0 0 24 24"><path d="M10 3v12.2a4 4 0 1 0 4 0V3"/><path d="M10 9h4"/><path d="m14 4-2 2-2-2"/></symbol>
-    <symbol id="icon-weather-temp-mild" viewBox="0 0 24 24"><path d="M10 3v12.2a4 4 0 1 0 4 0V3"/><path d="M10 9h4"/></symbol>
-    <symbol id="icon-weather-temp-warm" viewBox="0 0 24 24"><path d="M10 3v12.2a4 4 0 1 0 4 0V3"/><path d="M10 9h4"/><path d="M16 8l1.5 1.5L16 11"/></symbol>
-    <symbol id="icon-weather-temp-hot" viewBox="0 0 24 24"><path d="M10 3v12.2a4 4 0 1 0 4 0V3"/><path d="M10 9h4"/><path d="m16 6 2 3-2 3"/></symbol>
-    <symbol id="icon-weather-pressure" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="icon-weather-pressure-low" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8 14 4-5 4 5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="icon-weather-pressure-high" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8 10 4 5 4-5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="icon-weather-aqi-good" viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-10a6 6 0 0 1 12 0c0 5.65-6 10-6 10Z"/><path d="M9.5 11.5 11 13l3.5-4"/></symbol>
-    <symbol id="icon-weather-aqi-moderate" viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-10a6 6 0 0 1 12 0c0 5.65-6 10-6 10Z"/><path d="M12 8v5M12 16h.01"/></symbol>
-    <symbol id="icon-weather-aqi-poor" viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-10a6 6 0 0 1 12 0c0 5.65-6 10-6 10Z"/><path d="M9.5 14.5h5"/></symbol>
+    <symbol id="icon-weather-clear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></symbol>
+    <symbol id="icon-weather-partly-cloudy" viewBox="0 0 24 24"><path d="M12 2v2M4.93 4.93l1.41 1.41M2 12h2"/><circle cx="12" cy="10" r="3.5"/><path d="M20 17a4.2 4.2 0 0 0-7.8-1.4A4.8 4.8 0 0 0 7 17h13Z"/></symbol>
+    <symbol id="icon-weather-cloudy" viewBox="0 0 24 24"><path d="M18 17H7a4.5 4.5 0 0 1-.4-9 5.8 5.8 0 0 1 11.2 2.1A4 4 0 0 1 18 17Z"/></symbol>
+    <symbol id="icon-weather-fog" viewBox="0 0 24 24"><path d="M18 14H7a4 4 0 0 1-.3-8 5.5 5.5 0 0 1 10.5 1.7A4 4 0 0 1 18 14Z"/><path d="M5 18h14M7 21h10"/></symbol>
+    <symbol id="icon-weather-rain" viewBox="0 0 24 24"><path d="M18 14H7a4 4 0 0 1-.3-8 5.5 5.5 0 0 1 10.5 1.7A4 4 0 0 1 18 14Z"/><path d="M8 18v2M12 18v2M16 18v2"/></symbol>
+    <symbol id="icon-weather-snow" viewBox="0 0 24 24"><path d="M18 14H7a4 4 0 0 1-.3-8 5.5 5.5 0 0 1 10.5 1.7A4 4 0 0 1 18 14Z"/><path d="M10 19v2M14 19v2M12 17v4M11 20h2"/></symbol>
+    <symbol id="icon-weather-thunder" viewBox="0 0 24 24"><path d="M18 14H7a4 4 0 0 1-.3-8 5.5 5.5 0 0 1 10.5 1.7A4 4 0 0 1 18 14Z"/><path d="M13 17l-2 4h2.5l-1.5 3 3.5-5h-2.5l1.5-2"/></symbol>
+    <symbol id="icon-weather-unknown" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.8 2.8 0 0 1 4.5 2.2c0 1.4-1.2 2.1-2 2.7-.6.5-.9.9-.9 1.6"/><circle class="icon-fill" cx="12" cy="17" r="1"/></symbol>
+    <symbol id="icon-weather-temp-cold" viewBox="0 0 24 24"><path d="M14 15.5V4a2.5 2.5 0 0 0-5 0v11.5a4 4 0 1 0 5 0Z"/><path d="M9 9h2"/><path d="M16 8l-1.5 1.5L16 11"/></symbol>
+    <symbol id="icon-weather-temp-mild" viewBox="0 0 24 24"><path d="M14 15.5V4a2.5 2.5 0 0 0-5 0v11.5a4 4 0 1 0 5 0Z"/><path d="M9 9h2"/></symbol>
+    <symbol id="icon-weather-temp-warm" viewBox="0 0 24 24"><path d="M14 15.5V4a2.5 2.5 0 0 0-5 0v11.5a4 4 0 1 0 5 0Z"/><path d="M9 9h2"/><path d="M16 8l1.5 1.5L16 11"/></symbol>
+    <symbol id="icon-weather-temp-hot" viewBox="0 0 24 24"><path d="M14 15.5V4a2.5 2.5 0 0 0-5 0v11.5a4 4 0 1 0 5 0Z"/><path d="M9 9h2"/><path d="m16 6 2 3-2 3"/></symbol>
+    <symbol id="icon-weather-pressure" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/><circle class="icon-fill" cx="12" cy="12" r="1.2"/></symbol>
+    <symbol id="icon-weather-pressure-low" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8 14 4-5 4 5"/><circle class="icon-fill" cx="12" cy="12" r="1.2"/></symbol>
+    <symbol id="icon-weather-pressure-high" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8 10 4 5 4-5"/><circle class="icon-fill" cx="12" cy="12" r="1.2"/></symbol>
+    <symbol id="icon-weather-aqi-good" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="m9 11 2 2 4-4"/></symbol>
+    <symbol id="icon-weather-aqi-moderate" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="M12 8v5"/><circle class="icon-fill" cx="12" cy="16" r="1"/></symbol>
+    <symbol id="icon-weather-aqi-poor" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="M9.5 14.5h5"/></symbol>
     <!-- AI Analysis tab — custom icons (2026 overhaul) -->
     <symbol id="icon-brain-wave" viewBox="0 0 24 24"><path d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z"/><path d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z"/><path d="M3 12h2M19 12h2M6 16h1.5M16.5 16H18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="icon-heart-pulse" viewBox="0 0 24 24"><path d="M12 20s-6-3.5-6-9a4 4 0 0 1 7-2.5A4 4 0 0 1 20 11c0 5.5-6 9-6 9Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M4 12h3l2-3 3 6 2-4h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -1537,13 +1550,13 @@
           <div class="toggle-switch" id="cycleModuleToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('cycleModuleEnabled')"></div>
         </div>
         <div class="settings-option">
+          <label data-i18n="settings.logging.digestiveModule">Digestion module (Bristol scale)</label>
+          <div class="toggle-switch" id="digestiveModuleToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('digestiveModuleEnabled')"></div>
+        </div>
+        <div class="settings-option">
           <label data-i18n="settings.logging.barcodeFood">Barcode food logging</label>
           <div class="toggle-switch" id="barcodeFoodLoggingToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleBarcodeFoodLoggingSetting()"></div>
           <p class="settings-hint settings-option-hint" data-i18n="settings.logging.barcodeFood.hint">Uses your camera to scan barcodes and Open Food Facts to look up nutrition.</p>
-        </div>
-        <div class="settings-option">
-          <label data-i18n="settings.logging.digestiveModule">Digestion module (Bristol scale)</label>
-          <div class="toggle-switch" id="digestiveModuleToggle" role="switch" tabindex="0" aria-checked="false" onclick="toggleSetting('digestiveModuleEnabled')"></div>
         </div>
         <div class="settings-section settings-units-section">
           <h4 data-i18n="settings.units.title">Units</h4>
@@ -1733,10 +1746,10 @@
         </div>
         <div id="connectorStatusMsg" class="settings-hint connector-status-msg" hidden aria-live="polite"></div>
       </div>
-      <div class="settings-section" style="margin-top: 16px;">
+      <div class="settings-section settings-section--import">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-save"></use></svg><span data-i18n="settings.data.import.title">Import from another app</span></h4>
         <p class="settings-hint" data-i18n="settings.migration.lead">Import your health data from Bearable, Flaredown, Oura, Daylio, Apple Health, or Garmin.</p>
-        <button type="button" class="settings-data-btn" onclick="openMigrationWizard()" data-i18n="settings.migration.openWizard">Open import wizard</button>
+        <button type="button" class="settings-data-btn settings-data-btn--accent" onclick="openMigrationWizard()" data-i18n="settings.migration.openWizard">Open import wizard</button>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Security lock" data-i18n-title="settings.security.title" data-settings-pane-i18n="settings.security.title" role="tabpanel" aria-hidden="true">
@@ -2445,17 +2458,53 @@
               <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-stethoscope"></use></svg>
               Blood pressure
             </label>
-            <div class="vitals-inline-row">
-              <div class="input-container">
-                <label for="bloodPressureSystolic" class="visually-hidden" data-i18n="wizard.vitals.bp.systolic">Systolic</label>
-                <input type="number" id="bloodPressureSystolic" min="60" max="250" step="1" placeholder="120" data-i18n-placeholder="wizard.vitals.bp.systolic" />
+            <div class="bp-dial-widget" id="bpDialWidget" data-bp-active="false" data-bp-zone="idle" aria-labelledby="bpDialLabel">
+              <p class="bp-dial-hint" id="bpDialLabel" data-i18n="wizard.vitals.bp.slideHint">Slide drums to set systolic and diastolic</p>
+              <div class="bp-dial-body">
+                <div class="bp-dial-visual" aria-hidden="true">
+                  <div class="bp-dial-glow"></div>
+                  <svg class="bp-dial-heart-svg" viewBox="0 0 120 88" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                    <path class="bp-dial-heart" d="M60 78 C28 52 8 36 8 22 C8 10 18 4 30 4 C42 4 52 12 60 22 C68 12 78 4 90 4 C102 4 112 10 112 22 C112 36 92 52 60 78 Z"/>
+                    <polyline class="bp-dial-ekg" points="4,44 18,44 24,28 32,58 40,44 52,44 58,36 64,52 72,44 84,44 90,32 96,52 104,44 116,44"/>
+                  </svg>
+                </div>
+                <div class="bp-dial-main">
+                  <div class="bp-dial-readout" aria-live="polite">
+                    <span class="bp-dial-value" id="bpSysDisplay">—</span>
+                    <span class="bp-dial-sep" aria-hidden="true">/</span>
+                    <span class="bp-dial-value" id="bpDiaDisplay">—</span>
+                    <span class="bp-dial-unit" data-i18n="wizard.vitals.bp.unit">mmHg</span>
+                  </div>
+                  <span class="bp-zone-badge" id="bpZoneBadge">—</span>
+                  <p class="bp-validation-hint" id="bpValidationHint" hidden></p>
+                  <div class="bp-drum-row">
+                    <div class="bp-drum-col">
+                      <span class="bp-drum-label" data-i18n="wizard.vitals.bp.systolic">Systolic</span>
+                      <div class="bp-drum-shell">
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="-1" aria-label="Decrease systolic" data-i18n-aria="common.decrease.systolic">−</button>
+                        <div class="bp-drum-window">
+                          <div class="bp-drum-highlight" aria-hidden="true"></div>
+                          <div class="bp-drum-scroll" id="bpSystolicDrum" role="listbox" aria-label="Systolic blood pressure" data-i18n-aria="common.systolic.blood.pressure" tabindex="0"></div>
+                        </div>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="sys" data-delta="1" aria-label="Increase systolic" data-i18n-aria="common.increase.systolic">+</button>
+                      </div>
+                    </div>
+                    <div class="bp-drum-col">
+                      <span class="bp-drum-label" data-i18n="wizard.vitals.bp.diastolic">Diastolic</span>
+                      <div class="bp-drum-shell">
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="-1" aria-label="Decrease diastolic" data-i18n-aria="common.decrease.diastolic">−</button>
+                        <div class="bp-drum-window">
+                          <div class="bp-drum-highlight" aria-hidden="true"></div>
+                          <div class="bp-drum-scroll" id="bpDiastolicDrum" role="listbox" aria-label="Diastolic blood pressure" data-i18n-aria="common.diastolic.blood.pressure" tabindex="0"></div>
+                        </div>
+                        <button type="button" class="bp-drum-nudge" data-bp-nudge="dia" data-delta="1" aria-label="Increase diastolic" data-i18n-aria="common.increase.diastolic">+</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span class="vitals-sep" aria-hidden="true">/</span>
-              <div class="input-container">
-                <label for="bloodPressureDiastolic" class="visually-hidden" data-i18n="wizard.vitals.bp.diastolic">Diastolic</label>
-                <input type="number" id="bloodPressureDiastolic" min="40" max="150" step="1" placeholder="80" data-i18n-placeholder="wizard.vitals.bp.diastolic" />
-              </div>
-              <span class="vitals-unit" data-i18n="wizard.vitals.bp.unit">mmHg</span>
+              <input type="hidden" id="bloodPressureSystolic" name="bloodPressureSystolic" value="" />
+              <input type="hidden" id="bloodPressureDiastolic" name="bloodPressureDiastolic" value="" />
             </div>
 
             <!-- Advanced vitals - collapsed by default -->
@@ -2467,46 +2516,142 @@
                 <svg class="ui-svg-icon vitals-advanced-summary__chevron" aria-hidden="true"><use href="#icon-chart-down"></use></svg>
               </summary>
               <div class="vitals-advanced-body">
-                <div class="weight-label-container">
-                  <label for="bloodGlucose" class="field-label-with-icon" data-i18n="wizard.vitals.bloodGlucose">
-                    <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-zap"></use></svg>
-                    Blood glucose
+                <div class="vital-widget vital-widget--glucose" id="glucoseWidget" data-vital-active="false" data-vital-zone="idle">
+                  <div class="vital-widget__header weight-label-container">
+                    <label class="field-label-with-icon" data-i18n="wizard.vitals.bloodGlucose">
+                      <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-zap"></use></svg>
+                      Blood glucose
+                    </label>
+                    <button type="button" id="glucoseUnitToggle" class="unit-toggle-btn" onclick="toggleGlucoseUnit()" data-i18n-title="settings.units.glucose">
+                      <span id="glucoseUnitDisplay" data-i18n="units.mmol">mmol/L</span>
+                    </button>
+                  </div>
+                  <div class="vital-widget__body">
+                    <div class="vital-widget__visual glucose-visual" aria-hidden="true">
+                      <div class="glucose-droplet-wrap">
+                        <svg class="glucose-droplet-svg" viewBox="0 0 64 96" focusable="false">
+                          <path class="glucose-droplet-outline" d="M32 4 C18 30 8 48 8 62 C8 78 18 90 32 92 C46 90 56 78 56 62 C56 48 46 30 32 4 Z"/>
+                          <clipPath id="glucoseDropletClip"><path d="M32 4 C18 30 8 48 8 62 C8 78 18 90 32 92 C46 90 56 78 56 62 C56 48 46 30 32 4 Z"/></clipPath>
+                          <rect class="glucose-droplet-fill" id="glucoseDropletFill" x="8" y="92" width="48" height="88" clip-path="url(#glucoseDropletClip)"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="vital-widget__controls">
+                      <div class="vital-readout" aria-live="polite">
+                        <span class="vital-readout__value" id="glucoseValueDisplay">—</span>
+                        <span class="vital-readout__unit" id="glucoseUnitSuffix" data-i18n="units.mmol">mmol/L</span>
+                      </div>
+                      <span class="vital-zone-badge" id="glucoseZoneBadge"></span>
+                      <input type="range" id="glucoseSlider" class="vital-slider" aria-label="Blood glucose" data-i18n-aria="wizard.vitals.bloodGlucose" />
+                      <div class="vital-stepper-row">
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="glucose" data-delta="-0.1" aria-label="Decrease glucose" data-i18n-aria="common.decrease.glucose">−</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="glucose" data-delta="0.1" aria-label="Increase glucose" data-i18n-aria="common.increase.glucose">+</button>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="bloodGlucose" name="bloodGlucose" value="" />
+                </div>
+
+                <div class="vital-widget vital-widget--spo2" id="spo2Widget" data-vital-active="false" data-vital-zone="idle">
+                  <label class="field-label-with-icon" data-i18n="wizard.vitals.spO2">
+                    <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-run"></use></svg>
+                    Oxygen saturation (SpO₂)
                   </label>
-                  <button type="button" id="glucoseUnitToggle" class="unit-toggle-btn" onclick="toggleGlucoseUnit()" data-i18n-title="settings.units.glucose">
-                    <span id="glucoseUnitDisplay" data-i18n="units.mmol">mmol/L</span>
-                  </button>
+                  <div class="vital-widget__body">
+                    <div class="vital-widget__visual spo2-visual" aria-hidden="true">
+                      <svg class="spo2-ring-svg" viewBox="0 0 100 100" focusable="false">
+                        <circle class="spo2-ring-track" cx="50" cy="50" r="45"/>
+                        <circle class="spo2-ring-progress" id="spo2RingProgress" cx="50" cy="50" r="45"/>
+                        <circle class="spo2-bubble spo2-bubble--1" cx="38" cy="58" r="4"/>
+                        <circle class="spo2-bubble spo2-bubble--2" cx="50" cy="52" r="3"/>
+                        <circle class="spo2-bubble spo2-bubble--3" cx="62" cy="56" r="3.5"/>
+                      </svg>
+                    </div>
+                    <div class="vital-widget__controls">
+                      <div class="vital-readout" aria-live="polite">
+                        <span class="vital-readout__value" id="spo2ValueDisplay">—</span>
+                        <span class="vital-readout__unit" data-i18n="wizard.vitals.spO2.unit">%</span>
+                      </div>
+                      <span class="vital-zone-badge" id="spo2ZoneBadge"></span>
+                      <div class="vital-drum-shell vital-drum-shell--compact">
+                        <button type="button" class="vital-drum-nudge" data-vital-nudge="spo2" data-delta="-1" aria-label="Decrease SpO2" data-i18n-aria="common.decrease.spo2">−</button>
+                        <div class="vital-drum-window">
+                          <div class="vital-drum-highlight" aria-hidden="true"></div>
+                          <div class="vital-drum-scroll" id="spo2Drum" role="listbox" aria-label="Oxygen saturation" data-i18n-aria="common.oxygen.saturation" tabindex="0"></div>
+                        </div>
+                        <button type="button" class="vital-drum-nudge" data-vital-nudge="spo2" data-delta="1" aria-label="Increase SpO2" data-i18n-aria="common.increase.spo2">+</button>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="spO2" name="spO2" value="" />
                 </div>
-                <div class="input-container">
-                  <input type="number" id="bloodGlucose" min="1" max="35" step="0.1" />
-                </div>
-                <label for="spO2" class="field-label-with-icon" data-i18n="wizard.vitals.spO2">
-                  <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-run"></use></svg>
-                  Oxygen saturation (SpO₂)
-                </label>
-                <div class="input-container">
-                  <input type="number" id="spO2" min="70" max="100" step="1" />
-                  <span class="vitals-unit" data-i18n="wizard.vitals.spO2.unit">%</span>
-                </div>
-                <label for="hrv" class="field-label-with-icon" data-i18n="wizard.vitals.hrv">
-                  <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-brain"></use></svg>
-                  HRV (RMSSD)
-                </label>
-                <div class="input-container">
-                  <input type="number" id="hrv" min="0" max="300" step="1" />
-                  <span class="vitals-unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
-                </div>
-                <div class="weight-label-container">
-                  <label for="bodyWeight" class="field-label-with-icon" data-i18n="wizard.vitals.weight">
-                    <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-balance"></use></svg>
-                    Body weight
+
+                <div class="vital-widget vital-widget--hrv" id="hrvWidget" data-vital-active="false" data-vital-zone="idle">
+                  <label class="field-label-with-icon" data-i18n="wizard.vitals.hrv">
+                    <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-brain"></use></svg>
+                    HRV (RMSSD)
                   </label>
-                  <button type="button" id="bodyWeightUnitToggle" class="unit-toggle-btn" onclick="toggleBodyWeightUnit()" data-i18n-title="settings.units.weight">
-                    <span id="bodyWeightUnitDisplay" data-i18n="units.kg">kg</span>
-                  </button>
+                  <div class="vital-widget__body">
+                    <div class="vital-widget__visual hrv-visual" aria-hidden="true">
+                      <svg class="hrv-wave-svg" viewBox="0 0 120 48" focusable="false">
+                        <path class="hrv-wave-line" d="M0 24 L12 24 L18 12 L24 36 L30 24 L42 24 L48 16 L54 32 L60 24 L72 24 L78 10 L84 38 L90 24 L120 24"/>
+                      </svg>
+                    </div>
+                    <div class="vital-widget__controls">
+                      <div class="vital-readout" aria-live="polite">
+                        <span class="vital-readout__value" id="hrvValueDisplay">—</span>
+                        <span class="vital-readout__unit" data-i18n="wizard.vitals.hrv.unit">ms</span>
+                      </div>
+                      <span class="vital-zone-badge" id="hrvZoneBadge"></span>
+                      <input type="range" id="hrvSlider" class="vital-slider" aria-label="Heart rate variability" data-i18n-aria="common.heart.rate.variability" min="0" max="300" step="1" value="55" />
+                      <div class="vital-stepper-row">
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="hrv" data-delta="-5" aria-label="Decrease HRV" data-i18n-aria="common.decrease.hrv">−</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="hrv" data-delta="5" aria-label="Increase HRV" data-i18n-aria="common.increase.hrv">+</button>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="hrv" name="hrv" value="" />
                 </div>
-                <div class="input-container">
-                  <input type="number" id="bodyWeight" min="20" max="300" step="0.1" />
-                  <p class="field-hint" id="bmiReadout" hidden></p>
+
+                <div class="vital-widget vital-widget--weight" id="bodyWeightWidget" data-vital-active="false" data-vital-zone="idle">
+                  <div class="vital-widget__header weight-label-container">
+                    <label class="field-label-with-icon" data-i18n="wizard.vitals.weight">
+                      <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-balance"></use></svg>
+                      Body weight
+                    </label>
+                    <button type="button" id="bodyWeightUnitToggle" class="unit-toggle-btn" onclick="toggleBodyWeightUnit()" data-i18n-title="settings.units.weight">
+                      <span id="bodyWeightUnitDisplay" data-i18n="units.kg">kg</span>
+                    </button>
+                  </div>
+                  <div class="vital-widget__body">
+                    <div class="vital-widget__visual weight-visual" aria-hidden="true">
+                      <svg class="weight-balance-svg" viewBox="0 0 100 72" focusable="false">
+                        <line class="weight-stand" x1="50" y1="18" x2="50" y2="64"/>
+                        <g class="weight-beam" id="bodyWeightBeam">
+                          <line class="weight-beam-line" x1="14" y1="18" x2="86" y2="18"/>
+                          <line class="weight-pan-cord" x1="22" y1="18" x2="22" y2="34"/>
+                          <ellipse class="weight-pan" cx="22" cy="38" rx="14" ry="5"/>
+                          <line class="weight-pan-cord" x1="78" y1="18" x2="78" y2="34"/>
+                          <ellipse class="weight-pan" cx="78" cy="38" rx="14" ry="5"/>
+                        </g>
+                        <circle class="weight-pivot" cx="50" cy="18" r="4"/>
+                      </svg>
+                    </div>
+                    <div class="vital-widget__controls">
+                      <div class="vital-readout" aria-live="polite">
+                        <span class="vital-readout__value" id="bodyWeightValueDisplay">—</span>
+                        <span class="vital-readout__unit" id="bodyWeightUnitSuffix">kg</span>
+                      </div>
+                      <span class="vital-zone-badge" id="bodyWeightZoneBadge"></span>
+                      <input type="range" id="bodyWeightSlider" class="vital-slider" aria-label="Body weight" data-i18n-aria="wizard.vitals.weight" />
+                      <div class="vital-stepper-row">
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="bodyWeight" data-delta="-0.5" aria-label="Decrease weight" data-i18n-aria="common.decrease.weight">−</button>
+                        <button type="button" class="vital-stepper-btn" data-vital-nudge="bodyWeight" data-delta="0.5" aria-label="Increase weight" data-i18n-aria="common.increase.weight">+</button>
+                      </div>
+                      <p class="field-hint" id="bmiReadout" hidden></p>
+                    </div>
+                  </div>
+                  <input type="hidden" id="bodyWeight" name="bodyWeight" value="" />
                 </div>
               </div>
             </details>
@@ -2738,13 +2883,66 @@
             <input type="range" id="dailyFunction" min="1" max="10" step="1" />
             <label for="dailyFunction" class="slider-label" data-i18n="common.daily.activities">Daily Activities</label>
           </div>
-          <div class="input-container">
-            <label for="steps" data-i18n="common.steps.if.tracked">Steps (if tracked)</label>
-            <input type="number" id="steps" min="0" max="50000" step="100" placeholder="0" />
+          <div class="vital-widget vital-widget--steps" id="stepsWidget" data-vital-active="false" data-vital-zone="idle">
+            <label class="field-label-with-icon" data-i18n="common.steps.if.tracked">
+              <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-footprint"></use></svg>
+              Steps (if tracked)
+            </label>
+            <div class="vital-widget__body">
+              <div class="vital-widget__visual steps-visual" aria-hidden="true">
+                <svg class="steps-path-svg" viewBox="0 0 120 56" focusable="false">
+                  <path class="steps-path-line" d="M8 40 H112" stroke-dasharray="4 6"/>
+                  <g class="steps-footprint steps-footprint--1" transform="translate(12 34)"><use href="#icon-footprint" width="14" height="14"/></g>
+                  <g class="steps-footprint steps-footprint--2" transform="translate(32 34)"><use href="#icon-footprint" width="14" height="14"/></g>
+                  <g class="steps-footprint steps-footprint--3" transform="translate(52 34)"><use href="#icon-footprint" width="14" height="14"/></g>
+                  <g class="steps-footprint steps-footprint--4" transform="translate(72 34)"><use href="#icon-footprint" width="14" height="14"/></g>
+                  <g class="steps-footprint steps-footprint--5" transform="translate(92 34)"><use href="#icon-footprint" width="14" height="14"/></g>
+                  <g class="steps-runner" id="stepsRunner" transform="translate(4 8)"><use href="#icon-run" width="22" height="22"/></g>
+                </svg>
+              </div>
+              <div class="vital-widget__controls">
+                <div class="vital-readout" aria-live="polite">
+                  <span class="vital-readout__value" id="stepsValueDisplay">—</span>
+                  <span class="vital-readout__unit" data-i18n="common.steps.unit">steps</span>
+                </div>
+                <span class="vital-zone-badge" id="stepsZoneBadge"></span>
+                <input type="range" id="stepsSlider" class="vital-slider" min="0" max="30000" step="500" value="0" aria-label="Steps" data-i18n-aria="wizard.aria.steps" />
+                <div class="vital-stepper-row">
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="steps" data-delta="-500" aria-label="Decrease steps" data-i18n-aria="common.decrease.steps">−</button>
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="steps" data-delta="500" aria-label="Increase steps" data-i18n-aria="common.increase.steps">+</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="steps" name="steps" value="" />
           </div>
-          <div class="input-container">
-            <label for="hydration" data-i18n="common.hydration.glasses.cups.of.water">Hydration (glasses/cups of water)</label>
-            <input type="number" id="hydration" min="0" max="20" step="0.5" placeholder="0" />
+          <div class="vital-widget vital-widget--hydration" id="hydrationWidget" data-vital-active="false" data-vital-zone="idle">
+            <label class="field-label-with-icon" data-i18n="common.hydration.glasses.cups.of.water">
+              <svg class="ui-svg-icon field-label-icon" aria-hidden="true"><use href="#icon-glass-water"></use></svg>
+              Hydration (glasses/cups of water)
+            </label>
+            <div class="vital-widget__body">
+              <div class="vital-widget__visual hydration-visual" aria-hidden="true">
+                <svg class="hydration-glass-svg" viewBox="0 0 56 88" focusable="false">
+                  <path class="hydration-glass-outline" d="M14 4 H42 L38 80 H18 L14 4 Z"/>
+                  <clipPath id="hydrationGlassClip"><path d="M14 4 H42 L38 80 H18 L14 4 Z"/></clipPath>
+                  <rect class="hydration-glass-fill" id="hydrationGlassFill" x="14" y="80" width="28" height="76" clip-path="url(#hydrationGlassClip)"/>
+                </svg>
+                <div class="hydration-glasses-row" id="hydrationGlassesRow" aria-hidden="true"></div>
+              </div>
+              <div class="vital-widget__controls">
+                <div class="vital-readout" aria-live="polite">
+                  <span class="vital-readout__value" id="hydrationValueDisplay">—</span>
+                  <span class="vital-readout__unit" data-i18n="common.glasses">glasses</span>
+                </div>
+                <span class="vital-zone-badge" id="hydrationZoneBadge"></span>
+                <input type="range" id="hydrationSlider" class="vital-slider" min="0" max="20" step="0.5" value="0" aria-label="Hydration" data-i18n-aria="wizard.aria.hydration" />
+                <div class="vital-stepper-row">
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="hydration" data-delta="-0.5" aria-label="Decrease hydration" data-i18n-aria="common.decrease.hydration">−</button>
+                  <button type="button" class="vital-stepper-btn" data-lifestyle-nudge="hydration" data-delta="0.5" aria-label="Increase hydration" data-i18n-aria="common.increase.hydration">+</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="hydration" name="hydration" value="" />
           </div>
         </div>
       </div>
@@ -2983,10 +3181,13 @@
 
       <div class="log-wizard-bottom-dock" id="logWizardBottomDock" aria-label="Log wizard actions" data-i18n-aria="common.log.wizard.actions">
         <div class="log-wizard-sticky-actions log-wizard-footer-actions" id="logWizardStickyActions">
-          <div class="log-wizard-step-dots" id="logWizardStepDots" aria-hidden="true"></div>
+          <div class="log-wizard-dots-row">
+            <div class="log-wizard-step-dots" id="logWizardStepDots" aria-hidden="true"></div>
+            <button type="button" class="log-wizard-mobile-skip" id="logWizardMobileSkipBtn" hidden aria-label="Skip optional sections on this step" data-i18n-aria="common.skip.optional.sections.on.this.step" data-i18n="wizard.action.skip">Skip</button>
+          </div>
           <button type="submit" class="save-entry-btn log-wizard-save-btn" id="logWizardSaveBtn"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-save"></use></svg> Save Entry</button>
         </div>
-        <div class="log-wizard-nav-row log-wizard-nav-row--bottom" role="toolbar" aria-label="Back, skip, and next" data-i18n-aria="common.back.skip.and.next">
+        <div class="log-wizard-nav-row log-wizard-nav-row--bottom log-wizard-nav-row--desktop" role="toolbar" aria-label="Back, skip, and next" data-i18n-aria="common.back.skip.and.next">
           <button type="button" class="log-wizard-back-btn log-wizard-nav-btn log-wizard-nav-btn--secondary log-wizard-bottom-btn" id="logWizardBackBtn" data-nav-mode="back">
             <span class="log-wizard-nav-btn__ic log-wizard-nav-btn__ic--back" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -3010,9 +3211,8 @@
           </button>
         </div>
       </div>
-      <button type="button" class="log-wizard-side-next" id="logWizardSideNextBtn" aria-label="Next step" data-i18n-aria="wizard.aria.nextStep">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+      <button type="button" class="log-wizard-side-nav log-wizard-side-nav--prev" id="logWizardSidePrevBtn" aria-label="Previous step" data-i18n-aria="wizard.aria.previousStep">‹</button>
+      <button type="button" class="log-wizard-side-nav log-wizard-side-nav--next" id="logWizardSideNextBtn" aria-label="Next step" data-i18n-aria="wizard.aria.nextStep">›</button>
     </form>
     </div>
 
@@ -4676,15 +4876,18 @@
   <script defer src="vendor/rianell-shared.js?v=7"></script>
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
-  <script defer src="modules/vitals-suggest-ui.js?v=2"></script>
+  <script defer src="modules/vitals-suggest-ui.js?v=3"></script>
+  <script defer src="modules/bp-input-widget.js?v=1"></script>
+  <script defer src="modules/advanced-vitals-widgets.js?v=1"></script>
+  <script defer src="modules/lifestyle-vitals-widgets.js?v=1"></script>
   <script defer src="modules/weekly-review.js?v=7"></script>
-  <script defer src="modules/mood-tab.js?v=5"></script>
+  <script defer src="modules/mood-tab.js?v=6"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=9"></script>
   <script defer src="first-run-wizard.js?v=2"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script type="module" defer src="app.js?v=50"></script>
+  <script type="module" defer src="app.js?v=52"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="modules/goals-carousel.js?v=5"></script>
