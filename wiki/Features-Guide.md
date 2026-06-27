@@ -62,8 +62,22 @@ Open the gear icon for a scrollable settings carousel:
 - **Performance** — on-device AI model download and benchmarks
 - **Privacy & region** — language, region gate, policy documents, consent
 - **Cloud** — sign-in, sync, delete cloud data
+- **Integrations** — Strava, Withings, Google Sheets connectors; migration import wizard
 
 Full list: [[Settings-and-Languages]].
+
+---
+
+## Third-party connectors
+
+Settings → **Integrations** pane (requires cloud sign-in; blocked in local-only mode):
+
+1. **Connect** opens provider OAuth (Strava activities, Withings vitals, Google Sheets).
+2. **Sync now** imports into daily logs using date-aware merge (existing fields are preserved).
+3. **Google Sheets** — configure spreadsheet URL plus import/export ranges; export appends recent logs.
+4. **Disconnect** revokes integration metadata and server-side tokens.
+
+Developer/operators: [docs/connectors/SETUP.md](https://github.com/Metaheurist/Rianell/blob/main/docs/connectors/SETUP.md).
 
 ---
 

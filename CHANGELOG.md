@@ -6,9 +6,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
-## [Unreleased] — 2026-06-26
+## [1.135.0] — 2026-06-27
 
 ### Added
+
+- **Third-party connectors CN4–CN7 (Plan 19)**:
+  - Live OAuth for Strava, Withings, and Google Sheets via Supabase Edge Functions (`connector-auth`, `connector-callback`, `connector-disconnect`, sync functions).
+  - Encrypted token storage in `connector_tokens` (service-role only); client-safe status in `user_integrations`.
+  - PWA Connectors pane: Connect, Sync now, Disconnect, Google Sheets configure/export modal, `connector-success.html` popup flow.
+  - Shared mappers in `@rianell/shared` (`strava`, `withings`, `googleSheets`, `oauthState`, `providers`).
+  - RN `oauthConnect.ts` + `SettingsConnectorsPane` OAuth/sync parity with `rianell://` deep link.
+  - Operator docs: `docs/connectors/SETUP.md` and provider guides.
+
+## [1.134.0] — 2026-06-26
 
 - **PWA AI Analysis tab overhaul (2026-06-26)**:
   - Five-chapter layout (Overview, Trends & vitals, Lifestyle, Mind & mood, Body & pain) with mobile pager slides.

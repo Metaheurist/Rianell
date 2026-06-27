@@ -56,6 +56,8 @@ Local storage (browser/RN) remains plaintext at rest unless a future at-rest enc
 
 When the **`delete-user-data`** Edge Function is deployed (production since v1.96.0), the app also removes your **Supabase Auth account** (email/login gone) and signs you out. If the function is unavailable, only table rows are deleted and you can still sign in — contact support for full account removal. See [[Privacy-and-Your-Data]].
 
+**Third-party connectors** (Strava, Withings, Google Sheets) store OAuth status in `user_integrations` and encrypted tokens server-side (`connector_tokens`, not readable from the client). Disconnecting or deleting cloud data removes these rows.
+
 ---
 
 ## Troubleshooting sync

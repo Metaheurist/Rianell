@@ -1,6 +1,20 @@
 # Release Notes
 
-## Latest release (v1.134.0)
+## Latest release (v1.135.0)
+
+**Date:** 2026-06-27
+
+### Highlights
+
+- **Third-party connectors:** Connect **Strava**, **Withings**, and **Google Sheets** from Settings → Integrations. OAuth runs in a popup (web) or system browser (mobile). Manual **Sync now** imports activities and vitals into daily logs with date-aware merge.
+- **Google Sheets bidirectional sync:** Configure spreadsheet URL and ranges; import rows into logs or export recent entries (up to 90 days).
+- **Security:** OAuth tokens encrypted server-side in `connector_tokens`; clients only see connection status.
+- **React Native parity:** Connect/Sync/Disconnect on Android/iOS via `rianell://` deep link after OAuth.
+- **Docs:** Operator guide at [docs/connectors/SETUP.md](https://github.com/Metaheurist/Rianell/blob/main/docs/connectors/SETUP.md).
+
+---
+
+## Previous (v1.134.0)
 
 **Date:** 2026-06-26
 
@@ -81,6 +95,8 @@
 
 | Version | Theme |
 |---------|-------|
+| v1.135.0 | Strava/Withings/Google Sheets OAuth connectors |
+| v1.134.0 | Hosted share links, app lock PIN, password strength |
 | v1.96.0 | Full account erasure Edge Function, security.txt Pages fix, Supabase 0029, Cloudflare headers |
 | v1.121.0 | Cycle period-start anchor, Goals carousel i18n |
 | v1.119.0 | Cycle tracking UX, Home cards, Mood sparkline, deferred barcode/voice |
@@ -97,7 +113,7 @@
 
 Complete version history with file-level pointers:
 
-[docs/CHANGELOG.md](https://github.com/Metaheurist/Rianell/blob/main/docs/CHANGELOG.md)
+[docs/CHANGELOG.md](https://github.com/Metaheurist/Rianell/blob/main/CHANGELOG.md)
 
 ---
 
