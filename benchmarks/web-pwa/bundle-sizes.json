@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-27T01:19:54.265Z",
+  "generatedAt": "2026-06-27T02:33:25.698Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4501454,
-    "cssBytes": 513281,
-    "jsGzipBytes": 1071633,
-    "cssGzipBytes": 88718
+    "jsBytes": 4542034,
+    "cssBytes": 524581,
+    "jsGzipBytes": 1081152,
+    "cssGzipBytes": 90548
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1069352,
-      "gzipBytes": 232547
+      "bytes": 1078939,
+      "gzipBytes": 234792
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.31141aa5d646.min.js",
-      "bytes": 784794,
-      "gzipBytes": 181524
+      "file": "ci-minified/site/app.d2dfafbc4838.min.js",
+      "bytes": 792425,
+      "gzipBytes": 183456
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.3eb19daee750.css",
-      "bytes": 496387,
-      "gzipBytes": 84502
+      "file": "ci-minified/site/styles.6f798caa70c5.css",
+      "bytes": 507687,
+      "gzipBytes": 86332
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 346482,
-      "gzipBytes": 80419
+      "bytes": 354158,
+      "gzipBytes": 82037
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -45,8 +45,8 @@
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 101173,
-      "gzipBytes": 21873
+      "bytes": 105622,
+      "gzipBytes": 22671
     },
     {
       "file": "ci-minified/site/summary-llm.js",
@@ -65,8 +65,8 @@
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 41259,
-      "gzipBytes": 9151
+      "bytes": 41563,
+      "gzipBytes": 9232
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
@@ -85,8 +85,8 @@
     },
     {
       "file": "ci-minified/site/privacy-region.js",
-      "bytes": 27714,
-      "gzipBytes": 5811
+      "bytes": 28056,
+      "gzipBytes": 5887
     },
     {
       "file": "ci-minified/site/first-run-wizard.js",
@@ -95,13 +95,13 @@
     },
     {
       "file": "ci-minified/site/notifications.js",
-      "bytes": 23808,
-      "gzipBytes": 5763
+      "bytes": 23798,
+      "gzipBytes": 5760
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 21167,
-      "gzipBytes": 5109
+      "bytes": 21224,
+      "gzipBytes": 5118
     },
     {
       "file": "ci-minified/site/import-utils.js",
@@ -110,18 +110,18 @@
     },
     {
       "file": "ci-minified/site/modules/cycle-tracking-ui.js",
-      "bytes": 18121,
-      "gzipBytes": 4019
+      "bytes": 18533,
+      "gzipBytes": 4231
     },
     {
       "file": "ci-minified/site/event-handlers.js",
-      "bytes": 16905,
-      "gzipBytes": 3312
+      "bytes": 17437,
+      "gzipBytes": 3375
     },
     {
       "file": "ci-minified/site/modules/app-lock.js",
-      "bytes": 14942,
-      "gzipBytes": 3418
+      "bytes": 15635,
+      "gzipBytes": 3567
     },
     {
       "file": "ci-minified/site/styles-charts.css",
@@ -144,19 +144,24 @@
       "gzipBytes": 2642
     },
     {
+      "file": "ci-minified/site/modules/goals-carousel.js",
+      "bytes": 9441,
+      "gzipBytes": 2511
+    },
+    {
       "file": "ci-minified/site/device-module.js",
       "bytes": 7306,
       "gzipBytes": 2118
     },
     {
-      "file": "ci-minified/site/modules/goals-carousel.js",
-      "bytes": 7206,
-      "gzipBytes": 2039
-    },
-    {
       "file": "ci-minified/site/print-utils.js",
       "bytes": 6849,
       "gzipBytes": 2113
+    },
+    {
+      "file": "ci-minified/site/modules/vitals-suggest-ui.js",
+      "bytes": 6682,
+      "gzipBytes": 1871
     },
     {
       "file": "ci-minified/site/encryption-utils.js",
@@ -165,8 +170,8 @@
     },
     {
       "file": "ci-minified/site/sw.js",
-      "bytes": 6202,
-      "gzipBytes": 2254
+      "bytes": 6192,
+      "gzipBytes": 2250
     },
     {
       "file": "ci-minified/site/storage-utils.js",
