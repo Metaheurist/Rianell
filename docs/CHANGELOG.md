@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.3** — Mobile PWA first-launch boot fix: shell reveals before AI preload; onboarding overlays stay tappable; boot watchdog fallback.
+**Latest: v2.0.4** — Log wizard animated metric widgets, lifestyle steps/hydration polish, cycle flow-picker fix, main-thread governor for on-device AI during logging.
+
+### v2.0.4 - 2026-06-27 - Log wizard metrics and responsiveness
+
+- **Log wizard (PWA):** Animated SVG metric widgets for stiffness, joint pain, mobility, swelling, fatigue, sleep, mood, irritability, weather sensitivity, and daily activities (`log-metric-widgets.js`).
+- **Responsiveness (PWA):** Main-thread governor pauses LLM/charts preload during log wizard use; serializes boot heavy work (`main-thread-governor.js`).
+- **Lifestyle (PWA):** Steps footprint stamp-down animation; hydration glass liquid fill with waves.
+- **Cycle (PWA):** Flow droplet buttons no longer overwritten by i18n text on Day 1 expand.
+- **God mode (PWA):** Achievement unlock preview/simulate/reset controls in test overlay.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.4.
 
 ### v2.0.3 - 2026-06-27 - Mobile first-launch boot fix
 

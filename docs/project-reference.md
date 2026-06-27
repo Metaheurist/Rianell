@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.4 documentation sync (Log wizard metrics and responsiveness)
+
+- **Log metrics (PWA):** `modules/log-metric-widgets.js` — animated SVG widgets for ten log-wizard sliders; keeps native `input[type=range]` IDs for save/review.
+- **Governor (PWA):** `modules/main-thread-governor.js` — defers LLM queue and AI preload while `body.log-wizard-active` or user interaction; boot charts then AI serialized via `runBackgroundTask`.
+- **Lifestyle (PWA):** `lifestyle-vitals-widgets.js` v2 — descending footprint trail; hydration liquid fill + wave surface in large glass.
+- **Cycle (PWA):** Flow opts use `data-i18n-aria`; `refreshFlowOpts()` restores droplets after i18n pass.
+- **God mode (PWA):** Achievement unlock testing section in `#modalTestOverlay`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.4.
+
 ### v2.0.3 documentation sync (Mobile first-launch boot fix)
 
 - **Boot (PWA):** Shell reveals before AI preload on installed mobile PWAs; `__rianellForceRevealBootShell` watchdog at 12s on mobile.
