@@ -279,7 +279,7 @@ export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, p
                   {t(meta.i18n)}
                 </Text>
                 <Text style={[styles.bandRange, { color: theme.tokens.color.text, fontSize: theme.font(10) }]}>
-                  {range.start}–{range.end}
+                  {range.start}-{range.end}
                 </Text>
               </Pressable>
               <View style={styles.timelineDays}>

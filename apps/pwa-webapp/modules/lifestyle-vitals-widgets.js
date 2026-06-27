@@ -46,7 +46,7 @@
   }
 
   function classifySteps(val) {
-    if (val == null || isNaN(val) || val <= 0) return { id: 'idle', label: '—', color: '#8aa89a' };
+    if (val == null || isNaN(val) || val <= 0) return { id: 'idle', label: '-', color: '#8aa89a' };
     if (val >= 10000) return { id: 'active', label: t('wizard.lifestyle.steps.active', 'Very active'), color: '#64b5f6' };
     if (val >= 6000) return { id: 'moderate', label: t('wizard.lifestyle.steps.moderate', 'Moderate'), color: '#7bdf8c' };
     if (val >= 3000) return { id: 'light', label: t('wizard.lifestyle.steps.light', 'Light activity'), color: '#ffd54f' };
@@ -54,7 +54,7 @@
   }
 
   function classifyHydration(val) {
-    if (val == null || isNaN(val) || val <= 0) return { id: 'idle', label: '—', color: '#8aa89a' };
+    if (val == null || isNaN(val) || val <= 0) return { id: 'idle', label: '-', color: '#8aa89a' };
     if (val >= 8) return { id: 'great', label: t('wizard.lifestyle.hydration.great', 'Well hydrated'), color: '#4dd0e1' };
     if (val >= 5) return { id: 'good', label: t('wizard.lifestyle.hydration.good', 'Good'), color: '#7bdf8c' };
     if (val >= 2) return { id: 'low', label: t('wizard.lifestyle.hydration.low', 'Could drink more'), color: '#ffb74d' };
@@ -139,7 +139,7 @@
     var zone = classifySteps(active ? val : null);
     applyZone(widget, zone, 1.3 - ratio(val, 0, 10000) * 0.5);
     if (display) {
-      display.textContent = active && val > 0 ? formatSteps(val) : '—';
+      display.textContent = active && val > 0 ? formatSteps(val) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
@@ -170,7 +170,7 @@
     var zone = classifyHydration(active ? val : null);
     applyZone(widget, zone, 1.4 - ratio(val, 0, HYDRATION.max) * 0.6);
     if (display) {
-      display.textContent = active && val > 0 ? formatHydration(val) : '—';
+      display.textContent = active && val > 0 ? formatHydration(val) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }

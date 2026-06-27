@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.5 documentation sync (Vitals layout and metric animation polish)
+
+- **Basic vitals (PWA):** `bp-input-widget.js` v2 - systolic mmHg + BPM drums; hidden `#bpm` in widget; top-level weight/BPM inputs removed; body weight in Advanced vitals only.
+- **Animations (PWA):** Glucose liquid droplet (`advanced-vitals-widgets.js`); mobility/swelling/mood SVG upgrades (`log-metric-widgets.js` v3).
+- **Achievement toast (PWA):** `.achievement-toast__action` resets global button width in `styles.css`.
+- **i18n:** BP zone/slideHint keys; ASCII hyphen normalization in all locale packs.
+- **Shared:** `vitalSuggestions.mjs` - blood pressure suggests systolic + optional BPM.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.5.
+
 ### v2.0.4 documentation sync (Log wizard metrics and responsiveness)
 
 - **Log metrics (PWA):** `modules/log-metric-widgets.js` — animated SVG widgets for ten log-wizard sliders; keeps native `input[type=range]` IDs for save/review.

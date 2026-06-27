@@ -476,7 +476,7 @@
       marker.className = 'cycle-ribbon-marker cycle-ribbon-marker--' + meta.tone;
       marker.setAttribute('data-phase', range.id);
       marker.setAttribute('aria-pressed', 'false');
-      marker.setAttribute('aria-label', t(meta.i18n) + ', ' + t('wizard.cycle.day') + ' ' + range.start + '–' + range.end);
+      marker.setAttribute('aria-label', t(meta.i18n) + ', ' + t('wizard.cycle.day') + ' ' + range.start + '-' + range.end);
 
       var markerIcon = document.createElement('span');
       markerIcon.className = 'cycle-ribbon-marker-icon';
@@ -491,7 +491,7 @@
 
       var markerRange = document.createElement('span');
       markerRange.className = 'cycle-ribbon-marker-range';
-      markerRange.textContent = range.start + '–' + range.end;
+      markerRange.textContent = range.start + '-' + range.end;
       marker.appendChild(markerRange);
 
       marker.addEventListener('click', function () {

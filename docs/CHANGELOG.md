@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.4** — Log wizard animated metric widgets, lifestyle steps/hydration polish, cycle flow-picker fix, main-thread governor for on-device AI during logging.
+**Latest: v2.0.5** - Log wizard vitals layout (BP + BPM drums), metric animation polish, achievement toast fix, ASCII dash normalization.
+
+### v2.0.5 - 2026-06-27 - Vitals layout and metric animation polish
+
+- **Log wizard (PWA):** BP widget split into blood pressure (mmHg) + resting BPM drums; duplicate top weight/BPM fields removed; body weight in Advanced vitals only.
+- **Animations (PWA):** Glucose droplet fill, mobility/swelling/mood SVG widgets upgraded in `log-metric-widgets.js` and `advanced-vitals-widgets.js`.
+- **Achievement toast (PWA):** Flex layout fix for unlock notification action button.
+- **i18n:** BP slideHint/zone keys; em/en dashes replaced with ASCII hyphen across locale packs (14 locales).
+- **Shared:** `vitalSuggestions.mjs` updated for systolic + optional BPM.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.5.
 
 ### v2.0.4 - 2026-06-27 - Log wizard metrics and responsiveness
 

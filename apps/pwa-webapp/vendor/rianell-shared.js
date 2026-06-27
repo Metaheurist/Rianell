@@ -2515,9 +2515,9 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "Du schreibst ein kurzes, einfaches Zitat \xFCber gesundes Leben f\xFCr eine Gesundheits-App. Themen: Schlaf, Wasser, sanfte Bewegung, Ruhe, frische Luft, ausgewogene Ern\xE4hrung oder Stressabbau. Alltagssprache. Max. 18 W\xF6rter. Keine Namen. Keine medizinischen Ratschl\xE4ge. Keine Anf\xFChrungszeichen. Antworte nur mit dem Zitat.",
         "motd.user": "Schreibe ein Zitat zu einem gesunden Lebensstil.",
-        "summary.system": "Du fasst Gesundheitsdaten f\xFCr den Nutzer in genau 2 kurzen S\xE4tzen zusammen. Nutze nur die bereitgestellten Daten. Nenne 1\u20132 konkrete Befunde. Sei klar und ermutigend. Antworte nur mit dem Text.",
+        "summary.system": "Du fasst Gesundheitsdaten f\xFCr den Nutzer in genau 2 kurzen S\xE4tzen zusammen. Nutze nur die bereitgestellten Daten. Nenne 1-2 konkrete Befunde. Sei klar und ermutigend. Antworte nur mit dem Text.",
         "suggest.system": "Du schreibst einen kurzen Satz f\xFCr eine Tagesnotiz. Vergleiche heute mit dem j\xFCngsten Durchschnitt. Nutze nur die bereitgestellten Daten. Antworte nur mit dem Satz.",
-        "homeQuestion.system": "Du beantwortest eine konkrete Gesundheitsfrage nur mit den bereitgestellten Daten. Schreibe 3\u20135 kurze S\xE4tze in einfacher Sprache. Keine Diagnose oder medizinischen Anweisungen. Sei ermutigend. Antworte nur mit der Antwort.",
+        "homeQuestion.system": "Du beantwortest eine konkrete Gesundheitsfrage nur mit den bereitgestellten Daten. Schreibe 3-5 kurze S\xE4tze in einfacher Sprache. Keine Diagnose oder medizinischen Anweisungen. Sei ermutigend. Antworte nur mit der Antwort.",
         "context.improving": "Verbesserung: {metrics}.",
         "context.worsening": "Verschlechterung: {metrics}.",
         "context.stable": "Stabil: {metrics}.",
@@ -2552,7 +2552,7 @@ var RianellShared = (() => {
         "motd.user": "Write one healthy-lifestyle quote.",
         "summary.system": "You write a coaching summary from health tracking data in 2-3 short sentences. Lead with the single most important finding. Reference the user's actual date range when provided (e.g. Over the last 30 days). End with one concrete suggestion tied to a specific tracked metric. Use active voice. No medical disclaimers or diagnosis language. Reply with only the summary text.",
         "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
-        "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
+        "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3-5 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
         "clinicianBrief.system": "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text.",
         "doctorQuestions.system": "You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. Use only the wellness tracking data provided. Wellness framing only, not medical advice or diagnosis. Reply as a numbered list (1-3), one question per line, no extra commentary.",
         "explainChart.system": "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text.",
@@ -2595,9 +2595,9 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "Escribes una cita breve y sencilla sobre vida saludable para una app de seguimiento. Temas: sue\xF1o, agua, movimiento suave, descanso, aire fresco, comida equilibrada o alivio del estr\xE9s. Palabras cotidianas. M\xE1x. 18 palabras. Sin nombres. Sin consejo m\xE9dico. Sin comillas. Responde solo con la frase.",
         "motd.user": "Escribe una cita sobre estilo de vida saludable.",
-        "summary.system": "Resumes datos de salud para el usuario en exactamente 2 frases cortas. Usa solo los datos proporcionados. Menciona 1\u20132 hallazgos concretos. S\xE9 claro y alentador. Responde solo con el resumen.",
+        "summary.system": "Resumes datos de salud para el usuario en exactamente 2 frases cortas. Usa solo los datos proporcionados. Menciona 1-2 hallazgos concretos. S\xE9 claro y alentador. Responde solo con el resumen.",
         "suggest.system": "Escribes una frase corta para una nota diaria. Compara hoy con el promedio reciente. Usa solo los datos proporcionados. Responde solo con la frase.",
-        "homeQuestion.system": "Respondes una pregunta concreta de salud usando solo los datos proporcionados. Escribe 3\u20135 frases cortas en lenguaje sencillo. Sin diagn\xF3stico ni \xF3rdenes m\xE9dicas. S\xE9 alentador. Responde solo con la respuesta.",
+        "homeQuestion.system": "Respondes una pregunta concreta de salud usando solo los datos proporcionados. Escribe 3-5 frases cortas en lenguaje sencillo. Sin diagn\xF3stico ni \xF3rdenes m\xE9dicas. S\xE9 alentador. Responde solo con la respuesta.",
         "context.improving": "Mejorando: {metrics}.",
         "context.worsening": "Empeorando: {metrics}.",
         "context.stable": "Estable: {metrics}.",
@@ -2633,7 +2633,7 @@ var RianellShared = (() => {
         "motd.user": "Write one healthy-lifestyle quote.",
         "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
         "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
-        "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
+        "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3-5 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
         "context.improving": "Improving: {metrics}.",
         "context.worsening": "Worsening: {metrics}.",
         "context.stable": "Stable: {metrics}.",
@@ -2666,9 +2666,9 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "Scrivi una breve citazione semplice sulla vita sana per un\u2019app di monitoraggio. Argomenti: sonno, acqua, movimento leggero, riposo, aria fresca, cibo equilibrato o sollievo dallo stress. Parole quotidiane. Max 18 parole. Niente nomi. Niente consigli medici. Niente virgolette. Rispondi solo con la frase.",
         "motd.user": "Scrivi una citazione su uno stile di vita sano.",
-        "summary.system": "Riassumi i dati di salute per l\u2019utente in esattamente 2 frasi brevi. Usa solo i dati forniti. Menziona 1\u20132 risultati specifici. Sii chiaro e incoraggiante. Rispondi solo con il riepilogo.",
+        "summary.system": "Riassumi i dati di salute per l\u2019utente in esattamente 2 frasi brevi. Usa solo i dati forniti. Menziona 1-2 risultati specifici. Sii chiaro e incoraggiante. Rispondi solo con il riepilogo.",
         "suggest.system": "Scrivi una frase breve per una nota giornaliera. Confronta oggi con la media recente. Usa solo i dati forniti. Rispondi solo con la frase.",
-        "homeQuestion.system": "Rispondi a una domanda specifica usando solo i dati forniti. Scrivi 3\u20135 frasi brevi in linguaggio semplice. Niente diagnosi o ordini medici. Sii incoraggiante. Rispondi solo con la risposta.",
+        "homeQuestion.system": "Rispondi a una domanda specifica usando solo i dati forniti. Scrivi 3-5 frasi brevi in linguaggio semplice. Niente diagnosi o ordini medici. Sii incoraggiante. Rispondi solo con la risposta.",
         "context.improving": "In miglioramento: {metrics}.",
         "context.worsening": "In peggioramento: {metrics}.",
         "context.stable": "Stabile: {metrics}.",
@@ -2684,9 +2684,9 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "Je schrijft \xE9\xE9n kort, eenvoudig citaat over gezond leven voor een gezondheidsapp. Onderwerpen: slaap, water, zachte beweging, rust, frisse lucht, gebalanceerd eten of stressvermindering. Alledaagse woorden. Max. 18 woorden. Geen namen. Geen medisch advies. Geen aanhalingstekens. Antwoord alleen met de zin.",
         "motd.user": "Schrijf een citaat over een gezonde levensstijl.",
-        "summary.system": "Je vat gezondheidsgegevens samen in precies 2 korte zinnen. Gebruik alleen de verstrekte data. Noem 1\u20132 specifieke bevindingen. Wees duidelijk en bemoedigend. Antwoord alleen met de samenvatting.",
+        "summary.system": "Je vat gezondheidsgegevens samen in precies 2 korte zinnen. Gebruik alleen de verstrekte data. Noem 1-2 specifieke bevindingen. Wees duidelijk en bemoedigend. Antwoord alleen met de samenvatting.",
         "suggest.system": "Je schrijft \xE9\xE9n korte zin voor een dagelijkse lognotitie. Vergelijk vandaag met het recente gemiddelde. Gebruik alleen de verstrekte data. Antwoord alleen met de zin.",
-        "homeQuestion.system": "Je beantwoordt \xE9\xE9n specifieke gezondheidsvraag met alleen de verstrekte data. Schrijf 3\u20135 korte zinnen in eenvoudige taal. Geen diagnose of medische orders. Wees bemoedigend. Antwoord alleen met het antwoord.",
+        "homeQuestion.system": "Je beantwoordt \xE9\xE9n specifieke gezondheidsvraag met alleen de verstrekte data. Schrijf 3-5 korte zinnen in eenvoudige taal. Geen diagnose of medische orders. Wees bemoedigend. Antwoord alleen met het antwoord.",
         "context.improving": "Verbetering: {metrics}.",
         "context.worsening": "Verslechtering: {metrics}.",
         "context.stable": "Stabiel: {metrics}.",
@@ -2702,9 +2702,9 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "Piszesz jedno kr\xF3tkie, proste zdanie o zdrowym stylu \u017Cycia dla aplikacji zdrowotnej. Tematy: sen, woda, delikatny ruch, odpoczynek, \u015Bwie\u017Ce powietrze, zbilansowane jedzenie lub ulga w stresie. Proste s\u0142owa. Maks. 18 s\u0142\xF3w. Bez imion. Bez porad medycznych. Bez cudzys\u0142ow\xF3w. Odpowiedz tylko zdaniem.",
         "motd.user": "Napisz cytat o zdrowym stylu \u017Cycia.",
-        "summary.system": "Streszczasz dane zdrowotne w dok\u0142adnie 2 kr\xF3tkich zdaniach. U\u017Cywaj tylko podanych danych. Wspomnij 1\u20132 konkretne ustalenia. B\u0105d\u017A jasny i zach\u0119caj\u0105cy. Odpowiedz tylko podsumowaniem.",
+        "summary.system": "Streszczasz dane zdrowotne w dok\u0142adnie 2 kr\xF3tkich zdaniach. U\u017Cywaj tylko podanych danych. Wspomnij 1-2 konkretne ustalenia. B\u0105d\u017A jasny i zach\u0119caj\u0105cy. Odpowiedz tylko podsumowaniem.",
         "suggest.system": "Piszesz jedno kr\xF3tkie zdanie do notatki dziennika. Por\xF3wnaj dzi\u015B ze \u015Bredni\u0105 z ostatnich dni. U\u017Cywaj tylko podanych danych. Odpowiedz tylko zdaniem.",
-        "homeQuestion.system": "Odpowiadasz na jedno konkretne pytanie zdrowotne, u\u017Cywaj\u0105c tylko podanych danych. Napisz 3\u20135 kr\xF3tkich zda\u0144 prostym j\u0119zykiem. Bez diagnozy ani zalece\u0144 medycznych. B\u0105d\u017A zach\u0119caj\u0105cy. Odpowiedz tylko odpowiedzi\u0105.",
+        "homeQuestion.system": "Odpowiadasz na jedno konkretne pytanie zdrowotne, u\u017Cywaj\u0105c tylko podanych danych. Napisz 3-5 kr\xF3tkich zda\u0144 prostym j\u0119zykiem. Bez diagnozy ani zalece\u0144 medycznych. B\u0105d\u017A zach\u0119caj\u0105cy. Odpowiedz tylko odpowiedzi\u0105.",
         "context.improving": "Poprawa: {metrics}.",
         "context.worsening": "Pogorszenie: {metrics}.",
         "context.stable": "Stabilnie: {metrics}.",
@@ -2720,9 +2720,9 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "Voc\xEA escreve uma cita\xE7\xE3o curta e simples sobre vida saud\xE1vel para um app de sa\xFAde. Temas: sono, \xE1gua, movimento leve, descanso, ar fresco, alimenta\xE7\xE3o equilibrada ou al\xEDvio do estresse. Palavras do dia a dia. M\xE1x. 18 palavras. Sem nomes. Sem conselho m\xE9dico. Sem aspas. Responda apenas com a frase.",
         "motd.user": "Escreva uma cita\xE7\xE3o sobre estilo de vida saud\xE1vel.",
-        "summary.system": "Voc\xEA resume dados de sa\xFAde em exatamente 2 frases curtas. Use apenas os dados fornecidos. Mencione 1\u20132 achados espec\xEDficos. Seja claro e encorajador. Responda apenas com o resumo.",
+        "summary.system": "Voc\xEA resume dados de sa\xFAde em exatamente 2 frases curtas. Use apenas os dados fornecidos. Mencione 1-2 achados espec\xEDficos. Seja claro e encorajador. Responda apenas com o resumo.",
         "suggest.system": "Voc\xEA escreve uma frase curta para uma nota di\xE1ria. Compare hoje com a m\xE9dia recente. Use apenas os dados fornecidos. Responda apenas com a frase.",
-        "homeQuestion.system": "Voc\xEA responde uma pergunta espec\xEDfica de sa\xFAde usando apenas os dados fornecidos. Escreva 3\u20135 frases curtas em linguagem simples. Sem diagn\xF3stico nem ordens m\xE9dicas. Seja encorajador. Responda apenas com a resposta.",
+        "homeQuestion.system": "Voc\xEA responde uma pergunta espec\xEDfica de sa\xFAde usando apenas os dados fornecidos. Escreva 3-5 frases curtas em linguagem simples. Sem diagn\xF3stico nem ordens m\xE9dicas. Seja encorajador. Responda apenas com a resposta.",
         "context.improving": "Melhorando: {metrics}.",
         "context.worsening": "Piorando: {metrics}.",
         "context.stable": "Est\xE1vel: {metrics}.",
@@ -2738,9 +2738,9 @@ var RianellShared = (() => {
       "strings": {
         "motd.system": "Escreves uma cita\xE7\xE3o curta e simples sobre vida saud\xE1vel para uma app de sa\xFAde. Temas: sono, \xE1gua, movimento suave, descanso, ar fresco, alimenta\xE7\xE3o equilibrada ou al\xEDvio do stress. Palavras do dia a dia. M\xE1x. 18 palavras. Sem nomes. Sem conselho m\xE9dico. Sem aspas. Responde apenas com a frase.",
         "motd.user": "Escreve uma cita\xE7\xE3o sobre estilo de vida saud\xE1vel.",
-        "summary.system": "Resumes dados de sa\xFAde em exatamente 2 frases curtas. Usa apenas os dados fornecidos. Menciona 1\u20132 achados espec\xEDficos. S\xEA claro e encorajador. Responde apenas com o resumo.",
+        "summary.system": "Resumes dados de sa\xFAde em exatamente 2 frases curtas. Usa apenas os dados fornecidos. Menciona 1-2 achados espec\xEDficos. S\xEA claro e encorajador. Responde apenas com o resumo.",
         "suggest.system": "Escreves uma frase curta para uma nota di\xE1ria. Compara hoje com a m\xE9dia recente. Usa apenas os dados fornecidos. Responde apenas com a frase.",
-        "homeQuestion.system": "Respondes a uma pergunta espec\xEDfica de sa\xFAde usando apenas os dados fornecidos. Escreve 3\u20135 frases curtas em linguagem simples. Sem diagn\xF3stico nem ordens m\xE9dicas. S\xEA encorajador. Responde apenas com a resposta.",
+        "homeQuestion.system": "Respondes a uma pergunta espec\xEDfica de sa\xFAde usando apenas os dados fornecidos. Escreve 3-5 frases curtas em linguagem simples. Sem diagn\xF3stico nem ordens m\xE9dicas. S\xEA encorajador. Responde apenas com a resposta.",
         "context.improving": "A melhorar: {metrics}.",
         "context.worsening": "A piorar: {metrics}.",
         "context.stable": "Est\xE1vel: {metrics}.",
@@ -2826,7 +2826,7 @@ var RianellShared = (() => {
       promptString(
         pack,
         "homeQuestion.system",
-        "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text."
+        "You answer one specific health-tracking question using only the data provided. Write 3-5 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text."
       ),
       pack,
       options.persona
@@ -3355,7 +3355,7 @@ var RianellShared = (() => {
       return `You logged ${snap.flareDays} flare day(s) recently. Note sleep, stress, and activity around those dates.`;
     }
     if (id.startsWith("trend-") && snap.avgFatigue != null) {
-      return `Recent averages - fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : "-"}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : "-"} (1\u201310).`;
+      return `Recent averages - fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : "-"}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : "-"} (1-10).`;
     }
     if (id === "stressor" && suggestion.labelParams?.stressor) {
       return `${suggestion.labelParams.stressor} shows up in your stress logs - consider pacing and recovery after high-stress days.`;
@@ -4003,8 +4003,6 @@ ${hist}`);
   // packages/shared/src/logging/vitalSuggestions.mjs
   var VITAL_SUGGESTION_LOOKBACK_DAYS = 90;
   var VITAL_SUGGESTION_FIELD_IDS = [
-    "bpm",
-    "weight",
     "bloodPressure",
     "bloodGlucose",
     "spO2",
@@ -4031,12 +4029,8 @@ ${hist}`);
   }
   function logHasVitalField(log, fieldId) {
     switch (fieldId) {
-      case "bpm":
-        return parsePositiveInt(log.bpm) != null;
-      case "weight":
-        return parsePositiveNumber(log.weight) != null;
       case "bloodPressure":
-        return parsePositiveInt(log.bloodPressureSystolic) != null && parsePositiveInt(log.bloodPressureDiastolic) != null;
+        return parsePositiveInt(log.bloodPressureSystolic) != null;
       case "bloodGlucose":
         return parsePositiveNumber(log.bloodGlucose) != null;
       case "spO2":
@@ -4051,22 +4045,13 @@ ${hist}`);
   }
   function extractVitalValues(log, fieldId, unitPrefs = {}) {
     switch (fieldId) {
-      case "bpm": {
-        const bpm = parsePositiveInt(log.bpm);
-        return bpm != null ? { bpm } : null;
-      }
-      case "weight": {
-        const kg = parsePositiveNumber(log.weight);
-        if (kg == null) return null;
-        const unit = unitPrefs.weightUnit === "lb" ? "lb" : "kg";
-        const value = unit === "lb" ? kgToLbs(kg) : kg;
-        return { weight: Number(value.toFixed(1)), weightUnit: unit };
-      }
       case "bloodPressure": {
         const systolic = parsePositiveInt(log.bloodPressureSystolic);
-        const diastolic = parsePositiveInt(log.bloodPressureDiastolic);
-        if (systolic == null || diastolic == null) return null;
-        return { bloodPressureSystolic: systolic, bloodPressureDiastolic: diastolic };
+        if (systolic == null) return null;
+        const bpm = parsePositiveInt(log.bpm);
+        const out = { bloodPressureSystolic: systolic };
+        if (bpm != null) out.bpm = bpm;
+        return out;
       }
       case "bloodGlucose": {
         const raw = parsePositiveNumber(log.bloodGlucose);
@@ -4108,12 +4093,12 @@ ${hist}`);
   function formatVitalSuggestionDisplay(fieldId, values, unitPrefs = {}) {
     if (!values) return "";
     switch (fieldId) {
-      case "bpm":
-        return `${values.bpm} bpm`;
-      case "weight":
-        return `${values.weight} ${values.weightUnit || unitPrefs.weightUnit || "kg"}`;
-      case "bloodPressure":
-        return `${values.bloodPressureSystolic}/${values.bloodPressureDiastolic} mmHg`;
+      case "bloodPressure": {
+        const sys = values.bloodPressureSystolic;
+        const bpm = values.bpm;
+        if (bpm != null) return `${sys} mmHg / ${bpm} bpm`;
+        return `${sys} mmHg`;
+      }
       case "bloodGlucose":
         return `${values.bloodGlucose} ${values.bloodGlucoseUnit === "mgdl" ? "mg/dL" : "mmol/L"}`;
       case "spO2":
@@ -5683,7 +5668,7 @@ ${hist}`);
         if (Number.isFinite(mood)) entry.mood = Math.min(10, mood);
         const pain = Number.parseInt(row.pain, 10);
         if (Number.isFinite(pain)) entry.jointPain = Math.min(10, pain);
-        const notes = [row.notes, row.symptoms].filter(Boolean).join(" \u2014 ");
+        const notes = [row.notes, row.symptoms].filter(Boolean).join(" - ");
         if (notes) entry.notes = notes.slice(0, 500);
         logs.push(entry);
       }

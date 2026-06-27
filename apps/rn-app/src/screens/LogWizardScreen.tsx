@@ -1479,7 +1479,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             })}
             {prefs.heightCm && bodyWeight ? (
               <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                {t('wizard.vitals.bmi')}: {computeBmiKg(Number(bodyWeight), prefs.heightCm) ?? '—'}
+                {t('wizard.vitals.bmi')}: {computeBmiKg(Number(bodyWeight), prefs.heightCm) ?? '-'}
               </Text>
             ) : null}
 
@@ -2279,7 +2279,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.supplements.title')}</Text>
             {supplements.map((s, i) => (
               <Text key={`${s.name}-${i}`} style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>
-                {s.name}{s.dose ? ` — ${s.dose}` : ''}
+                {s.name}{s.dose ? ` - ${s.dose}` : ''}
               </Text>
             ))}
             <View style={[styles.row, { flexDirection: rowDir, gap: 8, marginBottom: 10 }]}>

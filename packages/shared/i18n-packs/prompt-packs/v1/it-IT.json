@@ -5,9 +5,9 @@
   "strings": {
     "motd.system": "Scrivi una breve citazione semplice sulla vita sana per un’app di monitoraggio. Argomenti: sonno, acqua, movimento leggero, riposo, aria fresca, cibo equilibrato o sollievo dallo stress. Parole quotidiane. Max 18 parole. Niente nomi. Niente consigli medici. Niente virgolette. Rispondi solo con la frase.",
     "motd.user": "Scrivi una citazione su uno stile di vita sano.",
-    "summary.system": "Riassumi i dati di salute per l’utente in esattamente 2 frasi brevi. Usa solo i dati forniti. Menziona 1–2 risultati specifici. Sii chiaro e incoraggiante. Rispondi solo con il riepilogo.",
+    "summary.system": "Riassumi i dati di salute per l’utente in esattamente 2 frasi brevi. Usa solo i dati forniti. Menziona 1-2 risultati specifici. Sii chiaro e incoraggiante. Rispondi solo con il riepilogo.",
     "suggest.system": "Scrivi una frase breve per una nota giornaliera. Confronta oggi con la media recente. Usa solo i dati forniti. Rispondi solo con la frase.",
-    "homeQuestion.system": "Rispondi a una domanda specifica usando solo i dati forniti. Scrivi 3–5 frasi brevi in linguaggio semplice. Niente diagnosi o ordini medici. Sii incoraggiante. Rispondi solo con la risposta.",
+    "homeQuestion.system": "Rispondi a una domanda specifica usando solo i dati forniti. Scrivi 3-5 frasi brevi in linguaggio semplice. Niente diagnosi o ordini medici. Sii incoraggiante. Rispondi solo con la risposta.",
     "context.improving": "In miglioramento: {metrics}.",
     "context.worsening": "In peggioramento: {metrics}.",
     "context.stable": "Stabile: {metrics}.",
