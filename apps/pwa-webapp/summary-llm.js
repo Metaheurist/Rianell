@@ -921,7 +921,18 @@
   }
 
   function runQueued(taskFn) {
-    var result = llmWorkQueue.then(taskFn);
+    var gov = typeof window !== 'undefined' ? window.RianellMainThreadGovernor : null;
+    var wrapped = function () {
+      if (!gov || typeof gov.waitForHeavyWorkSlot !== 'function') return taskFn();
+      return gov.waitForHeavyWorkSlot({ maxWaitMs: 60000 }).then(function (ok) {
+        if (!ok && gov.isHeavyWorkDeferred && gov.isHeavyWorkDeferred()) {
+          if (gov.logDefer) gov.logDefer('llm-queue-skipped');
+          return null;
+        }
+        return taskFn();
+      });
+    };
+    var result = llmWorkQueue.then(wrapped);
     llmWorkQueue = result.then(function () {}, function () {});
     return result;
   }
@@ -1928,9 +1939,23 @@
   window.getAiModelStorageEstimate = getAiModelStorageEstimate;
   window.clearAiModelCache = clearAiModelCache;
   window.preloadSummaryLLM = function (options) {
-    return getPipeline(options || {}).then(function (pipe) {
-      return warmupPipeline().then(function () { return pipe; });
-    });
+    var gov = typeof window !== 'undefined' ? window.RianellMainThreadGovernor : null;
+    var run = function () {
+      return getPipeline(options || {}).then(function (pipe) {
+        if (!pipe) return null;
+        if (gov && typeof gov.waitForHeavyWorkSlot === 'function') {
+          return gov.waitForHeavyWorkSlot({ maxWaitMs: 90000 }).then(function (ok) {
+            if (!ok) return pipe;
+            return warmupPipeline().then(function () { return pipe; });
+          });
+        }
+        return warmupPipeline().then(function () { return pipe; });
+      });
+    };
+    if (gov && typeof gov.waitForHeavyWorkSlot === 'function' && gov.isHeavyWorkDeferred && gov.isHeavyWorkDeferred()) {
+      return gov.waitForHeavyWorkSlot({ maxWaitMs: 120000 }).then(run);
+    }
+    return run();
   };
   window.clearSummaryLLMCache = clearSummaryLLMCache;
   window.needsAiModelDownloadConsent = needsDownloadConsent;

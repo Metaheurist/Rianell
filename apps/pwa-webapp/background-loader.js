@@ -114,6 +114,11 @@
 
     function runWhenIdle() {
       if (!isPageVisible()) return;
+      var gov = typeof window !== 'undefined' ? window.RianellMainThreadGovernor : null;
+      if (gov && typeof gov.isHeavyWorkDeferred === 'function' && gov.isHeavyWorkDeferred()) {
+        setTimeout(runWhenIdle, 3000);
+        return;
+      }
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(runAIAnalysis, { timeout: 800 });
       } else {

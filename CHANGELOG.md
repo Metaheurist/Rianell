@@ -6,6 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.4] — 2026-06-27
+
+Log wizard animated metrics, lifestyle widget polish, cycle timeline fix, and main-thread responsiveness during on-device AI.
+
+### Added
+
+- **Animated log metric widgets (PWA):** Ten symptom/energy/stress/lifestyle sliders upgraded to unique SVG widgets with zone badges and ± steppers (`modules/log-metric-widgets.js`) — stiffness gear, joint-pain pulses, mobility footsteps, swelling blob, fatigue battery, sleep moon/stars, mood sun/cloud, irritability steam gauge, weather rain, daily-function ring.
+- **Main-thread governor (PWA):** Defers LLM preload and inference while the log wizard is active or the user is interacting (`modules/main-thread-governor.js`); boot AI/charts work is serialized with background priority.
+- **God mode — achievements testing:** Preview unlock toasts, simulate unlock notifications, and reset achievement notification state from the test overlay.
+
+### Changed
+
+- **Steps widget (PWA):** Footprints step down a path with stamp animation when value increases; runner icon removed for clarity.
+- **Hydration widget (PWA):** Large glass uses liquid fill with wave surface, bubbles, and pour animation synced to mini-glass row.
+
+### Fixed
+
+- **Cycle timeline (PWA):** Menstrual flow picker no longer shows corrupted text (“glasses” fragments) — flow buttons use `data-i18n-aria` only so i18n does not wipe droplet icons.
+
+---
+
 ## [2.0.3] — 2026-06-27
 
 Mobile first-launch boot reliability for the PWA.

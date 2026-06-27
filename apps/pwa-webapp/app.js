@@ -907,6 +907,26 @@ function runCriticalTask(fn) {
   return p.then(function (x) { return (x && typeof x.then === 'function') ? x : Promise.resolve(x); });
 }
 
+/** Defer heavy background work (AI preload, LLM) so log wizard input stays responsive. */
+function runBackgroundTask(fn) {
+  var run = function () { return fn(); };
+  var p;
+  if (typeof globalThis !== 'undefined' && globalThis.scheduler && typeof globalThis.scheduler.postTask === 'function') {
+    p = globalThis.scheduler.postTask(run, { priority: 'background' }).catch(function () { return run(); });
+  } else {
+    p = new Promise(function (resolve) { setTimeout(function () { resolve(run()); }, 0); });
+  }
+  return p.then(function (x) { return (x && typeof x.then === 'function') ? x : Promise.resolve(x); });
+}
+
+function waitForMainThreadHeavyWorkSlot(maxWaitMs) {
+  var gov = typeof window !== 'undefined' ? window.RianellMainThreadGovernor : null;
+  if (gov && typeof gov.waitForHeavyWorkSlot === 'function') {
+    return gov.waitForHeavyWorkSlot({ maxWaitMs: maxWaitMs != null ? maxWaitMs : 45000 });
+  }
+  return Promise.resolve(true);
+}
+
 // ============================================
 // Performance benchmark modal
 // ============================================
@@ -3004,11 +3024,22 @@ function openModalTestOverlay() {
       ]
     },
     {
+      titleKey: 'godMode.section.achievements',
+      hintKey: 'godMode.hint.achievementTesting',
+      items: [
+        { labelKey: 'godMode.openAchievementsPane', godModeId: 'achievements-open-pane', action: run(function() { openGoalsModal(1); }) },
+        { labelKey: 'godMode.previewUnlockToast', godModeId: 'achievements-preview-toast', action: run(function() { godModePreviewAchievementUnlockToast('milestone_3'); }) },
+        { labelKey: 'godMode.previewAllUnlockToasts', godModeId: 'achievements-preview-all-toasts', action: run(godModePreviewAllAchievementUnlockToasts) },
+        { labelKey: 'godMode.simulateUnlockNotify', godModeId: 'achievements-simulate-unlock', action: run(function() { godModeSimulateAchievementUnlockNotify('food_logging'); }) },
+        { labelKey: 'godMode.resetAchievementNotifications', godModeId: 'achievements-reset-notifications', action: run(godModeResetAchievementNotificationState) }
+      ]
+    },
+    {
       titleKey: 'godMode.section.developer',
       hintKey: 'godMode.hint.clearBenchmarkCache',
       items: [
-        { labelKey: 'godMode.clearBenchmarkCache', action: run(clearBenchmarkCacheAndNotify) },
-        { labelKey: 'godMode.viewBenchmarkDetails', action: run(openBenchmarkDetails), desktopOnly: true }
+        { labelKey: 'godMode.clearBenchmarkCache', godModeId: 'developer-clear-benchmark-cache', action: run(clearBenchmarkCacheAndNotify) },
+        { labelKey: 'godMode.viewBenchmarkDetails', godModeId: 'developer-view-benchmark', action: run(openBenchmarkDetails), desktopOnly: true }
       ]
     },
     {
@@ -3022,7 +3053,8 @@ function openModalTestOverlay() {
   container.innerHTML = sections.map(function(s) {
     var btns = s.items.map(function(item, i) {
       var extraCls = item.desktopOnly ? ' god-mode-btn--desktop-only' : '';
-      return '<button type="button" class="god-mode-btn' + extraCls + '">' + escapeHTML(tUi(item.labelKey)) + '</button>';
+      var godModeAttr = item.godModeId ? ' data-god-mode="' + escapeAttr(item.godModeId) + '"' : '';
+      return '<button type="button" class="god-mode-btn' + extraCls + '"' + godModeAttr + '>' + escapeHTML(tUi(item.labelKey)) + '</button>';
     }).join('');
     var hintHtml = s.hintKey ? '<p class="god-mode-section-hint">' + escapeHTML(tUi(s.hintKey)) + '</p>' : '';
     return '<section class="god-mode-section"><h4 class="god-mode-section-title">' + escapeHTML(tUi(s.titleKey)) + '</h4><div class="god-mode-btn-group">' + btns + '</div>' + hintHtml + '</section>';
@@ -5518,6 +5550,11 @@ function updateSliderColor(slider) {
     slider.classList.add('red');
   }
 
+  if (window.RianellLogMetrics && typeof window.RianellLogMetrics.refreshSlider === 'function' && slider.closest('.metric-widget')) {
+    window.RianellLogMetrics.refreshSlider(slider);
+    return;
+  }
+
   // Value pill next to label (touch-friendly feedback)
   try {
     const lab = slider.parentElement && slider.parentElement.querySelector(`label[for="${slider.id}"]`);
@@ -5581,11 +5618,16 @@ function updateBristolSlider(slider) {
   }
 }
 
+if (window.RianellLogMetrics && typeof window.RianellLogMetrics.buildAll === 'function') {
+  window.RianellLogMetrics.buildAll();
+}
+
 sliders.forEach(sliderId => {
   const slider = document.getElementById(sliderId);
+  if (!slider) return;
   slider.value = 5; // Set default value
   updateSliderColor(slider);
-  
+
   slider.addEventListener('input', function() {
     updateSliderColor(this);
   });
@@ -7991,6 +8033,12 @@ function preloadAIAnalysisInBackground() {
   var data = getAIPreloadData();
   if (!data) return;
   if (window._aiPreloadInFlight) return;
+  var gov = window.RianellMainThreadGovernor;
+  if (gov && typeof gov.isHeavyWorkDeferred === 'function' && gov.isHeavyWorkDeferred()) {
+    if (gov.logDefer) gov.logDefer('ai-preload-deferred');
+    setTimeout(preloadAIAnalysisInBackground, 3000);
+    return;
+  }
   var run = function () {
     var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
       ? window.AIEngine.analyzeHealthMetrics
@@ -8074,10 +8122,13 @@ async function preloadAIForAllRanges() {
   }
 
   function runAll() {
-    if (isLow) {
-      return yieldToMain().then(function () { return runOne(30); });
-    }
-    return runOne(30);
+    return waitForMainThreadHeavyWorkSlot(90000).then(function (ok) {
+      if (!ok) return Promise.resolve();
+      if (isLow) {
+        return yieldToMain().then(function () { return runOne(30); });
+      }
+      return runOne(30);
+    });
   }
 
   var start = (deviceClass !== 'low' && typeof requestIdleCallback !== 'undefined')
@@ -10834,6 +10885,59 @@ function showAchievementToast(item) {
   if (S && typeof S.enqueueAchievementToast === 'function') {
     S.enqueueAchievementToast(item);
   }
+}
+
+function godModePreviewAchievementUnlockToast(achievementId) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || typeof S.buildAchievementUnlockNotificationContent !== 'function') return;
+  var id = achievementId;
+  if (!id && S.ALL_ACHIEVEMENTS && S.ALL_ACHIEVEMENTS.length) id = S.ALL_ACHIEVEMENTS[0].id;
+  if (id && typeof S.isKnownAchievementId === 'function' && !S.isKnownAchievementId(id)) return;
+  var t = typeof tUi === 'function' ? tUi : function (k) { return k; };
+  var content = S.buildAchievementUnlockNotificationContent(id, t);
+  showAchievementToast({ id: id, title: content.title, body: content.body });
+}
+
+function godModePreviewAllAchievementUnlockToasts() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || !S.ALL_ACHIEVEMENTS || typeof S.buildAchievementUnlockNotificationContent !== 'function') return;
+  var t = typeof tUi === 'function' ? tUi : function (k) { return k; };
+  S.ALL_ACHIEVEMENTS.forEach(function (def) {
+    var content = S.buildAchievementUnlockNotificationContent(def.id, t);
+    showAchievementToast({ id: def.id, title: content.title, body: content.body });
+  });
+}
+
+function godModeResetAchievementNotificationState() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  var state = typeof getAchievementState === 'function' ? getAchievementState() : {};
+  var normalized = S && typeof S.normalizeAchievementState === 'function'
+    ? S.normalizeAchievementState(state)
+    : { achievements: {} };
+  Object.keys(normalized.achievements || {}).forEach(function (id) {
+    normalized.achievements[id] = {};
+  });
+  if (typeof saveAchievementState === 'function') saveAchievementState(normalized);
+  _achievementSnapshotsPrev = null;
+  if (typeof renderAchievementsPane === 'function') renderAchievementsPane();
+  if (typeof tickAchievements === 'function') tickAchievements();
+}
+
+function godModeSimulateAchievementUnlockNotify(achievementId) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || !S.ALL_ACHIEVEMENTS) return;
+  var id = achievementId || 'food_logging';
+  var def = S.ALL_ACHIEVEMENTS.find(function (a) { return a.id === id; });
+  if (!def) return;
+  var snap = {
+    id: def.id,
+    unlocked: true,
+    notifiedAt: null,
+    tier: def.tier,
+    icon: def.icon,
+  };
+  fireAchievementUnlockNotifications([snap]);
+  if (typeof renderAchievementsPane === 'function') renderAchievementsPane();
 }
 
 function tickAchievements() {
@@ -17593,7 +17697,7 @@ function startLlmStoragePoll() {
       updateLlmStorageHint();
     });
   }
-  __rianellLlmStoragePollId = setInterval(updateLlmStorageHint, 750);
+  __rianellLlmStoragePollId = setInterval(updateLlmStorageHint, 3000);
 }
 
 function stopLlmStoragePoll() {
@@ -25212,6 +25316,9 @@ function switchTab(tabName, skipHash) {
   if (document.body) {
     document.body.classList.toggle('tab-not-home', tabName !== 'home');
     document.body.classList.toggle('log-wizard-active', tabName === 'log');
+    if (tabName === 'log' && window.RianellMainThreadGovernor && typeof window.RianellMainThreadGovernor.markInteraction === 'function') {
+      window.RianellMainThreadGovernor.markInteraction(4000);
+    }
   }
 
   function doSwitch() {
@@ -25619,18 +25726,28 @@ function runRianellBootAfterDomReady() {
   function runPostShellIdleWork(skipAiPreload) {
     const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
     const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
-    const chartsReady = !needCharts
-      ? Promise.resolve()
-      : runCriticalTask(function () {
+    const shouldPreloadAi = !skipAiPreload && !window.__rianellAiPreloadedDuringBoot
+      && appSettings.aiModelDownloadConsent !== 'deferred';
+
+    function runChartsWhenIdle() {
+      if (!needCharts) return Promise.resolve();
+      return waitForMainThreadHeavyWorkSlot(60000).then(function (ok) {
+        if (!ok) return Promise.resolve();
+        return runCriticalTask(function () {
           return (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
             window.__chartsBuiltDuringLoad = true;
           }).catch(function () {});
         });
-    const shouldPreloadAi = !skipAiPreload && !window.__rianellAiPreloadedDuringBoot
-      && appSettings.aiModelDownloadConsent !== 'deferred';
-    const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function' || !shouldPreloadAi)
-      ? Promise.resolve()
-      : runCriticalTask(function () {
+      });
+    }
+
+    function runAiWhenIdle() {
+      if (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function' || !shouldPreloadAi) {
+        return Promise.resolve();
+      }
+      return waitForMainThreadHeavyWorkSlot(120000).then(function (ok) {
+        if (!ok) return Promise.resolve();
+        return runBackgroundTask(function () {
           var chain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
             ? window.PerformanceUtils.ensureAIEngineLoaded()
             : Promise.resolve();
@@ -25640,7 +25757,12 @@ function runRianellBootAfterDomReady() {
             });
           }).catch(function () {});
         });
-    Promise.allSettled([chartsReady, aiReady]).then(function () {
+      });
+    }
+
+    runChartsWhenIdle().then(function () {
+      return runAiWhenIdle();
+    }).then(function () {
       if (typeof updateDashboardTitle === 'function') updateDashboardTitle();
       if (appSettings.aiEnabled !== false && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
         var cached = window.DeviceBenchmark.getCachedResult();
@@ -25666,7 +25788,7 @@ function runRianellBootAfterDomReady() {
       var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
       if (!window.__chartsBuiltDuringLoad && !isLow && typeof scheduleChartsPreload === 'function') scheduleChartsPreload();
       window.__chartsBuiltDuringLoad = false;
-      if (!isLow && typeof scheduleAIPreload === 'function') scheduleAIPreload();
+      if (!isLow && !window.__rianellAiPreloadedDuringBoot && typeof scheduleAIPreload === 'function') scheduleAIPreload();
       clearAISection();
       if (appSettings.showCharts && logs && logs.length > 0 && appSettings.chartView === 'individual') {
         requestAnimationFrame(function() {
@@ -25718,10 +25840,15 @@ function runRianellBootAfterDomReady() {
       ? window.PerformanceUtils.ensureAIEngineLoaded()
       : Promise.resolve();
     aiBootChain.then(function () {
-      return window.preloadSummaryLLM().then(function () {
-        if (typeof preloadAIForAllRanges === 'function') {
-          return preloadAIForAllRanges();
-        }
+      return waitForMainThreadHeavyWorkSlot(120000).then(function (ok) {
+        if (!ok) return Promise.resolve();
+        return runBackgroundTask(function () {
+          return window.preloadSummaryLLM().then(function () {
+            if (typeof preloadAIForAllRanges === 'function') {
+              return preloadAIForAllRanges();
+            }
+          });
+        });
       });
     }).catch(function () {
       /* deferred consent or download failure */
