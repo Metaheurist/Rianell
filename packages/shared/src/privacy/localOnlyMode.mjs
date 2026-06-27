@@ -4,6 +4,7 @@ export const LOCAL_ONLY_NETWORK_FEATURES = [
   { id: 'cloudSync', labelKey: 'settings.privacy.localOnly.cloudSync' },
   { id: 'anonymizedSync', labelKey: 'settings.privacy.localOnly.anonymizedSync' },
   { id: 'modelDownload', labelKey: 'settings.privacy.localOnly.modelDownload' },
+  { id: 'barcodeFood', labelKey: 'settings.privacy.localOnly.barcodeFood' },
   { id: 'bugReport', labelKey: 'settings.privacy.localOnly.bugReport' },
   { id: 'remoteLlm', labelKey: 'settings.privacy.localOnly.remoteLlm' },
   { id: 'sessionRecording', labelKey: 'settings.privacy.localOnly.sessionRecording' },

@@ -74,6 +74,141 @@
     return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
   }
 
+  function moodToneFromScore(score) {
+    var n = Number(score);
+    if (!Number.isFinite(n)) return 'neutral';
+    if (n <= 3) return 'low';
+    if (n <= 5) return 'moderate';
+    if (n <= 7) return 'okay';
+    return 'good';
+  }
+
+  function formatMoodTimelineDate(dateStr) {
+    if (!dateStr || dateStr.length < 10) return dateStr || '';
+    var m = parseInt(dateStr.slice(5, 7), 10);
+    var d = parseInt(dateStr.slice(8, 10), 10);
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (!Number.isFinite(m) || m < 1 || m > 12) return dateStr.slice(5);
+    return months[m - 1] + ' ' + d;
+  }
+
+  function renderMoodTimelineWave(dailyAverages, moodTarget) {
+    if (!dailyAverages || !dailyAverages.length) return '';
+    var nodeW = 56;
+    var h = 96;
+    var padTop = 14;
+    var padBottom = 8;
+    var innerH = h - padTop - padBottom;
+    var max = 10;
+    var w = Math.max(nodeW, dailyAverages.length * nodeW);
+    var pts = dailyAverages.map(function (d, i) {
+      var cx = nodeW * i + nodeW / 2;
+      var cy = padTop + innerH - (d.average / max) * innerH;
+      return { x: cx, y: cy };
+    });
+    var pathD = pts.map(function (p, i) {
+      return (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1);
+    }).join(' ');
+    var targetY = padTop + innerH - (moodTarget / max) * innerH;
+    var areaD = pathD + ' L' + pts[pts.length - 1].x.toFixed(1) + ',' + (h - padBottom).toFixed(1) +
+      ' L' + pts[0].x.toFixed(1) + ',' + (h - padBottom).toFixed(1) + ' Z';
+    return '<svg class="mood-timeline-wave" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
+      '<defs><linearGradient id="moodWaveFill" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="currentColor" stop-opacity="0.22"/>' +
+      '<stop offset="100%" stop-color="currentColor" stop-opacity="0.02"/>' +
+      '</linearGradient></defs>' +
+      '<line class="mood-timeline-target" x1="0" y1="' + targetY.toFixed(1) + '" x2="' + w + '" y2="' + targetY.toFixed(1) + '"/>' +
+      '<path class="mood-timeline-area" d="' + areaD + '" fill="url(#moodWaveFill)"/>' +
+      '<path class="mood-timeline-path" d="' + pathD + '" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>';
+  }
+
+  function renderMoodTimeline(dailyAverages, readings, moodTarget) {
+    if (!dailyAverages || !dailyAverages.length) return '';
+    var byDate = {};
+    (readings || []).forEach(function (r) {
+      if (!byDate[r.date]) byDate[r.date] = [];
+      byDate[r.date].push(r);
+    });
+    var nodesHtml = dailyAverages.map(function (d, i) {
+      var tone = moodToneFromScore(d.average);
+      var qk = S && typeof S.moodQualitativeKey === 'function' ? S.moodQualitativeKey(Math.round(d.average)) : '';
+      var qual = qk ? t(qk) : '';
+      var dayReadings = byDate[d.date] || [];
+      var tip = d.date + ' · ' + d.average + '/10';
+      if (qual) tip += ' · ' + qual;
+      if (d.count > 1) tip += ' · ' + t('mood.count', { count: String(d.count) });
+      var isLatest = i === dailyAverages.length - 1;
+      var pipsHtml = '';
+      if (dayReadings.length > 1) {
+        pipsHtml = '<span class="mood-timeline-pips" aria-hidden="true">';
+        dayReadings.slice(0, 4).forEach(function (r) {
+          pipsHtml += '<span class="mood-timeline-pip mood-timeline-pip--' + moodToneFromScore(r.mood) + '"></span>';
+        });
+        if (dayReadings.length > 4) {
+          pipsHtml += '<span class="mood-timeline-pip-more">+' + (dayReadings.length - 4) + '</span>';
+        }
+        pipsHtml += '</span>';
+      }
+      return '<div class="mood-timeline-node mood-timeline-node--' + tone + (isLatest ? ' mood-timeline-node--latest' : '') + '" role="listitem" style="--node-i:' + i + ';--mood-score:' + d.average + '" title="' + escapeHTML(tip) + '">' +
+        '<div class="mood-timeline-orb-wrap">' +
+        (isLatest ? '<span class="mood-timeline-pulse" aria-hidden="true"></span>' : '') +
+        '<span class="mood-timeline-orb" aria-hidden="true"></span>' +
+        pipsHtml +
+        '</div>' +
+        '<span class="mood-timeline-score">' + escapeHTML(String(d.average)) + '</span>' +
+        '<span class="mood-timeline-date">' + escapeHTML(formatMoodTimelineDate(d.date)) + '</span>' +
+        '</div>';
+    }).join('');
+    return '<div class="mood-timeline-scroll" role="list" aria-label="' + escapeHTML(t('mood.recent.title')) + '">' +
+      '<div class="mood-timeline-inner" style="--mood-node-count:' + dailyAverages.length + '">' +
+      renderMoodTimelineWave(dailyAverages, moodTarget) +
+      '<div class="mood-timeline-nodes">' + nodesHtml + '</div></div></div>';
+  }
+
+  function wireMoodTimelineScroll(el) {
+    if (!el || el.dataset.moodTimelineBound === '1') return;
+    el.dataset.moodTimelineBound = '1';
+    var startX = 0;
+    var startScroll = 0;
+    var dragging = false;
+
+    el.addEventListener('wheel', function (e) {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      el.scrollLeft += e.deltaY;
+      e.preventDefault();
+    }, { passive: false });
+
+    el.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      dragging = true;
+      startX = e.pageX;
+      startScroll = el.scrollLeft;
+      el.classList.add('mood-timeline-scroll--dragging');
+      if (el.setPointerCapture) el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointerup', function (e) {
+      if (!dragging) return;
+      dragging = false;
+      el.classList.remove('mood-timeline-scroll--dragging');
+      if (el.releasePointerCapture) {
+        try { el.releasePointerCapture(e.pointerId); } catch (_err) { /* noop */ }
+      }
+    });
+    el.addEventListener('pointercancel', function () {
+      dragging = false;
+      el.classList.remove('mood-timeline-scroll--dragging');
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      el.scrollLeft = startScroll - (e.pageX - startX);
+    });
+
+    requestAnimationFrame(function () {
+      el.scrollLeft = el.scrollWidth - el.clientWidth;
+    });
+  }
+
   function renderMoodSparkline(dailyAverages) {
     if (!dailyAverages || !dailyAverages.length) return '';
     var max = 10;
@@ -155,18 +290,9 @@
       html += '<span class="mood-metric-hint">' + escapeHTML(t('mood.belowTarget', { target: String(summary.moodTarget) })) + ': ' + summary.belowTargetCount + '</span></div>';
       html += '</div>';
 
-      html += '<section class="mood-recent-section"><h3 class="mood-section-title">' + escapeHTML(t('mood.recent.title')) + '</h3><ul class="mood-reading-list">';
-      summary.readings.forEach(function (r) {
-        var src = r.source === 'checkin' ? t('mood.source.checkin') : t('mood.source.daily');
-        var period = r.period ? periodLabel(r.period) : '';
-        var meta = period ? src + ' · ' + period : src;
-        var qk = S && typeof S.moodQualitativeKey === 'function' ? S.moodQualitativeKey(r.mood) : '';
-        html += '<li class="mood-reading-item"><span class="mood-reading-score">' + escapeHTML(String(r.mood)) + '/10</span>';
-        html += '<span class="mood-reading-meta">' + escapeHTML(r.date) + ' · ' + escapeHTML(meta);
-        if (qk) html += ' · ' + escapeHTML(t(qk));
-        html += '</span></li>';
-      });
-      html += '</ul></section>';
+      html += '<section class="mood-recent-section"><h3 class="mood-section-title">' + escapeHTML(t('mood.recent.title')) + '</h3>';
+      html += renderMoodTimeline(summary.dailyAverages, summary.readings, summary.moodTarget);
+      html += '</section>';
     }
 
     html += renderMoodCheckinSection(todayStr, simpleMode);
@@ -180,6 +306,9 @@
     html += '</div>';
 
     root.innerHTML = html;
+
+    var moodTimelineScroll = root.querySelector('.mood-timeline-scroll');
+    if (moodTimelineScroll) wireMoodTimelineScroll(moodTimelineScroll);
 
     var moodCheckinSection = root.querySelector('.mood-checkin-section');
     if (moodCheckinSection && typeof global.wireCheckinSliderEvents === 'function') {

@@ -572,10 +572,9 @@ const NotificationManager = {
             playHeartbeatSound();
           }
           if (typeof showAlertModal === 'function') {
-            showAlertModal(
-              '📊 Don\'t forget to log today\'s health data!',
-              'Daily Reminder'
-            );
+            const reminderTitle = typeof tUi === 'function' ? tUi('settings.notifications.inAppReminderTitle') : 'Daily Reminder';
+            const reminderBody = typeof tUi === 'function' ? tUi('settings.notifications.inAppReminderBody') : "Don't forget to log today's health data!";
+            showAlertModal(reminderBody, reminderTitle, undefined, { icon: 'icon-chart-bars' });
             localStorage.setItem('lastInAppReminderDate', todayStr);
           }
         }, 2000);

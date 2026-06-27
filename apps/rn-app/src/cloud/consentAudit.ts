@@ -11,7 +11,6 @@ export const CONSENT_AUDIT_FIELDS = new Set([
   'aiModelDownloadConsent',
   'localOnlyMode',
   'barcodeFoodLoggingEnabled',
-  'guidedVoiceLogEnabled',
 ]);
 
 export async function logConsentEventToCloud(field: string, value: unknown): Promise<void> {

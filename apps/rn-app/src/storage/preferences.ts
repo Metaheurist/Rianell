@@ -136,7 +136,6 @@ export type Preferences = {
   digestiveModuleEnabled: boolean;
   barcodeFoodLoggingEnabled: boolean;
   healthConnectEnabled: boolean;
-  guidedVoiceLogEnabled: boolean;
   glucoseUnit: 'mmol' | 'mgdl';
   temperatureUnit: 'celsius' | 'fahrenheit';
   heightCm: number | null;
@@ -269,7 +268,6 @@ export function getDefaultPreferences(): Preferences {
     digestiveModuleEnabled: false,
     barcodeFoodLoggingEnabled: false,
     healthConnectEnabled: false,
-    guidedVoiceLogEnabled: false,
     glucoseUnit: 'mmol',
     temperatureUnit: 'celsius',
     heightCm: null,
@@ -502,7 +500,6 @@ export async function loadPreferences(): Promise<Preferences> {
       digestiveModuleEnabled: parsed.digestiveModuleEnabled === true,
       barcodeFoodLoggingEnabled: parsed.barcodeFoodLoggingEnabled === true,
       healthConnectEnabled: parsed.healthConnectEnabled === true,
-      guidedVoiceLogEnabled: parsed.guidedVoiceLogEnabled === true,
       glucoseUnit: parsed.glucoseUnit === 'mgdl' ? 'mgdl' : d.glucoseUnit,
       temperatureUnit: parsed.temperatureUnit === 'fahrenheit' ? 'fahrenheit' : d.temperatureUnit,
       heightCm: typeof parsed.heightCm === 'number' && Number.isFinite(parsed.heightCm) ? parsed.heightCm : d.heightCm,

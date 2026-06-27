@@ -49,8 +49,11 @@ async function deriveExportKey(passphrase, salt, subtle, iterations) {
 export async function encryptExportWithPassphrase(payload, passphrase, subtle, opts) {
   const options = opts && typeof opts === 'object' ? opts : {};
   const iterations = options.iterations || ENCRYPTED_EXPORT_KDF_ITERATIONS;
-  if (typeof passphrase !== 'string' || passphrase.length < ENCRYPTED_EXPORT_MIN_LENGTH) {
-    throw new Error(`Passphrase must be at least ${ENCRYPTED_EXPORT_MIN_LENGTH} characters`);
+  const minLen = typeof options.minPassphraseLength === 'number'
+    ? Math.max(1, Math.floor(options.minPassphraseLength))
+    : ENCRYPTED_EXPORT_MIN_LENGTH;
+  if (typeof passphrase !== 'string' || passphrase.length < minLen) {
+    throw new Error(`Passphrase must be at least ${minLen} characters`);
   }
   const cryptoSubtle = getSubtle(subtle);
   const salt = randomBytes(16);

@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   buildConsentAuditPayload,
-  extractLogFieldsFromVoiceTranscript,
   PBKDF2_ITERATIONS,
 } from '@rianell/shared';
 
@@ -16,12 +15,6 @@ test('buildConsentAuditPayload includes platform and timestamp', () => {
   assert.equal(payload.value, true);
   assert.equal(payload.platform, 'pwa');
   assert.ok(typeof payload.ts === 'number');
-});
-
-test('extractLogFieldsFromVoiceTranscript parses mood and fatigue', () => {
-  const fields = extractLogFieldsFromVoiceTranscript('feeling good today, fatigue is 5, slept well');
-  assert.equal(fields.mood, 7);
-  assert.equal(fields.fatigue, 5);
 });
 
 test('cloud-sync defines consent audit helpers', () => {

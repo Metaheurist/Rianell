@@ -236,11 +236,6 @@ export * from './fhir/index.mjs';
 export * from './community/index.mjs';
 export * from './a11y/wcagHelpers.mjs';
 export * from './crypto/secureStorage.mjs';
-export {
-  ALLOWED_VOICE_LOG_FIELDS,
-  isVoicePromptInjection,
-  sanitizeVoiceExtractResult,
-} from './logging/voiceLogExtract.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({
