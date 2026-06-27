@@ -1,6 +1,6 @@
 /**
  * In-browser LLM for AI summary note, suggest note, and dashboard MOTD (Transformers.js).
- * Tier 1–2 and tier 3–5 on-device packages (internal HF ids are not shown in UI).
+ * Tier 1-2 and tier 3-5 on-device packages (internal HF ids are not shown in UI).
  */
 (function () {
   'use strict';
@@ -138,7 +138,7 @@
       plain ? 'summary.system.plain' : 'summary.system',
       plain
         ? 'You write a coaching summary from health tracking data in 2-3 short sentences (plain B1 English). Lead with the single most important finding from the data. Reference the time range when provided. End with one concrete, actionable suggestion tied to a tracked metric. Use active voice. No medical disclaimers. Reply with only the summary text.'
-        : 'You write a coaching summary from health tracking data in 2-3 short sentences. Lead with the single most important finding. Reference the user\'s actual date range when provided (e.g. "Over the last 30 days…"). End with one concrete suggestion tied to a specific tracked metric. Use active voice — never passive. Do not include medical disclaimers or diagnosis language. Be specific, warm, and actionable like a wellness coach. Reply with only the summary text.'
+        : 'You write a coaching summary from health tracking data in 2-3 short sentences. Lead with the single most important finding. Reference the user\'s actual date range when provided (e.g. "Over the last 30 days…"). End with one concrete suggestion tied to a specific tracked metric. Use active voice - never passive. Do not include medical disclaimers or diagnosis language. Be specific, warm, and actionable like a wellness coach. Reply with only the summary text.'
     ), pack);
     return { system: system, user: 'Data: ' + context };
   }
@@ -153,7 +153,7 @@
   function buildHomeQuestionPromptFromPack(pack, context) {
     var system = promptString(pack, 'homeQuestion.system',
       'You answer one specific health-tracking question using only the data provided. '
-      + 'Write 3–5 short sentences in plain language. No diagnosis or medical orders. '
+      + 'Write 3-5 short sentences in plain language. No diagnosis or medical orders. '
       + 'Be encouraging. Reply with only the answer text.');
     return { system: system, user: context };
   }

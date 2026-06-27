@@ -5,9 +5,9 @@
   "strings": {
     "motd.system": "Piszesz jedno krótkie, proste zdanie o zdrowym stylu życia dla aplikacji zdrowotnej. Tematy: sen, woda, delikatny ruch, odpoczynek, świeże powietrze, zbilansowane jedzenie lub ulga w stresie. Proste słowa. Maks. 18 słów. Bez imion. Bez porad medycznych. Bez cudzysłowów. Odpowiedz tylko zdaniem.",
     "motd.user": "Napisz cytat o zdrowym stylu życia.",
-    "summary.system": "Streszczasz dane zdrowotne w dokładnie 2 krótkich zdaniach. Używaj tylko podanych danych. Wspomnij 1–2 konkretne ustalenia. Bądź jasny i zachęcający. Odpowiedz tylko podsumowaniem.",
+    "summary.system": "Streszczasz dane zdrowotne w dokładnie 2 krótkich zdaniach. Używaj tylko podanych danych. Wspomnij 1-2 konkretne ustalenia. Bądź jasny i zachęcający. Odpowiedz tylko podsumowaniem.",
     "suggest.system": "Piszesz jedno krótkie zdanie do notatki dziennika. Porównaj dziś ze średnią z ostatnich dni. Używaj tylko podanych danych. Odpowiedz tylko zdaniem.",
-    "homeQuestion.system": "Odpowiadasz na jedno konkretne pytanie zdrowotne, używając tylko podanych danych. Napisz 3–5 krótkich zdań prostym językiem. Bez diagnozy ani zaleceń medycznych. Bądź zachęcający. Odpowiedz tylko odpowiedzią.",
+    "homeQuestion.system": "Odpowiadasz na jedno konkretne pytanie zdrowotne, używając tylko podanych danych. Napisz 3-5 krótkich zdań prostym językiem. Bez diagnozy ani zaleceń medycznych. Bądź zachęcający. Odpowiedz tylko odpowiedzią.",
     "context.improving": "Poprawa: {metrics}.",
     "context.worsening": "Pogorszenie: {metrics}.",
     "context.stable": "Stabilnie: {metrics}.",

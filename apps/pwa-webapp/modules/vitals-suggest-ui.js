@@ -4,14 +4,12 @@
   var S = global.RianellShared || {};
   var buildSuggestions = S.buildVitalSuggestions || null;
   var FIELD_IDS = S.VITAL_SUGGESTION_FIELD_IDS || [
-    'bpm', 'weight', 'bloodPressure', 'bloodGlucose', 'spO2', 'hrv', 'bodyWeight',
+    'bloodPressure', 'bloodGlucose', 'spO2', 'hrv', 'bodyWeight',
   ];
 
   var FIELD_UI = {
-    bpm: { inputs: ['bpm'], insertAfter: '#bpm' },
-    weight: { inputs: ['weight'], insertAfter: '#weight' },
     bloodPressure: {
-      inputs: ['bloodPressureSystolic', 'bloodPressureDiastolic'],
+      inputs: ['bloodPressureSystolic', 'bpm'],
       insertAfter: '#bpStep .bp-dial-widget',
     },
     bloodGlucose: { inputs: ['bloodGlucose'], insertAfter: '#glucoseWidget' },
@@ -93,19 +91,13 @@
     var row = latestSuggestions[fieldId];
     if (!row || !row.values) return;
     var vals = row.values;
-    if (fieldId === 'bpm' && vals.bpm != null) {
-      var bpmEl = document.getElementById('bpm');
-      if (bpmEl) bpmEl.value = String(vals.bpm);
-    } else if (fieldId === 'weight' && vals.weight != null) {
-      var weightEl = document.getElementById('weight');
-      if (weightEl) weightEl.value = String(vals.weight);
-    } else if (fieldId === 'bloodPressure') {
+    if (fieldId === 'bloodPressure') {
       var sysEl = document.getElementById('bloodPressureSystolic');
-      var diaEl = document.getElementById('bloodPressureDiastolic');
+      var bpmEl = document.getElementById('bpm');
       if (sysEl) sysEl.value = String(vals.bloodPressureSystolic);
-      if (diaEl) diaEl.value = String(vals.bloodPressureDiastolic);
+      if (bpmEl && vals.bpm != null) bpmEl.value = String(vals.bpm);
       if (global.RianellBpInput && typeof global.RianellBpInput.setValues === 'function') {
-        global.RianellBpInput.setValues(vals.bloodPressureSystolic, vals.bloodPressureDiastolic, true);
+        global.RianellBpInput.setValues(vals.bloodPressureSystolic, vals.bpm, true);
       }
     } else if (fieldId === 'bloodGlucose' && vals.bloodGlucose != null) {
       var glucoseEl = document.getElementById('bloodGlucose');
@@ -180,7 +172,7 @@
   }
 
   function bindInputListeners() {
-    var ids = ['bpm', 'weight', 'bloodPressureSystolic', 'bloodPressureDiastolic', 'bloodGlucose', 'spO2', 'hrv', 'bodyWeight'];
+    var ids = ['bpm', 'bloodPressureSystolic', 'bloodGlucose', 'spO2', 'hrv', 'bodyWeight'];
     ids.forEach(function (id) {
       var el = document.getElementById(id);
       if (!el || el.dataset.vitalsSuggestBound) return;

@@ -1314,7 +1314,7 @@ async function handlePasskeyEnroll() {
     });
     if (error) throw error;
 
-    // Supabase returns a challenge — verify it to complete enrollment
+    // Supabase returns a challenge - verify it to complete enrollment
     const { data: challengeData, error: challengeErr } = await client.auth.mfa.challenge({ factorId: data.id });
     if (challengeErr) throw challengeErr;
 

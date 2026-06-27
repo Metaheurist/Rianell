@@ -9,6 +9,7 @@
   var HRV = { min: 0, max: 300, default: 55 };
   var WEIGHT_KG = { min: 20, max: 300, default: 70, step: 0.1 };
   var WEIGHT_LBS = { min: 44, max: 661, default: 154, step: 0.1 };
+  var GLUCOSE_DROPLET = { left: 8, width: 48, top: 8, bottom: 92, idlePuddle: 0.05 };
 
   function t(key, fallback) {
     if (typeof global.tUi === 'function') {
@@ -57,7 +58,7 @@
   }
 
   function classifyGlucose(val, unit) {
-    if (val == null || isNaN(val)) return { id: 'idle', label: '—', color: '#8aa89a' };
+    if (val == null || isNaN(val)) return { id: 'idle', label: '-', color: '#8aa89a' };
     if (unit === 'mgdl') {
       if (val < 70) return { id: 'low', label: t('wizard.vitals.glucose.low', 'Low'), color: '#64b5f6' };
       if (val <= 140) return { id: 'normal', label: t('wizard.vitals.glucose.normal', 'In range'), color: '#7bdf8c' };
@@ -71,14 +72,14 @@
   }
 
   function classifySpO2(val) {
-    if (val == null || isNaN(val)) return { id: 'idle', label: '—', color: '#8aa89a' };
+    if (val == null || isNaN(val)) return { id: 'idle', label: '-', color: '#8aa89a' };
     if (val >= 95) return { id: 'normal', label: t('wizard.vitals.spo2.normal', 'Normal'), color: '#4dd0e1' };
     if (val >= 90) return { id: 'low', label: t('wizard.vitals.spo2.low', 'Low'), color: '#ffb74d' };
     return { id: 'critical', label: t('wizard.vitals.spo2.critical', 'Critical'), color: '#ff5252' };
   }
 
   function classifyHrv(val) {
-    if (val == null || isNaN(val)) return { id: 'idle', label: '—', color: '#8aa89a' };
+    if (val == null || isNaN(val)) return { id: 'idle', label: '-', color: '#8aa89a' };
     if (val >= 50) return { id: 'good', label: t('wizard.vitals.hrv.good', 'Good variability'), color: '#ba68c8' };
     if (val >= 25) return { id: 'moderate', label: t('wizard.vitals.hrv.moderate', 'Moderate'), color: '#9575cd' };
     return { id: 'low', label: t('wizard.vitals.hrv.low', 'Low'), color: '#7986cb' };
@@ -182,17 +183,46 @@
     return val.toFixed(1);
   }
 
+  function glucoseFillRatio(active, val, range) {
+    if (!active) return GLUCOSE_DROPLET.idlePuddle;
+    return 0.08 + ratio(val, range.min, range.max) * 0.92;
+  }
+
+  function updateGlucoseDroplet(active, val, range, rising) {
+    var fill = document.getElementById('glucoseDropletFill');
+    var surface = document.getElementById('glucoseLiquidSurface');
+    var widget = document.getElementById('glucoseWidget');
+    var fillRatio = glucoseFillRatio(active, val, range);
+    var innerH = GLUCOSE_DROPLET.bottom - GLUCOSE_DROPLET.top;
+    var height = innerH * fillRatio;
+    var top = GLUCOSE_DROPLET.bottom - height;
+    if (fill) {
+      fill.setAttribute('y', String(top));
+      fill.setAttribute('height', String(height));
+    }
+    if (surface) {
+      surface.setAttribute('transform', 'translate(' + GLUCOSE_DROPLET.left + ' ' + top + ')');
+      surface.style.opacity = active && height > 2 ? '1' : '0';
+    }
+    if (widget && rising) {
+      widget.classList.add('glucose-widget--filling');
+      global.setTimeout(function () {
+        widget.classList.remove('glucose-widget--filling');
+      }, 620);
+    }
+  }
+
   function updateGlucose(markActive) {
     var widget = document.getElementById('glucoseWidget');
     var slider = document.getElementById('glucoseSlider');
     var display = document.getElementById('glucoseValueDisplay');
     var badge = document.getElementById('glucoseZoneBadge');
-    var fill = document.getElementById('glucoseDropletFill');
     if (!widget || !slider) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
     var range = glucoseRange();
     var val = parseFloat(slider.value);
+    var prevVal = parseFloat(widget.dataset.glucosePrev || String(range.default));
     if (active) {
       val = clamp(isNaN(val) ? range.default : val, range.min, range.max);
       setHidden('bloodGlucose', formatGlucose(val, range.unit), true);
@@ -202,12 +232,13 @@
     var zone = classifyGlucose(active ? val : null, range.unit);
     applyZone(widget, zone, 1.4 - ratio(active ? val : range.default, range.min, range.max) * 0.5);
     if (display) {
-      display.textContent = active ? formatGlucose(val, range.unit) : '—';
+      display.textContent = active ? formatGlucose(val, range.unit) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
     if (badge) badge.textContent = active ? zone.label : t('wizard.vitals.glucose.hint', 'Slide to set glucose');
-    if (fill) fill.style.transform = 'scaleY(' + (active ? 0.12 + ratio(val, range.min, range.max) * 0.88 : 0.08).toFixed(3) + ')';
+    updateGlucoseDroplet(active, val, range, active && markActive && val > prevVal + 0.001);
+    widget.dataset.glucosePrev = String(active ? val : range.default);
     slider.style.setProperty('--vital-fill-pct', (ratio(val, range.min, range.max) * 100).toFixed(1) + '%');
   }
 
@@ -243,7 +274,7 @@
     var zone = classifySpO2(active ? val : null);
     applyZone(widget, zone, 1.6 - ratio(active ? val : SPO2.default, SPO2.min, SPO2.max) * 0.6);
     if (display) {
-      display.textContent = active ? String(Math.round(val)) : '—';
+      display.textContent = active ? String(Math.round(val)) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
@@ -272,7 +303,7 @@
     var waveRate = active ? Math.max(0.45, 1.8 - ratio(val, HRV.min, HRV.max) * 1.2) : 1.2;
     applyZone(widget, zone, waveRate);
     if (display) {
-      display.textContent = active ? String(val) : '—';
+      display.textContent = active ? String(val) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
@@ -294,9 +325,9 @@
     if (active) val = clamp(isNaN(val) ? range.default : val, range.min, range.max);
     var unit = settings().bodyWeightUnit === 'lbs' ? 'lbs' : 'kg';
     setHidden('bodyWeight', active ? val.toFixed(1) : null, active);
-    applyZone(widget, { id: active ? 'set' : 'idle', label: active ? unit : '—', color: '#a5d6a7' }, 1.1);
+    applyZone(widget, { id: active ? 'set' : 'idle', label: active ? unit : '-', color: '#a5d6a7' }, 1.1);
     if (display) {
-      display.textContent = active ? val.toFixed(1) : '—';
+      display.textContent = active ? val.toFixed(1) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
@@ -361,7 +392,10 @@
   function resetAdvancedVitals() {
     ['glucoseWidget', 'spo2Widget', 'hrvWidget', 'bodyWeightWidget'].forEach(function (id) {
       var w = document.getElementById(id);
-      if (w) w.setAttribute('data-vital-active', 'false');
+      if (w) {
+        w.setAttribute('data-vital-active', 'false');
+        if (id === 'glucoseWidget') w.dataset.glucosePrev = '0';
+      }
     });
     syncGlucoseSliderRange(false);
     scrollDrumToValue(document.getElementById('spo2Drum'), SPO2.default, false);

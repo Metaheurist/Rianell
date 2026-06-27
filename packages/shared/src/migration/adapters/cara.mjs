@@ -1,4 +1,4 @@
-/** Plan 25 — Cara Care CSV import (gut health diary). */
+/** Plan 25 - Cara Care CSV import (gut health diary). */
 
 import { MigrationAdapter } from '../MigrationAdapter.mjs';
 
@@ -61,7 +61,7 @@ export class CaraMigrationAdapter extends MigrationAdapter {
       if (Number.isFinite(mood)) entry.mood = Math.min(10, mood);
       const pain = Number.parseInt(row.pain, 10);
       if (Number.isFinite(pain)) entry.jointPain = Math.min(10, pain);
-      const notes = [row.notes, row.symptoms].filter(Boolean).join(' — ');
+      const notes = [row.notes, row.symptoms].filter(Boolean).join(' - ');
       if (notes) entry.notes = notes.slice(0, 500);
       logs.push(entry);
     }
