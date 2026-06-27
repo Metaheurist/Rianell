@@ -436,16 +436,24 @@
     if (fill) fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
   }
 
+  function isAiDownloadProgressModalOpen(modal) {
+    if (!modal) return false;
+    return modal.classList.contains('modal-overlay--open') && modal.style.display !== 'none';
+  }
+
   function showAiModelDownloadProgressModal(state) {
     var modal = ensureAiModelDownloadProgressModal();
     var blocking = aiDownloadUiMode === 'blocking';
+    var alreadyOpen = isAiDownloadProgressModalOpen(modal);
     var skipBtn = modal.querySelector('#aiModelDownloadSkipBtn');
     var hint = modal.querySelector('.ai-model-download-progress__hint');
-    if (skipBtn) skipBtn.style.display = blocking ? 'none' : '';
-    if (hint) {
-      hint.textContent = blocking
-        ? 'Wi-Fi recommended. The app will start when the download finishes.'
-        : 'Wi-Fi recommended. You can continue without the model, but AI features will use text-only fallbacks.';
+    if (!alreadyOpen) {
+      if (skipBtn) skipBtn.style.display = blocking ? 'none' : '';
+      if (hint) {
+        hint.textContent = blocking
+          ? 'Wi-Fi recommended. The app will start when the download finishes.'
+          : 'Wi-Fi recommended. You can continue without the model, but AI features will use text-only fallbacks.';
+      }
     }
     applyAiDownloadProgressToElements(
       state,
@@ -454,6 +462,7 @@
       '.ai-model-download-progress__fill',
       modal
     );
+    if (alreadyOpen) return;
     modal.style.display = 'flex';
     if (typeof openModalOverlay === 'function') openModalOverlay(modal);
     if (blocking && document.body) document.body.classList.add('ai-model-download-blocking');
@@ -461,8 +470,16 @@
 
   function hideAiModelDownloadProgressModal() {
     var modal = document.getElementById(AI_PROGRESS_MODAL_ID);
-    if (modal) modal.style.display = 'none';
-    if (typeof closeModalOverlay === 'function') closeModalOverlay(modal);
+    if (!modal) return;
+    if (!isAiDownloadProgressModalOpen(modal) && modal.style.display === 'none') {
+      if (document.body) document.body.classList.remove('ai-model-download-blocking');
+      return;
+    }
+    if (typeof closeModalOverlay === 'function') {
+      closeModalOverlay(modal, { duration: 0 });
+    } else {
+      modal.style.display = 'none';
+    }
     if (document.body) document.body.classList.remove('ai-model-download-blocking');
   }
 
@@ -487,6 +504,17 @@
     }
     var desktopBanner = document.getElementById(AI_DOWNLOAD_ID);
     if (desktopBanner) desktopBanner.classList.add('hidden');
+    var modal = document.getElementById(AI_PROGRESS_MODAL_ID);
+    if (isAiDownloadProgressModalOpen(modal)) {
+      applyAiDownloadProgressToElements(
+        state,
+        '.ai-model-download-progress__label',
+        '.ai-model-download-progress__pct',
+        '.ai-model-download-progress__fill',
+        modal
+      );
+      return;
+    }
     showAiModelDownloadProgressModal(state);
   }
 

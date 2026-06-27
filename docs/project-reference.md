@@ -9,7 +9,7 @@
 - **Barcode food logging (PWA):** Settings toggle + consent dashboard row; scan icon in food modal; Open Food Facts lookup; wiki privacy section for camera + lookup.
 - **App lock:** PIN encryption via `minPassphraseLength: 4`; i18n fallbacks in `app-lock.js`; `window.tUi` exposed for deferred modules.
 - **Removed:** Guided voice log extraction (`voiceLogExtract.mjs`, `guidedVoiceLogEnabled` pref).
-- **UX:** Mood timeline (PWA + RN); cycle ribbon with integrated flow (PWA); BBT thermometer widget; brain fog toggle fix; passkey button styling.
+- **UX:** Mood reading ribbon (PWA + RN); cycle ribbon with integrated flow (PWA); BBT thermometer widget; brain fog toggle fix; passkey button styling; Developer & API panel scaling; check-in slider icons; AI download modal stability; settings nav spacing.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.1; [wiki/Privacy-and-Your-Data.md](../wiki/Privacy-and-Your-Data.md) § Barcode food logging.
 
 ### v2.0.0 documentation sync (Rianell 2.0 production)

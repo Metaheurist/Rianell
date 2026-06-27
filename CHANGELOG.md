@@ -23,6 +23,8 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
 - **Passkey sign-in button:** Black background with white label and icon.
 - **BBT widget (PWA):** Integrated card layout with gradient thermometer slider.
 - **Developer panel:** Tab buttons no longer hidden by global `button { width: 100% }` rule.
+- **Mood recent readings (PWA + RN):** Interactive reading ribbon with mood rings and horizontal scroll (replaces plain text list).
+- **Settings nav spacing (PWA):** Tighter gap between carousel icons and search field.
 
 ### Fixed
 
@@ -30,6 +32,9 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
 - **App lock i18n:** Expose `window.tUi`; app-lock module uses `RianellI18n.t` with English fallbacks; PIN setup hint no longer shows raw keys.
 - **App lock PIN save:** 4-digit PINs no longer rejected with “Passphrase must be at least 12 characters”; lock overlay prompts on return when PIN is saved.
 - **Dev panel tabs:** All Developer & API tabs visible (Keys, Webhooks, etc.).
+- **AI model download modal (PWA mobile):** Progress updates no longer hide/reopen the modal each tick; per-file download events no longer flash the overlay.
+- **Developer & API panel scaling (PWA):** Scoped CSS resets so global mobile `button`/`label`/`input` rules no longer stretch tabs, scope chips, and form controls.
+- **Today's check-in slider (PWA + RN):** Morning/midday/evening icons no longer clip when selected; fixed icon slot and overflow on period stops.
 
 ---
 
