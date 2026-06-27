@@ -143,6 +143,7 @@
     btn.querySelector('.vitals-last-value-hint__action').textContent = action;
   }
 
+  function refresh(logs, targetDateIso) {
     if (typeof buildSuggestions !== 'function') return;
     latestSuggestions = buildSuggestions(logs || [], targetDateIso || '', {
       unitPrefs: unitPrefs(),
