@@ -1,14 +1,14 @@
 # PWA bundle sizes
 
-Generated: 2026-06-27T10:37:40.006Z
+Generated: 2026-06-27T12:55:17.630Z
 
 | File | Raw | Gzip |
 |------|-----|------|
-| ci-minified/site/app.js | 1087908 | 236688 |
+| ci-minified/site/app.js | 1093714 | 237934 |
 | ci-minified/site/vendor/transformers/transformers.min.js | 818481 | 207722 |
-| ci-minified/site/app.0e1b77a7558d.min.js | 799777 | 185115 |
+| ci-minified/site/app.55df3b8b77a4.min.js | 805807 | 186811 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
-| ci-minified/site/styles.be304051c467.css | 537143 | 90985 |
+| ci-minified/site/styles.899f5add2a63.css | 565424 | 95243 |
 | ci-minified/site/vendor/rianell-shared.js | 353634 | 81742 |
 | ci-minified/site/AIEngine.js | 175506 | 38766 |
 | ci-minified/site/cloud-sync.js | 105595 | 22659 |
@@ -18,12 +18,12 @@ Generated: 2026-06-27T10:37:40.006Z
 | ci-minified/site/device-benchmark.js | 41563 | 9232 |
 | ci-minified/site/modules/weekly-review.js | 37373 | 8186 |
 | ci-minified/site/performance-utils.js | 28978 | 7090 |
-| ci-minified/site/modules/settings.js | 28392 | 5809 |
+| ci-minified/site/modules/settings.js | 28917 | 5961 |
+| ci-minified/site/modules/mood-tab.js | 28729 | 6294 |
 | ci-minified/site/privacy-region.js | 28056 | 5887 |
-| ci-minified/site/first-run-wizard.js | 25791 | 5296 |
-| ci-minified/site/modules/mood-tab.js | 25004 | 5731 |
+| ci-minified/site/first-run-wizard.js | 26267 | 5379 |
 | ci-minified/site/notifications.js | 24042 | 5824 |
 | ci-minified/site/ui-feedback.js | 22128 | 5246 |
 
-**JS total (gzip):** 1090017 bytes
-**CSS total (gzip):** 95201 bytes
+**JS total (gzip):** 1103553 bytes
+**CSS total (gzip):** 99459 bytes
