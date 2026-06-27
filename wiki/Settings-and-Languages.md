@@ -16,6 +16,7 @@ Open the **gear icon** to access a scrollable **settings carousel** with grouped
 | **Cloud** | Sign-in, sync, delete cloud data, anonymised contribution |
 | **Goals** | Targets shown on Home |
 | **Accessibility** | Text sizing and contrast-related options where available |
+| **Integrations** | Strava, Withings, Google Sheets OAuth connectors (cloud sign-in required); import wizard for Bearable/Flaredown/etc. |
 
 Exact pane count may vary slightly by platform; native Settings mirrors web section titles for parity.
 

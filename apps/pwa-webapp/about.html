@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About Rianell — Personal Health &amp; Chronic Condition Tracker</title>
+  <meta name="description" content="Rianell is a free, open-source personal health app for tracking and managing chronic conditions. Log symptoms, medications, weight, heart rate, and more." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.7;
+      padding: 2rem 1rem 4rem;
+    }
+    .container { max-width: 760px; margin: 0 auto; }
+    a { color: #60a5fa; }
+    header { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #2d3748; display: flex; align-items: center; gap: 1.25rem; }
+    header img { width: 64px; height: 64px; border-radius: 14px; }
+    header h1 { font-size: 2rem; font-weight: 700; }
+    header p { color: #94a3b8; font-size: 0.95rem; margin-top: 0.15rem; }
+    h2 { font-size: 1.1rem; font-weight: 600; margin: 2rem 0 0.5rem; color: #f1f5f9; }
+    p { color: #cbd5e1; margin-bottom: 0.75rem; }
+    ul { color: #cbd5e1; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+    li { margin-bottom: 0.35rem; }
+    .cta { display: inline-block; margin-top: 1.5rem; background: #2e7d50; color: #fff; padding: 0.65rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; }
+    .links { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #2d3748; display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/Icons/Icon-128.png" alt="Rianell logo" onerror="this.style.display='none'" />
+      <div>
+        <h1>Rianell</h1>
+        <p>Personal health &amp; chronic condition tracker</p>
+      </div>
+    </header>
+
+    <p>Rianell is a <strong>free, open-source</strong> personal health application designed to help people living with chronic conditions track symptoms, monitor key health metrics, and prepare meaningful insights to share with their healthcare team.</p>
+
+    <h2>What Rianell does</h2>
+    <ul>
+      <li>Daily health log — symptoms, pain scores, fatigue, mood, mobility, and more</li>
+      <li>Vitals tracking — weight, heart rate, blood pressure</li>
+      <li>Medication and appointment management</li>
+      <li>AI-assisted trend analysis and condition insights</li>
+      <li>Export reports to share with clinicians</li>
+      <li>Optional cloud sync across devices (end-to-end encrypted)</li>
+      <li>Connect fitness and health devices via Strava, Withings, and Google Sheets</li>
+    </ul>
+
+    <h2>Google Sheets integration</h2>
+    <p>Users can optionally connect a Google Sheets spreadsheet to import existing health data or export their log for backup and analysis. The app accesses only the single spreadsheet the user explicitly provides. No other files or data are accessed.</p>
+
+    <h2>Privacy &amp; security</h2>
+    <p>All cloud data is stored encrypted. OAuth tokens are encrypted with AES-256-GCM. Row-Level Security ensures each user can only access their own data. The app never sells or shares your data.</p>
+
+    <h2>Open source</h2>
+    <p>Rianell is fully open source. The source code is available on <a href="https://github.com/OnceU/Health-app" target="_blank" rel="noopener">GitHub</a>.</p>
+
+    <a class="cta" href="/">Open the app &rarr;</a>
+
+    <div class="links">
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/tos.html">Terms of Service</a>
+      <a href="https://github.com/OnceU/Health-app" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</body>
+</html>
