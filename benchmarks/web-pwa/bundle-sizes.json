@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-28T21:19:38.865Z",
+  "generatedAt": "2026-06-28T22:13:00.625Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4749253,
+    "jsBytes": 4752024,
     "cssBytes": 637626,
-    "jsGzipBytes": 1126108,
+    "jsGzipBytes": 1126948,
     "cssGzipBytes": 108490
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1108825,
-      "gzipBytes": 240737
+      "bytes": 1109683,
+      "gzipBytes": 240985
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.f23a862ff194.min.js",
-      "bytes": 817620,
-      "gzipBytes": 189346
+      "file": "ci-minified/site/app.0e30576f83cd.min.js",
+      "bytes": 818144,
+      "gzipBytes": 189489
     },
     {
       "file": "ci-minified/site/styles.fe1a43538c82.css",
@@ -50,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 78958,
-      "gzipBytes": 17587
+      "bytes": 79628,
+      "gzipBytes": 17870
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -80,13 +80,13 @@
     },
     {
       "file": "ci-minified/site/privacy-region.js",
-      "bytes": 29884,
-      "gzipBytes": 6295
+      "bytes": 30397,
+      "gzipBytes": 6405
     },
     {
       "file": "ci-minified/site/performance-utils.js",
-      "bytes": 28978,
-      "gzipBytes": 7090
+      "bytes": 29184,
+      "gzipBytes": 7146
     },
     {
       "file": "ci-minified/site/modules/settings.js",
