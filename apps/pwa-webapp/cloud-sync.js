@@ -1228,9 +1228,26 @@ async function handleCloudLogin(context) {
 // ============================================
 // Passkey (WebAuthn) sign-in
 // ============================================
-async function handlePasskeySignIn() {
-  const btn = document.getElementById('cloudPasskeySignInBtn');
-  const emailInput = document.getElementById('cloudEmail');
+function passkeyButtonInnerHtml(label, isEnroll) {
+  const text = label || (isEnroll ? 'Register passkey' : 'Sign in with Passkey');
+  return '<span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> ' + text + '</span>';
+}
+
+function restorePasskeyButton(btn, context) {
+  if (!btn) return;
+  const ctx = context && typeof context === 'object' ? context : {};
+  const isEnroll = ctx.passkeyEnroll === true || btn.id === 'cloudPasskeyEnrollBtn';
+  const label = ctx.passkeyLabel
+    || (isEnroll
+      ? 'Register passkey'
+      : 'Sign in with a passkey (biometrics or security key)');
+  btn.innerHTML = passkeyButtonInnerHtml(label, isEnroll);
+}
+
+async function handlePasskeySignIn(context) {
+  const ctx = context && typeof context === 'object' ? context : {};
+  const btn = document.getElementById(ctx.passkeyBtnId || 'cloudPasskeySignInBtn');
+  const emailInput = document.getElementById(ctx.emailId || 'cloudEmail');
 
   if (!window.PublicKeyCredential) {
     if (typeof showAlertModal === 'function') {
@@ -1262,6 +1279,7 @@ async function handlePasskeySignIn() {
       saveCloudSyncState();
       updateCloudSyncUI();
       if (cloudSyncState.autoSync) setTimeout(() => syncToCloud(), 500);
+      if (typeof ctx.onSuccess === 'function') ctx.onSuccess();
     }
   } catch (err) {
     console.error('Passkey sign-in error:', err);
@@ -1276,7 +1294,7 @@ async function handlePasskeySignIn() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Sign in with Passkey</span>';
+      restorePasskeyButton(btn, ctx);
     }
   }
 }
@@ -1284,8 +1302,9 @@ async function handlePasskeySignIn() {
 // ============================================
 // Passkey (WebAuthn) enrollment (must be signed in)
 // ============================================
-async function handlePasskeyEnroll() {
-  const btn = document.getElementById('cloudPasskeyEnrollBtn');
+async function handlePasskeyEnroll(context) {
+  const ctx = context && typeof context === 'object' ? context : {};
+  const btn = document.getElementById(ctx.passkeyBtnId || 'cloudPasskeyEnrollBtn');
 
   if (!window.PublicKeyCredential) {
     if (typeof showAlertModal === 'function') {
@@ -1328,6 +1347,7 @@ async function handlePasskeyEnroll() {
     if (typeof showAlertModal === 'function') {
       showAlertModal('Passkey registered! You can now sign in with your biometrics or security key.', 'Passkey Registered');
     }
+    if (typeof ctx.onSuccess === 'function') ctx.onSuccess();
   } catch (err) {
     console.error('Passkey enroll error:', err);
     const msg = err?.name === 'NotAllowedError' || err?.message?.includes('cancelled')
@@ -1341,7 +1361,7 @@ async function handlePasskeyEnroll() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Register Passkey</span>';
+      restorePasskeyButton(btn, ctx);
     }
   }
 }

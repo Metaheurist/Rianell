@@ -3,6 +3,24 @@ import { installSettingsEarlyPlaceholder, installSettingsModule } from './module
 
 installSettingsEarlyPlaceholder({});
 
+// Log wizard form state must exist before top-level DOM metric init during module evaluation.
+let logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+let logFormSubEntryPeriod = 'partial';
+let logFormCycleDay = '';
+let logFormCyclePhase = '';
+let logFormCycleFlow = '';
+let logFormExerciseItems = [];
+let logFormStressorsItems = [];
+let logFormSymptomsItems = [];
+var logFormMedications = [];
+var logFormSupplements = [];
+var logFormPhotoAttachments = [];
+var medTimesDraftForAdd = [];
+let editStressorsItems = [];
+let editSymptomsItems = [];
+let editFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+let editExerciseItems = [];
+
 // ============================================
 // Static host detection (no /api on this origin: skip reload stream and server logging)
 // Only localhost / 127.0.0.1 run the Python dev server with /api/reload and /api/log.
@@ -74,9 +92,10 @@ function isWebAppLightMode() {
 function getApexLineChartTheme() {
   var light = isWebAppLightMode();
   var highContrast =
-    typeof appSettings !== 'undefined' &&
-    appSettings.accessibility &&
-    appSettings.accessibility.chartPaletteMode === 'high-contrast';
+    typeof window !== 'undefined' &&
+    window.appSettings &&
+    window.appSettings.accessibility &&
+    window.appSettings.accessibility.chartPaletteMode === 'high-contrast';
   if (highContrast) {
     return {
       mode: light ? 'light' : 'dark',
@@ -812,6 +831,7 @@ function showAlertModal(message, title, onClose, options) {
   
   // Set content
   titleEl.textContent = title;
+  messageEl.classList.remove('alert-modal-message--html', 'alert-modal-message--icon');
   messageEl.classList.toggle('alert-modal-message--html', useHtml);
   messageEl.classList.toggle('alert-modal-message--icon', !!iconId && !useHtml);
   if (iconId && !useHtml) {
@@ -3323,6 +3343,7 @@ function showConfirmModal(message, title = tUi('common.confirm'), onConfirm, onC
   
   // Set content
   titleEl.textContent = title;
+  messageEl.classList.remove('alert-modal-message--html', 'alert-modal-message--icon');
   messageEl.textContent = message;
   
   // Update footer with Yes/No buttons
@@ -3450,7 +3471,7 @@ function svgIcon(name, className, title) {
     'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
     'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal',
     'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-globe', 'onboard-heart',
-    'onboard-helper', 'onboard-install', 'onboard-mascot', 'onboard-shield', 'onboard-sparkle', 'notice',
+    'onboard-helper', 'onboard-install', 'onboard-mascot', 'onboard-shield', 'onboard-sparkle', 'notice', 'reload',
     'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring',
     'star', 'stethoscope', 'stress', 'stressor-bolt', 'target', 'trash', 'user', 'zap',
     'weather-aqi-good', 'weather-aqi-moderate', 'weather-aqi-poor',
@@ -4557,6 +4578,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Connect to Server-Sent Events for auto-reload on file changes
   connectToReloadStream();
+
+  initLogWizardMetricControls();
 });
 
 // Server-Sent Events connection for auto-reload (dev server only; skip on static hosts)
@@ -4564,6 +4587,10 @@ function connectToReloadStream() {
   // index.html sets true only on loopback; undefined/false elsewhere - never connect on static/CDN without explicit dev flag
   if (typeof window !== 'undefined' && window.__rianellReloadStreamOk !== true) {
     Logger.debug('Reload stream disabled (not dev host)');
+    return;
+  }
+  if (typeof window !== 'undefined' && window.__rianellExternalReloadWatcher) {
+    Logger.debug('Reload stream handled by dev Chromium launcher');
     return;
   }
   if (isStaticHost()) {
@@ -5083,7 +5110,8 @@ function bbtFahrenheitToCelsius(f) {
 }
 
 function getBbtDisplayRange() {
-  var unit = (typeof appSettings !== 'undefined' && appSettings && appSettings.temperatureUnit) || 'celsius';
+  var settings = typeof window !== 'undefined' ? window.appSettings : null;
+  var unit = (settings && settings.temperatureUnit) || 'celsius';
   if (unit === 'fahrenheit') {
     return {
       min: bbtCelsiusToFahrenheit(BBT_CELSIUS_MIN),
@@ -5652,32 +5680,33 @@ function updateBristolSlider(slider) {
   }
 }
 
-if (window.RianellLogMetrics && typeof window.RianellLogMetrics.buildAll === 'function') {
-  window.RianellLogMetrics.buildAll();
+function initLogWizardMetricControls() {
+  if (window.RianellLogMetrics && typeof window.RianellLogMetrics.buildAll === 'function') {
+    window.RianellLogMetrics.buildAll();
+  }
+
+  sliders.forEach(function (sliderId) {
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+    slider.value = 5;
+    updateSliderColor(slider);
+    slider.addEventListener('input', function () {
+      updateSliderColor(this);
+    });
+  });
+
+  (function initBristolSlider() {
+    var bristolSlider = document.getElementById('bristol');
+    if (!bristolSlider) return;
+    bristolSlider.value = bristolSlider.getAttribute('value') || '4';
+    updateBristolSlider(bristolSlider);
+    bristolSlider.addEventListener('input', function () {
+      updateBristolSlider(this);
+    });
+  })();
+
+  initBbtThermometer();
 }
-
-sliders.forEach(sliderId => {
-  const slider = document.getElementById(sliderId);
-  if (!slider) return;
-  slider.value = 5; // Set default value
-  updateSliderColor(slider);
-
-  slider.addEventListener('input', function() {
-    updateSliderColor(this);
-  });
-});
-
-(function initBristolSlider() {
-  var bristolSlider = document.getElementById('bristol');
-  if (!bristolSlider) return;
-  bristolSlider.value = bristolSlider.getAttribute('value') || '4';
-  updateBristolSlider(bristolSlider);
-  bristolSlider.addEventListener('input', function() {
-    updateBristolSlider(this);
-  });
-})();
-
-initBbtThermometer();
 
 /** Which chart layout is active (balance | combined | individual). */
 function getCurrentChartView() {
@@ -10508,24 +10537,7 @@ const PREDEFINED_EXERCISES = [
   { id: 'stair_climbing', name: 'Stair climbing', defaultDuration: 15, category: 'cardio' }
 ];
 
-// Initialize food and exercise arrays early (before DOMContentLoaded)
-let logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
-let logFormSubEntryPeriod = 'partial';
-let logFormCycleDay = '';
-let logFormCyclePhase = '';
-let logFormCycleFlow = '';
-let logFormExerciseItems = []; // array of { name, duration } (duration in minutes)
-let logFormStressorsItems = [];
-let logFormSymptomsItems = [];
-var logFormMedications = []; // array of { name, times, taken } for medication/supplement tracker
-var logFormSupplements = []; // Plan 16 VM6 × wellness supplements distinct from meds
-var logFormPhotoAttachments = []; // Plan 16 VM11 × { url, caption? }
-var medTimesDraftForAdd = []; // HH:MM strings for current "Add medication" row (before main Add)
-let editStressorsItems = [];
-let editSymptomsItems = [];
-let editFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
-let editExerciseItems = [];
-
+// Log form arrays initialized at top of module (before metric widget DOM setup).
 // Offline log queue: when offline, entries are saved locally and queued for sync when back online
 var OFFLINE_QUEUE_KEY = 'healthLogsOfflineQueue';
 
@@ -17282,7 +17294,9 @@ function ensureShellContentVisible() {
 }
 
 function onFirstRunWizardComplete() {
-  if (typeof saveSettings === 'function') saveSettings();
+  if (typeof window !== 'undefined' && window.appSettings && typeof saveSettings === 'function') {
+    saveSettings();
+  }
   ensureShellContentVisible();
   if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.refreshLocaleUI === 'function') {
     window.RianellPrivacy.refreshLocaleUI();
@@ -17290,7 +17304,16 @@ function onFirstRunWizardComplete() {
   if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.syncConsentEnforcement === 'function') {
     window.RianellPrivacy.syncConsentEnforcement('first-run-complete');
   }
-  if (appSettings && appSettings.aiEnabled !== false && appSettings.aiModelDownloadConsent === 'granted') {
+  var settings = typeof window !== 'undefined' ? window.appSettings : null;
+  if (!settings) {
+    try {
+      var raw = localStorage.getItem('rianellSettings');
+      settings = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      settings = null;
+    }
+  }
+  if (settings && settings.aiEnabled !== false && settings.aiModelDownloadConsent === 'granted') {
     setTimeout(function () {
       if (typeof window.preloadSummaryLLM === 'function') {
         var chain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
@@ -18127,9 +18150,14 @@ function applyAppearanceMode() {
   if (appSettings) appSettings.appearanceMode = mode;
 
   var effective = mode === 'system' ? getSystemAppearanceMode() : mode;
-  document.body.classList.toggle('light-mode', effective === 'light');
-  document.body.classList.toggle('dark-mode', effective === 'dark');
-  document.body.classList.toggle('rianell-appearance-warm-dark', effective === 'warm-dark');
+  var globalTheme = (appSettings && typeof appSettings.globalTheme === 'string') ? appSettings.globalTheme : 'mint';
+  if (typeof window !== 'undefined' && typeof window.__rianellSyncAppearanceDom === 'function') {
+    window.__rianellSyncAppearanceDom({ appearanceMode: mode, globalTheme: globalTheme, effective: effective });
+  } else if (typeof document !== 'undefined' && document.body) {
+    document.body.classList.toggle('light-mode', effective === 'light');
+    document.body.classList.toggle('dark-mode', effective === 'dark');
+    document.body.classList.toggle('rianell-appearance-warm-dark', effective === 'warm-dark');
+  }
 
   try {
     if (mode === 'system' && typeof window !== 'undefined' && typeof window.matchMedia === 'function') {

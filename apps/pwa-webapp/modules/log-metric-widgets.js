@@ -83,8 +83,8 @@
           '<stop offset="0%" class="metric-mobility-grad-top"/><stop offset="100%" class="metric-mobility-grad-bot"/>' +
           '</linearGradient>' +
           '</defs>' +
-          '<path class="metric-mobility-trail-bg" d="M36 10 C44 24 28 38 44 52 C32 66 38 78" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6"/>' +
-          '<path class="metric-mobility-trail-fill" d="M36 10 C44 24 28 38 44 52 C32 66 38 78" fill="none" stroke="url(#metricMobilityTrailGrad)" stroke-width="2.5" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-trail-bg" d="M36 10 C44 24 28 38 44 52 C32 66 38 78 36 86" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6"/>' +
+          '<path class="metric-mobility-trail-fill" d="M36 10 C44 24 28 38 44 52 C32 66 38 78 36 86" fill="none" stroke="url(#metricMobilityTrailGrad)" stroke-width="2.5" stroke-linecap="round"/>' +
           '<g class="metric-mobility-print metric-mobility-print--1" transform="translate(28 4) rotate(-14)">' +
           '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
           '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
