@@ -1,10 +1,22 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { LogWizardScreen } from './LogWizardScreen';
 import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences } from '../storage/preferences';
 
 const mockGoBack = jest.fn();
+
+beforeEach(() => {
+  jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true);
+  jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation(
+    () => ({ remove: jest.fn() }) as unknown as ReturnType<typeof AccessibilityInfo.addEventListener>,
+  );
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
