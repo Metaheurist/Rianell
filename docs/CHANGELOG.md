@@ -9,6 +9,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Onboarding (shared + PWA + RN):** `guidedQuestionnaire.mjs` — one modal, multichoice cards, mascot SVG; consents explicit and child-readable; tutorial opt-in.
 - **PWA:** `guided-onboarding.js` + `#guidedOnboardingOverlay`; replaces day-to-day first-run wizard chrome.
 - **RN:** Rebuilt `FirstRunWizard.tsx` + `onboardingIllustrations.tsx`.
+- **npm:** Workspace roots at **2.0.7**; `first-run-wizard.js` is a deprecation shim only.
+- **Fixes:** Privacy-gate tap whitelist; `resolveNextGuidedCardIndex`; boot probes target guided overlay.
 - **i18n:** `onboarding.questionnaire.*` + Tier-A overrides (`v207-onboarding-tier-a-overrides.mjs`).
 - **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.7.
 

@@ -95,7 +95,7 @@ If Cloudflare adds a narrower HTTP CSP, mirror these hosts in edge headers — s
 ```
 packages/shared/src/analytics/sessionRecordingPrefs.mjs
 apps/pwa-webapp/smartlook.js
-apps/pwa-webapp/first-run-wizard.js
+apps/pwa-webapp/guided-onboarding.js
 apps/pwa-webapp/app.js                    # toggle, consent dashboard, loadSettings hook
 apps/rn-app/src/analytics/sessionRecording.ts
 apps/rn-app/src/components/FirstRunWizard.tsx

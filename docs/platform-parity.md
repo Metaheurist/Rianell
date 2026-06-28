@@ -445,7 +445,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 ### v1.118.0 parity note (Onboarding UX & Smartlook default-on)
 
 - **First-run wizard:** PWA + RN share `buildFirstRunPlan` — session recording disclosure step after cookies; tracking profile deferred to Settings.
-- **Smartlook:** Default-on preference with disclosure gate (`shouldActivateSessionRecording`); PWA `first-run-wizard.js` + RN `FirstRunWizard.tsx`; Settings revoke unchanged.
+- **Smartlook:** Default-on preference with disclosure gate (`shouldActivateSessionRecording`); PWA `guided-onboarding.js` + RN `FirstRunWizard.tsx`; Settings revoke unchanged.
 - **Settings PWA:** Consent dashboard on Privacy pane; Goals carousel script load fix (IIFE).
 - **Icons:** AM check-in sun uses theme tokens; sized to midday check-in.
 
