@@ -75,11 +75,25 @@ test('legacy migration when region and tutorial already done', () => {
   const prefs = {
     ...basePrefs,
     privacyRegion: 'eea_uk',
+    healthDataConsent: true,
+    cookieConsent: true,
+    sessionRecordingDisclosureAt: '2026-01-01T00:00:00.000Z',
     tutorialSeen: true,
   };
   assert.equal(isFirstRunWizardComplete(prefs, { platform: 'rn' }), true);
   const migrated = migrateFirstRunWizardPrefs(prefs, { platform: 'rn' });
   assert.ok(migrated.firstRunWizardCompletedAt);
+});
+
+test('isFirstRunWizardComplete is false mid-unified-wizard when install remains', () => {
+  const prefs = {
+    ...basePrefs,
+    privacyRegion: 'eea_uk',
+    cookieConsent: true,
+    sessionRecordingDisclosureAt: '2026-01-01T00:00:00.000Z',
+    tutorialSeen: true,
+  };
+  assert.equal(isFirstRunWizardComplete(prefs, { platform: 'pwa' }), false);
 });
 
 test('completeFirstRunWizard sets flags', () => {

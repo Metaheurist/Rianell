@@ -128,3 +128,52 @@ test('createOnboardingProgressSession keeps total stable when EEA path grows', (
   });
   assert.equal(backToFresh.total, 15);
 });
+
+test('createOnboardingProgressSession does not rewind counter after tutorial completes', () => {
+  const ctx = { platform: 'pwa' };
+  const indices = getTutorialVisibleIndices(true);
+  const sessionPrefs = { ...freshPwaPrefs, aiModelDownloadConsent: undefined };
+  const session = createOnboardingProgressSession(sessionPrefs, ctx, { tutorialSlideIndices: indices });
+  const total = session.getTotal();
+  assert.equal(total, 15);
+
+  const progressedPrefs = {
+    ...sessionPrefs,
+    privacyRegion: 'other',
+    privacyRegionSource: 'onboarding',
+    cookieConsent: true,
+    sessionRecordingDisclosureAt: '2026-01-01T00:00:00.000Z',
+  };
+
+  const midTutorial = session.resolve({
+    prefs: progressedPrefs,
+    ctx,
+    wizardStepId: 'tutorial',
+    tutorialPos: indices.length - 1,
+    tutorialSlideIndices: indices,
+  });
+  assert.equal(midTutorial.current, 13);
+  assert.equal(midTutorial.total, total);
+
+  const afterTutorial = session.resolve({
+    prefs: { ...progressedPrefs, tutorialSeen: true },
+    ctx,
+    wizardStepId: 'aiDownload',
+    tutorialSlideIndices: indices,
+  });
+  assert.equal(afterTutorial.current, 14);
+  assert.equal(afterTutorial.total, total);
+
+  const install = session.resolve({
+    prefs: {
+      ...progressedPrefs,
+      tutorialSeen: true,
+      aiModelDownloadConsent: 'deferred',
+    },
+    ctx,
+    wizardStepId: 'install',
+    tutorialSlideIndices: indices,
+  });
+  assert.equal(install.current, 15);
+  assert.equal(install.total, total);
+});

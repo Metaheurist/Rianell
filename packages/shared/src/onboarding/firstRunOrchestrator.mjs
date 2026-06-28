@@ -6,6 +6,27 @@ import {
 import { FIRST_RUN_STEP_IDS, shouldSkipFirstRunStep } from './firstRunSteps.mjs';
 
 /**
+ * Next wizard index after a step completes and prefs update (plan may drop the completed id).
+ * @param {ReturnType<typeof buildFirstRunPlan>} plan
+ * @param {string} completedStepId
+ */
+function resolveNextIndexInPlan(plan, completedStepId) {
+  if (!plan.length) return 0;
+  const completedIdx = plan.findIndex((s) => s.id === completedStepId);
+  if (completedIdx >= 0 && completedIdx < plan.length - 1) return completedIdx + 1;
+  if (completedIdx < 0) {
+    const completedOrder = FIRST_RUN_STEP_IDS.indexOf(completedStepId);
+    if (completedOrder >= 0) {
+      for (let i = completedOrder + 1; i < FIRST_RUN_STEP_IDS.length; i += 1) {
+        const idx = plan.findIndex((s) => s.id === FIRST_RUN_STEP_IDS[i]);
+        if (idx >= 0) return idx;
+      }
+    }
+  }
+  return 0;
+}
+
+/**
  * @param {Record<string, unknown>} prefs
  * @param {import('./firstRunSteps.mjs').FirstRunPlatformContext} ctx
  */
@@ -23,10 +44,7 @@ export function buildFirstRunPlan(prefs, ctx) {
  */
 export function resolveNextStepIndexAfterComplete(prefs, ctx, completedStepId) {
   const plan = buildFirstRunPlan(prefs, ctx);
-  if (!plan.length) return 0;
-  const completedIdx = plan.findIndex((s) => s.id === completedStepId);
-  if (completedIdx >= 0 && completedIdx < plan.length - 1) return completedIdx + 1;
-  return 0;
+  return resolveNextIndexInPlan(plan, completedStepId);
 }
 
 /**
@@ -42,10 +60,11 @@ export function isFirstRunWizardComplete(prefs, ctx) {
     return true;
   }
 
-  // Migration: users who finished legacy separate modals
+  // Migration: users who finished legacy separate modals (no remaining unified steps).
   const tutorialDone = p.tutorialSeen === true || c.tutorialSeenLegacy === true;
   if (isPrivacyRegionConfigured(p) && tutorialDone) {
-    return true;
+    const remaining = buildFirstRunPlan(p, c);
+    if (remaining.length === 0) return true;
   }
 
   return false;

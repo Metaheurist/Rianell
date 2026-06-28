@@ -92,6 +92,72 @@ export function buildUnifiedOnboardingSteps(prefs, ctx, options = {}) {
 }
 
 /**
+ * @param {ReturnType<typeof buildInductionProgressSteps>[number]} a
+ * @param {ReturnType<typeof buildInductionProgressSteps>[number]} b
+ */
+function inductionStepsEqual(a, b) {
+  if (a.type !== b.type) return false;
+  if (a.type === 'tutorial') return a.tutorialPos === b.tutorialPos;
+  return a.id === b.id;
+}
+
+/**
+ * Grow session progress when conditional steps appear (e.g. EEA health consent).
+ * Never removes steps already shown — completed steps stay in the 1–N counter.
+ * @param {ReturnType<typeof buildInductionProgressSteps>} existing
+ * @param {ReturnType<typeof buildInductionProgressSteps>} next
+ */
+export function mergeInductionSessionSteps(existing, next) {
+  if (!existing.length) return next;
+  if (next.length <= existing.length) return existing;
+
+  /** @type {ReturnType<typeof buildInductionProgressSteps>} */
+  const merged = [...existing];
+  for (const step of next) {
+    if (merged.some((s) => inductionStepsEqual(s, step))) continue;
+    const anchorIdx = next.findIndex((s) => inductionStepsEqual(s, step));
+    let insertAt = merged.length;
+    for (let i = anchorIdx - 1; i >= 0; i -= 1) {
+      const prev = next[i];
+      const prevInMerged = merged.findIndex((s) => inductionStepsEqual(s, prev));
+      if (prevInMerged >= 0) {
+        insertAt = prevInMerged + 1;
+        break;
+      }
+    }
+    merged.splice(insertAt, 0, step);
+  }
+  return merged;
+}
+
+/**
+ * Resolve 1-based step counter against a fixed session step list.
+ * @param {ReturnType<typeof buildInductionProgressSteps>} sessionSteps
+ * @param {{
+ *   wizardStepId: string,
+ *   tutorialPos?: number,
+ *   sessionTotal?: number,
+ * }} state
+ */
+export function resolveProgressFromSessionSteps(sessionSteps, state) {
+  const { wizardStepId, tutorialPos = 0, sessionTotal } = state;
+  const total =
+    typeof sessionTotal === 'number' && sessionTotal > 0
+      ? Math.max(sessionTotal, sessionSteps.length)
+      : sessionSteps.length || 1;
+
+  if (wizardStepId === 'tutorial') {
+    const idx = sessionSteps.findIndex(
+      (s) => s.type === 'tutorial' && s.tutorialPos === tutorialPos,
+    );
+    return { current: idx >= 0 ? idx + 1 : 1, total };
+  }
+
+  const idx = sessionSteps.findIndex((s) => s.type === 'wizard' && s.id === wizardStepId);
+  return { current: idx >= 0 ? idx + 1 : 1, total };
+}
+
+/**
  * Resolve 1-based step counter for the unified induction model.
  * @param {{
  *   prefs: Record<string, unknown>,
@@ -100,6 +166,7 @@ export function buildUnifiedOnboardingSteps(prefs, ctx, options = {}) {
  *   tutorialPos?: number,
  *   tutorialSlideIndices?: number[],
  *   sessionTotal?: number,
+ *   sessionSteps?: ReturnType<typeof buildInductionProgressSteps>,
  * }} state
  */
 export function resolveUnifiedOnboardingProgress(state) {
@@ -110,26 +177,25 @@ export function resolveUnifiedOnboardingProgress(state) {
     tutorialPos = 0,
     tutorialSlideIndices,
     sessionTotal,
+    sessionSteps,
   } = state;
+
+  if (sessionSteps && sessionSteps.length > 0) {
+    return resolveProgressFromSessionSteps(sessionSteps, {
+      wizardStepId,
+      tutorialPos,
+      sessionTotal,
+    });
+  }
 
   const indices =
     tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
   const steps = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices });
-  const computedTotal = steps.length || 1;
-  const total =
-    typeof sessionTotal === 'number' && sessionTotal > 0
-      ? Math.max(sessionTotal, computedTotal)
-      : computedTotal;
-
-  if (wizardStepId === 'tutorial') {
-    const idx = steps.findIndex(
-      (s) => s.type === 'tutorial' && s.tutorialPos === tutorialPos,
-    );
-    return { current: idx >= 0 ? idx + 1 : 1, total };
-  }
-
-  const idx = steps.findIndex((s) => s.type === 'wizard' && s.id === wizardStepId);
-  return { current: idx >= 0 ? idx + 1 : 1, total };
+  return resolveProgressFromSessionSteps(steps, {
+    wizardStepId,
+    tutorialPos,
+    sessionTotal,
+  });
 }
 
 /**
@@ -141,7 +207,9 @@ export function resolveUnifiedOnboardingProgress(state) {
 export function createOnboardingProgressSession(prefs, ctx, options = {}) {
   const indices =
     options.tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
-  let sessionTotal = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices }).length || 1;
+  /** @type {ReturnType<typeof buildInductionProgressSteps>} */
+  let sessionSteps = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices });
+  let sessionTotal = sessionSteps.length || 1;
 
   return {
     getTotal() {
@@ -150,8 +218,9 @@ export function createOnboardingProgressSession(prefs, ctx, options = {}) {
     refresh(prefsNext, ctxNext, tutorialSlideIndicesNext) {
       const idx =
         tutorialSlideIndicesNext ?? getTutorialVisibleIndices(prefsNext?.aiEnabled !== false);
-      const next = buildInductionProgressSteps(prefsNext, ctxNext, { tutorialSlideIndices: idx }).length || 1;
-      if (next > sessionTotal) sessionTotal = next;
+      const nextSteps = buildInductionProgressSteps(prefsNext, ctxNext, { tutorialSlideIndices: idx });
+      sessionSteps = mergeInductionSessionSteps(sessionSteps, nextSteps);
+      sessionTotal = sessionSteps.length || 1;
       return sessionTotal;
     },
     resolve(state) {
@@ -162,6 +231,7 @@ export function createOnboardingProgressSession(prefs, ctx, options = {}) {
         ...state,
         tutorialSlideIndices,
         sessionTotal,
+        sessionSteps,
       });
     },
   };

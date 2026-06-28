@@ -76,6 +76,16 @@ export function normalizeGoals(value) {
   };
 }
 
+/** True when a saved goals object has at least one non-zero target. */
+export function hasActiveGoals(value) {
+  if (!value || typeof value !== 'object') return false;
+  const steps = clampInt(value.steps, 0, 100000) ?? 0;
+  const hydration = clampInt(value.hydration, 0, 30) ?? 0;
+  const sleep = clampInt(value.sleep, 0, 10) ?? 0;
+  const goodDays = clampInt(value.goodDaysPerWeek, 0, 7) ?? 0;
+  return steps > 0 || hydration > 0 || sleep > 0 || goodDays > 0;
+}
+
 export function getDefaultAppSettingsFields() {
   return {
     userName: '',
@@ -186,7 +196,7 @@ export function normalizeLogEntry(value) {
     energyClarity: normalizeString(v.energyClarity, 80),
     stressors: Array.isArray(v.stressors) ? v.stressors.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim()).slice(0, 50) : undefined,
     symptoms: Array.isArray(v.symptoms) ? v.symptoms.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim()).slice(0, 80) : undefined,
-    weatherSensitivity: clampInt(v.weatherSensitivity, 1, 10),
+    weatherSensitivity: clampInt(v.weatherSensitivity, 0, 10),
     painLocation: normalizeString(v.painLocation, 150),
     steps: typeof v.steps === 'number' ? v.steps : (typeof v.steps === 'string' ? parseInt(v.steps, 10) : undefined),
     hydration: typeof v.hydration === 'number' ? v.hydration : (typeof v.hydration === 'string' ? parseFloat(v.hydration) : undefined),
@@ -234,6 +244,7 @@ export * from './api/index.mjs';
 export * from './connectors/index.mjs';
 export * from './fhir/index.mjs';
 export * from './community/index.mjs';
+export * from './metrics/sliderWellness.mjs';
 export * from './a11y/wcagHelpers.mjs';
 export * from './crypto/secureStorage.mjs';
 
