@@ -64,18 +64,16 @@ class ApiRoutesMixin:
         def handle_supabase_status(self):
             """Handle Supabase status check endpoint"""
             try:
-                # Re-check Supabase availability
-                global SUPABASE_AVAILABLE
                 current_available = check_supabase_availability()
-                if current_available != SUPABASE_AVAILABLE:
-                    SUPABASE_AVAILABLE = current_available
+                if current_available != supabase_client.SUPABASE_AVAILABLE:
+                    supabase_client.SUPABASE_AVAILABLE = current_available
                     if current_available:
                         logger.info("Supabase availability updated: now available")
-            
+
                 client = init_supabase_client()
                 status = {
                     'connected': client is not None,
-                    'available': SUPABASE_AVAILABLE
+                    'available': supabase_client.SUPABASE_AVAILABLE
                 }
             
                 # Try a simple query to verify connection
@@ -436,10 +434,9 @@ class ApiRoutesMixin:
                     self.wfile.write(json.dumps({'error': 'description is required'}).encode('utf-8'))
                     return
 
-                global SUPABASE_AVAILABLE
-                SUPABASE_AVAILABLE = check_supabase_availability()
+                supabase_client.SUPABASE_AVAILABLE = check_supabase_availability()
                 client = get_supabase_service_client() or init_supabase_client()
-                if not SUPABASE_AVAILABLE or not client:
+                if not supabase_client.SUPABASE_AVAILABLE or not client:
                     self.send_response(503)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -522,9 +519,8 @@ class ApiRoutesMixin:
                     except (ValueError, IndexError):
                         pass
             
-                global SUPABASE_AVAILABLE
-                SUPABASE_AVAILABLE = check_supabase_availability()
-                if not SUPABASE_AVAILABLE:
+                supabase_client.SUPABASE_AVAILABLE = check_supabase_availability()
+                if not supabase_client.SUPABASE_AVAILABLE:
                     self.send_response(503)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()

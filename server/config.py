@@ -189,3 +189,12 @@ last_file_change_time = None
 server_instance = None
 server_thread = None
 server_lock = threading.Lock()
+
+# Dev Chromium (isolated Playwright browser under server/)
+CHROMIUM_BROWSERS_DIR = Path(__file__).resolve().parent / '.playwright-browsers'
+CHROMIUM_PROFILES_DIR = Path(__file__).resolve().parent / '.chromium-profiles'
+OPEN_CLEAN_CHROMIUM_ON_START = os.getenv('RIANELL_OPEN_CLEAN_CHROMIUM', '').lower() in ('1', 'true', 'yes')
+SKIP_DEFAULT_BROWSER_ON_START = (
+    os.getenv('RIANELL_SKIP_DEFAULT_BROWSER', '').lower() in ('1', 'true', 'yes')
+    or OPEN_CLEAN_CHROMIUM_ON_START
+)
