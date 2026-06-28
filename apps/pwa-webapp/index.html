@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="rianell-appearance-dark rianell-theme-mint">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -407,6 +407,67 @@
       }
     })();
   </script>
+  <script>
+    (function () {
+      function readAppearancePrefs() {
+        var appearanceMode = 'system';
+        var globalTheme = 'mint';
+        try {
+          var raw = localStorage.getItem('rianellSettings');
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed.globalTheme) globalTheme = parsed.globalTheme;
+            if (parsed.appearanceMode) appearanceMode = parsed.appearanceMode;
+          }
+        } catch (e) {}
+        var validThemes = { mint: true, 'red-black': true, mono: true, rainbow: true };
+        if (!validThemes[globalTheme]) globalTheme = 'mint';
+        var effective = 'dark';
+        if (appearanceMode === 'light') effective = 'light';
+        else if (appearanceMode === 'dark') effective = 'dark';
+        else if (appearanceMode === 'warm-dark') effective = 'warm-dark';
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) effective = 'light';
+        return { appearanceMode: appearanceMode, globalTheme: globalTheme, effective: effective };
+      }
+
+      function syncAppearanceDom(prefs) {
+        prefs = prefs || readAppearancePrefs();
+        var root = document.documentElement;
+        if (!root) return prefs;
+        var effective = prefs.effective;
+        var globalTheme = prefs.globalTheme;
+        var htmlAppearance = effective === 'warm-dark' ? 'dark' : effective;
+        root.classList.remove(
+          'rianell-appearance-dark',
+          'rianell-appearance-light',
+          'rianell-theme-mint',
+          'rianell-theme-red-black',
+          'rianell-theme-mono',
+          'rianell-theme-rainbow'
+        );
+        root.classList.add('rianell-appearance-' + htmlAppearance);
+        root.classList.add('rianell-theme-' + globalTheme);
+        root.style.colorScheme = effective === 'light' ? 'light' : 'dark';
+        var body = document.body;
+        if (body) {
+          body.classList.add('theme-' + globalTheme);
+          body.classList.toggle('light-mode', effective === 'light');
+          body.classList.toggle('dark-mode', effective === 'dark');
+          body.classList.toggle('rianell-appearance-warm-dark', effective === 'warm-dark');
+          var metaTheme = document.querySelector('meta[name="theme-color"]');
+          if (metaTheme) {
+            var shell = window.getComputedStyle(root).getPropertyValue('--loader-shell-bg').trim();
+            if (shell) metaTheme.setAttribute('content', shell);
+          }
+        }
+        return prefs;
+      }
+
+      window.__rianellReadAppearancePrefs = readAppearancePrefs;
+      window.__rianellSyncAppearanceDom = syncAppearanceDom;
+      syncAppearanceDom();
+    })();
+  </script>
   <style>
     /* @rianell/loader-tokens - sync hex with packages/tokens/src/index.mjs (TEAM_TOKENS[].loader) */
     html.rianell-appearance-dark.rianell-theme-mint {
@@ -496,6 +557,82 @@
       --loader-shell-mid: #f0f4ff;
       --loader-shell-bot: #e3e9ff;
       --loader-loading-text: rgba(26, 29, 42, 0.9);
+    }
+    /* @rianell/recovery-tokens — layout defaults; colours follow loader when themed */
+    :root {
+      --recovery-overlay-bg: #070807;
+      --recovery-overlay-text: #e8eeec;
+      --recovery-btn-bg: #52b85f;
+      --recovery-btn-text: #ffffff;
+      --recovery-btn-icon: #ffffff;
+      --recovery-btn-padding-y: 0.45rem;
+      --recovery-btn-padding-x: 0.875rem;
+      --recovery-btn-gap: 0.375rem;
+      --recovery-btn-font-size: 0.8125rem;
+      --recovery-icon-size: 0.9375rem;
+      --recovery-btn-radius: 999px;
+    }
+    html[class*="rianell-theme-"] {
+      --recovery-overlay-bg: var(--loader-shell-bg);
+      --recovery-overlay-text: var(--loader-loading-text);
+      --recovery-btn-bg: var(--loader-deep);
+    }
+    .rianell-recovery-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: var(--recovery-overlay-bg);
+      color: var(--recovery-overlay-text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+    }
+    #rianellBootRecoveryOverlay {
+      z-index: 100000;
+    }
+    .rianell-recovery-overlay__lead {
+      margin: 0 0 1rem;
+      font-size: 1.05rem;
+    }
+    .rianell-recovery-overlay__hint {
+      margin: 0 0 1.25rem;
+      opacity: 0.9;
+    }
+    .rianell-recovery-reload-btn {
+      width: auto;
+      min-height: 0;
+      margin: 0;
+      padding: var(--recovery-btn-padding-y) var(--recovery-btn-padding-x);
+      font-size: var(--recovery-btn-font-size);
+      font-weight: 600;
+      line-height: 1.2;
+      border-radius: var(--recovery-btn-radius);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--recovery-btn-gap);
+      pointer-events: auto;
+      animation: none;
+      background: var(--recovery-btn-bg);
+      color: var(--recovery-btn-text);
+      border: none;
+      box-shadow: none;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .rianell-recovery-reload-btn::before {
+      display: none;
+    }
+    .rianell-recovery-reload-btn .ui-svg-icon {
+      width: var(--recovery-icon-size);
+      height: var(--recovery-icon-size);
+      color: var(--recovery-btn-icon);
+      filter: none;
+      flex-shrink: 0;
     }
     html {
       background: var(--loader-shell-bg);
@@ -936,41 +1073,8 @@
   <script>
     (function () {
       try {
-        var raw = localStorage.getItem('rianellSettings');
-        var appearanceMode = 'system';
-        var globalTheme = 'mint';
-        if (raw) {
-          var parsed = JSON.parse(raw);
-          if (parsed.globalTheme) globalTheme = parsed.globalTheme;
-          if (parsed.appearanceMode) appearanceMode = parsed.appearanceMode;
-        }
-        var valid = { mint: true, 'red-black': true, mono: true, rainbow: true };
-        if (!valid[globalTheme]) globalTheme = 'mint';
-        var effective = 'dark';
-        if (appearanceMode === 'light') effective = 'light';
-        else if (appearanceMode === 'dark') effective = 'dark';
-        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) effective = 'light';
-
-        var root = document.documentElement;
-        root.classList.remove(
-          'rianell-appearance-dark',
-          'rianell-appearance-light',
-          'rianell-theme-mint',
-          'rianell-theme-red-black',
-          'rianell-theme-mono',
-          'rianell-theme-rainbow'
-        );
-        root.classList.add('rianell-appearance-' + effective);
-        root.classList.add('rianell-theme-' + globalTheme);
-
-        document.body.classList.add('theme-' + globalTheme);
-        document.body.classList.toggle('light-mode', effective === 'light');
-        document.body.classList.toggle('dark-mode', effective === 'dark');
-
-        var metaTheme = document.querySelector('meta[name="theme-color"]');
-        if (metaTheme) {
-          var shell = window.getComputedStyle(root).getPropertyValue('--loader-shell-bg').trim();
-          if (shell) metaTheme.setAttribute('content', shell);
+        if (typeof window.__rianellSyncAppearanceDom === 'function') {
+          window.__rianellSyncAppearanceDom();
         }
       } catch (e) {}
     })();
@@ -1034,6 +1138,7 @@
     <symbol id="icon-bundle" viewBox="0 0 24 24"><path d="M8 3h9l3 3v14H8Z"/><path d="M16 3v4h4"/><path d="M5 7h9l2 2v12H5Z"/><path d="M12 7v3h3"/></symbol>
     <symbol id="icon-cloud-up" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/><path d="M12 11v6"/><path d="m9.5 14.5 2.5-3.5 2.5 3.5"/></symbol>
     <symbol id="icon-import-arrow" viewBox="0 0 24 24"><path d="M12 4v10"/><path d="m8.5 11.5 3.5 3.5 3.5-3.5"/><path d="M5 20h14"/></symbol>
+    <symbol id="icon-reload" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M21 21v-5h-5"/></symbol>
     <symbol id="icon-android" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M17.523 15.341c-.551 0-.999-.449-.999-.999s.448-.999.999-.999.999.448.999.999-.448.999-.999.999m-11.046 0c-.551 0-.999-.449-.999-.999s.448-.999.999-.999c.55 0 .999.448.999.999 0 .55-.449.999-.999.999m11.312-6.02 1.977-3.422c.097-.096.097-.252 0-.348a.246.246 0 0 0-.348 0l-2.012 3.484C14.858 8.342 13.47 7.877 12 7.877c-1.47 0-2.858.465-4.058 1.174L5.929 5.567a.246.246 0 0 0-.348 0 .245.245 0 0 0 0 .348l1.977 3.422C3.677 10.225 2 12.587 2 15.306h20c0-2.719-1.677-5.081-4.212-5.984Z"/></symbol>
     <symbol id="icon-apple" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M16.365 20.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C2.905 17 1.595 12.45 3.355 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M12.655 4.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></symbol>
     <symbol id="icon-life-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
@@ -1362,8 +1467,8 @@
             </button>
           </div>
           <div class="cloud-passkey-row">
-            <button id="cloudPasskeyEnrollBtn" class="cloud-btn passkey-btn" onclick="handlePasskeyEnroll()" title="Register a passkey (biometrics or security key) for faster login" data-i18n-title="common.register.a.passkey.biometrics.or.securit">
-              <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Register Passkey</span>
+            <button id="cloudPasskeyEnrollBtn" class="cloud-btn passkey-btn" onclick="handlePasskeyEnroll()" title="Register passkey" data-i18n-title="common.register.a.passkey.biometrics.or.securit">
+              <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg> Register passkey</span>
             </button>
           </div>
           <div class="cloud-sync-info">
@@ -2898,7 +3003,7 @@
             <div class="vital-widget__body">
               <div class="vital-widget__visual steps-visual" aria-hidden="true">
                 <svg class="steps-path-svg" viewBox="0 0 72 96" focusable="false">
-                  <path class="steps-path-line" d="M36 18 C42 32 30 46 42 58 C32 72 38 84" stroke-dasharray="3 5"/>
+                  <path class="steps-path-line" d="M36 18 C42 32 30 46 42 58 C32 72 38 84 36 92" stroke-dasharray="3 5"/>
                   <g class="steps-footprint-anchor" transform="translate(28 8) rotate(-14)">
                     <g class="steps-footprint steps-footprint--1"><use href="#icon-footprint" width="16" height="16"/></g>
                   </g>
@@ -4919,7 +5024,7 @@
   <script defer src="modules/mood-tab.js?v=6"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=10"></script>
-  <script defer src="guided-onboarding.js?v=3"></script>
+  <script defer src="guided-onboarding.js?v=5"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
   <script type="module" defer src="app.js?v=56"></script>
@@ -4957,6 +5062,31 @@
         if (block) block.style.display = '';
         if (label) label.textContent = /iPad/.test(navigator.userAgent) ? 'Install on this iPad' : 'Install on this iPhone';
       }
+    })();
+  </script>
+  <script>
+    (function () {
+      function recoveryReloadBtnHtml(btnId, label) {
+        return (
+          '<button type="button" id="' + btnId + '" class="rianell-recovery-reload-btn">' +
+          '<svg class="ui-svg-icon rianell-recovery-reload-icon" aria-hidden="true"><use href="#icon-reload"></use></svg>' +
+          '<span>' + label + '</span></button>'
+        );
+      }
+
+      function bindRecoveryReloadBtn(btn) {
+        if (!btn || btn.dataset.bound === '1') return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          try { window.location.reload(); } catch (err) {
+            window.location.replace(window.location.pathname + '?r=' + Date.now() + (window.location.hash || ''));
+          }
+        });
+      }
+
+      window.__rianellRecoveryReloadBtnHtml = recoveryReloadBtnHtml;
+      window.__rianellBindRecoveryReloadBtn = bindRecoveryReloadBtn;
     })();
   </script>
   <script>
@@ -5003,12 +5133,16 @@
         document.documentElement.classList.add('rianell-no-styles');
         var overlay = document.createElement('div');
         overlay.id = 'cssReloadOverlay';
+        overlay.className = 'rianell-recovery-overlay';
         overlay.setAttribute('role', 'alert');
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#070807;color:#e8eeec;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
-        overlay.innerHTML = '<p style="margin-bottom:1rem;font-size:1.1rem;" data-i18n="common.page.did.not.load.correctly">Page did not load correctly.</p><p style="margin-bottom:1.5rem;opacity:0.9;">Tap below to reload.</p><button type="button" id="cssReloadOverlayBtn" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Reload</button>';
+        overlay.innerHTML = '<p class="rianell-recovery-overlay__lead" data-i18n="common.page.did.not.load.correctly">Page did not load correctly.</p><p class="rianell-recovery-overlay__hint">Tap below to reload.</p>' +
+          (typeof window.__rianellRecoveryReloadBtnHtml === 'function'
+            ? window.__rianellRecoveryReloadBtnHtml('cssReloadOverlayBtn', 'Reload')
+            : '<button type="button" id="cssReloadOverlayBtn" class="rianell-recovery-reload-btn">Reload</button>');
         document.body.appendChild(overlay);
         var btn = document.getElementById('cssReloadOverlayBtn');
-        if (btn) btn.onclick = function () { window.location.reload(); };
+        if (typeof window.__rianellBindRecoveryReloadBtn === 'function') window.__rianellBindRecoveryReloadBtn(btn);
+        else if (btn) btn.onclick = function () { window.location.reload(); };
       }
 
       function checkStylesLoaded() {
@@ -5052,14 +5186,17 @@
         if (document.getElementById('rianellBootRecoveryOverlay')) return;
         var overlay = document.createElement('div');
         overlay.id = 'rianellBootRecoveryOverlay';
+        overlay.className = 'rianell-recovery-overlay';
         overlay.setAttribute('role', 'alert');
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;background:#070807;color:#e8eeec;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
-        overlay.innerHTML = '<p style="margin-bottom:1rem;font-size:1.1rem;" data-i18n="common.rianell.is.taking.longer.than.expected.t">Rianell is taking longer than expected to start.</p>' +
-          '<p style="margin-bottom:1.5rem;opacity:0.9;" data-i18n="common.this.can.happen.after.an.update.on.iphon">This can happen after an update on iPhone. Try reloading once.</p>' +
-          '<button type="button" id="rianellBootRecoveryBtn" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;" data-i18n="common.reload">Reload</button>';
+        overlay.innerHTML = '<p class="rianell-recovery-overlay__lead" data-i18n="common.rianell.is.taking.longer.than.expected.t">Rianell is taking longer than expected to start.</p>' +
+          '<p class="rianell-recovery-overlay__hint" data-i18n="common.this.can.happen.after.an.update.on.iphon">This can happen after an update on iPhone. Try reloading once.</p>' +
+          (typeof window.__rianellRecoveryReloadBtnHtml === 'function'
+            ? window.__rianellRecoveryReloadBtnHtml('rianellBootRecoveryBtn', 'Reload')
+            : '<button type="button" id="rianellBootRecoveryBtn" class="rianell-recovery-reload-btn">Reload</button>');
         document.body.appendChild(overlay);
         var btn = document.getElementById('rianellBootRecoveryBtn');
-        if (btn) btn.onclick = function () { window.location.reload(); };
+        if (typeof window.__rianellBindRecoveryReloadBtn === 'function') window.__rianellBindRecoveryReloadBtn(btn);
+        else if (btn) btn.onclick = function () { window.location.reload(); };
       }, 22000);
     })();
   </script>

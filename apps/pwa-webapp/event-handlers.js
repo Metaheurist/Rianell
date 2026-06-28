@@ -186,7 +186,10 @@ function initializeEventHandlers() {
   const printBtn = document.querySelector('.print-btn');
   
   if (installAppBtn) {
-    installAppBtn.addEventListener('click', installOrLaunchPWA);
+    installAppBtn.addEventListener('click', function () {
+      if (typeof installOrLaunchPWA === 'function') installOrLaunchPWA();
+      else if (typeof window.installOrLaunchPWA === 'function') window.installOrLaunchPWA();
+    });
   }
   
   if (printBtn) {
@@ -450,12 +453,8 @@ function initializeEventHandlers() {
   
 }
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeEventHandlers);
-} else {
-  initializeEventHandlers();
-}
+// Initialize when DOM is ready (defer only — app.js defines installOrLaunchPWA later in the bundle)
+document.addEventListener('DOMContentLoaded', initializeEventHandlers);
 // Event handlers for Health App
 
 (function() {
@@ -469,9 +468,5 @@ if (document.readyState === 'loading') {
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupEventHandlers);
-  } else {
-    setupEventHandlers();
-  }
+  document.addEventListener('DOMContentLoaded', setupEventHandlers);
 })();

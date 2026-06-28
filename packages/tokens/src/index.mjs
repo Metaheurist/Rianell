@@ -15,6 +15,18 @@ const SEMANTIC_COLORS = {
 };
 
 /** Boot / loading overlay palette — keep web index.html critical CSS in sync (search: @rianell/loader-tokens). */
+/** Recovery overlay/button layout — keep web index.html + styles.css in sync (search: @rianell/recovery-tokens). */
+export const RECOVERY_TOKENS = {
+  btnPaddingY: '0.45rem',
+  btnPaddingX: '0.875rem',
+  btnGap: '0.375rem',
+  btnFontSize: '0.8125rem',
+  iconSize: '0.9375rem',
+  btnRadius: '999px',
+  btnText: '#ffffff',
+  btnIcon: '#ffffff',
+};
+
 const TEAM_TOKENS = {
   mint: {
     dark: {

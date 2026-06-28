@@ -71,7 +71,8 @@
     '#privacyRegionGateOverlay, #guidedOnboardingOverlay, #firstRunWizardOverlay, #firstRunWizardTutorialMount, ' +
     '#tutorialModalOverlay, #healthDataConsentOverlay, #cookieBanner, #perfBenchmarkOverlay, ' +
     '#aiModelDownloadOverlay, #aiModelDownloadProgressOverlay, #alertModalOverlay, ' +
-    '#appLockOverlay, #rianellBootRecoveryOverlay, #loadingOverlay, .guided-onboarding-choice, ' +
+    '#appLockOverlay, #cssReloadOverlay, #cssReloadOverlayBtn, #rianellBootRecoveryOverlay, #rianellBootRecoveryBtn, ' +
+    '#loadingOverlay, .guided-onboarding-choice, .rianell-recovery-reload-btn, ' +
     '#guidedOnboardingContinueBtn, #guidedOnboardingBackBtn, #guidedOnboardingDetailsBtn';
 
   function isOnboardingInteractionTarget(eventOrTarget) {
@@ -86,7 +87,10 @@
         var node = path[i];
         if (!node || node === document || node === window) continue;
         if (node.id === 'guidedOnboardingOverlay' || node.id === 'privacyRegionGateOverlay') return true;
+        if (node.id === 'cssReloadOverlay' || node.id === 'rianellBootRecoveryOverlay') return true;
+        if (node.id === 'cssReloadOverlayBtn' || node.id === 'rianellBootRecoveryBtn') return true;
         if (node.classList && node.classList.contains('guided-onboarding-choice')) return true;
+        if (node.classList && node.classList.contains('rianell-recovery-reload-btn')) return true;
         if (node.id === 'guidedOnboardingContinueBtn' || node.id === 'guidedOnboardingBackBtn') return true;
       }
     }
