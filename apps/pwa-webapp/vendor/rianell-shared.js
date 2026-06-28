@@ -534,6 +534,7 @@ var RianellShared = (() => {
     resolveGuidedCardProgress: () => resolveGuidedCardProgress,
     resolveHomeCardOrder: () => resolveHomeCardOrder,
     resolveMissedLogNudgeTimeHHMM: () => resolveMissedLogNudgeTimeHHMM,
+    resolveNextGuidedCardIndex: () => resolveNextGuidedCardIndex,
     resolveNextStepIndexAfterComplete: () => resolveNextStepIndexAfterComplete,
     resolvePolicyPack: () => resolvePolicyPack,
     resolvePressureIconId: () => resolvePressureIconId,
@@ -7174,6 +7175,15 @@ ${questionsBlock}
   function resolveGuidedCardIndex(cards, cardId) {
     const idx = cards.findIndex((c) => c.id === cardId);
     return idx >= 0 ? idx : 0;
+  }
+  function resolveNextGuidedCardIndex(cards, answeredCardId) {
+    const orderIdx = GUIDED_QUESTIONNAIRE_CARD_IDS.indexOf(answeredCardId);
+    if (orderIdx < 0) return 0;
+    for (let i = orderIdx + 1; i < GUIDED_QUESTIONNAIRE_CARD_IDS.length; i += 1) {
+      const idx = cards.findIndex((c) => c.id === GUIDED_QUESTIONNAIRE_CARD_IDS[i]);
+      if (idx >= 0) return idx;
+    }
+    return Math.max(cards.length - 1, 0);
   }
   function resolveGuidedCardProgress(cards, cardIndex) {
     const total = cards.length || 1;
