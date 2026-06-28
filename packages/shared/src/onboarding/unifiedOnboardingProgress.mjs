@@ -1,6 +1,10 @@
 import { buildFirstRunPlan } from './firstRunOrchestrator.mjs';
 import { shouldSkipFirstRunStep } from './firstRunSteps.mjs';
 import { isPrivacyRegionConfigured } from '../privacy/profileSync.mjs';
+import {
+  buildGuidedQuestionnaire,
+  resolveGuidedCardProgress,
+} from './guidedQuestionnaire.mjs';
 
 /** Tutorial slide order when AI & goals path is enabled (matches PWA/RN first-run). */
 export const TUTORIAL_SLIDE_ORDER_AI_ON = [0, 1, 8, 2, 3, 4, 5, 6, 7];
@@ -233,6 +237,72 @@ export function createOnboardingProgressSession(prefs, ctx, options = {}) {
         sessionTotal,
         sessionSteps,
       });
+    },
+  };
+}
+
+/**
+ * Grow guided session when conditional cards appear (e.g. EEA health consent).
+ * @param {ReturnType<typeof buildGuidedQuestionnaire>} existing
+ * @param {ReturnType<typeof buildGuidedQuestionnaire>} next
+ */
+export function mergeGuidedSessionCards(existing, next) {
+  if (!existing.length) return next;
+  if (next.length <= existing.length) return existing;
+
+  /** @type {ReturnType<typeof buildGuidedQuestionnaire>} */
+  const merged = [...existing];
+  for (const card of next) {
+    if (merged.some((c) => c.id === card.id)) continue;
+    const anchorIdx = next.findIndex((c) => c.id === card.id);
+    let insertAt = merged.length;
+    for (let i = anchorIdx - 1; i >= 0; i -= 1) {
+      const prev = next[i];
+      const prevInMerged = merged.findIndex((c) => c.id === prev.id);
+      if (prevInMerged >= 0) {
+        insertAt = prevInMerged + 1;
+        break;
+      }
+    }
+    merged.splice(insertAt, 0, card);
+  }
+  return merged;
+}
+
+/**
+ * @param {Record<string, unknown>} prefs
+ * @param {import('./firstRunSteps.mjs').FirstRunPlatformContext} ctx
+ */
+export function buildGuidedOnboardingProgressSteps(prefs, ctx) {
+  return buildGuidedQuestionnaire(prefs, ctx);
+}
+
+/**
+ * Session counter for guided questionnaire cards (replaces wizard+tutorial slide count).
+ * @param {Record<string, unknown>} prefs
+ * @param {import('./firstRunSteps.mjs').FirstRunPlatformContext} ctx
+ */
+export function createGuidedOnboardingProgressSession(prefs, ctx) {
+  /** @type {ReturnType<typeof buildGuidedQuestionnaire>} */
+  let sessionCards = buildGuidedQuestionnaire(prefs, ctx);
+  let sessionTotal = sessionCards.length || 1;
+
+  return {
+    getTotal() {
+      return sessionTotal;
+    },
+    getCards() {
+      return sessionCards;
+    },
+    refresh(prefsNext, ctxNext) {
+      const nextCards = buildGuidedQuestionnaire(prefsNext, ctxNext);
+      sessionCards = mergeGuidedSessionCards(sessionCards, nextCards);
+      sessionTotal = sessionCards.length || 1;
+      return sessionTotal;
+    },
+    resolve(prefsNext, ctxNext, cardIndex) {
+      this.refresh(prefsNext, ctxNext);
+      return resolveGuidedCardProgress(sessionCards, cardIndex);
     },
   };
 }
