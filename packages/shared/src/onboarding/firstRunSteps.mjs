@@ -15,7 +15,7 @@ export const FIRST_RUN_STEP_IDS = [
 
 /** @typedef {'region'|'healthConsent'|'cookies'|'sessionRecording'|'trackingProfile'|'tutorial'|'aiDownload'|'install'} FirstRunStepId */
 
-/** @typedef {{ platform: 'pwa'|'rn', cookieConsentAccepted?: boolean, installModalSeen?: boolean, standalonePwa?: boolean, tutorialSeenLegacy?: boolean }} FirstRunPlatformContext */
+/** @typedef {{ platform: 'pwa'|'rn', cookieConsentAccepted?: boolean, installModalSeen?: boolean, standalonePwa?: boolean, tutorialSeenLegacy?: boolean, isAuthenticated?: boolean }} FirstRunPlatformContext */
 
 export const FIRST_RUN_STEP_META = {
   region: { titleKey: 'onboarding.step.region' },

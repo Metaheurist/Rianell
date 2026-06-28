@@ -3,8 +3,10 @@ import { DEFAULT_LOCALE, DEFAULT_PRIVACY_REGION, isValidLocaleId } from './local
 
 function regionConfig(regionId, pack) {
   const p = pack || getPolicyPack();
-  const id = p?.regions?.[regionId] ? regionId : 'other';
-  return p.regions[id];
+  const regions = p?.regions;
+  if (!regions) return undefined;
+  const id = regions[regionId] ? regionId : 'other';
+  return regions[id];
 }
 
 export function getDefaultLocaleForRegion(regionId, pack) {

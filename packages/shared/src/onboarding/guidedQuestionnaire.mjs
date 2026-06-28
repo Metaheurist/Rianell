@@ -1,14 +1,15 @@
 import { normalizeLlmCoachPersona } from '../ai/llmCoachPersona.mjs';
 import { applyRegionDefaultLocale } from '../i18n/resolveLocale.mjs';
-import { resolvePolicyPack } from '../privacy/resolvePolicyPack.mjs';
+import { getPolicyPack, resolvePolicyPack } from '../privacy/resolvePolicyPack.mjs';
 import { isPrivacyRegionConfigured } from '../privacy/profileSync.mjs';
 import { completeFirstRunWizard } from './firstRunOrchestrator.mjs';
 
-/** @typedef {'info'|'choice'|'consent'|'reminder'} GuidedCardKind */
+/** @typedef {'info'|'choice'|'consent'|'reminder'|'auth'} GuidedCardKind */
 
 /** Canonical guided onboarding card order (PWA + RN). */
 export const GUIDED_QUESTIONNAIRE_CARD_IDS = [
   'welcome',
+  'signIn',
   'region',
   'coachTone',
   'helperLevel',
@@ -19,18 +20,63 @@ export const GUIDED_QUESTIONNAIRE_CARD_IDS = [
   'communityHelp',
   'dailyNudge',
   'install',
+  'accountSignUp',
   'finish',
 ];
 
-/** @typedef {'welcome'|'region'|'coachTone'|'helperLevel'|'healthConsent'|'cookies'|'sessionRecording'|'aiDownload'|'communityHelp'|'dailyNudge'|'install'|'finish'} GuidedCardId */
+/** @typedef {'welcome'|'signIn'|'region'|'coachTone'|'helperLevel'|'healthConsent'|'cookies'|'sessionRecording'|'aiDownload'|'communityHelp'|'dailyNudge'|'install'|'accountSignUp'|'finish'} GuidedCardId */
+
+/**
+ * @param {Record<string, unknown>} prefs
+ * @param {import('./firstRunSteps.mjs').FirstRunPlatformContext} ctx
+ */
+export function isGuidedOnboardingAuthenticated(prefs, ctx) {
+  if (ctx && ctx.isAuthenticated === true) return true;
+  const p = prefs && typeof prefs === 'object' ? prefs : {};
+  return p.onboardingAccountLinked === true;
+}
+
+/** @param {GuidedCardId} cardId */
+function skipSetupCardsForReturningSignIn(cardId, prefs, ctx) {
+  const setupCards = [
+    'region',
+    'coachTone',
+    'helperLevel',
+    'healthConsent',
+    'cookies',
+    'sessionRecording',
+    'aiDownload',
+    'communityHelp',
+    'dailyNudge',
+    'install',
+    'accountSignUp',
+  ];
+  if (!setupCards.includes(cardId)) return false;
+  const p = prefs && typeof prefs === 'object' ? prefs : {};
+  return p.onboardingPath === 'signIn' && isGuidedOnboardingAuthenticated(p, ctx);
+}
 
 export const GUIDED_CARD_META = {
   welcome: {
-    kind: 'info',
+    kind: 'choice',
     titleKey: 'onboarding.questionnaire.welcome.title',
     bodyKey: 'onboarding.questionnaire.welcome.body',
     illustration: 'mascot-wave',
     settingsHintKey: '',
+    choices: [
+      { id: 'signIn', labelKey: 'onboarding.questionnaire.welcome.signIn' },
+      { id: 'setUp', labelKey: 'onboarding.questionnaire.welcome.setUp' },
+    ],
+  },
+  signIn: {
+    kind: 'auth',
+    titleKey: 'onboarding.questionnaire.signIn.title',
+    bodyKey: 'onboarding.questionnaire.signIn.body',
+    illustration: 'shield',
+    settingsHintKey: '',
+    choices: [
+      { id: 'setUpInstead', labelKey: 'onboarding.questionnaire.signIn.setUpInstead' },
+    ],
   },
   region: {
     kind: 'choice',
@@ -144,6 +190,16 @@ export const GUIDED_CARD_META = {
       { id: 'skip', labelKey: 'onboarding.questionnaire.install.skip' },
     ],
   },
+  accountSignUp: {
+    kind: 'auth',
+    titleKey: 'onboarding.questionnaire.accountSignUp.title',
+    bodyKey: 'onboarding.questionnaire.accountSignUp.body',
+    illustration: 'shield',
+    settingsHintKey: 'onboarding.questionnaire.settingsHint',
+    choices: [
+      { id: 'skip', labelKey: 'onboarding.questionnaire.accountSignUp.skip' },
+    ],
+  },
   finish: {
     kind: 'info',
     titleKey: 'onboarding.questionnaire.finish.title',
@@ -168,21 +224,37 @@ export function shouldSkipGuidedCard(cardId, prefs, ctx) {
 
   switch (cardId) {
     case 'welcome':
+    case 'finish':
+      return false;
     case 'coachTone':
     case 'helperLevel':
     case 'communityHelp':
     case 'dailyNudge':
-    case 'finish':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
+      return false;
+    case 'signIn': {
+      const path = typeof p.onboardingPath === 'string' ? p.onboardingPath : '';
+      if (path !== 'signIn') return true;
+      if (isGuidedOnboardingAuthenticated(p, c)) return true;
+      return false;
+    }
+    case 'accountSignUp':
+      if (p.onboardingPath === 'signIn') return true;
+      if (isGuidedOnboardingAuthenticated(p, c)) return true;
       return false;
     case 'region':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
       return isPrivacyRegionConfigured(p);
     case 'healthConsent':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
       return p.privacyRegion !== 'eea_uk' || p.healthDataConsent === true;
     case 'cookies':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
       if (p.cookieConsent === true) return true;
       if (c.cookieConsentAccepted === true) return true;
       return false;
     case 'sessionRecording': {
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
       if (typeof p.sessionRecordingDisclosureAt === 'string' && p.sessionRecordingDisclosureAt.length > 0) {
         return true;
       }
@@ -193,10 +265,12 @@ export function shouldSkipGuidedCard(cardId, prefs, ctx) {
       return false;
     }
     case 'aiDownload':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
       if (p.aiEnabled === false) return true;
       if (p.aiModelDownloadConsent === 'granted' || p.aiModelDownloadConsent === 'deferred') return true;
       return false;
     case 'install':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
       if (c.platform !== 'pwa') return true;
       if (c.installModalSeen === true) return true;
       if (c.standalonePwa === true) return true;
@@ -240,6 +314,13 @@ export function applyQuestionnaireAnswer(prefs, cardId, choiceId, extra = {}) {
 
   switch (cardId) {
     case 'welcome':
+      if (choiceId === 'signIn') return { ...p, onboardingPath: 'signIn' };
+      if (choiceId === 'setUp') return { ...p, onboardingPath: 'setup' };
+      return p;
+    case 'signIn':
+      if (choiceId === 'setUpInstead') return { ...p, onboardingPath: 'setup' };
+      return p;
+    case 'accountSignUp':
       return p;
     case 'region': {
       if (choiceId !== 'confirm' && choiceId !== 'pickAnother') return p;
@@ -255,7 +336,7 @@ export function applyQuestionnaireAnswer(prefs, cardId, choiceId, extra = {}) {
         policyAcknowledgedAt: now,
         uiLocaleSource: 'onboarding',
       };
-      return applyRegionDefaultLocale(withRegion, regionId, resolvePolicyPack(regionId));
+      return applyRegionDefaultLocale(withRegion, regionId, getPolicyPack());
     }
     case 'coachTone':
       return {

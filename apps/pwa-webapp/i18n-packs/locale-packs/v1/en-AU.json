@@ -2151,7 +2151,7 @@
     "wizard.weather.sensitivity.1.10": "Weather sensitivity (1-10)",
     "wizard.weight.kg": "Weight (kg)",
     "common.sign.in.with.a.passkey.biometrics.or.sec": "Sign in with a passkey (biometrics or security key)",
-    "common.register.a.passkey.biometrics.or.securit": "Register a passkey (biometrics or security key) for faster login",
+    "common.register.a.passkey.biometrics.or.securit": "Register passkey",
     "common.logs.read": "logs:read",
     "common.logs.write": "logs:write",
     "common.fhir.read": "fhir:read",

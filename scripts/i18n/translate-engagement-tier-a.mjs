@@ -20,16 +20,16 @@ const ENGAGEMENT_KEYS = {
     'Your mood score connects to sleep, fatigue, and flare days. Tracking it takes 10 seconds.',
   'home.discover.mood.cta': 'Try a check-in',
   'home.discover.ai.info':
-    'After a few entries, your AI spots patterns you might miss — like which days tend to be harder and why.',
+    'After a few entries, your AI spots patterns you might miss, like which days tend to be harder and why.',
   'home.firstLog.celebration':
-    'Your first entry is saved. Come back tomorrow — two entries start showing patterns.',
+    'Your first entry is saved. Come back tomorrow, two entries start showing patterns.',
   'home.streak.graceDay': "One missed day won't break this. Tap + to keep it going.",
   'home.streak.grace':
-    'Life gets in the way sometimes. Pick up where you left off — your data is still here.',
+    'Life gets in the way sometimes. Pick up where you left off, your data is still here.',
   'home.checkin.saved.toast': 'Check-in saved',
   'logs.empty.warm.title': 'Your health story starts here',
   'logs.empty.warm.message':
-    'Each entry helps spot what affects how you feel. No pressure — a quick note is enough.',
+    'Each entry helps spot what affects how you feel. No pressure, a quick note is enough.',
   'logs.empty.warm.cta': "Add today's entry",
   'charts.empty.warm.title': 'Your patterns are waiting',
   'charts.empty.warm.message': 'Log a few days and your trends will take shape here.',
@@ -43,9 +43,9 @@ const ENGAGEMENT_KEYS = {
   'ai.preview.unlock': 'Your first insight appears after 3 entries',
   'mood.empty.warm.title': 'Your mood story builds here',
   'mood.empty.warm.message':
-    'Each check-in helps spot patterns in how you feel. Morning, midday, or evening — whatever works for you.',
+    'Each check-in helps spot patterns in how you feel. Morning, midday, or evening, whatever works for you.',
   'mood.screening.whatIsThis':
-    'These are validated wellbeing questions (PHQ-2 / GAD-2) used worldwide. They help you notice patterns — not diagnose. Your answers stay on your device.',
+    'These are validated wellbeing questions (PHQ-2 / GAD-2) used worldwide. They help you notice patterns, not diagnose. Your answers stay on your device.',
   'mood.screening.notDiagnosis':
     'This is not a clinical diagnosis. If you have concerns, please speak with your doctor or a mental health professional.',
   'weeklyReview.empty.warm.title': 'Building your review',
@@ -61,22 +61,22 @@ const ENGAGEMENT_KEYS = {
   'settings.performance.modelHint':
     "Controls AI quality vs. speed. 'Small' works well on most phones.",
   'settings.anon.inlineHint':
-    'Only aggregate patterns are shared — never your individual entries.',
+    'Only aggregate patterns are shared, never your individual entries.',
   'goals.firstVisit.body':
-    "Your targets tell the app when you're having a good day. The defaults work fine — adjust whenever you like.",
+    "Your targets tell the app when you're having a good day. The defaults work fine, adjust whenever you like.",
   'goals.firstVisit.dismiss': 'Got it',
   'goals.onTrack': 'On track',
   'achievements.unlockedOf': '{unlocked} / {total} Achievements',
   'gamification.milestone.5logs':
-    'Five entries in — your patterns are starting to take shape.',
+    'Five entries in, your patterns are starting to take shape.',
   'gamification.milestone.10logs':
     '10 entries! The AI is getting better at reading your patterns.',
   'gamification.milestone.25logs': "25 entries. You've built something genuinely valuable here.",
   'gamification.milestone.50logs':
-    '50 entries — you know your body better than most doctors will.',
+    '50 entries, you know your body better than most doctors will.',
   'gamification.goal.goodDay': 'Good day logged. Your patterns are recording it.',
   'gamification.goal.steps': "Steps goal reached. That's real.",
-  'gamification.goal.hydration': 'Hydration goal met — well done.',
+  'gamification.goal.hydration': 'Hydration goal met, well done.',
   'gamification.goal.generic': 'Goal reached today.',
   'gamification.weeklyReview.complete':
     'Weekly review done. Your health story just got richer.',
@@ -128,7 +128,7 @@ for (const locale of TIER_A) {
   if (changed > 0) {
     fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, strings, machineTranslatedUi: true }, null, 2)}\n`, 'utf8');
   }
-  console.log(`translate-engagement-tier-a: ${locale} — ${changed} key(s) updated`);
+  console.log(`translate-engagement-tier-a: ${locale}, ${changed} key(s) updated`);
 }
 
 console.log('translate-engagement-tier-a: run npm run verify:i18n');

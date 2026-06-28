@@ -68,6 +68,18 @@
     if (global.appSettings) Object.assign(global.appSettings, patch);
   }
 
+  function isCloudAuthenticated() {
+    try {
+      if (global.cloudSyncState && global.cloudSyncState.isAuthenticated) return true;
+      var raw = localStorage.getItem('cloudSyncState');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        return !!parsed.isAuthenticated;
+      }
+    } catch (e) {}
+    return false;
+  }
+
   function platformContext() {
     var standalone = false;
     try {
@@ -83,6 +95,7 @@
       installModalSeen: installSeen,
       standalonePwa: standalone,
       tutorialSeenLegacy: false,
+      isAuthenticated: isCloudAuthenticated(),
     };
   }
 
@@ -182,6 +195,84 @@
     );
   }
 
+  function renderPasskeyButtonHtml(isSignIn) {
+    var label = isSignIn
+      ? t('common.sign.in.with.a.passkey.biometrics.or.sec')
+      : t('common.register.a.passkey.biometrics.or.securit');
+    var icon = typeof global.svgIcon === 'function'
+      ? global.svgIcon('shield-check', 'ui-svg-icon', '')
+      : '<svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg>';
+    return (
+      '<div class="cloud-passkey-row">' +
+      '<button type="button" class="cloud-btn passkey-btn" id="guidedOnboardingAuthPasskeyBtn" title="' + escapeHtml(label) + '">' +
+      '<span>' + icon + ' ' + escapeHtml(label) + '</span>' +
+      '</button></div>'
+    );
+  }
+
+  function renderAuthForm(card) {
+    var isSignIn = card.id === 'signIn';
+    var emailLabel = t('onboarding.questionnaire.auth.emailLabel');
+    var passwordLabel = t('onboarding.questionnaire.auth.passwordLabel');
+    var primaryLabel = isSignIn ? t('settings.cloud.signIn') : t('settings.cloud.signUp');
+    var altChoices = (card.choices || []).map(function (c) { return renderChoiceCard(c, card); }).join('');
+    return (
+      '<div class="guided-onboarding-auth">' +
+      '<label for="guidedOnboardingAuthEmail" class="privacy-region-gate-label">' + escapeHtml(emailLabel) + '</label>' +
+      '<input type="email" id="guidedOnboardingAuthEmail" class="first-run-wizard-input guided-onboarding-auth-input" autocomplete="email">' +
+      '<label for="guidedOnboardingAuthPassword" class="privacy-region-gate-label">' + escapeHtml(passwordLabel) + '</label>' +
+      '<input type="password" id="guidedOnboardingAuthPassword" class="first-run-wizard-input guided-onboarding-auth-input" autocomplete="' + (isSignIn ? 'current-password' : 'new-password') + '">' +
+      '<button type="button" class="modal-save-btn guided-onboarding-auth-primary" id="guidedOnboardingAuthPrimaryBtn">' + escapeHtml(primaryLabel) + '</button>' +
+      renderPasskeyButtonHtml(isSignIn) +
+      (altChoices ? '<div class="guided-onboarding-choices guided-onboarding-choices--auth">' + altChoices + '</div>' : '') +
+      '</div>'
+    );
+  }
+
+  function onboardingAuthContext(card, onSuccess) {
+    var isSignIn = card && card.id === 'signIn';
+    return {
+      emailId: 'guidedOnboardingAuthEmail',
+      passwordId: 'guidedOnboardingAuthPassword',
+      signUpBtnId: 'guidedOnboardingAuthPrimaryBtn',
+      loginBtnId: 'guidedOnboardingAuthPrimaryBtn',
+      passkeyBtnId: 'guidedOnboardingAuthPasskeyBtn',
+      passkeyLabel: isSignIn
+        ? t('common.sign.in.with.a.passkey.biometrics.or.sec')
+        : t('common.register.a.passkey.biometrics.or.securit'),
+      passkeyEnroll: !isSignIn,
+      onSuccess: onSuccess,
+    };
+  }
+
+  function bindAuthForm(card) {
+    var primaryBtn = document.getElementById('guidedOnboardingAuthPrimaryBtn');
+    var passkeyBtn = document.getElementById('guidedOnboardingAuthPasskeyBtn');
+    var onAuthSuccess = function () {
+      advanceAfterAnswer(card.id);
+    };
+    var ctx = onboardingAuthContext(card, onAuthSuccess);
+    if (primaryBtn) {
+      primaryBtn.onclick = function () {
+        if (card.id === 'signIn' && typeof global.handleCloudLogin === 'function') {
+          global.handleCloudLogin(ctx);
+        } else if (card.id === 'accountSignUp' && typeof global.handleCloudSignUp === 'function') {
+          global.handleCloudSignUp(ctx);
+        }
+      };
+    }
+    if (passkeyBtn) {
+      passkeyBtn.onclick = function () {
+        if (card.id === 'signIn' && typeof global.handlePasskeySignIn === 'function') {
+          global.handlePasskeySignIn(ctx);
+        } else if (card.id === 'accountSignUp' && typeof global.handlePasskeyEnroll === 'function') {
+          global.handlePasskeyEnroll(ctx);
+        }
+      };
+    }
+    bindChoiceButtons(document.getElementById('guidedOnboardingBody'), card);
+  }
+
   function renderRegionPicker() {
     var sug = suggestRegion();
     var labels = sug.labels;
@@ -230,14 +321,11 @@
       ? '<p class="guided-onboarding-settings-hint">' + escapeHtml(t(card.settingsHintKey)) + '</p>'
       : '';
 
-    if (card.id === 'welcome') {
-      body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>';
-      if (footer) footer.style.display = 'flex';
-      if (continueBtn) {
-        continueBtn.style.display = 'inline-block';
-        continueBtn.textContent = t('onboarding.questionnaire.continue');
-      }
-      if (backBtn) backBtn.style.visibility = 'hidden';
+    if (card.kind === 'auth') {
+      body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' + renderAuthForm(card);
+      bindAuthForm(card);
+      if (footer) footer.style.display = 'none';
+      if (backBtn) backBtn.style.visibility = cardIndex > 0 ? 'visible' : 'hidden';
       if (detailsBtn) detailsBtn.style.display = 'none';
       regionPickerOpen = false;
       reminderTimePickerOpen = false;
@@ -318,20 +406,13 @@
     body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' + choicesHtml + hint;
     bindChoiceButtons(body, card);
 
-    if (footer) footer.style.display = (card.id === 'welcome') ? 'flex' : 'none';
+    if (footer) footer.style.display = 'none';
     if (backBtn) backBtn.style.visibility = cardIndex > 0 ? 'visible' : 'hidden';
     if (detailsBtn) {
       detailsBtn.style.display = card.kind === 'consent' ? 'inline-block' : 'none';
       detailsBtn.textContent = t('onboarding.questionnaire.seeDetails');
     }
-    if (continueBtn) {
-      if (card.id === 'welcome') {
-        continueBtn.style.display = 'inline-block';
-        continueBtn.textContent = t('onboarding.questionnaire.continue');
-      } else {
-        continueBtn.style.display = 'none';
-      }
-    }
+    if (continueBtn) continueBtn.style.display = 'none';
   }
 
   function bindChoiceButtons(body, card) {
@@ -361,6 +442,14 @@
   }
 
   function handleChoice(card, choiceId) {
+    if (card.id === 'signIn' && choiceId === 'setUpInstead') {
+      applyAndAdvance(card.id, choiceId, {});
+      return;
+    }
+    if (card.id === 'accountSignUp' && choiceId === 'skip') {
+      applyAndAdvance(card.id, choiceId, {});
+      return;
+    }
     if (card.id === 'region') {
       if (choiceId === 'pickAnother') {
         regionPickerOpen = true;
@@ -460,22 +549,27 @@
     }
     writePrefs(prefs);
     try { localStorage.setItem('rianellTutorialSeen', '1'); } catch (e) {}
-    if (choiceId === 'quickTour' && typeof global.openTutorialModal === 'function') {
-      global.openTutorialModal();
+    try {
+      if (choiceId === 'quickTour' && typeof global.openTutorialModal === 'function') {
+        global.openTutorialModal();
+      }
+      if (typeof global.onFirstRunWizardComplete === 'function') global.onFirstRunWizardComplete();
+      else if (typeof global.ensureShellContentVisible === 'function') global.ensureShellContentVisible();
+    } catch (err) {
+      if (typeof console !== 'undefined' && console.error) {
+        console.error('[Rianell] guided onboarding finish hook failed', err);
+      }
+      if (typeof global.ensureShellContentVisible === 'function') {
+        try { global.ensureShellContentVisible(); } catch (e2) {}
+      }
+    } finally {
+      closeWizard(true);
     }
-    if (typeof global.onFirstRunWizardComplete === 'function') global.onFirstRunWizardComplete();
-    else if (typeof global.ensureShellContentVisible === 'function') global.ensureShellContentVisible();
-    closeWizard(true);
   }
 
   function onContinue() {
     var card = cards[cardIndex];
     if (!card) return;
-    if (card.id === 'welcome') {
-      cardIndex += 1;
-      renderCurrentCard();
-      return;
-    }
     if (card.id === 'region' && regionPickerOpen) {
       var sel = document.getElementById('guidedOnboardingRegionSelect');
       selectedRegion = sel ? sel.value : selectedRegion;

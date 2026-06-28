@@ -1,4 +1,4 @@
-/** AI Analysis tab overhaul — Tier A UI string overrides (v1.134). */
+/** AI Analysis tab overhaul, Tier A UI string overrides (v1.134). */
 
 const AI_FR = {
   'ai.analysisFor': 'Analyse pour {range}',
@@ -10,7 +10,7 @@ const AI_FR = {
   'ai.chapter.overview': "Vue d'ensemble",
   'ai.chapter.trends': 'Tendances & signes vitaux',
   'ai.chapter.trendsIntro':
-    'Chaque carte compare votre moyenne récente à votre dernière entrée. Les libellés indiquent la direction — ce n\'est pas un jugement médical.',
+    'Chaque carte compare votre moyenne récente à votre dernière entrée. Les libellés indiquent la direction, ce n\'est pas un jugement médical.',
   'ai.digestive.summary': 'Type Bristol moyen {avg} sur {days} jours (tendance {trend}).',
   'ai.digestive.title': 'Intestin & digestion',
   'ai.exercise.timelineAria': "Minutes d'exercice par jour sur cette période",
@@ -39,7 +39,7 @@ const AI_DE = {
   'ai.chapter.overview': 'Überblick',
   'ai.chapter.trends': 'Trends & Vitalwerte',
   'ai.chapter.trendsIntro':
-    'Jede Karte vergleicht Ihren jüngsten Durchschnitt mit Ihrem letzten Eintrag. Bezeichnungen beschreiben die Richtung — keine medizinische Bewertung.',
+    'Jede Karte vergleicht Ihren jüngsten Durchschnitt mit Ihrem letzten Eintrag. Bezeichnungen beschreiben die Richtung, keine medizinische Bewertung.',
   'ai.digestive.summary': 'Durchschnittlicher Bristol-Typ {avg} über {days} Tage ({trend} Trend).',
   'ai.digestive.title': 'Darm & Verdauung',
   'ai.exercise.timelineAria': 'Trainingsminuten pro Tag in diesem Zeitraum',
@@ -68,7 +68,7 @@ const AI_ES = {
   'ai.chapter.overview': 'Resumen',
   'ai.chapter.trends': 'Tendencias y signos vitales',
   'ai.chapter.trendsIntro':
-    'Cada tarjeta compara tu media reciente con tu última entrada. Las etiquetas describen la dirección — no es un juicio médico.',
+    'Cada tarjeta compara tu media reciente con tu última entrada. Las etiquetas describen la dirección, no es un juicio médico.',
   'ai.digestive.summary': 'Tipo Bristol medio {avg} en {days} días (tendencia {trend}).',
   'ai.digestive.title': 'Intestino y digestión',
   'ai.exercise.timelineAria': 'Minutos de ejercicio por día en este periodo',
@@ -97,7 +97,7 @@ const AI_IT = {
   'ai.chapter.overview': 'Panoramica',
   'ai.chapter.trends': 'Tendenze e parametri vitali',
   'ai.chapter.trendsIntro':
-    'Ogni scheda confronta la media recente con l\'ultima voce. Le etichette descrivono la direzione — non un giudizio medico.',
+    'Ogni scheda confronta la media recente con l\'ultima voce. Le etichette descrivono la direzione, non un giudizio medico.',
   'ai.digestive.summary': 'Tipo Bristol medio {avg} in {days} giorni (tendenza {trend}).',
   'ai.digestive.title': 'Intestino e digestione',
   'ai.exercise.timelineAria': 'Minuti di esercizio al giorno in questo periodo',
@@ -126,7 +126,7 @@ const AI_NL = {
   'ai.chapter.overview': 'Overzicht',
   'ai.chapter.trends': 'Trends & vitale waarden',
   'ai.chapter.trendsIntro':
-    'Elke kaart vergelijkt je recente gemiddelde met je laatste invoer. Labels beschrijven de richting — geen medisch oordeel.',
+    'Elke kaart vergelijkt je recente gemiddelde met je laatste invoer. Labels beschrijven de richting, geen medisch oordeel.',
   'ai.digestive.summary': 'Gemiddeld Bristol-type {avg} over {days} dagen ({trend} trend).',
   'ai.digestive.title': 'Darm & spijsvertering',
   'ai.exercise.timelineAria': 'Trainingsminuten per dag in deze periode',
@@ -155,7 +155,7 @@ const AI_PL = {
   'ai.chapter.overview': 'Przegląd',
   'ai.chapter.trends': 'Trendy i parametry życiowe',
   'ai.chapter.trendsIntro':
-    'Każda karta porównuje ostatnią średnią z najnowszym wpisem. Etykiety opisują kierunek — to nie ocena medyczna.',
+    'Każda karta porównuje ostatnią średnią z najnowszym wpisem. Etykiety opisują kierunek, to nie ocena medyczna.',
   'ai.digestive.summary': 'Średni typ Bristol {avg} w ciągu {days} dni (trend {trend}).',
   'ai.digestive.title': 'Jelita i trawienie',
   'ai.exercise.timelineAria': 'Minuty ćwiczeń dziennie w tym okresie',
@@ -184,7 +184,7 @@ const AI_PT_BR = {
   'ai.chapter.overview': 'Visão geral',
   'ai.chapter.trends': 'Tendências e sinais vitais',
   'ai.chapter.trendsIntro':
-    'Cada cartão compara sua média recente com sua última entrada. Os rótulos descrevem a direção — não é um julgamento médico.',
+    'Cada cartão compara sua média recente com sua última entrada. Os rótulos descrevem a direção, não é um julgamento médico.',
   'ai.digestive.summary': 'Tipo Bristol médio {avg} em {days} dias (tendência {trend}).',
   'ai.digestive.title': 'Intestino e digestão',
   'ai.exercise.timelineAria': 'Minutos de exercício por dia neste período',
@@ -213,7 +213,7 @@ const AI_PT_PT = {
   'ai.chapter.overview': 'Visão geral',
   'ai.chapter.trends': 'Tendências e sinais vitais',
   'ai.chapter.trendsIntro':
-    'Cada cartão compara a sua média recente com a sua última entrada. As etiquetas descrevem a direção — não é um julgamento médico.',
+    'Cada cartão compara a sua média recente com a sua última entrada. As etiquetas descrevem a direção, não é um julgamento médico.',
   'ai.digestive.summary': 'Tipo Bristol médio {avg} em {days} dias (tendência {trend}).',
   'ai.digestive.title': 'Intestino e digestão',
   'ai.exercise.timelineAria': 'Minutos de exercício por dia neste período',

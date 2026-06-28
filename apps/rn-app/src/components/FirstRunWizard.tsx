@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -10,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { Session } from '@supabase/supabase-js';
 import {
   applyQuestionnaireAnswer,
   buildGuidedQuestionnaire,
@@ -24,6 +26,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { Preferences } from '../storage/preferences';
 import { upsertPrivacyProfile } from '../cloud/privacyProfile';
+import { getSupabaseClient } from '../cloud/supabaseClient';
 import { OnboardingIllustration } from './onboardingIllustrations';
 
 type GuidedCard = ReturnType<typeof buildGuidedQuestionnaire>[number];
@@ -37,9 +40,21 @@ export function FirstRunWizard({
 }) {
   const theme = useTheme();
   const { t } = useT();
+  const supabase = getSupabaseClient();
+  const [session, setSession] = useState<Session | null>(null);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
   const pack = getPolicyPack();
   const regionLabels = useMemo(() => getRegionLabels(pack), [pack]);
   const suggestedRegion = useMemo(() => suggestRegionForDevice() || 'eea_uk', []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    void supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
+    return () => data.subscription.unsubscribe();
+  }, [supabase]);
 
   const platformCtx = useMemo(
     () => ({
@@ -48,8 +63,9 @@ export function FirstRunWizard({
       installModalSeen: true,
       standalonePwa: false,
       tutorialSeenLegacy: prefs.tutorialSeen,
+      isAuthenticated: !!session,
     }),
-    [prefs.cookieConsent, prefs.tutorialSeen],
+    [prefs.cookieConsent, prefs.tutorialSeen, session],
   );
 
   const [localPrefs, setLocalPrefs] = useState(prefs);
@@ -126,6 +142,16 @@ export function FirstRunWizard({
   const handleChoice = useCallback(
     (choiceId: string) => {
       if (!card) return;
+      if (card.id === 'signIn' && choiceId === 'setUpInstead') {
+        const next = applyChoice('signIn', choiceId);
+        advanceAfterAnswer('signIn', next);
+        return;
+      }
+      if (card.id === 'accountSignUp' && choiceId === 'skip') {
+        const next = applyChoice('accountSignUp', choiceId);
+        advanceAfterAnswer('accountSignUp', next);
+        return;
+      }
       if (card.id === 'region') {
         if (choiceId === 'pickAnother') {
           setRegionPickerOpen(true);
@@ -162,9 +188,49 @@ export function FirstRunWizard({
     [card, selectedRegion, pack.policyPackId, applyChoice, advanceAfterAnswer, onComplete],
   );
 
-  const onContinueWelcome = useCallback(() => {
-    advanceAfterAnswer(undefined, localPrefs);
-  }, [advanceAfterAnswer, localPrefs]);
+  const onAuthPrimary = useCallback(async () => {
+    if (!card || card.kind !== 'auth' || !supabase) return;
+    if (!authEmail.trim() || !authPassword) {
+      Alert.alert(
+        card.id === 'signIn' ? t('settings.cloud.signIn') : t('settings.cloud.signUp'),
+        t('settings.cloud.enterCredentials'),
+      );
+      return;
+    }
+    setAuthBusy(true);
+    try {
+      if (card.id === 'signIn') {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: authEmail.trim(),
+          password: authPassword,
+        });
+        if (error) {
+          Alert.alert(t('settings.cloud.signIn'), error.message);
+          return;
+        }
+        if (data.session) setSession(data.session);
+        setAuthPassword('');
+        const authCtx = { ...platformCtx, isAuthenticated: true };
+        const nextCards = buildGuidedQuestionnaire(localPrefs as Record<string, unknown>, authCtx);
+        setCardIndex(resolveNextGuidedCardIndex(nextCards, 'signIn'));
+        animateCard();
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: authEmail.trim(),
+          password: authPassword,
+        });
+        if (error) {
+          Alert.alert(t('settings.cloud.signUp'), error.message);
+          return;
+        }
+        setAuthPassword('');
+        Alert.alert(t('settings.cloud.signUp'), t('settings.cloud.verifyEmail'));
+        advanceAfterAnswer('accountSignUp', localPrefs);
+      }
+    } finally {
+      setAuthBusy(false);
+    }
+  }, [card, supabase, authEmail, authPassword, t, advanceAfterAnswer, localPrefs, platformCtx, animateCard]);
 
   const onConfirmRegionPicker = useCallback(() => {
     const next = applyChoice('region', 'confirm', {
@@ -222,8 +288,52 @@ export function FirstRunWizard({
     </View>
   );
 
+  const renderAuthBody = (c: GuidedCard) => (
+    <>
+      <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(c.bodyKey)}</Text>
+      <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>
+        {t('onboarding.questionnaire.auth.emailLabel')}
+      </Text>
+      <TextInput
+        value={authEmail}
+        onChangeText={setAuthEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        autoComplete="email"
+        placeholderTextColor={theme.tokens.color.textMuted}
+        style={[styles.input, { color: theme.tokens.color.textPrimary, borderColor: theme.tokens.color.border }]}
+      />
+      <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>
+        {t('onboarding.questionnaire.auth.passwordLabel')}
+      </Text>
+      <TextInput
+        value={authPassword}
+        onChangeText={setAuthPassword}
+        secureTextEntry
+        autoComplete={c.id === 'signIn' ? 'password' : 'new-password'}
+        placeholderTextColor={theme.tokens.color.textMuted}
+        style={[styles.input, { color: theme.tokens.color.textPrimary, borderColor: theme.tokens.color.border }]}
+      />
+      <Pressable
+        accessibilityRole="button"
+        disabled={authBusy}
+        onPress={() => void onAuthPrimary()}
+        style={[styles.primary, { backgroundColor: theme.tokens.color.accent, marginTop: 8 }]}
+      >
+        <Text style={styles.primaryText}>
+          {c.id === 'signIn' ? t('settings.cloud.signIn') : t('settings.cloud.signUp')}
+        </Text>
+      </Pressable>
+      {renderChoices(c)}
+    </>
+  );
+
   const renderBody = () => {
     if (!card) return null;
+
+    if (card.kind === 'auth') {
+      return renderAuthBody(card);
+    }
 
     if (healthDeclinedHint && card.id === 'healthConsent') {
       return (
@@ -292,7 +402,6 @@ export function FirstRunWizard({
   };
 
   const showFooter =
-    card?.id === 'welcome' ||
     regionPickerOpen ||
     reminderTimePickerOpen ||
     healthDeclinedHint;
@@ -302,8 +411,7 @@ export function FirstRunWizard({
 
   const onPrimary = () => {
     if (!card) return;
-    if (card.id === 'welcome') onContinueWelcome();
-    else if (regionPickerOpen) onConfirmRegionPicker();
+    if (regionPickerOpen) onConfirmRegionPicker();
     else if (reminderTimePickerOpen) onConfirmReminder();
     else if (healthDeclinedHint) {
       setHealthDeclinedHint(false);
@@ -312,11 +420,9 @@ export function FirstRunWizard({
   };
 
   const primaryLabel =
-    card?.id === 'welcome'
-      ? t('onboarding.questionnaire.continue')
-      : regionPickerOpen
-        ? t('gate.confirm')
-        : t('onboarding.questionnaire.continue');
+    regionPickerOpen
+      ? t('gate.confirm')
+      : t('onboarding.questionnaire.continue');
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen">
