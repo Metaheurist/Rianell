@@ -36,7 +36,9 @@ Step through date, vitals, symptoms, food, exercise, medications, and notes. You
 
 When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes **Period started today**, cycle day (1–35, expandable to 45), phase, and optional flow — with suggested values from your last period start.
 
-**First-run:** The onboarding footer shows a single step counter across wizard screens and tutorial slides (same on web and native).
+**First-run:** The onboarding footer shows a single step counter across wizard screens and tutorial slides (same on web and native). Tutorial navigation uses side arrows; the last slide shows **Finish** only.
+
+**Sliders:** Every symptom and wellness metric uses the same scale — **Bad (0)** on the left, **Good (10)** on the right. Symptom scores (fatigue, pain, etc.) are stored in their original semantics but displayed on the unified scale.
 
 Detailed field reference: [[Logging-Data]].
 
@@ -48,6 +50,8 @@ Open **Goals & targets** from Home or Settings. The modal has two panes:
 
 - **Targets** — steps, hydration, sleep quality, good-days per week
 - **Achievements** — badges for progressive logging unlocks (food day 7, exercise day 14, medications day 21)
+
+On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings).
 
 Swipe or use arrows to move between panes. Locked wizard steps link here when a category is not yet unlocked.
 

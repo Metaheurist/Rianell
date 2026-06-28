@@ -1,18 +1,29 @@
 # Release Notes
 
-## Latest release (v2.0.0)
+## Latest release (v2.0.6)
+
+**Date:** 2026-06-28
+
+### Highlights
+
+- **Unified wellness sliders:** Every log metric slider uses the same scale — bad (0) on the left, good (10) on the right — on web and in shared logic for native.
+- **Onboarding polish:** Single step counter (1–14) across wizard and tutorial; tutorial uses arrows with Finish on the last slide; “not logged today” hidden until first entry.
+- **Metric animations:** Irritability ocean (calm → stormy); weather-sensitivity lightning when nearing bad; mood face direction fixed.
+- **Goals discovery:** Web header target button glows when no goals are configured.
+- **Copy:** “Daily Activities” renamed to **Ability to do Daily activities** everywhere.
+
+---
+
+## Previous (v2.0.5)
 
 **Date:** 2026-06-27
 
 ### Highlights
 
-- **Rianell 2.0:** Production release — open-beta branding removed from the PWA (production icons, no Beta chip on the log FAB or install buttons).
-- **Cycle tracking:** Single 45-day timeline with phase bands and icons; selecting a day infers phase and vice versa (PWA + Android).
-- **Vitals logging:** “Use last value” suggestions when recent logs exist (heart rate, weight, BP, glucose, SpO₂, HRV).
-- **Log wizard UX:** Mobile side next arrow + swipe; BBT sliding thermometer; improved Developer & privacy policy flows.
-- **Goals modal:** Height adjusts to the active tab (Goals vs Achievements).
-- **Desktop benchmark:** Full CPU suite runs on desktop when no complete cached result exists.
-- **Connectors:** Strava, Withings, and Google Sheets OAuth from Settings → Integrations.
+- **BP + BPM drums:** Blood pressure widget uses systolic mmHg + resting BPM pickers.
+- **Metric animations:** Glucose droplet, mobility/swelling/mood SVG upgrades.
+- **Achievement toast:** Layout fix for unlock notification button.
+- **Typography:** ASCII hyphen normalization across locale packs.
 
 ---
 
@@ -51,6 +62,8 @@
 
 | Version | Summary |
 | --- | --- |
+| v2.0.6 | Unified wellness sliders; onboarding polish; goals prompt; metric animations |
+| v2.0.5 | BP + BPM drums; metric animation polish; achievement toast fix |
 | v2.0.0 | Rianell 2.0 production; cycle timeline; vitals hints; beta branding removed |
 | v1.135.0 | Strava/Withings/Google Sheets OAuth connectors |
 | v1.134.0 | AI Analysis tab overhaul; hosted share links |

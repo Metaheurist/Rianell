@@ -6,6 +6,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.6] - 2026-06-28
+
+Unified wellness sliders, onboarding polish, metric animation upgrades, and goals discovery prompt.
+
+### Added
+
+- **Unified wellness sliders (shared + PWA):** `sliderWellness.mjs` maps every log metric so 0 = bad (left) and 10 = good (right); symptom fields flip on save/load.
+- **Vitals drum scroll (PWA):** Shared `drum-picker-scroll.js` with snap-to-integer for BP/BPM and advanced vitals drums.
+- **Metric animations (PWA):** Irritability ocean (calm → stormy); weather-sensitivity cloud lightning when score nears bad.
+- **Goals header prompt (PWA):** Target button glows and pulses when no goals are saved; `common.goals.setPrompt` i18n key.
+- **First-session home nag (shared):** `shouldSuppressFirstRunLoggingPrompt` hides “not logged today” until first entry and wizard complete.
+- **Unified onboarding counter (shared + PWA + RN):** Single step 1–14 flow across wizard screens and tutorial slides.
+
+### Changed
+
+- **Daily activities label:** Renamed to **Ability to do Daily activities** across i18n, CSV export/import, AI copy, and RN home summary.
+- **Onboarding tutorial (PWA + RN):** Side arrows + Finish on last slide only; redundant Next removed.
+- **Mood widget (PWA):** Face animation corrected — good scores smile, bad scores frown.
+
+### Fixed
+
+- **Mood face inversion (PWA):** Swapped mouth lerp endpoints in `updateMoodFace()`.
+
+---
+
 ## [2.0.5] - 2026-06-27
 
 Log wizard vitals layout, richer metric animations, achievement toast fix, and ASCII dash normalization across UI copy.

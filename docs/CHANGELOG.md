@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.5** - Log wizard vitals layout (BP + BPM drums), metric animation polish, achievement toast fix, ASCII dash normalization.
+**Latest: v2.0.6** - Unified wellness sliders, onboarding polish, metric animation upgrades, goals discovery prompt.
+
+### v2.0.6 - 2026-06-28 - Wellness sliders, onboarding, and goals prompt
+
+- **Sliders (shared + PWA):** `sliderWellness.mjs` — 0 bad (left) / 10 good (right) on every health metric; symptom fields invert on save.
+- **Vitals drums (PWA):** Scroll + snap-to-integer for BP/BPM and advanced vitals (`drum-picker-scroll.js`).
+- **Metric widgets (PWA):** Irritability ocean animation; weather-sensitivity lightning; mood face direction fix.
+- **Goals (PWA):** Header target button glows when no goals saved (`hasActiveGoals`, `common.goals.setPrompt`).
+- **Onboarding (shared + PWA + RN):** Unified steps 1–14; tutorial arrow nav; suppress first-session “not logged today” nag.
+- **i18n:** “Ability to do Daily activities” rename across locales and CSV.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.6.
 
 ### v2.0.5 - 2026-06-27 - Vitals layout and metric animation polish
 
