@@ -41,6 +41,7 @@ export function EmptyState({
   const reduceMotion = useReduceMotionFlag();
   const translateY = useRef(new Animated.Value(reduceMotion ? 0 : 20)).current;
   const opacity = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
+  const iconScale = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
   const iconPulse = useRef(new Animated.Value(1)).current;
 
   const inferred = variant !== 'default' ? VARIANT_DEFAULTS[variant] : null;
@@ -49,17 +50,23 @@ export function EmptyState({
 
   useEffect(() => {
     if (reduceMotion) return;
-    Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 6 }).start();
-    Animated.spring(opacity, { toValue: 1, useNativeDriver: true, bounciness: 6 }).start();
+    Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 9 }).start();
+    Animated.spring(opacity, { toValue: 1, useNativeDriver: true, bounciness: 9 }).start();
+    Animated.sequence([
+      Animated.spring(iconScale, { toValue: 1.18, friction: 4, tension: 300, useNativeDriver: true }),
+      Animated.spring(iconScale, { toValue: 1, friction: 5, tension: 200, useNativeDriver: true }),
+    ]).start();
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(iconPulse, { toValue: 0.6, duration: 1200, useNativeDriver: true }),
-        Animated.timing(iconPulse, { toValue: 1, duration: 1200, useNativeDriver: true }),
+        Animated.timing(iconPulse, { toValue: 1.08, duration: 2000, useNativeDriver: true }),
+        Animated.timing(iconPulse, { toValue: 1, duration: 2000, useNativeDriver: true }),
       ])
     );
     loop.start();
     return () => loop.stop();
-  }, [iconPulse, opacity, reduceMotion, translateY]);
+  }, [iconPulse, iconScale, opacity, reduceMotion, translateY]);
+
+  const iconCombinedScale = Animated.multiply(iconScale, iconPulse);
 
   const a11yLabel = useMemo(() => {
     const parts = [resolvedTitle, message].filter(Boolean);
@@ -73,7 +80,10 @@ export function EmptyState({
       accessibilityRole="text"
       accessibilityLabel={a11yLabel}
     >
-      <Animated.View style={{ opacity: iconPulse }} accessibilityElementsHidden>
+      <Animated.View
+        style={{ transform: [{ scale: iconCombinedScale }] }}
+        accessibilityElementsHidden
+      >
         <Ionicons name={resolvedIcon} size={48} color={theme.color.accent} style={styles.icon} />
       </Animated.View>
       <Text style={[styles.title, { color: theme.color.text }]}>{resolvedTitle}</Text>

@@ -19,7 +19,9 @@ export function HomeWelcomeCard({ condition, onDismiss, pills }: Props) {
   const reduceMotion = useReduceMotionFlag();
   const translateY = useRef(new Animated.Value(reduceMotion ? 0 : 20)).current;
   const opacity = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
+  const iconScale = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
   const iconPulse = useRef(new Animated.Value(1)).current;
+  const pillScale = useRef(new Animated.Value(1)).current;
 
   const body = t('home.welcome.body').replace(
     '{condition}',
@@ -28,17 +30,27 @@ export function HomeWelcomeCard({ condition, onDismiss, pills }: Props) {
 
   useEffect(() => {
     if (reduceMotion) return;
-    Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 6 }).start();
-    Animated.spring(opacity, { toValue: 1, useNativeDriver: true, bounciness: 6 }).start();
+    Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 9 }).start();
+    Animated.spring(opacity, { toValue: 1, useNativeDriver: true, bounciness: 9 }).start();
+    Animated.sequence([
+      Animated.spring(iconScale, { toValue: 1.18, friction: 4, tension: 300, useNativeDriver: true }),
+      Animated.spring(iconScale, { toValue: 1, friction: 5, tension: 200, useNativeDriver: true }),
+    ]).start();
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(iconPulse, { toValue: 0.7, duration: 1400, useNativeDriver: true }),
-        Animated.timing(iconPulse, { toValue: 1, duration: 1400, useNativeDriver: true }),
+        Animated.timing(iconPulse, { toValue: 1.08, duration: 2000, useNativeDriver: true }),
+        Animated.timing(iconPulse, { toValue: 1, duration: 2000, useNativeDriver: true }),
       ])
     );
     loop.start();
     return () => loop.stop();
-  }, [iconPulse, opacity, reduceMotion, translateY]);
+  }, [iconPulse, iconScale, opacity, reduceMotion, translateY]);
+
+  const iconCombinedScale = Animated.multiply(iconScale, iconPulse);
+
+  const springPillTo = (toValue: number) => {
+    Animated.spring(pillScale, { toValue, friction: 6, tension: 200, useNativeDriver: true }).start();
+  };
 
   return (
     <Animated.View
@@ -62,7 +74,7 @@ export function HomeWelcomeCard({ condition, onDismiss, pills }: Props) {
       >
         <Ionicons name="close" size={22} color={theme.color.text + 'aa'} />
       </Pressable>
-      <Animated.View style={{ opacity: iconPulse }} accessibilityElementsHidden>
+      <Animated.View style={{ transform: [{ scale: iconCombinedScale }] }} accessibilityElementsHidden>
         <Ionicons name="heart-circle-outline" size={48} color={theme.color.accent} style={styles.heroIcon} />
       </Animated.View>
       <Text style={[styles.title, { color: theme.color.text }]}>{t('home.welcome.title')}</Text>
@@ -72,13 +84,25 @@ export function HomeWelcomeCard({ condition, onDismiss, pills }: Props) {
           <Pressable
             key={pill.labelKey}
             onPress={pill.onPress}
-            style={[styles.pill, { borderColor: theme.color.accent + '55', backgroundColor: theme.color.accent + '18' }]}
+            onPressIn={() => springPillTo(0.94)}
+            onPressOut={() => springPillTo(1)}
             accessibilityRole="button"
             accessibilityLabel={t(pill.labelKey)}
             hitSlop={6}
           >
-            <Ionicons name={pill.icon} size={16} color={theme.color.accent} />
-            <Text style={[styles.pillText, { color: theme.color.text }]}>{t(pill.labelKey)}</Text>
+            <Animated.View
+              style={[
+                styles.pill,
+                {
+                  borderColor: theme.color.accent + '55',
+                  backgroundColor: theme.color.accent + '18',
+                  transform: [{ scale: pillScale }],
+                },
+              ]}
+            >
+              <Ionicons name={pill.icon} size={16} color={theme.color.accent} />
+              <Text style={[styles.pillText, { color: theme.color.text }]}>{t(pill.labelKey)}</Text>
+            </Animated.View>
           </Pressable>
         ))}
       </View>

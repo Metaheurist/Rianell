@@ -16,6 +16,24 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+const CHAPTER_SPRING_LAYOUT = {
+  duration: 300,
+  create: {
+    type: LayoutAnimation.Types.spring,
+    property: LayoutAnimation.Properties.opacity,
+    springDamping: 0.72,
+  },
+  update: {
+    type: LayoutAnimation.Types.spring,
+    springDamping: 0.72,
+  },
+  delete: {
+    type: LayoutAnimation.Types.spring,
+    property: LayoutAnimation.Properties.opacity,
+    springDamping: 0.72,
+  },
+};
+
 type Props = {
   title: string;
   iconName: keyof typeof Ionicons.glyphMap;
@@ -29,15 +47,16 @@ export function SettingsChapter({ title, iconName, defaultOpen = false, children
   const rotation = useRef(new Animated.Value(defaultOpen ? 0 : -90)).current;
 
   useEffect(() => {
-    Animated.timing(rotation, {
+    Animated.spring(rotation, {
       toValue: expanded ? 0 : -90,
-      duration: 250,
+      friction: 8,
+      tension: 180,
       useNativeDriver: true,
     }).start();
   }, [expanded, rotation]);
 
   const toggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    LayoutAnimation.configureNext(CHAPTER_SPRING_LAYOUT);
     setExpanded((v) => !v);
   };
 
