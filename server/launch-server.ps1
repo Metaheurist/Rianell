@@ -6,15 +6,26 @@
 # Prefer PORT/HOST in security/.env (copy from security/.env.example).
 # Optional: -NoCompile serves apps/pwa-webapp/ directly (no .server-dist build) and runs unit tests first.
 # Optional: -SkipUnitTests skips local unit tests in -NoCompile mode.
+# Optional: -CleanBrowser opens localhost in isolated Playwright Chromium (server/.playwright-browsers).
+# Optional: -SkipBrowser skips auto-opening any browser on startup.
 
 param(
     [switch]$NoCompile,
-    [switch]$SkipUnitTests
+    [switch]$SkipUnitTests,
+    [switch]$CleanBrowser,
+    [switch]$SkipBrowser
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $ProjectRoot
+
+if ($CleanBrowser) {
+    $env:RIANELL_OPEN_CLEAN_CHROMIUM = "1"
+}
+if ($SkipBrowser) {
+    $env:RIANELL_SKIP_DEFAULT_BROWSER = "1"
+}
 
 if ($NoCompile) {
     Write-Host "Starting in non-compiled local mode (serving apps/pwa-webapp/ directly)..."

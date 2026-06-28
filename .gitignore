@@ -80,6 +80,10 @@ ci-probe-test/
 apps/rn-app/dist-expo-prod/
 apps/pwa-webapp/app.min.js
 .server-dist/
+# Isolated dev Chromium (Playwright) for server/ debugging
+server/.playwright-browsers/
+server/.chromium-profiles/
+server/*.bak
 apps/pwa-webapp/app.*.min.js
 apps/pwa-webapp/asset-manifest.json
 apps/pwa-webapp/.trace-build/
