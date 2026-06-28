@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.6** - Unified wellness sliders, onboarding polish, metric animation upgrades, goals discovery prompt.
+**Latest: v2.0.7** - Guided onboarding questionnaire (friendly multichoice modal, PWA + RN parity).
+
+### v2.0.7 - 2026-06-28 - Guided onboarding questionnaire
+
+- **Onboarding (shared + PWA + RN):** `guidedQuestionnaire.mjs` — one modal, multichoice cards, mascot SVG; consents explicit and child-readable; tutorial opt-in.
+- **PWA:** `guided-onboarding.js` + `#guidedOnboardingOverlay`; replaces day-to-day first-run wizard chrome.
+- **RN:** Rebuilt `FirstRunWizard.tsx` + `onboardingIllustrations.tsx`.
+- **i18n:** `onboarding.questionnaire.*` + Tier-A overrides (`v207-onboarding-tier-a-overrides.mjs`).
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.7.
 
 ### v2.0.6 - 2026-06-28 - Wellness sliders, onboarding, and goals prompt
 

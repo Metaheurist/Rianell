@@ -34,17 +34,17 @@ test('PWA gates runAppInit behind privacy gate', () => {
   assert.match(appJs, /__rianellRunAppInit/);
 });
 
-test('PWA index.html includes region gate and first-run wizard overlays', () => {
+test('PWA index.html includes region gate and guided onboarding overlay', () => {
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
   assert.match(html, /privacyRegionGateOverlay/);
-  assert.match(html, /firstRunWizardOverlay/);
+  assert.match(html, /guidedOnboardingOverlay/);
   assert.match(html, /privacyRegionSettingsPane/);
 });
 
-test('first-run wizard re-inserts region step when prefs drift', () => {
-  const wizardJs = readFileSync('apps/pwa-webapp/first-run-wizard.js', 'utf8');
-  assert.match(wizardJs, /plan\.unshift\(\{ id: 'region' \}\)/);
-  assert.match(wizardJs, /bindTutorialAiChoiceButtons/);
+test('guided onboarding builds questionnaire from shared script', () => {
+  const guidedJs = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
+  assert.match(guidedJs, /buildGuidedQuestionnaire/);
+  assert.match(guidedJs, /applyQuestionnaireAnswer/);
 });
 
 test('RN App blocks navigator until first-run wizard complete', () => {

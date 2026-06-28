@@ -6,6 +6,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.7] - 2026-06-28
+
+Guided onboarding questionnaire: one friendly multichoice modal (PWA + RN) driven by a shared question script.
+
+### Added
+
+- **Guided onboarding questionnaire (shared + PWA + RN):** `guidedQuestionnaire.mjs` — child-readable multichoice cards for coach tone, helper level, consents, reminders, and finish; custom mascot SVG + animations.
+- **`onboarding.questionnaire.*` i18n namespace** with Tier-A locale overrides (`v207-onboarding-tier-a-overrides.mjs`).
+- **PWA:** `#guidedOnboardingOverlay` + `guided-onboarding.js` replaces day-to-day first-run wizard chrome.
+- **RN:** Rebuilt `FirstRunWizard.tsx` + `onboardingIllustrations.tsx` rendering shared cards with `Animated` transitions.
+
+### Changed
+
+- **First-run flow:** Preference and consent questions presented as guided choices instead of settings-style toggles; tutorial is opt-in from finish card or Settings replay.
+- **Onboarding progress:** `createGuidedOnboardingProgressSession` counts questionnaire cards (not tutorial slides).
+
+### Fixed
+
+- **PWA privacy gate:** `isOnboardingInteractionTarget` whitelists `#guidedOnboardingOverlay`.
+
+---
+
 ## [2.0.6] - 2026-06-28
 
 Unified wellness sliders, onboarding polish, metric animation upgrades, and goals discovery prompt.

@@ -1,20 +1,18 @@
 # Release Notes
 
-## Latest release (v2.0.6)
+## Latest release (v2.0.7)
 
 **Date:** 2026-06-28
 
 ### Highlights
 
-- **Unified wellness sliders:** Every log metric slider uses the same scale — bad (0) on the left, good (10) on the right — on web and in shared logic for native.
-- **Onboarding polish:** Single step counter (1–14) across wizard and tutorial; tutorial uses arrows with Finish on the last slide; “not logged today” hidden until first entry.
-- **Metric animations:** Irritability ocean (calm → stormy); weather-sensitivity lightning when nearing bad; mood face direction fixed.
-- **Goals discovery:** Web header target button glows when no goals are configured.
-- **Copy:** “Daily Activities” renamed to **Ability to do Daily activities** everywhere.
+- **Guided onboarding questionnaire:** One friendly modal with multichoice cards (coach tone, helper level, consents, reminders) on web and native — driven by shared `guidedQuestionnaire.mjs`.
+- **Child-readable UX:** Custom mascot SVG + animations; explicit consent cards with “See details”; tutorial opt-in from finish or Settings replay.
+- **Settings link-back:** “You can change this anytime in Settings” on preference cards.
 
 ---
 
-## Previous (v2.0.5)
+## Previous (v2.0.6)
 
 **Date:** 2026-06-27
 
