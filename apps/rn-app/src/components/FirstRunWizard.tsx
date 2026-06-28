@@ -1,60 +1,31 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  FIRST_RUN_STEP_META,
-  applyRegionDefaultLocale,
-  buildFirstRunPlan,
-  completeFirstRunWizard,
-  createOnboardingProgressSession,
-  getTutorialVisibleIndices,
-  normalizeTrackingProfile,
-  resolveNextStepIndexAfterComplete,
-  TRACKING_PROFILE_FIELD_KEYS,
+  applyQuestionnaireAnswer,
+  buildGuidedQuestionnaire,
+  createGuidedOnboardingProgressSession,
 } from '@rianell/shared';
+
+type GuidedCardId = Parameters<typeof applyQuestionnaireAnswer>[1];
 import { getPolicyPack, getRegionLabels, suggestRegionForDevice } from '../privacy/helpers';
 import { PolicyDocumentsModal } from '../privacy/PolicyDocumentsModal';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
-import type { Preferences, TrackingProfile } from '../storage/preferences';
+import type { Preferences } from '../storage/preferences';
 import { upsertPrivacyProfile } from '../cloud/privacyProfile';
+import { OnboardingIllustration } from './onboardingIllustrations';
 
-const SLIDE_BODIES: Partial<Record<number, string>> = {
-  0: 'tutorial.slide0.body',
-  1: 'tutorial.slide1.body',
-  8: 'tutorial.slide8.body',
-  2: 'tutorial.slide2.body',
-  3: 'tutorial.slide3.body',
-  4: 'tutorial.slide4.body',
-  5: 'tutorial.slide5.body',
-  6: 'tutorial.slide6.body',
-  7: 'tutorial.slide7.body',
-};
-
-function visibleSlideIndices(aiEnabled: boolean): number[] {
-  return getTutorialVisibleIndices(aiEnabled);
-}
-
-const TUTORIAL_SLIDE_TITLE_KEYS: Partial<Record<number, string>> = {
-  0: 'tutorial.slide.enableAi',
-  1: 'tutorial.slide1.title',
-  8: 'tutorial.slide8.title',
-  2: 'tutorial.slide2.title',
-  3: 'tutorial.slide3.title',
-  4: 'tutorial.slide4.title',
-  5: 'tutorial.slide5.title',
-  6: 'tutorial.slide6.title',
-  7: 'tutorial.slide7.title',
-};
+type GuidedCard = ReturnType<typeof buildGuidedQuestionnaire>[number];
 
 export function FirstRunWizard({
   prefs,
@@ -81,435 +52,329 @@ export function FirstRunWizard({
   );
 
   const [localPrefs, setLocalPrefs] = useState(prefs);
-  const plan = useMemo(() => buildFirstRunPlan(localPrefs, platformCtx), [localPrefs, platformCtx]);
-  const [stepIndex, setStepIndex] = useState(0);
-  const step = plan[Math.min(stepIndex, plan.length - 1)];
-
+  const [cardIndex, setCardIndex] = useState(0);
+  const [regionPickerOpen, setRegionPickerOpen] = useState(false);
+  const [reminderTimePickerOpen, setReminderTimePickerOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState(suggestedRegion);
+  const [reminderTime, setReminderTime] = useState('09:00');
+  const [healthDeclinedHint, setHealthDeclinedHint] = useState(false);
   const [policyOpen, setPolicyOpen] = useState(false);
-  const [condition, setCondition] = useState(prefs.medicalCondition || '');
-  const [fields, setFields] = useState(() => ({ ...normalizeTrackingProfile(prefs.trackingProfile).fields }));
-  const [tutorialPos, setTutorialPos] = useState(0);
-  const [aiEnabledLocal, setAiEnabledLocal] = useState(localPrefs.aiEnabled !== false);
-  const [sessionRecordingLocal, setSessionRecordingLocal] = useState(localPrefs.sessionRecording !== false);
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
-  const tutorialSlides = useMemo(() => visibleSlideIndices(aiEnabledLocal), [aiEnabledLocal]);
-  const tutorialSlideIndex = tutorialSlides[Math.min(tutorialPos, tutorialSlides.length - 1)] ?? 0;
-  const tutorialIsFirst = tutorialPos <= 0;
-  const tutorialIsLast = tutorialPos >= tutorialSlides.length - 1;
-  const showTutorialArrows = step?.id === 'tutorial' && tutorialSlideIndex !== 0;
-  const showTutorialPrimary = step?.id === 'tutorial' && tutorialIsLast && tutorialSlideIndex !== 0;
+  const cards = useMemo(
+    () => buildGuidedQuestionnaire(localPrefs as Record<string, unknown>, platformCtx),
+    [localPrefs, platformCtx],
+  );
+  const card = cards[Math.min(cardIndex, Math.max(cards.length - 1, 0))] as GuidedCard | undefined;
 
   const progressSessionRef = useRef(
-    createOnboardingProgressSession(localPrefs as Record<string, unknown>, platformCtx, {
-      tutorialSlideIndices: tutorialSlides,
-    }),
+    createGuidedOnboardingProgressSession(localPrefs as Record<string, unknown>, platformCtx),
   );
 
-  const unifiedProgress = useMemo(() => {
-    if (!step) return { current: 1, total: 1 };
-    return progressSessionRef.current.resolve({
-      prefs: localPrefs as Record<string, unknown>,
-      ctx: platformCtx,
-      wizardStepId: step.id,
-      tutorialPos: step.id === 'tutorial' ? tutorialPos : undefined,
-      tutorialSlideIndices: tutorialSlides,
-    });
-  }, [localPrefs, platformCtx, step, tutorialPos, tutorialSlides]);
+  const progress = useMemo(() => {
+    if (!card) return { current: 1, total: 1 };
+    return progressSessionRef.current.resolve(
+      localPrefs as Record<string, unknown>,
+      platformCtx,
+      cardIndex,
+    );
+  }, [localPrefs, platformCtx, cardIndex, card]);
+
+  const animateCard = useCallback(() => {
+    slideAnim.setValue(12);
+    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, friction: 8 }).start();
+  }, [slideAnim]);
 
   const patchPrefs = useCallback((patch: Partial<Preferences>) => {
     setLocalPrefs((cur) => ({ ...cur, ...patch }));
   }, []);
 
-  const finishWizard = useCallback(() => {
-    const done = completeFirstRunWizard({ ...localPrefs, tutorialSeen: true }) as Preferences;
-    onComplete(done);
-  }, [localPrefs, onComplete]);
+  const advance = useCallback(() => {
+    setCardIndex((i) => Math.min(i + 1, Math.max(cards.length - 1, 0)));
+    animateCard();
+  }, [cards.length, animateCard]);
 
-  const goNext = useCallback(() => {
-    if (stepIndex >= plan.length - 1) {
-      finishWizard();
-      return;
-    }
-    const completedId = plan[Math.min(stepIndex, plan.length - 1)]?.id;
-    if (!completedId) {
-      setStepIndex((i) => Math.min(i + 1, plan.length - 1));
-      return;
-    }
-    const nextPrefs = localPrefs as Record<string, unknown>;
-    setStepIndex(resolveNextStepIndexAfterComplete(nextPrefs, platformCtx, completedId));
-  }, [stepIndex, plan, finishWizard, localPrefs, platformCtx]);
-
-  const goBack = useCallback(() => {
-    setStepIndex((i) => Math.max(0, i - 1));
-  }, []);
-
-  const confirmRegion = useCallback(() => {
-    const now = new Date().toISOString();
-    const base = applyRegionDefaultLocale(
-      {
-        ...localPrefs,
-        privacyRegion: selectedRegion,
-        privacyRegionSource: 'onboarding',
-        privacyRegionUpdatedAt: now,
-        policyAcknowledgedVersion: pack.policyPackId || 'v1.0.0',
-        policyAcknowledgedAt: now,
-        uiLocaleSource: 'onboarding',
-      },
-      selectedRegion,
-      pack,
-    ) as Preferences;
-    setLocalPrefs(base);
-    void upsertPrivacyProfile(base);
-    setStepIndex(resolveNextStepIndexAfterComplete(base as Record<string, unknown>, platformCtx, 'region'));
-  }, [localPrefs, selectedRegion, pack, platformCtx]);
-
-  const acceptHealthConsent = useCallback(() => {
-    const now = new Date().toISOString();
-    const next = { ...localPrefs, healthDataConsent: true, healthDataConsentAt: now };
-    setLocalPrefs(next);
-    void upsertPrivacyProfile(next);
-    setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'healthConsent'));
-  }, [localPrefs, platformCtx]);
-
-  const acceptCookies = useCallback(() => {
-    const now = new Date().toISOString();
-    const next = { ...localPrefs, cookieConsent: true, cookieConsentAt: now };
-    setLocalPrefs(next);
-    setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'cookies'));
-  }, [localPrefs, platformCtx]);
-
-  const confirmSessionRecording = useCallback(() => {
-    const now = new Date().toISOString();
-    const enabled = sessionRecordingLocal;
-    const next = {
-      ...localPrefs,
-      sessionRecording: enabled,
-      sessionRecordingAt: enabled ? now : null,
-      sessionRecordingDisclosureAt: now,
-    };
-    setLocalPrefs(next);
-    setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'sessionRecording'));
-  }, [sessionRecordingLocal, localPrefs, platformCtx]);
-
-  const saveTrackingProfile = useCallback(() => {
-    const profile = normalizeTrackingProfile({
-      condition: condition.trim(),
-      fields,
-      configuredAt: new Date().toISOString(),
-    }) as TrackingProfile;
-    patchPrefs({ trackingProfile: profile, medicalCondition: condition.trim() || localPrefs.medicalCondition });
-    goNext();
-  }, [condition, fields, localPrefs.medicalCondition, patchPrefs, goNext]);
-
-  const handleAiDownload = useCallback(
-    (grant: boolean) => {
-      const now = new Date().toISOString();
-      const consent: Preferences['aiModelDownloadConsent'] = grant ? 'granted' : 'deferred';
-      const next: Preferences = {
-        ...localPrefs,
-        aiModelDownloadConsent: consent,
-        aiModelDownloadConsentAt: grant ? now : localPrefs.aiModelDownloadConsentAt,
-      };
+  const applyChoice = useCallback(
+    (cardId: GuidedCardId, choiceId: string, extra: Record<string, unknown> = {}) => {
+      const next = applyQuestionnaireAnswer(
+        localPrefs as Record<string, unknown>,
+        cardId,
+        choiceId,
+        extra,
+      ) as Preferences;
       setLocalPrefs(next);
-      setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'aiDownload'));
+      if (cardId === 'region') {
+        void upsertPrivacyProfile(next);
+      }
+      if (cardId === 'healthConsent') {
+        void upsertPrivacyProfile(next);
+      }
+      return next;
     },
-    [localPrefs, platformCtx],
+    [localPrefs],
   );
 
-  const stepTitle = (() => {
-    if (!step) return t('onboarding.title');
-    if (step.id === 'tutorial') {
-      const key = TUTORIAL_SLIDE_TITLE_KEYS[tutorialSlideIndex];
-      return key ? t(key) : t('onboarding.step.tutorial');
-    }
-    return FIRST_RUN_STEP_META[step.id as keyof typeof FIRST_RUN_STEP_META]
-      ? t(FIRST_RUN_STEP_META[step.id as keyof typeof FIRST_RUN_STEP_META].titleKey)
-      : t('onboarding.title');
-  })();
+  const handleChoice = useCallback(
+    (choiceId: string) => {
+      if (!card) return;
+      if (card.id === 'region') {
+        if (choiceId === 'pickAnother') {
+          setRegionPickerOpen(true);
+          return;
+        }
+        if (choiceId === 'confirm') {
+          applyChoice('region', 'confirm', {
+            regionId: selectedRegion,
+            policyPackId: pack.policyPackId || 'v1.0.0',
+          });
+          setRegionPickerOpen(false);
+          advance();
+        }
+        return;
+      }
+      if (card.id === 'dailyNudge' && choiceId === 'yes') {
+        setReminderTimePickerOpen(true);
+        return;
+      }
+      if (card.id === 'finish') {
+        const done = applyChoice('finish', choiceId) as Preferences;
+        onComplete(done);
+        return;
+      }
+      if (card.id === 'healthConsent' && choiceId === 'notNow') {
+        applyChoice('healthConsent', 'notNow');
+        setHealthDeclinedHint(true);
+        return;
+      }
+      applyChoice(card.id as GuidedCardId, choiceId);
+      setHealthDeclinedHint(false);
+      advance();
+    },
+    [card, selectedRegion, pack.policyPackId, applyChoice, advance, onComplete],
+  );
 
-  const renderStepBody = () => {
-    if (!step) return null;
-    switch (step.id) {
-      case 'region':
-        return (
-          <>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t('gate.lead')}</Text>
-            <Text style={styles.hint}>{t('gate.hint')}</Text>
-            <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>{t('gate.regionLabel')}</Text>
-            {regionLabels.map((r) => (
-              <Pressable
-                key={r.id}
-                accessibilityRole="button"
-                style={[styles.regionRow, selectedRegion === r.id && styles.regionRowSelected]}
-                onPress={() => setSelectedRegion(r.id)}
-              >
-                <Text style={{ color: theme.tokens.color.textPrimary }}>{r.label}</Text>
-              </Pressable>
-            ))}
-            <Pressable accessibilityRole="button" style={styles.linkBtn} onPress={() => setPolicyOpen(true)}>
-              <Text style={{ color: theme.tokens.color.accent }}>{t('gate.viewPolicies')}</Text>
-            </Pressable>
-          </>
-        );
-      case 'healthConsent':
-        return (
-          <>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t('common.consent.healthDataBody')}</Text>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary, marginTop: 12 }]}>
-              {t('common.consent.healthDataContact')}
-            </Text>
-          </>
-        );
-      case 'cookies':
-        return (
-          <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t('common.cookie.bannerText')}</Text>
-        );
-      case 'sessionRecording':
-        return (
-          <>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
-              {t('onboarding.sessionRecording.body')}
-            </Text>
-            <View style={styles.toggleRow}>
-              <Text style={{ color: theme.tokens.color.textSecondary, flex: 1 }}>
-                {t('onboarding.sessionRecording.toggleLabel')}
-              </Text>
-              <Switch value={sessionRecordingLocal} onValueChange={setSessionRecordingLocal} />
-            </View>
-            <Text style={[styles.hint, { color: theme.tokens.color.textMuted, marginTop: 8 }]}>
-              {t('settings.privacy.sessionRecording.hint')}
-            </Text>
-          </>
-        );
-      case 'trackingProfile':
-        return (
-          <>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t('settings.trackingProfile.lead')}</Text>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary, marginTop: 12 }]}>
-              {t('progressiveDisclosure.lead')}
-            </Text>
-            <Text style={[styles.label, { color: theme.tokens.color.textPrimary, marginTop: 16 }]}>
-              {t('common.medical.condition')}
-            </Text>
-            <TextInput
-              value={condition}
-              onChangeText={setCondition}
-              placeholder={t('common.enter.your.condition')}
-              placeholderTextColor={theme.tokens.color.textMuted}
-              style={[styles.input, { color: theme.tokens.color.textPrimary, borderColor: theme.tokens.color.border }]}
-            />
-            <Text style={[styles.label, { color: theme.tokens.color.textPrimary, marginTop: 16 }]}>
-              {t('settings.trackingProfile.fieldsLabel')}
-            </Text>
-            {TRACKING_PROFILE_FIELD_KEYS.map((key) => {
-              const fieldKey = key as keyof typeof fields;
-              return (
-                <View key={key} style={styles.toggleRow}>
-                  <Text style={{ color: theme.tokens.color.textSecondary, flex: 1 }}>
-                    {t(`settings.trackingProfile.field.${key}`)}
-                  </Text>
-                  <Switch
-                    value={fields[fieldKey]}
-                    onValueChange={(v) => setFields((f) => ({ ...f, [fieldKey]: v }))}
-                  />
-                </View>
-              );
-            })}
-          </>
-        );
-      case 'tutorial':
-        return (
-          <>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
-              {t(SLIDE_BODIES[tutorialSlideIndex] || 'tutorial.slide1.body')}
-            </Text>
-            {tutorialSlideIndex === 0 ? (
-              <View style={styles.row}>
-                <Pressable
-                  accessibilityRole="button"
-                  style={[styles.outlineBtn, { borderColor: theme.tokens.color.accent }]}
-                  onPress={() => {
-                    setAiEnabledLocal(true);
-                    patchPrefs({ aiEnabled: true });
-                    setTutorialPos(1);
-                  }}
-                >
-                  <Text style={{ color: theme.tokens.color.accent }}>{t('common.enable')}</Text>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  style={[styles.outlineBtn, { borderColor: theme.tokens.color.border }]}
-                  onPress={() => {
-                    setAiEnabledLocal(false);
-                    patchPrefs({ aiEnabled: false });
-                    setTutorialPos(1);
-                  }}
-                >
-                  <Text style={{ color: theme.tokens.color.textSecondary }}>{t('common.skip.for.now')}</Text>
-                </Pressable>
-              </View>
-            ) : null}
-            {tutorialSlideIndex === 8 ? (
-              <>
-                <View style={[styles.toggleRow, { marginTop: 12 }]}>
-                  <Text style={{ color: theme.tokens.color.textSecondary, flex: 1 }}>
-                    {t('tutorial.slide8.toggleLabel')}
-                  </Text>
-                  <Switch
-                    value={localPrefs.cycleModuleEnabled === true}
-                    onValueChange={(v) => patchPrefs({ cycleModuleEnabled: v })}
-                  />
-                </View>
-                <Text style={[styles.hint, { color: theme.tokens.color.textMuted, marginTop: 8 }]}>
-                  {t('tutorial.slide8.hint')}
-                </Text>
-              </>
-            ) : null}
-          </>
-        );
-      case 'aiDownload':
-        return (
-          <>
-            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t('onboarding.aiDownload.body')}</Text>
-            <Text style={[styles.hint, { color: theme.tokens.color.textMuted }]}>{t('onboarding.aiDownload.hint')}</Text>
-          </>
-        );
-      default:
-        return null;
+  const onContinueWelcome = useCallback(() => {
+    advance();
+  }, [advance]);
+
+  const onConfirmRegionPicker = useCallback(() => {
+    applyChoice('region', 'confirm', {
+      regionId: selectedRegion,
+      policyPackId: pack.policyPackId || 'v1.0.0',
+    });
+    setRegionPickerOpen(false);
+    advance();
+  }, [applyChoice, selectedRegion, pack.policyPackId, advance]);
+
+  const onConfirmReminder = useCallback(() => {
+    applyChoice('dailyNudge', 'yes', { reminderTime });
+    setReminderTimePickerOpen(false);
+    advance();
+  }, [applyChoice, reminderTime, advance]);
+
+  const onBack = useCallback(() => {
+    if (regionPickerOpen) {
+      setRegionPickerOpen(false);
+      return;
     }
+    if (reminderTimePickerOpen) {
+      setReminderTimePickerOpen(false);
+      return;
+    }
+    if (healthDeclinedHint) {
+      setHealthDeclinedHint(false);
+      return;
+    }
+    setCardIndex((i) => Math.max(0, i - 1));
+    animateCard();
+  }, [regionPickerOpen, reminderTimePickerOpen, healthDeclinedHint, animateCard]);
+
+  const regionLabel = (id: string) => regionLabels.find((r) => r.id === id)?.label || id;
+
+  const renderChoices = (c: GuidedCard) => (
+    <View style={styles.choices}>
+      {c.choices?.map((choice) => (
+        <Pressable
+          key={choice.id}
+          accessibilityRole="button"
+          style={[styles.choice, { borderColor: theme.tokens.color.border }]}
+          onPress={() => handleChoice(choice.id)}
+        >
+          <Text style={[styles.choiceLabel, { color: theme.tokens.color.textPrimary }]}>
+            {t(choice.labelKey)}
+          </Text>
+          {choice.hintKey ? (
+            <Text style={[styles.choiceHint, { color: theme.tokens.color.textMuted }]}>
+              {t(choice.hintKey)}
+            </Text>
+          ) : null}
+        </Pressable>
+      ))}
+    </View>
+  );
+
+  const renderBody = () => {
+    if (!card) return null;
+
+    if (healthDeclinedHint && card.id === 'healthConsent') {
+      return (
+        <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
+          {t('onboarding.questionnaire.healthConsent.declineHint')}
+        </Text>
+      );
+    }
+
+    if (card.id === 'region' && regionPickerOpen) {
+      return (
+        <>
+          <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(card.bodyKey)}</Text>
+          {regionLabels.map((r) => (
+            <Pressable
+              key={r.id}
+              accessibilityRole="button"
+              style={[styles.regionRow, selectedRegion === r.id && styles.regionRowSelected]}
+              onPress={() => setSelectedRegion(r.id)}
+            >
+              <Text style={{ color: theme.tokens.color.textPrimary }}>{r.label}</Text>
+            </Pressable>
+          ))}
+          <Pressable accessibilityRole="button" style={styles.linkBtn} onPress={() => setPolicyOpen(true)}>
+            <Text style={{ color: theme.tokens.color.accent }}>{t('gate.viewPolicies')}</Text>
+          </Pressable>
+        </>
+      );
+    }
+
+    if (card.id === 'region' && !regionPickerOpen) {
+      return (
+        <>
+          <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
+            {t('onboarding.questionnaire.region.suggested', { region: regionLabel(selectedRegion) })}
+          </Text>
+          {renderChoices(card)}
+        </>
+      );
+    }
+
+    if (card.id === 'dailyNudge' && reminderTimePickerOpen) {
+      return (
+        <>
+          <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(card.bodyKey)}</Text>
+          <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>
+            {t('onboarding.questionnaire.dailyNudge.timeLabel')}
+          </Text>
+          <TextInput
+            value={reminderTime}
+            onChangeText={setReminderTime}
+            placeholder="09:00"
+            placeholderTextColor={theme.tokens.color.textMuted}
+            style={[styles.input, { color: theme.tokens.color.textPrimary, borderColor: theme.tokens.color.border }]}
+          />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(card.bodyKey)}</Text>
+        {card.choices ? renderChoices(card) : null}
+      </>
+    );
   };
+
+  const showFooter =
+    card?.id === 'welcome' ||
+    regionPickerOpen ||
+    reminderTimePickerOpen ||
+    healthDeclinedHint;
+  const showBack =
+    cardIndex > 0 || regionPickerOpen || reminderTimePickerOpen || healthDeclinedHint;
+  const showDetails = card?.kind === 'consent' && !healthDeclinedHint && !regionPickerOpen;
 
   const onPrimary = () => {
-    if (!step) return;
-    switch (step.id) {
-      case 'region':
-        confirmRegion();
-        break;
-      case 'healthConsent':
-        acceptHealthConsent();
-        break;
-      case 'cookies':
-        acceptCookies();
-        break;
-      case 'sessionRecording':
-        confirmSessionRecording();
-        break;
-      case 'trackingProfile':
-        saveTrackingProfile();
-        break;
-      case 'tutorial':
-        if (tutorialIsLast) {
-          const next = { ...localPrefs, tutorialSeen: true };
-          setLocalPrefs(next);
-          setStepIndex(resolveNextStepIndexAfterComplete(next as Record<string, unknown>, platformCtx, 'tutorial'));
-        } else {
-          setTutorialPos((p) => Math.min(tutorialSlides.length - 1, p + 1));
-        }
-        break;
-      case 'aiDownload':
-        handleAiDownload(true);
-        break;
-      default:
-        goNext();
+    if (!card) return;
+    if (card.id === 'welcome') onContinueWelcome();
+    else if (regionPickerOpen) onConfirmRegionPicker();
+    else if (reminderTimePickerOpen) onConfirmReminder();
+    else if (healthDeclinedHint) {
+      setHealthDeclinedHint(false);
+      advance();
     }
   };
 
-  const onSecondary = () => {
-    if (!step) return;
-    if (step.id === 'aiDownload') {
-      handleAiDownload(false);
-      return;
-    }
-    if (step.id === 'tutorial' && tutorialPos > 0) {
-      setTutorialPos((p) => Math.max(0, p - 1));
-      return;
-    }
-    goBack();
-  };
-
-  const primaryLabel = (() => {
-    if (!step) return t('common.continue');
-    if (step.id === 'region') return t('gate.confirm');
-    if (step.id === 'healthConsent') return t('common.i.agree.continue');
-    if (step.id === 'cookies') return t('common.accept');
-    if (step.id === 'trackingProfile') return t('settings.trackingProfile.save');
-    if (step.id === 'tutorial') return t('tutorial.done');
-    if (step.id === 'aiDownload') return t('common.download.now');
-    return t('common.continue');
-  })();
-
-  const showSecondary = Boolean(
-    step &&
-      (step.id === 'aiDownload' ||
-        step.id === 'healthConsent' ||
-        step.id === 'cookies' ||
-        step.id === 'trackingProfile' ||
-        (step.id === 'tutorial' && tutorialPos > 0)),
-  );
-
-  const secondaryLabel = step?.id === 'aiDownload' ? t('common.not.now') : t('common.back');
+  const primaryLabel =
+    card?.id === 'welcome'
+      ? t('onboarding.questionnaire.continue')
+      : regionPickerOpen
+        ? t('gate.confirm')
+        : t('onboarding.questionnaire.continue');
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen">
       <SafeAreaView style={[styles.root, { backgroundColor: theme.tokens.color.background }]}>
-        <Text style={[styles.title, { color: theme.tokens.color.textPrimary }]}>{stepTitle}</Text>
-        <Text style={[styles.stepMeta, { color: theme.tokens.color.textMuted }]}>
-          {t('onboarding.stepCounter', {
-            current: unifiedProgress.current,
-            total: unifiedProgress.total,
-          })}
+        <View style={styles.dotsRow}>
+          {Array.from({ length: progress.total }).map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.dot,
+                { backgroundColor: theme.tokens.color.border },
+                i === cardIndex && { backgroundColor: theme.tokens.color.accent, transform: [{ scale: 1.25 }] },
+              ]}
+            />
+          ))}
+        </View>
+        <Text style={[styles.title, { color: theme.tokens.color.textPrimary }]}>
+          {card ? t(card.titleKey) : t('onboarding.title')}
         </Text>
-        <ScrollView contentContainerStyle={styles.body}>{renderStepBody()}</ScrollView>
-        {showTutorialArrows ? (
-          <View style={styles.tutorialNavRow}>
-            {tutorialIsFirst ? (
-              <View style={styles.tutorialNavBtn} />
-            ) : (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('common.previous.slide')}
-                onPress={() => setTutorialPos((p) => Math.max(0, p - 1))}
-                style={styles.tutorialNavBtn}
-              >
-                <Text style={[styles.tutorialNavIcon, { color: theme.tokens.color.textSecondary }]}>‹</Text>
+        <Text style={[styles.stepMeta, { color: theme.tokens.color.textMuted }]}>
+          {t('onboarding.stepCounter', { current: progress.current, total: progress.total })}
+        </Text>
+        <ScrollView contentContainerStyle={styles.body}>
+          <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
+            {card ? <OnboardingIllustration name={card.illustration} color={theme.tokens.color.accent} /> : null}
+            {renderBody()}
+            {card?.settingsHintKey ? (
+              <Text style={[styles.settingsHint, { color: theme.tokens.color.textMuted }]}>
+                {t(card.settingsHintKey)}
+              </Text>
+            ) : null}
+          </Animated.View>
+        </ScrollView>
+        {showFooter || showDetails ? (
+          <View style={styles.footer}>
+            {showDetails ? (
+              <Pressable accessibilityRole="button" onPress={() => setPolicyOpen(true)} style={styles.footerBtn}>
+                <Text style={{ color: theme.tokens.color.accent }}>{t('onboarding.questionnaire.seeDetails')}</Text>
               </Pressable>
+            ) : (
+              <View style={styles.footerBtn} />
             )}
-            {tutorialIsLast ? (
-              <View style={styles.tutorialNavBtn} />
+            {showBack ? (
+              <Pressable accessibilityRole="button" onPress={onBack} style={styles.footerBtn}>
+                <Text style={{ color: theme.tokens.color.accent }}>{t('onboarding.questionnaire.back')}</Text>
+              </Pressable>
             ) : (
+              <View style={styles.footerBtn} />
+            )}
+            {showFooter ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t('common.next.slide')}
-                onPress={() => setTutorialPos((p) => Math.min(tutorialSlides.length - 1, p + 1))}
-                style={styles.tutorialNavBtn}
+                onPress={onPrimary}
+                style={[styles.primary, { backgroundColor: theme.tokens.color.accent }]}
               >
-                <Text style={[styles.tutorialNavIcon, { color: theme.tokens.color.textSecondary }]}>›</Text>
+                <Text style={styles.primaryText}>{primaryLabel}</Text>
               </Pressable>
+            ) : (
+              <View style={styles.footerBtn} />
             )}
           </View>
         ) : null}
-        <View style={styles.footer}>
-          {showSecondary ? (
-            <Pressable accessibilityRole="button" onPress={onSecondary} style={styles.footerBtn}>
-              <Text style={{ color: theme.tokens.color.accent }}>{secondaryLabel}</Text>
-            </Pressable>
-          ) : (
-            <View style={styles.footerBtn} />
-          )}
-          {showTutorialPrimary || step?.id !== 'tutorial' ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={onPrimary}
-              style={[styles.primary, { backgroundColor: theme.tokens.color.accent }]}
-            >
-              <Text style={styles.primaryText}>{primaryLabel}</Text>
-            </Pressable>
-          ) : (
-            <View style={styles.footerBtn} />
-          )}
-        </View>
-        <PolicyDocumentsModal visible={policyOpen} regionId={selectedRegion} onClose={() => setPolicyOpen(false)} />
+        <PolicyDocumentsModal
+          visible={policyOpen}
+          regionId={selectedRegion || localPrefs.privacyRegion || 'other'}
+          onClose={() => setPolicyOpen(false)}
+        />
       </SafeAreaView>
     </Modal>
   );
@@ -517,12 +382,23 @@ export function FirstRunWizard({
 
 const styles = StyleSheet.create({
   root: { flex: 1, padding: 20 },
-  title: { fontSize: 22, fontWeight: '700' },
-  stepMeta: { fontSize: 13, marginTop: 4, marginBottom: 12 },
+  dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginBottom: 8 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  title: { fontSize: 22, fontWeight: '700', textAlign: 'center' },
+  stepMeta: { fontSize: 13, marginTop: 4, marginBottom: 12, textAlign: 'center' },
   body: { paddingBottom: 24, flexGrow: 1 },
-  lead: { fontSize: 15, lineHeight: 22 },
-  hint: { fontSize: 13, color: '#0284c7', marginBottom: 8 },
+  lead: { fontSize: 16, lineHeight: 24, textAlign: 'center', marginBottom: 16 },
   label: { fontSize: 14, fontWeight: '600', marginBottom: 6 },
+  settingsHint: { fontSize: 13, textAlign: 'center', marginTop: 12 },
+  choices: { gap: 10 },
+  choice: {
+    borderWidth: 2,
+    borderRadius: 14,
+    padding: 14,
+    minHeight: 48,
+  },
+  choiceLabel: { fontSize: 16, fontWeight: '600' },
+  choiceHint: { fontSize: 13, marginTop: 4 },
   regionRow: {
     padding: 12,
     borderWidth: 1,
@@ -535,14 +411,8 @@ const styles = StyleSheet.create({
   regionRowSelected: { borderColor: '#0d9488', backgroundColor: 'rgba(13,148,136,0.12)' },
   linkBtn: { paddingVertical: 12, minHeight: 44, justifyContent: 'center' },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 },
-  toggleRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, minHeight: 44 },
-  row: { flexDirection: 'row', gap: 12, marginTop: 20, flexWrap: 'wrap' },
-  outlineBtn: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 8 },
+  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingTop: 8 },
   footerBtn: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4, flex: 1 },
-  tutorialNavRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 },
-  tutorialNavBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  tutorialNavIcon: { fontSize: 28, fontWeight: '300', lineHeight: 32 },
-  primary: { borderRadius: 12, paddingVertical: 14, paddingHorizontal: 20, minHeight: 44, justifyContent: 'center' },
+  primary: { borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16, minHeight: 44, justifyContent: 'center', flex: 1.2 },
   primaryText: { color: '#fff', fontWeight: '600', fontSize: 16, textAlign: 'center' },
 });

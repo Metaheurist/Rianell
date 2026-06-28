@@ -927,6 +927,8 @@ export function SettingsScreen({
 
               <Hint>When on: AI Analysis tab, chart predictions, and Goals & targets are available (web parity).</Hint>
 
+              <Hint>{t('onboarding.questionnaire.settingsHint')}</Hint>
+
             </Section>
 
             <Section title={t('common.goals.targets')}>
@@ -2003,6 +2005,8 @@ export function SettingsScreen({
                 />
 
               </Row>
+
+              <Hint>{t('onboarding.questionnaire.settingsHint')}</Hint>
 
               <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
