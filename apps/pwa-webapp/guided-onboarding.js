@@ -1,0 +1,552 @@
+/**
+ * Guided first-run onboarding questionnaire (PWA).
+ * Friendly multichoice cards driven by @rianell/shared guidedQuestionnaire.
+ */
+(function (global) {
+  'use strict';
+
+  var S = global.RianellShared || {};
+  var I = global.RianellI18n || {};
+  var active = false;
+  var cardIndex = 0;
+  var cards = [];
+  var regionPickerOpen = false;
+  var reminderTimePickerOpen = false;
+  var selectedRegion = '';
+  var reminderTime = '09:00';
+  var _focusTrapTeardown = null;
+  var progressSession = null;
+
+  function t(key, params) {
+    if (typeof global.tUi === 'function') return global.tUi(key, params);
+    return typeof I.t === 'function' ? I.t(key, params) : key;
+  }
+
+  function readPrefs() {
+    var prefs = {};
+    try {
+      if (global.RianellPrivacy && typeof global.RianellPrivacy.readSettings === 'function') {
+        prefs = global.RianellPrivacy.readSettings() || {};
+      } else {
+        var raw = localStorage.getItem(S.SETTINGS_STORAGE_KEY || 'rianellSettings');
+        prefs = raw ? JSON.parse(raw) : {};
+      }
+    } catch (e) {
+      prefs = {};
+    }
+    if (global.appSettings && typeof global.appSettings === 'object') {
+      prefs = Object.assign({}, prefs, global.appSettings);
+    }
+    return prefs;
+  }
+
+  function writePrefs(patch) {
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.writeSettings === 'function') {
+      global.RianellPrivacy.writeSettings(patch);
+    } else {
+      try {
+        var cur = readPrefs();
+        localStorage.setItem(S.SETTINGS_STORAGE_KEY || 'rianellSettings', JSON.stringify(Object.assign({}, cur, patch)));
+      } catch (e) {}
+    }
+    if (global.appSettings) Object.assign(global.appSettings, patch);
+  }
+
+  function platformContext() {
+    var standalone = false;
+    try {
+      standalone = !!(global.matchMedia && global.matchMedia('(display-mode: standalone)').matches) || !!global.navigator.standalone;
+    } catch (e) {}
+    var installSeen = false;
+    var cookieAccepted = false;
+    try { installSeen = !!localStorage.getItem('rianellInstallModalAfterTutorialSeen'); } catch (e2) {}
+    try { cookieAccepted = !!localStorage.getItem('rianellCookieConsent'); } catch (e3) {}
+    return {
+      platform: 'pwa',
+      cookieConsentAccepted: cookieAccepted,
+      installModalSeen: installSeen,
+      standalonePwa: standalone,
+      tutorialSeenLegacy: false,
+    };
+  }
+
+  function isComplete() {
+    if (typeof S.isFirstRunWizardComplete !== 'function') return true;
+    return S.isFirstRunWizardComplete(readPrefs(), platformContext());
+  }
+
+  function shouldDeferRegionGate() {
+    return !isComplete();
+  }
+
+  function shouldSuppressStandaloneModals() {
+    if (active) return true;
+    return !isComplete();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function overlayEl() {
+    return document.getElementById('guidedOnboardingOverlay');
+  }
+
+  function suggestRegion() {
+    var pack = S.getPolicyPack ? S.getPolicyPack() : null;
+    var labels = S.getRegionLabels ? S.getRegionLabels(pack) : [];
+    var hint = S.suggestPrivacyRegionFromHint
+      ? S.suggestPrivacyRegionFromHint(navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone)
+      : 'eea_uk';
+    if (!hint || !labels.some(function (r) { return r.id === hint; })) hint = 'eea_uk';
+    return { hint: hint, labels: labels };
+  }
+
+  function regionLabel(regionId) {
+    var pack = S.getPolicyPack ? S.getPolicyPack() : null;
+    var labels = S.getRegionLabels ? S.getRegionLabels(pack) : [];
+    var found = labels.find(function (r) { return r.id === regionId; });
+    return found ? found.label : regionId;
+  }
+
+  function rebuildCards() {
+    if (typeof S.buildGuidedQuestionnaire !== 'function') return [];
+    return S.buildGuidedQuestionnaire(readPrefs(), platformContext());
+  }
+
+  function illustrationIcon(name) {
+    var map = {
+      'mascot-wave': 'onboard-mascot',
+      globe: 'globe',
+      coach: 'onboard-coach',
+      helper: 'onboard-helper',
+      shield: 'onboard-shield',
+      cookie: 'onboard-cookie',
+      sparkle: 'onboard-sparkle',
+      brain: 'brain',
+      heart: 'onboard-heart',
+      bell: 'onboard-bell',
+      install: 'onboard-install',
+      celebrate: 'onboard-celebrate',
+    };
+    var icon = map[name] || 'onboard-mascot';
+    if (typeof global.svgIcon === 'function') {
+      return global.svgIcon(icon, 'guided-onboarding-illus', '');
+    }
+    return '';
+  }
+
+  function renderProgressDots() {
+    var dotsEl = document.getElementById('guidedOnboardingDots');
+    if (!dotsEl || !progressSession) return;
+    var progress = progressSession.resolve(readPrefs(), platformContext(), cardIndex);
+    dotsEl.innerHTML = '';
+    for (var i = 0; i < progress.total; i += 1) {
+      var dot = document.createElement('span');
+      dot.className = 'guided-onboarding-dot' + (i === cardIndex ? ' guided-onboarding-dot--active' : '');
+      dot.setAttribute('aria-hidden', 'true');
+      dotsEl.appendChild(dot);
+    }
+    var metaEl = document.getElementById('guidedOnboardingStepMeta');
+    if (metaEl) {
+      metaEl.textContent = t('onboarding.stepCounter', {
+        current: progress.current,
+        total: progress.total,
+      });
+    }
+  }
+
+  function renderChoiceCard(choice, card) {
+    var hint = choice.hintKey ? '<span class="guided-onboarding-choice-hint">' + escapeHtml(t(choice.hintKey)) + '</span>' : '';
+    return (
+      '<button type="button" class="guided-onboarding-choice" data-choice-id="' + escapeHtml(choice.id) + '" aria-pressed="false">' +
+      '<span class="guided-onboarding-choice-label">' + escapeHtml(t(choice.labelKey)) + '</span>' +
+      hint +
+      '</button>'
+    );
+  }
+
+  function renderRegionPicker() {
+    var sug = suggestRegion();
+    var labels = sug.labels;
+    return (
+      '<label for="guidedOnboardingRegionSelect" class="privacy-region-gate-label">' + escapeHtml(t('gate.regionLabel')) + '</label>' +
+      '<select id="guidedOnboardingRegionSelect" class="privacy-region-gate-select">' +
+      labels.map(function (r) {
+        return '<option value="' + escapeHtml(r.id) + '">' + escapeHtml(r.label) + '</option>';
+      }).join('') +
+      '</select>' +
+      '<button type="button" class="modal-save-btn modal-cancel-btn guided-onboarding-details-btn" id="guidedOnboardingViewPolicies">' +
+      escapeHtml(t('gate.viewPolicies')) + '</button>'
+    );
+  }
+
+  function renderCurrentCard() {
+    cards = rebuildCards();
+    if (!cards.length) {
+      closeWizard(true);
+      return;
+    }
+    cardIndex = Math.min(cardIndex, cards.length - 1);
+    var card = cards[cardIndex];
+    if (!card) return;
+
+    var body = document.getElementById('guidedOnboardingBody');
+    var titleEl = document.getElementById('guidedOnboardingTitle');
+    var footer = document.getElementById('guidedOnboardingFooter');
+    var detailsBtn = document.getElementById('guidedOnboardingDetailsBtn');
+    var backBtn = document.getElementById('guidedOnboardingBackBtn');
+    var continueBtn = document.getElementById('guidedOnboardingContinueBtn');
+
+    if (titleEl) titleEl.textContent = t(card.titleKey);
+    renderProgressDots();
+
+    if (!body) return;
+    body.className = 'modal-body guided-onboarding-body guided-onboarding-body--enter';
+    requestAnimationFrame(function () {
+      body.classList.remove('guided-onboarding-body--enter');
+    });
+
+    var illus = '<div class="guided-onboarding-illus-wrap guided-onboarding-illus-wrap--' + escapeHtml(card.illustration) + '">' +
+      illustrationIcon(card.illustration) + '</div>';
+
+    var hint = card.settingsHintKey
+      ? '<p class="guided-onboarding-settings-hint">' + escapeHtml(t(card.settingsHintKey)) + '</p>'
+      : '';
+
+    if (card.id === 'welcome') {
+      body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>';
+      if (footer) footer.style.display = 'flex';
+      if (continueBtn) {
+        continueBtn.style.display = 'inline-block';
+        continueBtn.textContent = t('onboarding.questionnaire.continue');
+      }
+      if (backBtn) backBtn.style.visibility = 'hidden';
+      if (detailsBtn) detailsBtn.style.display = 'none';
+      regionPickerOpen = false;
+      reminderTimePickerOpen = false;
+      return;
+    }
+
+    if (card.id === 'region') {
+      if (!selectedRegion) {
+        selectedRegion = suggestRegion().hint;
+      }
+      if (regionPickerOpen) {
+        body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' + renderRegionPicker();
+        var sel = document.getElementById('guidedOnboardingRegionSelect');
+        if (sel) sel.value = selectedRegion;
+        var viewBtn = document.getElementById('guidedOnboardingViewPolicies');
+        if (viewBtn) {
+          viewBtn.onclick = function () {
+            var regionId = sel ? sel.value : selectedRegion;
+            if (global.RianellPrivacy && typeof global.RianellPrivacy.showPolicyViewerModal === 'function') {
+              global.RianellPrivacy.showPolicyViewerModal(regionId, true);
+            }
+          };
+        }
+        if (continueBtn) continueBtn.textContent = t('gate.confirm');
+      } else {
+        body.innerHTML = illus +
+          '<p class="guided-onboarding-lead">' + escapeHtml(t('onboarding.questionnaire.region.suggested', { region: regionLabel(selectedRegion) })) + '</p>' +
+          '<div class="guided-onboarding-choices">' +
+          renderChoiceCard({ id: 'confirm', labelKey: 'onboarding.questionnaire.region.confirm' }, card) +
+          renderChoiceCard({ id: 'pickAnother', labelKey: 'onboarding.questionnaire.region.pickAnother' }, card) +
+          '</div>' + hint;
+        bindChoiceButtons(body, card);
+      }
+      if (footer) footer.style.display = regionPickerOpen ? 'flex' : 'none';
+      if (backBtn) backBtn.style.visibility = cardIndex > 0 ? 'visible' : 'hidden';
+      if (detailsBtn) detailsBtn.style.display = 'none';
+      return;
+    }
+
+    if (card.id === 'dailyNudge' && reminderTimePickerOpen) {
+      body.innerHTML = illus +
+        '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' +
+        '<label for="guidedOnboardingReminderTime" class="privacy-region-gate-label">' + escapeHtml(t('onboarding.questionnaire.dailyNudge.timeLabel')) + '</label>' +
+        '<input type="time" id="guidedOnboardingReminderTime" class="first-run-wizard-input" value="' + escapeHtml(reminderTime) + '">';
+      if (footer) footer.style.display = 'flex';
+      if (continueBtn) continueBtn.textContent = t('onboarding.questionnaire.continue');
+      if (backBtn) backBtn.style.visibility = 'visible';
+      if (detailsBtn) detailsBtn.style.display = 'none';
+      return;
+    }
+
+    if (card.id === 'healthConsent' && document.body.dataset.guidedHealthDeclined === '1') {
+      body.innerHTML = illus +
+        '<p class="guided-onboarding-lead">' + escapeHtml(t('onboarding.questionnaire.healthConsent.declineHint')) + '</p>' + hint;
+      if (footer) footer.style.display = 'flex';
+      if (continueBtn) {
+        continueBtn.style.display = 'inline-block';
+        continueBtn.textContent = t('onboarding.questionnaire.continue');
+      }
+      if (backBtn) backBtn.style.visibility = 'visible';
+      if (detailsBtn) detailsBtn.style.display = 'none';
+      return;
+    }
+
+    var choicesHtml = '';
+    if (card.choices && card.choices.length) {
+      choicesHtml = '<div class="guided-onboarding-choices">' +
+        card.choices.map(function (c) { return renderChoiceCard(c, card); }).join('') +
+        '</div>';
+    }
+    body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' + choicesHtml + hint;
+    bindChoiceButtons(body, card);
+
+    if (footer) footer.style.display = (card.id === 'welcome') ? 'flex' : 'none';
+    if (backBtn) backBtn.style.visibility = cardIndex > 0 ? 'visible' : 'hidden';
+    if (detailsBtn) {
+      detailsBtn.style.display = card.kind === 'consent' ? 'inline-block' : 'none';
+      detailsBtn.textContent = t('onboarding.questionnaire.seeDetails');
+    }
+    if (continueBtn) {
+      if (card.id === 'welcome') {
+        continueBtn.style.display = 'inline-block';
+        continueBtn.textContent = t('onboarding.questionnaire.continue');
+      } else {
+        continueBtn.style.display = 'none';
+      }
+    }
+  }
+
+  function bindChoiceButtons(body, card) {
+    var buttons = body.querySelectorAll('.guided-onboarding-choice');
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var choiceId = btn.getAttribute('data-choice-id');
+        if (!choiceId) return;
+        buttons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        handleChoice(card, choiceId);
+      });
+    });
+  }
+
+  function handleChoice(card, choiceId) {
+    if (card.id === 'region') {
+      if (choiceId === 'pickAnother') {
+        regionPickerOpen = true;
+        renderCurrentCard();
+        return;
+      }
+      if (choiceId === 'confirm') {
+        applyAndAdvance(card.id, 'confirm', { regionId: selectedRegion });
+        return;
+      }
+    }
+    if (card.id === 'dailyNudge' && choiceId === 'yes') {
+      reminderTimePickerOpen = true;
+      renderCurrentCard();
+      return;
+    }
+    if (card.id === 'install' && choiceId === 'install') {
+      try { localStorage.setItem('rianellInstallModalAfterTutorialSeen', '1'); } catch (e) {}
+      applyAndAdvance(card.id, 'install', {});
+      if (typeof global.openInstallModal === 'function') global.openInstallModal(true);
+      return;
+    }
+    if (card.id === 'finish') {
+      finishOnboarding(choiceId);
+      return;
+    }
+    if (card.id === 'healthConsent' && choiceId === 'notNow') {
+      document.body.dataset.guidedHealthDeclined = '1';
+      var declinedPrefs = readPrefs();
+      if (typeof S.applyQuestionnaireAnswer === 'function') {
+        declinedPrefs = S.applyQuestionnaireAnswer(declinedPrefs, card.id, choiceId, {});
+      }
+      writePrefs(declinedPrefs);
+      renderCurrentCard();
+      return;
+    }
+    applyAndAdvance(card.id, choiceId, {});
+  }
+
+  function applyAndAdvance(cardId, choiceId, extra) {
+    var prefs = readPrefs();
+    if (typeof S.applyQuestionnaireAnswer === 'function') {
+      prefs = S.applyQuestionnaireAnswer(prefs, cardId, choiceId, extra);
+    }
+    writePrefs(prefs);
+    if (cardId === 'region') {
+      regionPickerOpen = false;
+      if (global.RianellPrivacy && typeof global.RianellPrivacy.upsertPrivacyProfile === 'function') {
+        try { global.RianellPrivacy.upsertPrivacyProfile(prefs); } catch (e) {}
+      }
+      if (global.RianellSmartlook && typeof global.RianellSmartlook.apply === 'function' && cardId === 'sessionRecording') {
+        global.RianellSmartlook.apply(prefs);
+      }
+    }
+    if (cardId === 'sessionRecording' && global.RianellSmartlook && typeof global.RianellSmartlook.apply === 'function') {
+      global.RianellSmartlook.apply(prefs);
+    }
+    if (cardId === 'cookies' && choiceId === 'accept') {
+      try { localStorage.setItem('rianellCookieConsent', '1'); } catch (e2) {}
+    }
+    cards = rebuildCards();
+    cardIndex = Math.min(cardIndex + 1, Math.max(cards.length - 1, 0));
+    document.body.dataset.guidedHealthDeclined = '';
+    reminderTimePickerOpen = false;
+    renderCurrentCard();
+  }
+
+  function finishOnboarding(choiceId) {
+    var prefs = readPrefs();
+    if (typeof S.applyQuestionnaireAnswer === 'function') {
+      prefs = S.applyQuestionnaireAnswer(prefs, 'finish', choiceId, {});
+    }
+    writePrefs(prefs);
+    try { localStorage.setItem('rianellTutorialSeen', '1'); } catch (e) {}
+    if (choiceId === 'quickTour' && typeof global.openTutorialModal === 'function') {
+      global.openTutorialModal();
+    }
+    if (typeof global.onFirstRunWizardComplete === 'function') global.onFirstRunWizardComplete();
+    closeWizard(true);
+  }
+
+  function onContinue() {
+    var card = cards[cardIndex];
+    if (!card) return;
+    if (card.id === 'welcome') {
+      cardIndex += 1;
+      renderCurrentCard();
+      return;
+    }
+    if (card.id === 'region' && regionPickerOpen) {
+      var sel = document.getElementById('guidedOnboardingRegionSelect');
+      selectedRegion = sel ? sel.value : selectedRegion;
+      applyAndAdvance('region', 'confirm', { regionId: selectedRegion });
+      return;
+    }
+    if (card.id === 'dailyNudge' && reminderTimePickerOpen) {
+      var timeInput = document.getElementById('guidedOnboardingReminderTime');
+      reminderTime = timeInput ? timeInput.value : reminderTime;
+      applyAndAdvance('dailyNudge', 'yes', { reminderTime: reminderTime });
+      return;
+    }
+    if (card.id === 'healthConsent' && document.body.dataset.guidedHealthDeclined === '1') {
+      cardIndex += 1;
+      document.body.dataset.guidedHealthDeclined = '';
+      renderCurrentCard();
+    }
+  }
+
+  function onBack() {
+    if (regionPickerOpen) {
+      regionPickerOpen = false;
+      renderCurrentCard();
+      return;
+    }
+    if (reminderTimePickerOpen) {
+      reminderTimePickerOpen = false;
+      renderCurrentCard();
+      return;
+    }
+    cardIndex = Math.max(0, cardIndex - 1);
+    renderCurrentCard();
+  }
+
+  function onDetails() {
+    var card = cards[cardIndex];
+    if (!card || card.kind !== 'consent') return;
+    var prefs = readPrefs();
+    var regionId = prefs.privacyRegion || selectedRegion || 'other';
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.showPolicyViewerModal === 'function') {
+      global.RianellPrivacy.showPolicyViewerModal(regionId, true);
+    }
+  }
+
+  function openWizard() {
+    if (active) return true;
+    var overlay = overlayEl();
+    if (!overlay) return false;
+    active = true;
+    cardIndex = 0;
+    regionPickerOpen = false;
+    reminderTimePickerOpen = false;
+    selectedRegion = suggestRegion().hint;
+    cards = rebuildCards();
+    if (typeof S.createGuidedOnboardingProgressSession === 'function') {
+      progressSession = S.createGuidedOnboardingProgressSession(readPrefs(), platformContext());
+    }
+    overlay.style.display = 'flex';
+    overlay.style.visibility = 'visible';
+    overlay.style.opacity = '1';
+    overlay.classList.add('modal-overlay--open');
+    document.body.classList.add('modal-active', 'guided-onboarding-active');
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.syncConsentEnforcement === 'function') {
+      global.RianellPrivacy.syncConsentEnforcement('first-run-open');
+    }
+    renderCurrentCard();
+    bindFooterOnce();
+    if (typeof global.installModalFocusTrap === 'function') {
+      _focusTrapTeardown = global.installModalFocusTrap(overlay, { onEscape: function () {} });
+    }
+    return true;
+  }
+
+  function bindFooterOnce() {
+    var continueBtn = document.getElementById('guidedOnboardingContinueBtn');
+    var backBtn = document.getElementById('guidedOnboardingBackBtn');
+    var detailsBtn = document.getElementById('guidedOnboardingDetailsBtn');
+    if (continueBtn && !continueBtn.dataset.bound) {
+      continueBtn.dataset.bound = '1';
+      continueBtn.addEventListener('click', onContinue);
+    }
+    if (backBtn && !backBtn.dataset.bound) {
+      backBtn.dataset.bound = '1';
+      backBtn.addEventListener('click', onBack);
+    }
+    if (detailsBtn && !detailsBtn.dataset.bound) {
+      detailsBtn.dataset.bound = '1';
+      detailsBtn.addEventListener('click', onDetails);
+    }
+  }
+
+  function closeWizard(completed) {
+    active = false;
+    var overlay = overlayEl();
+    if (overlay) {
+      overlay.style.display = 'none';
+      overlay.style.visibility = 'hidden';
+      overlay.style.opacity = '0';
+      overlay.classList.remove('modal-overlay--open');
+    }
+    document.body.classList.remove('guided-onboarding-active');
+    var anyModalOpen = typeof global.isAnyModalOverlayOpen === 'function'
+      ? global.isAnyModalOverlayOpen()
+      : !!document.querySelector('.modal-overlay--open, .settings-overlay--open');
+    if (!anyModalOpen) {
+      document.body.classList.remove('modal-active');
+      document.body.style.overflow = '';
+    }
+    if (_focusTrapTeardown) {
+      try { _focusTrapTeardown(); } catch (e) {}
+      _focusTrapTeardown = null;
+    }
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.syncConsentEnforcement === 'function') {
+      global.RianellPrivacy.syncConsentEnforcement(completed ? 'first-run-complete' : 'first-run-closed');
+    }
+  }
+
+  function openIfNeeded() {
+    if (isComplete()) return false;
+    return openWizard();
+  }
+
+  var api = {
+    isActive: function () { return active; },
+    isComplete: isComplete,
+    shouldDeferRegionGate: shouldDeferRegionGate,
+    shouldSuppressStandaloneModals: shouldSuppressStandaloneModals,
+    openIfNeeded: openIfNeeded,
+    onTutorialFinished: function () {},
+    advanceFromTutorial: function () {},
+    syncTutorialFooter: function () {},
+  };
+
+  global.RianellGuidedOnboarding = api;
+  global.RianellFirstRunWizard = api;
+})(typeof window !== 'undefined' ? window : globalThis);

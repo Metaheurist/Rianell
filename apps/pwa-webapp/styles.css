@@ -10788,6 +10788,7 @@ body.modal-active .settings-overlay,
 body.modal-active .ai-modal-overlay,
 body.modal-active .health-data-consent-overlay,
 body.modal-active .dev-panel-overlay,
+body.modal-active .guided-onboarding-overlay,
 body.modal-active .first-run-wizard-overlay,
 body.modal-active .perf-benchmark-overlay,
 body.modal-active .ai-model-download-consent,
@@ -23050,7 +23051,136 @@ body.first-run-wizard-active #appShell {
   pointer-events: none;
 }
 
-/* Engagement UX ? empty states, welcome card, discovery chips, settings chapters */
+/* Guided onboarding questionnaire */
+.guided-onboarding-overlay {
+  z-index: 100001;
+}
+.guided-onboarding-content {
+  max-width: min(480px, 96vw);
+  max-height: min(90vh, 680px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.guided-onboarding-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+.guided-onboarding-body--enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.guided-onboarding-step-meta {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+.guided-onboarding-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.guided-onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ui-color-border, #cbd5e1);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.guided-onboarding-dot--active {
+  background: var(--ui-color-accent, #0d9488);
+  transform: scale(1.25);
+}
+.guided-onboarding-illus-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 16px;
+  width: 96px;
+  height: 96px;
+  color: var(--ui-color-accent, #0d9488);
+}
+.guided-onboarding-illus-wrap .ui-svg-icon {
+  width: 96px;
+  height: 96px;
+}
+.guided-onboarding-illus-wrap--mascot-wave {
+  animation: guidedMascotSway 3s ease-in-out infinite;
+}
+@keyframes guidedMascotSway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guided-onboarding-illus-wrap--mascot-wave { animation: none; }
+  .guided-onboarding-body--enter { transition: none; }
+}
+.guided-onboarding-lead {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 16px;
+  text-align: center;
+}
+.guided-onboarding-settings-hint {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  text-align: center;
+  margin-top: 12px;
+}
+.guided-onboarding-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.guided-onboarding-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--ui-color-border, #cbd5e1);
+  border-radius: 14px;
+  background: var(--ui-color-surface, #fff);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+  min-height: 48px;
+}
+.guided-onboarding-choice:hover,
+.guided-onboarding-choice[aria-pressed="true"] {
+  border-color: var(--ui-color-accent, #0d9488);
+  background: color-mix(in srgb, var(--ui-color-accent, #0d9488) 8%, transparent);
+}
+.guided-onboarding-choice:active {
+  transform: scale(0.98);
+}
+.guided-onboarding-choice-label {
+  font-weight: 600;
+  font-size: 1rem;
+}
+.guided-onboarding-choice-hint {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.guided-onboarding-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-top: 12px;
+}
+.guided-onboarding-footer .modal-save-btn {
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+body.guided-onboarding-active #appShell {
+  pointer-events: none;
+}
+
 .logs-empty-state,
 .mood-empty-state,
 .weekly-review-empty-state {
