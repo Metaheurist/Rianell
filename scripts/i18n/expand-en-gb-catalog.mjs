@@ -99,7 +99,7 @@ const supplemental = {
   'charts.metric.sleep': 'Sleep',
   'charts.metric.jointPain': 'Joint Pain',
   'charts.metric.mobility': 'Mobility',
-  'charts.metric.dailyFunction': 'Daily Function',
+  'charts.metric.dailyFunction': 'Ability to do Daily activities',
   'charts.metric.swelling': 'Swelling',
   'charts.metric.mood': 'Mood',
   'charts.metric.irritability': 'Irritability',
