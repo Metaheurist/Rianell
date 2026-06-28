@@ -1275,7 +1275,7 @@
       <div class="modal-header guided-onboarding-header">
         <div class="guided-onboarding-dots" id="guidedOnboardingDots" aria-hidden="true"></div>
         <div class="guided-onboarding-header-main">
-          <h3 id="guidedOnboardingTitle">Welcome to Rianell</h3>
+          <h3 id="guidedOnboardingTitle"></h3>
           <p id="guidedOnboardingStepMeta" class="guided-onboarding-step-meta" aria-live="polite"></p>
         </div>
       </div>
@@ -5066,11 +5066,11 @@
   </script>
   <script>
     (function () {
-      function recoveryReloadBtnHtml(btnId, label) {
+      function recoveryReloadBtnHtml(btnId) {
         return (
           '<button type="button" id="' + btnId + '" class="rianell-recovery-reload-btn">' +
           '<svg class="ui-svg-icon rianell-recovery-reload-icon" aria-hidden="true"><use href="#icon-reload"></use></svg>' +
-          '<span>' + label + '</span></button>'
+          '<span data-i18n="common.reload">Reload</span></button>'
         );
       }
 
@@ -5135,10 +5135,10 @@
         overlay.id = 'cssReloadOverlay';
         overlay.className = 'rianell-recovery-overlay';
         overlay.setAttribute('role', 'alert');
-        overlay.innerHTML = '<p class="rianell-recovery-overlay__lead" data-i18n="common.page.did.not.load.correctly">Page did not load correctly.</p><p class="rianell-recovery-overlay__hint">Tap below to reload.</p>' +
+        overlay.innerHTML = '<p class="rianell-recovery-overlay__lead" data-i18n="common.page.did.not.load.correctly">Page did not load correctly.</p><p class="rianell-recovery-overlay__hint" data-i18n="common.tap.below.to.reload">Tap below to reload.</p>' +
           (typeof window.__rianellRecoveryReloadBtnHtml === 'function'
-            ? window.__rianellRecoveryReloadBtnHtml('cssReloadOverlayBtn', 'Reload')
-            : '<button type="button" id="cssReloadOverlayBtn" class="rianell-recovery-reload-btn">Reload</button>');
+            ? window.__rianellRecoveryReloadBtnHtml('cssReloadOverlayBtn')
+            : '<button type="button" id="cssReloadOverlayBtn" class="rianell-recovery-reload-btn"><span data-i18n="common.reload">Reload</span></button>');
         document.body.appendChild(overlay);
         var btn = document.getElementById('cssReloadOverlayBtn');
         if (typeof window.__rianellBindRecoveryReloadBtn === 'function') window.__rianellBindRecoveryReloadBtn(btn);
@@ -5191,8 +5191,8 @@
         overlay.innerHTML = '<p class="rianell-recovery-overlay__lead" data-i18n="common.rianell.is.taking.longer.than.expected.t">Rianell is taking longer than expected to start.</p>' +
           '<p class="rianell-recovery-overlay__hint" data-i18n="common.this.can.happen.after.an.update.on.iphon">This can happen after an update on iPhone. Try reloading once.</p>' +
           (typeof window.__rianellRecoveryReloadBtnHtml === 'function'
-            ? window.__rianellRecoveryReloadBtnHtml('rianellBootRecoveryBtn', 'Reload')
-            : '<button type="button" id="rianellBootRecoveryBtn" class="rianell-recovery-reload-btn">Reload</button>');
+            ? window.__rianellRecoveryReloadBtnHtml('rianellBootRecoveryBtn')
+            : '<button type="button" id="rianellBootRecoveryBtn" class="rianell-recovery-reload-btn"><span data-i18n="common.reload">Reload</span></button>');
         document.body.appendChild(overlay);
         var btn = document.getElementById('rianellBootRecoveryBtn');
         if (typeof window.__rianellBindRecoveryReloadBtn === 'function') window.__rianellBindRecoveryReloadBtn(btn);
