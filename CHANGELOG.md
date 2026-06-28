@@ -21,10 +21,15 @@ Guided onboarding questionnaire: one friendly multichoice modal (PWA + RN) drive
 
 - **First-run flow:** Preference and consent questions presented as guided choices instead of settings-style toggles; tutorial is opt-in from finish card or Settings replay.
 - **Onboarding progress:** `createGuidedOnboardingProgressSession` counts questionnaire cards (not tutorial slides).
+- **npm version:** Workspace roots bumped to **2.0.7** (aligned with this release).
+- **`first-run-wizard.js`:** Replaced with a thin deprecation shim; PWA loads `guided-onboarding.js` only.
 
 ### Fixed
 
-- **PWA privacy gate:** `isOnboardingInteractionTarget` whitelists `#guidedOnboardingOverlay`.
+- **PWA privacy gate:** `isOnboardingInteractionTarget` whitelists `#guidedOnboardingOverlay`, guided choice buttons, and uses `composedPath()` so consent lock does not block card taps.
+- **PWA card navigation:** `resolveNextGuidedCardIndex` skips removed questionnaire cards after region or consent answers (shared + PWA + RN).
+- **PWA completion hook:** `onFirstRunWizardComplete` restores shell visibility, syncs locale/consent, and preloads AI when consented.
+- **Boot audit probes:** Guest-flow and shell-visible scripts advance `#guidedOnboardingOverlay` instead of legacy first-run wizard DOM.
 
 ---
 

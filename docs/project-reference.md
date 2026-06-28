@@ -98,7 +98,7 @@
 ### v1.96.2 documentation sync (First-run wizard interaction fix)
 
 - **PWA onboarding:** Consent lock (`privacy-region.js`) merges `appSettings` with `localStorage` for enforcement; clicks inside the active first-run wizard and tutorial modal are no longer blocked as `interaction-blocked` while `region-unconfigured`.
-- **Wizard:** `first-run-wizard.js` re-inserts the **region** step if prefs drift; tutorial **Enable AI & Goals?** buttons use bound listeners.
+- **Wizard:** `guided-onboarding.js` (replaces legacy `first-run-wizard.js` shim); tutorial **Enable AI & Goals?** buttons use bound listeners.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.96.2.
 
 ### v1.121.0 documentation sync (Cycle period-start anchor)
