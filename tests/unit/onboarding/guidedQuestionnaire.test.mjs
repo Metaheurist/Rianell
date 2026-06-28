@@ -21,12 +21,57 @@ test('buildGuidedQuestionnaire includes welcome and preference cards for fresh u
   const cards = buildGuidedQuestionnaire(freshPwaPrefs, { platform: 'pwa' });
   const ids = cards.map((c) => c.id);
   assert.ok(ids.includes('welcome'));
+  assert.equal(ids.includes('signIn'), false);
   assert.ok(ids.includes('region'));
   assert.ok(ids.includes('coachTone'));
   assert.ok(ids.includes('helperLevel'));
+  assert.ok(ids.includes('accountSignUp'));
   assert.ok(ids.includes('finish'));
   assert.equal(ids.includes('healthConsent'), false);
   assert.equal(ids.includes('install'), true);
+});
+
+test('signIn card appears when welcome path is signIn', () => {
+  const cards = buildGuidedQuestionnaire(
+    { ...freshPwaPrefs, onboardingPath: 'signIn' },
+    { platform: 'pwa' },
+  );
+  assert.ok(cards.some((c) => c.id === 'signIn'));
+});
+
+test('accountSignUp skipped on signIn path', () => {
+  const cards = buildGuidedQuestionnaire(
+    { ...freshPwaPrefs, onboardingPath: 'signIn' },
+    { platform: 'pwa' },
+  );
+  assert.equal(cards.some((c) => c.id === 'accountSignUp'), false);
+});
+
+test('setup cards skipped after signIn when authenticated', () => {
+  const cards = buildGuidedQuestionnaire(
+    { ...freshPwaPrefs, onboardingPath: 'signIn' },
+    { platform: 'pwa', isAuthenticated: true },
+  );
+  const ids = cards.map((c) => c.id);
+  assert.deepEqual(ids, ['welcome', 'finish']);
+});
+
+test('applyQuestionnaireAnswer welcome sets onboarding path', () => {
+  const signIn = applyQuestionnaireAnswer(freshPwaPrefs, 'welcome', 'signIn');
+  assert.equal(signIn.onboardingPath, 'signIn');
+  const setup = applyQuestionnaireAnswer(freshPwaPrefs, 'welcome', 'setUp');
+  assert.equal(setup.onboardingPath, 'setup');
+});
+
+test('applyQuestionnaireAnswer region confirm persists region and default locale', () => {
+  const next = applyQuestionnaireAnswer(freshPwaPrefs, 'region', 'confirm', {
+    regionId: 'eea_uk',
+    policyPackId: 'v1.0.0',
+  });
+  assert.equal(next.privacyRegion, 'eea_uk');
+  assert.equal(next.privacyRegionSource, 'onboarding');
+  assert.ok(next.uiLocale);
+  assert.equal(next.uiLocaleSource, 'region');
 });
 
 test('healthConsent card appears for eea_uk region', () => {

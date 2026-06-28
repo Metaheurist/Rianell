@@ -38,3 +38,29 @@ test('app.js theme helpers read from document.body and refresh on theme change',
   assert.match(appJs, /borderColor: color/);
   assert.match(appJs, /getElementById\('aiResultsContent'\)/);
 });
+
+test('styles.css tokenises light-mode text and card surfaces', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /--text-light-rgb:/);
+  assert.match(css, /--neutral-card-rgb:/);
+  assert.match(css, /body\.light-mode[\s\S]*--text-light-rgb:\s*22,\s*58,\s*35/);
+  assert.match(css, /body\.light-mode[\s\S]*--ui-icon-color:/);
+  assert.doesNotMatch(css, /color:\s*#e0f2f1/i);
+  assert.match(css, /rgba\(var\(--text-light-rgb\)/);
+});
+
+test('styles.css tokenises irritability ocean metric animation', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /\.metric-svg--ocean[\s\S]*--ocean-sky-top:/);
+  assert.match(css, /\.metric-svg--ocean[\s\S]*--ocean-wave-back:/);
+  assert.match(css, /color-mix\(in srgb, var\(--primary-color\)/);
+  assert.match(
+    css,
+    /\.metric-widget--irritability\.metric-widget--ocean-moderate[\s\S]*--ocean-sky-top:/,
+  );
+  assert.match(
+    css,
+    /\.metric-widget--irritability\.metric-widget--ocean-storm[\s\S]*--ocean-cloud:/,
+  );
+  assert.match(css, /\.metric-widget--irritability\.metric-widget--ocean-storm \.metric-ocean-lightning/);
+});

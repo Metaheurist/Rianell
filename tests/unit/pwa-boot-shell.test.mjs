@@ -62,6 +62,9 @@ test('privacy-region.js whitelists boot/onboarding overlays for interaction gate
   assert.match(gateJs, /#aiModelDownloadOverlay/);
   assert.match(gateJs, /#aiModelDownloadProgressOverlay/);
   assert.match(gateJs, /#guidedOnboardingOverlay/);
+  assert.match(gateJs, /#cssReloadOverlay/);
+  assert.match(gateJs, /#rianellBootRecoveryOverlay/);
+  assert.match(gateJs, /rianell-recovery-reload-btn/);
   assert.match(gateJs, /RianellGuidedOnboarding/);
   assert.match(gateJs, /composedPath/);
   assert.match(gateJs, /hidePrivacyGateOverlay/);
@@ -124,6 +127,7 @@ test('guided onboarding advances cards with resolveNextGuidedCardIndex', () => {
   assert.match(guidedJs, /onFirstRunWizardComplete/);
   assert.match(guidedJs, /bindChoiceButtons/);
   assert.match(guidedJs, /\.guided-onboarding-choice/);
+  assert.match(guidedJs, /function finishOnboarding[\s\S]*finally[\s\S]*closeWizard\(true\)/);
 });
 
 test('guided onboarding choice buttons bind directly (modal-content stops propagation)', () => {
@@ -138,6 +142,7 @@ test('app.js wires onFirstRunWizardComplete after guided onboarding', () => {
   const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.match(appJs, /function onFirstRunWizardComplete/);
   assert.match(appJs, /window\.onFirstRunWizardComplete/);
+  assert.match(appJs, /window\.appSettings && typeof saveSettings === 'function'/);
 });
 
 test('first-run-wizard.js is a deprecation shim for guided onboarding', () => {
@@ -146,4 +151,20 @@ test('first-run-wizard.js is a deprecation shim for guided onboarding', () => {
   assert.match(shim, /RianellGuidedOnboarding/);
   assert.match(shim, /RianellFirstRunWizard/);
   assert.doesNotMatch(shim, /buildUnifiedOnboardingSteps/);
+});
+
+test('index.html syncs system appearance before boot shell paints', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.match(html, /function readAppearancePrefs/);
+  assert.match(html, /function syncAppearanceDom/);
+  assert.match(html, /window\.__rianellSyncAppearanceDom/);
+  assert.match(html, /__rianellSyncAppearanceDom\(\)/);
+  assert.doesNotMatch(html, /<html class="rianell-appearance-dark/);
+});
+
+test('app.js applies appearance sync and alert modal theme tokens', () => {
+  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(appJs, /__rianellSyncAppearanceDom/);
+  assert.match(appJs, /alert-modal-message--html/);
+  assert.match(appJs, /alert-modal-message--icon/);
 });
