@@ -49,6 +49,20 @@ test('styles.css tokenises light-mode text and card surfaces', () => {
   assert.match(css, /rgba\(var\(--text-light-rgb\)/);
 });
 
+test('styles.css tokenises tutorial footer CTA buttons', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /--tutorial-cta-finish-bg:/);
+  assert.match(css, /--tutorial-cta-signup-bg:/);
+  assert.match(css, /--tutorial-cta-demo-bg:/);
+  assert.match(css, /\.tutorial-btn\.tutorial-finish[\s\S]*var\(--tutorial-cta-finish-bg\)/);
+  assert.match(css, /\.tutorial-btn\.tutorial-signup[\s\S]*var\(--tutorial-cta-signup-bg\)/);
+  assert.match(css, /\.tutorial-btn\.tutorial-demo[\s\S]*var\(--tutorial-cta-demo-bg\)/);
+  const tutorialBlock = css.match(/\.tutorial-btn\.tutorial-finish[\s\S]*?\.tutorial-ai-choice-buttons \.tutorial-ai-skip[\s\S]*?\}/);
+  assert.ok(tutorialBlock, 'tutorial button block should exist');
+  assert.doesNotMatch(tutorialBlock[0], /rgba\(33,\s*150,\s*243/);
+  assert.doesNotMatch(tutorialBlock[0], /rgba\(156,\s*39,\s*176/);
+});
+
 test('styles.css tokenises irritability ocean metric animation', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /\.metric-svg--ocean[\s\S]*--ocean-sky-top:/);
