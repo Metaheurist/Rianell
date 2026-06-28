@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +6,14 @@ import { useTheme } from '../../theme/ThemeProvider';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
-type ToastItem = { id: number; message: string; type: ToastType; slideAnim: Animated.Value };
+type ToastItem = {
+  id: number;
+  message: string;
+  type: ToastType;
+  slideAnim: Animated.Value;
+  scaleAnim: Animated.Value;
+  opacityAnim: Animated.Value;
+};
 
 type ToastContextValue = {
   show: (message: string, type?: ToastType, durationMs?: number) => void;
@@ -16,6 +23,19 @@ const ToastContext = createContext<ToastContextValue>({ show: () => {} });
 
 export function useToast() {
   return useContext(ToastContext);
+}
+
+function dismissToast(
+  toast: Pick<ToastItem, 'id' | 'slideAnim' | 'scaleAnim' | 'opacityAnim'>,
+  onDone: () => void,
+) {
+  Animated.parallel([
+    Animated.timing(toast.slideAnim, { toValue: -60, duration: 180, useNativeDriver: true }),
+    Animated.timing(toast.scaleAnim, { toValue: 0.88, duration: 180, useNativeDriver: true }),
+    Animated.timing(toast.opacityAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
+  ]).start(({ finished }) => {
+    if (finished) onDone();
+  });
 }
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -28,13 +48,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     idRef.current += 1;
     const id = idRef.current;
     const slideAnim = new Animated.Value(-60);
+    const scaleAnim = new Animated.Value(0.88);
+    const opacityAnim = new Animated.Value(0);
     void Haptics.notificationAsync(
       type === 'error' ? Haptics.NotificationFeedbackType.Error : Haptics.NotificationFeedbackType.Success
     );
-    setToasts((prev) => [...prev.slice(-2), { id, message, type, slideAnim }]);
-    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 10 }).start();
+    setToasts((prev) => [...prev.slice(-2), { id, message, type, slideAnim, scaleAnim, opacityAnim }]);
+    Animated.parallel([
+      Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, bounciness: 10 }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 120, useNativeDriver: true }),
+      Animated.timing(opacityAnim, { toValue: 1, duration: 160, useNativeDriver: true }),
+    ]).start();
     setTimeout(() => {
-      Animated.timing(slideAnim, { toValue: -60, duration: 220, useNativeDriver: true }).start(() => {
+      dismissToast({ id, slideAnim, scaleAnim, opacityAnim }, () => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
       });
     }, durationMs);
@@ -47,16 +73,20 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       <View pointerEvents="box-none" style={[styles.stack, { top: insets.top + 8 }]}>
         {toasts.map((t) => (
-          <Pressable key={t.id} onPress={() => {
-            Animated.timing(t.slideAnim, { toValue: -60, duration: 180, useNativeDriver: true }).start(() => {
-              setToasts((prev) => prev.filter((x) => x.id !== t.id));
-            });
-          }}>
+          <Pressable
+            key={t.id}
+            onPress={() => {
+              dismissToast(t, () => {
+                setToasts((prev) => prev.filter((x) => x.id !== t.id));
+              });
+            }}
+          >
             <Animated.View
               style={[
                 styles.toast,
                 {
-                  transform: [{ translateY: t.slideAnim }],
+                  opacity: t.opacityAnim,
+                  transform: [{ translateY: t.slideAnim }, { scale: t.scaleAnim }],
                   backgroundColor: theme.color.background === '#070807' ? '#16181aee' : '#ffffffee',
                   borderLeftColor: typeColor(theme, t.type) || theme.color.accent,
                 },
