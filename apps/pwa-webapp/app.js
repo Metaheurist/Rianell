@@ -2046,6 +2046,7 @@ if (typeof window !== 'undefined') {
   window.declineHealthDataConsent = declineHealthDataConsent;
   window.showHealthDataConsentModal = showHealthDataConsentModal;
   window.ensureShellContentVisible = ensureShellContentVisible;
+  window.onFirstRunWizardComplete = onFirstRunWizardComplete;
   window.ensureAppShellDomPlacement = ensureAppShellDomPlacement;
 }
 
@@ -3448,7 +3449,7 @@ function svgIcon(name, className, title) {
     'checkin-pm', 'cloud', 'cloud-up', 'code', 'cycle', 'cycle-follicular', 'cycle-luteal',
     'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
     'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal',
-    'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-heart',
+    'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-globe', 'onboard-heart',
     'onboard-helper', 'onboard-install', 'onboard-mascot', 'onboard-shield', 'onboard-sparkle', 'notice',
     'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring',
     'star', 'stethoscope', 'stress', 'stressor-bolt', 'target', 'trash', 'user', 'zap',
@@ -17278,6 +17279,30 @@ function ensureShellContentVisible() {
   } else if (shell) {
     try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
   }
+}
+
+function onFirstRunWizardComplete() {
+  if (typeof saveSettings === 'function') saveSettings();
+  ensureShellContentVisible();
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.refreshLocaleUI === 'function') {
+    window.RianellPrivacy.refreshLocaleUI();
+  }
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.syncConsentEnforcement === 'function') {
+    window.RianellPrivacy.syncConsentEnforcement('first-run-complete');
+  }
+  if (appSettings && appSettings.aiEnabled !== false && appSettings.aiModelDownloadConsent === 'granted') {
+    setTimeout(function () {
+      if (typeof window.preloadSummaryLLM === 'function') {
+        var chain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
+          ? window.PerformanceUtils.ensureAIEngineLoaded()
+          : Promise.resolve();
+        chain.then(function () { return window.preloadSummaryLLM(); }).catch(function () {});
+      } else if (typeof window.promptAiModelDownloadConsent === 'function') {
+        window.promptAiModelDownloadConsent().catch(function () {});
+      }
+    }, 600);
+  }
+  logBootState('firstRunWizardComplete');
 }
 
 function markShellPainted() {

@@ -57,20 +57,40 @@
   }
 
   function isFirstRunWizardActive() {
+    if (global.RianellGuidedOnboarding &&
+      typeof global.RianellGuidedOnboarding.isActive === 'function' &&
+      global.RianellGuidedOnboarding.isActive()) {
+      return true;
+    }
     return !!(global.RianellFirstRunWizard &&
       typeof global.RianellFirstRunWizard.isActive === 'function' &&
       global.RianellFirstRunWizard.isActive());
   }
 
-  function isOnboardingInteractionTarget(target) {
-    if (!target || !target.closest) return false;
+  var ONBOARDING_INTERACTION_SELECTORS =
+    '#privacyRegionGateOverlay, #guidedOnboardingOverlay, #firstRunWizardOverlay, #firstRunWizardTutorialMount, ' +
+    '#tutorialModalOverlay, #healthDataConsentOverlay, #cookieBanner, #perfBenchmarkOverlay, ' +
+    '#aiModelDownloadOverlay, #aiModelDownloadProgressOverlay, #alertModalOverlay, ' +
+    '#appLockOverlay, #rianellBootRecoveryOverlay, #loadingOverlay, .guided-onboarding-choice, ' +
+    '#guidedOnboardingContinueBtn, #guidedOnboardingBackBtn, #guidedOnboardingDetailsBtn';
+
+  function isOnboardingInteractionTarget(eventOrTarget) {
     if (isFirstRunWizardActive()) return true;
-    return !!target.closest(
-      '#privacyRegionGateOverlay, #guidedOnboardingOverlay, #firstRunWizardOverlay, #firstRunWizardTutorialMount, ' +
-      '#tutorialModalOverlay, #healthDataConsentOverlay, #cookieBanner, #perfBenchmarkOverlay, ' +
-      '#aiModelDownloadOverlay, #aiModelDownloadProgressOverlay, #alertModalOverlay, ' +
-      '#appLockOverlay, #rianellBootRecoveryOverlay, #loadingOverlay'
-    );
+    var target = eventOrTarget && eventOrTarget.target ? eventOrTarget.target : eventOrTarget;
+    if (target && typeof target.closest === 'function') {
+      if (target.closest(ONBOARDING_INTERACTION_SELECTORS)) return true;
+    }
+    if (eventOrTarget && typeof eventOrTarget.composedPath === 'function') {
+      var path = eventOrTarget.composedPath();
+      for (var i = 0; i < path.length; i += 1) {
+        var node = path[i];
+        if (!node || node === document || node === window) continue;
+        if (node.id === 'guidedOnboardingOverlay' || node.id === 'privacyRegionGateOverlay') return true;
+        if (node.classList && node.classList.contains('guided-onboarding-choice')) return true;
+        if (node.id === 'guidedOnboardingContinueBtn' || node.id === 'guidedOnboardingBackBtn') return true;
+      }
+    }
+    return false;
   }
 
   function t(key, params) {
@@ -315,8 +335,11 @@
             gateVisible = true;
           }
         }
-      } else if (global.RianellFirstRunWizard && typeof global.RianellFirstRunWizard.openIfNeeded === 'function') {
-        global.RianellFirstRunWizard.openIfNeeded();
+      } else {
+        hidePrivacyGateOverlay();
+        if (global.RianellFirstRunWizard && typeof global.RianellFirstRunWizard.openIfNeeded === 'function') {
+          global.RianellFirstRunWizard.openIfNeeded();
+        }
       }
     } else if (reason === 'missing-health-consent') {
       if (
@@ -343,7 +366,7 @@
 
   function onBlockedInteraction(event) {
     if (isUnlocked()) return;
-    if (isOnboardingInteractionTarget(event.target)) return;
+    if (isOnboardingInteractionTarget(event)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     syncConsentEnforcement('interaction-blocked');
@@ -360,7 +383,7 @@
     document.addEventListener('keydown', function (event) {
       if (isUnlocked()) return;
       if (event.key === 'Tab' || event.key === 'Escape') return;
-      if (isOnboardingInteractionTarget(event.target)) return;
+      if (isOnboardingInteractionTarget(event)) return;
       if (event.key.length === 1 || event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -377,7 +400,7 @@
           showGate();
           return;
         }
-        if (gate && gateVisible && gate.style.display === 'none') {
+        if (gate && gateVisible && gate.style.display === 'none' && !isFirstRunWizardActive()) {
           gate.style.display = 'flex';
         }
         if (!document.body.classList.contains('consent-locked')) {
@@ -698,5 +721,6 @@
     runDriftCheck: runDriftCheck,
     refreshLocaleUI: refreshLocaleUI,
     acknowledgePolicyUpdate: acknowledgePolicyUpdate,
+    hidePrivacyGateOverlay: hidePrivacyGateOverlay,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
