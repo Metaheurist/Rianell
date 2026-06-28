@@ -66,7 +66,7 @@
     if (!target || !target.closest) return false;
     if (isFirstRunWizardActive()) return true;
     return !!target.closest(
-      '#privacyRegionGateOverlay, #firstRunWizardOverlay, #firstRunWizardTutorialMount, ' +
+      '#privacyRegionGateOverlay, #guidedOnboardingOverlay, #firstRunWizardOverlay, #firstRunWizardTutorialMount, ' +
       '#tutorialModalOverlay, #healthDataConsentOverlay, #cookieBanner, #perfBenchmarkOverlay, ' +
       '#aiModelDownloadOverlay, #aiModelDownloadProgressOverlay, #alertModalOverlay, ' +
       '#appLockOverlay, #rianellBootRecoveryOverlay, #loadingOverlay'
