@@ -6,6 +6,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.8] - 2026-06-28
+
+Light-mode readability, system appearance boot sync, theme-tokenised metric animations, and clean Chromium dev tooling.
+
+### Added
+
+- **Server dev Chromium launcher:** `server/chromium_dev.py` + `server/scripts/chromium-dev.mjs` — isolated Playwright Chromium profile, `/api/reload` stream watcher, and status helpers for local PWA debugging.
+- **PWA boot appearance sync:** Early `index.html` script reads stored appearance prefs and applies `rianell-appearance-*` / `light-mode` classes before the loading shell paints.
+- **Light-mode CSS tokens:** `--text-light-rgb`, `--neutral-card-rgb`, and flipped `--ui-icon-color` so text, icons, and card surfaces stay readable in light mode.
+- **Ocean metric tokens:** Irritability ocean animation uses `--ocean-*` tokens derived from `--primary-color` via `color-mix` (calm, moderate, storm states).
+
+### Changed
+
+- **Alert/confirm modals:** Message text and icons use theme tokens; HTML/icon message classes reset on open.
+- **Guided onboarding:** Auth sign-in/setup card polish, finish flow `finally` closes wizard; privacy gate whitelists recovery and CSS reload overlays.
+- **Dev reload:** PWA skips in-page reload stream when external Chromium watcher sets `__rianellExternalReloadWatcher`.
+- **npm version:** Workspace roots bumped to **2.0.8**.
+
+### Fixed
+
+- **Light mode:** Replaced hardcoded `rgba(224, 242, 241, …)` and `#e0f2f1` with theme tokens across shell, logs, mood, home, and modal surfaces.
+- **System theme on intro:** Guided onboarding and policy modals no longer flash dark chrome on light/system appearance.
+- **Empty states / cards:** Dark card backgrounds corrected for light mode (logs, mood, home welcome, AI ghost card, custom date range).
+
+---
+
 ## [2.0.7] - 2026-06-28
 
 Guided onboarding questionnaire: one friendly multichoice modal (PWA + RN) driven by a shared question script.

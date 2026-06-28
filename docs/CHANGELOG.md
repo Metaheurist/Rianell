@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.7** - Guided onboarding questionnaire (friendly multichoice modal, PWA + RN parity).
+**Latest: v2.0.8** - Light-mode readability, system appearance boot sync, ocean metric tokens, clean Chromium dev launcher.
+
+### v2.0.8 - 2026-06-28 - Light mode, appearance sync, dev Chromium
+
+- **PWA light mode:** Tokenised `--text-light-rgb`, `--neutral-card-rgb`, icon colors; fixed unreadable modals, empty states, and card surfaces.
+- **Boot appearance:** `index.html` syncs system/stored appearance before shell paint; alert/confirm modals use theme tokens.
+- **Ocean metric:** Irritability animation uses `--ocean-*` tokens from `--primary-color` (calm/moderate/storm).
+- **Server dev:** `chromium_dev.py` + `chromium-dev.mjs` — clean Chromium profile, reload watcher, status API.
+- **Onboarding:** Auth card polish; privacy gate whitelists recovery/CSS reload overlays.
+- **npm:** Workspace roots at **2.0.8**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.8.
 
 ### v2.0.7 - 2026-06-28 - Guided onboarding questionnaire
 
