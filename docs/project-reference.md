@@ -4,6 +4,16 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.6 documentation sync (Wellness sliders, onboarding, and goals prompt)
+
+- **Sliders (shared + PWA):** `packages/shared/src/metrics/sliderWellness.mjs` — unified 0 bad / 10 good UX; symptom metrics invert on persist.
+- **Vitals drums (PWA):** `modules/drum-picker-scroll.js` — scroll + snap for BP/BPM and advanced vitals pickers.
+- **Metric widgets (PWA):** Irritability animated ocean; weather-sensitivity lightning; mood face direction fix (`log-metric-widgets.js`).
+- **Goals prompt (PWA):** `.targets-button-top--prompt` glow when `hasActiveGoals()` is false; respects AI feature gate and reduced motion.
+- **Onboarding (shared + PWA + RN):** Unified steps 1–14; tutorial arrow nav; first-session logging nag suppressed via `firstSessionPrompt.mjs`.
+- **i18n:** “Ability to do Daily activities” rename; `common.goals.setPrompt`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.6.
+
 ### v2.0.5 documentation sync (Vitals layout and metric animation polish)
 
 - **Basic vitals (PWA):** `bp-input-widget.js` v2 - systolic mmHg + BPM drums; hidden `#bpm` in widget; top-level weight/BPM inputs removed; body weight in Advanced vitals only.
