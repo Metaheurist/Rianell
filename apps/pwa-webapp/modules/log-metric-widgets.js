@@ -15,13 +15,13 @@
   var HIGHER_IS_BETTER = { sleep: 1, mobility: 1, dailyFunction: 1, mood: 1 };
 
   function wellnessFromRaw(id, raw) {
-    var r = clamp(parseInt(raw, 10) || 0, 0, 10);
-    return HIGHER_IS_BETTER[id] ? r : (10 - r);
+    var r = clamp(parseInt(raw, 10) || 5, 1, 10);
+    return HIGHER_IS_BETTER[id] ? r : (11 - r);
   }
 
   function rawFromWellness(id, wellness) {
-    var w = clamp(parseInt(wellness, 10) || 0, 0, 10);
-    return HIGHER_IS_BETTER[id] ? w : (10 - w);
+    var w = clamp(parseInt(wellness, 10) || 5, 1, 10);
+    return HIGHER_IS_BETTER[id] ? w : (11 - w);
   }
 
   var VISUAL = {
@@ -57,7 +57,7 @@
   function classifyZone(id, wellnessValue) {
     var v = parseInt(wellnessValue, 10);
     if (isNaN(v)) v = 5;
-    v = clamp(v, 0, 10);
+    v = clamp(v, 1, 10);
     if (v >= 8) return { id: 'good', color: '#7bdf8c', label: t('common.good', 'Good') };
     if (v >= 4) return { id: 'moderate', color: '#ffb74d', label: t('wizard.lifestyle.steps.moderate', 'Moderate') };
     return { id: 'bad', color: '#ff8a65', label: t('common.bad', 'Bad') };
@@ -431,7 +431,7 @@
     if (!widget) return;
     var wellness = parseInt(slider.value, 10);
     if (isNaN(wellness)) wellness = 5;
-    wellness = clamp(wellness, 0, 10);
+    wellness = clamp(wellness, 1, 10);
     var raw = rawFromWellness(slider.id, wellness);
     var zone = classifyZone(slider.id, wellness);
     widget.setAttribute('data-metric-zone', zone.id);
@@ -445,7 +445,7 @@
     }
     var badge = widget.querySelector('.metric-zone-badge');
     if (badge) badge.textContent = zone.label;
-    var pct = (wellness / 10) * 100;
+    var pct = ((wellness - 1) / 9) * 100;
     slider.style.setProperty('--metric-fill-pct', pct.toFixed(1) + '%');
     slider.style.setProperty('--metric-fill-color', zone.color);
     applyVisualState(widget, slider.id, raw);
