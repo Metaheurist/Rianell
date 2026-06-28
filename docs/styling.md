@@ -9,6 +9,13 @@ This document describes how the legacy web app’s visual layer is organised: **
 - **Charts:** Do **not** mirror time-series axes; wrap embedded LTR user content (notes, numbers) in **bidi isolates** when displayed inside RTL chrome.
 - **RN:** `I18nManager.allowRTL(true)` and **`forceRTL(isRtlLocale(locale))`** on locale change in `App.tsx`.
 
+## v2.0.9 motion polish (RN + PWA)
+
+- **RN:** Spring press feedback on primary buttons; toast scale + opacity; empty/welcome card icon scale-pop; staggered AI stat rows and insight list; mood ring SVG draw; log wizard direction-aware step slide; spring settings chapter expand. All loops respect `useReduceMotionFlag`.
+- **PWA:** Tab translate distance 38px with `--ease-out-expo`; AI summary/advice/list `:nth-child` stagger (55ms steps); `aiSlideInFade` 0.42s; shimmer `ease-in-out`; boot skeleton bar delays; active bottom-nav icon `translateY(-1px)` lift.
+- **Tokens:** Motion scale unchanged (`--dur-*`, `--ease-spring`, `--ease-out-expo` in `css/tokens.css` and `@rianell/tokens`).
+- **Reduced motion:** Existing `@media (prefers-reduced-motion: reduce)` and `.reduce-motion` guards cover new PWA animations.
+
 ## v1.47.0 UI feedback and motion
 
 - **`ui-feedback.js`:** Shared **`showToast`**, haptics, ripple, scroll-reveal, offline banner, theme crossfade helpers, and modal open/close utilities. **`app.js`** wraps success paths with **`notifySuccess`** / **`notifyUser`**.

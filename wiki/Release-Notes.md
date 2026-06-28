@@ -1,18 +1,30 @@
 # Release Notes
 
-## Latest release (v2.0.7)
+## Latest release (v2.0.9)
 
 **Date:** 2026-06-28
 
 ### Highlights
 
-- **Guided onboarding questionnaire:** One friendly modal with multichoice cards (coach tone, helper level, consents, reminders) on web and native — driven by shared `guidedQuestionnaire.mjs`.
-- **Child-readable UX:** Custom mascot SVG + animations; explicit consent cards with “See details”; tutorial opt-in from finish or Settings replay.
-- **Settings link-back:** “You can change this anytime in Settings” on preference cards.
+- **Smoother animations:** Spring button presses, staggered AI insights, mood ring draw, and log wizard step slides on mobile; tab and AI card animations refined on web.
+- **Wellness sliders:** All health metric sliders now use a **1–10** range (1 = bad, 10 = good) with corrected save/load for symptom fields.
+- **Boot experience:** Performance benchmark modal no longer pops up automatically on first launch.
 
 ---
 
-## Previous (v2.0.6)
+## Previous (v2.0.8)
+
+**Date:** 2026-06-28
+
+### Highlights
+
+- **Light mode readability:** Theme tokens for text, cards, and icons; system appearance applied before first paint.
+- **Ocean metric animation:** Irritability widget uses theme-derived ocean tokens.
+- **Dev Chromium:** Clean profile launcher with reload watcher for local PWA debugging.
+
+---
+
+## Previous (v2.0.7)
 
 **Date:** 2026-06-27
 
