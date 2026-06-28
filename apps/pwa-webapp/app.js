@@ -1269,10 +1269,6 @@ function openPerfBenchmarkModal(options) {
 }
 
 function openBenchmarkDetails() {
-  if (!isBenchmarkDetailsDesktopViewport()) {
-    showAlertModal(tUi('common.detailed.benchmark.results.are.only.avai'), tUi('settings.performance.title'));
-    return;
-  }
   const cached = (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getCachedResult === 'function')
     ? window.DeviceBenchmark.getCachedResult()
     : null;
@@ -3068,7 +3064,7 @@ function openModalTestOverlay() {
       hintKey: 'godMode.hint.clearBenchmarkCache',
       items: [
         { labelKey: 'godMode.clearBenchmarkCache', godModeId: 'developer-clear-benchmark-cache', action: run(clearBenchmarkCacheAndNotify) },
-        { labelKey: 'godMode.viewBenchmarkDetails', godModeId: 'developer-view-benchmark', action: run(openBenchmarkDetails), desktopOnly: true }
+        { labelKey: 'godMode.viewBenchmarkDetails', godModeId: 'developer-view-benchmark', action: run(openBenchmarkDetails) }
       ]
     },
     {
@@ -4807,9 +4803,11 @@ class FormValidator {
       this.rules.set(field, {
         required: true,
         validate: (value) => {
-          const val = parseInt(value);
-          if (isNaN(val)) return `${this.getFieldDisplayName(field)} level is required`;
-          if (val < 1 || val > 10) return `${this.getFieldDisplayName(field)} level must be between 1 and 10`;
+          const raw = typeof metricRawFromWellness === 'function'
+            ? metricRawFromWellness(field, value)
+            : parseInt(value, 10);
+          if (!Number.isFinite(raw)) return `${this.getFieldDisplayName(field)} level is required`;
+          if (raw < 1 || raw > 10) return `${this.getFieldDisplayName(field)} level must be between 1 and 10`;
           return null;
         }
       });
@@ -5554,15 +5552,15 @@ const SLIDER_HIGHER_IS_BETTER = { sleep: true, mobility: true, dailyFunction: tr
 function metricWellnessFromRaw(field, raw) {
   const S = typeof window !== 'undefined' ? window.RianellShared : null;
   if (S && typeof S.rawToWellnessSlider === 'function') return S.rawToWellnessSlider(field, raw);
-  const r = Math.max(0, Math.min(10, parseInt(raw, 10) || 0));
-  return SLIDER_HIGHER_IS_BETTER[field] ? r : (10 - r);
+  const r = Math.max(1, Math.min(10, parseInt(raw, 10) || 5));
+  return SLIDER_HIGHER_IS_BETTER[field] ? r : (11 - r);
 }
 
 function metricRawFromWellness(field, wellness) {
   const S = typeof window !== 'undefined' ? window.RianellShared : null;
   if (S && typeof S.wellnessSliderToRaw === 'function') return S.wellnessSliderToRaw(field, wellness);
-  const w = Math.max(0, Math.min(10, parseInt(wellness, 10) || 0));
-  return SLIDER_HIGHER_IS_BETTER[field] ? w : (10 - w);
+  const w = Math.max(1, Math.min(10, parseInt(wellness, 10) || 5));
+  return SLIDER_HIGHER_IS_BETTER[field] ? w : (11 - w);
 }
 
 function editSliderFieldId(sliderId) {
@@ -5587,8 +5585,8 @@ function setMetricSliderFromRaw(elementId, fieldId, raw) {
 }
 
 function updateSliderColor(slider) {
-  const wellness = Math.max(0, Math.min(10, parseInt(slider.value, 10) || 0));
-  const percentage = (wellness / 10) * 100;
+  const wellness = Math.max(1, Math.min(10, parseInt(slider.value, 10) || 5));
+  const percentage = ((wellness - 1) / 9) * 100;
 
   let fillColor;
   if (wellness >= 8) {
@@ -14435,8 +14433,8 @@ function saveInlineEdit(logDate) {
 function updateEditSliderColor(sliderId) {
   const slider = document.getElementById(sliderId);
   if (!slider) return;
-  const wellness = Math.max(0, Math.min(10, parseInt(slider.value, 10) || 0));
-  const percentage = (wellness / 10) * 100;
+  const wellness = Math.max(1, Math.min(10, parseInt(slider.value, 10) || 5));
+  const percentage = ((wellness - 1) / 9) * 100;
   let fillColor = '#FF9800';
   if (wellness >= 8) fillColor = '#4CAF50';
   else if (wellness <= 3) fillColor = '#F44336';
@@ -14650,35 +14648,35 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Fatigue')} Fatigue</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-fatigue inline-edit-field" value="${log.fatigue}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-fatigue inline-edit-field" value="${log.fatigue}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.fatigue}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('lock', 'metric-svg-icon', 'Stiffness')} Stiffness</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-stiffness inline-edit-field" value="${log.stiffness}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-stiffness inline-edit-field" value="${log.stiffness}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.stiffness}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Back pain')} Back Pain</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-backPain inline-edit-field" value="${log.backPain}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-backPain inline-edit-field" value="${log.backPain}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.backPain}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Joint pain')} Joint Pain</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-jointPain inline-edit-field" value="${log.jointPain}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-jointPain inline-edit-field" value="${log.jointPain}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.jointPain}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Swelling')} Swelling</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-swelling inline-edit-field" value="${log.swelling}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-swelling inline-edit-field" value="${log.swelling}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.swelling}/10</span>`
           }
         </div>
@@ -14688,21 +14686,21 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Sleep')} Sleep</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${log.sleep}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${log.sleep}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.sleep}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Mood')} Mood</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${log.mood}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${log.mood}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.mood}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Irritability')} Irritability</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${log.irritability}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${log.irritability}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.irritability}/10</span>`
           }
         </div>
@@ -14712,14 +14710,14 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Mobility')} Mobility</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mobility inline-edit-field" value="${log.mobility}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mobility inline-edit-field" value="${log.mobility}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.mobility}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('document', 'metric-svg-icon', 'Ability to do Daily activities')} ${typeof tUi === 'function' ? tUi('common.daily.activities') : 'Ability to do Daily activities'}</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${log.dailyFunction}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${log.dailyFunction}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.dailyFunction}/10</span>`
           }
         </div>
@@ -14736,7 +14734,7 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Weather sensitivity')} Weather Sensitivity</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${log.weatherSensitivity || ''}" min="0" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${log.weatherSensitivity || ''}" min="1" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '-'}</span>`
           }
         </div>
@@ -26091,19 +26089,7 @@ function runRianellBootAfterDomReady() {
       } else {
         markShellPainted();
       }
-      if (meta && (meta.cached || meta.heuristic)) {
-        startAppAfterPrivacyGate();
-        return;
-      }
-      if (openPerfBenchmarkModal({
-        mode: 'firstRun',
-        result: result || { platformType: platformType, tier: tier },
-        onContinue: function () {
-          startAppAfterPrivacyGate();
-        }
-      }) === false) {
-        startAppAfterPrivacyGate();
-      }
+      startAppAfterPrivacyGate();
     }
     if (meta && (meta.cached || meta.heuristic)) {
       revealAndStart();
