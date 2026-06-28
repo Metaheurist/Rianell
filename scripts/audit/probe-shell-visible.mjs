@@ -31,27 +31,45 @@ async function clickIfVisible(sel) {
   return false;
 }
 
-async function advanceFirstRunWizard(maxSteps = 12) {
-  for (let i = 0; i < maxSteps; i++) {
-    const wizardOpen = await page.locator('#firstRunWizardOverlay').isVisible().catch(() => false);
-    if (!wizardOpen) break;
+async function clickGuidedChoice() {
+  return page.evaluate(() => {
+    const preferred = ['confirm', 'accept', 'yes', 'skip', 'start', 'notNow', 'later'];
+    for (const id of preferred) {
+      const btn = document.querySelector('.guided-onboarding-choice[data-choice-id="' + id + '"]');
+      if (btn) {
+        btn.click();
+        return true;
+      }
+    }
+    const first = document.querySelector('.guided-onboarding-choice');
+    if (first) {
+      first.click();
+      return true;
+    }
+    return false;
+  }).catch(() => false);
+}
 
-    if (await clickIfVisible('.tutorial-ai-enable')) continue;
-    if (await clickIfVisible('.tutorial-ai-skip')) continue;
-    if (await clickIfVisible('#tutorialFinishBtn')) continue;
-    if (await clickIfVisible('#tutorialArrowRight')) continue;
-    if (await clickIfVisible('#firstRunWizardContinueBtn')) continue;
-    if (await clickIfVisible('#firstRunWizardBackBtn')) continue;
+async function advanceGuidedOnboarding(maxSteps = 16) {
+  for (let i = 0; i < maxSteps; i++) {
+    const open = await page.locator('#guidedOnboardingOverlay').isVisible().catch(() => false);
+    if (!open) break;
+
+    if (await clickIfVisible('#guidedOnboardingContinueBtn')) continue;
+    if (await clickGuidedChoice()) {
+      await page.waitForTimeout(800);
+      continue;
+    }
     break;
   }
 }
 
-await advanceFirstRunWizard();
+await advanceGuidedOnboarding();
 
-// Legacy fallbacks if wizard not shown (returning-user migration paths in tests)
+// Legacy fallbacks if guided onboarding not shown (returning-user migration paths in tests)
 await clickIfVisible('#privacyRegionGateConfirm');
 await clickIfVisible('#healthDataConsentAcceptBtn');
-await clickIfVisible('#firstRunWizardContinueBtn');
+await clickIfVisible('#guidedOnboardingContinueBtn');
 await clickIfVisible('#aiModelDownloadOverlay .modal-cancel-btn');
 await clickIfVisible('.cookie-banner-accept');
 await clickIfVisible('#perfBenchmarkContinueBtn');
@@ -66,7 +84,7 @@ const snap = await page.evaluate(() => {
     loaded: document.body.classList.contains('loaded'),
     init: !!window.__rianellAppInitStarted,
     privacyGate: document.body.classList.contains('privacy-gate-active'),
-    wizardActive: document.body.classList.contains('first-run-wizard-active'),
+    guidedActive: document.body.classList.contains('guided-onboarding-active'),
     aiBlocking: document.body.classList.contains('ai-model-download-blocking'),
     shellVis: style ? style.visibility : null,
     shellDisplay: style ? style.display : null,
@@ -79,7 +97,7 @@ const snap = await page.evaluate(() => {
   };
 });
 
-const ok = snap.loaded && snap.init && snap.shellVis === 'visible' && snap.greeting.length > 0 && !snap.wizardActive;
+const ok = snap.loaded && snap.init && snap.shellVis === 'visible' && snap.greeting.length > 0 && !snap.guidedActive;
 console.log(JSON.stringify({ ok, snap, errors: errors.slice(0, 5) }, null, 2));
 await browser.close();
 process.exit(ok ? 0 : 1);
