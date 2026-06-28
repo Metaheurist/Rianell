@@ -117,7 +117,7 @@
   function illustrationIcon(name) {
     var map = {
       'mascot-wave': 'onboard-mascot',
-      globe: 'globe',
+      globe: 'onboard-globe',
       coach: 'onboard-coach',
       helper: 'onboard-helper',
       shield: 'onboard-shield',
@@ -245,7 +245,11 @@
             }
           };
         }
-        if (continueBtn) continueBtn.textContent = t('gate.confirm');
+        if (continueBtn) {
+          continueBtn.textContent = t('gate.confirm');
+          continueBtn.style.display = 'inline-block';
+        }
+        if (backBtn) backBtn.style.visibility = 'visible';
       } else {
         body.innerHTML = illus +
           '<p class="guided-onboarding-lead">' + escapeHtml(t('onboarding.questionnaire.region.suggested', { region: regionLabel(selectedRegion) })) + '</p>' +
@@ -267,7 +271,10 @@
         '<label for="guidedOnboardingReminderTime" class="privacy-region-gate-label">' + escapeHtml(t('onboarding.questionnaire.dailyNudge.timeLabel')) + '</label>' +
         '<input type="time" id="guidedOnboardingReminderTime" class="first-run-wizard-input" value="' + escapeHtml(reminderTime) + '">';
       if (footer) footer.style.display = 'flex';
-      if (continueBtn) continueBtn.textContent = t('onboarding.questionnaire.continue');
+      if (continueBtn) {
+        continueBtn.textContent = t('onboarding.questionnaire.continue');
+        continueBtn.style.display = 'inline-block';
+      }
       if (backBtn) backBtn.style.visibility = 'visible';
       if (detailsBtn) detailsBtn.style.display = 'none';
       return;
@@ -312,16 +319,40 @@
   }
 
   function bindChoiceButtons(body, card) {
-    var buttons = body.querySelectorAll('.guided-onboarding-choice');
-    buttons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var choiceId = btn.getAttribute('data-choice-id');
-        if (!choiceId) return;
-        buttons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
-        btn.setAttribute('aria-pressed', 'true');
-        handleChoice(card, choiceId);
+    /* Choice clicks handled by bindOverlayInteractionsOnce delegation. */
+    void body;
+    void card;
+  }
+
+  function bindOverlayInteractionsOnce() {
+    var overlay = overlayEl();
+    if (!overlay || overlay.dataset.interactionsBound === '1') return;
+    overlay.dataset.interactionsBound = '1';
+    overlay.addEventListener('click', function (e) {
+      if (!active) return;
+      var choice = e.target && e.target.closest ? e.target.closest('.guided-onboarding-choice') : null;
+      if (!choice) return;
+      var card = cards[cardIndex];
+      if (!card) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var choiceId = choice.getAttribute('data-choice-id');
+      if (!choiceId) return;
+      overlay.querySelectorAll('.guided-onboarding-choice').forEach(function (b) {
+        b.setAttribute('aria-pressed', 'false');
       });
+      choice.setAttribute('aria-pressed', 'true');
+      handleChoice(card, choiceId);
     });
+  }
+
+  function hidePrivacyGateIfOpen() {
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.hidePrivacyGateOverlay === 'function') {
+      global.RianellPrivacy.hidePrivacyGateOverlay();
+      return;
+    }
+    var gate = document.getElementById('privacyRegionGateOverlay');
+    if (gate) gate.style.display = 'none';
   }
 
   function handleChoice(card, choiceId) {
@@ -332,7 +363,11 @@
         return;
       }
       if (choiceId === 'confirm') {
-        applyAndAdvance(card.id, 'confirm', { regionId: selectedRegion });
+        var pack = S.getPolicyPack ? S.getPolicyPack() : null;
+        applyAndAdvance(card.id, 'confirm', {
+          regionId: selectedRegion,
+          policyPackId: pack && pack.policyPackId ? pack.policyPackId : 'v1.0.0',
+        });
         return;
       }
     }
@@ -364,6 +399,30 @@
     applyAndAdvance(card.id, choiceId, {});
   }
 
+  function refreshLocaleAfterPrefs() {
+    if (global.RianellPrivacy && typeof global.RianellPrivacy.refreshLocaleUI === 'function') {
+      global.RianellPrivacy.refreshLocaleUI();
+    } else if (I.setLocale && typeof I.setLocale === 'function') {
+      var prefs = readPrefs();
+      I.setLocale(prefs.uiLocale || 'en-GB', prefs);
+    }
+  }
+
+  function advanceAfterAnswer(answeredCardId) {
+    cards = rebuildCards();
+    if (progressSession && typeof progressSession.refresh === 'function') {
+      progressSession.refresh(readPrefs(), platformContext());
+    }
+    if (typeof S.resolveNextGuidedCardIndex === 'function') {
+      cardIndex = S.resolveNextGuidedCardIndex(cards, answeredCardId);
+    } else {
+      cardIndex = Math.min(cardIndex + 1, Math.max(cards.length - 1, 0));
+    }
+    document.body.dataset.guidedHealthDeclined = '';
+    reminderTimePickerOpen = false;
+    renderCurrentCard();
+  }
+
   function applyAndAdvance(cardId, choiceId, extra) {
     var prefs = readPrefs();
     if (typeof S.applyQuestionnaireAnswer === 'function') {
@@ -372,11 +431,12 @@
     writePrefs(prefs);
     if (cardId === 'region') {
       regionPickerOpen = false;
+      refreshLocaleAfterPrefs();
       if (global.RianellPrivacy && typeof global.RianellPrivacy.upsertPrivacyProfile === 'function') {
         try { global.RianellPrivacy.upsertPrivacyProfile(prefs); } catch (e) {}
       }
-      if (global.RianellSmartlook && typeof global.RianellSmartlook.apply === 'function' && cardId === 'sessionRecording') {
-        global.RianellSmartlook.apply(prefs);
+      if (global.RianellPrivacy && typeof global.RianellPrivacy.syncConsentEnforcement === 'function') {
+        global.RianellPrivacy.syncConsentEnforcement('guided-region-confirmed');
       }
     }
     if (cardId === 'sessionRecording' && global.RianellSmartlook && typeof global.RianellSmartlook.apply === 'function') {
@@ -385,11 +445,7 @@
     if (cardId === 'cookies' && choiceId === 'accept') {
       try { localStorage.setItem('rianellCookieConsent', '1'); } catch (e2) {}
     }
-    cards = rebuildCards();
-    cardIndex = Math.min(cardIndex + 1, Math.max(cards.length - 1, 0));
-    document.body.dataset.guidedHealthDeclined = '';
-    reminderTimePickerOpen = false;
-    renderCurrentCard();
+    advanceAfterAnswer(cardId);
   }
 
   function finishOnboarding(choiceId) {
@@ -403,6 +459,7 @@
       global.openTutorialModal();
     }
     if (typeof global.onFirstRunWizardComplete === 'function') global.onFirstRunWizardComplete();
+    else if (typeof global.ensureShellContentVisible === 'function') global.ensureShellContentVisible();
     closeWizard(true);
   }
 
@@ -417,7 +474,11 @@
     if (card.id === 'region' && regionPickerOpen) {
       var sel = document.getElementById('guidedOnboardingRegionSelect');
       selectedRegion = sel ? sel.value : selectedRegion;
-      applyAndAdvance('region', 'confirm', { regionId: selectedRegion });
+      var pack = S.getPolicyPack ? S.getPolicyPack() : null;
+      applyAndAdvance('region', 'confirm', {
+        regionId: selectedRegion,
+        policyPackId: pack && pack.policyPackId ? pack.policyPackId : 'v1.0.0',
+      });
       return;
     }
     if (card.id === 'dailyNudge' && reminderTimePickerOpen) {
@@ -427,9 +488,9 @@
       return;
     }
     if (card.id === 'healthConsent' && document.body.dataset.guidedHealthDeclined === '1') {
-      cardIndex += 1;
       document.body.dataset.guidedHealthDeclined = '';
-      renderCurrentCard();
+      advanceAfterAnswer('healthConsent');
+      return;
     }
   }
 
@@ -467,6 +528,8 @@
     regionPickerOpen = false;
     reminderTimePickerOpen = false;
     selectedRegion = suggestRegion().hint;
+    hidePrivacyGateIfOpen();
+    bindOverlayInteractionsOnce();
     cards = rebuildCards();
     if (typeof S.createGuidedOnboardingProgressSession === 'function') {
       progressSession = S.createGuidedOnboardingProgressSession(readPrefs(), platformContext());
@@ -549,4 +612,5 @@
 
   global.RianellGuidedOnboarding = api;
   global.RianellFirstRunWizard = api;
+  bindOverlayInteractionsOnce();
 })(typeof window !== 'undefined' ? window : globalThis);
