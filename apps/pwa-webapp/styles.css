@@ -23251,6 +23251,7 @@ body.first-run-wizard-active #appShell {
   align-items: flex-start;
   gap: 4px;
   width: 100%;
+  margin: 0;
   padding: 14px 16px;
   border: 2px solid color-mix(in srgb, var(--primary-color) 32%, transparent);
   border-radius: 14px;
@@ -23259,6 +23260,8 @@ body.first-run-wizard-active #appShell {
   cursor: pointer;
   text-align: left;
   font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
   min-height: 48px;
   box-shadow: none;
@@ -23267,6 +23270,16 @@ body.first-run-wizard-active #appShell {
   z-index: 1;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  overflow: visible;
+  animation: none;
+}
+.guided-onboarding-choice::before {
+  display: none !important;
+}
+.guided-onboarding-choice:hover {
+  transform: none;
+  box-shadow: none;
+  color: inherit;
 }
 .guided-onboarding-choice[data-choice-id="confirm"],
 .guided-onboarding-choice[data-choice-id="accept"],
