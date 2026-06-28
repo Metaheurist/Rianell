@@ -70,7 +70,7 @@ test('privacy-region.js whitelists boot/onboarding overlays for interaction gate
 test('guided onboarding clears modal-active using shared overlay detector', () => {
   const guidedJs = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
   assert.match(guidedJs, /isAnyModalOverlayOpen/);
-  assert.match(guidedJs, /bindOverlayInteractionsOnce/);
+  assert.match(guidedJs, /bindChoiceButtons/);
   assert.match(guidedJs, /hidePrivacyGateIfOpen/);
 });
 
@@ -110,6 +110,16 @@ test('guided onboarding advances cards with resolveNextGuidedCardIndex', () => {
   assert.match(guidedJs, /advanceAfterAnswer/);
   assert.match(guidedJs, /resolveNextGuidedCardIndex/);
   assert.match(guidedJs, /onFirstRunWizardComplete/);
+  assert.match(guidedJs, /bindChoiceButtons/);
+  assert.match(guidedJs, /\.guided-onboarding-choice/);
+});
+
+test('guided onboarding choice buttons bind directly (modal-content stops propagation)', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.match(html, /guided-onboarding-content[^>]*stopPropagation/);
+  const guidedJs = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
+  assert.doesNotMatch(guidedJs, /bindOverlayInteractionsOnce/);
+  assert.match(guidedJs, /querySelectorAll\('\.guided-onboarding-choice'\)/);
 });
 
 test('app.js wires onFirstRunWizardComplete after guided onboarding', () => {

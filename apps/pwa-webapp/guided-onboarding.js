@@ -319,30 +319,19 @@
   }
 
   function bindChoiceButtons(body, card) {
-    /* Choice clicks handled by bindOverlayInteractionsOnce delegation. */
-    void body;
-    void card;
-  }
-
-  function bindOverlayInteractionsOnce() {
-    var overlay = overlayEl();
-    if (!overlay || overlay.dataset.interactionsBound === '1') return;
-    overlay.dataset.interactionsBound = '1';
-    overlay.addEventListener('click', function (e) {
-      if (!active) return;
-      var choice = e.target && e.target.closest ? e.target.closest('.guided-onboarding-choice') : null;
-      if (!choice) return;
-      var card = cards[cardIndex];
-      if (!card) return;
-      e.preventDefault();
-      e.stopPropagation();
-      var choiceId = choice.getAttribute('data-choice-id');
-      if (!choiceId) return;
-      overlay.querySelectorAll('.guided-onboarding-choice').forEach(function (b) {
-        b.setAttribute('aria-pressed', 'false');
+    if (!body || !card) return;
+    var buttons = body.querySelectorAll('.guided-onboarding-choice');
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        if (!active) return;
+        e.preventDefault();
+        e.stopPropagation();
+        var choiceId = btn.getAttribute('data-choice-id');
+        if (!choiceId) return;
+        buttons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        handleChoice(card, choiceId);
       });
-      choice.setAttribute('aria-pressed', 'true');
-      handleChoice(card, choiceId);
     });
   }
 
@@ -529,7 +518,6 @@
     reminderTimePickerOpen = false;
     selectedRegion = suggestRegion().hint;
     hidePrivacyGateIfOpen();
-    bindOverlayInteractionsOnce();
     cards = rebuildCards();
     if (typeof S.createGuidedOnboardingProgressSession === 'function') {
       progressSession = S.createGuidedOnboardingProgressSession(readPrefs(), platformContext());
@@ -612,5 +600,4 @@
 
   global.RianellGuidedOnboarding = api;
   global.RianellFirstRunWizard = api;
-  bindOverlayInteractionsOnce();
 })(typeof window !== 'undefined' ? window : globalThis);
