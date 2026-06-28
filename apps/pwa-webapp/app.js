@@ -3639,6 +3639,14 @@ function initRianellPwaServiceWorker() {
           },
           function () {
             window.__rianellPwaUpdateModalShown = false;
+            try {
+              var _cnt = parseInt(sessionStorage.getItem('rianellUpdateDismissCount') || '0', 10) + 1;
+              sessionStorage.setItem('rianellUpdateDismissCount', String(_cnt));
+              if (_cnt >= 3 && reg.waiting) {
+                window.__rianellPendingSwReload = true;
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+              }
+            } catch (_) {}
           },
           { confirmText: 'Update', cancelText: 'Later' }
         );
@@ -15448,7 +15456,13 @@ async function chart(id, label, dataField, color) {
   chartData.sort((a, b) => a.x - b.x);
   
   // Reduce data points by device opts and viewport for better performance
-  const maxPoints = Math.min(deviceOpts.maxChartPoints, isSmallScreen ? 30 : isMobile ? 50 : deviceOpts.maxChartPoints);
+  // On long sessions, gradually reduce to prevent GPU memory accumulation on high-tier devices.
+  const _sessionElapsedMs = typeof performance !== 'undefined' ? performance.now() : 0;
+  const _sessionCapFactor = _sessionElapsedMs > 3600000 ? 0.4 : _sessionElapsedMs > 1800000 ? 0.6 : 1.0;
+  const maxPoints = Math.min(
+    Math.ceil(deviceOpts.maxChartPoints * _sessionCapFactor),
+    isSmallScreen ? 30 : isMobile ? 50 : Math.ceil(deviceOpts.maxChartPoints * _sessionCapFactor)
+  );
   let optimizedChartData = chartData;
   if (chartData.length > maxPoints) {
     const step = Math.ceil(chartData.length / maxPoints);
@@ -17219,6 +17233,7 @@ function logBootState(phase, extra) {
   }
   if (typeof window !== 'undefined') {
     window.__rianellBootLog = window.__rianellBootLog || [];
+    if (window.__rianellBootLog.length >= 100) window.__rianellBootLog.shift();
     window.__rianellBootLog.push(Object.assign({ t: Date.now() }, snap));
   }
   if (typeof console !== 'undefined' && console.log) {

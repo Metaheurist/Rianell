@@ -247,6 +247,8 @@
   var gateUiBound = false;
   var gateOverlayTemplate = null;
   var consentEnforcementStarted = false;
+  var _privacyConsentObserver = null;
+  var _privacyConsentIntervalId = null;
 
   function platformContext() {
     var standalone = false;
@@ -305,6 +307,14 @@
         el.removeAttribute('aria-hidden');
       }
     });
+    if (_privacyConsentObserver) {
+      try { _privacyConsentObserver.disconnect(); } catch (_) {}
+      _privacyConsentObserver = null;
+    }
+    if (_privacyConsentIntervalId != null) {
+      clearInterval(_privacyConsentIntervalId);
+      _privacyConsentIntervalId = null;
+    }
   }
 
   function ensureGateOverlayElement() {
@@ -411,10 +421,11 @@
           lockAppChrome();
         }
       });
+      _privacyConsentObserver = observer;
       observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style', 'inert'] });
     }
 
-    window.setInterval(function () {
+    _privacyConsentIntervalId = window.setInterval(function () {
       if (!isUnlocked()) syncConsentEnforcement('interval');
     }, 2000);
 
@@ -438,6 +449,7 @@
     }
     if (typeof global !== 'undefined') {
       global.__rianellBootLog = global.__rianellBootLog || [];
+      if (global.__rianellBootLog.length >= 100) global.__rianellBootLog.shift();
       global.__rianellBootLog.push({
         t: Date.now(),
         phase: phase,
