@@ -176,9 +176,14 @@ function parseCSV(csvContent) {
   }
   
   const headers = lines[0].split(',').map(h => h.trim());
+  const dailyFunctionHeaderAliases = [
+    'Ability to do Daily activities',
+    'Daily Function',
+    'Daily Activities',
+  ];
   const expectedHeaders = [
     'Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 
-    'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 
+    'Mobility', dailyFunctionHeaderAliases[0], 'Swelling', 'Flare', 'Mood', 'Irritability', 
     'Weather Sensitivity', 'Steps', 'Hydration', 'Energy Clarity', 'Stressors', 
     'Symptoms', 'Pain Location', 'Food', 'Exercise', 'Notes'
   ];
@@ -186,7 +191,10 @@ function parseCSV(csvContent) {
   // Flexible header matching
   const headerMap = {};
   expectedHeaders.forEach(expected => {
-    const found = headers.find(h => h.toLowerCase() === expected.toLowerCase());
+    const aliases = dailyFunctionHeaderAliases.includes(expected)
+      ? dailyFunctionHeaderAliases
+      : [expected];
+    const found = headers.find(h => aliases.some(a => h.toLowerCase() === a.toLowerCase()));
     if (found) {
       headerMap[expected] = headers.indexOf(found);
     }
@@ -232,7 +240,7 @@ function parseCSV(csvContent) {
         const fieldName = header.toLowerCase().replace(/\s+/g, '');
         if (fieldName === 'backpain') {
           log.backPain = value;
-        } else if (fieldName === 'dailyfunction') {
+        } else if (fieldName === 'dailyfunction' || fieldName === 'dailyactivities' || fieldName === 'abilitytododailyactivities') {
           log.dailyFunction = value;
         } else if (fieldName === 'weathersensitivity') {
           log.weatherSensitivity = value;

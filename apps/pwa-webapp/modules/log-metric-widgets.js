@@ -12,7 +12,17 @@
     'dailyFunction',
   ];
 
-  var INVERTED = { sleep: 1, mobility: 1, dailyFunction: 1, mood: 1 };
+  var HIGHER_IS_BETTER = { sleep: 1, mobility: 1, dailyFunction: 1, mood: 1 };
+
+  function wellnessFromRaw(id, raw) {
+    var r = clamp(parseInt(raw, 10) || 0, 0, 10);
+    return HIGHER_IS_BETTER[id] ? r : (10 - r);
+  }
+
+  function rawFromWellness(id, wellness) {
+    var w = clamp(parseInt(wellness, 10) || 0, 0, 10);
+    return HIGHER_IS_BETTER[id] ? w : (10 - w);
+  }
 
   var VISUAL = {
     stiffness: 'stiffness',
@@ -44,17 +54,12 @@
     return clamp((val - min) / (max - min), 0, 1);
   }
 
-  function classifyZone(id, value) {
-    var inv = !!INVERTED[id];
-    var v = parseInt(value, 10);
+  function classifyZone(id, wellnessValue) {
+    var v = parseInt(wellnessValue, 10);
     if (isNaN(v)) v = 5;
-    if (inv) {
-      if (v >= 8) return { id: 'good', color: '#7bdf8c', label: t('common.good', 'Good') };
-      if (v >= 4) return { id: 'moderate', color: '#ffb74d', label: t('wizard.lifestyle.steps.moderate', 'Moderate') };
-      return { id: 'low', color: '#ff8a65', label: t('common.bad', 'Bad') };
-    }
-    if (v <= 3) return { id: 'good', color: '#7bdf8c', label: t('common.good', 'Good') };
-    if (v <= 7) return { id: 'moderate', color: '#ffb74d', label: t('wizard.lifestyle.steps.moderate', 'Moderate') };
+    v = clamp(v, 0, 10);
+    if (v >= 8) return { id: 'good', color: '#7bdf8c', label: t('common.good', 'Good') };
+    if (v >= 4) return { id: 'moderate', color: '#ffb74d', label: t('wizard.lifestyle.steps.moderate', 'Moderate') };
     return { id: 'bad', color: '#ff8a65', label: t('common.bad', 'Bad') };
   }
 
@@ -176,15 +181,58 @@
           '<path class="metric-mood-spark metric-mood-spark--2" d="M10 18 l1.2 2.4 l2.4 1.2 l-2.4 1.2 l-1.2 2.4 l-1.2-2.4 l-2.4-1.2 l2.4-1.2z"/>' +
           '</g></svg>';
       case 'irritability':
-        return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
-          '<rect class="metric-steam-gauge-bg" x="24" y="16" width="16" height="36" rx="4" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>' +
-          '<rect class="metric-steam-gauge-fill" x="27" y="42" width="10" height="0" rx="2" fill="currentColor"/>' +
-          '<path class="metric-steam-line metric-steam-line--1" d="M28 12 Q26 6 28 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
-          '<path class="metric-steam-line metric-steam-line--2" d="M32 10 Q32 4 32 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
-          '<path class="metric-steam-line metric-steam-line--3" d="M36 12 Q38 6 36 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+        return '<svg class="metric-svg metric-svg--ocean" viewBox="0 0 88 72" focusable="false" aria-hidden="true">' +
+          '<defs>' +
+          '<linearGradient id="metricOceanSkyGrad" x1="44" y1="0" x2="44" y2="32" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0%" class="metric-ocean-sky-top"/><stop offset="100%" class="metric-ocean-sky-bot"/>' +
+          '</linearGradient>' +
+          '<linearGradient id="metricOceanBackGrad" x1="44" y1="34" x2="44" y2="72" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0%" class="metric-ocean-back-top"/><stop offset="100%" class="metric-ocean-back-bot"/>' +
+          '</linearGradient>' +
+          '<linearGradient id="metricOceanFrontGrad" x1="44" y1="42" x2="44" y2="72" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0%" class="metric-ocean-front-top"/><stop offset="100%" class="metric-ocean-front-bot"/>' +
+          '</linearGradient>' +
+          '<clipPath id="metricOceanClip"><rect x="0" y="24" width="88" height="48"/></clipPath>' +
+          '</defs>' +
+          '<rect class="metric-ocean-sky" x="0" y="0" width="88" height="32" fill="url(#metricOceanSkyGrad)"/>' +
+          '<circle class="metric-ocean-sun" cx="68" cy="11" r="5.5" fill="currentColor"/>' +
+          '<g class="metric-ocean-clouds">' +
+          '<ellipse class="metric-ocean-cloud metric-ocean-cloud--1" cx="20" cy="13" rx="13" ry="4.5"/>' +
+          '<ellipse class="metric-ocean-cloud metric-ocean-cloud--2" cx="34" cy="11" rx="10" ry="3.8"/>' +
+          '<ellipse class="metric-ocean-cloud metric-ocean-cloud--3" cx="48" cy="14" rx="11" ry="4"/>' +
+          '</g>' +
+          '<g class="metric-ocean-sea" clip-path="url(#metricOceanClip)">' +
+          '<rect class="metric-ocean-deep" x="0" y="32" width="88" height="40" fill="url(#metricOceanBackGrad)"/>' +
+          '<g class="metric-ocean-wave-track metric-ocean-wave-track--back">' +
+          '<g class="metric-ocean-wave-bob">' +
+          '<path class="metric-ocean-wave metric-ocean-wave--back" d="M-1 40 C10 34 20 40 30 40 S50 46 60 40 S80 34 89 40 V72 H-1 Z"/>' +
+          '<path class="metric-ocean-wave metric-ocean-wave--back" d="M-1 40 C10 34 20 40 30 40 S50 46 60 40 S80 34 89 40 V72 H-1 Z" transform="translate(44 0)"/>' +
+          '</g></g>' +
+          '<g class="metric-ocean-wave-track metric-ocean-wave-track--mid">' +
+          '<g class="metric-ocean-wave-bob">' +
+          '<path class="metric-ocean-wave metric-ocean-wave--mid" d="M-1 46 C12 40 22 46 32 46 S52 52 62 46 S82 40 89 46 V72 H-1 Z"/>' +
+          '<path class="metric-ocean-wave metric-ocean-wave--mid" d="M-1 46 C12 40 22 46 32 46 S52 52 62 46 S82 40 89 46 V72 H-1 Z" transform="translate(44 0)"/>' +
+          '</g></g>' +
+          '<g class="metric-ocean-wave-track metric-ocean-wave-track--front">' +
+          '<g class="metric-ocean-wave-bob">' +
+          '<path class="metric-ocean-wave metric-ocean-wave--front" d="M-1 52 C11 46 21 52 31 52 S51 58 61 52 S81 46 89 52 V72 H-1 Z" fill="url(#metricOceanFrontGrad)"/>' +
+          '<path class="metric-ocean-wave metric-ocean-wave--front" d="M-1 52 C11 46 21 52 31 52 S51 58 61 52 S81 46 89 52 V72 H-1 Z" fill="url(#metricOceanFrontGrad)" transform="translate(44 0)"/>' +
+          '</g></g>' +
+          '</g>' +
+          '<g class="metric-ocean-rain">' +
+          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--1" x1="14" y1="28" x2="11" y2="38"/>' +
+          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--2" x1="28" y1="26" x2="25" y2="40"/>' +
+          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--3" x1="42" y1="28" x2="39" y2="42"/>' +
+          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--4" x1="56" y1="27" x2="53" y2="39"/>' +
+          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--5" x1="70" y1="29" x2="67" y2="41"/>' +
+          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--6" x1="82" y1="27" x2="79" y2="38"/>' +
+          '</g>' +
+          '<path class="metric-ocean-lightning" d="M48 18 L44 30 H49 L45 44 L54 28 H49 Z" fill="currentColor"/>' +
+          '</svg>';
       case 'weather':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<path class="metric-weather-cloud" d="M46 30h-3a12 12 0 1 0-4-22a10 10 0 0 0-18 4a8 8 0 0 0 2 15h23z" fill="rgba(255,255,255,0.08)" stroke="currentColor" stroke-width="1.5"/>' +
+          '<path class="metric-weather-lightning" d="M34 26 L30 36 H34 L31 46 L40 32 H35 Z" fill="currentColor"/>' +
           '<line class="metric-rain metric-rain--1" x1="24" y1="36" x2="22" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
           '<line class="metric-rain metric-rain--2" x1="32" y1="36" x2="30" y2="46" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
           '<line class="metric-rain metric-rain--3" x1="40" y1="36" x2="38" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
@@ -229,8 +277,8 @@
   function updateMoodFace(visual, r) {
     var mouth = visual.querySelector('.metric-mood-mouth');
     if (mouth) {
-      var midY = lerp(47, 33, r);
-      var wingY = lerp(38, 40, r);
+      var midY = lerp(33, 47, r);
+      var wingY = lerp(40, 38, r);
       mouth.setAttribute('d', 'M19 ' + wingY.toFixed(1) + ' Q32 ' + midY.toFixed(1) + ' 45 ' + wingY.toFixed(1));
     }
     visual.querySelectorAll('.metric-mood-eye').forEach(function (eye) {
@@ -259,10 +307,10 @@
     if (sparkles) sparkles.style.opacity = String(clamp((r - 0.55) / 0.45, 0, 1));
   }
 
-  function applyVisualState(widget, id, value) {
-    var v = parseInt(value, 10);
+  function applyVisualState(widget, id, rawValue) {
+    var v = parseInt(rawValue, 10);
     if (isNaN(v)) v = 5;
-    var r = ratio(v, 1, 10);
+    var r = ratio(v, 0, 10);
     var kind = VISUAL[id];
     var visual = widget.querySelector('.metric-widget__visual');
     if (!visual) return;
@@ -346,20 +394,27 @@
       widget.classList.toggle('metric-widget--mood-happy', r >= 0.72);
       widget.classList.toggle('metric-widget--mood-sad', r <= 0.28);
     } else if (kind === 'irritability') {
-      var gauge = visual.querySelector('.metric-steam-gauge-fill');
-      if (gauge) {
-        var gh = Math.max(1, r * 30);
-        gauge.setAttribute('y', String(49 - gh));
-        gauge.setAttribute('height', String(gh));
-      }
-      visual.querySelectorAll('.metric-steam-line').forEach(function (line, i) {
-        line.style.opacity = r >= 0.25 + i * 0.2 ? '1' : '0.12';
-      });
+      var storm = r;
+      widget.style.setProperty('--ocean-storm', storm.toFixed(3));
+      widget.classList.toggle('metric-widget--ocean-calm', storm <= 0.28);
+      widget.classList.toggle('metric-widget--ocean-moderate', storm > 0.28 && storm < 0.62);
+      widget.classList.toggle('metric-widget--ocean-storm', storm >= 0.62);
+      var rain = visual.querySelector('.metric-ocean-rain');
+      if (rain) rain.style.opacity = String(clamp((storm - 0.38) / 0.62, 0, 1));
+      var lightning = visual.querySelector('.metric-ocean-lightning');
+      if (lightning) lightning.style.opacity = String(clamp((storm - 0.68) / 0.32, 0, 1));
+      var sun = visual.querySelector('.metric-ocean-sun');
+      if (sun) sun.style.opacity = String(clamp(1 - storm * 1.4, 0, 1));
+      var clouds = visual.querySelector('.metric-ocean-clouds');
+      if (clouds) clouds.style.opacity = String(clamp(0.15 + storm * 0.85, 0.15, 1));
     } else if (kind === 'weather') {
       var drops = Math.ceil(r * 5);
       visual.querySelectorAll('.metric-rain').forEach(function (drop, i) {
         drop.classList.toggle('metric-rain--on', i < drops);
       });
+      widget.classList.toggle('metric-widget--weather-storm', r >= 0.62);
+      var lightning = visual.querySelector('.metric-weather-lightning');
+      if (lightning) lightning.classList.toggle('metric-weather-lightning--on', r >= 0.62);
     } else if (kind === 'dailyFunction') {
       var prog = visual.querySelector('.metric-ring-progress');
       var check = visual.querySelector('.metric-ring-check');
@@ -374,24 +429,26 @@
     if (!slider || !slider.id) return;
     var widget = slider.closest('.metric-widget');
     if (!widget) return;
-    var value = parseInt(slider.value, 10);
-    if (isNaN(value)) value = 5;
-    var zone = classifyZone(slider.id, value);
+    var wellness = parseInt(slider.value, 10);
+    if (isNaN(wellness)) wellness = 5;
+    wellness = clamp(wellness, 0, 10);
+    var raw = rawFromWellness(slider.id, wellness);
+    var zone = classifyZone(slider.id, wellness);
     widget.setAttribute('data-metric-zone', zone.id);
     widget.style.setProperty('--metric-color', zone.color);
     widget.setAttribute('data-metric-active', 'true');
     var display = widget.querySelector('.metric-readout__value');
     if (display) {
-      display.textContent = String(value);
+      display.textContent = String(wellness);
       display.classList.add('metric-readout--pulse');
       global.setTimeout(function () { display.classList.remove('metric-readout--pulse'); }, 220);
     }
     var badge = widget.querySelector('.metric-zone-badge');
     if (badge) badge.textContent = zone.label;
-    var pct = ratio(value, parseInt(slider.min, 10) || 1, parseInt(slider.max, 10) || 10) * 100;
+    var pct = (wellness / 10) * 100;
     slider.style.setProperty('--metric-fill-pct', pct.toFixed(1) + '%');
     slider.style.setProperty('--metric-fill-color', zone.color);
-    applyVisualState(widget, slider.id, value);
+    applyVisualState(widget, slider.id, raw);
   }
 
   function nudgeSlider(id, delta) {

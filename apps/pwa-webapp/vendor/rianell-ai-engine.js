@@ -963,6 +963,27 @@ var RianellAIEngine = (() => {
     Object.entries(LOINC_MAP).map(([field, code]) => [code, field])
   );
 
+  // packages/shared/src/metrics/sliderWellness.mjs
+  var METRICS_HIGHER_IS_BETTER = Object.freeze([
+    "sleep",
+    "mobility",
+    "dailyFunction",
+    "mood"
+  ]);
+  var METRIC_SLIDER_FIELDS = Object.freeze([
+    "fatigue",
+    "stiffness",
+    "jointPain",
+    "mobility",
+    "swelling",
+    "sleep",
+    "mood",
+    "irritability",
+    "weatherSensitivity",
+    "dailyFunction",
+    "backPain"
+  ]);
+
   // packages/ai-engine/src/chartAnalytics.mjs
   var METRIC_PAIRS = [
     { metric1: "mood", metric2: "sleep", label1: "Mood", label2: "Sleep" },
@@ -1210,7 +1231,7 @@ var RianellAIEngine = (() => {
     { field: "sleep", label: "Sleep Quality", max: 10 },
     { field: "jointPain", label: "Joint Pain", max: 10 },
     { field: "mobility", label: "Mobility", max: 10 },
-    { field: "dailyFunction", label: "Daily Function", max: 10 },
+    { field: "dailyFunction", label: "Ability to do Daily activities", max: 10 },
     { field: "swelling", label: "Swelling", max: 10 },
     { field: "mood", label: "Mood", max: 10 },
     { field: "irritability", label: "Irritability", max: 10 },

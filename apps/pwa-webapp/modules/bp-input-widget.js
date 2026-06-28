@@ -65,6 +65,9 @@
   }
 
   function drumValueAtCenter(scrollEl) {
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.valueAtCenter === 'function') {
+      return global.RianellDrumPicker.valueAtCenter(scrollEl);
+    }
     if (!scrollEl) return null;
     var rect = scrollEl.getBoundingClientRect();
     var centerY = rect.top + rect.height / 2;
@@ -83,6 +86,10 @@
   }
 
   function scrollDrumToValue(scrollEl, value, smooth) {
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.scrollToValue === 'function') {
+      global.RianellDrumPicker.scrollToValue(scrollEl, value, smooth);
+      return;
+    }
     if (!scrollEl) return;
     var item = scrollEl.querySelector('.bp-drum-item[data-value="' + value + '"]');
     if (!item) return;
@@ -198,6 +205,16 @@
   function bindDrumScroll(scrollEl) {
     if (!scrollEl || scrollEl.dataset.bpBound === '1') return;
     scrollEl.dataset.bpBound = '1';
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.bind === 'function') {
+      global.RianellDrumPicker.bind(scrollEl, {
+        onScroll: function () { updateBloodPressureWidget(true); },
+        onSnap: function () {
+          updateBloodPressureWidget(true);
+          dispatchInputEvent();
+        },
+      });
+      return;
+    }
     var ticking = false;
     var scrollEndTimer = null;
     scrollEl.addEventListener('scroll', function () {

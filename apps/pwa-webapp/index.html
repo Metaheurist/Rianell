@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=115" as="style">
+  <link rel="preload" href="styles.css?v=118" as="style">
   <link rel="modulepreload" href="app.js?v=56" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=115" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=115&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=118" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=118&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -1904,9 +1904,9 @@
             <span class="mcs-badge" id="microCheckinMoodBadge">5</span>
           </div>
           <div class="mcs-row">
-            <span class="mcs-end">1</span>
-            <input type="range" id="microCheckinMood" class="mcs-slider mcs-mood" min="1" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinMoodBadge')">
-            <span class="mcs-end">10</span>
+            <span class="mcs-end mcs-end--bad" data-i18n="common.bad">Bad</span>
+            <input type="range" id="microCheckinMood" class="mcs-slider mcs-mood" min="0" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinMoodBadge')">
+            <span class="mcs-end mcs-end--good" data-i18n="common.good">Good</span>
           </div>
         </div>
         <div class="mcs-field" data-mcs="sleep">
@@ -1915,9 +1915,9 @@
             <span class="mcs-badge" id="microCheckinSleepBadge">5</span>
           </div>
           <div class="mcs-row">
-            <span class="mcs-end">1</span>
-            <input type="range" id="microCheckinSleep" class="mcs-slider mcs-sleep" min="1" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinSleepBadge')">
-            <span class="mcs-end">10</span>
+            <span class="mcs-end mcs-end--bad" data-i18n="common.bad">Bad</span>
+            <input type="range" id="microCheckinSleep" class="mcs-slider mcs-sleep" min="0" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinSleepBadge')">
+            <span class="mcs-end mcs-end--good" data-i18n="common.good">Good</span>
           </div>
         </div>
         <div class="mcs-field" data-mcs="fatigue">
@@ -1926,9 +1926,9 @@
             <span class="mcs-badge" id="microCheckinFatigueBadge">5</span>
           </div>
           <div class="mcs-row">
-            <span class="mcs-end">1</span>
-            <input type="range" id="microCheckinFatigue" class="mcs-slider mcs-fatigue" min="1" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinFatigueBadge')">
-            <span class="mcs-end">10</span>
+            <span class="mcs-end mcs-end--bad" data-i18n="common.bad">Bad</span>
+            <input type="range" id="microCheckinFatigue" class="mcs-slider mcs-fatigue" min="0" max="10" step="1" value="5" oninput="mcsUpdate(this,'microCheckinFatigueBadge')">
+            <span class="mcs-end mcs-end--good" data-i18n="common.good">Good</span>
           </div>
         </div>
       </div>
@@ -2661,27 +2661,27 @@
         </button>
         <div class="section-content" id="symptoms">
       <div class="slider-container">
-        <input type="range" id="stiffness" min="1" max="10" step="1" />
+        <input type="range" id="stiffness" min="0" max="10" step="1" />
         <label for="stiffness" class="slider-label" data-i18n="common.stiffness.level">Stiffness Level</label>
-        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
       </div>
 
       <div class="slider-container">
-        <input type="range" id="jointPain" min="1" max="10" step="1" />
+        <input type="range" id="jointPain" min="0" max="10" step="1" />
         <label for="jointPain" class="slider-label" data-i18n="charts.metric.jointPain">Joint Pain</label>
-        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
       </div>
 
       <div class="slider-container">
-        <input type="range" id="mobility" min="1" max="10" step="1" />
+        <input type="range" id="mobility" min="0" max="10" step="1" />
         <label for="mobility" class="slider-label" data-i18n="charts.metric.mobility">Mobility</label>
-        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
       </div>
 
       <div class="slider-container">
-        <input type="range" id="swelling" min="1" max="10" step="1" />
+        <input type="range" id="swelling" min="0" max="10" step="1" />
         <label for="swelling" class="slider-label" data-i18n="common.joint.swelling">Joint Swelling</label>
-        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
       </div>
       <div class="input-container pain-body-container">
         <div class="pain-body-intro" role="group" aria-labelledby="pain-body-title">
@@ -2789,19 +2789,19 @@
         </button>
         <div class="section-content" id="energyCognitive">
           <div class="slider-container">
-            <input type="range" id="fatigue" min="1" max="10" step="1" />
+            <input type="range" id="fatigue" min="0" max="10" step="1" />
             <label for="fatigue" class="slider-label" data-i18n="charts.metric.fatigue">Fatigue Level</label>
-            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           </div>
           <div class="slider-container">
-            <input type="range" id="sleep" min="1" max="10" step="1" />
+            <input type="range" id="sleep" min="0" max="10" step="1" />
             <label for="sleep" class="slider-label" data-i18n="common.sleep.quality">Sleep Quality</label>
-            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           </div>
           <div class="slider-container">
-            <input type="range" id="mood" min="1" max="10" step="1" />
+            <input type="range" id="mood" min="0" max="10" step="1" />
             <label for="mood" class="slider-label" data-i18n="common.mood.level">Mood Level</label>
-            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           </div>
           <label for="gratitude" data-i18n="wizard.mood.gratitudeLabel">Gratitude (optional)</label>
           <div class="input-container">
@@ -2837,14 +2837,14 @@
         </button>
         <div class="section-content" id="stressTriggers">
           <div class="slider-container">
-            <input type="range" id="irritability" min="1" max="10" step="1" />
+            <input type="range" id="irritability" min="0" max="10" step="1" />
             <label for="irritability" class="slider-label" data-i18n="charts.metric.irritability">Irritability</label>
-            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           </div>
           <div class="slider-container">
-            <input type="range" id="weatherSensitivity" min="1" max="10" step="1" value="5" />
+            <input type="range" id="weatherSensitivity" min="0" max="10" step="1" value="5" />
             <label for="weatherSensitivity" class="slider-label" data-i18n="charts.metric.weatherSensitivity">Weather Sensitivity</label>
-            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           </div>
           <div class="selection-summary-sticky">
             <div id="logStressorsList" class="items-list"></div>
@@ -2871,8 +2871,8 @@
         </button>
         <div class="section-content" id="lifestyleFactors">
           <div class="slider-container">
-            <input type="range" id="dailyFunction" min="1" max="10" step="1" />
-            <label for="dailyFunction" class="slider-label" data-i18n="common.daily.activities">Daily Activities</label>
+            <input type="range" id="dailyFunction" min="0" max="10" step="1" />
+            <label for="dailyFunction" class="slider-label" data-i18n="common.daily.activities">Ability to do Daily activities</label>
           </div>
           <div class="vital-widget vital-widget--steps" id="stepsWidget" data-vital-active="false" data-vital-zone="idle">
             <label class="field-label-with-icon" data-i18n="common.steps.if.tracked">
@@ -3468,7 +3468,7 @@
           <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Mobility chart" data-i18n-aria="common.loading.mobility.chart"></div>
         </div>
         <div id="dailyFunctionChart" class="chart-container lazy-chart" data-chart-type="dailyFunction">
-          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Daily Function chart" data-i18n-aria="common.loading.daily.function.chart"></div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Ability to do Daily activities chart" data-i18n-aria="common.loading.daily.function.chart"></div>
         </div>
         <div id="swellingChart" class="chart-container lazy-chart" data-chart-type="swelling">
           <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Swelling chart" data-i18n-aria="common.loading.swelling.chart"></div>
@@ -3598,37 +3598,37 @@
           <label for="editFatigue" data-i18n="common.fatigue.0.10">Fatigue (0-10)</label>
           <input type="range" id="editFatigue" min="0" max="10" value="5" oninput="updateEditSliderColor('editFatigue')" />
           <span class="slider-value" id="editFatigueValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <label for="editStiffness" data-i18n="common.stiffness.0.10">Stiffness (0-10)</label>
           <input type="range" id="editStiffness" min="0" max="10" value="5" oninput="updateEditSliderColor('editStiffness')" />
           <span class="slider-value" id="editStiffnessValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <label for="editSleep" data-i18n="common.sleep.quality.0.10">Sleep Quality (0-10)</label>
           <input type="range" id="editSleep" min="0" max="10" value="5" oninput="updateEditSliderColor('editSleep')" />
           <span class="slider-value" id="editSleepValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <label for="editJointPain" data-i18n="common.joint.pain.0.10">Joint Pain (0-10)</label>
           <input type="range" id="editJointPain" min="0" max="10" value="5" oninput="updateEditSliderColor('editJointPain')" />
           <span class="slider-value" id="editJointPainValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <label for="editMobility" data-i18n="common.mobility.0.10">Mobility (0-10)</label>
           <input type="range" id="editMobility" min="0" max="10" value="5" oninput="updateEditSliderColor('editMobility')" />
           <span class="slider-value" id="editMobilityValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
-          <label for="editDailyFunction" data-i18n="common.daily.function.0.10">Daily Function (0-10)</label>
+          <label for="editDailyFunction" data-i18n="common.daily.function.0.10">Ability to do Daily activities (0-10)</label>
           <input type="range" id="editDailyFunction" min="0" max="10" value="5" oninput="updateEditSliderColor('editDailyFunction')" />
           <span class="slider-value" id="editDailyFunctionValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <label for="editSwelling" data-i18n="common.swelling.0.10">Swelling (0-10)</label>
           <input type="range" id="editSwelling" min="0" max="10" value="5" oninput="updateEditSliderColor('editSwelling')" />
           <span class="slider-value" id="editSwellingValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <label for="editFlare" data-i18n="common.flare.up">Flare-up</label>
           <select id="editFlare">
@@ -3639,12 +3639,12 @@
           <label for="editMood" data-i18n="common.mood.0.10">Mood (0-10)</label>
           <input type="range" id="editMood" min="0" max="10" value="5" oninput="updateEditSliderColor('editMood')" />
           <span class="slider-value" id="editMoodValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <label for="editIrritability" data-i18n="common.irritability.0.10">Irritability (0-10)</label>
           <input type="range" id="editIrritability" min="0" max="10" value="5" oninput="updateEditSliderColor('editIrritability')" />
           <span class="slider-value" id="editIrritabilityValue">5</span>
-          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
           <!-- Collapsible Section: Energy & Mental Clarity -->
           <div class="collapsible-section">
@@ -3667,9 +3667,9 @@
               </div>
               
               <label for="editWeatherSensitivity" data-i18n="common.weather.sensitivity.1.10">Weather Sensitivity (1-10)</label>
-              <input type="range" id="editWeatherSensitivity" min="1" max="10" value="5" oninput="updateEditSliderColor('editWeatherSensitivity')" />
+              <input type="range" id="editWeatherSensitivity" min="0" max="10" value="5" oninput="updateEditSliderColor('editWeatherSensitivity')" />
               <span class="slider-value" id="editWeatherSensitivityValue">5</span>
-              <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good" data-i18n="common.good">Good</span><span class="slider-hint-bad">Bad</span></div>
+              <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
             </div>
           </div>
           
@@ -4853,7 +4853,7 @@
   <script defer src="llm-load-ladder-sync.js?v=3"></script>
   <script defer src="device-benchmark.js?v=7"></script>
   <script defer src="performance-utils.js"></script>
-  <script defer src="modules/log-metric-widgets.js?v=3"></script>
+  <script defer src="modules/log-metric-widgets.js?v=7"></script>
   <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=3"></script>
   <script defer src="push-subscribe.js?v=1"></script>
@@ -4895,8 +4895,9 @@
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
   <script defer src="modules/vitals-suggest-ui.js?v=3"></script>
-  <script defer src="modules/bp-input-widget.js?v=2"></script>
-  <script defer src="modules/advanced-vitals-widgets.js?v=2"></script>
+  <script defer src="modules/drum-picker-scroll.js?v=1"></script>
+  <script defer src="modules/bp-input-widget.js?v=3"></script>
+  <script defer src="modules/advanced-vitals-widgets.js?v=3"></script>
   <script defer src="modules/lifestyle-vitals-widgets.js?v=2"></script>
   <script defer src="modules/weekly-review.js?v=7"></script>
   <script defer src="modules/mood-tab.js?v=6"></script>

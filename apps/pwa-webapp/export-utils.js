@@ -40,7 +40,7 @@ function csvHeaderRow() {
     exportUi('export.csv.sleep', 'Sleep'),
     exportUi('export.csv.jointPain', 'Joint Pain'),
     exportUi('export.csv.mobility', 'Mobility'),
-    exportUi('export.csv.dailyFunction', 'Daily Function'),
+    exportUi('export.csv.dailyFunction', 'Ability to do Daily activities'),
     exportUi('export.csv.swelling', 'Swelling'),
     exportUi('export.csv.flare', 'Flare'),
     exportUi('export.csv.mood', 'Mood'),

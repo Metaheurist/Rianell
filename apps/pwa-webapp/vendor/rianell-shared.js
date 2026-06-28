@@ -78,6 +78,7 @@ var RianellShared = (() => {
     LOG_CSV_ENGLISH_HEADERS: () => LOG_CSV_ENGLISH_HEADERS,
     LOG_CSV_FIELD_IDS: () => LOG_CSV_FIELD_IDS,
     LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
+    LOG_CSV_LEGACY_HEADER_ALIASES: () => LOG_CSV_LEGACY_HEADER_ALIASES,
     LOINC_MAP: () => LOINC_MAP,
     LOINC_TO_FIELD: () => LOINC_TO_FIELD,
     MAX_HOME_QUESTION_ANSWERS_PER_DAY: () => MAX_HOME_QUESTION_ANSWERS_PER_DAY,
@@ -89,6 +90,8 @@ var RianellShared = (() => {
     MED_DOSE_FIRE_WINDOW_MS: () => MED_DOSE_FIRE_WINDOW_MS,
     MED_DOSE_SNOOZE_MINUTES: () => MED_DOSE_SNOOZE_MINUTES,
     MENTAL_HEALTH_DISCLAIMER_I18N: () => MENTAL_HEALTH_DISCLAIMER_I18N,
+    METRICS_HIGHER_IS_BETTER: () => METRICS_HIGHER_IS_BETTER,
+    METRIC_SLIDER_FIELDS: () => METRIC_SLIDER_FIELDS,
     MIGRATION_ADAPTERS: () => MIGRATION_ADAPTERS,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
@@ -239,6 +242,7 @@ var RianellShared = (() => {
     checkPasswordStrength: () => checkPasswordStrength,
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
+    classifyWellnessSlider: () => classifyWellnessSlider,
     clearMigrationPending: () => clearMigrationPending,
     coachPersonaPromptKey: () => coachPersonaPromptKey,
     collectFlareCalendarEntries: () => collectFlareCalendarEntries,
@@ -354,6 +358,7 @@ var RianellShared = (() => {
     getUnlockDaysForCategory: () => getUnlockDaysForCategory,
     getUnlockedLogCategories: () => getUnlockedLogCategories,
     getVisibleTrackingFields: () => getVisibleTrackingFields,
+    hasActiveGoals: () => hasActiveGoals,
     hasEnabledMedSchedule: () => hasEnabledMedSchedule,
     hasLoggedToday: () => hasLoggedToday,
     hashApiKey: () => hashApiKey,
@@ -381,6 +386,7 @@ var RianellShared = (() => {
     isLoggingStreakBroken: () => isLoggingStreakBroken,
     isMealPhoto: () => isMealPhoto,
     isMedDoseSnoozed: () => isMedDoseSnoozed,
+    isMetricHigherIsBetter: () => isMetricHigherIsBetter,
     isPhq9SuicideItemPositive: () => isPhq9SuicideItemPositive,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
     isPwaOnDeviceLlmOnly: () => isPwaOnDeviceLlmOnly,
@@ -431,6 +437,7 @@ var RianellShared = (() => {
     mergeGad7Responses: () => mergeGad7Responses,
     mergeHealthLogs: () => mergeHealthLogs,
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
+    mergeInductionSessionSteps: () => mergeInductionSessionSteps,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     mergePhq9Responses: () => mergePhq9Responses,
     mergeSheetRoundTrip: () => mergeSheetRoundTrip,
@@ -504,6 +511,7 @@ var RianellShared = (() => {
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
     putWebDavEncryptedBackup: () => putWebDavEncryptedBackup,
+    rawToWellnessSlider: () => rawToWellnessSlider,
     readCustomMetricRadarValue: () => readCustomMetricRadarValue,
     readProcessingActivity: () => readProcessingActivity,
     readTextFileSync: () => readTextFileSync,
@@ -520,6 +528,7 @@ var RianellShared = (() => {
     resolveNextStepIndexAfterComplete: () => resolveNextStepIndexAfterComplete,
     resolvePolicyPack: () => resolvePolicyPack,
     resolvePressureIconId: () => resolvePressureIconId,
+    resolveProgressFromSessionSteps: () => resolveProgressFromSessionSteps,
     resolveSmartReminderTime: () => resolveSmartReminderTime,
     resolveSmartlookProjectKey: () => resolveSmartlookProjectKey,
     resolveSmartlookRegion: () => resolveSmartlookRegion,
@@ -552,6 +561,7 @@ var RianellShared = (() => {
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     shouldSkipFirstRunStep: () => shouldSkipFirstRunStep,
+    shouldSuppressFirstRunLoggingPrompt: () => shouldSuppressFirstRunLoggingPrompt,
     stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
     stampLogSavedAtForSave: () => stampLogSavedAtForSave,
     suggestCycleForDate: () => suggestCycleForDate,
@@ -570,6 +580,9 @@ var RianellShared = (() => {
     validateResearchFacets: () => validateResearchFacets,
     validateTipSubmission: () => validateTipSubmission,
     verifyOAuthState: () => verifyOAuthState,
+    wellnessSliderFillColor: () => wellnessSliderFillColor,
+    wellnessSliderFillPercent: () => wellnessSliderFillPercent,
+    wellnessSliderToRaw: () => wellnessSliderToRaw,
     wrapDek: () => wrapDek,
     wrappedDekToBase64: () => wrappedDekToBase64
   });
@@ -1985,15 +1998,27 @@ var RianellShared = (() => {
   }
 
   // packages/shared/src/onboarding/firstRunOrchestrator.mjs
+  function resolveNextIndexInPlan(plan, completedStepId) {
+    if (!plan.length) return 0;
+    const completedIdx = plan.findIndex((s) => s.id === completedStepId);
+    if (completedIdx >= 0 && completedIdx < plan.length - 1) return completedIdx + 1;
+    if (completedIdx < 0) {
+      const completedOrder = FIRST_RUN_STEP_IDS.indexOf(completedStepId);
+      if (completedOrder >= 0) {
+        for (let i = completedOrder + 1; i < FIRST_RUN_STEP_IDS.length; i += 1) {
+          const idx = plan.findIndex((s) => s.id === FIRST_RUN_STEP_IDS[i]);
+          if (idx >= 0) return idx;
+        }
+      }
+    }
+    return 0;
+  }
   function buildFirstRunPlan(prefs, ctx) {
     return FIRST_RUN_STEP_IDS.filter((id) => !shouldSkipFirstRunStep(id, prefs, ctx)).map((id) => ({ id }));
   }
   function resolveNextStepIndexAfterComplete(prefs, ctx, completedStepId) {
     const plan = buildFirstRunPlan(prefs, ctx);
-    if (!plan.length) return 0;
-    const completedIdx = plan.findIndex((s) => s.id === completedStepId);
-    if (completedIdx >= 0 && completedIdx < plan.length - 1) return completedIdx + 1;
-    return 0;
+    return resolveNextIndexInPlan(plan, completedStepId);
   }
   function isFirstRunWizardComplete(prefs, ctx) {
     const p = prefs && typeof prefs === "object" ? prefs : {};
@@ -2003,7 +2028,8 @@ var RianellShared = (() => {
     }
     const tutorialDone = p.tutorialSeen === true || c.tutorialSeenLegacy === true;
     if (isPrivacyRegionConfigured(p) && tutorialDone) {
-      return true;
+      const remaining = buildFirstRunPlan(p, c);
+      if (remaining.length === 0) return true;
     }
     return false;
   }
@@ -5217,6 +5243,13 @@ ${hist}`);
     return null;
   }
 
+  // packages/shared/src/home/firstSessionPrompt.mjs
+  function shouldSuppressFirstRunLoggingPrompt(prefs, logs, ctx) {
+    const logArr = Array.isArray(logs) ? logs : [];
+    if (logArr.length === 0) return true;
+    return !isFirstRunWizardComplete(prefs, ctx);
+  }
+
   // packages/shared/src/export/logCsv.mjs
   var LOG_CSV_FIELD_IDS = [
     "date",
@@ -5262,7 +5295,7 @@ ${hist}`);
     sleep: "Sleep",
     jointPain: "Joint Pain",
     mobility: "Mobility",
-    dailyFunction: "Daily Function",
+    dailyFunction: "Ability to do Daily activities",
     swelling: "Swelling",
     flare: "Flare",
     mood: "Mood",
@@ -5288,6 +5321,9 @@ ${hist}`);
     );
     return [header, ...rows].join("\n");
   }
+  var LOG_CSV_LEGACY_HEADER_ALIASES = {
+    dailyFunction: ["Daily Function", "Daily Activities"]
+  };
   function parseCsvLine(line) {
     const values = [];
     let current = "";
@@ -5317,7 +5353,8 @@ ${hist}`);
     const lower = h.toLowerCase();
     for (const id of LOG_CSV_FIELD_IDS) {
       const raw = aliasMap[id];
-      const aliases = Array.isArray(raw) ? raw : typeof raw === "string" && raw ? [raw, LOG_CSV_ENGLISH_HEADERS[id]] : [LOG_CSV_ENGLISH_HEADERS[id]];
+      const legacy = LOG_CSV_LEGACY_HEADER_ALIASES[id] || [];
+      const aliases = Array.isArray(raw) ? [...raw, ...legacy] : typeof raw === "string" && raw ? [raw, LOG_CSV_ENGLISH_HEADERS[id], ...legacy] : [LOG_CSV_ENGLISH_HEADERS[id], ...legacy];
       if (aliases.some((a) => a && a.toLowerCase() === lower)) return id;
     }
     return null;
@@ -6851,6 +6888,43 @@ ${questionsBlock}
     }
     return steps;
   }
+  function inductionStepsEqual(a, b) {
+    if (a.type !== b.type) return false;
+    if (a.type === "tutorial") return a.tutorialPos === b.tutorialPos;
+    return a.id === b.id;
+  }
+  function mergeInductionSessionSteps(existing, next) {
+    if (!existing.length) return next;
+    if (next.length <= existing.length) return existing;
+    const merged = [...existing];
+    for (const step of next) {
+      if (merged.some((s) => inductionStepsEqual(s, step))) continue;
+      const anchorIdx = next.findIndex((s) => inductionStepsEqual(s, step));
+      let insertAt = merged.length;
+      for (let i = anchorIdx - 1; i >= 0; i -= 1) {
+        const prev = next[i];
+        const prevInMerged = merged.findIndex((s) => inductionStepsEqual(s, prev));
+        if (prevInMerged >= 0) {
+          insertAt = prevInMerged + 1;
+          break;
+        }
+      }
+      merged.splice(insertAt, 0, step);
+    }
+    return merged;
+  }
+  function resolveProgressFromSessionSteps(sessionSteps, state) {
+    const { wizardStepId, tutorialPos = 0, sessionTotal } = state;
+    const total = typeof sessionTotal === "number" && sessionTotal > 0 ? Math.max(sessionTotal, sessionSteps.length) : sessionSteps.length || 1;
+    if (wizardStepId === "tutorial") {
+      const idx2 = sessionSteps.findIndex(
+        (s) => s.type === "tutorial" && s.tutorialPos === tutorialPos
+      );
+      return { current: idx2 >= 0 ? idx2 + 1 : 1, total };
+    }
+    const idx = sessionSteps.findIndex((s) => s.type === "wizard" && s.id === wizardStepId);
+    return { current: idx >= 0 ? idx + 1 : 1, total };
+  }
   function resolveUnifiedOnboardingProgress(state) {
     const {
       prefs,
@@ -6858,32 +6932,37 @@ ${questionsBlock}
       wizardStepId,
       tutorialPos = 0,
       tutorialSlideIndices,
-      sessionTotal
+      sessionTotal,
+      sessionSteps
     } = state;
+    if (sessionSteps && sessionSteps.length > 0) {
+      return resolveProgressFromSessionSteps(sessionSteps, {
+        wizardStepId,
+        tutorialPos,
+        sessionTotal
+      });
+    }
     const indices = tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
     const steps = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices });
-    const computedTotal = steps.length || 1;
-    const total = typeof sessionTotal === "number" && sessionTotal > 0 ? Math.max(sessionTotal, computedTotal) : computedTotal;
-    if (wizardStepId === "tutorial") {
-      const idx2 = steps.findIndex(
-        (s) => s.type === "tutorial" && s.tutorialPos === tutorialPos
-      );
-      return { current: idx2 >= 0 ? idx2 + 1 : 1, total };
-    }
-    const idx = steps.findIndex((s) => s.type === "wizard" && s.id === wizardStepId);
-    return { current: idx >= 0 ? idx + 1 : 1, total };
+    return resolveProgressFromSessionSteps(steps, {
+      wizardStepId,
+      tutorialPos,
+      sessionTotal
+    });
   }
   function createOnboardingProgressSession(prefs, ctx, options = {}) {
     const indices = options.tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
-    let sessionTotal = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices }).length || 1;
+    let sessionSteps = buildInductionProgressSteps(prefs, ctx, { tutorialSlideIndices: indices });
+    let sessionTotal = sessionSteps.length || 1;
     return {
       getTotal() {
         return sessionTotal;
       },
       refresh(prefsNext, ctxNext, tutorialSlideIndicesNext) {
         const idx = tutorialSlideIndicesNext ?? getTutorialVisibleIndices(prefsNext?.aiEnabled !== false);
-        const next = buildInductionProgressSteps(prefsNext, ctxNext, { tutorialSlideIndices: idx }).length || 1;
-        if (next > sessionTotal) sessionTotal = next;
+        const nextSteps = buildInductionProgressSteps(prefsNext, ctxNext, { tutorialSlideIndices: idx });
+        sessionSteps = mergeInductionSessionSteps(sessionSteps, nextSteps);
+        sessionTotal = sessionSteps.length || 1;
         return sessionTotal;
       },
       resolve(state) {
@@ -6892,7 +6971,8 @@ ${questionsBlock}
         return resolveUnifiedOnboardingProgress({
           ...state,
           tutorialSlideIndices,
-          sessionTotal
+          sessionTotal,
+          sessionSteps
         });
       }
     };
@@ -8003,6 +8083,58 @@ ${questionsBlock}
     return list.map(normalizeTriggerRow).filter(Boolean).filter((t2) => !conditionTag || t2.conditionTag === conditionTag).filter((t2) => t2.approved && t2.contributorCount >= COHORT_MIN_K).sort((a, b) => b.contributorCount - a.contributorCount);
   }
 
+  // packages/shared/src/metrics/sliderWellness.mjs
+  var METRICS_HIGHER_IS_BETTER = Object.freeze([
+    "sleep",
+    "mobility",
+    "dailyFunction",
+    "mood"
+  ]);
+  var METRIC_SLIDER_FIELDS = Object.freeze([
+    "fatigue",
+    "stiffness",
+    "jointPain",
+    "mobility",
+    "swelling",
+    "sleep",
+    "mood",
+    "irritability",
+    "weatherSensitivity",
+    "dailyFunction",
+    "backPain"
+  ]);
+  function clampInt2(raw, min, max) {
+    const n = typeof raw === "number" ? raw : parseInt(String(raw ?? ""), 10);
+    if (!Number.isFinite(n)) return min;
+    return Math.max(min, Math.min(max, Math.round(n)));
+  }
+  function isMetricHigherIsBetter(field) {
+    return METRICS_HIGHER_IS_BETTER.includes(field);
+  }
+  function rawToWellnessSlider(field, raw) {
+    const value = clampInt2(raw, 0, 10);
+    return isMetricHigherIsBetter(field) ? value : 10 - value;
+  }
+  function wellnessSliderToRaw(field, wellness) {
+    const score = clampInt2(wellness, 0, 10);
+    return isMetricHigherIsBetter(field) ? score : 10 - score;
+  }
+  function classifyWellnessSlider(wellness, t2 = (k, fb) => fb) {
+    const v = clampInt2(wellness, 0, 10);
+    if (v >= 8) return { id: "good", color: "#7bdf8c", label: t2("common.good", "Good") };
+    if (v >= 4) return { id: "moderate", color: "#ffb74d", label: t2("wizard.lifestyle.steps.moderate", "Moderate") };
+    return { id: "bad", color: "#ff8a65", label: t2("common.bad", "Bad") };
+  }
+  function wellnessSliderFillColor(wellness) {
+    const v = clampInt2(wellness, 0, 10);
+    if (v >= 8) return "#4CAF50";
+    if (v >= 4) return "#FF9800";
+    return "#F44336";
+  }
+  function wellnessSliderFillPercent(wellness) {
+    return clampInt2(wellness, 0, 10) / 10 * 100;
+  }
+
   // packages/shared/src/a11y/wcagHelpers.mjs
   var WCAG_BODY_TEXT_MIN_CONTRAST = 4.5;
   var WCAG_LARGE_TEXT_MIN_CONTRAST = 3;
@@ -8123,11 +8255,19 @@ ${questionsBlock}
     const d = DEFAULT_GOALS;
     const v = value && typeof value === "object" ? value : {};
     return {
-      steps: clampInt2(v.steps, 0, 1e5) ?? d.steps,
-      hydration: clampInt2(v.hydration, 0, 30) ?? d.hydration,
-      sleep: clampInt2(v.sleep, 0, 10) ?? d.sleep,
-      goodDaysPerWeek: clampInt2(v.goodDaysPerWeek, 0, 7) ?? d.goodDaysPerWeek
+      steps: clampInt3(v.steps, 0, 1e5) ?? d.steps,
+      hydration: clampInt3(v.hydration, 0, 30) ?? d.hydration,
+      sleep: clampInt3(v.sleep, 0, 10) ?? d.sleep,
+      goodDaysPerWeek: clampInt3(v.goodDaysPerWeek, 0, 7) ?? d.goodDaysPerWeek
     };
+  }
+  function hasActiveGoals(value) {
+    if (!value || typeof value !== "object") return false;
+    const steps = clampInt3(value.steps, 0, 1e5) ?? 0;
+    const hydration = clampInt3(value.hydration, 0, 30) ?? 0;
+    const sleep = clampInt3(value.sleep, 0, 10) ?? 0;
+    const goodDays = clampInt3(value.goodDaysPerWeek, 0, 7) ?? 0;
+    return steps > 0 || hydration > 0 || sleep > 0 || goodDays > 0;
   }
   function getDefaultAppSettingsFields() {
     return {
@@ -8178,7 +8318,7 @@ ${questionsBlock}
     merged.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     return merged;
   }
-  function clampInt2(raw, min, max) {
+  function clampInt3(raw, min, max) {
     const n = typeof raw === "number" ? raw : typeof raw === "string" ? parseInt(raw, 10) : NaN;
     if (!Number.isFinite(n)) return void 0;
     return Math.max(min, Math.min(max, Math.trunc(n)));
@@ -8204,26 +8344,26 @@ ${questionsBlock}
     const date = typeof v.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.date) ? v.date : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
     const entry = {
       date,
-      bpm: clampInt2(v.bpm, 30, 120),
+      bpm: clampInt3(v.bpm, 30, 120),
       weight: typeof v.weight === "string" ? v.weight : typeof v.weight === "number" ? v.weight.toFixed(1) : void 0,
       // stored as kg string (web)
-      fatigue: clampInt2(v.fatigue, 0, 10),
-      stiffness: clampInt2(v.stiffness, 0, 10),
-      sleep: clampInt2(v.sleep, 0, 10),
-      jointPain: clampInt2(v.jointPain, 0, 10),
-      mobility: clampInt2(v.mobility, 0, 10),
-      dailyFunction: clampInt2(v.dailyFunction, 0, 10),
-      swelling: clampInt2(v.swelling, 0, 10),
+      fatigue: clampInt3(v.fatigue, 0, 10),
+      stiffness: clampInt3(v.stiffness, 0, 10),
+      sleep: clampInt3(v.sleep, 0, 10),
+      jointPain: clampInt3(v.jointPain, 0, 10),
+      mobility: clampInt3(v.mobility, 0, 10),
+      dailyFunction: clampInt3(v.dailyFunction, 0, 10),
+      swelling: clampInt3(v.swelling, 0, 10),
       flare: v.flare === "Yes" ? "Yes" : v.flare === "No" ? "No" : "No",
-      mood: clampInt2(v.mood, 0, 10),
-      irritability: clampInt2(v.irritability, 0, 10),
+      mood: clampInt3(v.mood, 0, 10),
+      irritability: clampInt3(v.irritability, 0, 10),
       notes: normalizeString2(v.notes, 500),
       food: v.food && typeof v.food === "object" ? v.food : void 0,
       exercise: Array.isArray(v.exercise) ? v.exercise : void 0,
       energyClarity: normalizeString2(v.energyClarity, 80),
       stressors: Array.isArray(v.stressors) ? v.stressors.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim()).slice(0, 50) : void 0,
       symptoms: Array.isArray(v.symptoms) ? v.symptoms.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim()).slice(0, 80) : void 0,
-      weatherSensitivity: clampInt2(v.weatherSensitivity, 1, 10),
+      weatherSensitivity: clampInt3(v.weatherSensitivity, 0, 10),
       painLocation: normalizeString2(v.painLocation, 150),
       steps: typeof v.steps === "number" ? v.steps : typeof v.steps === "string" ? parseInt(v.steps, 10) : void 0,
       hydration: typeof v.hydration === "number" ? v.hydration : typeof v.hydration === "string" ? parseFloat(v.hydration) : void 0,

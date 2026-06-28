@@ -1408,7 +1408,7 @@ function formatLogEntryAsText(log) {
     '',
     'FUNCTION (1-10)',
     '  Mobility: ' + (log.mobility ?? '-'),
-    '  Daily activities: ' + (log.dailyFunction ?? '-'),
+    '  Ability to do Daily activities: ' + (log.dailyFunction ?? '-'),
     '',
     'FLARE',
     '  ' + (log.flare || '-')
@@ -1441,7 +1441,7 @@ function formatLogEntryAsText(log) {
 // Single-row CSV for one log (same headers as exportToCSV)
 function formatLogEntryAsCSV(log) {
   if (!log) return '';
-  const headers = "Date,BPM,Weight,Blood Pressure,Blood Glucose,SpO2,HRV,Body Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+  const headers = "Date,BPM,Weight,Blood Pressure,Blood Glucose,SpO2,HRV,Body Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Ability to do Daily activities,Swelling,Flare,Mood,Irritability,Notes";
   const bp = (log.bloodPressureSystolic && log.bloodPressureDiastolic)
     ? log.bloodPressureSystolic + '/' + log.bloodPressureDiastolic
     : '';
@@ -1567,7 +1567,7 @@ function openShareModalForLogsInRange() {
     if (typeof exportToCSV === 'function') {
       exportToCSV(rangeLogs);
     } else {
-      const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+      const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Ability to do Daily activities,Swelling,Flare,Mood,Irritability,Notes";
       const rows = rangeLogs.map(log => formatLogEntryAsCSV(log).split('\n')[1]).join("\n");
       const blob = new Blob([headers + "\n" + rows], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -2610,6 +2610,10 @@ function finishTutorial(enableDemo) {
 
 function maybeShowInstallModalOnce() {
   if (isRianellNativeApp()) return;
+  if (typeof window !== 'undefined' && window.RianellFirstRunWizard) {
+    if (window.RianellFirstRunWizard.isActive && window.RianellFirstRunWizard.isActive()) return;
+    if (typeof window.RianellFirstRunWizard.isComplete === 'function' && !window.RianellFirstRunWizard.isComplete()) return;
+  }
   try {
     if (localStorage.getItem('rianellInstallModalAfterTutorialSeen')) return;
     openInstallModal(false);
@@ -2752,6 +2756,10 @@ window.refreshAppInstallSection = refreshAppInstallSection;
 
 function openInstallModal(force) {
   if (isRianellNativeApp()) return;
+  if (!force && typeof window !== 'undefined' && window.RianellFirstRunWizard) {
+    if (window.RianellFirstRunWizard.isActive && window.RianellFirstRunWizard.isActive()) return;
+    if (typeof window.RianellFirstRunWizard.isComplete === 'function' && !window.RianellFirstRunWizard.isComplete()) return;
+  }
   window._installModalOpenedByTutorial = false;
   if (!force) {
     try {
@@ -4786,7 +4794,7 @@ class FormValidator {
       'sleep': 'Sleep Quality',
       'jointPain': 'Joint Pain',
       'mobility': 'Mobility',
-      'dailyFunction': 'Daily Activities',
+      'dailyFunction': 'Ability to do Daily activities',
       'swelling': 'Swelling',
       'mood': 'Mood',
       'irritability': 'Irritability',
@@ -5510,32 +5518,54 @@ const chartSection = document.getElementById("chartSection");
 // Initialize slider colors and add event listeners
 const sliders = ['fatigue', 'stiffness', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'weatherSensitivity'];
 
-function updateSliderColor(slider) {
-  const value = parseInt(slider.value, 10);
-  const percentage = (value / 10) * 100;
+const SLIDER_HIGHER_IS_BETTER = { sleep: true, mobility: true, dailyFunction: true, mood: true };
 
-  // Sliders where HIGH values are GOOD (inverted colors: low = red, high = green)
-  const invertedSliders = ['sleep', 'mobility', 'dailyFunction', 'mood'];
-  const isInverted = invertedSliders.includes(slider.id);
+function metricWellnessFromRaw(field, raw) {
+  const S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.rawToWellnessSlider === 'function') return S.rawToWellnessSlider(field, raw);
+  const r = Math.max(0, Math.min(10, parseInt(raw, 10) || 0));
+  return SLIDER_HIGHER_IS_BETTER[field] ? r : (10 - r);
+}
+
+function metricRawFromWellness(field, wellness) {
+  const S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.wellnessSliderToRaw === 'function') return S.wellnessSliderToRaw(field, wellness);
+  const w = Math.max(0, Math.min(10, parseInt(wellness, 10) || 0));
+  return SLIDER_HIGHER_IS_BETTER[field] ? w : (10 - w);
+}
+
+function editSliderFieldId(sliderId) {
+  if (!sliderId || sliderId.indexOf('edit') !== 0) return sliderId;
+  const rest = sliderId.slice(4);
+  return rest.charAt(0).toLowerCase() + rest.slice(1);
+}
+
+function readMetricSliderRaw(elementId) {
+  const el = document.getElementById(elementId);
+  if (!el) return 0;
+  return metricRawFromWellness(elementId, el.value);
+}
+
+function setMetricSliderFromRaw(elementId, fieldId, raw) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  const wellness = metricWellnessFromRaw(fieldId, raw);
+  el.value = String(wellness);
+  const valueSpan = document.getElementById(elementId + 'Value');
+  if (valueSpan) valueSpan.textContent = String(wellness);
+}
+
+function updateSliderColor(slider) {
+  const wellness = Math.max(0, Math.min(10, parseInt(slider.value, 10) || 0));
+  const percentage = (wellness / 10) * 100;
 
   let fillColor;
-
-  if (isInverted) {
-    if (value >= 8 && value <= 10) {
-      fillColor = '#4CAF50';
-    } else if (value >= 4 && value <= 7) {
-      fillColor = '#FF9800';
-    } else if (value >= 1 && value <= 3) {
-      fillColor = '#F44336';
-    }
+  if (wellness >= 8) {
+    fillColor = '#4CAF50';
+  } else if (wellness >= 4) {
+    fillColor = '#FF9800';
   } else {
-    if (value >= 1 && value <= 3) {
-      fillColor = '#4CAF50';
-    } else if (value >= 4 && value <= 7) {
-      fillColor = '#FF9800';
-    } else if (value >= 8 && value <= 10) {
-      fillColor = '#F44336';
-    }
+    fillColor = '#F44336';
   }
 
   // Sleek track uses CSS vars (see styles.css); thumb border matches fill
@@ -5567,7 +5597,7 @@ function updateSliderColor(slider) {
         badge.setAttribute('aria-hidden', 'true');
         lab.appendChild(badge);
       }
-      badge.textContent = String(value);
+      badge.textContent = String(wellness);
     }
   } catch (e) { /* ignore */ }
 }
@@ -5838,7 +5868,7 @@ async function createCombinedChart() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6404,7 +6434,7 @@ function toggleMetric(field) {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6463,7 +6493,7 @@ function selectAllMetrics() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6626,7 +6656,7 @@ function toggleBalanceMetric(field) {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6683,7 +6713,7 @@ function selectAllBalanceMetrics() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6711,7 +6741,7 @@ function deselectAllBalanceMetrics() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6819,7 +6849,7 @@ async function createBalanceChart() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -7298,7 +7328,7 @@ function exportData() {
       alert('No data to export.');
       return;
     }
-  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Ability to do Daily activities,Swelling,Flare,Mood,Irritability,Notes";
   const csvContent = "data:text/csv;charset=utf-8," 
     + headers + "\n"
     + exportLogs.map(log => Object.values(log).join(",")).join("\n");
@@ -7344,8 +7374,15 @@ function importData() {
           const headers = lines[0].split(',');
           
           // Validate headers
-          const expectedHeaders = ['Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes'];
-          if (!expectedHeaders.every(header => headers.includes(header))) {
+          const requiredHeaders = [
+            'Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility',
+            ['Ability to do Daily activities', 'Daily Function', 'Daily Activities'],
+            'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes'
+          ];
+          const headerOk = requiredHeaders.every(function (h) {
+            return Array.isArray(h) ? h.some(function (alt) { return headers.includes(alt); }) : headers.includes(h);
+          });
+          if (!headerOk) {
               showAlertModal(tUi('common.invalid.csv.format.please.use.a.file.exp'), tUi('settings.import.failed'));
             return;
           }
@@ -7752,9 +7789,14 @@ function updateGoalsHeaderUnseenBadge() {
   var btn = document.querySelector('.targets-button-top');
   if (!btn) return;
   var count = countUnseenAchievements();
+  var aiOn = typeof appSettings === 'undefined' || appSettings.aiEnabled !== false;
+  var showPrompt = aiOn && !userHasConfiguredGoals();
   btn.classList.toggle('targets-button-top--unseen', count > 0);
+  btn.classList.toggle('targets-button-top--prompt', showPrompt);
   if (count > 0) {
     btn.setAttribute('aria-label', count + ' new achievement' + (count === 1 ? '' : 's'));
+  } else if (showPrompt) {
+    btn.setAttribute('aria-label', typeof tUi === 'function' ? tUi('common.goals.setPrompt') : 'Set your goals');
   } else {
     btn.removeAttribute('aria-label');
   }
@@ -10651,6 +10693,21 @@ function getGoals() {
   }
 }
 
+/** True when the user saved at least one non-zero goal in localStorage. */
+function userHasConfiguredGoals() {
+  try {
+    var raw = localStorage.getItem('rianellGoals');
+    if (!raw) return false;
+    var S = typeof window !== 'undefined' ? window.RianellShared : null;
+    if (S && typeof S.hasActiveGoals === 'function') return S.hasActiveGoals(JSON.parse(raw));
+    var g = JSON.parse(raw);
+    return (parseInt(g.steps, 10) > 0) || (parseInt(g.hydration, 10) > 0) ||
+      (parseInt(g.sleep, 10) > 0) || (parseInt(g.goodDaysPerWeek, 10) > 0);
+  } catch (e) {
+    return false;
+  }
+}
+
 function saveGoalsFromModal() {
   var steps = parseInt(document.getElementById('goalSteps') && document.getElementById('goalSteps').value, 10) || 0;
   var hydration = parseInt(document.getElementById('goalHydration') && document.getElementById('goalHydration').value, 10) || 0;
@@ -11020,6 +11077,7 @@ function saveGoalsAndClose() {
   saveGoalsFromModal();
   closeGoalsModal();
   updateGoalsProgressBlock();
+  updateGoalsHeaderUnseenBadge();
 }
 
 function openBugReportModal() {
@@ -11259,6 +11317,7 @@ function updateGoalsProgressBlock() {
     if (typeof countUp === 'function') countUp(el, parseFloat(el.getAttribute('data-count-target')) || 0, 600);
   });
   if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+  if (typeof updateGoalsHeaderUnseenBadge === 'function') updateGoalsHeaderUnseenBadge();
 }
 
 function flushOfflineQueue() {
@@ -13964,41 +14023,41 @@ function openEditEntryModal(logDate) {
   document.getElementById('editWeight').value = weightDisplay;
   document.getElementById('editWeightUnitDisplay').textContent = appSettings.weightUnit || 'kg';
   
-  document.getElementById('editFatigue').value = log.fatigue;
-  document.getElementById('editFatigueValue').textContent = log.fatigue;
+  document.getElementById('editFatigue').value = metricWellnessFromRaw('fatigue', log.fatigue);
+  document.getElementById('editFatigueValue').textContent = document.getElementById('editFatigue').value;
   updateEditSliderColor('editFatigue');
   
-  document.getElementById('editStiffness').value = log.stiffness;
-  document.getElementById('editStiffnessValue').textContent = log.stiffness;
+  document.getElementById('editStiffness').value = metricWellnessFromRaw('stiffness', log.stiffness);
+  document.getElementById('editStiffnessValue').textContent = document.getElementById('editStiffness').value;
   updateEditSliderColor('editStiffness');
   
-  document.getElementById('editSleep').value = log.sleep;
-  document.getElementById('editSleepValue').textContent = log.sleep;
+  document.getElementById('editSleep').value = metricWellnessFromRaw('sleep', log.sleep);
+  document.getElementById('editSleepValue').textContent = document.getElementById('editSleep').value;
   updateEditSliderColor('editSleep');
   
-  document.getElementById('editJointPain').value = log.jointPain;
-  document.getElementById('editJointPainValue').textContent = log.jointPain;
+  document.getElementById('editJointPain').value = metricWellnessFromRaw('jointPain', log.jointPain);
+  document.getElementById('editJointPainValue').textContent = document.getElementById('editJointPain').value;
   updateEditSliderColor('editJointPain');
   
-  document.getElementById('editMobility').value = log.mobility;
-  document.getElementById('editMobilityValue').textContent = log.mobility;
+  document.getElementById('editMobility').value = metricWellnessFromRaw('mobility', log.mobility);
+  document.getElementById('editMobilityValue').textContent = document.getElementById('editMobility').value;
   updateEditSliderColor('editMobility');
   
-  document.getElementById('editDailyFunction').value = log.dailyFunction;
-  document.getElementById('editDailyFunctionValue').textContent = log.dailyFunction;
+  document.getElementById('editDailyFunction').value = metricWellnessFromRaw('dailyFunction', log.dailyFunction);
+  document.getElementById('editDailyFunctionValue').textContent = document.getElementById('editDailyFunction').value;
   updateEditSliderColor('editDailyFunction');
   
-  document.getElementById('editSwelling').value = log.swelling;
-  document.getElementById('editSwellingValue').textContent = log.swelling;
+  document.getElementById('editSwelling').value = metricWellnessFromRaw('swelling', log.swelling);
+  document.getElementById('editSwellingValue').textContent = document.getElementById('editSwelling').value;
   updateEditSliderColor('editSwelling');
   
   document.getElementById('editFlare').value = log.flare || 'No';
-  document.getElementById('editMood').value = log.mood;
-  document.getElementById('editMoodValue').textContent = log.mood;
+  document.getElementById('editMood').value = metricWellnessFromRaw('mood', log.mood);
+  document.getElementById('editMoodValue').textContent = document.getElementById('editMood').value;
   updateEditSliderColor('editMood');
   
-  document.getElementById('editIrritability').value = log.irritability;
-  document.getElementById('editIrritabilityValue').textContent = log.irritability;
+  document.getElementById('editIrritability').value = metricWellnessFromRaw('irritability', log.irritability);
+  document.getElementById('editIrritabilityValue').textContent = document.getElementById('editIrritability').value;
   updateEditSliderColor('editIrritability');
   
   // Populate new metrics
@@ -14009,7 +14068,7 @@ function openEditEntryModal(logDate) {
   
   const editWeatherSensitivity = document.getElementById('editWeatherSensitivity');
   if (editWeatherSensitivity) {
-    editWeatherSensitivity.value = log.weatherSensitivity || 5;
+    editWeatherSensitivity.value = metricWellnessFromRaw('weatherSensitivity', log.weatherSensitivity || 5);
     const weatherValueSpan = document.getElementById('editWeatherSensitivityValue');
     if (weatherValueSpan) weatherValueSpan.textContent = editWeatherSensitivity.value;
     updateEditSliderColor('editWeatherSensitivity');
@@ -14361,10 +14420,14 @@ function saveInlineEdit(logDate) {
 function updateEditSliderColor(sliderId) {
   const slider = document.getElementById(sliderId);
   if (!slider) return;
-  const value = parseInt(slider.value);
-  const percentage = (value / 10) * 100;
-  const primary = getThemePrimaryColor();
-  slider.style.background = `linear-gradient(to right, ${primary} 0%, ${primary} ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%, rgba(255, 255, 255, 0.1) 100%)`;
+  const wellness = Math.max(0, Math.min(10, parseInt(slider.value, 10) || 0));
+  const percentage = (wellness / 10) * 100;
+  let fillColor = '#FF9800';
+  if (wellness >= 8) fillColor = '#4CAF50';
+  else if (wellness <= 3) fillColor = '#F44336';
+  slider.style.background = `linear-gradient(to right, ${fillColor} 0%, ${fillColor} ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%, rgba(255, 255, 255, 0.1) 100%)`;
+  const valueSpan = document.getElementById(sliderId + 'Value');
+  if (valueSpan) valueSpan.textContent = String(wellness);
 }
 
 function toggleEditWeightUnit() {
@@ -14407,23 +14470,23 @@ function saveEditedEntry() {
   log.date = document.getElementById("editDate").value;
   log.bpm = document.getElementById("editBpm").value;
   log.weight = weightValue.toFixed(1);
-  log.fatigue = document.getElementById("editFatigue").value;
-  log.stiffness = document.getElementById("editStiffness").value;
-  log.sleep = document.getElementById("editSleep").value;
-  log.jointPain = document.getElementById("editJointPain").value;
-  log.mobility = document.getElementById("editMobility").value;
-  log.dailyFunction = document.getElementById("editDailyFunction").value;
-  log.swelling = document.getElementById("editSwelling").value;
+  log.fatigue = metricRawFromWellness('fatigue', document.getElementById("editFatigue").value);
+  log.stiffness = metricRawFromWellness('stiffness', document.getElementById("editStiffness").value);
+  log.sleep = metricRawFromWellness('sleep', document.getElementById("editSleep").value);
+  log.jointPain = metricRawFromWellness('jointPain', document.getElementById("editJointPain").value);
+  log.mobility = metricRawFromWellness('mobility', document.getElementById("editMobility").value);
+  log.dailyFunction = metricRawFromWellness('dailyFunction', document.getElementById("editDailyFunction").value);
+  log.swelling = metricRawFromWellness('swelling', document.getElementById("editSwelling").value);
   log.flare = document.getElementById("editFlare").value;
-  log.mood = document.getElementById("editMood").value;
-  log.irritability = document.getElementById("editIrritability").value;
+  log.mood = metricRawFromWellness('mood', document.getElementById("editMood").value);
+  log.irritability = metricRawFromWellness('irritability', document.getElementById("editIrritability").value);
   
   // Update new metrics
   const editEnergyClarity = document.getElementById("editEnergyClarity");
   if (editEnergyClarity) log.energyClarity = editEnergyClarity.value ? escapeHTML(editEnergyClarity.value.trim()) : undefined;
   
   const editWeatherSensitivity = document.getElementById("editWeatherSensitivity");
-  if (editWeatherSensitivity) log.weatherSensitivity = editWeatherSensitivity.value || undefined;
+  if (editWeatherSensitivity) log.weatherSensitivity = metricRawFromWellness('weatherSensitivity', editWeatherSensitivity.value) || undefined;
   
   const editSteps = document.getElementById("editSteps");
   if (editSteps) log.steps = editSteps.value ? parseInt(editSteps.value) : undefined;
@@ -14639,7 +14702,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">${svgIcon('document', 'metric-svg-icon', 'Daily activities')} Daily Activities</span>
+          <span class="metric-label">${svgIcon('document', 'metric-svg-icon', 'Ability to do Daily activities')} ${typeof tUi === 'function' ? tUi('common.daily.activities') : 'Ability to do Daily activities'}</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${log.dailyFunction}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.dailyFunction}/10</span>`
@@ -16546,7 +16609,7 @@ async function updateChartsImmediate() {
     chart("sleepChart", "Sleep Quality", "sleep", "rgb(63,81,181)"),
     chart("jointPainChart", "Joint Pain Level", "jointPain", "rgb(255,87,34)"),
     chart("mobilityChart", "Mobility Level", "mobility", "rgb(0,188,212)"),
-    chart("dailyFunctionChart", "Daily Function Level", "dailyFunction", "rgb(139,195,74)"),
+    chart("dailyFunctionChart", "Ability to do Daily activities level", "dailyFunction", "rgb(139,195,74)"),
     chart("swellingChart", "Joint Swelling Level", "swelling", "rgb(156,39,176)"),
     chart("moodChart", "Mood Level", "mood", "rgb(103,58,183)"),
     chart("irritabilityChart", "Irritability Level", "irritability", "rgb(121,85,72)"),
@@ -16773,16 +16836,16 @@ form.addEventListener("submit", e => {
   let newEntry = {
     date: dateValue,
     bpm: Number.isFinite(bpmRaw) ? Math.max(30, Math.min(120, bpmRaw)) : undefined,
-    fatigue: Math.max(0, Math.min(10, parseInt(document.getElementById("fatigue").value) || 0)), // Clamp 0-10
-    stiffness: Math.max(0, Math.min(10, parseInt(document.getElementById("stiffness").value) || 0)), // Clamp 0-10
-    sleep: Math.max(0, Math.min(10, parseInt(document.getElementById("sleep").value) || 0)), // Clamp 0-10
-    jointPain: Math.max(0, Math.min(10, parseInt(document.getElementById("jointPain").value) || 0)), // Clamp 0-10
-    mobility: Math.max(0, Math.min(10, parseInt(document.getElementById("mobility").value) || 0)), // Clamp 0-10
-    dailyFunction: Math.max(0, Math.min(10, parseInt(document.getElementById("dailyFunction").value) || 0)), // Clamp 0-10
-    swelling: Math.max(0, Math.min(10, parseInt(document.getElementById("swelling").value) || 0)), // Clamp 0-10
+    fatigue: metricRawFromWellness('fatigue', document.getElementById("fatigue").value),
+    stiffness: metricRawFromWellness('stiffness', document.getElementById("stiffness").value),
+    sleep: metricRawFromWellness('sleep', document.getElementById("sleep").value),
+    jointPain: metricRawFromWellness('jointPain', document.getElementById("jointPain").value),
+    mobility: metricRawFromWellness('mobility', document.getElementById("mobility").value),
+    dailyFunction: metricRawFromWellness('dailyFunction', document.getElementById("dailyFunction").value),
+    swelling: metricRawFromWellness('swelling', document.getElementById("swelling").value),
     flare: document.getElementById("flare").value === 'Yes' ? 'Yes' : 'No', // Validate flare value
-    mood: Math.max(0, Math.min(10, parseInt(document.getElementById("mood").value) || 0)), // Clamp 0-10
-    irritability: Math.max(0, Math.min(10, parseInt(document.getElementById("irritability").value) || 0)), // Clamp 0-10
+    mood: metricRawFromWellness('mood', document.getElementById("mood").value),
+    irritability: metricRawFromWellness('irritability', document.getElementById("irritability").value),
     notes: escapeHTML(document.getElementById("notes").value.trim().substring(0, 500)), // Sanitize and limit notes
     food: sanitizedFood, // Include sanitized food items
     exercise: sanitizedExercise, // Include sanitized exercise items
@@ -16790,7 +16853,9 @@ form.addEventListener("submit", e => {
     energyClarity: document.getElementById("energyClarity")?.value ? escapeHTML(document.getElementById("energyClarity").value.trim()) : undefined,
     stressors: logFormStressorsItems.length > 0 ? logFormStressorsItems.map(item => escapeHTML(item.trim())) : undefined,
     symptoms: logFormSymptomsItems.length > 0 ? logFormSymptomsItems.map(item => escapeHTML(item.trim())) : undefined,
-    weatherSensitivity: document.getElementById("weatherSensitivity")?.value ? Math.max(1, Math.min(10, parseInt(document.getElementById("weatherSensitivity").value) || 0)) : undefined,
+    weatherSensitivity: document.getElementById("weatherSensitivity")?.value
+      ? metricRawFromWellness('weatherSensitivity', document.getElementById("weatherSensitivity").value)
+      : undefined,
     painLocation: document.getElementById("painLocation")?.value ? escapeHTML(document.getElementById("painLocation").value.trim().substring(0, 150)) : undefined,
     steps: document.getElementById("steps")?.value ? parseInt(document.getElementById("steps").value) : undefined,
     hydration: document.getElementById("hydration")?.value ? parseFloat(document.getElementById("hydration").value) : undefined,
@@ -18379,6 +18444,7 @@ function applyAIFeatureVisibility() {
   if (predictionGroup) predictionGroup.style.display = on ? '' : 'none';
   if (goalsBtn) goalsBtn.style.display = on ? '' : 'none';
   if (goalsBlock) goalsBlock.style.display = on ? (goalsBlock.getAttribute('data-has-goals') === 'true' ? '' : 'none') : 'none';
+  if (typeof updateGoalsHeaderUnseenBadge === 'function') updateGoalsHeaderUnseenBadge();
   var currentTab = document.querySelector('.tab-btn[data-tab].active');
   if (!on && currentTab && currentTab.getAttribute('data-tab') === 'ai') {
     if (typeof switchTab === 'function') switchTab('home');
@@ -23362,7 +23428,7 @@ function renderHomeCheckinCard(logArr, todayStr, ctx) {
 
 function mcsUpdate(slider, badgeId) {
   var val = parseInt(slider.value, 10);
-  var pct = ((val - 1) / 9) * 100;
+  var pct = (val / 10) * 100;
   slider.style.setProperty('--mcs-pct', pct + '%');
   var badge = document.getElementById(badgeId);
   if (badge) {
@@ -23412,17 +23478,17 @@ function saveMicroCheckinAndClose() {
   var S = getHomeSharedAi();
   if (!S || typeof S.applyMicroCheckin !== 'function' || !_microCheckinPeriod) return;
   var todayStr = getTodayDateStr();
-  function parseScore(id) {
+  function parseScore(id, field) {
     var el = document.getElementById(id);
     if (!el) return undefined;
     var n = parseInt(el.value, 10);
-    if (isNaN(n) || n < 1 || n > 10) return undefined;
-    return n;
+    if (isNaN(n) || n < 0 || n > 10) return undefined;
+    return metricRawFromWellness(field, n);
   }
   var metrics = {
-    mood: parseScore('microCheckinMood'),
-    sleep: parseScore('microCheckinSleep'),
-    fatigue: parseScore('microCheckinFatigue'),
+    mood: parseScore('microCheckinMood', 'mood'),
+    sleep: parseScore('microCheckinSleep', 'sleep'),
+    fatigue: parseScore('microCheckinFatigue', 'fatigue'),
   };
   if (metrics.mood == null && metrics.sleep == null && metrics.fatigue == null) return;
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
@@ -23838,6 +23904,14 @@ function updateHomeTodayPanel() {
       hero.classList.add('home-hero-card--logged');
       hero.classList.remove('home-hero-card--streak-nudge');
     }
+  } else if (shouldSuppressFirstRunLoggingPrompt()) {
+    var welcomeTitle = typeof tUi === 'function' ? tUi('home.welcome.title') : 'Welcome to Rianell';
+    var welcomeDetail = typeof tUi === 'function' ? tUi('logs.empty.warm.message') : 'Each entry helps spot what affects how you feel. No pressure - a quick note is enough.';
+    statusEl.innerHTML = '<strong>' + escapeHTML(welcomeTitle) + '</strong><p class="home-status-detail">' + escapeHTML(welcomeDetail) + '</p>';
+    statusEl.classList.remove('home-today-status--streak-nudge');
+    if (hero) {
+      hero.classList.remove('home-hero-card--logged', 'home-hero-card--streak-nudge');
+    }
   } else {
     var notLoggedTitle = typeof tUi === 'function' ? tUi('home.status.notLoggedYet') : 'Not logged yet';
     var notLoggedDetail = streakGrace
@@ -23852,7 +23926,7 @@ function updateHomeTodayPanel() {
       hero.classList.toggle('home-hero-card--streak-nudge', streakBroken && !streakGrace);
     }
   }
-  updateHomeFabPulse(!today);
+  updateHomeFabPulse(!today && !shouldSuppressFirstRunLoggingPrompt());
   if (typeof renderHomeWelcomeCard === 'function') renderHomeWelcomeCard(logArr);
   if (typeof renderHomeDiscoveryChips === 'function') renderHomeDiscoveryChips(logArr);
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
@@ -23870,6 +23944,16 @@ function getHomeSharedAi() {
 function getTodayDateStr() {
   var d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function shouldSuppressFirstRunLoggingPrompt() {
+  var S = getHomeSharedAi();
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  var ctx = { platform: 'pwa' };
+  if (S && typeof S.shouldSuppressFirstRunLoggingPrompt === 'function') {
+    return S.shouldSuppressFirstRunLoggingPrompt(appSettings || {}, logArr, ctx);
+  }
+  return logArr.length === 0 || !(appSettings && appSettings.firstRunWizardCompletedAt);
 }
 
 function renderHomeAiSuggestions() {
@@ -25913,7 +25997,7 @@ function runRianellBootAfterDomReady() {
       var dd = String(today.getDate()).padStart(2, '0');
       var todayStr = yyyy + '-' + mm + '-' + dd;
       var hasToday = logs.some(function (log) { return log.date === todayStr; });
-      if (!hasToday && !window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone && appSettings.reminder !== false) {
+      if (!hasToday && !window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone && appSettings.reminder !== false && !shouldSuppressFirstRunLoggingPrompt()) {
         showAlertModal(tUi('common.you.have.not.logged.an.entry.for.today'));
       }
       });

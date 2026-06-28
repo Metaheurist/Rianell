@@ -113,6 +113,9 @@
   }
 
   function drumValueAtCenter(scrollEl) {
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.valueAtCenter === 'function') {
+      return global.RianellDrumPicker.valueAtCenter(scrollEl);
+    }
     if (!scrollEl) return null;
     var rect = scrollEl.getBoundingClientRect();
     var centerY = rect.top + rect.height / 2;
@@ -130,6 +133,10 @@
   }
 
   function scrollDrumToValue(scrollEl, value, smooth) {
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.scrollToValue === 'function') {
+      global.RianellDrumPicker.scrollToValue(scrollEl, value, smooth);
+      return;
+    }
     if (!scrollEl) return;
     var item = scrollEl.querySelector('.vital-drum-item[data-value="' + value + '"]');
     if (!item) {
@@ -149,6 +156,13 @@
   function bindDrumScroll(scrollEl, onChange) {
     if (!scrollEl || scrollEl.dataset.vitalBound === '1') return;
     scrollEl.dataset.vitalBound = '1';
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.bind === 'function') {
+      global.RianellDrumPicker.bind(scrollEl, {
+        onScroll: function () { onChange(false); },
+        onSnap: function () { onChange(true); },
+      });
+      return;
+    }
     var ticking = false;
     var scrollEndTimer = null;
     scrollEl.addEventListener('scroll', function () {
