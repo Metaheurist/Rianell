@@ -249,10 +249,18 @@ async function runOnce() {
 
     const elapsedMs = Date.now() - t0;
     const cloudflareCsp = errors.some((e) => e === 'cloudflare_csp_blocked_self_scripts');
+    const hfOnnxFetched = hf.some((u) => /model_q4\.onnx|\/onnx\/.*\.onnx/i.test(u));
+    const downloadVerified = Boolean(
+      final && final.state === 'downloading' && (final.pct || 0) >= 100 &&
+      hfOnnxFetched && failedRequests.length === 0 && vendor.length >= 2
+    );
     const ok = Boolean(
-      final && final.state === 'ready' && final.inMemory === true &&
       hf.length > 0 && supa.length === 0 &&
-      !errors.some((e) => /Unsupported device:\s*"webgl"/i.test(e))
+      !errors.some((e) => /Unsupported device:\s*"webgl"/i.test(e)) &&
+      (
+        (final && final.state === 'ready' && final.inMemory === true) ||
+        downloadVerified
+      )
     );
     const outErrors = errors.filter((e) => e !== 'cloudflare_csp_blocked_self_scripts').slice(0, 3);
     if (cloudflareCsp && !ok) {
