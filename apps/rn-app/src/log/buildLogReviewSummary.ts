@@ -17,7 +17,7 @@ export function buildLogReviewSummary(entry: LogEntry, locale = 'en-GB'): string
   if (entry.symptoms?.length) lines.push(`Symptoms: ${entry.symptoms.join(', ')}`);
   if (entry.energyClarity) lines.push(`Energy / clarity: ${entry.energyClarity}`);
   if (entry.stressors?.length) lines.push(`Stressors: ${entry.stressors.join(', ')}`);
-  if (entry.dailyFunction != null) lines.push(`Daily function: ${entry.dailyFunction}/10`);
+  if (entry.dailyFunction != null) lines.push(`Ability to do Daily activities: ${entry.dailyFunction}/10`);
   if (entry.irritability != null) lines.push(`Irritability: ${entry.irritability}/10`);
   if (entry.weatherSensitivity != null) lines.push(`Weather sensitivity: ${entry.weatherSensitivity}/10`);
   const f = entry.food;

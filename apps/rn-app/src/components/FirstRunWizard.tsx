@@ -95,7 +95,10 @@ export function FirstRunWizard({
 
   const tutorialSlides = useMemo(() => visibleSlideIndices(aiEnabledLocal), [aiEnabledLocal]);
   const tutorialSlideIndex = tutorialSlides[Math.min(tutorialPos, tutorialSlides.length - 1)] ?? 0;
+  const tutorialIsFirst = tutorialPos <= 0;
   const tutorialIsLast = tutorialPos >= tutorialSlides.length - 1;
+  const showTutorialArrows = step?.id === 'tutorial' && tutorialSlideIndex !== 0;
+  const showTutorialPrimary = step?.id === 'tutorial' && tutorialIsLast && tutorialSlideIndex !== 0;
 
   const progressSessionRef = useRef(
     createOnboardingProgressSession(localPrefs as Record<string, unknown>, platformCtx, {
@@ -431,7 +434,7 @@ export function FirstRunWizard({
     if (step.id === 'healthConsent') return t('common.i.agree.continue');
     if (step.id === 'cookies') return t('common.accept');
     if (step.id === 'trackingProfile') return t('settings.trackingProfile.save');
-    if (step.id === 'tutorial') return tutorialIsLast ? t('tutorial.done') : t('tutorial.next');
+    if (step.id === 'tutorial') return t('tutorial.done');
     if (step.id === 'aiDownload') return t('common.download.now');
     return t('common.continue');
   })();
@@ -458,6 +461,34 @@ export function FirstRunWizard({
           })}
         </Text>
         <ScrollView contentContainerStyle={styles.body}>{renderStepBody()}</ScrollView>
+        {showTutorialArrows ? (
+          <View style={styles.tutorialNavRow}>
+            {tutorialIsFirst ? (
+              <View style={styles.tutorialNavBtn} />
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.previous.slide')}
+                onPress={() => setTutorialPos((p) => Math.max(0, p - 1))}
+                style={styles.tutorialNavBtn}
+              >
+                <Text style={[styles.tutorialNavIcon, { color: theme.tokens.color.textSecondary }]}>‹</Text>
+              </Pressable>
+            )}
+            {tutorialIsLast ? (
+              <View style={styles.tutorialNavBtn} />
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('common.next.slide')}
+                onPress={() => setTutorialPos((p) => Math.min(tutorialSlides.length - 1, p + 1))}
+                style={styles.tutorialNavBtn}
+              >
+                <Text style={[styles.tutorialNavIcon, { color: theme.tokens.color.textSecondary }]}>›</Text>
+              </Pressable>
+            )}
+          </View>
+        ) : null}
         <View style={styles.footer}>
           {showSecondary ? (
             <Pressable accessibilityRole="button" onPress={onSecondary} style={styles.footerBtn}>
@@ -466,13 +497,17 @@ export function FirstRunWizard({
           ) : (
             <View style={styles.footerBtn} />
           )}
-          <Pressable
-            accessibilityRole="button"
-            onPress={onPrimary}
-            style={[styles.primary, { backgroundColor: theme.tokens.color.accent }]}
-          >
-            <Text style={styles.primaryText}>{primaryLabel}</Text>
-          </Pressable>
+          {showTutorialPrimary || step?.id !== 'tutorial' ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onPrimary}
+              style={[styles.primary, { backgroundColor: theme.tokens.color.accent }]}
+            >
+              <Text style={styles.primaryText}>{primaryLabel}</Text>
+            </Pressable>
+          ) : (
+            <View style={styles.footerBtn} />
+          )}
         </View>
         <PolicyDocumentsModal visible={policyOpen} regionId={selectedRegion} onClose={() => setPolicyOpen(false)} />
       </SafeAreaView>
@@ -505,6 +540,9 @@ const styles = StyleSheet.create({
   outlineBtn: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 8 },
   footerBtn: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4, flex: 1 },
+  tutorialNavRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 },
+  tutorialNavBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  tutorialNavIcon: { fontSize: 28, fontWeight: '300', lineHeight: 32 },
   primary: { borderRadius: 12, paddingVertical: 14, paddingHorizontal: 20, minHeight: 44, justifyContent: 'center' },
   primaryText: { color: '#fff', fontWeight: '600', fontSize: 16, textAlign: 'center' },
 });
