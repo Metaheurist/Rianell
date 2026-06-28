@@ -4,6 +4,14 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.7 documentation sync (Guided onboarding questionnaire)
+
+- **Onboarding (shared):** `packages/shared/src/onboarding/guidedQuestionnaire.mjs` — `buildGuidedQuestionnaire`, `applyQuestionnaireAnswer`, `createGuidedOnboardingProgressSession`.
+- **PWA:** `guided-onboarding.js`, `#guidedOnboardingOverlay`; privacy gate whitelists guided overlay.
+- **RN:** `FirstRunWizard.tsx` renders shared card script; `onboardingIllustrations.tsx` for mascot SVG + idle animation.
+- **Consents:** Unbundled multichoice cards with “See details” → policy viewer; timestamps + audit unchanged.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.7.
+
 ### v2.0.6 documentation sync (Wellness sliders, onboarding, and goals prompt)
 
 - **Sliders (shared + PWA):** `packages/shared/src/metrics/sliderWellness.mjs` — unified 0 bad / 10 good UX; symptom metrics invert on persist.

@@ -61,11 +61,12 @@ test('privacy-region.js whitelists boot/onboarding overlays for interaction gate
   const gateJs = readFileSync('apps/pwa-webapp/privacy-region.js', 'utf8');
   assert.match(gateJs, /#aiModelDownloadOverlay/);
   assert.match(gateJs, /#aiModelDownloadProgressOverlay/);
+  assert.match(gateJs, /#guidedOnboardingOverlay/);
 });
 
-test('first-run wizard clears modal-active using shared overlay detector', () => {
-  const wizardJs = readFileSync('apps/pwa-webapp/first-run-wizard.js', 'utf8');
-  assert.match(wizardJs, /isAnyModalOverlayOpen/);
+test('guided onboarding clears modal-active using shared overlay detector', () => {
+  const guidedJs = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
+  assert.match(guidedJs, /isAnyModalOverlayOpen/);
 });
 
 test('app.js reveals shell before blocking AI preload on installed mobile PWA', () => {
@@ -86,6 +87,7 @@ test('ui-feedback.js exposes isAnyModalOverlayOpen helper', () => {
 
 test('modal-active CSS allows pointer events on onboarding overlays', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /body\.modal-active \.guided-onboarding-overlay/);
   assert.match(css, /body\.modal-active \.first-run-wizard-overlay/);
   assert.match(css, /body\.modal-active \.ai-model-download-consent/);
 });

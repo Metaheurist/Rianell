@@ -29,7 +29,8 @@ Machine-readable contract: `docs/platform-parity.json` (v2).
 
 ### v1.120.0 note
 
-- **Unified onboarding counter:** PWA and RN share `unifiedOnboardingProgress.mjs` for first-run step totals.
+- **Guided onboarding questionnaire:** PWA and RN share `guidedQuestionnaire.mjs` + `createGuidedOnboardingProgressSession` for first-run card flow and step totals.
+- **Unified onboarding counter (legacy):** `unifiedOnboardingProgress.mjs` still supports tutorial replay paths.
 - **Theme accents (PWA):** Global theme now drives modal/AI/mood/chart chrome via CSS `--accent-*` tokens; RN theme parity for this pass is unchanged.
 
 ---

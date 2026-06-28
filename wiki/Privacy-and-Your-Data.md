@@ -55,7 +55,7 @@ When you enable **Barcode food logging** in Settings → Data options, Rianell c
 
 ## Optional session recording (Smartlook)
 
-Rianell uses optional session analytics to improve usability. This is **on by default after onboarding**, with a clear disclosure step where you can turn it off immediately.
+Rianell uses optional session analytics to improve usability. During onboarding you choose **yes** or **no** on a friendly card — nothing is pre-ticked for EEA/UK users.
 
 | | |
 |---|---|
