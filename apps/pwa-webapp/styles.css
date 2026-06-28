@@ -191,6 +191,24 @@
   --home-weather-prompt-hover-bg: var(--accent-fill-10);
   --home-weather-prompt-focus-ring: color-mix(in srgb, var(--primary-color) 55%, transparent);
   --text-primary: var(--text-light);
+
+  /* Tutorial footer CTAs (Finish / Sign up / Try demo) */
+  --tutorial-hue-account: #9c27b0;
+  --tutorial-hue-demo: var(--color-info);
+  --tutorial-cta-finish-bg: var(--accent-fill-26);
+  --tutorial-cta-finish-border: var(--accent-border-hover);
+  --tutorial-cta-finish-bg-hover: var(--accent-border);
+  --tutorial-cta-finish-border-hover: var(--accent-glow-40);
+  --tutorial-cta-signup-bg: color-mix(in srgb, var(--tutorial-hue-account) 30%, transparent);
+  --tutorial-cta-signup-border: color-mix(in srgb, var(--tutorial-hue-account) 50%, transparent);
+  --tutorial-cta-signup-bg-hover: color-mix(in srgb, var(--tutorial-hue-account) 42%, transparent);
+  --tutorial-cta-signup-border-hover: color-mix(in srgb, var(--tutorial-hue-account) 68%, transparent);
+  --tutorial-cta-demo-bg: color-mix(in srgb, var(--tutorial-hue-demo) 30%, transparent);
+  --tutorial-cta-demo-border: color-mix(in srgb, var(--tutorial-hue-demo) 50%, transparent);
+  --tutorial-cta-demo-bg-hover: color-mix(in srgb, var(--tutorial-hue-demo) 42%, transparent);
+  --tutorial-cta-demo-border-hover: color-mix(in srgb, var(--tutorial-hue-demo) 68%, transparent);
+  --tutorial-cta-neutral-bg: color-mix(in srgb, var(--text-light) 8%, transparent);
+  --tutorial-cta-neutral-border: color-mix(in srgb, var(--text-light) 20%, transparent);
 }
 
 .rianell-icon-sprite {
@@ -666,6 +684,20 @@ body.light-mode {
   --surface-main: rgba(255, 255, 255, 0.9);
   --surface-border: var(--accent-border);
   --surface-outer-glow: 0 0 0 1px var(--accent-fill-20), 0 8px 32px rgba(0, 0, 0, 0.1);
+  --tutorial-cta-finish-bg: var(--accent-fill-14);
+  --tutorial-cta-finish-border: var(--accent-border);
+  --tutorial-cta-finish-bg-hover: var(--accent-fill-20);
+  --tutorial-cta-finish-border-hover: var(--accent-border-hover);
+  --tutorial-cta-signup-bg: color-mix(in srgb, var(--tutorial-hue-account) 12%, #fff);
+  --tutorial-cta-signup-border: color-mix(in srgb, var(--tutorial-hue-account) 36%, transparent);
+  --tutorial-cta-signup-bg-hover: color-mix(in srgb, var(--tutorial-hue-account) 18%, #fff);
+  --tutorial-cta-signup-border-hover: color-mix(in srgb, var(--tutorial-hue-account) 48%, transparent);
+  --tutorial-cta-demo-bg: color-mix(in srgb, var(--tutorial-hue-demo) 12%, #fff);
+  --tutorial-cta-demo-border: color-mix(in srgb, var(--tutorial-hue-demo) 36%, transparent);
+  --tutorial-cta-demo-bg-hover: color-mix(in srgb, var(--tutorial-hue-demo) 18%, #fff);
+  --tutorial-cta-demo-border-hover: color-mix(in srgb, var(--tutorial-hue-demo) 48%, transparent);
+  --tutorial-cta-neutral-bg: color-mix(in srgb, var(--text-dark) 6%, #fff);
+  --tutorial-cta-neutral-border: color-mix(in srgb, var(--text-dark) 14%, transparent);
 }
 
 body.light-mode .container {
@@ -6186,7 +6218,7 @@ body.light-mode .crisis-help-btn {
     rgba(255, 255, 255, 0.3),
     transparent
   );
-  animation: shimmerSweep 1.5s infinite;
+  animation: shimmerSweep 1.5s ease-in-out infinite;
 }
 
 @keyframes shimmerSweep {
@@ -7340,19 +7372,52 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
 
 .ai-animate-in {
   opacity: 0;
-  animation: aiSlideInFade 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: aiSlideInFade 0.42s var(--ease-out-expo) forwards;
 }
 
 @keyframes aiSlideInFade {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.95);
+    transform: translateY(18px) scale(0.95);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
+
+.ai-summary-section.ai-animate-in:nth-child(1) { animation-delay: 0ms; }
+.ai-summary-section.ai-animate-in:nth-child(2) { animation-delay: 55ms; }
+.ai-summary-section.ai-animate-in:nth-child(3) { animation-delay: 110ms; }
+.ai-summary-section.ai-animate-in:nth-child(4) { animation-delay: 165ms; }
+.ai-summary-section.ai-animate-in:nth-child(5) { animation-delay: 220ms; }
+.ai-summary-section.ai-animate-in:nth-child(6) { animation-delay: 275ms; }
+.ai-summary-section.ai-animate-in:nth-child(7) { animation-delay: 330ms; }
+.ai-summary-section.ai-animate-in:nth-child(8) { animation-delay: 385ms; }
+.ai-summary-section.ai-animate-in:nth-child(9) { animation-delay: 440ms; }
+.ai-summary-section.ai-animate-in:nth-child(10) { animation-delay: 495ms; }
+
+.ai-advice-card.ai-animate-in:nth-child(1) { animation-delay: 0ms; }
+.ai-advice-card.ai-animate-in:nth-child(2) { animation-delay: 55ms; }
+.ai-advice-card.ai-animate-in:nth-child(3) { animation-delay: 110ms; }
+.ai-advice-card.ai-animate-in:nth-child(4) { animation-delay: 165ms; }
+.ai-advice-card.ai-animate-in:nth-child(5) { animation-delay: 220ms; }
+.ai-advice-card.ai-animate-in:nth-child(6) { animation-delay: 275ms; }
+.ai-advice-card.ai-animate-in:nth-child(7) { animation-delay: 330ms; }
+.ai-advice-card.ai-animate-in:nth-child(8) { animation-delay: 385ms; }
+.ai-advice-card.ai-animate-in:nth-child(9) { animation-delay: 440ms; }
+.ai-advice-card.ai-animate-in:nth-child(10) { animation-delay: 495ms; }
+
+.ai-list li.ai-animate-in:nth-child(1) { animation-delay: 0ms; }
+.ai-list li.ai-animate-in:nth-child(2) { animation-delay: 55ms; }
+.ai-list li.ai-animate-in:nth-child(3) { animation-delay: 110ms; }
+.ai-list li.ai-animate-in:nth-child(4) { animation-delay: 165ms; }
+.ai-list li.ai-animate-in:nth-child(5) { animation-delay: 220ms; }
+.ai-list li.ai-animate-in:nth-child(6) { animation-delay: 275ms; }
+.ai-list li.ai-animate-in:nth-child(7) { animation-delay: 330ms; }
+.ai-list li.ai-animate-in:nth-child(8) { animation-delay: 385ms; }
+.ai-list li.ai-animate-in:nth-child(9) { animation-delay: 440ms; }
+.ai-list li.ai-animate-in:nth-child(10) { animation-delay: 495ms; }
 
 /* Staggered animation for trend cards */
 .ai-trend-card.ai-animate-in {
@@ -12545,32 +12610,38 @@ body.light-mode .chart-share-btn:focus {
 }
 
 .tutorial-btn.tutorial-back {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--tutorial-cta-neutral-bg);
+  border-color: var(--tutorial-cta-neutral-border);
 }
 
 .tutorial-btn.tutorial-finish {
-  background: var(--accent-border);
+  background: var(--tutorial-cta-finish-bg);
+  border-color: var(--tutorial-cta-finish-border);
+}
+
+.tutorial-btn.tutorial-finish:hover {
+  background: var(--tutorial-cta-finish-bg-hover);
+  border-color: var(--tutorial-cta-finish-border-hover);
 }
 
 .tutorial-btn.tutorial-demo {
-  background: rgba(33, 150, 243, 0.3);
-  border-color: rgba(33, 150, 243, 0.5);
+  background: var(--tutorial-cta-demo-bg);
+  border-color: var(--tutorial-cta-demo-border);
 }
 
 .tutorial-btn.tutorial-demo:hover {
-  background: rgba(33, 150, 243, 0.45);
-  border-color: rgba(33, 150, 243, 0.7);
+  background: var(--tutorial-cta-demo-bg-hover);
+  border-color: var(--tutorial-cta-demo-border-hover);
 }
 
 .tutorial-btn.tutorial-signup {
-  background: rgba(156, 39, 176, 0.3);
-  border-color: rgba(156, 39, 176, 0.5);
+  background: var(--tutorial-cta-signup-bg);
+  border-color: var(--tutorial-cta-signup-border);
 }
 
 .tutorial-btn.tutorial-signup:hover {
-  background: rgba(156, 39, 176, 0.45);
-  border-color: rgba(156, 39, 176, 0.7);
+  background: var(--tutorial-cta-signup-bg-hover);
+  border-color: var(--tutorial-cta-signup-border-hover);
 }
 
 .tutorial-ai-choice-buttons {
@@ -12586,13 +12657,13 @@ body.light-mode .chart-share-btn:focus {
 }
 
 .tutorial-ai-choice-buttons .tutorial-ai-enable {
-  background: var(--accent-border);
-  border-color: var(--accent-glow-40);
+  background: var(--tutorial-cta-finish-bg);
+  border-color: var(--tutorial-cta-finish-border);
 }
 
 .tutorial-ai-choice-buttons .tutorial-ai-skip {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.25);
+  background: var(--tutorial-cta-neutral-bg);
+  border-color: var(--tutorial-cta-neutral-border);
 }
 
 @keyframes tutorialSlideIn {
@@ -19488,10 +19559,12 @@ body.light-mode .danger-zone {
   );
   background-size: 200% 100%;
   animation: boot-skeleton-shimmer 1.4s ease-in-out infinite;
+  animation-delay: 0s;
 }
 
 .boot-skeleton__bar--short {
   width: 62%;
+  animation-delay: 0.2s;
 }
 
 .boot-skeleton__card {
@@ -21275,15 +21348,15 @@ body.ai-model-download-blocking .app-bottom-nav {
 .tab-content--enter-left { animation: tabEnterLeft var(--dur-normal) var(--ease-out-expo); }
 .tab-content--enter-right { animation: tabEnterRight var(--dur-normal) var(--ease-out-expo); }
 
-@keyframes tabLeaveLeft { to { opacity: 0; transform: translateX(-24px); } }
-@keyframes tabLeaveRight { to { opacity: 0; transform: translateX(24px); } }
-@keyframes tabEnterLeft { from { opacity: 0; transform: translateX(-24px); } }
-@keyframes tabEnterRight { from { opacity: 0; transform: translateX(24px); } }
+@keyframes tabLeaveLeft { to { opacity: 0; transform: translateX(-38px); } }
+@keyframes tabLeaveRight { to { opacity: 0; transform: translateX(38px); } }
+@keyframes tabEnterLeft { from { opacity: 0; transform: translateX(-38px); } }
+@keyframes tabEnterRight { from { opacity: 0; transform: translateX(38px); } }
 
 #tabNavIndicator { transition: transform var(--transition-fluid), width var(--transition-fluid); }
 
 .app-bottom-nav-btn.active .app-bottom-nav-icon {
-  transform: scale(1.12);
+  transform: scale(1.12) translateY(-1px);
   transition: transform var(--dur-fast) var(--ease-spring);
 }
 
@@ -23703,7 +23776,7 @@ body.guided-onboarding-active #appShell {
     color-mix(in srgb, var(--text-light, #e0f2f1) 28%, transparent) 50%,
     color-mix(in srgb, var(--text-light, #e0f2f1) 12%, transparent) 100%);
   background-size: 200% 100%;
-  animation: shimmerSweep 1.5s infinite;
+  animation: shimmerSweep 1.5s ease-in-out infinite;
 }
 
 .ai-ghost-shimmer--wide { width: 70%; }
@@ -25129,4 +25202,33 @@ body.light-mode .dev-panel-tab-btn--active {
   .import-dropzone__arrow {
     animation: none;
   }
+}
+
+/* ── Light mode polish (v1.61+) ──────────────────────────────────────── */
+
+/* Muted text token for light mode */
+body.light-mode {
+  --text-muted: rgba(30, 60, 30, 0.52);
+}
+
+/* Voice input mic button: use theme-aware muted colour instead of grey */
+body.light-mode .voice-input-btn {
+  color: color-mix(in srgb, var(--primary-color) 48%, rgba(0, 0, 0, 0.35));
+}
+
+/* Drum-picker scroll windows (vitals / BP): dark glass → light card */
+body.light-mode .bp-drum-window,
+body.light-mode .vital-drum-window {
+  background: rgba(245, 252, 245, 0.92);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 24%, transparent);
+}
+
+/* Check-in period selector: unselected slots were near-invisible on light bg */
+body.light-mode .checkin-slider-stop-icon,
+body.light-mode .checkin-slider-stop-label {
+  color: rgba(30, 60, 30, 0.52);
+}
+
+body.light-mode .checkin-slider-stop[data-selected="true"] .checkin-slider-stop-icon {
+  color: var(--home-checkin-icon-color);
 }
