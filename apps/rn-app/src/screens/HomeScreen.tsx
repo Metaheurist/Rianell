@@ -56,6 +56,7 @@ import {
   computePersonalBests,
   pickPersonalBestHighlight,
   computeAchievementSnapshots,
+  shouldSuppressFirstRunLoggingPrompt,
 } from '@rianell/shared';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { HomeWelcomeCard } from '../components/ui/HomeWelcomeCard';
@@ -520,8 +521,13 @@ export function HomeScreen({
     prevLogCountRef.current = count;
   }, [homeLogs.length, showToast, t]);
 
+  const suppressLoggingPrompt = useMemo(
+    () => shouldSuppressFirstRunLoggingPrompt(prefs, homeLogs, { platform: 'rn' }),
+    [homeLogs, prefs],
+  );
+
   useEffect(() => {
-    if (loggedToday || reduceMotion) {
+    if (loggedToday || reduceMotion || suppressLoggingPrompt) {
       fabPulse.setValue(0);
       return;
     }
@@ -533,7 +539,7 @@ export function HomeScreen({
     );
     loop.start();
     return () => loop.stop();
-  }, [fabPulse, loggedToday, reduceMotion]);
+  }, [fabPulse, loggedToday, reduceMotion, suppressLoggingPrompt]);
 
   const showWelcomeCard = useMemo(() => {
     if (prefs.homeWelcomeCardDismissed) return false;
@@ -931,6 +937,24 @@ export function HomeScreen({
               <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
                 {t('home.status.loggedTodayDetail')}
               </Text>
+            </>
+          ) : suppressLoggingPrompt ? (
+            <>
+              <Text style={[styles.heroStatusTitle, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+                {t('home.welcome.title')}
+              </Text>
+              <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+                {t('logs.empty.warm.message')}
+              </Text>
+              <PrimaryButton
+                label={t('home.action.logNow')}
+                onPress={() => {
+                  hapticLight();
+                  navigation.navigate('LogWizard');
+                }}
+                style={{ marginTop: 12 }}
+                accessibilityLabel={t('home.action.logNow')}
+              />
             </>
           ) : (
             <>
@@ -1356,7 +1380,7 @@ export function HomeScreen({
       </ScrollView>
 
       <View style={[styles.fabWrap, { bottom: tabBarHeight + 16 }]}>
-        {!loggedToday && !reduceMotion ? (
+        {!loggedToday && !reduceMotion && !suppressLoggingPrompt ? (
           <Animated.View
             pointerEvents="none"
             style={[
