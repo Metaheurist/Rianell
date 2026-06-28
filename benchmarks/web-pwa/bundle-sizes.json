@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-28T16:42:11.972Z",
+  "generatedAt": "2026-06-28T17:39:09.170Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4757390,
-    "cssBytes": 615430,
-    "jsGzipBytes": 1127852,
-    "cssGzipBytes": 104885
+    "jsBytes": 4738651,
+    "cssBytes": 621696,
+    "jsGzipBytes": 1124070,
+    "cssGzipBytes": 105791
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1106870,
-      "gzipBytes": 240463
+      "bytes": 1108176,
+      "gzipBytes": 240625
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,14 +19,14 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.8565000cb677.min.js",
-      "bytes": 816060,
-      "gzipBytes": 189023
+      "file": "ci-minified/site/app.95e7fb83ec5d.min.js",
+      "bytes": 817124,
+      "gzipBytes": 189155
     },
     {
-      "file": "ci-minified/site/styles.5461d12cfec5.css",
-      "bytes": 598536,
-      "gzipBytes": 100669
+      "file": "ci-minified/site/styles.47f0cf1d24ec.css",
+      "bytes": 604802,
+      "gzipBytes": 101575
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 373239,
-      "gzipBytes": 85344
+      "bytes": 373728,
+      "gzipBytes": 85433
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -79,6 +79,11 @@
       "gzipBytes": 6836
     },
     {
+      "file": "ci-minified/site/privacy-region.js",
+      "bytes": 29479,
+      "gzipBytes": 6237
+    },
+    {
       "file": "ci-minified/site/performance-utils.js",
       "bytes": 28978,
       "gzipBytes": 7090
@@ -94,19 +99,14 @@
       "gzipBytes": 6294
     },
     {
-      "file": "ci-minified/site/privacy-region.js",
-      "bytes": 28245,
-      "gzipBytes": 5945
-    },
-    {
-      "file": "ci-minified/site/first-run-wizard.js",
-      "bytes": 26279,
-      "gzipBytes": 5406
-    },
-    {
       "file": "ci-minified/site/notifications.js",
       "bytes": 24042,
       "gzipBytes": 5824
+    },
+    {
+      "file": "ci-minified/site/guided-onboarding.js",
+      "bytes": 23391,
+      "gzipBytes": 4999
     },
     {
       "file": "ci-minified/site/modules/advanced-vitals-widgets.js",
@@ -122,11 +122,6 @@
       "file": "ci-minified/site/modules/cycle-tracking-ui.js",
       "bytes": 22422,
       "gzipBytes": 5068
-    },
-    {
-      "file": "ci-minified/site/guided-onboarding.js",
-      "bytes": 21029,
-      "gzipBytes": 4549
     },
     {
       "file": "ci-minified/site/import-utils.js",
@@ -297,6 +292,11 @@
       "file": "ci-minified/site/trace-runtime.js",
       "bytes": 1803,
       "gzipBytes": 685
+    },
+    {
+      "file": "ci-minified/site/first-run-wizard.js",
+      "bytes": 1085,
+      "gzipBytes": 499
     },
     {
       "file": "ci-minified/site/src/buildDownloads.js",
