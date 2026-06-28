@@ -476,6 +476,7 @@
     "common.goals.hint": "Defina metas diárias ou semanais. O progresso aparece na aba Início. Use 0 para desativar uma meta.",
     "common.goals.sections": "Goals sections",
     "common.goals.targets": "Metas e objetivos",
+    "common.goals.setPrompt": "Set your goals",
     "common.god.mode.test.all.ui": "Modo Deus - teste toda a UI",
     "common.good": "Bom",
     "common.hard": "Duro",
