@@ -879,6 +879,10 @@ if (typeof window !== 'undefined') {
     StorageBatcher.flush();
     DataCache.cleanup();
     DOMCache.clear();
+    if (typeof window._voiceInputObserver !== 'undefined' && window._voiceInputObserver) {
+      try { window._voiceInputObserver.disconnect(); } catch (_) {}
+      window._voiceInputObserver = null;
+    }
   });
   
   // Periodic cleanup (limit memory growth). Do not clear DOMCache here - it defeats hot-path caching.

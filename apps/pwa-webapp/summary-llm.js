@@ -1022,6 +1022,15 @@
       var loaded = false;
       var gpuErr = null;
 
+      // Pre-flight heap guard: skip GPU/MLC paths if memory is already under pressure.
+      // The first AI tab switch can spike the heap by ~400MB (three runtime loads).
+      // If the session baseline is already high, that spike causes OOM.
+      var _heapPressure = (typeof performance !== 'undefined' && performance.memory &&
+        performance.memory.usedJSHeapSize > 209715200); // 200 MB
+      if (_heapPressure) {
+        gpuPlans = [];
+      }
+
       try {
         if (gpuPlans.length > 0) {
           cachedPipeline = await tryLoadWithPlans(mod, loadModelId, gpuPlans, myGen);
@@ -1032,6 +1041,9 @@
         }
       } catch (e1) {
         gpuErr = e1;
+        // Release any partially-initialized pipeline so GC can reclaim WebGPU/ONNX resources
+        // before the WASM fallback allocates its own runtime.
+        if (cachedPipeline) { cachedPipeline = null; }
       }
 
       if (!loaded && !isStaleLoad(myGen)) {
