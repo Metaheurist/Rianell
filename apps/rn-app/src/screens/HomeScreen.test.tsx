@@ -106,8 +106,8 @@ test('home shows welcome message on first run when no entry today', async () => 
 });
 
 test('home shows not-logged nudge after onboarding when user has prior entries', async () => {
-  const yesterday = isoDaysAgo(1);
-  (loadLogs as jest.Mock).mockResolvedValue([{ date: yesterday, mood: 5 }]);
+  const priorDay = isoDaysAgo(3);
+  (loadLogs as jest.Mock).mockResolvedValue([{ date: priorDay, mood: 5 }]);
   const prefs = {
     ...getDefaultPreferences(),
     firstRunWizardCompletedAt: '2026-01-01T00:00:00.000Z',
