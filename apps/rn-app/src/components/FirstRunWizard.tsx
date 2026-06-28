@@ -14,6 +14,7 @@ import {
   applyQuestionnaireAnswer,
   buildGuidedQuestionnaire,
   createGuidedOnboardingProgressSession,
+  resolveNextGuidedCardIndex,
 } from '@rianell/shared';
 
 type GuidedCardId = Parameters<typeof applyQuestionnaireAnswer>[1];
@@ -89,10 +90,18 @@ export function FirstRunWizard({
     setLocalPrefs((cur) => ({ ...cur, ...patch }));
   }, []);
 
-  const advance = useCallback(() => {
-    setCardIndex((i) => Math.min(i + 1, Math.max(cards.length - 1, 0)));
-    animateCard();
-  }, [cards.length, animateCard]);
+  const advanceAfterAnswer = useCallback(
+    (answeredCardId: GuidedCardId | undefined, nextPrefs: Preferences) => {
+      const nextCards = buildGuidedQuestionnaire(nextPrefs as Record<string, unknown>, platformCtx);
+      if (answeredCardId) {
+        setCardIndex(resolveNextGuidedCardIndex(nextCards, answeredCardId));
+      } else {
+        setCardIndex((i) => Math.min(i + 1, Math.max(nextCards.length - 1, 0)));
+      }
+      animateCard();
+    },
+    [platformCtx, animateCard],
+  );
 
   const applyChoice = useCallback(
     (cardId: GuidedCardId, choiceId: string, extra: Record<string, unknown> = {}) => {
@@ -123,12 +132,12 @@ export function FirstRunWizard({
           return;
         }
         if (choiceId === 'confirm') {
-          applyChoice('region', 'confirm', {
+          const next = applyChoice('region', 'confirm', {
             regionId: selectedRegion,
             policyPackId: pack.policyPackId || 'v1.0.0',
           });
           setRegionPickerOpen(false);
-          advance();
+          advanceAfterAnswer('region', next);
         }
         return;
       }
@@ -146,31 +155,31 @@ export function FirstRunWizard({
         setHealthDeclinedHint(true);
         return;
       }
-      applyChoice(card.id as GuidedCardId, choiceId);
+      const next = applyChoice(card.id as GuidedCardId, choiceId);
       setHealthDeclinedHint(false);
-      advance();
+      advanceAfterAnswer(card.id as GuidedCardId, next);
     },
-    [card, selectedRegion, pack.policyPackId, applyChoice, advance, onComplete],
+    [card, selectedRegion, pack.policyPackId, applyChoice, advanceAfterAnswer, onComplete],
   );
 
   const onContinueWelcome = useCallback(() => {
-    advance();
-  }, [advance]);
+    advanceAfterAnswer(undefined, localPrefs);
+  }, [advanceAfterAnswer, localPrefs]);
 
   const onConfirmRegionPicker = useCallback(() => {
-    applyChoice('region', 'confirm', {
+    const next = applyChoice('region', 'confirm', {
       regionId: selectedRegion,
       policyPackId: pack.policyPackId || 'v1.0.0',
     });
     setRegionPickerOpen(false);
-    advance();
-  }, [applyChoice, selectedRegion, pack.policyPackId, advance]);
+    advanceAfterAnswer('region', next);
+  }, [applyChoice, selectedRegion, pack.policyPackId, advanceAfterAnswer]);
 
   const onConfirmReminder = useCallback(() => {
-    applyChoice('dailyNudge', 'yes', { reminderTime });
+    const next = applyChoice('dailyNudge', 'yes', { reminderTime });
     setReminderTimePickerOpen(false);
-    advance();
-  }, [applyChoice, reminderTime, advance]);
+    advanceAfterAnswer('dailyNudge', next);
+  }, [applyChoice, reminderTime, advanceAfterAnswer]);
 
   const onBack = useCallback(() => {
     if (regionPickerOpen) {
@@ -298,7 +307,7 @@ export function FirstRunWizard({
     else if (reminderTimePickerOpen) onConfirmReminder();
     else if (healthDeclinedHint) {
       setHealthDeclinedHint(false);
-      advance();
+      advanceAfterAnswer('healthConsent', localPrefs);
     }
   };
 

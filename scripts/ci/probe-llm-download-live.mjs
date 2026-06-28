@@ -36,7 +36,12 @@ async function clickThrough(page) {
     const clicked = await page.evaluate(() => {
       const order = [
         '#perfBenchmarkContinueBtn',
-        '#firstRunWizardContinueBtn',
+        '#guidedOnboardingContinueBtn',
+        '.guided-onboarding-choice[data-choice-id="confirm"]',
+        '.guided-onboarding-choice[data-choice-id="accept"]',
+        '.guided-onboarding-choice[data-choice-id="skip"]',
+        '.guided-onboarding-choice[data-choice-id="start"]',
+        '.guided-onboarding-choice',
         '.tutorial-ai-skip',
         '#tutorialFinishBtn',
         '#privacyRegionGateConfirm',

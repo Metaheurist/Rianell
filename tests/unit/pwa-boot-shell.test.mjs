@@ -62,11 +62,16 @@ test('privacy-region.js whitelists boot/onboarding overlays for interaction gate
   assert.match(gateJs, /#aiModelDownloadOverlay/);
   assert.match(gateJs, /#aiModelDownloadProgressOverlay/);
   assert.match(gateJs, /#guidedOnboardingOverlay/);
+  assert.match(gateJs, /RianellGuidedOnboarding/);
+  assert.match(gateJs, /composedPath/);
+  assert.match(gateJs, /hidePrivacyGateOverlay/);
 });
 
 test('guided onboarding clears modal-active using shared overlay detector', () => {
   const guidedJs = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
   assert.match(guidedJs, /isAnyModalOverlayOpen/);
+  assert.match(guidedJs, /bindOverlayInteractionsOnce/);
+  assert.match(guidedJs, /hidePrivacyGateIfOpen/);
 });
 
 test('app.js reveals shell before blocking AI preload on installed mobile PWA', () => {
@@ -96,4 +101,27 @@ test('probe-shell-visible script asserts guest shell after onboarding', () => {
   const probe = readFileSync('scripts/audit/probe-shell-visible.mjs', 'utf8');
   assert.match(probe, /shellVis === 'visible'/);
   assert.match(probe, /__rianellBootLog/);
+  assert.match(probe, /#guidedOnboardingOverlay/);
+  assert.match(probe, /guided-onboarding-active/);
+});
+
+test('guided onboarding advances cards with resolveNextGuidedCardIndex', () => {
+  const guidedJs = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
+  assert.match(guidedJs, /advanceAfterAnswer/);
+  assert.match(guidedJs, /resolveNextGuidedCardIndex/);
+  assert.match(guidedJs, /onFirstRunWizardComplete/);
+});
+
+test('app.js wires onFirstRunWizardComplete after guided onboarding', () => {
+  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(appJs, /function onFirstRunWizardComplete/);
+  assert.match(appJs, /window\.onFirstRunWizardComplete/);
+});
+
+test('first-run-wizard.js is a deprecation shim for guided onboarding', () => {
+  const shim = readFileSync('apps/pwa-webapp/first-run-wizard.js', 'utf8');
+  assert.match(shim, /deprecated/i);
+  assert.match(shim, /RianellGuidedOnboarding/);
+  assert.match(shim, /RianellFirstRunWizard/);
+  assert.doesNotMatch(shim, /buildUnifiedOnboardingSteps/);
 });
