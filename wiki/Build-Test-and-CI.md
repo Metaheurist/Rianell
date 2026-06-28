@@ -18,6 +18,8 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run benchmark` | Performance benchmarks workspace |
 | `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
 | `npm run audit:boot:strict` | Playwright strict boot gate (local / CI parity) |
+| `npm run stress:memory` | Playwright memory stress test — Tier 5 + 365-day data, 10 tab-switch cycles, heap growth < 80 MB threshold |
+| `npm run verify:cspro` | CI check: live site must not serve `CSPRO: connect-src 'none'` |
 | `npm run supabase:deploy:delete-user-data` | Deploy GDPR Edge Function to Supabase project |
 | `npm run wiki:verify` / `wiki:sync` | Validate and push `wiki/` to GitHub Wiki |
 

@@ -6,6 +6,33 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.0] - 2026-06-28
+
+Session stability and memory leak fixes targeting the long-session freeze/crash on high-end desktop PCs (Tier 5). Confirmed via live console capture showing a 421 MB AI heap spike, 200+ CSP Report-Only violation entries per load, and unbounded boot log growth. All fixes are non-breaking; first-load experience is unchanged.
+
+### Added
+
+- **`scripts/audit/stress-test-memory.mjs`:** Playwright CDP automated stress test — seeds Tier 5 benchmark + 365-day demo data, runs 10 tab-switch cycles, reports heap growth vs 80 MB threshold. Run with `npm run stress:memory`.
+- **`scripts/verify/verify-no-cspro-none.mjs`:** CI check that asserts no `Content-Security-Policy-Report-Only` header with `connect-src 'none'` is served by the live site. Added to `verify:csp` chain.
+- **npm scripts:** `stress:memory`, `verify:cspro` registered in root `package.json`.
+- **Tests:** `tests/unit/pwa/session-stability.test.mjs` — 12 assertions covering all session-stability fixes (L1–L8).
+
+### Fixed
+
+- **L1 (performance-utils.js):** `_voiceInputObserver` (`MutationObserver` on `document.body`) now disconnected and nulled in the `beforeunload` cleanup block alongside `eventManager.cleanup()`. Was retained for the entire session, firing on every DOM mutation.
+- **L2 (app.js):** `window.__rianellBootLog` is now a ring-buffer capped at 100 entries. The privacy-gate 2 s interval was pushing an entry every 2 s during onboarding — confirmed 8+ entries per boot in live console capture.
+- **L2b (privacy-region.js):** `global.__rianellBootLog` (used in Node/test contexts) receives the same ring-buffer cap.
+- **L4 (privacy-region.js):** Consent-enforcement `MutationObserver` and 2 s `setInterval` are now stored as module-scoped refs (`_privacyConsentObserver`, `_privacyConsentIntervalId`) and torn down inside `unlockAppChrome()` when consent is granted. Both were previously kept alive for the entire session.
+- **L5 (app.js):** Chart `maxPoints` applies a session-elapsed decay: 100% of device-tier points for the first 30 min, 60% from 30–60 min, 40% beyond 60 min. Tier 5 desktop can render 300–450 points with full animations; the decay prevents long-session GPU memory accumulation without affecting first-load performance.
+- **L6 (app.js):** Service worker update dismissal now tracks a `sessionStorage` counter (`rianellUpdateDismissCount`). After 3 "Later" clicks, `SKIP_WAITING` is sent automatically without showing the modal again. Users who kept dismissing were running a stale SW for hours, causing stale-asset network errors.
+- **L8 (summary-llm.js):** Added pre-flight heap pressure check (`usedJSHeapSize > 200 MB`) before `tryLoadWithPlans`. Under pressure, GPU/MLC paths are bypassed and the app goes directly to the WASM runtime, preventing the 421 MB triple-runtime spike (ONNX WebGPU + MLC + WASM) on top of an already-stressed session heap. Also nulls `cachedPipeline` in the GPU catch block before WASM allocates.
+
+### Operator action required
+
+- **L7 (Cloudflare):** Remove or align the `Content-Security-Policy-Report-Only` header. Live console captured 200+ `connect-src 'none'` violations per page load from a CSPRO header at Cloudflare — each violation is a retained console.error string. See `security/cloudflare-headers-recommended.md` for steps. CI gate: `npm run verify:cspro`.
+
+---
+
 ## [2.0.9] - 2026-06-28
 
 Animation polish across React Native and PWA, wellness slider 1–10 range alignment, and boot benchmark modal UX fix.

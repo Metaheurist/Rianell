@@ -4,6 +4,19 @@ Common issues and where to look for more detail.
 
 ---
 
+## App freezes or crashes after a long session (desktop / high-end PC)
+
+This is most common on high-end desktop PCs where the device tier is 5 (max features + animations + large AI models). Fixed in **v2.1.0**. If you are on an older build:
+
+1. **Refresh after 60–90 min** — heap pressure from 300+ chart points and AI runtime can spike to 400+ MB on Tier 5. A normal reload fully clears this.
+2. **Disable on-device AI** — go to **Settings → Performance → AI model** and set to **Off** or **Small**. The first AI-tab activation can spike heap by ~400 MB (three ML runtimes load simultaneously).
+3. **Check browser console** for `Content-Security-Policy-Report-Only` violation logs — a misconfigured Cloudflare header can generate 200+ retained error strings per page load, slowly filling the heap. If you see `"connect-src 'none'"` violations, clear the cache and try incognito mode to rule out extension CSP interference.
+4. **Force service worker update** — open DevTools → Application → Service Workers → click **Update**. Running a stale service worker can cause network fetch errors that trigger error-object accumulation in memory.
+
+**If the freeze happens immediately (< 5 min):** file a bug report with your browser console output and the result of typing `JSON.stringify(window.__rianellBootLog)` in the DevTools console.
+
+---
+
 ## AI model download fails or stalls
 
 1. Check free disk space (~3.5 GB needed).

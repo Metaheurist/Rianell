@@ -1,6 +1,20 @@
 # Release Notes
 
-## Latest release (v2.0.9)
+## Latest release (v2.1.0)
+
+**Date:** 2026-06-28
+
+### Highlights
+
+- **Freeze/crash fix (desktop):** Resolved long-session tab crash on high-end PCs (Tier 5). Root causes included a 421 MB AI heap spike, unbounded boot log growth, un-teardown `MutationObserver` instances, and 200+ CSP-Report-Only violations per page load.
+- **Smarter AI loading:** On-device AI runtime now checks available heap before attempting GPU/MLC paths; falls back to WASM directly if the session is already under memory pressure.
+- **Chart memory decay:** Chart `maxPoints` decreases with session age (–40% at 30 min, –60% at 60 min) to keep GPU memory in check across long sessions.
+- **Service worker reliability:** Stale SW now auto-applies after 3 "Later" dismissals, preventing outdated asset caching issues.
+- **CI gate:** New `verify:cspro` script checks for dangerous Cloudflare CSPRO headers in CI.
+
+---
+
+## Previous (v2.0.9)
 
 **Date:** 2026-06-28
 

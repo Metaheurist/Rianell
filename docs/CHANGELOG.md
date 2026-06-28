@@ -2,7 +2,22 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.9** - Animation polish (RN + PWA), wellness slider 1–10 range, boot benchmark modal fix.
+**Latest: v2.1.0** - Session stability & memory leak fixes (long-session freeze/crash on Tier 5 desktop PCs).
+
+### v2.1.0 - 2026-06-28 - Session stability and memory leak fixes
+
+- **Root cause:** 421 MB AI heap spike + 200+ CSPRO `connect-src 'none'` violations/load + unbounded `__rianellBootLog` growth + un-teardown `MutationObserver` instances.
+- **L1:** `_voiceInputObserver` disconnected on `beforeunload` in `performance-utils.js`.
+- **L2/L2b:** `__rianellBootLog` capped at 100 entries (ring-buffer) in `app.js` and `privacy-region.js`.
+- **L4:** Privacy-gate `MutationObserver` + `setInterval` stored as module refs; torn down in `unlockAppChrome()`.
+- **L5:** Chart `maxPoints` decays with session age (60% at 30 min, 40% at 60 min) to cap GPU memory over long sessions.
+- **L6:** SW update dismissal counter (`rianellUpdateDismissCount`) auto-forces `SKIP_WAITING` after 3 "Later" clicks.
+- **L7:** New CI script `verify-no-cspro-none.mjs` asserts no `connect-src 'none'` in CSPRO header. Cloudflare operator action required — see `security/cloudflare-headers-recommended.md`.
+- **L8:** Pre-flight heap guard (>200 MB) in `summary-llm.js` bypasses GPU/MLC paths, preventing triple-runtime OOM spike.
+- **New scripts:** `stress:memory` (Playwright memory stress test), `verify:cspro` (live CSPRO header CI check).
+- **Tests:** `tests/unit/pwa/session-stability.test.mjs` (12 assertions).
+- **npm:** Workspace roots at **2.1.0**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.1.0.
 
 ### v2.0.9 - 2026-06-28 - Animation polish and slider range
 

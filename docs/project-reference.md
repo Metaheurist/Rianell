@@ -4,6 +4,20 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.0 documentation sync (Session stability and memory leak fixes)
+
+- **Root cause confirmed:** 421 MB AI heap spike (triple ONNX WebGPU + MLC + WASM runtime load), 200+ `connect-src 'none'` CSPRO violations/load, unbounded `__rianellBootLog` growth, un-teardown `MutationObserver` instances on Tier 5 desktop.
+- **L1 (`performance-utils.js`):** `_voiceInputObserver` disconnected + nulled in `beforeunload`.
+- **L2/L2b (`app.js`, `privacy-region.js`):** `__rianellBootLog` ring-buffer capped at 100 entries.
+- **L4 (`privacy-region.js`):** Consent `MutationObserver` + `setInterval` stored as module refs; torn down in `unlockAppChrome()`.
+- **L5 (`app.js`):** Chart `maxPoints` session-elapsed decay: 60% at 30 min, 40% at 60 min.
+- **L6 (`app.js`):** SW dismiss counter auto-forces `SKIP_WAITING` after 3 "Later" clicks.
+- **L7 (CI):** `scripts/verify/verify-no-cspro-none.mjs` added to `verify:csp` chain. Cloudflare CSPRO operator fix required — see `security/cloudflare-headers-recommended.md`.
+- **L8 (`summary-llm.js`):** Pre-flight heap guard (>200 MB) bypasses GPU/MLC; `cachedPipeline` nulled in catch before WASM fallback.
+- **New scripts:** `stress:memory` (Playwright), `verify:cspro`.
+- **Tests:** `tests/unit/pwa/session-stability.test.mjs` (12 assertions, all green).
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.1.0.
+
 ### v2.0.9 documentation sync (Animation polish and slider range)
 
 - **RN motion:** `PrimaryButton`, `Skeleton`, `Toast`, `EmptyState`, `HomeWelcomeCard`, `SettingsChapter`; screen stagger/slide on AI, Charts, Mood, Log Wizard.
