@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-28T15:41:44.705Z",
+  "generatedAt": "2026-06-28T16:42:11.972Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4721001,
-    "cssBytes": 612456,
-    "jsGzipBytes": 1120728,
-    "cssGzipBytes": 104418
+    "jsBytes": 4757390,
+    "cssBytes": 615430,
+    "jsGzipBytes": 1127852,
+    "cssGzipBytes": 104885
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1106681,
-      "gzipBytes": 240408
+      "bytes": 1106870,
+      "gzipBytes": 240463
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,14 +19,14 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.ab60608ac7fd.min.js",
-      "bytes": 815889,
-      "gzipBytes": 188962
+      "file": "ci-minified/site/app.8565000cb677.min.js",
+      "bytes": 816060,
+      "gzipBytes": 189023
     },
     {
-      "file": "ci-minified/site/styles.d19c50be2092.css",
-      "bytes": 595562,
-      "gzipBytes": 100202
+      "file": "ci-minified/site/styles.5461d12cfec5.css",
+      "bytes": 598536,
+      "gzipBytes": 100669
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 358265,
-      "gzipBytes": 82892
+      "bytes": 373239,
+      "gzipBytes": 85344
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -95,8 +95,8 @@
     },
     {
       "file": "ci-minified/site/privacy-region.js",
-      "bytes": 28219,
-      "gzipBytes": 5938
+      "bytes": 28245,
+      "gzipBytes": 5945
     },
     {
       "file": "ci-minified/site/first-run-wizard.js",
@@ -122,6 +122,11 @@
       "file": "ci-minified/site/modules/cycle-tracking-ui.js",
       "bytes": 22422,
       "gzipBytes": 5068
+    },
+    {
+      "file": "ci-minified/site/guided-onboarding.js",
+      "bytes": 21029,
+      "gzipBytes": 4549
     },
     {
       "file": "ci-minified/site/import-utils.js",

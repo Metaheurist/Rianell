@@ -5,6 +5,54 @@
     "kind": "web",
     "status": "ok",
     "meta": {
+      "timestamp_utc": "2026-06-28T16:42:11.736Z",
+      "git_sha": "e3e901b25198682aeb478c6b836540df6f2c5030",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "28328938834",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 6619,
+      "LCP_ms": 18674,
+      "TBT_ms": 362,
+      "CLS": 0,
+      "SpeedIndex_ms": 7093,
+      "TTI_ms": 22500
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 2732
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 165
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 152
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 155
+      },
+      {
+        "step": "open_settings",
+        "ms": 126
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 250
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "github-pages",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
       "timestamp_utc": "2026-06-28T15:41:44.447Z",
       "git_sha": "58e1088ca90a1f508de930c6c9ed7b99d700d9bb",
       "runner": "linux",
