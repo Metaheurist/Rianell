@@ -4,6 +4,14 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.0.9 documentation sync (Animation polish and slider range)
+
+- **RN motion:** `PrimaryButton`, `Skeleton`, `Toast`, `EmptyState`, `HomeWelcomeCard`, `SettingsChapter`; screen stagger/slide on AI, Charts, Mood, Log Wizard.
+- **PWA motion:** Tab transitions, AI stagger (`ai-animate-in` nth-child), shimmer timing, boot skeleton delays, bottom-nav icon lift in `styles.css`.
+- **Sliders (shared):** `sliderWellness.mjs` — range **1–10**; `wellnessSliderFillPercent` uses `(v - 1) / 9`.
+- **Boot (PWA):** Benchmark modal not auto-shown on first run; god-mode benchmark on all viewports.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.9; [styling.md](styling.md) § v2.0.9 motion polish.
+
 ### v2.0.7 documentation sync (Guided onboarding questionnaire)
 
 - **Onboarding (shared):** `packages/shared/src/onboarding/guidedQuestionnaire.mjs` — `buildGuidedQuestionnaire`, `applyQuestionnaireAnswer`, `createGuidedOnboardingProgressSession`.

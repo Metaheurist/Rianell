@@ -22,6 +22,12 @@ npm run parity:inventory:check
 
 Machine-readable contract: `docs/platform-parity.json` (v2).
 
+### v2.0.9 note
+
+- **RN motion parity increment:** Spring press on `PrimaryButton`; staggered AI/Charts/Mood entrances; log wizard step slide; mood ring SVG draw — all respect OS reduced motion.
+- **PWA motion:** Tab travel, AI stagger, shimmer timing aligned with `@rianell/tokens` motion scale.
+- **Wellness sliders:** Shared 1–10 range (`sliderWellness.mjs`); PWA + RN use same invert rules.
+
 ### v1.121.0 note
 
 - **Cycle period-start anchor:** PWA + RN — `cycle.periodStart`, day selector 1–35 with irregular expand to 45, shared `findLatestPeriodStart` / `computeCycleDayFromPeriodStart`.

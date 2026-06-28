@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.0.8** - Light-mode readability, system appearance boot sync, ocean metric tokens, clean Chromium dev launcher.
+**Latest: v2.0.9** - Animation polish (RN + PWA), wellness slider 1–10 range, boot benchmark modal fix.
+
+### v2.0.9 - 2026-06-28 - Animation polish and slider range
+
+- **RN animations:** Spring buttons, toast scale, empty-state icon pop, AI/mood/charts/wizard screen entrances, settings chapter spring expand.
+- **PWA animations:** Tab travel bump, AI stagger delays, shimmer ease-in-out, nav icon lift, boot skeleton stagger.
+- **Wellness sliders:** Shared + PWA align on **1–10** range with corrected symptom invert and fill percent.
+- **Boot benchmark (PWA):** No auto-open on first launch; god-mode benchmark details on mobile.
+- **npm:** Workspace roots at **2.0.9**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.9.
 
 ### v2.0.8 - 2026-06-28 - Light mode, appearance sync, dev Chromium
 

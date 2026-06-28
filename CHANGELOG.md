@@ -6,6 +6,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.0.9] - 2026-06-28
+
+Animation polish across React Native and PWA, wellness slider 1–10 range alignment, and boot benchmark modal UX fix.
+
+### Added
+
+- **RN motion polish:** Spring press on `PrimaryButton`; toast entry/exit scale + opacity; icon scale-pop and scale-based idle pulse on `EmptyState` / `HomeWelcomeCard`; staggered chart skeleton rows; AI stat/insight stagger entrances; mood ring SVG draw animation; log wizard direction-aware step slide; spring `SettingsChapter` expand.
+- **PWA motion polish:** Wider tab transitions (38px), AI section/advice/list stagger delays, refined `aiSlideInFade` easing, shimmer ease-in-out, boot skeleton bar stagger, active nav icon lift.
+- **Tests:** `tests/unit/pwa/animation-polish.test.mjs`, `tests/unit/pwa/perf-benchmark-modal.test.mjs`.
+
+### Changed
+
+- **Wellness sliders (shared + PWA):** Unified slider range is **1–10** (was 0–10); symptom invert uses `11 - value`; fill percent maps `(value - 1) / 9`.
+- **Boot benchmark (PWA):** First-run boot no longer auto-opens the performance benchmark modal; god-mode **View benchmark** available on all viewports.
+- **npm version:** Workspace roots bumped to **2.0.9**.
+
+### Fixed
+
+- **Form validation (PWA):** Metric fields validate via `metricRawFromWellness` so inverted symptom sliders persist correctly.
+
+---
+
 ## [2.0.8] - 2026-06-28
 
 Light-mode readability, system appearance boot sync, theme-tokenised metric animations, and clean Chromium dev tooling.
