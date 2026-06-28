@@ -86,6 +86,7 @@
   }
 
   function shouldSuppressStandaloneModals() {
+    if (active) return true;
     return !isComplete();
   }
 
@@ -297,10 +298,10 @@
     var visible = getTutorialVisibleIndicesSafe();
     var pos = visible.indexOf(idx);
     var isLast = pos >= 0 && pos === visible.length - 1;
-    var isSlide0 = idx === 0;
 
-    continueBtn.style.display = isSlide0 ? 'none' : 'inline-block';
-    if (!isSlide0) continueBtn.textContent = isLast ? t('common.finish') : t('common.next');
+    // Arrows advance tutorial slides; footer primary is only Finish on the last slide.
+    continueBtn.style.display = isLast ? 'inline-block' : 'none';
+    if (isLast) continueBtn.textContent = t('common.finish');
 
     if (backBtn) {
       backBtn.style.display = 'inline-block';
@@ -394,20 +395,16 @@
     } else {
       mount.innerHTML = '<p class="first-run-wizard-lead">' + escapeHtml(t('common.add.rianell.to.your.device.for.quick.acc')) + '</p>';
     }
-    var skipInline = document.createElement('button');
-    skipInline.type = 'button';
-    skipInline.className = 'modal-save-btn modal-cancel-btn first-run-wizard-inline-btn first-run-wizard-install-skip';
-    skipInline.id = 'firstRunWizardInstallSkipBtn';
-    skipInline.textContent = t('common.skip.for.now');
-    skipInline.addEventListener('click', completeInstallStep);
-    mount.appendChild(skipInline);
     var continueBtn = document.getElementById('firstRunWizardContinueBtn');
     var backBtn = document.getElementById('firstRunWizardBackBtn');
     if (continueBtn) {
-      continueBtn.textContent = t('common.skip.for.now');
+      continueBtn.textContent = t('common.finish');
       continueBtn.style.display = 'inline-block';
     }
-    if (backBtn) backBtn.style.display = stepIndex > 0 ? 'inline-block' : 'none';
+    if (backBtn) {
+      backBtn.style.display = 'inline-block';
+      backBtn.textContent = t('common.skip.for.now');
+    }
   }
 
   function renderCurrentStep() {
@@ -510,6 +507,10 @@
     }
     if (step && step.id === 'aiDownload') {
       handleAiDownloadStep(false);
+      return;
+    }
+    if (step && step.id === 'install') {
+      completeInstallStep();
       return;
     }
     if (stepIndex > 0) {
