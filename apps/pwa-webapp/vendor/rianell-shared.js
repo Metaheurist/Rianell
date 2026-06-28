@@ -8579,6 +8579,8 @@ ${questionsBlock}
     "dailyFunction",
     "backPain"
   ]);
+  var SLIDER_MIN = 1;
+  var SLIDER_MAX = 10;
   function clampInt2(raw, min, max) {
     const n = typeof raw === "number" ? raw : parseInt(String(raw ?? ""), 10);
     if (!Number.isFinite(n)) return min;
@@ -8588,27 +8590,28 @@ ${questionsBlock}
     return METRICS_HIGHER_IS_BETTER.includes(field);
   }
   function rawToWellnessSlider(field, raw) {
-    const value = clampInt2(raw, 0, 10);
-    return isMetricHigherIsBetter(field) ? value : 10 - value;
+    const value = clampInt2(raw, SLIDER_MIN, SLIDER_MAX);
+    return isMetricHigherIsBetter(field) ? value : SLIDER_MAX + SLIDER_MIN - value;
   }
   function wellnessSliderToRaw(field, wellness) {
-    const score = clampInt2(wellness, 0, 10);
-    return isMetricHigherIsBetter(field) ? score : 10 - score;
+    const score = clampInt2(wellness, SLIDER_MIN, SLIDER_MAX);
+    return isMetricHigherIsBetter(field) ? score : SLIDER_MAX + SLIDER_MIN - score;
   }
   function classifyWellnessSlider(wellness, t2 = (k, fb) => fb) {
-    const v = clampInt2(wellness, 0, 10);
+    const v = clampInt2(wellness, SLIDER_MIN, SLIDER_MAX);
     if (v >= 8) return { id: "good", color: "#7bdf8c", label: t2("common.good", "Good") };
     if (v >= 4) return { id: "moderate", color: "#ffb74d", label: t2("wizard.lifestyle.steps.moderate", "Moderate") };
     return { id: "bad", color: "#ff8a65", label: t2("common.bad", "Bad") };
   }
   function wellnessSliderFillColor(wellness) {
-    const v = clampInt2(wellness, 0, 10);
+    const v = clampInt2(wellness, SLIDER_MIN, SLIDER_MAX);
     if (v >= 8) return "#4CAF50";
     if (v >= 4) return "#FF9800";
     return "#F44336";
   }
   function wellnessSliderFillPercent(wellness) {
-    return clampInt2(wellness, 0, 10) / 10 * 100;
+    const v = clampInt2(wellness, SLIDER_MIN, SLIDER_MAX);
+    return (v - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN) * 100;
   }
 
   // packages/shared/src/a11y/wcagHelpers.mjs

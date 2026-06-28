@@ -1,4 +1,4 @@
-/** Unified slider UX: 0 = bad (left), 10 = good (right). Storage keeps raw metric semantics. */
+/** Unified slider UX: 1 = bad (left), 10 = good (right). Storage keeps raw metric semantics (1–10). */
 
 export const METRICS_HIGHER_IS_BETTER = Object.freeze([
   'sleep',
@@ -21,6 +21,9 @@ export const METRIC_SLIDER_FIELDS = Object.freeze([
   'backPain',
 ]);
 
+const SLIDER_MIN = 1;
+const SLIDER_MAX = 10;
+
 function clampInt(raw, min, max) {
   const n = typeof raw === 'number' ? raw : parseInt(String(raw ?? ''), 10);
   if (!Number.isFinite(n)) return min;
@@ -31,33 +34,34 @@ export function isMetricHigherIsBetter(field) {
   return METRICS_HIGHER_IS_BETTER.includes(field);
 }
 
-/** Map stored raw metric (0–10) to unified wellness slider position (0 = bad, 10 = good). */
+/** Map stored raw metric (1–10) to unified wellness slider position (1 = bad, 10 = good). */
 export function rawToWellnessSlider(field, raw) {
-  const value = clampInt(raw, 0, 10);
-  return isMetricHigherIsBetter(field) ? value : 10 - value;
+  const value = clampInt(raw, SLIDER_MIN, SLIDER_MAX);
+  return isMetricHigherIsBetter(field) ? value : (SLIDER_MAX + SLIDER_MIN - value);
 }
 
 /** Map wellness slider position back to stored raw metric value. */
 export function wellnessSliderToRaw(field, wellness) {
-  const score = clampInt(wellness, 0, 10);
-  return isMetricHigherIsBetter(field) ? score : 10 - score;
+  const score = clampInt(wellness, SLIDER_MIN, SLIDER_MAX);
+  return isMetricHigherIsBetter(field) ? score : (SLIDER_MAX + SLIDER_MIN - score);
 }
 
 /** Zone labels/colors from wellness score (same for every metric). */
 export function classifyWellnessSlider(wellness, t = (k, fb) => fb) {
-  const v = clampInt(wellness, 0, 10);
+  const v = clampInt(wellness, SLIDER_MIN, SLIDER_MAX);
   if (v >= 8) return { id: 'good', color: '#7bdf8c', label: t('common.good', 'Good') };
   if (v >= 4) return { id: 'moderate', color: '#ffb74d', label: t('wizard.lifestyle.steps.moderate', 'Moderate') };
   return { id: 'bad', color: '#ff8a65', label: t('common.bad', 'Bad') };
 }
 
 export function wellnessSliderFillColor(wellness) {
-  const v = clampInt(wellness, 0, 10);
+  const v = clampInt(wellness, SLIDER_MIN, SLIDER_MAX);
   if (v >= 8) return '#4CAF50';
   if (v >= 4) return '#FF9800';
   return '#F44336';
 }
 
 export function wellnessSliderFillPercent(wellness) {
-  return (clampInt(wellness, 0, 10) / 10) * 100;
+  const v = clampInt(wellness, SLIDER_MIN, SLIDER_MAX);
+  return ((v - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100;
 }
