@@ -43,32 +43,51 @@ const RANGE_OPTIONS: ChartRange[] = [7, 14, 30, 90, 'all'];
 const VIEW_OPTIONS: ChartViewMode[] = ['balance', 'individual', 'combined'];
 const BALANCE_TREND_KEYS: Array<'mood' | 'sleep' | 'fatigue'> = ['mood', 'sleep', 'fatigue'];
 
-function ChartLoadingSkeleton({ accent, textColor }: { accent: string; textColor: string }) {
+function ChartSkeletonRow({
+  delay,
+  accent,
+  textColor,
+}: {
+  delay: number;
+  accent: string;
+  textColor: string;
+}) {
   const pulse = useRef(new Animated.Value(0.35)).current;
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.85, duration: 900, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0.35, duration: 900, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
+    let loop: Animated.CompositeAnimation | null = null;
+    const timer = setTimeout(() => {
+      loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 0.85, duration: 900, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 0.35, duration: 900, useNativeDriver: true }),
+        ])
+      );
+      loop.start();
+    }, delay);
+    return () => {
+      clearTimeout(timer);
+      loop?.stop();
+    };
+  }, [delay, pulse]);
+  return (
+    <Animated.View
+      style={[
+        styles.skeletonRow,
+        {
+          opacity: pulse,
+          backgroundColor: `${textColor}18`,
+          borderColor: `${accent}33`,
+        },
+      ]}
+    />
+  );
+}
+
+function ChartLoadingSkeleton({ accent, textColor }: { accent: string; textColor: string }) {
   return (
     <View accessibilityRole="progressbar" accessibilityLabel="Loading charts">
       {[0, 1, 2].map((i) => (
-        <Animated.View
-          key={i}
-          style={[
-            styles.skeletonRow,
-            {
-              opacity: pulse,
-              backgroundColor: `${textColor}18`,
-              borderColor: `${accent}33`,
-            },
-          ]}
-        />
+        <ChartSkeletonRow key={i} delay={i * 150} accent={accent} textColor={textColor} />
       ))}
     </View>
   );

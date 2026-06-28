@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ViewStyle } from 'react-native';
 import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
@@ -16,6 +16,30 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { AiInsightEmptyPreview } from '../components/ui/EmptyPreview';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
+
+function AiStaggerOnMount({
+  delay,
+  children,
+  style,
+}: {
+  delay: number;
+  children: React.ReactNode;
+  style?: ViewStyle;
+}) {
+  const anim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      Animated.spring(anim, { toValue: 1, friction: 8, tension: 120, useNativeDriver: true }).start();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [anim, delay]);
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
+  return (
+    <Animated.View style={[style, { opacity: anim, transform: [{ translateY }] }]}>
+      {children}
+    </Animated.View>
+  );
+}
 
 function fmt(value: number | null): string {
   return value == null ? '-' : value.toFixed(1);
@@ -226,52 +250,67 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               </Text>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('common.at.a.glance')}</Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Range: {summary.rangeLabel} ({summary.totalLogs} log{summary.totalLogs === 1 ? '' : 's'})
-              </Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Flare days: {summary.flareDays}
-              </Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Top symptoms: {summary.topSymptoms.length ? summary.topSymptoms.join(', ') : '-'}
-              </Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Top stressors: {summary.topStressors.length ? summary.topStressors.join(', ') : '-'}
-              </Text>
+              <AiStaggerOnMount delay={0}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Range: {summary.rangeLabel} ({summary.totalLogs} log{summary.totalLogs === 1 ? '' : 's'})
+                </Text>
+              </AiStaggerOnMount>
+              <AiStaggerOnMount delay={55}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Flare days: {summary.flareDays}
+                </Text>
+              </AiStaggerOnMount>
+              <AiStaggerOnMount delay={110}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Top symptoms: {summary.topSymptoms.length ? summary.topSymptoms.join(', ') : '-'}
+                </Text>
+              </AiStaggerOnMount>
+              <AiStaggerOnMount delay={165}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Top stressors: {summary.topStressors.length ? summary.topStressors.join(', ') : '-'}
+                </Text>
+              </AiStaggerOnMount>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.whatWeFound')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 Patterns in everyday language from your own logs in this range.
               </Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Mood avg: {fmt(summary.avgMood)} / 10
-              </Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Sleep avg: {fmt(summary.avgSleep)} / 10
-              </Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Fatigue avg: {fmt(summary.avgFatigue)} / 10
-              </Text>
+              <AiStaggerOnMount delay={220}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Mood avg: {fmt(summary.avgMood)} / 10
+                </Text>
+              </AiStaggerOnMount>
+              <AiStaggerOnMount delay={275}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Sleep avg: {fmt(summary.avgSleep)} / 10
+                </Text>
+              </AiStaggerOnMount>
+              <AiStaggerOnMount delay={330}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Fatigue avg: {fmt(summary.avgFatigue)} / 10
+                </Text>
+              </AiStaggerOnMount>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.top.insights')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 {t('ai.top.insights.hint')}
               </Text>
-              {(analysis?.insights ?? []).map((insight) => (
-                <Pressable
-                  key={insight.id}
-                  onPress={() => setExpandedInsightId(expandedInsightId === insight.id ? null : insight.id)}
-                  accessibilityRole="button"
-                >
-                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                    {insight.rank}. {insight.text} ({insight.confidence}%)
-                  </Text>
-                  {expandedInsightId === insight.id && insight.why?.contributingDates?.length ? (
-                    <Text style={[styles.meta, { color: theme.tokens.color.textMuted, fontSize: theme.font(12) }]}>
-                      Dates: {insight.why.contributingDates.join(', ')}
+              {(analysis?.insights ?? []).map((insight, index) => (
+                <AiStaggerOnMount key={insight.id} delay={385 + index * 55}>
+                  <Pressable
+                    onPress={() => setExpandedInsightId(expandedInsightId === insight.id ? null : insight.id)}
+                    accessibilityRole="button"
+                  >
+                    <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {insight.rank}. {insight.text} ({insight.confidence}%)
                     </Text>
-                  ) : null}
-                </Pressable>
+                    {expandedInsightId === insight.id && insight.why?.contributingDates?.length ? (
+                      <Text style={[styles.meta, { color: theme.tokens.color.textMuted, fontSize: theme.font(12) }]}>
+                        Dates: {insight.why.contributingDates.join(', ')}
+                      </Text>
+                    ) : null}
+                  </Pressable>
+                </AiStaggerOnMount>
               ))}
 
               {analysis?.triggerHypotheses?.length ? (

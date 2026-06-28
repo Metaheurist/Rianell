@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
+  Dimensions,
+  Easing,
   LayoutAnimation,
   Platform,
   Pressable,
@@ -717,6 +720,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const rowDir = isRtl ? 'row-reverse' : 'row';
 
   const [step, setStep] = useState<Step>(0);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const stepOpacity = useRef(new Animated.Value(1)).current;
+  const isStepAnimatingRef = useRef(false);
 
   const [date, setDate] = useState(today());
   const [flare, setFlare] = useState<'Yes' | 'No'>('No');
@@ -1194,8 +1200,45 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   }
 
   function goToStep(next: Step) {
+    if (next === step || isStepAnimatingRef.current) return;
     hapticLight();
-    setStep(next);
+    const direction = next > step ? 1 : -1;
+    const travel = Dimensions.get('window').width * 0.35;
+    isStepAnimatingRef.current = true;
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -direction * travel,
+        duration: 160,
+        easing: Easing.bezier(0.4, 0, 1, 1),
+        useNativeDriver: true,
+      }),
+      Animated.timing(stepOpacity, {
+        toValue: 0,
+        duration: 160,
+        easing: Easing.bezier(0.4, 0, 1, 1),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      slideAnim.setValue(direction * travel);
+      stepOpacity.setValue(0);
+      setStep(next);
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 220,
+          easing: Easing.bezier(0.16, 1, 0.3, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(stepOpacity, {
+          toValue: 1,
+          duration: 220,
+          easing: Easing.bezier(0.16, 1, 0.3, 1),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        isStepAnimatingRef.current = false;
+      });
+    });
   }
 
   const wizardTouchStart = useRef<{ x: number; y: number } | null>(null);
@@ -1340,6 +1383,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+        <Animated.View style={{ transform: [{ translateX: slideAnim }], opacity: stepOpacity }}>
         {renderUnlockBanner()}
         {step === 0 ? (
           <View>
@@ -2433,6 +2477,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </View>
           </View>
         )}
+        </Animated.View>
         </ScrollView>
 
         {step === WIZARD_STEPS - 1 ? (

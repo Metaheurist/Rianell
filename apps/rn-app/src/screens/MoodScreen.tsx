@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Alert,
   Animated,
+  Easing,
   Linking,
   Modal,
   Pressable,
@@ -119,6 +120,8 @@ function formatMoodTimelineDate(dateStr: string): string {
   return `${months[m - 1]} ${d}`;
 }
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
 function MoodRing({ score, tone, size, accent }: { score: number; tone: MoodTone; size: number; accent: string }) {
   const stroke = tone === 'good' ? accent : MOOD_TONE_COLORS[tone];
   const r = (size - 8) / 2;
@@ -126,11 +129,23 @@ function MoodRing({ score, tone, size, accent }: { score: number; tone: MoodTone
   const cy = size / 2;
   const circ = 2 * Math.PI * r;
   const pct = Math.min(1, Math.max(0, score / 10));
-  const offset = circ * (1 - pct);
+  const targetOffset = circ * (1 - pct);
+  const dashAnim = useRef(new Animated.Value(circ)).current;
+
+  useEffect(() => {
+    dashAnim.setValue(circ);
+    Animated.timing(dashAnim, {
+      toValue: targetOffset,
+      duration: 450,
+      easing: Easing.bezier(0.16, 1, 0.3, 1),
+      useNativeDriver: true,
+    }).start();
+  }, [circ, dashAnim, targetOffset]);
+
   return (
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <Circle cx={cx} cy={cy} r={r} stroke="rgba(255,255,255,0.12)" strokeWidth={4} fill="none" />
-      <Circle
+      <AnimatedCircle
         cx={cx}
         cy={cy}
         r={r}
@@ -139,7 +154,7 @@ function MoodRing({ score, tone, size, accent }: { score: number; tone: MoodTone
         fill="none"
         strokeLinecap="round"
         strokeDasharray={`${circ} ${circ}`}
-        strokeDashoffset={offset}
+        strokeDashoffset={dashAnim}
         rotation={-90}
         origin={`${cx}, ${cy}`}
       />
@@ -186,6 +201,8 @@ function MoodReadingRibbon({
   const ordered = useMemo(() => [...readings].reverse(), [readings]);
   const [activeIndex, setActiveIndex] = useState(Math.max(0, ordered.length - 1));
   const active = ordered[activeIndex] ?? ordered[ordered.length - 1];
+  const focusOpacity = useRef(new Animated.Value(1)).current;
+  const focusTranslateY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     setActiveIndex(Math.max(0, ordered.length - 1));
@@ -193,13 +210,31 @@ function MoodReadingRibbon({
     return () => clearTimeout(timer);
   }, [ordered.length]);
 
+  useEffect(() => {
+    focusOpacity.setValue(0);
+    focusTranslateY.setValue(8);
+    Animated.parallel([
+      Animated.spring(focusOpacity, { toValue: 1, friction: 9, tension: 180, useNativeDriver: true }),
+      Animated.spring(focusTranslateY, { toValue: 0, friction: 9, tension: 180, useNativeDriver: true }),
+    ]).start();
+  }, [activeIndex, focusOpacity, focusTranslateY]);
+
   if (!active) return null;
   const activeTone = moodToneFromScore(active.mood);
   const activeQual = t(moodQualitativeKey(active.mood));
 
   return (
     <View style={styles.moodReadingRibbon}>
-      <View style={[styles.moodReadingFocus, { borderColor: `${accent}44` }]}>
+      <Animated.View
+        style={[
+          styles.moodReadingFocus,
+          {
+            borderColor: `${accent}44`,
+            opacity: focusOpacity,
+            transform: [{ translateY: focusTranslateY }],
+          },
+        ]}
+      >
         <MoodRing score={active.mood} tone={activeTone} size={52} accent={accent} />
         <View style={styles.moodReadingFocusCopy}>
           <Text style={[styles.moodReadingFocusScore, { color: accent }]}>
@@ -210,7 +245,7 @@ function MoodReadingRibbon({
             {active.date} · {readingSourceLabel(active, t)} · {activeQual}
           </Text>
         </View>
-      </View>
+      </Animated.View>
       <ScrollView
         ref={scrollRef}
         horizontal
