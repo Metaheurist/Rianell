@@ -1,0 +1,109 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  applyQuestionnaireAnswer,
+  buildGuidedQuestionnaire,
+  shouldSkipGuidedCard,
+  createGuidedOnboardingProgressSession,
+} from '@rianell/shared';
+
+const freshPwaPrefs = {
+  privacyRegion: '',
+  healthDataConsent: false,
+  cookieConsent: false,
+  aiEnabled: true,
+  aiModelDownloadConsent: 'deferred',
+  tutorialSeen: false,
+};
+
+test('buildGuidedQuestionnaire includes welcome and preference cards for fresh user', () => {
+  const cards = buildGuidedQuestionnaire(freshPwaPrefs, { platform: 'pwa' });
+  const ids = cards.map((c) => c.id);
+  assert.ok(ids.includes('welcome'));
+  assert.ok(ids.includes('region'));
+  assert.ok(ids.includes('coachTone'));
+  assert.ok(ids.includes('helperLevel'));
+  assert.ok(ids.includes('finish'));
+  assert.equal(ids.includes('healthConsent'), false);
+  assert.equal(ids.includes('install'), true);
+});
+
+test('healthConsent card appears for eea_uk region', () => {
+  const cards = buildGuidedQuestionnaire(
+    { ...freshPwaPrefs, privacyRegion: 'eea_uk', privacyRegionSource: 'onboarding' },
+    { platform: 'pwa' },
+  );
+  assert.ok(cards.some((c) => c.id === 'healthConsent'));
+});
+
+test('aiDownload skipped when AI disabled via helperLevel answer', () => {
+  const prefs = applyQuestionnaireAnswer(freshPwaPrefs, 'helperLevel', 'exploreMyself');
+  assert.equal(prefs.aiEnabled, false);
+  assert.equal(shouldSkipGuidedCard('aiDownload', prefs, { platform: 'pwa' }), true);
+});
+
+test('applyQuestionnaireAnswer coachTone sets persona', () => {
+  const next = applyQuestionnaireAnswer(freshPwaPrefs, 'coachTone', 'clinical');
+  assert.equal(next.performance.llmCoachPersona, 'clinical');
+});
+
+test('applyQuestionnaireAnswer healthConsent agree and decline', () => {
+  const agree = applyQuestionnaireAnswer(
+    { ...freshPwaPrefs, privacyRegion: 'eea_uk' },
+    'healthConsent',
+    'agree',
+  );
+  assert.equal(agree.healthDataConsent, true);
+  assert.ok(agree.healthDataConsentAt);
+
+  const decline = applyQuestionnaireAnswer(
+    { ...freshPwaPrefs, privacyRegion: 'eea_uk' },
+    'healthConsent',
+    'notNow',
+  );
+  assert.equal(decline.healthDataConsent, false);
+});
+
+test('applyQuestionnaireAnswer sessionRecording records disclosure', () => {
+  const no = applyQuestionnaireAnswer(freshPwaPrefs, 'sessionRecording', 'no');
+  assert.equal(no.sessionRecording, false);
+  assert.ok(no.sessionRecordingDisclosureAt);
+
+  const yes = applyQuestionnaireAnswer(freshPwaPrefs, 'sessionRecording', 'yes');
+  assert.equal(yes.sessionRecording, true);
+});
+
+test('applyQuestionnaireAnswer finish completes wizard', () => {
+  const done = applyQuestionnaireAnswer(freshPwaPrefs, 'finish', 'start');
+  assert.ok(done.firstRunWizardCompletedAt);
+  assert.equal(done.tutorialSeen, true);
+});
+
+test('applyQuestionnaireAnswer finish quickTour sets replayTutorial', () => {
+  const done = applyQuestionnaireAnswer(freshPwaPrefs, 'finish', 'quickTour');
+  assert.ok(done.firstRunWizardCompletedAt);
+  assert.equal(done.replayTutorial, true);
+});
+
+test('createGuidedOnboardingProgressSession grows when EEA path appears', () => {
+  const ctx = { platform: 'pwa' };
+  const session = createGuidedOnboardingProgressSession(freshPwaPrefs, ctx);
+  const initialTotal = session.getTotal();
+
+  const eeaPrefs = {
+    ...freshPwaPrefs,
+    privacyRegion: 'eea_uk',
+    privacyRegionSource: 'onboarding',
+  };
+  const healthIdx = session.getCards().findIndex((c) => c.id === 'healthConsent');
+  const progress = session.resolve(eeaPrefs, ctx, healthIdx >= 0 ? healthIdx : 1);
+  assert.ok(progress.total >= initialTotal);
+  if (healthIdx >= 0) {
+    assert.equal(progress.current, healthIdx + 1);
+  }
+});
+
+test('install card skipped on RN', () => {
+  const cards = buildGuidedQuestionnaire(freshPwaPrefs, { platform: 'rn', installModalSeen: true });
+  assert.equal(cards.some((c) => c.id === 'install'), false);
+});
