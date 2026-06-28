@@ -46,6 +46,7 @@ import {
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { VoiceNotesButton } from '../voice/VoiceNotesButton';
+import { useReduceMotionFlag } from '../hooks/useReduceMotionFlag';
 import { useToast } from '../components/ui';
 import {
   getUnlockBannerI18nKey,
@@ -712,6 +713,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     [t],
   );
   const toast = useToast();
+  const reduceMotion = useReduceMotionFlag();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
     theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -1202,6 +1204,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   function goToStep(next: Step) {
     if (next === step || isStepAnimatingRef.current) return;
     hapticLight();
+    if (reduceMotion || process.env.JEST_WORKER_ID !== undefined) {
+      setStep(next);
+      return;
+    }
     const direction = next > step ? 1 : -1;
     const travel = Dimensions.get('window').width * 0.35;
     isStepAnimatingRef.current = true;
