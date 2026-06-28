@@ -46,7 +46,7 @@ export const LOG_CSV_ENGLISH_HEADERS = {
   sleep: 'Sleep',
   jointPain: 'Joint Pain',
   mobility: 'Mobility',
-  dailyFunction: 'Daily Function',
+  dailyFunction: 'Ability to do Daily activities',
   swelling: 'Swelling',
   flare: 'Flare',
   mood: 'Mood',
@@ -76,6 +76,10 @@ export function logsToCsv(logs, labelForField) {
   );
   return [header, ...rows].join('\n');
 }
+
+export const LOG_CSV_LEGACY_HEADER_ALIASES = {
+  dailyFunction: ['Daily Function', 'Daily Activities'],
+};
 
 function parseCsvLine(line) {
   const values = [];
@@ -107,9 +111,12 @@ function headerToFieldId(header, aliasMap) {
   const lower = h.toLowerCase();
   for (const id of LOG_CSV_FIELD_IDS) {
     const raw = aliasMap[id];
+    const legacy = LOG_CSV_LEGACY_HEADER_ALIASES[id] || [];
     const aliases = Array.isArray(raw)
-      ? raw
-      : (typeof raw === 'string' && raw ? [raw, LOG_CSV_ENGLISH_HEADERS[id]] : [LOG_CSV_ENGLISH_HEADERS[id]]);
+      ? [...raw, ...legacy]
+      : (typeof raw === 'string' && raw
+        ? [raw, LOG_CSV_ENGLISH_HEADERS[id], ...legacy]
+        : [LOG_CSV_ENGLISH_HEADERS[id], ...legacy]);
     if (aliases.some((a) => a && a.toLowerCase() === lower)) return id;
   }
   return null;

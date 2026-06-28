@@ -4,3 +4,4 @@ export * from './homeWeather.mjs';
 export * from './weatherIcons.mjs';
 export * from './homeDashboardPrefs.mjs';
 export * from './personalBests.mjs';
+export * from './firstSessionPrompt.mjs';
