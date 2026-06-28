@@ -22,6 +22,22 @@
     return typeof I.t === 'function' ? I.t(key, params) : key;
   }
 
+  function ensureI18nReady() {
+    var locale = typeof I.getLocale === 'function' ? I.getLocale() : 'en-GB';
+    if (typeof I.ensureCatalogs === 'function') {
+      return I.ensureCatalogs(locale);
+    }
+    return Promise.resolve();
+  }
+
+  function paintWizard() {
+    renderCurrentCard();
+    bindFooterOnce();
+    if (typeof global.installModalFocusTrap === 'function') {
+      _focusTrapTeardown = global.installModalFocusTrap(overlayEl(), { onEscape: function () {} });
+    }
+  }
+
   function readPrefs() {
     var prefs = {};
     try {
@@ -530,11 +546,7 @@
     if (global.RianellPrivacy && typeof global.RianellPrivacy.syncConsentEnforcement === 'function') {
       global.RianellPrivacy.syncConsentEnforcement('first-run-open');
     }
-    renderCurrentCard();
-    bindFooterOnce();
-    if (typeof global.installModalFocusTrap === 'function') {
-      _focusTrapTeardown = global.installModalFocusTrap(overlay, { onEscape: function () {} });
-    }
+    ensureI18nReady().then(paintWizard).catch(paintWizard);
     return true;
   }
 
@@ -593,6 +605,14 @@
     shouldDeferRegionGate: shouldDeferRegionGate,
     shouldSuppressStandaloneModals: shouldSuppressStandaloneModals,
     openIfNeeded: openIfNeeded,
+    refreshLocaleUI: function () {
+      if (!active) return;
+      ensureI18nReady().then(function () {
+        if (active) renderCurrentCard();
+      }).catch(function () {
+        if (active) renderCurrentCard();
+      });
+    },
     onTutorialFinished: function () {},
     advanceFromTutorial: function () {},
     syncTutorialFooter: function () {},
@@ -600,4 +620,9 @@
 
   global.RianellGuidedOnboarding = api;
   global.RianellFirstRunWizard = api;
+  if (typeof I.onLocaleChange === 'function') {
+    I.onLocaleChange(function () {
+      if (active) api.refreshLocaleUI();
+    });
+  }
 })(typeof window !== 'undefined' ? window : globalThis);

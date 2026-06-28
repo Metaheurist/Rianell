@@ -71,7 +71,19 @@ test('guided onboarding clears modal-active using shared overlay detector', () =
   const guidedJs = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
   assert.match(guidedJs, /isAnyModalOverlayOpen/);
   assert.match(guidedJs, /bindChoiceButtons/);
+  assert.match(guidedJs, /ensureI18nReady/);
+  assert.match(guidedJs, /refreshLocaleUI/);
   assert.match(guidedJs, /hidePrivacyGateIfOpen/);
+});
+
+test('guided onboarding title is not static data-i18n (per-card titles)', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.doesNotMatch(html, /id="guidedOnboardingTitle"[^>]*data-i18n/);
+});
+
+test('i18n refresh re-renders active guided onboarding', () => {
+  const i18nJs = readFileSync('apps/pwa-webapp/i18n-pwa.js', 'utf8');
+  assert.match(i18nJs, /RianellGuidedOnboarding\.refreshLocaleUI/);
 });
 
 test('app.js reveals shell before blocking AI preload on installed mobile PWA', () => {

@@ -186,6 +186,10 @@
   function applyDocumentI18n() {
     hydrateGate();
     hydratePrivacySettings();
+    if (typeof global !== 'undefined' && global.RianellGuidedOnboarding &&
+      typeof global.RianellGuidedOnboarding.refreshLocaleUI === 'function') {
+      global.RianellGuidedOnboarding.refreshLocaleUI();
+    }
     if (typeof global !== 'undefined' && global.RianellWeeklyReview) {
       if (typeof global.RianellWeeklyReview.renderSettingsPerformanceLearn === 'function') {
         global.RianellWeeklyReview.renderSettingsPerformanceLearn();
