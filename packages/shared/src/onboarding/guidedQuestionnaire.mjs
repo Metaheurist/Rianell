@@ -370,6 +370,20 @@ export function resolveGuidedCardIndex(cards, cardId) {
 
 /**
  * @param {Array<{ id: GuidedCardId }>} cards
+ * @param {GuidedCardId} answeredCardId
+ */
+export function resolveNextGuidedCardIndex(cards, answeredCardId) {
+  const orderIdx = GUIDED_QUESTIONNAIRE_CARD_IDS.indexOf(answeredCardId);
+  if (orderIdx < 0) return 0;
+  for (let i = orderIdx + 1; i < GUIDED_QUESTIONNAIRE_CARD_IDS.length; i += 1) {
+    const idx = cards.findIndex((c) => c.id === GUIDED_QUESTIONNAIRE_CARD_IDS[i]);
+    if (idx >= 0) return idx;
+  }
+  return Math.max(cards.length - 1, 0);
+}
+
+/**
+ * @param {Array<{ id: GuidedCardId }>} cards
  * @param {number} cardIndex
  */
 export function resolveGuidedCardProgress(cards, cardIndex) {

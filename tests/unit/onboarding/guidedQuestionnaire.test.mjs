@@ -5,6 +5,7 @@ import {
   buildGuidedQuestionnaire,
   shouldSkipGuidedCard,
   createGuidedOnboardingProgressSession,
+  resolveNextGuidedCardIndex,
 } from '@rianell/shared';
 
 const freshPwaPrefs = {
@@ -101,6 +102,15 @@ test('createGuidedOnboardingProgressSession grows when EEA path appears', () => 
   if (healthIdx >= 0) {
     assert.equal(progress.current, healthIdx + 1);
   }
+});
+
+test('resolveNextGuidedCardIndex skips removed cards after region confirm', () => {
+  const afterRegion = buildGuidedQuestionnaire(
+    { ...freshPwaPrefs, privacyRegion: 'eea_uk', privacyRegionSource: 'onboarding' },
+    { platform: 'pwa' },
+  );
+  const idx = resolveNextGuidedCardIndex(afterRegion, 'region');
+  assert.equal(afterRegion[idx]?.id, 'coachTone');
 });
 
 test('install card skipped on RN', () => {
