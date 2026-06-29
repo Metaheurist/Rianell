@@ -27,6 +27,51 @@ export const RECOVERY_TOKENS = {
   btnIcon: '#ffffff',
 };
 
+// ─── OASIS TOKENS — UI Oasis Overhaul v2.1.0 ──────────────────────────────
+// search: @rianell/oasis-tokens
+export const OASIS_TOKENS = {
+  motion: {
+    easeOasis: 'cubic-bezier(0.45, 0, 0.55, 1)',
+    breathDurationMs: 6000,
+    glowDurationMs: 3200,
+    neuralTraceDurationMs: 2400,
+    particleDurationMs: 900,
+    magnetSnapDurationMs: 180,
+  },
+  ambient: {
+    mint: {
+      blob1: '#1a5c3a',
+      blob2: '#0d3d2e',
+      blob3: '#2e7a5a',
+      glow: '#7bdf8c',
+    },
+    'red-black': {
+      blob1: '#6b1a2e',
+      blob2: '#3d0d1a',
+      blob3: '#a0294a',
+      glow: '#ff8d98',
+    },
+    mono: {
+      blob1: '#1e1e1e',
+      blob2: '#2d2d2d',
+      blob3: '#3a3a3a',
+      glow: '#d0d0d0',
+    },
+    rainbow: {
+      blob1: '#1a1550',
+      blob2: '#2a0d40',
+      blob3: '#3d1f6b',
+      glow: '#ff4fa0',
+    },
+  },
+  statusGlow: {
+    improving: 'drop-shadow(0 0 8px #4caf50)',
+    stable: 'drop-shadow(0 0 6px #2196f3)',
+    declining: 'none',
+  },
+};
+// ─── END OASIS TOKENS ───────────────────────────────────────────────────────
+
 const TEAM_TOKENS = {
   mint: {
     dark: {
