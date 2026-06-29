@@ -4,6 +4,17 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.3 documentation sync (log wizard clarity, pickers, goals art)
+
+- **Shared:** `classifySeverityRaw` in `packages/shared/src/metrics/sliderWellness.mjs`.
+- **PWA log wizard:** Severity scale labels, review metric bars, urgent vitals in `app.js`, `log-metric-widgets.js`, `advanced-vitals-widgets.js`.
+- **PWA pickers:** Symptom tile animations, tile-picker i18n fallbacks in `i18n-pwa.js`.
+- **PWA goals:** Inline animated target/medal SVG in `goals-carousel.js`.
+- **PWA AI tab:** Full-panel neural trace in `oasis-canvas.js` + `css/oasis.css`.
+- **PWA settings:** Carousel pane fix in `settings.js` + `styles.css` container queries.
+- **Tests:** `log-review-ux`, `symptom-picker`, `vitals-light-mode-contrast`, `avatar-random-picker`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.3]`.
+
 ### v2.1.2 documentation sync (dashboard UX, companions, achievements)
 
 - **PWA AI:** Overview/watch/lifestyle/trend panel refresh in `app.js` + `styles.css`; unit tests under `tests/unit/pwa/ai-*.test.mjs`.

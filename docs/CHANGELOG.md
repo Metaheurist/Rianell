@@ -2,7 +2,21 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.2** - PWA dashboard polish, companion carousel, animated achievements; ambient vibe removed.
+**Latest: v2.1.3** - Log wizard severity scale, urgent vitals, picker polish, goals tab SVG art, full-panel AI trace.
+
+### v2.1.3 - 2026-06-29 - Log wizard clarity and picker polish
+
+- **Severity sliders (PWA):** Symptom metrics use Low/Moderate/High labels and raw 1–10 readout; positive metrics keep Good/Bad.
+- **Log review (PWA):** Intensity bars on metric rows; urgent styling for critical glucose/SpO₂.
+- **Vitals (PWA):** Critical glucose tiers and urgent SpO₂ with pulsing border and warning badge.
+- **Symptom picker (PWA):** Animated chip icons; filter placeholder i18n fallbacks.
+- **Goals modal (PWA):** Improved target/medal tab SVG art and motion.
+- **AI tab (PWA):** Neural trace dashed waves cover full panel background.
+- **Settings (PWA):** Carousel pane visibility and search reset fixes.
+- **i18n:** `ai.watch.*`, picker filter keys, severity and vitals zone labels.
+- **Tests:** `log-review-ux`, `symptom-picker`, `vitals-light-mode-contrast`, `avatar-random-picker`.
+- **npm:** Workspace roots at **2.1.3**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.3]`.
 
 ### v2.1.2 - 2026-06-29 - Dashboard UX, companions, achievements
 

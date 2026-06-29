@@ -6,6 +6,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.3] - 2026-06-29
+
+Log wizard clarity, picker polish, goals tab art, and full-panel AI ambient trace.
+
+### Added
+
+- **Severity scale:** `classifySeverityRaw` in `@rianell/shared` — stiffness, joint pain, fatigue, and related sliders show **Low / Moderate / High** with raw 1–10 readout (not inverted Good/Bad)
+- **Log review:** Metric intensity bars, urgent vitals rows (glucose/SpO₂), raw severity values on review step
+- **Critical vitals:** Urgent styling for extreme glucose and SpO₂ (`data-vital-urgent`, pulsing border, warning badge)
+- **Symptom picker:** Per-icon motion classes, tile-picker i18n fallbacks (`data-i18n-placeholder-fallback`), ripple on tap
+- **Goals modal tabs:** Redesigned inline target/medal SVG (three rings, medal shine) with staggered animations
+- **AI tab:** Full-panel dashed neural trace background (replaces 64px header strip)
+- **Settings carousel:** Container-query pane widths, active pane visibility, search reset on close
+- **i18n:** `ai.watch.*`, `logs.picker.filterSymptoms*`, `wizard.metric.severity.*`, `wizard.vitals.glucose.*`, `wizard.vitals.spo2.*`
+- **Tests:** `log-review-ux`, `symptom-picker`, `vitals-light-mode-contrast`, `avatar-random-picker`; extended goals-carousel, animation-polish, sliderWellness, log-metric-widgets
+
+### Changed
+
+- **Metric steppers:** 44×44px touch targets; higher-contrast slider endpoint labels
+- **Graphics portfolio:** Achievement book open animation fix, rotating pill icon, symptom chip decorations, log screen art
+- **i18n runtime:** Placeholder/aria fallback when catalog key missing
+- **RN:** Log review summary parity with PWA severity display
+
+---
+
 ## [2.1.2] - 2026-06-29
 
 PWA dashboard polish, scrollable profile companions, animated achievement icons, and removal of ambient vibe UI.
