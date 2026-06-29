@@ -6,6 +6,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.0-oasis] - 2026-06-29
+
+UI Oasis Overhaul — bioluminescent ambient canvas, living stats, AI neural traces, and celebration micro-interactions across PWA and React Native. Zero new npm dependencies.
+
+### Added
+
+- **`OASIS_TOKENS`** in `@rianell/tokens` — per-team ambient palettes, oasis motion timings, status glow strings
+- **`apps/pwa-webapp/css/oasis.css`** — scoped `.oasis-*` stylesheet (blobs, grain, calm-glow, neural trace, particles)
+- **`apps/pwa-webapp/modules/oasis-canvas.js`** — `window.OasisCanvas` IIFE (blobs, magnetic CTAs, confetti, shimmer, stream dots)
+- **PWA:** Ambient blobs on all five tab panels; AI thinking-text morph; data-stream dots; milestone confetti; check-in shimmer
+- **RN:** `OasisNeuralTrace.tsx`; `BalanceRadarChart` ghost breath ring; `HomeWelcomeCard` ambient pulse ring; `BootLoadingScreen` bioluminescent rings; achievement particle burst
+- **Tests:** 8 assertions in `animation-polish.test.mjs`; `tests/unit/pwa/oasis-particles.test.mjs`; `tests/e2e/oasis-particles.mjs` static gate; `benchmarks/specs/oasis-particles.spec.ts` Playwright ceiling test
+
+### Changed
+
+- **`PrimaryButton.tsx`:** spring friction 6 → 12 (snappier snap-back)
+- **`useReduceMotionFlag.ts`:** OR-gates OS reduce-motion + in-app `reducedMotion` pref
+
+---
+
 ## [2.1.0] - 2026-06-28
 
 Session stability and memory leak fixes targeting the long-session freeze/crash on high-end desktop PCs (Tier 5). Confirmed via live console capture showing a 421 MB AI heap spike, 200+ CSP Report-Only violation entries per load, and unbounded boot log growth. All fixes are non-breaking; first-load experience is unchanged.

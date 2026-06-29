@@ -110,6 +110,24 @@ Settings → Security lock. The passcode is stored only on your device.
 
 ---
 
+## Ambient UI (Oasis)
+
+Rianell uses gentle, GPU-friendly motion to make logging feel calmer — especially for chronic-illness users who may use **brain fog** or **reduced motion** modes.
+
+| Effect | Where | Respects reduced motion? |
+|--------|-------|--------------------------|
+| Ambient blobs | Home, Logs, Charts, Mood, AI tabs (web) | Yes — hidden on low-tier devices and when reduced motion is on |
+| Calm-glow metrics | Improving vitals/metrics (web) | Static glow remains in brain-fog mode; pulse disabled |
+| Neural trace | AI tab (web + mobile) | Hidden when reduced motion is on |
+| Milestone confetti | After achievements / milestones (web) | Skipped when reduced motion or brain fog |
+| Welcome pulse ring | Home welcome card (mobile) | Stopped when OS or in-app reduced motion is on |
+
+Toggle **Reduced motion** in Settings → Display. Brain fog mode further reduces visual noise while keeping readable status colours.
+
+Developer blueprint: [UI_OASIS_PLAN.md](https://github.com/Metaheurist/Rianell/blob/main/UI_OASIS_PLAN.md).
+
+---
+
 ## Notifications and MOTD
 
 Optional reminders and a message-of-the-day on Home. MOTD quotes are localised; your log notes are never auto-translated.
