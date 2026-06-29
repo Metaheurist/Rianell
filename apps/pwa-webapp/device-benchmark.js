@@ -270,13 +270,26 @@
     var samples = [];
     var last = nowMs();
     var remaining = Math.max(2, frames || 6);
+    var settled = false;
+    function finish(result) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(fallbackTimer);
+      done(result);
+    }
+    var fallbackTimer = setTimeout(function () {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[Benchmark] rAF latency timed out — using fallback sample');
+      }
+      finish({ avgMs: samples.length ? mean(samples) : 16, samples: samples, timedOut: true });
+    }, 2500);
     function step() {
       var t = nowMs();
       samples.push(t - last);
       last = t;
       remaining--;
       if (remaining <= 0) {
-        done({ avgMs: mean(samples), samples: samples });
+        finish({ avgMs: mean(samples), samples: samples });
         return;
       }
       requestAnimationFrame(step);

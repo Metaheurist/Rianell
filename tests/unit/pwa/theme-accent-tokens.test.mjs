@@ -63,18 +63,14 @@ test('styles.css tokenises tutorial footer CTA buttons', () => {
   assert.doesNotMatch(tutorialBlock[0], /rgba\(156,\s*39,\s*176/);
 });
 
-test('styles.css tokenises irritability ocean metric animation', () => {
+test('styles.css tokenises irritability face metric animation', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
-  assert.match(css, /\.metric-svg--ocean[\s\S]*--ocean-sky-top:/);
-  assert.match(css, /\.metric-svg--ocean[\s\S]*--ocean-wave-back:/);
-  assert.match(css, /color-mix\(in srgb, var\(--primary-color\)/);
+  assert.match(css, /\.metric-svg--irritability[\s\S]*--metric-color/);
+  assert.match(css, /\.metric-irrit-face-top[\s\S]*color-mix\(in srgb, var\(--metric-color/);
+  assert.match(css, /@keyframes metricIrritEscape[\s\S]*transform: translate/);
   assert.match(
     css,
-    /\.metric-widget--irritability\.metric-widget--ocean-moderate[\s\S]*--ocean-sky-top:/,
+    /\.metric-widget--irritability\[data-metric-active="true"\]\.metric-widget--irrit-storm \.metric-irrit-cloud-main/,
   );
-  assert.match(
-    css,
-    /\.metric-widget--irritability\.metric-widget--ocean-storm[\s\S]*--ocean-cloud:/,
-  );
-  assert.match(css, /\.metric-widget--irritability\.metric-widget--ocean-storm \.metric-ocean-lightning/);
+  assert.match(css, /\.metric-widget--irritability\[data-metric-active="true"\] \.metric-irrit-escape-burst--on/);
 });

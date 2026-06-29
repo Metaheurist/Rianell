@@ -183,13 +183,13 @@ const NotificationManager = {
     }
   },
   
-  // Check if reminder is enabled
+  // Check if reminder is enabled (explicit opt-in via Settings or onboarding daily nudge)
   isReminderEnabled() {
     try {
       const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
-      return settings.reminder !== false; // Default to true
+      return settings.reminder === true;
     } catch (e) {
-      return true;
+      return false;
     }
   },
   
@@ -558,6 +558,9 @@ const NotificationManager = {
   // Check if we need to show today's reminder (in-app)
   checkTodayReminder() {
     if (!this.isReminderEnabled()) return;
+    if (typeof shouldSuppressFirstRunLoggingPrompt === 'function' && shouldSuppressFirstRunLoggingPrompt()) {
+      return;
+    }
     
     const today = new Date();
     const todayStr = this.getLocalDateStr(today);

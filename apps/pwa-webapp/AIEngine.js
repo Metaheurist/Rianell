@@ -3764,9 +3764,13 @@ const AIEngine = {
         const outlierCount = Math.max(zScoreOutliers.length, iqrOutliers.length);
         
         if (outlierCount >= 2) {
-          outliers.push(
-            `${metricName}: ${outlierCount} unusual values detected (may indicate flare-ups)`
-          );
+          outliers.push({
+            id: 'outlier:' + metric,
+            kind: 'outlier',
+            metric: metric,
+            label: metricName,
+            count: outlierCount
+          });
         }
       }
     });
