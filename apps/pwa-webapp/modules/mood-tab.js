@@ -213,6 +213,53 @@
       '</svg>';
   }
 
+  function readingsAreUniform(readings) {
+    if (!readings || readings.length < 3) return false;
+    var score = readings[0].mood;
+    return readings.every(function (r) { return r.mood === score; });
+  }
+
+  function renderMoodUniformStreak(readings) {
+    if (!readingsAreUniform(readings)) return '';
+    var score = readings[0].mood;
+    var qk = S && typeof S.moodQualitativeKey === 'function' ? S.moodQualitativeKey(score) : '';
+    var qual = qk ? t(qk) : '';
+    var text = t('mood.recent.uniformStreak', {
+      count: String(readings.length),
+      score: String(score),
+    }, readings.length + ' readings at ' + score + '/10');
+    return '<p class="mood-reading-streak" role="status">' + escapeHTML(text) +
+      (qual ? ' <span class="mood-reading-streak__qual">' + escapeHTML(qual) + '</span>' : '') +
+      '</p>';
+  }
+
+  function renderMoodReadingCard(r, i, opts) {
+    var tone = moodToneFromScore(r.mood);
+    var qk = S && typeof S.moodQualitativeKey === 'function' ? S.moodQualitativeKey(r.mood) : '';
+    var qual = qk ? t(qk) : '';
+    var compact = opts && opts.compact;
+    var srcIcon = r.source === 'checkin'
+      ? checkinPeriodIconName(r.period || 'midday')
+      : 'chart-bars';
+    var aria = r.mood + '/10, ' + r.date + ', ' + readingSourceLabel(r) + (qual ? ', ' + qual : '');
+    var html = '<button type="button" class="mood-reading-card mood-reading-card--' + tone +
+      (compact ? ' mood-reading-card--compact' : '') + '" data-reading-i="' + i + '" style="--card-i:' + i + '" ' +
+      'aria-label="' + escapeHTML(aria) + '">';
+    if (compact) {
+      html += '<span class="mood-reading-card__badge" aria-hidden="true">' + escapeHTML(String(r.mood)) + '</span>';
+    } else {
+      html += '<span class="mood-reading-card__ring">' + renderMoodRing(r.mood, tone, 44) + '</span>';
+    }
+    html += '<span class="mood-reading-card__date">' + escapeHTML(formatMoodTimelineDate(r.date)) + '</span>';
+    html += '<span class="mood-reading-card__source">' + svgIcon(srcIcon, 'mood-reading-card__source-icon') +
+      '<span>' + escapeHTML(readingSourceLabel(r)) + '</span></span>';
+    if (!compact && qual) {
+      html += '<span class="mood-reading-card__qual mood-reading-card__qual--' + tone + '">' + escapeHTML(qual) + '</span>';
+    }
+    html += '</button>';
+    return html;
+  }
+
   function moodReadingFocusHtml(r) {
     if (!r) return '';
     var tone = moodToneFromScore(r.mood);
@@ -229,35 +276,27 @@
 
   function renderMoodReadingRibbon(readings) {
     if (!readings || !readings.length) return '';
-    var cardW = 76;
     var ordered = readings.slice().reverse();
-    var cardsHtml = ordered.map(function (r, i) {
-      var tone = moodToneFromScore(r.mood);
-      var qk = S && typeof S.moodQualitativeKey === 'function' ? S.moodQualitativeKey(r.mood) : '';
-      var qual = qk ? t(qk) : '';
-      var isLatest = i === ordered.length - 1;
-      var srcIcon = r.source === 'checkin'
-        ? checkinPeriodIconName(r.period || 'midday')
-        : 'chart-bars';
-      var aria = r.mood + '/10, ' + r.date + ', ' + readingSourceLabel(r) + (qual ? ', ' + qual : '');
-      return '<button type="button" class="mood-reading-card mood-reading-card--' + tone +
-        (isLatest ? ' mood-reading-card--latest' : '') + '" data-reading-i="' + i + '" style="--card-i:' + i + '" ' +
-        'aria-label="' + escapeHTML(aria) + '">' +
-        (isLatest ? '<span class="mood-reading-card__pulse" aria-hidden="true"></span>' : '') +
-        '<span class="mood-reading-card__ring">' + renderMoodRing(r.mood, tone, 44) + '</span>' +
-        '<span class="mood-reading-card__date">' + escapeHTML(formatMoodTimelineDate(r.date)) + '</span>' +
-        '<span class="mood-reading-card__source">' + svgIcon(srcIcon, 'mood-reading-card__source-icon') +
-        '<span>' + escapeHTML(readingSourceLabel(r)) + '</span></span>' +
-        (qual ? '<span class="mood-reading-card__qual mood-reading-card__qual--' + tone + '">' + escapeHTML(qual) + '</span>' : '') +
-        '</button>';
-    }).join('');
     var latest = ordered[ordered.length - 1];
-    return '<div class="mood-reading-ribbon" data-reading-count="' + ordered.length + '">' +
-      moodReadingFocusHtml(latest) +
-      '<div class="mood-reading-ribbon-scroll mood-timeline-scroll" role="list" aria-label="' + escapeHTML(t('mood.recent.title')) + '">' +
-      '<div class="mood-reading-ribbon-inner" style="--mood-card-count:' + ordered.length + ';--mood-card-w:' + cardW + 'px">' +
-      renderMoodReadingWave(ordered, cardW) +
-      '<div class="mood-reading-ribbon-track">' + cardsHtml + '</div></div></div></div>';
+    var history = ordered.length > 1 ? ordered.slice(0, -1) : [];
+    var uniform = readingsAreUniform(readings);
+    var compact = history.length >= 2;
+    var cardW = compact ? 54 : 76;
+    var cardsHtml = history.map(function (r, i) {
+      return renderMoodReadingCard(r, i, { compact: compact });
+    }).join('');
+    var html = '<div class="mood-reading-ribbon' + (uniform ? ' mood-reading-ribbon--uniform' : '') + '" data-reading-count="' + ordered.length + '">';
+    html += moodReadingFocusHtml(latest);
+    if (uniform) html += renderMoodUniformStreak(readings);
+    if (history.length) {
+      html += '<div class="mood-reading-ribbon-scroll mood-timeline-scroll" role="list" aria-label="' + escapeHTML(t('mood.recent.history')) + '">';
+      html += '<div class="mood-reading-ribbon-inner" style="--mood-card-count:' + history.length + ';--mood-card-w:' + cardW + 'px">';
+      if (history.length >= 2) html += renderMoodReadingWave(history, cardW);
+      html += '<div class="mood-reading-ribbon-track' + (compact ? ' mood-reading-ribbon-track--compact' : '') + '">' + cardsHtml + '</div>';
+      html += '</div></div>';
+    }
+    html += '</div>';
+    return html;
   }
 
   function updateMoodReadingFocusEl(el, r) {
@@ -416,23 +455,38 @@
     });
   }
 
-  function renderMoodSparkline(dailyAverages) {
+  function renderMoodSparkline(dailyAverages, targetScore) {
     if (!dailyAverages || !dailyAverages.length) return '';
     var max = 10;
     var w = 200;
-    var h = 48;
-    var padX = 4;
-    var padY = 4;
+    var h = 52;
+    var padX = 6;
+    var padY = 6;
     var innerW = w - padX * 2;
+    var innerH = h - padY * 2;
     var step = dailyAverages.length > 1 ? innerW / (dailyAverages.length - 1) : 0;
     var pts = dailyAverages.map(function (d, i) {
       var x = dailyAverages.length > 1 ? padX + i * step : w / 2;
-      var y = h - padY - (d.average / max) * (h - padY * 2);
-      return x.toFixed(1) + ',' + y.toFixed(1);
+      var y = padY + innerH - (d.average / max) * innerH;
+      return { x: x, y: y };
+    });
+    var pathD = pts.map(function (p, i) {
+      return (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1);
     }).join(' ');
+    var areaD = pathD + ' L' + pts[pts.length - 1].x.toFixed(1) + ',' + (h - padY).toFixed(1) +
+      ' L' + pts[0].x.toFixed(1) + ',' + (h - padY).toFixed(1) + ' Z';
+    var target = Number.isFinite(Number(targetScore)) ? Number(targetScore) : 7;
+    var targetY = padY + innerH - (target / max) * innerH;
     return '<div class="mood-sparkline-wrap" aria-hidden="true">' +
       '<svg class="mood-sparkline" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
-      '<polyline fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="' + pts + '"/></svg></div>';
+      '<defs><linearGradient id="moodMetricSparkFill" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="currentColor" stop-opacity="0.22"/>' +
+      '<stop offset="100%" stop-color="currentColor" stop-opacity="0.02"/>' +
+      '</linearGradient></defs>' +
+      '<line class="mood-sparkline-target" x1="' + padX + '" y1="' + targetY.toFixed(1) + '" x2="' + (w - padX) + '" y2="' + targetY.toFixed(1) + '"/>' +
+      '<path class="mood-sparkline-area" d="' + areaD + '" fill="url(#moodMetricSparkFill)"/>' +
+      '<path class="mood-sparkline-path" d="' + pathD + '" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg></div>';
   }
 
   function renderMoodCheckinSection(todayStr, simpleMode) {
@@ -484,14 +538,15 @@
       var qualKey = S && typeof S.moodQualitativeKey === 'function' && latest
         ? S.moodQualitativeKey(latest.mood)
         : 'mood.qualitative.none';
+      var latestTone = latest ? moodToneFromScore(latest.mood) : 'neutral';
       html += '<div class="mood-metrics-grid">';
-      html += '<div class="mood-metric-card"><span class="mood-metric-label">' + escapeHTML(t('mood.avg')) + '</span>';
+      html += '<div class="mood-metric-card mood-metric-card--avg"><span class="mood-metric-label">' + escapeHTML(t('mood.avg')) + '</span>';
       html += '<span class="mood-metric-value">' + escapeHTML(String(summary.average)) + '<span class="mood-metric-suffix">/10</span></span></div>';
-      html += '<div class="mood-metric-card"><span class="mood-metric-label">' + escapeHTML(t('mood.latest')) + '</span>';
+      html += '<div class="mood-metric-card mood-metric-card--latest mood-metric-card--tone-' + latestTone + '"><span class="mood-metric-label">' + escapeHTML(t('mood.latest')) + '</span>';
       html += '<span class="mood-metric-value">' + escapeHTML(String(latest ? latest.mood : '-')) + '<span class="mood-metric-suffix">/10</span></span>';
       html += '<span class="mood-metric-hint">' + escapeHTML(t(qualKey)) + '</span></div>';
-      html += '<div class="mood-metric-card"><span class="mood-metric-label">' + escapeHTML(t(trendKey)) + '</span>';
-      html += renderMoodSparkline(summary.dailyAverages) + '</div>';
+      html += '<div class="mood-metric-card mood-metric-card--trend mood-metric-card--trend-' + escapeHTML(summary.trend) + '"><span class="mood-metric-label">' + escapeHTML(t(trendKey)) + '</span>';
+      html += renderMoodSparkline(summary.dailyAverages, summary.moodTarget != null ? summary.moodTarget : moodTarget()) + '</div>';
       html += renderMoodReadingsSummaryCard(summary);
       html += '</div>';
 
@@ -518,8 +573,9 @@
 
     attachMoodReadingData(root, summary.readings || []);
     wireMoodReadingRibbon(root);
-    var latestCard = root.querySelector('.mood-reading-card--latest');
-    if (latestCard) latestCard.classList.add('mood-reading-card--active');
+    var activeCard = root.querySelector('.mood-reading-card[data-reading-i]:last-child') ||
+      root.querySelector('.mood-reading-card[data-reading-i]');
+    if (activeCard) activeCard.classList.add('mood-reading-card--active');
 
     var moodTimelineScroll = root.querySelector('.mood-timeline-scroll:not(.mood-reading-ribbon-scroll)');
     if (moodTimelineScroll) wireMoodTimelineScroll(moodTimelineScroll);

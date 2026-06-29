@@ -1865,7 +1865,7 @@ function buildAIAnalysisShareText(dateRangeText) {
   if (analysis.anomalies && analysis.anomalies.length > 0) {
     lines.push('THINGS TO WATCH');
     analysis.anomalies.forEach(function(a) {
-      var plain = String(a).replace(/\*\*(.*?)\*\*/g, '$1').replace(/<[^>]+>/g, '');
+      var plain = anomalyToPlainText(a).replace(/\*\*(.*?)\*\*/g, '$1').replace(/<[^>]+>/g, '');
       lines.push('  ' + plain);
     });
     lines.push('');
@@ -8281,7 +8281,14 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
   var fallbackText = fallbackNote.trim() || originalText;
   var reqId = ((window.__aiSummaryNoteReqId || 0) + 1);
   window.__aiSummaryNoteReqId = reqId;
+  var insightCard = document.getElementById('aiInsightCard');
+  var copyBtn = insightCard ? insightCard.querySelector('.ai-copy-note-btn') : null;
   el.textContent = tUi('common.generating.summary');
+  if (insightCard) insightCard.classList.add('ai-insight-card--loading');
+  if (copyBtn) {
+    copyBtn.disabled = true;
+    copyBtn.setAttribute('aria-disabled', 'true');
+  }
   var llmPromise = window.generateSummaryWithLLM(
     analysis,
     { dayCount: dayCount || (logs && logs.length) || 0, logs: logs || [] },
@@ -8295,25 +8302,41 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     .then(function (text) {
       if (window.__aiSummaryNoteReqId !== reqId) return;
       var target = document.getElementById('aiInsightCardText') || document.getElementById('aiSummaryNoteText');
+      var card = document.getElementById('aiInsightCard');
+      var btn = card ? card.querySelector('.ai-copy-note-btn') : null;
       if (!target) return;
       if (text && text.trim()) {
         target.textContent = text.trim();
       } else {
         target.textContent = fallbackText;
       }
+      if (card) card.classList.remove('ai-insight-card--loading');
+      if (btn) {
+        btn.disabled = false;
+        btn.removeAttribute('aria-disabled');
+      }
     })
     .catch(function () {
       if (window.__aiSummaryNoteReqId !== reqId) return;
       var target = document.getElementById('aiInsightCardText') || document.getElementById('aiSummaryNoteText');
+      var card = document.getElementById('aiInsightCard');
+      var btn = card ? card.querySelector('.ai-copy-note-btn') : null;
       if (target) target.textContent = fallbackText;
+      if (card) card.classList.remove('ai-insight-card--loading');
+      if (btn) {
+        btn.disabled = false;
+        btn.removeAttribute('aria-disabled');
+      }
     });
 }
 
 // Copy AI-generated summary note to clipboard (used by "Copy note" button in AI results)
 function copyAIGeneratedNote(btn) {
-  var el = btn && btn.previousElementSibling;
+  if (!btn || btn.disabled) return;
+  var card = btn.closest('.ai-insight-card');
+  var el = card ? card.querySelector('.ai-insight-card__text') : (btn.previousElementSibling || null);
   var text = el ? el.textContent : '';
-  if (!text) return;
+  if (!text || text === tUi('common.generating.summary')) return;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function() {
       if (btn) { btn.textContent = tUi('common.copied.exclaim'); setTimeout(function() { btn.textContent = tUi('ai.action.copyNote'); }, 2000); }
@@ -8997,9 +9020,212 @@ function initAITimelinePortrait() {
   });
 }
 
+// Plain text for exports / clipboard from structured or legacy anomaly entries
+function anomalyToPlainText(anomaly) {
+  if (anomaly == null) return '';
+  if (typeof anomaly === 'string') return anomaly;
+  if (anomaly.kind === 'outlier') {
+    return anomaly.label + ': ' + anomaly.count + ' unusual values detected (may indicate flare-ups)';
+  }
+  if (anomaly.message) return String(anomaly.message);
+  return String(anomaly);
+}
+
+function normalizeAnomalyWatchItem(anomaly) {
+  if (anomaly == null) return null;
+  if (typeof anomaly === 'object' && anomaly.kind === 'outlier') {
+    return {
+      kind: 'outlier',
+      metric: anomaly.metric || '',
+      label: anomaly.label || anomaly.metric || 'Metric',
+      count: parseInt(anomaly.count, 10) || 0
+    };
+  }
+  if (typeof anomaly === 'object' && anomaly.message) {
+    return {
+      kind: anomaly.metric ? 'shift' : 'insight',
+      label: anomaly.metric ? String(anomaly.metric).replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); }) : '',
+      message: String(anomaly.message),
+      severity: anomaly.severity === 'high' ? 'high' : anomaly.severity === 'low' ? 'low' : 'medium'
+    };
+  }
+  var str = String(anomaly);
+  var outlierMatch = str.match(/^(.+?):\s*(\d+)\s+unusual values detected/i);
+  if (outlierMatch) {
+    return {
+      kind: 'outlier',
+      metric: outlierMatch[1].trim().toLowerCase().replace(/\s+/g, ''),
+      label: outlierMatch[1].trim(),
+      count: parseInt(outlierMatch[2], 10) || 0
+    };
+  }
+  return { kind: 'insight', message: str, severity: 'medium' };
+}
+
+function outlierWatchSeverity(count, maxCount) {
+  var ratio = maxCount > 0 ? count / maxCount : 0;
+  if (count >= 15 || ratio >= 0.85) return 'high';
+  if (count >= 7 || ratio >= 0.45) return 'medium';
+  return 'low';
+}
+
+function renderAIThingsToWatch(anomalies) {
+  if (!anomalies || !anomalies.length) return '';
+  var items = anomalies.map(normalizeAnomalyWatchItem).filter(Boolean);
+  var outliers = items.filter(function(i) { return i.kind === 'outlier' && i.count > 0; });
+  var others = items.filter(function(i) { return i.kind !== 'outlier'; });
+  outliers.sort(function(a, b) { return b.count - a.count; });
+  var maxCount = outliers.reduce(function(m, i) { return Math.max(m, i.count); }, 1);
+
+  var html = '<div class="ai-watch-panel">';
+  html += '<div class="ai-watch-panel__header">';
+  html += '<h4 class="ai-watch-panel__title" id="ai-heading-watch">' + svgIcon('notice', 'ai-inline-icon icon-warning') + ' ' + escapeHTML(tUi('ai.section.thingsToWatch')) + '</h4>';
+  if (outliers.length) {
+    html += '<p class="ai-watch-panel__intro">' + escapeHTML(tUi('ai.watch.intro', 'Readings that stand out from your usual range in this period, ranked by how often.')) + '</p>';
+  }
+  html += '</div>';
+
+  if (outliers.length) {
+    html += '<div class="ai-watch-grid" role="list" aria-label="' + escapeAttr(tUi('ai.section.thingsToWatch')) + '">';
+    outliers.forEach(function(item) {
+      var sev = outlierWatchSeverity(item.count, maxCount);
+      var pct = Math.max(8, Math.round((item.count / maxCount) * 100));
+      html += '<article class="ai-watch-card ai-watch-card--' + sev + '" role="listitem" data-metric="' + escapeAttr(item.metric || '') + '">';
+      html += '<div class="ai-watch-card__row">';
+      html += '<span class="ai-watch-card__label">' + escapeHTML(item.label) + '</span>';
+      html += '<span class="ai-watch-card__count" aria-label="' + escapeAttr(item.count + ' unusual readings') + '">' + escapeHTML(String(item.count)) + '</span>';
+      html += '</div>';
+      html += '<div class="ai-watch-card__bar" role="presentation" aria-hidden="true"><span class="ai-watch-card__bar-fill" style="width:' + pct + '%"></span></div>';
+      html += '<span class="ai-watch-card__hint">' + escapeHTML(tUi('ai.watch.unusualReadings', 'unusual readings')) + '</span>';
+      html += '</article>';
+    });
+    html += '</div>';
+  }
+
+  if (others.length) {
+    html += '<ul class="ai-watch-insights">';
+    others.forEach(function(item) {
+      html += '<li class="ai-watch-insight ai-watch-insight--' + (item.severity || 'medium') + '">' + escapeHTML(item.message) + '</li>';
+    });
+    html += '</ul>';
+  }
+
+  html += '<p class="ai-watch-panel__footnote" role="note">' + escapeHTML(tUi('ai.watch.footnote', 'Patterns in your logs only — not a diagnosis. Mention significant changes to your care team.')) + '</p>';
+  html += '</div>';
+  return html;
+}
+
+function renderAILifestyleStatStrip(pills) {
+  var html = '<div class="ai-lifestyle-stat-strip" role="list">';
+  pills.forEach(function(p) {
+    var tone = p.tone || 'default';
+    html += '<div class="ai-lifestyle-stat ai-lifestyle-stat--' + tone + '" role="listitem">';
+    html += '<span class="ai-lifestyle-stat__icon" aria-hidden="true">' + svgIcon(p.icon, 'ai-inline-icon') + '</span>';
+    html += '<span class="ai-lifestyle-stat__value">' + escapeHTML(String(p.value)) + '</span>';
+    html += '<span class="ai-lifestyle-stat__label">' + escapeHTML(tUi(p.labelKey)) + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderAIMacroSparklineCard(label, value, series, reduceUIAnimations) {
+  var html = '<div class="ai-macro-sparkline-card">';
+  html += '<div class="ai-macro-sparkline-card__head"><span class="ai-macro-sparkline-card__label">' + escapeHTML(label) + '</span>';
+  html += '<span class="ai-macro-sparkline-card__value">' + escapeHTML(String(value)) + '</span></div>';
+  if (series && series.length >= 2) {
+    html += '<div class="ai-macro-sparkline-card__chart">' + buildAISparklineSvg(series, { width: 140, height: 36, animate: !reduceUIAnimations }) + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderAINutritionPanel(nut, macro, reduceUIAnimations) {
+  var hasMacro = macro && macro.calories && macro.calories.length >= 2;
+  var hasNut = nut && (nut.avgCalories || nut.avgProtein);
+  if (!hasMacro && !hasNut) return '';
+  var html = '<section class="ai-lifestyle-panel ai-nutrition-panel">';
+  html += '<h4 class="ai-lifestyle-panel__title">' + svgIcon('food', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.nutrition.panel', 'Nutrition')) + '</h4>';
+  if (hasMacro) {
+    html += '<div class="ai-macro-sparklines">';
+    html += renderAIMacroSparklineCard(tUi('ai.macro.calories'), (macro.avgCalories || nut.avgCalories || '-') + ' ' + tUi('common.cal'), macro.calories, reduceUIAnimations);
+    html += renderAIMacroSparklineCard(tUi('common.protein'), (macro.avgProtein || nut.avgProtein || '-') + 'g', macro.protein, reduceUIAnimations);
+    html += '</div>';
+  } else if (hasNut) {
+    html += '<div class="ai-nutrition-hero">';
+    if (nut.avgCalories) html += '<div class="ai-nutrition-hero__item"><span class="ai-nutrition-hero__value">' + escapeHTML(String(nut.avgCalories)) + '</span><span class="ai-nutrition-hero__unit">' + escapeHTML(tUi('common.cal')) + '</span></div>';
+    if (nut.avgProtein) html += '<div class="ai-nutrition-hero__item"><span class="ai-nutrition-hero__value">' + escapeHTML(String(nut.avgProtein)) + 'g</span><span class="ai-nutrition-hero__unit">' + escapeHTML(tUi('common.protein')) + '</span></div>';
+    html += '</div>';
+  }
+  html += '</section>';
+  return html;
+}
+
+function renderAIExercisePanel(timeline, summary, reduceUIAnimations) {
+  if (timeline && timeline.length >= 2) {
+    var maxMin = Math.max.apply(null, timeline.map(function(d) { return d.minutes; }).concat([1]));
+    var html = '<section class="ai-lifestyle-panel ai-exercise-panel">';
+    html += '<h4 class="ai-lifestyle-panel__title">' + svgIcon('run', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.stats.exercise')) + '</h4>';
+    html += '<p class="ai-lifestyle-panel__intro">' + escapeHTML(tUi('ai.exercise.timelineIntro')) + '</p>';
+    html += '<div class="ai-exercise-timeline-wrap" role="img" aria-label="' + escapeAttr(tUi('ai.exercise.timelineAria')) + '">';
+    html += '<div class="ai-exercise-timeline' + (reduceUIAnimations ? '' : ' ai-exercise-timeline--animate') + '">';
+    timeline.forEach(function(d, idx) {
+      var h = Math.max(10, Math.round((d.minutes / maxMin) * 52));
+      var active = d.minutes > 0;
+      html += '<span class="ai-exercise-timeline__bar' + (active ? ' ai-exercise-timeline__bar--active' : '') + '" style="height:' + h + 'px;--bar-delay:' + (idx * 18) + 'ms" title="' + escapeAttr(d.date + ': ' + d.minutes + ' min') + '"></span>';
+    });
+    html += '</div></div></section>';
+    return html;
+  }
+  if (summary && summary.daysWithExercise > 0) {
+    return '<section class="ai-lifestyle-panel ai-exercise-panel ai-exercise-panel--summary">' +
+      '<h4 class="ai-lifestyle-panel__title">' + svgIcon('run', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.stats.exercise')) + '</h4>' +
+      '<div class="ai-exercise-summary"><span class="ai-exercise-summary__value">' + escapeHTML(String(summary.avgMinutesPerDay)) + '</span>' +
+      '<span class="ai-exercise-summary__unit">' + escapeHTML(tUi('common.min.avg')) + '</span>' +
+      '<span class="ai-exercise-summary__days">' + escapeHTML(tUi('ai.exercise.daysLogged', { count: String(summary.daysWithExercise) }, summary.daysWithExercise + ' days')) + '</span></div></section>';
+  }
+  return '';
+}
+
+function renderAIHelpfulImpactCard(impact) {
+  if (!impact) return '';
+  var typeLabel = impact.type === 'exercise' ? tUi('ai.stats.exercise') : tUi('ai.stats.food');
+  var tone = impact.isPositive ? 'positive' : 'caution';
+  var maxVal = Math.max(parseFloat(impact.withAvg) || 0, parseFloat(impact.withoutAvg) || 0, 1);
+  var withPct = Math.max(12, Math.round(((parseFloat(impact.withAvg) || 0) / maxVal) * 100));
+  var withoutPct = Math.max(12, Math.round(((parseFloat(impact.withoutAvg) || 0) / maxVal) * 100));
+  var html = '<article class="ai-helpful-card ai-helpful-card--' + tone + '">';
+  html += '<div class="ai-helpful-card__head">';
+  html += '<span class="ai-helpful-card__type">' + (impact.isPositive ? svgIcon('chart-up', 'ai-inline-icon icon-success') : svgIcon('notice', 'ai-inline-icon icon-warning')) + ' ' + escapeHTML(typeLabel) + '</span>';
+  html += '<span class="ai-helpful-card__badge">' + escapeHTML(impact.isPositive ? tUi('ai.helpful.helps', 'Helps') : tUi('ai.helpful.watch', 'Watch')) + '</span>';
+  html += '</div>';
+  html += '<p class="ai-helpful-card__metric">' + escapeHTML(impact.metric || '') + '</p>';
+  html += '<div class="ai-helpful-card__compare">';
+  html += '<div class="ai-helpful-card__stat ai-helpful-card__stat--with"><span class="ai-helpful-card__stat-value">' + escapeHTML(String(impact.withAvg)) + '</span><span class="ai-helpful-card__stat-label">' + escapeHTML(tUi('ai.helpful.withDays', 'with')) + '</span></div>';
+  html += '<span class="ai-helpful-card__vs" aria-hidden="true">vs</span>';
+  html += '<div class="ai-helpful-card__stat ai-helpful-card__stat--without"><span class="ai-helpful-card__stat-value">' + escapeHTML(String(impact.withoutAvg)) + '</span><span class="ai-helpful-card__stat-label">' + escapeHTML(tUi('ai.helpful.withoutDays', 'without')) + '</span></div>';
+  html += '</div>';
+  html += '<div class="ai-helpful-card__bars" aria-hidden="true"><span class="ai-helpful-card__bar ai-helpful-card__bar--with" style="width:' + withPct + '%"></span><span class="ai-helpful-card__bar ai-helpful-card__bar--without" style="width:' + withoutPct + '%"></span></div>';
+  html += '</article>';
+  return html;
+}
+
+function renderAIHelpfulPatterns(impacts) {
+  if (!impacts || !impacts.length) return '';
+  var html = '<section class="ai-lifestyle-panel ai-helpful-panel">';
+  html += '<h4 class="ai-lifestyle-panel__title">' + svgIcon('sparkle-ring', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.helpful.patterns')) + '</h4>';
+  html += '<p class="ai-lifestyle-panel__intro">' + escapeHTML(tUi('ai.helpful.intro', 'How food and exercise days compare to your other metrics in this period.')) + '</p>';
+  html += '<div class="ai-helpful-grid" role="list">';
+  impacts.slice(0, 4).forEach(function(impact) {
+    html += renderAIHelpfulImpactCard(impact);
+  });
+  html += '</div></section>';
+  return html;
+}
+
 // Format a single "Things to watch" line: bold metric/label, de-emphasize "(may indicate flare-ups)"
 function formatAnomalyLine(anomaly) {
-  if (!anomaly || typeof anomaly !== 'string') return escapeHTML(String(anomaly));
+  if (!anomaly || typeof anomaly === 'object') return escapeHTML(anomalyToPlainText(anomaly));
   const escaped = escapeHTML(anomaly);
   const colonIdx = escaped.indexOf(': ');
   if (colonIdx === -1) return escaped;
@@ -9165,12 +9391,108 @@ function buildAISparklineSvg(values, options) {
     '<polyline class="ai-sparkline__line' + drawClass + '" points="' + pts + '"/></svg>';
 }
 
+function buildAITrendSparklineSvg(values, options) {
+  options = options || {};
+  var nums = (values || []).filter(function(v) { return typeof v === 'number' && !isNaN(v); });
+  if (nums.length < 2) return '';
+  var w = options.width || 168;
+  var h = options.height || 48;
+  var padX = 4;
+  var padY = 5;
+  var innerW = w - padX * 2;
+  var innerH = h - padY * 2;
+  var min = Math.min.apply(null, nums);
+  var max = Math.max.apply(null, nums);
+  var range = max - min || 1;
+  var step = innerW / (nums.length - 1);
+  var coords = nums.map(function(v, i) {
+    return {
+      x: padX + i * step,
+      y: padY + innerH - ((v - min) / range) * innerH
+    };
+  });
+  var pathD = coords.map(function(p, i) {
+    return (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1);
+  }).join(' ');
+  var areaD = pathD + ' L' + coords[coords.length - 1].x.toFixed(1) + ',' + (h - padY).toFixed(1) +
+    ' L' + coords[0].x.toFixed(1) + ',' + (h - padY).toFixed(1) + ' Z';
+  var avg = options.avg;
+  var avgLine = '';
+  if (avg != null && !isNaN(avg)) {
+    var avgY = padY + innerH - ((avg - min) / range) * innerH;
+    avgY = Math.max(padY, Math.min(h - padY, avgY));
+    avgLine = '<line class="ai-trend-sparkline__avg" x1="' + padX + '" y1="' + avgY.toFixed(1) + '" x2="' + (w - padX) + '" y2="' + avgY.toFixed(1) + '"/>';
+  }
+  var last = coords[coords.length - 1];
+  var drawClass = options.animate !== false ? ' ai-trend-sparkline__line--draw' : '';
+  var gradId = 'aiTrendSparkGrad' + Math.random().toString(36).slice(2, 9);
+  return '<svg class="ai-trend-sparkline" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
+    '<defs><linearGradient id="' + gradId + '" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="currentColor" stop-opacity="0.28"/>' +
+    '<stop offset="100%" stop-color="currentColor" stop-opacity="0.03"/>' +
+    '</linearGradient></defs>' +
+    avgLine +
+    '<path class="ai-trend-sparkline__area" d="' + areaD + '" fill="url(#' + gradId + ')"/>' +
+    '<path class="ai-trend-sparkline__line' + drawClass + '" d="' + pathD + '" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<circle class="ai-trend-sparkline__dot" cx="' + last.x.toFixed(1) + '" cy="' + last.y.toFixed(1) + '" r="3.25"/>' +
+    '</svg>';
+}
+
+function aiTrendMetricEntityId(metric) {
+  var map = {
+    fatigue: 'fatigue',
+    stiffness: 'stiffness',
+    backPain: 'pain',
+    jointPain: 'pain',
+    sleep: 'sleep',
+    mood: 'mood',
+    mobility: 'mobility',
+    swelling: 'swelling',
+    dailyFunction: 'dailyFunction',
+    irritability: 'irritability',
+    bpm: 'bpm',
+    weatherSensitivity: 'weatherSensitivity',
+    steps: 'steps',
+    hydration: 'hydration'
+  };
+  return map[metric] || '';
+}
+
 function getAIMetricSparkSeries(logs, metric) {
   if (!logs || !logs.length) return [];
   return logs.map(function(log) {
     if (metric === 'weight') return parseFloat(log[metric]);
     return parseInt(log[metric], 10);
   }).filter(function(v) { return !isNaN(v) && v > 0; });
+}
+
+function getAISymptomCountSeries(logs) {
+  if (!logs || !logs.length) return [];
+  return logs.map(function(log) {
+    if (!log.symptoms || !Array.isArray(log.symptoms)) return 0;
+    return log.symptoms.length;
+  });
+}
+
+function renderAIQuickStatHtml(stat, reduceUIAnimations) {
+  var html = '<div class="ai-quick-stat ai-quick-stat--' + escapeAttr(stat.id) + '" role="listitem"';
+  if (stat.flareLevel) html += ' data-flare-level="' + escapeAttr(stat.flareLevel) + '"';
+  html += '><div class="ai-quick-stat__head"><span class="ai-quick-stat__label">' + escapeHTML(tUi(stat.labelKey)) + '</span>';
+  if (stat.badge) {
+    html += '<span class="ai-quick-stat__badge" aria-label="' + escapeAttr(stat.badgeAria || '') + '">' + escapeHTML(String(stat.badge)) + '</span>';
+  } else if (stat.delta) {
+    var deltaCls = stat.delta === '↑' ? 'ai-quick-stat__delta--up' : stat.delta === '↓' ? 'ai-quick-stat__delta--down' : 'ai-quick-stat__delta--flat';
+    html += '<span class="ai-quick-stat__delta ' + deltaCls + '" aria-hidden="true">' + escapeHTML(String(stat.delta)) + '</span>';
+  }
+  html += '</div>';
+  var valueCls = 'ai-quick-stat__value';
+  if (stat.valueTone) valueCls += ' ai-quick-stat__value--' + stat.valueTone;
+  html += '<span class="' + valueCls + '">' + escapeHTML(String(stat.value)) + '</span>';
+  if (stat.spark && stat.spark.length >= 2) {
+    html += '<div class="ai-quick-stat__spark">' + buildAISparklineSvg(stat.spark, { width: 110, height: 32, animate: !reduceUIAnimations }) + '</div>';
+  }
+  html += '</div>';
+  return html;
 }
 
 function renderWellbeingScoreRing(score, reduceMotion) {
@@ -9291,33 +9613,34 @@ function formatAITrendValueDisplay(metric, trend) {
 function renderAITrendCardHtml(metric, trend, index, animationDelay) {
   var currentStatus = trend.statusFromAverage || 'stable';
   var predictedStatus = trend.predictedStatus || 'stable';
-  var trendIcon, trendColor;
-  if (currentStatus === 'improving') {
-    trendIcon = svgIcon('chart-up', 'ai-inline-icon icon-success', 'Improving');
-    trendColor = getThemePrimaryColor();
-  } else if (currentStatus === 'worsening') {
-    trendIcon = svgIcon('chart-down', 'ai-inline-icon icon-danger', 'Declining');
-    trendColor = '#f44336';
-  } else {
-    trendIcon = svgIcon('chart-bars', 'ai-inline-icon icon-muted', 'Stable');
-    trendColor = '#e91e63';
-  }
-  var predictedColor = predictedStatus === 'improving' ? getThemePrimaryColor() : predictedStatus === 'worsening' ? '#f44336' : '#e91e63';
-  var metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  var statusKey = currentStatus === 'improving' ? 'improving' : currentStatus === 'worsening' ? 'worsening' : 'stable';
+  var metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, function(str) { return str.toUpperCase(); });
   var vals = formatAITrendValueDisplay(metric, trend);
   var trendDescription = currentStatus === 'improving' ? tUi('ai.trend.gettingBetter') : currentStatus === 'worsening' ? tUi('ai.trend.gettingWorse') : tUi('ai.trend.stable');
-  var statusKey = currentStatus === 'improving' ? 'improving' : currentStatus === 'worsening' ? 'worsening' : 'stable';
-  var spark = buildAISparklineSvg(trend.recentSeries || [], { width: 100, height: 24 });
-  return '<div class="ai-trend-card ai-trend-card--metric ai-animate-in ai-trend-status--' + statusKey + '" style="border-left-color:' + trendColor + ';animation-delay:' + (animationDelay + index * 80) + 'ms;" role="listitem">' +
+  var entityId = aiTrendMetricEntityId(metric);
+  var titleIcon = entityId
+    ? '<span class="ai-trend-metric-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><use href="#icon-metric-' + escapeAttr(entityId) + '"></use></svg></span>'
+    : '<span class="ai-trend-metric-icon ai-trend-metric-icon--generic" aria-hidden="true">' + svgIcon('chart-bars', 'ai-inline-icon') + '</span>';
+  var spark = buildAITrendSparklineSvg(trend.recentSeries || [], {
+    width: 168,
+    height: 48,
+    animate: true,
+    avg: trend.average
+  });
+  var predictedClass = predictedStatus === 'improving' ? 'improving' : predictedStatus === 'worsening' ? 'worsening' : 'stable';
+  return '<article class="ai-trend-card ai-trend-card--metric ai-trend-card--' + statusKey + ' ai-animate-in" data-metric="' + escapeAttr(metric) + '" style="animation-delay:' + (animationDelay + index * 55) + 'ms;" role="listitem">' +
+    '<div class="ai-trend-card__accent" aria-hidden="true"></div>' +
     '<div class="ai-trend-card-inner">' +
-    '<div class="ai-trend-header"><strong><span aria-hidden="true">' + trendIcon + '</span> ' + metricName + '</strong>' +
-    '<span class="ai-trend-status-chip ai-trend-status-chip--' + statusKey + '">' + escapeHTML(trendDescription) + '</span></div>' +
-    (spark ? spark : '') +
-    '<div class="ai-trend-values">' +
-    '<div class="ai-trend-value"><span class="ai-trend-value-label">' + tUi('common.typical') + '</span><strong style="color:' + trendColor + ';">' + vals.averageDisplay + '</strong></div>' +
-    '<div class="ai-trend-value"><span class="ai-trend-value-label">' + tUi('common.latest') + '</span><strong style="color:' + trendColor + ';">' + vals.currentDisplay + '</strong></div>' +
-    (vals.predictedDisplay ? '<div class="ai-trend-value"><span class="ai-trend-value-label">' + tUi('common.outlook') + '</span><strong style="color:' + predictedColor + ';">' + vals.predictedDisplay + '</strong></div>' : '') +
-    '</div></div></div>';
+    '<header class="ai-trend-header">' +
+    '<div class="ai-trend-title">' + titleIcon + '<span class="ai-trend-title__name">' + escapeHTML(metricName) + '</span></div>' +
+    '<span class="ai-trend-status-chip ai-trend-status-chip--' + statusKey + '">' + escapeHTML(trendDescription) + '</span>' +
+    '</header>' +
+    (spark ? '<div class="ai-trend-chart">' + spark + '</div>' : '') +
+    '<div class="ai-trend-stats-row">' +
+    '<div class="ai-trend-stat"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.typical')) + '</span><span class="ai-trend-stat__value">' + escapeHTML(vals.averageDisplay) + '</span></div>' +
+    '<div class="ai-trend-stat ai-trend-stat--latest"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.latest')) + '</span><span class="ai-trend-stat__value">' + escapeHTML(vals.currentDisplay) + '</span></div>' +
+    (vals.predictedDisplay ? '<div class="ai-trend-stat ai-trend-stat--outlook ai-trend-stat--' + predictedClass + '"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.outlook')) + '</span><span class="ai-trend-stat__value">' + escapeHTML(vals.predictedDisplay) + '</span></div>' : '') +
+    '</div></div></article>';
 }
 
 function initAIChapterAnimations(container) {
@@ -9461,29 +9784,52 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   overviewInner += '<div class="ai-hero-row">';
   overviewInner += renderWellbeingScoreRing(wellbeingScore, reduceUIAnimations);
   overviewInner += '<div class="ai-insight-card" id="aiInsightCard">';
-  overviewInner += '<p class="ai-insight-card__title">' + svgIcon('brain-wave', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.insight.title')) + '</p>';
-  overviewInner += '<p class="ai-insight-card__text" id="aiInsightCardText">' + escapeHTML(String(insightText || '').split('\n\n')[0].replace(/\*\*/g, '')) + '</p>';
-  overviewInner += '<button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote===\'function\'&&copyAIGeneratedNote(this)" aria-label="' + escapeAttr(tUi('ai.action.copyNote')) + '">' + escapeHTML(tUi('ai.action.copyNote')) + '</button>';
+  overviewInner += '<div class="ai-insight-card__header"><p class="ai-insight-card__title">' + svgIcon('brain-wave', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.insight.title')) + '</p></div>';
+  overviewInner += '<div class="ai-insight-card__body"><p class="ai-insight-card__text" id="aiInsightCardText">' + escapeHTML(String(insightText || '').split('\n\n')[0].replace(/\*\*/g, '')) + '</p></div>';
+  overviewInner += '<div class="ai-insight-card__footer"><button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote===\'function\'&&copyAIGeneratedNote(this)" aria-label="' + escapeAttr(tUi('ai.action.copyNote')) + '">' + escapeHTML(tUi('ai.action.copyNote')) + '</button></div>';
   overviewInner += '</div></div>';
 
   var moodTrend = analysis.trends && analysis.trends.mood;
   var sleepTrend = analysis.trends && analysis.trends.sleep;
   var flareLevel = analysis.flareUpRisk ? analysis.flareUpRisk.level : 'low';
+  var flareMatch = analysis.flareUpRisk && analysis.flareUpRisk.matchingMetrics != null ? analysis.flareUpRisk.matchingMetrics : null;
   var daysSymptoms = logs.filter(function(l) { return l.symptoms && Array.isArray(l.symptoms) && l.symptoms.length > 0; }).length;
+  var symptomSeries = getAISymptomCountSeries(logs);
   var quickStats = [
-    { labelKey: 'ai.quick.flareRisk', value: flareLevel, spark: null, delta: analysis.flareUpRisk ? analysis.flareUpRisk.matchingMetrics + '/5' : '-' },
-    { labelKey: 'ai.quick.mood', value: moodTrend ? Math.round(moodTrend.average) + '/10' : '-', spark: moodTrend ? moodTrend.recentSeries : [], delta: moodTrend && moodTrend.statusFromAverage === 'improving' ? '↑' : moodTrend && moodTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
-    { labelKey: 'ai.quick.sleep', value: sleepTrend ? Math.round(sleepTrend.average) + '/10' : '-', spark: sleepTrend ? sleepTrend.recentSeries : [], delta: sleepTrend && sleepTrend.statusFromAverage === 'improving' ? '↑' : sleepTrend && sleepTrend.statusFromAverage === 'worsening' ? '↓' : '→' },
-    { labelKey: 'ai.stats.symptoms', value: daysSymptoms || '-', spark: getAIMetricSparkSeries(logs, 'fatigue'), delta: '' }
+    {
+      id: 'flare',
+      labelKey: 'ai.quick.flareRisk',
+      value: flareLevel,
+      valueTone: 'flare-' + flareLevel,
+      flareLevel: flareLevel,
+      badge: flareMatch != null ? flareMatch + '/5' : null,
+      badgeAria: flareMatch != null ? flareMatch + ' of 5 warning signs' : '',
+      spark: null
+    },
+    {
+      id: 'mood',
+      labelKey: 'ai.quick.mood',
+      value: moodTrend ? Math.round(moodTrend.average) + '/10' : '-',
+      delta: moodTrend && moodTrend.statusFromAverage === 'improving' ? '↑' : moodTrend && moodTrend.statusFromAverage === 'worsening' ? '↓' : moodTrend ? '→' : '',
+      spark: moodTrend ? moodTrend.recentSeries : []
+    },
+    {
+      id: 'sleep',
+      labelKey: 'ai.quick.sleep',
+      value: sleepTrend ? Math.round(sleepTrend.average) + '/10' : '-',
+      delta: sleepTrend && sleepTrend.statusFromAverage === 'improving' ? '↑' : sleepTrend && sleepTrend.statusFromAverage === 'worsening' ? '↓' : sleepTrend ? '→' : '',
+      spark: sleepTrend ? sleepTrend.recentSeries : []
+    },
+    {
+      id: 'symptoms',
+      labelKey: 'ai.stats.symptoms',
+      value: daysSymptoms || '-',
+      spark: symptomSeries.length >= 2 ? symptomSeries : []
+    }
   ];
   overviewInner += '<div class="ai-quick-stats" role="list">';
   quickStats.forEach(function(q) {
-    var deltaCls = q.delta === '↑' ? 'ai-quick-stat__delta--up' : q.delta === '↓' ? 'ai-quick-stat__delta--down' : 'ai-quick-stat__delta--flat';
-    overviewInner += '<div class="ai-quick-stat" role="listitem"><div class="ai-quick-stat__head"><span class="ai-quick-stat__label">' + escapeHTML(tUi(q.labelKey)) + '</span>';
-    if (q.delta) overviewInner += '<span class="ai-quick-stat__delta ' + deltaCls + '" aria-hidden="true">' + escapeHTML(String(q.delta)) + '</span>';
-    overviewInner += '</div><span class="ai-quick-stat__value">' + escapeHTML(String(q.value)) + '</span>';
-    if (q.spark && q.spark.length >= 2) overviewInner += buildAISparklineSvg(q.spark, { width: 110, height: 26, animate: !reduceUIAnimations });
-    overviewInner += '</div>';
+    overviewInner += renderAIQuickStatHtml(q, reduceUIAnimations);
   });
   overviewInner += '</div>';
   overviewInner += buildAIAnalysisAtAGlance(analysis, logs, dayCount);
@@ -9504,9 +9850,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     trendsInner += '<p class="ai-flare-hint">' + escapeHTML(tUi('ai.flare.hint')) + '</p></div>';
   }
   if (analysis.anomalies && analysis.anomalies.length > 0) {
-    trendsInner += '<div class="ai-summary-section ai-section-warning" style="margin-top:1rem;"><h4 class="ai-section-title ai-section-orange">' + svgIcon('notice', 'ai-inline-icon icon-warning') + ' ' + escapeHTML(tUi('ai.section.thingsToWatch')) + '</h4><ul class="ai-list ai-list-warning">';
-    analysis.anomalies.forEach(function(anomaly) { trendsInner += '<li>' + formatAnomalyLine(anomaly) + '</li>'; });
-    trendsInner += '</ul></div>';
+    trendsInner += '<div class="ai-summary-section ai-section-warning ai-watch-section" style="margin-top:1rem;">';
+    trendsInner += renderAIThingsToWatch(analysis.anomalies);
+    trendsInner += '</div>';
   }
   html += wrapAIChapter('trends', 'ai.chapter.trends', 'heart-pulse', trendsInner, chapterDelay);
   chapterDelay += chapterStep;
@@ -9521,47 +9867,26 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     return arr.length > 0;
   }).length;
   var daysExercise = logs.filter(function(l) { return l.exercise && Array.isArray(l.exercise) && l.exercise.length > 0; }).length;
-  lifeInner += '<div class="ai-stat-pills" role="list">';
-  [{ icon: 'chart-bars', value: numericWithData.length, labelKey: 'ai.stats.metrics' }, { icon: 'food', value: daysFood, labelKey: 'ai.stats.food' }, { icon: 'run', value: daysExercise, labelKey: 'ai.stats.exercise' }, { icon: 'notice', value: daysFlare, labelKey: 'ai.stats.flareDays' }].forEach(function(p) {
-    lifeInner += '<div class="ai-stat-pill" role="listitem"><span class="ai-stat-pill-icon">' + svgIcon(p.icon, 'ai-inline-icon') + '</span><span class="ai-stat-pill-value">' + p.value + '</span><span class="ai-stat-pill-label">' + escapeHTML(tUi(p.labelKey)) + '</span></div>';
-  });
-  lifeInner += '</div>';
+  lifeInner += renderAILifestyleStatStrip([
+    { icon: 'chart-bars', value: numericWithData.length, labelKey: 'ai.stats.metrics', tone: 'metrics' },
+    { icon: 'food', value: daysFood, labelKey: 'ai.stats.food', tone: 'food' },
+    { icon: 'run', value: daysExercise, labelKey: 'ai.stats.exercise', tone: 'exercise' },
+    { icon: 'notice', value: daysFlare, labelKey: 'ai.stats.flareDays', tone: daysFlare > 0 ? 'flare' : 'default' }
+  ]);
 
-  if (analysis.macroTrends || (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories)) {
-    var nut = analysis.nutritionAnalysis || {};
-    var macro = analysis.macroTrends || {};
-    lifeInner += '<div class="ai-nutrition-visual" style="margin-top:1rem;"><div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgCalories || '-') + '</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.cal')) + '</span></div>';
-    lifeInner += '<div class="ai-nutrition-main"><span class="ai-nutrition-value">' + (nut.avgProtein || '-') + 'g</span> <span class="ai-nutrition-unit">' + escapeHTML(tUi('common.protein')) + '</span></div></div>';
-    if (macro.calories && macro.calories.length >= 2) {
-      lifeInner += '<div class="ai-macro-sparklines"><div class="ai-macro-sparkline-card"><div class="ai-macro-sparkline-card__label">' + escapeHTML(tUi('ai.macro.calories')) + '</div><div class="ai-macro-sparkline-card__value">' + macro.avgCalories + '</div>' + buildAISparklineSvg(macro.calories, { animate: !reduceUIAnimations }) + '</div>';
-      lifeInner += '<div class="ai-macro-sparkline-card"><div class="ai-macro-sparkline-card__label">' + escapeHTML(tUi('common.protein')) + '</div><div class="ai-macro-sparkline-card__value">' + macro.avgProtein + 'g</div>' + buildAISparklineSvg(macro.protein, { animate: !reduceUIAnimations }) + '</div></div>';
-    }
-  }
-  if (analysis.exerciseTimeline && analysis.exerciseTimeline.length >= 2) {
-    var maxMin = Math.max.apply(null, analysis.exerciseTimeline.map(function(d) { return d.minutes; }).concat([1]));
-    lifeInner += '<p class="ai-section-intro">' + escapeHTML(tUi('ai.exercise.timelineIntro')) + '</p><div class="ai-exercise-timeline" role="img" aria-label="' + escapeAttr(tUi('ai.exercise.timelineAria')) + '">';
-    analysis.exerciseTimeline.forEach(function(d) {
-      var h = Math.max(8, Math.round((d.minutes / maxMin) * 44));
-      lifeInner += '<span class="ai-exercise-timeline__bar" style="height:' + h + 'px" title="' + escapeAttr(d.date + ': ' + d.minutes + ' min') + '"></span>';
-    });
-    lifeInner += '</div>';
-  } else if (analysis.exerciseSummary && analysis.exerciseSummary.daysWithExercise > 0) {
-    var ex = analysis.exerciseSummary;
-    lifeInner += '<div class="ai-exercise-visual"><span class="ai-exercise-value">' + ex.avgMinutesPerDay + '</span> <span class="ai-exercise-unit">' + escapeHTML(tUi('common.min.avg')) + '</span> <span class="ai-exercise-days">' + ex.daysWithExercise + ' days</span></div>';
-  }
+  lifeInner += renderAINutritionPanel(analysis.nutritionAnalysis || {}, analysis.macroTrends || {}, reduceUIAnimations);
+  lifeInner += renderAIExercisePanel(analysis.exerciseTimeline, analysis.exerciseSummary, reduceUIAnimations);
+
   if (analysis.medicationAdherence) {
     var med = analysis.medicationAdherence;
-    lifeInner += '<div style="margin-top:1rem;"><h4 class="ai-section-title">' + svgIcon('pill-check', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.medication.adherence')) + '</h4>';
-    lifeInner += '<p>' + escapeHTML(tUi('ai.medication.rate', { rate: String(med.rate), taken: String(med.taken), missed: String(med.missed) })) + '</p>';
-    lifeInner += renderMedicationHeatmap(med) + '</div>';
+    lifeInner += '<section class="ai-lifestyle-panel ai-medication-panel">';
+    lifeInner += '<h4 class="ai-lifestyle-panel__title">' + svgIcon('pill-check', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.medication.adherence')) + '</h4>';
+    lifeInner += '<p class="ai-lifestyle-panel__intro">' + escapeHTML(tUi('ai.medication.rate', { rate: String(med.rate), taken: String(med.taken), missed: String(med.missed) })) + '</p>';
+    lifeInner += renderMedicationHeatmap(med);
+    lifeInner += '</section>';
   }
   if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
-    lifeInner += '<h4 class="ai-section-title" style="margin-top:1rem;">' + svgIcon('food', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.helpful.patterns')) + '</h4><div class="ai-trends-grid">';
-    analysis.foodExerciseImpacts.slice(0, 4).forEach(function(impact, index) {
-      var impactColor = impact.isPositive ? '#e91e63' : '#ff9800';
-      lifeInner += '<div class="ai-trend-card" style="border-left-color:' + impactColor + ';"><div class="ai-trend-header"><strong>' + (impact.isPositive ? svgIcon('chart-up', 'ai-inline-icon icon-success') : svgIcon('notice', 'ai-inline-icon icon-warning')) + ' ' + escapeHTML(impact.type === 'exercise' ? tUi('ai.stats.exercise') : tUi('ai.stats.food')) + '</strong></div><span>' + escapeHTML(impact.description || (impact.metric + ': ' + impact.withAvg + ' vs ' + impact.withoutAvg)) + '</span></div>';
-    });
-    lifeInner += '</div>';
+    lifeInner += renderAIHelpfulPatterns(analysis.foodExerciseImpacts);
   }
   html += wrapAIChapter('lifestyle', 'ai.chapter.lifestyle', 'food', lifeInner, chapterDelay);
   chapterDelay += chapterStep;
@@ -10882,10 +11207,12 @@ function renderAchievementsPane() {
     var cardCls = s.unlocked ? 'achievement-card achievement-card--unlocked' : 'achievement-card';
     var tierCls = 'achievement-tier-badge achievement-tier-badge--' + String(s.tier || 'bronze');
     var fillWidth = s.unlocked ? '100' : String(Math.round(s.progress * 100));
-    var badgeHtml = GP && typeof GP.renderBadgeCompositeHTML === 'function'
-      ? GP.renderBadgeCompositeHTML(s.id, s.tier || 'bronze', s.unlocked, profileAvatar)
-      : '<div class="achievement-icon-inner ' + (s.unlocked ? 'achievement-icon--unlocked' : 'achievement-icon--locked') + '">' +
-          svgIcon(s.icon, 'ui-svg-icon') + '</div>';
+    var badgeHtml = GP && typeof GP.renderAchievementIconHTML === 'function'
+      ? GP.renderAchievementIconHTML(s.id, s.tier || 'bronze', s.unlocked)
+      : (GP && typeof GP.renderBadgeCompositeHTML === 'function'
+        ? GP.renderBadgeCompositeHTML(s.id, s.tier || 'bronze', s.unlocked, profileAvatar)
+        : '<div class="achievement-icon-inner ' + (s.unlocked ? 'achievement-icon--unlocked' : 'achievement-icon--locked') + '">' +
+            svgIcon(s.icon, 'ui-svg-icon') + '</div>');
     var dayChip = '<span class="achievement-day-chip" data-days="' + String(s.daysElapsed) + '">' +
       escapeHTML(String(s.daysElapsed)) + '<span class="achievement-day-chip__sep">/</span>' + escapeHTML(String(s.requiredDays || '')) +
       '</span>';
@@ -17118,7 +17445,7 @@ let appSettings = {
   showCharts: true, // Enable charts by default
   chartView: 'individual',
   combinedChart: false,
-  reminder: true,
+  reminder: false,
   sound: false,
   backup: true,
   compress: false,
@@ -17165,7 +17492,6 @@ let appSettings = {
   brainFogMode: false,
   highContrastEnabled: false,
   profileAvatar: 'voidorb',
-  userVibe: 'calm',
   avatarHealthState: 2,
   displayNameTheme: 'mint',
   trackingProfile: { condition: '', fields: { mood: true, pain: true, notes: true, sleep: false, fatigue: false }, configuredAt: null },
@@ -17512,11 +17838,6 @@ function loadSettings() {
     appSettings.profileAvatar = window.RianellShared.normalizeProfileAvatar(appSettings.profileAvatar);
   } else {
     appSettings.profileAvatar = appSettings.profileAvatar || 'voidorb';
-  }
-  if (window.RianellShared && typeof window.RianellShared.normalizeUserVibe === 'function') {
-    appSettings.userVibe = window.RianellShared.normalizeUserVibe(appSettings.userVibe);
-  } else {
-    appSettings.userVibe = appSettings.userVibe || 'calm';
   }
   if (typeof appSettings.avatarHealthState !== 'number' || !isFinite(appSettings.avatarHealthState)) {
     appSettings.avatarHealthState = 2;
@@ -20079,9 +20400,6 @@ function loadSettingsState() {
   if (caregiverNameInput) caregiverNameInput.value = appSettings.caregiverDependentName || '';
   syncPrivacyActivityLogUi();
   if (window.RianellGraphicsPortfolio) {
-    if (typeof window.RianellGraphicsPortfolio.applyUserVibe === 'function') {
-      window.RianellGraphicsPortfolio.applyUserVibe(appSettings.userVibe);
-    }
     if (typeof window.RianellGraphicsPortfolio.initGraphicsPortfolioSettings === 'function') {
       window.RianellGraphicsPortfolio.initGraphicsPortfolioSettings();
     }
@@ -26164,7 +26482,7 @@ function runRianellBootAfterDomReady() {
       var dd = String(today.getDate()).padStart(2, '0');
       var todayStr = yyyy + '-' + mm + '-' + dd;
       var hasToday = logs.some(function (log) { return log.date === todayStr; });
-      if (!hasToday && !window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone && appSettings.reminder !== false && !shouldSuppressFirstRunLoggingPrompt()) {
+      if (!hasToday && !window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone && appSettings.reminder === true && !shouldSuppressFirstRunLoggingPrompt()) {
         showAlertModal(tUi('common.you.have.not.logged.an.entry.for.today'));
       }
       });
@@ -26231,7 +26549,12 @@ function runRianellBootAfterDomReady() {
     DB.runBenchmarkIfNeeded(
       function (pct, meta) {
         var label = meta && meta.label ? (' · ' + meta.label) : '';
-        if (loadingTextEl) loadingTextEl.textContent = tUi('common.measuring.performance') + (pct > 0 ? ' ' + pct + '%' : '') + label;
+        var measuring = 'Measuring performance…';
+        if (typeof tUi === 'function') {
+          var translated = tUi('common.measuring.performance');
+          if (translated && translated !== 'common.measuring.performance') measuring = translated;
+        }
+        if (loadingTextEl) loadingTextEl.textContent = measuring + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
       revealBootShellAfterBenchmark
