@@ -8,7 +8,7 @@ Open the **gear icon** to access a scrollable **settings carousel** with grouped
 
 | Pane | Examples |
 |------|----------|
-| **Display** | Global theme, colour-blind mode, notification preferences |
+| **Display** | Global theme, colour-blind mode, **profile companion**, **ambient vibe**, notification preferences |
 | **Data options** | Demo mode, import/export, clear local data |
 | **Data management** | App version, install links (web) or release links (native) |
 | **Performance** | On-device AI model download, clear/redownload, benchmarks |
