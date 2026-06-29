@@ -46,7 +46,7 @@ export const LOG_CSV_ENGLISH_HEADERS = {
   sleep: 'Sleep',
   jointPain: 'Joint Pain',
   mobility: 'Mobility',
-  dailyFunction: 'Ability to do Daily activities',
+  dailyFunction: 'Daily activities',
   swelling: 'Swelling',
   flare: 'Flare',
   mood: 'Mood',
@@ -78,7 +78,7 @@ export function logsToCsv(logs, labelForField) {
 }
 
 export const LOG_CSV_LEGACY_HEADER_ALIASES = {
-  dailyFunction: ['Daily Function', 'Daily Activities'],
+  dailyFunction: ['Daily Function', 'Daily Activities', 'Ability to do Daily activities'],
 };
 
 function parseCsvLine(line) {
