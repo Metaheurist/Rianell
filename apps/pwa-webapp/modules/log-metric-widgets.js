@@ -138,24 +138,24 @@
       case 'swelling':
         return '<svg class="metric-svg metric-svg--swelling" viewBox="0 0 64 72" focusable="false" aria-hidden="true">' +
           '<defs>' +
-          '<radialGradient id="metricSwellFluidGrad" cx="32" cy="40" r="18" gradientUnits="userSpaceOnUse">' +
-          '<stop offset="0%" class="metric-swell-grad-core"/><stop offset="72%" class="metric-swell-grad-mid"/><stop offset="100%" class="metric-swell-grad-edge"/>' +
+          '<radialGradient id="metricKneeSwellGrad" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox">' +
+          '<stop offset="0%" class="metric-knee-swell-grad-core"/>' +
+          '<stop offset="68%" class="metric-knee-swell-grad-mid"/>' +
+          '<stop offset="100%" class="metric-knee-swell-grad-edge"/>' +
           '</radialGradient>' +
           '</defs>' +
-          '<ellipse class="metric-swell-ring metric-swell-ring--3" cx="32" cy="40" rx="22" ry="26" fill="none" stroke="currentColor" stroke-width="1.2"/>' +
-          '<ellipse class="metric-swell-ring metric-swell-ring--2" cx="32" cy="40" rx="17" ry="21" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
-          '<ellipse class="metric-swell-ring metric-swell-ring--1" cx="32" cy="40" rx="12" ry="15" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
-          '<path class="metric-swell-bone-h" d="M6 40 H58" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>' +
-          '<path class="metric-swell-bone-v" d="M32 16 V64" stroke="rgba(255,255,255,0.28)" stroke-width="3" stroke-linecap="round"/>' +
-          '<ellipse class="metric-swell-fluid" cx="32" cy="40" rx="8" ry="10" fill="url(#metricSwellFluidGrad)"/>' +
-          '<ellipse class="metric-swell-shine" cx="28" cy="36" rx="3" ry="4" fill="rgba(255,255,255,0.22)"/>' +
-          '<g class="metric-swell-heat" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">' +
-          '<path class="metric-swell-heat-line metric-swell-heat-line--1" d="M32 8 Q28 4 24 8"/>' +
-          '<path class="metric-swell-heat-line metric-swell-heat-line--2" d="M48 18 Q52 14 48 10"/>' +
-          '<path class="metric-swell-heat-line metric-swell-heat-line--3" d="M16 18 Q12 14 16 10"/>' +
-          '<path class="metric-swell-heat-line metric-swell-heat-line--4" d="M52 40 Q56 40 56 36"/>' +
-          '<path class="metric-swell-heat-line metric-swell-heat-line--5" d="M12 40 Q8 40 8 36"/>' +
-          '</g></svg>';
+          '<path class="metric-knee-femur" d="M31 8 v4 M29 12 C26 18 25 30 28 41" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<path class="metric-knee-tibia" d="M30 43 Q31 45 34 68" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="4.2" stroke-linecap="round"/>' +
+          '<path class="metric-knee-fibula" d="M35 45 L37 66" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="2" stroke-linecap="round"/>' +
+          '<g class="metric-knee-swell-group" transform="translate(32 43)">' +
+          '<ellipse class="metric-knee-swell-ring metric-knee-swell-ring--3" cx="0" cy="0" rx="18" ry="20" fill="none" stroke="currentColor" stroke-width="1.1"/>' +
+          '<ellipse class="metric-knee-swell-ring metric-knee-swell-ring--2" cx="0" cy="0" rx="13" ry="15" fill="none" stroke="currentColor" stroke-width="1.3"/>' +
+          '<ellipse class="metric-knee-swell-ring metric-knee-swell-ring--1" cx="0" cy="0" rx="9" ry="11" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
+          '<ellipse class="metric-knee-swell-fluid" cx="0" cy="0" rx="7" ry="8.5" fill="url(#metricKneeSwellGrad)"/>' +
+          '<ellipse class="metric-knee-swell-shine" cx="-2" cy="-2" rx="2.2" ry="2.8" fill="rgba(255,255,255,0.24)"/>' +
+          '</g>' +
+          '<ellipse class="metric-knee-patella" cx="37" cy="41" rx="5" ry="6.5" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.38)" stroke-width="1.4"/>' +
+          '</svg>';
       case 'fatigue':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<rect class="metric-battery-cap" x="28" y="14" width="8" height="4" rx="1" fill="rgba(255,255,255,0.35)"/>' +
@@ -193,53 +193,47 @@
           '<path class="metric-mood-spark metric-mood-spark--2" d="M10 18 l1.2 2.4 l2.4 1.2 l-2.4 1.2 l-1.2 2.4 l-1.2-2.4 l-2.4-1.2 l2.4-1.2z"/>' +
           '</g></svg>';
       case 'irritability':
-        return '<svg class="metric-svg metric-svg--ocean" viewBox="0 0 88 72" focusable="false" aria-hidden="true">' +
+        return '<svg class="metric-svg metric-svg--irritability" viewBox="0 0 64 72" focusable="false" aria-hidden="true">' +
           '<defs>' +
-          '<linearGradient id="metricOceanSkyGrad" x1="44" y1="0" x2="44" y2="32" gradientUnits="userSpaceOnUse">' +
-          '<stop offset="0%" class="metric-ocean-sky-top"/><stop offset="100%" class="metric-ocean-sky-bot"/>' +
-          '</linearGradient>' +
-          '<linearGradient id="metricOceanBackGrad" x1="44" y1="34" x2="44" y2="72" gradientUnits="userSpaceOnUse">' +
-          '<stop offset="0%" class="metric-ocean-back-top"/><stop offset="100%" class="metric-ocean-back-bot"/>' +
-          '</linearGradient>' +
-          '<linearGradient id="metricOceanFrontGrad" x1="44" y1="42" x2="44" y2="72" gradientUnits="userSpaceOnUse">' +
-          '<stop offset="0%" class="metric-ocean-front-top"/><stop offset="100%" class="metric-ocean-front-bot"/>' +
-          '</linearGradient>' +
-          '<clipPath id="metricOceanClip"><rect x="0" y="24" width="88" height="48"/></clipPath>' +
+          '<radialGradient id="metricIrritFaceGrad" cx="32" cy="46" r="18" gradientUnits="userSpaceOnUse">' +
+          '<stop offset="0%" class="metric-irrit-face-top"/><stop offset="100%" class="metric-irrit-face-bot"/>' +
+          '</radialGradient>' +
           '</defs>' +
-          '<rect class="metric-ocean-sky" x="0" y="0" width="88" height="32" fill="url(#metricOceanSkyGrad)"/>' +
-          '<circle class="metric-ocean-sun" cx="68" cy="11" r="5.5" fill="currentColor"/>' +
-          '<g class="metric-ocean-clouds">' +
-          '<ellipse class="metric-ocean-cloud metric-ocean-cloud--1" cx="20" cy="13" rx="13" ry="4.5"/>' +
-          '<ellipse class="metric-ocean-cloud metric-ocean-cloud--2" cx="34" cy="11" rx="10" ry="3.8"/>' +
-          '<ellipse class="metric-ocean-cloud metric-ocean-cloud--3" cx="48" cy="14" rx="11" ry="4"/>' +
+          '<g class="metric-irrit-thought">' +
+          '<ellipse class="metric-irrit-cloud-main" cx="32" cy="14" rx="20" ry="10.5" fill="rgba(255,255,255,0.1)" stroke="currentColor" stroke-width="1.4"/>' +
+          '<circle class="metric-irrit-cloud-tail metric-irrit-cloud-tail--1" cx="27" cy="23" r="3.6" fill="rgba(255,255,255,0.08)" stroke="currentColor" stroke-width="1"/>' +
+          '<circle class="metric-irrit-cloud-tail metric-irrit-cloud-tail--2" cx="23" cy="29" r="2.3" fill="rgba(255,255,255,0.06)" stroke="currentColor" stroke-width="0.9"/>' +
+          '<path class="metric-irrit-scribble metric-irrit-scribble--1" d="M21 11 L27 17 M27 11 L21 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>' +
+          '<path class="metric-irrit-scribble metric-irrit-scribble--2" d="M33 9 Q37 13 33 17 Q29 13 33 9" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+          '<path class="metric-irrit-scribble metric-irrit-scribble--3" d="M38 10 C42 12 42 16 38 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+          '<path class="metric-irrit-symbol metric-irrit-symbol--bang" d="M41 10 v7 M41 19 v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
           '</g>' +
-          '<g class="metric-ocean-sea" clip-path="url(#metricOceanClip)">' +
-          '<rect class="metric-ocean-deep" x="0" y="32" width="88" height="40" fill="url(#metricOceanBackGrad)"/>' +
-          '<g class="metric-ocean-wave-track metric-ocean-wave-track--back">' +
-          '<g class="metric-ocean-wave-bob">' +
-          '<path class="metric-ocean-wave metric-ocean-wave--back" d="M-1 40 C10 34 20 40 30 40 S50 46 60 40 S80 34 89 40 V72 H-1 Z"/>' +
-          '<path class="metric-ocean-wave metric-ocean-wave--back" d="M-1 40 C10 34 20 40 30 40 S50 46 60 40 S80 34 89 40 V72 H-1 Z" transform="translate(44 0)"/>' +
-          '</g></g>' +
-          '<g class="metric-ocean-wave-track metric-ocean-wave-track--mid">' +
-          '<g class="metric-ocean-wave-bob">' +
-          '<path class="metric-ocean-wave metric-ocean-wave--mid" d="M-1 46 C12 40 22 46 32 46 S52 52 62 46 S82 40 89 46 V72 H-1 Z"/>' +
-          '<path class="metric-ocean-wave metric-ocean-wave--mid" d="M-1 46 C12 40 22 46 32 46 S52 52 62 46 S82 40 89 46 V72 H-1 Z" transform="translate(44 0)"/>' +
-          '</g></g>' +
-          '<g class="metric-ocean-wave-track metric-ocean-wave-track--front">' +
-          '<g class="metric-ocean-wave-bob">' +
-          '<path class="metric-ocean-wave metric-ocean-wave--front" d="M-1 52 C11 46 21 52 31 52 S51 58 61 52 S81 46 89 52 V72 H-1 Z" fill="url(#metricOceanFrontGrad)"/>' +
-          '<path class="metric-ocean-wave metric-ocean-wave--front" d="M-1 52 C11 46 21 52 31 52 S51 58 61 52 S81 46 89 52 V72 H-1 Z" fill="url(#metricOceanFrontGrad)" transform="translate(44 0)"/>' +
-          '</g></g>' +
+          '<g class="metric-irrit-escape">' +
+          '<g class="metric-irrit-escape-burst metric-irrit-escape-burst--1"><path d="M48 8 v6 M46 12 h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></g>' +
+          '<g class="metric-irrit-escape-burst metric-irrit-escape-burst--2"><path d="M52 16 h-3 M52 16 h3 M52 19 h-2 M52 19 h2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></g>' +
+          '<g class="metric-irrit-escape-burst metric-irrit-escape-burst--3"><path d="M46 24 Q49 20 52 24 Q49 28 46 24" fill="none" stroke="currentColor" stroke-width="1.3"/></g>' +
+          '<g class="metric-irrit-escape-burst metric-irrit-escape-burst--4"><path d="M10 10 v5 M10 10 Q14 12 10 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></g>' +
+          '<g class="metric-irrit-escape-burst metric-irrit-escape-burst--5"><path d="M8 20 L12 26 M12 20 L8 26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></g>' +
           '</g>' +
-          '<g class="metric-ocean-rain">' +
-          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--1" x1="14" y1="28" x2="11" y2="38"/>' +
-          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--2" x1="28" y1="26" x2="25" y2="40"/>' +
-          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--3" x1="42" y1="28" x2="39" y2="42"/>' +
-          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--4" x1="56" y1="27" x2="53" y2="39"/>' +
-          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--5" x1="70" y1="29" x2="67" y2="41"/>' +
-          '<line class="metric-ocean-rain-drop metric-ocean-rain-drop--6" x1="82" y1="27" x2="79" y2="38"/>' +
+          '<g class="metric-irrit-face">' +
+          '<circle class="metric-irrit-head" cx="32" cy="46" r="17" fill="url(#metricIrritFaceGrad)" stroke="rgba(255,255,255,0.18)" stroke-width="1.2"/>' +
+          '<path class="metric-irrit-vein" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+          '<path class="metric-irrit-brow metric-irrit-brow--L" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>' +
+          '<path class="metric-irrit-brow metric-irrit-brow--R" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>' +
+          '<path class="metric-irrit-eye-chill metric-irrit-eye-chill--L" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+          '<path class="metric-irrit-eye-chill metric-irrit-eye-chill--R" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+          '<ellipse class="metric-irrit-eye-open metric-irrit-eye-open--L" cx="25" cy="44" rx="2.8" ry="3.4" fill="currentColor"/>' +
+          '<ellipse class="metric-irrit-eye-open metric-irrit-eye-open--R" cx="39" cy="44" rx="2.8" ry="3.4" fill="currentColor"/>' +
+          '<g class="metric-irrit-shades" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
+          '<path d="M18 43 Q25 40 32 43 Q39 40 46 43"/>' +
+          '<line x1="18" y1="43" x2="16" y2="41"/><line x1="46" y1="43" x2="48" y2="41"/>' +
           '</g>' +
-          '<path class="metric-ocean-lightning" d="M48 18 L44 30 H49 L45 44 L54 28 H49 Z" fill="currentColor"/>' +
+          '<path class="metric-irrit-mouth" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '</g>' +
+          '<g class="metric-irrit-steam" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">' +
+          '<path class="metric-irrit-steam-puff metric-irrit-steam-puff--1" d="M20 34 Q18 30 20 26"/>' +
+          '<path class="metric-irrit-steam-puff metric-irrit-steam-puff--2" d="M44 34 Q46 30 44 26"/>' +
+          '</g>' +
           '</svg>';
       case 'weather':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
@@ -319,6 +313,80 @@
     if (sparkles) sparkles.style.opacity = String(clamp((r - 0.55) / 0.45, 0, 1));
   }
 
+  function updateIrritabilityVisual(visual, r) {
+    var anger = clamp(r, 0, 1);
+    var chill = 1 - anger;
+
+    var browL = visual.querySelector('.metric-irrit-brow--L');
+    var browR = visual.querySelector('.metric-irrit-brow--R');
+    if (browL) {
+      browL.setAttribute('d', 'M20 ' + lerp(38, 35, anger).toFixed(1) + ' Q24 ' + lerp(36, 31, anger).toFixed(1) + ' 28 ' + lerp(38, 37, anger).toFixed(1));
+    }
+    if (browR) {
+      browR.setAttribute('d', 'M36 ' + lerp(38, 37, anger).toFixed(1) + ' Q40 ' + lerp(36, 31, anger).toFixed(1) + ' 44 ' + lerp(38, 35, anger).toFixed(1));
+    }
+
+    var chillL = visual.querySelector('.metric-irrit-eye-chill--L');
+    var chillR = visual.querySelector('.metric-irrit-eye-chill--R');
+    if (chillL) {
+      chillL.setAttribute('d', 'M22 ' + lerp(45, 43, anger).toFixed(1) + ' Q25 ' + lerp(47, 44, anger).toFixed(1) + ' 28 ' + lerp(45, 43, anger).toFixed(1));
+      chillL.style.opacity = String(clamp(chill * 1.15, 0, 1));
+    }
+    if (chillR) {
+      chillR.setAttribute('d', 'M36 ' + lerp(45, 43, anger).toFixed(1) + ' Q39 ' + lerp(47, 44, anger).toFixed(1) + ' 42 ' + lerp(45, 43, anger).toFixed(1));
+      chillR.style.opacity = String(clamp(chill * 1.15, 0, 1));
+    }
+
+    visual.querySelectorAll('.metric-irrit-eye-open').forEach(function (eye) {
+      eye.style.opacity = String(clamp((anger - 0.2) / 0.8, 0, 1));
+      eye.setAttribute('ry', lerp(2.2, 4.2, anger).toFixed(2));
+    });
+
+    var shades = visual.querySelector('.metric-irrit-shades');
+    if (shades) shades.style.opacity = String(clamp(chill * 1.1 - 0.05, 0, 1));
+
+    var mouth = visual.querySelector('.metric-irrit-mouth');
+    if (mouth) {
+      if (anger < 0.55) {
+        mouth.setAttribute('d', 'M24 ' + lerp(53, 52, anger).toFixed(1) + ' Q32 ' + lerp(54, 53, anger).toFixed(1) + ' 40 ' + lerp(53, 52, anger).toFixed(1));
+      } else {
+        var t = (anger - 0.55) / 0.45;
+        mouth.setAttribute('d', 'M24 52 L28 ' + lerp(52, 49, t).toFixed(1) + ' L32 ' + lerp(53, 55, t).toFixed(1) + ' L36 ' + lerp(52, 49, t).toFixed(1) + ' L40 52');
+      }
+    }
+
+    var vein = visual.querySelector('.metric-irrit-vein');
+    if (vein) {
+      vein.setAttribute('d', 'M32 30 Q34 ' + lerp(32, 28, anger).toFixed(1) + ' 36 ' + lerp(30, 27, anger).toFixed(1));
+      vein.style.opacity = String(clamp((anger - 0.55) / 0.45, 0, 0.9));
+    }
+
+    var thought = visual.querySelector('.metric-irrit-thought');
+    if (thought) {
+      var thoughtOn = clamp((anger - 0.22) / 0.78, 0, 1);
+      thought.style.opacity = String(thoughtOn);
+      var cloudScale = 0.55 + anger * 0.5;
+      thought.setAttribute('transform', 'translate(32 16) scale(' + cloudScale.toFixed(3) + ') translate(-32 -16)');
+    }
+
+    visual.querySelectorAll('.metric-irrit-scribble, .metric-irrit-symbol').forEach(function (mark, i) {
+      mark.style.opacity = String(clamp((anger - 0.35 - i * 0.08) / 0.55, 0, 1));
+    });
+
+    visual.querySelectorAll('.metric-irrit-escape-burst').forEach(function (burst, i) {
+      var threshold = 0.4 + i * 0.1;
+      var on = anger >= threshold;
+      burst.classList.toggle('metric-irrit-escape-burst--on', on);
+      burst.style.opacity = on ? String(clamp((anger - threshold) / 0.45, 0.35, 1)) : '0';
+    });
+
+    visual.querySelectorAll('.metric-irrit-steam-puff').forEach(function (puff, i) {
+      var puffOn = anger >= 0.5 + i * 0.08;
+      puff.classList.toggle('metric-irrit-steam-puff--on', puffOn);
+      puff.style.opacity = puffOn ? String(clamp((anger - 0.45) / 0.55, 0.25, 1)) : String(clamp(chill * 0.35, 0, 0.35));
+    });
+  }
+
   function applyVisualState(widget, id, rawValue) {
     var v = parseInt(rawValue, 10);
     if (isNaN(v)) v = 5;
@@ -364,30 +432,33 @@
       var speed = visual.querySelector('.metric-mobility-speed');
       if (speed) speed.style.opacity = String(clamp((r - 0.35) / 0.65, 0, 1));
     } else if (kind === 'swelling') {
-      var fluid = visual.querySelector('.metric-swell-fluid');
-      var shine = visual.querySelector('.metric-swell-shine');
-      if (fluid) {
-        var rx = 4 + r * 14;
-        var ry = 5 + r * 16;
-        fluid.setAttribute('rx', rx.toFixed(1));
-        fluid.setAttribute('ry', ry.toFixed(1));
+      var swellScale = 1 + r * 0.95;
+      var swellGroup = visual.querySelector('.metric-knee-swell-group');
+      if (swellGroup) {
+        swellGroup.setAttribute('transform', 'translate(32 43) scale(' + swellScale.toFixed(3) + ')');
       }
-      if (shine) shine.style.opacity = r > 0.25 ? String(0.15 + r * 0.35) : '0';
-      visual.querySelectorAll('.metric-swell-ring').forEach(function (ring, i) {
-        var threshold = 0.22 + i * 0.22;
+      var shine = visual.querySelector('.metric-knee-swell-shine');
+      if (shine) shine.style.opacity = r > 0.15 ? String(0.12 + r * 0.4) : '0';
+      var patella = visual.querySelector('.metric-knee-patella');
+      if (patella) {
+        patella.setAttribute('cx', (36 + r * 2.5).toFixed(1));
+        patella.setAttribute('cy', (41 + r * 1.2).toFixed(1));
+        patella.setAttribute('rx', (4.2 + r * 3.2).toFixed(1));
+        patella.setAttribute('ry', (5.5 + r * 3.8).toFixed(1));
+      }
+      var tibia = visual.querySelector('.metric-knee-tibia');
+      if (tibia) {
+        var flex = r * 7;
+        tibia.setAttribute('transform', 'rotate(' + flex.toFixed(1) + ' 30 43)');
+      }
+      visual.querySelectorAll('.metric-knee-swell-ring').forEach(function (ring, i) {
+        var threshold = 0.18 + i * 0.2;
         var on = r >= threshold;
-        ring.classList.toggle('metric-swell-ring--on', on);
-        if (on) {
-          var scale = 0.88 + (r - threshold) * 0.35;
-          ring.setAttribute('transform', 'translate(32 40) scale(' + scale.toFixed(2) + ') translate(-32 -40)');
-        } else {
-          ring.removeAttribute('transform');
-        }
+        ring.classList.toggle('metric-knee-swell-ring--on', on);
+        ring.style.opacity = on ? String(0.35 + (r - threshold) * 0.75) : '0.1';
       });
-      var heatLines = Math.ceil(r * 5);
-      visual.querySelectorAll('.metric-swell-heat-line').forEach(function (line, i) {
-        line.classList.toggle('metric-swell-heat-line--on', i < heatLines);
-      });
+      widget.style.setProperty('--metric-knee-pulse-dur', (2.1 - r * 0.85).toFixed(2) + 's');
+      widget.style.setProperty('--metric-knee-swell-scale', swellScale.toFixed(3));
     } else if (kind === 'fatigue') {
       var fill = visual.querySelector('.metric-battery-fill');
       if (fill) {
@@ -406,19 +477,11 @@
       widget.classList.toggle('metric-widget--mood-happy', r >= 0.72);
       widget.classList.toggle('metric-widget--mood-sad', r <= 0.28);
     } else if (kind === 'irritability') {
-      var storm = r;
-      widget.style.setProperty('--ocean-storm', storm.toFixed(3));
-      widget.classList.toggle('metric-widget--ocean-calm', storm <= 0.28);
-      widget.classList.toggle('metric-widget--ocean-moderate', storm > 0.28 && storm < 0.62);
-      widget.classList.toggle('metric-widget--ocean-storm', storm >= 0.62);
-      var rain = visual.querySelector('.metric-ocean-rain');
-      if (rain) rain.style.opacity = String(clamp((storm - 0.38) / 0.62, 0, 1));
-      var lightning = visual.querySelector('.metric-ocean-lightning');
-      if (lightning) lightning.style.opacity = String(clamp((storm - 0.68) / 0.32, 0, 1));
-      var sun = visual.querySelector('.metric-ocean-sun');
-      if (sun) sun.style.opacity = String(clamp(1 - storm * 1.4, 0, 1));
-      var clouds = visual.querySelector('.metric-ocean-clouds');
-      if (clouds) clouds.style.opacity = String(clamp(0.15 + storm * 0.85, 0.15, 1));
+      updateIrritabilityVisual(visual, r);
+      widget.style.setProperty('--irrit-anger', r.toFixed(3));
+      widget.classList.toggle('metric-widget--irrit-chill', r <= 0.35);
+      widget.classList.toggle('metric-widget--irrit-moderate', r > 0.35 && r < 0.65);
+      widget.classList.toggle('metric-widget--irrit-storm', r >= 0.65);
     } else if (kind === 'weather') {
       var drops = Math.ceil(r * 5);
       visual.querySelectorAll('.metric-rain').forEach(function (drop, i) {
@@ -462,12 +525,6 @@
     slider.style.setProperty('--metric-fill-pct', pct.toFixed(1) + '%');
     slider.style.setProperty('--metric-fill-color', zone.color);
     applyVisualState(widget, slider.id, raw);
-    if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.injectMetricEntityCompanion === 'function') {
-      var map = global.RianellGraphicsPortfolio.SLIDER_TO_ENTITY || {};
-      var entityId = map[slider.id] || slider.id;
-      var zoneName = zone.id === 'good' ? 'good' : zone.id === 'bad' ? 'bad' : 'neutral';
-      global.RianellGraphicsPortfolio.injectMetricEntityCompanion(widget, entityId, zoneName);
-    }
   }
 
   function nudgeSlider(id, delta) {
@@ -536,12 +593,6 @@
       container.insertBefore(label, container.firstChild);
     }
     container.appendChild(body);
-
-    if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.injectMetricEntityCompanion === 'function') {
-      var map = global.RianellGraphicsPortfolio.SLIDER_TO_ENTITY || {};
-      var entityId = map[id] || id;
-      global.RianellGraphicsPortfolio.injectMetricEntityCompanion(container, entityId, 'neutral');
-    }
 
     slider.addEventListener('focus', function () {
       container.classList.add('metric-widget--focused');
