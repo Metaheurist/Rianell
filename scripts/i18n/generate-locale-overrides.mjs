@@ -26,6 +26,7 @@ import { V2_TIER_A_OVERRIDES } from '../lib/v2-tier-a-overrides.mjs';
 import { V205_BP_TIER_A_OVERRIDES } from '../lib/v205-bp-tier-a-overrides.mjs';
 import { V207_ONBOARDING_TIER_A_OVERRIDES } from '../lib/v207-onboarding-tier-a-overrides.mjs';
 import { GRAPHICS_PORTFOLIO_TIER_A_OVERRIDES } from '../lib/graphics-portfolio-tier-a-overrides.mjs';
+import { V213_LOG_WIZARD_TIER_A_OVERRIDES } from '../lib/v213-log-wizard-tier-a-overrides.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -133,6 +134,10 @@ function applyTierATranslations(strings, locale) {
   }
   const graphicsPortfolio = GRAPHICS_PORTFOLIO_TIER_A_OVERRIDES[locale] || {};
   for (const [key, val] of Object.entries(graphicsPortfolio)) {
+    if (typeof val === 'string' && val.trim()) out[key] = val;
+  }
+  const v213 = V213_LOG_WIZARD_TIER_A_OVERRIDES[locale] || {};
+  for (const [key, val] of Object.entries(v213)) {
     if (typeof val === 'string' && val.trim()) out[key] = val;
   }
   return out;
