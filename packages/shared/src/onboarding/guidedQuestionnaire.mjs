@@ -4,11 +4,12 @@ import { getPolicyPack, resolvePolicyPack } from '../privacy/resolvePolicyPack.m
 import { isPrivacyRegionConfigured } from '../privacy/profileSync.mjs';
 import { completeFirstRunWizard } from './firstRunOrchestrator.mjs';
 
-/** @typedef {'info'|'choice'|'consent'|'reminder'|'auth'} GuidedCardKind */
+/** @typedef {'info'|'choice'|'consent'|'reminder'|'auth'|'theme'} GuidedCardKind */
 
 /** Canonical guided onboarding card order (PWA + RN). */
 export const GUIDED_QUESTIONNAIRE_CARD_IDS = [
   'welcome',
+  'appearance',
   'signIn',
   'region',
   'coachTone',
@@ -24,7 +25,7 @@ export const GUIDED_QUESTIONNAIRE_CARD_IDS = [
   'finish',
 ];
 
-/** @typedef {'welcome'|'signIn'|'region'|'coachTone'|'helperLevel'|'healthConsent'|'cookies'|'sessionRecording'|'aiDownload'|'communityHelp'|'dailyNudge'|'install'|'accountSignUp'|'finish'} GuidedCardId */
+/** @typedef {'welcome'|'appearance'|'signIn'|'region'|'coachTone'|'helperLevel'|'healthConsent'|'cookies'|'sessionRecording'|'aiDownload'|'communityHelp'|'dailyNudge'|'install'|'accountSignUp'|'finish'} GuidedCardId */
 
 /**
  * @param {Record<string, unknown>} prefs
@@ -39,6 +40,7 @@ export function isGuidedOnboardingAuthenticated(prefs, ctx) {
 /** @param {GuidedCardId} cardId */
 function skipSetupCardsForReturningSignIn(cardId, prefs, ctx) {
   const setupCards = [
+    'appearance',
     'region',
     'coachTone',
     'helperLevel',
@@ -67,6 +69,14 @@ export const GUIDED_CARD_META = {
       { id: 'signIn', labelKey: 'onboarding.questionnaire.welcome.signIn' },
       { id: 'setUp', labelKey: 'onboarding.questionnaire.welcome.setUp' },
     ],
+  },
+  appearance: {
+    kind: 'theme',
+    titleKey: 'onboarding.questionnaire.appearance.title',
+    bodyKey: 'onboarding.questionnaire.appearance.body',
+    illustration: 'sparkle',
+    settingsHintKey: 'onboarding.questionnaire.settingsHint',
+    choices: [{ id: 'continue', labelKey: 'onboarding.questionnaire.continue' }],
   },
   signIn: {
     kind: 'auth',
@@ -226,6 +236,14 @@ export function shouldSkipGuidedCard(cardId, prefs, ctx) {
     case 'welcome':
     case 'finish':
       return false;
+    case 'appearance': {
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
+      if (typeof p.appearanceOnboardingAt === 'string' && p.appearanceOnboardingAt.length > 0) return true;
+      if (p.appearanceMode === 'light' || p.appearanceMode === 'dark' || p.appearanceMode === 'warm-dark') {
+        return true;
+      }
+      return false;
+    }
     case 'coachTone':
     case 'helperLevel':
     case 'communityHelp':
@@ -317,6 +335,22 @@ export function applyQuestionnaireAnswer(prefs, cardId, choiceId, extra = {}) {
       if (choiceId === 'signIn') return { ...p, onboardingPath: 'signIn' };
       if (choiceId === 'setUp') return { ...p, onboardingPath: 'setup' };
       return p;
+    case 'appearance': {
+      if (choiceId !== 'continue') return p;
+      const appearanceMode = extra.appearanceMode === 'light' ? 'light' : 'dark';
+      const themeCandidates = ['mint', 'red-black', 'mono', 'rainbow'];
+      const globalTheme =
+        typeof extra.globalTheme === 'string' && themeCandidates.includes(extra.globalTheme)
+          ? extra.globalTheme
+          : 'mint';
+      return {
+        ...p,
+        appearanceMode,
+        globalTheme,
+        team: globalTheme,
+        appearanceOnboardingAt: now,
+      };
+    }
     case 'signIn':
       if (choiceId === 'setUpInstead') return { ...p, onboardingPath: 'setup' };
       return p;

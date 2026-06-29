@@ -21,6 +21,7 @@ test('buildGuidedQuestionnaire includes welcome and preference cards for fresh u
   const cards = buildGuidedQuestionnaire(freshPwaPrefs, { platform: 'pwa' });
   const ids = cards.map((c) => c.id);
   assert.ok(ids.includes('welcome'));
+  assert.ok(ids.includes('appearance'));
   assert.equal(ids.includes('signIn'), false);
   assert.ok(ids.includes('region'));
   assert.ok(ids.includes('coachTone'));
@@ -61,6 +62,35 @@ test('applyQuestionnaireAnswer welcome sets onboarding path', () => {
   assert.equal(signIn.onboardingPath, 'signIn');
   const setup = applyQuestionnaireAnswer(freshPwaPrefs, 'welcome', 'setUp');
   assert.equal(setup.onboardingPath, 'setup');
+});
+
+test('applyQuestionnaireAnswer appearance stores explicit light/dark and theme', () => {
+  const next = applyQuestionnaireAnswer(freshPwaPrefs, 'appearance', 'continue', {
+    appearanceMode: 'dark',
+    globalTheme: 'rainbow',
+  });
+  assert.equal(next.appearanceMode, 'dark');
+  assert.equal(next.globalTheme, 'rainbow');
+  assert.equal(next.team, 'rainbow');
+  assert.ok(next.appearanceOnboardingAt);
+  assert.equal(shouldSkipGuidedCard('appearance', next, { platform: 'pwa' }), true);
+});
+
+test('appearance card skipped when already configured', () => {
+  assert.equal(
+    shouldSkipGuidedCard(
+      'appearance',
+      { ...freshPwaPrefs, appearanceMode: 'light', appearanceOnboardingAt: '2026-01-01T00:00:00.000Z' },
+      { platform: 'pwa' },
+    ),
+    true,
+  );
+});
+
+test('resolveNextGuidedCardIndex after welcome is appearance', () => {
+  const cards = buildGuidedQuestionnaire(freshPwaPrefs, { platform: 'pwa' });
+  const idx = resolveNextGuidedCardIndex(cards, 'welcome');
+  assert.equal(cards[idx]?.id, 'appearance');
 });
 
 test('applyQuestionnaireAnswer region confirm persists region and default locale', () => {

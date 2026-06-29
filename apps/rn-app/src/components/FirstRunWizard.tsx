@@ -22,12 +22,14 @@ import {
 type GuidedCardId = Parameters<typeof applyQuestionnaireAnswer>[1];
 import { getPolicyPack, getRegionLabels, suggestRegionForDevice } from '../privacy/helpers';
 import { PolicyDocumentsModal } from '../privacy/PolicyDocumentsModal';
-import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { Preferences } from '../storage/preferences';
 import { upsertPrivacyProfile } from '../cloud/privacyProfile';
 import { getSupabaseClient } from '../cloud/supabaseClient';
 import { OnboardingIllustration } from './onboardingIllustrations';
+import { OnboardingThemePicker } from './OnboardingThemePicker';
+import { useColorScheme } from 'react-native';
+import { getTokens } from '@rianell/tokens';
 
 type GuidedCard = ReturnType<typeof buildGuidedQuestionnaire>[number];
 
@@ -38,7 +40,7 @@ export function FirstRunWizard({
   prefs: Preferences;
   onComplete: (next: Preferences) => void;
 }) {
-  const theme = useTheme();
+  const systemScheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const { t } = useT();
   const supabase = getSupabaseClient();
   const [session, setSession] = useState<Session | null>(null);
@@ -76,6 +78,10 @@ export function FirstRunWizard({
   const [reminderTime, setReminderTime] = useState('09:00');
   const [healthDeclinedHint, setHealthDeclinedHint] = useState(false);
   const [policyOpen, setPolicyOpen] = useState(false);
+  const [draftAppearanceMode, setDraftAppearanceMode] = useState<'light' | 'dark'>(
+    prefs.appearanceMode === 'dark' ? 'dark' : 'light',
+  );
+  const [draftThemeId, setDraftThemeId] = useState(prefs.team || 'mint');
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   const cards = useMemo(
@@ -83,6 +89,30 @@ export function FirstRunWizard({
     [localPrefs, platformCtx],
   );
   const card = cards[Math.min(cardIndex, Math.max(cards.length - 1, 0))] as GuidedCard | undefined;
+
+  const resolvedMode =
+    localPrefs.appearanceMode === 'light' || localPrefs.appearanceMode === 'dark'
+      ? localPrefs.appearanceMode
+      : systemScheme;
+  const palette = useMemo(() => {
+    const c = getTokens({ team: localPrefs.team, mode: resolvedMode }).color;
+    const isLight = resolvedMode === 'light';
+    const bg =
+      typeof c.background === 'string' && c.background.startsWith('linear')
+        ? isLight
+          ? '#e8f5e9'
+          : '#070807'
+        : c.background;
+    return {
+      accent: c.accent,
+      background: bg,
+      text: c.text,
+      textPrimary: c.text,
+      textMuted: c.text,
+      textSecondary: c.text,
+      border: isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.16)',
+    };
+  }, [localPrefs.team, resolvedMode]);
 
   const progressSessionRef = useRef(
     createGuidedOnboardingProgressSession(localPrefs as Record<string, unknown>, platformCtx),
@@ -247,6 +277,30 @@ export function FirstRunWizard({
     advanceAfterAnswer('dailyNudge', next);
   }, [applyChoice, reminderTime, advanceAfterAnswer]);
 
+  const onConfirmAppearance = useCallback(() => {
+    const next = applyChoice('appearance', 'continue', {
+      appearanceMode: draftAppearanceMode,
+      globalTheme: draftThemeId,
+    });
+    advanceAfterAnswer('appearance', next);
+  }, [applyChoice, draftAppearanceMode, draftThemeId, advanceAfterAnswer]);
+
+  const onDraftAppearanceMode = useCallback(
+    (mode: 'light' | 'dark') => {
+      setDraftAppearanceMode(mode);
+      patchPrefs({ appearanceMode: mode });
+    },
+    [patchPrefs],
+  );
+
+  const onDraftThemeId = useCallback(
+    (themeId: string) => {
+      setDraftThemeId(themeId);
+      patchPrefs({ team: themeId });
+    },
+    [patchPrefs],
+  );
+
   const onBack = useCallback(() => {
     if (regionPickerOpen) {
       setRegionPickerOpen(false);
@@ -272,14 +326,14 @@ export function FirstRunWizard({
         <Pressable
           key={choice.id}
           accessibilityRole="button"
-          style={[styles.choice, { borderColor: theme.tokens.color.border }]}
+          style={[styles.choice, { borderColor: palette.border }]}
           onPress={() => handleChoice(choice.id)}
         >
-          <Text style={[styles.choiceLabel, { color: theme.tokens.color.textPrimary }]}>
+          <Text style={[styles.choiceLabel, { color: palette.textPrimary }]}>
             {t(choice.labelKey)}
           </Text>
           {choice.hintKey ? (
-            <Text style={[styles.choiceHint, { color: theme.tokens.color.textMuted }]}>
+            <Text style={[styles.choiceHint, { color: palette.textMuted }]}>
               {t(choice.hintKey)}
             </Text>
           ) : null}
@@ -290,8 +344,8 @@ export function FirstRunWizard({
 
   const renderAuthBody = (c: GuidedCard) => (
     <>
-      <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(c.bodyKey)}</Text>
-      <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>
+      <Text style={[styles.lead, { color: palette.textSecondary }]}>{t(c.bodyKey)}</Text>
+      <Text style={[styles.label, { color: palette.textPrimary }]}>
         {t('onboarding.questionnaire.auth.emailLabel')}
       </Text>
       <TextInput
@@ -300,10 +354,10 @@ export function FirstRunWizard({
         autoCapitalize="none"
         keyboardType="email-address"
         autoComplete="email"
-        placeholderTextColor={theme.tokens.color.textMuted}
-        style={[styles.input, { color: theme.tokens.color.textPrimary, borderColor: theme.tokens.color.border }]}
+        placeholderTextColor={palette.textMuted}
+        style={[styles.input, { color: palette.textPrimary, borderColor: palette.border }]}
       />
-      <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>
+      <Text style={[styles.label, { color: palette.textPrimary }]}>
         {t('onboarding.questionnaire.auth.passwordLabel')}
       </Text>
       <TextInput
@@ -311,14 +365,14 @@ export function FirstRunWizard({
         onChangeText={setAuthPassword}
         secureTextEntry
         autoComplete={c.id === 'signIn' ? 'password' : 'new-password'}
-        placeholderTextColor={theme.tokens.color.textMuted}
-        style={[styles.input, { color: theme.tokens.color.textPrimary, borderColor: theme.tokens.color.border }]}
+        placeholderTextColor={palette.textMuted}
+        style={[styles.input, { color: palette.textPrimary, borderColor: palette.border }]}
       />
       <Pressable
         accessibilityRole="button"
         disabled={authBusy}
         onPress={() => void onAuthPrimary()}
-        style={[styles.primary, { backgroundColor: theme.tokens.color.accent, marginTop: 8 }]}
+        style={[styles.primary, { backgroundColor: palette.accent, marginTop: 8 }]}
       >
         <Text style={styles.primaryText}>
           {c.id === 'signIn' ? t('settings.cloud.signIn') : t('settings.cloud.signUp')}
@@ -337,7 +391,7 @@ export function FirstRunWizard({
 
     if (healthDeclinedHint && card.id === 'healthConsent') {
       return (
-        <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
+        <Text style={[styles.lead, { color: palette.textSecondary }]}>
           {t('onboarding.questionnaire.healthConsent.declineHint')}
         </Text>
       );
@@ -346,7 +400,7 @@ export function FirstRunWizard({
     if (card.id === 'region' && regionPickerOpen) {
       return (
         <>
-          <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(card.bodyKey)}</Text>
+          <Text style={[styles.lead, { color: palette.textSecondary }]}>{t(card.bodyKey)}</Text>
           {regionLabels.map((r) => (
             <Pressable
               key={r.id}
@@ -354,11 +408,11 @@ export function FirstRunWizard({
               style={[styles.regionRow, selectedRegion === r.id && styles.regionRowSelected]}
               onPress={() => setSelectedRegion(r.id)}
             >
-              <Text style={{ color: theme.tokens.color.textPrimary }}>{r.label}</Text>
+              <Text style={{ color: palette.textPrimary }}>{r.label}</Text>
             </Pressable>
           ))}
           <Pressable accessibilityRole="button" style={styles.linkBtn} onPress={() => setPolicyOpen(true)}>
-            <Text style={{ color: theme.tokens.color.accent }}>{t('gate.viewPolicies')}</Text>
+            <Text style={{ color: palette.accent }}>{t('gate.viewPolicies')}</Text>
           </Pressable>
         </>
       );
@@ -367,7 +421,7 @@ export function FirstRunWizard({
     if (card.id === 'region' && !regionPickerOpen) {
       return (
         <>
-          <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
+          <Text style={[styles.lead, { color: palette.textSecondary }]}>
             {t('onboarding.questionnaire.region.suggested', { region: regionLabel(selectedRegion) })}
           </Text>
           {renderChoices(card)}
@@ -378,16 +432,30 @@ export function FirstRunWizard({
     if (card.id === 'dailyNudge' && reminderTimePickerOpen) {
       return (
         <>
-          <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(card.bodyKey)}</Text>
-          <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>
+          <Text style={[styles.lead, { color: palette.textSecondary }]}>{t(card.bodyKey)}</Text>
+          <Text style={[styles.label, { color: palette.textPrimary }]}>
             {t('onboarding.questionnaire.dailyNudge.timeLabel')}
           </Text>
           <TextInput
             value={reminderTime}
             onChangeText={setReminderTime}
             placeholder="09:00"
-            placeholderTextColor={theme.tokens.color.textMuted}
-            style={[styles.input, { color: theme.tokens.color.textPrimary, borderColor: theme.tokens.color.border }]}
+            placeholderTextColor={palette.textMuted}
+            style={[styles.input, { color: palette.textPrimary, borderColor: palette.border }]}
+          />
+        </>
+      );
+    }
+
+    if (card.kind === 'theme') {
+      return (
+        <>
+          <Text style={[styles.lead, { color: palette.textSecondary }]}>{t(card.bodyKey)}</Text>
+          <OnboardingThemePicker
+            mode={draftAppearanceMode}
+            themeId={draftThemeId}
+            onModeChange={onDraftAppearanceMode}
+            onThemeChange={onDraftThemeId}
           />
         </>
       );
@@ -395,7 +463,7 @@ export function FirstRunWizard({
 
     return (
       <>
-        <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t(card.bodyKey)}</Text>
+        <Text style={[styles.lead, { color: palette.textSecondary }]}>{t(card.bodyKey)}</Text>
         {card.choices ? renderChoices(card) : null}
       </>
     );
@@ -404,14 +472,16 @@ export function FirstRunWizard({
   const showFooter =
     regionPickerOpen ||
     reminderTimePickerOpen ||
-    healthDeclinedHint;
+    healthDeclinedHint ||
+    card?.kind === 'theme';
   const showBack =
     cardIndex > 0 || regionPickerOpen || reminderTimePickerOpen || healthDeclinedHint;
   const showDetails = card?.kind === 'consent' && !healthDeclinedHint && !regionPickerOpen;
 
   const onPrimary = () => {
     if (!card) return;
-    if (regionPickerOpen) onConfirmRegionPicker();
+    if (card.kind === 'theme') onConfirmAppearance();
+    else if (regionPickerOpen) onConfirmRegionPicker();
     else if (reminderTimePickerOpen) onConfirmReminder();
     else if (healthDeclinedHint) {
       setHealthDeclinedHint(false);
@@ -426,31 +496,33 @@ export function FirstRunWizard({
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen">
-      <SafeAreaView style={[styles.root, { backgroundColor: theme.tokens.color.background }]}>
+      <SafeAreaView style={[styles.root, { backgroundColor: palette.background }]}>
         <View style={styles.dotsRow}>
           {Array.from({ length: progress.total }).map((_, i) => (
             <View
               key={i}
               style={[
                 styles.dot,
-                { backgroundColor: theme.tokens.color.border },
-                i === cardIndex && { backgroundColor: theme.tokens.color.accent, transform: [{ scale: 1.25 }] },
+                { backgroundColor: palette.border },
+                i === cardIndex && { backgroundColor: palette.accent, transform: [{ scale: 1.25 }] },
               ]}
             />
           ))}
         </View>
-        <Text style={[styles.title, { color: theme.tokens.color.textPrimary }]}>
+        <Text style={[styles.title, { color: palette.textPrimary }]}>
           {card ? t(card.titleKey) : t('onboarding.title')}
         </Text>
-        <Text style={[styles.stepMeta, { color: theme.tokens.color.textMuted }]}>
+        <Text style={[styles.stepMeta, { color: palette.textMuted }]}>
           {t('onboarding.stepCounter', { current: progress.current, total: progress.total })}
         </Text>
         <ScrollView contentContainerStyle={styles.body}>
           <Animated.View style={{ transform: [{ translateY: slideAnim }] }}>
-            {card ? <OnboardingIllustration name={card.illustration} color={theme.tokens.color.accent} /> : null}
+            {card && card.kind !== 'theme' ? (
+              <OnboardingIllustration name={card.illustration} color={palette.accent} />
+            ) : null}
             {renderBody()}
             {card?.settingsHintKey ? (
-              <Text style={[styles.settingsHint, { color: theme.tokens.color.textMuted }]}>
+              <Text style={[styles.settingsHint, { color: palette.textMuted }]}>
                 {t(card.settingsHintKey)}
               </Text>
             ) : null}
@@ -460,14 +532,14 @@ export function FirstRunWizard({
           <View style={styles.footer}>
             {showDetails ? (
               <Pressable accessibilityRole="button" onPress={() => setPolicyOpen(true)} style={styles.footerBtn}>
-                <Text style={{ color: theme.tokens.color.accent }}>{t('onboarding.questionnaire.seeDetails')}</Text>
+                <Text style={{ color: palette.accent }}>{t('onboarding.questionnaire.seeDetails')}</Text>
               </Pressable>
             ) : (
               <View style={styles.footerBtn} />
             )}
             {showBack ? (
               <Pressable accessibilityRole="button" onPress={onBack} style={styles.footerBtn}>
-                <Text style={{ color: theme.tokens.color.accent }}>{t('onboarding.questionnaire.back')}</Text>
+                <Text style={{ color: palette.accent }}>{t('onboarding.questionnaire.back')}</Text>
               </Pressable>
             ) : (
               <View style={styles.footerBtn} />
@@ -476,7 +548,7 @@ export function FirstRunWizard({
               <Pressable
                 accessibilityRole="button"
                 onPress={onPrimary}
-                style={[styles.primary, { backgroundColor: theme.tokens.color.accent }]}
+                style={[styles.primary, { backgroundColor: palette.accent }]}
               >
                 <Text style={styles.primaryText}>{primaryLabel}</Text>
               </Pressable>

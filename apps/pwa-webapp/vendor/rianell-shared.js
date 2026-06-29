@@ -6854,6 +6854,7 @@ ${questionsBlock}
   // packages/shared/src/onboarding/guidedQuestionnaire.mjs
   var GUIDED_QUESTIONNAIRE_CARD_IDS = [
     "welcome",
+    "appearance",
     "signIn",
     "region",
     "coachTone",
@@ -6875,6 +6876,7 @@ ${questionsBlock}
   }
   function skipSetupCardsForReturningSignIn(cardId, prefs, ctx) {
     const setupCards = [
+      "appearance",
       "region",
       "coachTone",
       "helperLevel",
@@ -6902,6 +6904,14 @@ ${questionsBlock}
         { id: "signIn", labelKey: "onboarding.questionnaire.welcome.signIn" },
         { id: "setUp", labelKey: "onboarding.questionnaire.welcome.setUp" }
       ]
+    },
+    appearance: {
+      kind: "theme",
+      titleKey: "onboarding.questionnaire.appearance.title",
+      bodyKey: "onboarding.questionnaire.appearance.body",
+      illustration: "sparkle",
+      settingsHintKey: "onboarding.questionnaire.settingsHint",
+      choices: [{ id: "continue", labelKey: "onboarding.questionnaire.continue" }]
     },
     signIn: {
       kind: "auth",
@@ -7054,6 +7064,14 @@ ${questionsBlock}
       case "welcome":
       case "finish":
         return false;
+      case "appearance": {
+        if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
+        if (typeof p.appearanceOnboardingAt === "string" && p.appearanceOnboardingAt.length > 0) return true;
+        if (p.appearanceMode === "light" || p.appearanceMode === "dark" || p.appearanceMode === "warm-dark") {
+          return true;
+        }
+        return false;
+      }
       case "coachTone":
       case "helperLevel":
       case "communityHelp":
@@ -7129,6 +7147,19 @@ ${questionsBlock}
         if (choiceId === "signIn") return { ...p, onboardingPath: "signIn" };
         if (choiceId === "setUp") return { ...p, onboardingPath: "setup" };
         return p;
+      case "appearance": {
+        if (choiceId !== "continue") return p;
+        const appearanceMode = extra.appearanceMode === "light" ? "light" : "dark";
+        const themeCandidates = ["mint", "red-black", "mono", "rainbow"];
+        const globalTheme = typeof extra.globalTheme === "string" && themeCandidates.includes(extra.globalTheme) ? extra.globalTheme : "mint";
+        return {
+          ...p,
+          appearanceMode,
+          globalTheme,
+          team: globalTheme,
+          appearanceOnboardingAt: now
+        };
+      }
       case "signIn":
         if (choiceId === "setUpInstead") return { ...p, onboardingPath: "setup" };
         return p;
