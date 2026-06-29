@@ -13,9 +13,9 @@
   --oasis-glow:           #7bdf8c;
   --oasis-breath-dur:     6000ms;
   --oasis-glow-dur:       3200ms;
-  --oasis-particle-dur:   900ms;
-  --oasis-blur-radius:    80px;
-  --oasis-blob-opacity:   0.55;
+  --oasis-particle-dur:   800ms;
+  --oasis-blur-radius:    40px;
+  --oasis-blob-opacity:   0.2;
 }
 
 /* Per-team overrides — piggyback on existing .rianell-theme-* classes */
@@ -24,29 +24,45 @@
 .rianell-theme-mono          { --oasis-blob1: #1e1e1e; --oasis-blob2: #2d2d2d; --oasis-blob3: #3a3a3a; --oasis-glow: #d0d0d0; }
 .rianell-theme-rainbow       { --oasis-blob1: #1a1550; --oasis-blob2: #2a0d40; --oasis-blob3: #3d1f6b; --oasis-glow: #ff4fa0; }
 
-/* Light mode: reduce blob opacity to avoid washing out light backgrounds */
-.rianell-appearance-light    { --oasis-blob-opacity: 0.28; --oasis-blur-radius: 60px; }
+/* Light mode: keep blobs barely visible — heavy blur reads as a smudge on white */
+.rianell-appearance-light    { --oasis-blob-opacity: 0.1; --oasis-blur-radius: 32px; }
 
 /* Brain fog mode: kill all oasis animations immediately */
 .rianell-brain-fog .oasis-blob,
 .rianell-brain-fog .oasis-grain { display: none !important; }
 .rianell-brain-fog [data-oasis-counter] { animation: none !important; }
 
+/* Tab panels: positioned stacking context for ambient layer + grain */
+.tab-content {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Clips blur bleed — never set overflow:hidden on .tab-content itself (breaks scroll) */
+.oasis-ambient-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+}
+
 /* ── 2. Ambient blob base styles ────────────────────────────────────────────── */
 .oasis-blob {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 0;             /* behind all content — content must be z-index: 1+ */
   will-change: transform, opacity;
   opacity: var(--oasis-blob-opacity);
   /* filter: blur() is GPU-composited — safe per ui-motion.mdc */
   filter: blur(var(--oasis-blur-radius));
 }
 
-.oasis-blob--1 { background: var(--oasis-blob1); width: 340px; height: 340px; top: -80px;  left: -60px;  }
-.oasis-blob--2 { background: var(--oasis-blob2); width: 260px; height: 260px; bottom: 20px; right: -40px; }
-.oasis-blob--3 { background: var(--oasis-blob3); width: 200px; height: 200px; top: 40%;    left: 30%;    }
+/* Corner-only placement — keeps the vertical content lane clear */
+.oasis-blob--1 { background: var(--oasis-blob1); width: 180px; height: 180px; top: -90px;  left: -70px;  }
+.oasis-blob--2 { background: var(--oasis-blob2); width: 140px; height: 140px; bottom: -50px; right: -50px; }
+.oasis-blob--3 { background: var(--oasis-blob3); width: 100px; height: 100px; bottom: 8%;   left: -40px;  }
 
 /* ── 3. Breath keyframes (prefers-reduced-motion guarded) ───────────────────── */
 @media (not (prefers-reduced-motion: reduce)) {
@@ -76,8 +92,7 @@
 /* ── 4. SVG grain texture overlay ───────────────────────────────────────────── */
 /* Grain is a ::before on each tab-content. The SVG feTurbulence is inlined as
    data URI — zero HTTP requests. GPU-composited via will-change: transform.    */
-.tab-content::before,
-.settings-overlay::before {
+.tab-content::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -154,7 +169,10 @@
 /* ── 8. Neural trace container (Phase D) ────────────────────────────────────── */
 .oasis-neural-trace {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
