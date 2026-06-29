@@ -16,6 +16,10 @@
   var reminderTime = '09:00';
   var draftAppearanceMode = 'light';
   var draftGlobalTheme = 'mint';
+  var draftProfileAvatar = '';
+  var draftUserVibe = '';
+  var avatarPickMade = false;
+  var vibePickMade = false;
   var _focusTrapTeardown = null;
   var progressSession = null;
 
@@ -430,6 +434,61 @@
       return;
     }
 
+    if (card.kind === 'avatar-carousel') {
+      var GP = global.RianellGraphicsPortfolio;
+      var bootAvatar = draftProfileAvatar || (readPrefs().profileAvatar || 'voidorb');
+      if (GP && typeof GP.renderAvatarCarouselHTML === 'function') {
+        body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' +
+          GP.renderAvatarCarouselHTML(bootAvatar) + hint;
+        if (typeof GP.bindAvatarCarousel === 'function') {
+          GP.bindAvatarCarousel(body, function (id) {
+            draftProfileAvatar = id;
+            avatarPickMade = true;
+            writePrefs({ profileAvatar: id });
+            if (typeof GP.updateHeaderAvatar === 'function') GP.updateHeaderAvatar(id);
+            if (continueBtn) continueBtn.textContent = t('onboarding.questionnaire.avatarPick.continueSelected');
+          });
+        }
+      }
+      if (footer) footer.style.display = 'flex';
+      if (continueBtn) {
+        continueBtn.textContent = avatarPickMade
+          ? t('onboarding.questionnaire.avatarPick.continueSelected')
+          : t('onboarding.questionnaire.avatarPick.skip');
+        continueBtn.style.display = 'inline-block';
+      }
+      if (backBtn) backBtn.style.visibility = cardIndex > 0 ? 'visible' : 'hidden';
+      if (detailsBtn) detailsBtn.style.display = 'none';
+      return;
+    }
+
+    if (card.kind === 'vibe-picker') {
+      var GPv = global.RianellGraphicsPortfolio;
+      var bootVibe = draftUserVibe || (readPrefs().userVibe || 'calm');
+      if (GPv && typeof GPv.renderVibePickerHTML === 'function') {
+        body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' +
+          GPv.renderVibePickerHTML(bootVibe) + hint;
+        if (typeof GPv.bindVibePicker === 'function') {
+          GPv.bindVibePicker(body, function (vibeId) {
+            draftUserVibe = vibeId;
+            vibePickMade = true;
+            writePrefs({ userVibe: vibeId });
+            if (continueBtn) continueBtn.textContent = t('onboarding.questionnaire.vibe.continueSelected');
+          });
+        }
+      }
+      if (footer) footer.style.display = 'flex';
+      if (continueBtn) {
+        continueBtn.textContent = vibePickMade
+          ? t('onboarding.questionnaire.vibe.continueSelected')
+          : t('onboarding.questionnaire.vibe.skip');
+        continueBtn.style.display = 'inline-block';
+      }
+      if (backBtn) backBtn.style.visibility = cardIndex > 0 ? 'visible' : 'hidden';
+      if (detailsBtn) detailsBtn.style.display = 'none';
+      return;
+    }
+
     if (card.id === 'region') {
       if (!selectedRegion) {
         selectedRegion = suggestRegion().hint;
@@ -696,6 +755,18 @@
       });
       return;
     }
+    if (card.kind === 'avatar-carousel') {
+      applyAndAdvance('avatarPick', avatarPickMade ? 'continue' : 'skip', {
+        profileAvatar: draftProfileAvatar || readPrefs().profileAvatar || 'voidorb',
+      });
+      return;
+    }
+    if (card.kind === 'vibe-picker') {
+      applyAndAdvance('vibe', vibePickMade ? 'continue' : 'skip', {
+        userVibe: draftUserVibe || readPrefs().userVibe || 'calm',
+      });
+      return;
+    }
   }
 
   function onBack() {
@@ -735,6 +806,10 @@
     var bootPrefs = readPrefs();
     draftAppearanceMode = bootPrefs.appearanceMode === 'dark' ? 'dark' : 'light';
     draftGlobalTheme = bootPrefs.globalTheme || 'mint';
+    draftProfileAvatar = bootPrefs.profileAvatar || 'voidorb';
+    draftUserVibe = bootPrefs.userVibe || 'calm';
+    avatarPickMade = !!bootPrefs.avatarPickAt;
+    vibePickMade = !!bootPrefs.vibePickAt;
     hidePrivacyGateIfOpen();
     cards = rebuildCards();
     applyLiveAppearancePreview();

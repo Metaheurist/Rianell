@@ -311,3 +311,29 @@
     animation: calmGlow var(--oasis-glow-dur) var(--ease-out-expo) infinite;
   }
 }
+
+/* ── Vibe × Oasis cross-enhancements (graphics portfolio) ─────────────────── */
+body[class*='vibe-'] .oasis-blob {
+  opacity: calc(var(--oasis-blob-opacity) * (0.85 + var(--vibe-motion-multiplier, 1) * 0.1));
+}
+
+body.vibe-energy .oasis-blob {
+  --oasis-glow-dur: 2200ms;
+}
+
+body.vibe-calm .oasis-blob {
+  --oasis-breath-dur: 9000ms;
+}
+
+body.vibe-clinical .oasis-blob,
+body.vibe-clinical .oasis-grain {
+  opacity: 0.04;
+}
+
+body.vibe-dark .oasis-blob {
+  filter: saturate(0.85);
+}
+
+body[data-health-state='4'] .oasis-blob {
+  filter: drop-shadow(0 0 12px var(--avatar-glow));
+}

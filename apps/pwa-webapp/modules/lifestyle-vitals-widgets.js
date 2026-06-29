@@ -61,6 +61,18 @@
     return { id: 'veryLow', label: t('wizard.lifestyle.hydration.veryLow', 'Low intake'), color: '#ff8a65' };
   }
 
+  function vitalZoneToEntity(zoneId) {
+    if (zoneId === 'active' || zoneId === 'great' || zoneId === 'good' || zoneId === 'moderate') return 'good';
+    if (zoneId === 'low' || zoneId === 'veryLow') return 'bad';
+    return 'neutral';
+  }
+
+  function syncLifestyleMetricCompanion(widget, metricId, zone) {
+    if (!widget || !global.RianellGraphicsPortfolio) return;
+    if (typeof global.RianellGraphicsPortfolio.injectMetricEntityCompanion !== 'function') return;
+    global.RianellGraphicsPortfolio.injectMetricEntityCompanion(widget, metricId, vitalZoneToEntity(zone && zone.id));
+  }
+
   function formatSteps(n) {
     return Math.round(n).toLocaleString();
   }
@@ -152,6 +164,7 @@
     widget.querySelectorAll('.steps-footprint').forEach(function (fp, i) {
       fp.classList.toggle('steps-footprint--lit', i < lit);
     });
+    syncLifestyleMetricCompanion(widget, 'steps', zone);
   }
 
   function updateHydration(markActive) {
@@ -193,6 +206,7 @@
         }
       });
     }
+    syncLifestyleMetricCompanion(widget, 'hydration', zone);
   }
 
   function nudge(kind, delta) {
@@ -276,6 +290,9 @@
     restoreFromHiddenInputs();
     updateSteps(false);
     updateHydration(false);
+    if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.decorateLifestyleVitals === 'function') {
+      global.RianellGraphicsPortfolio.decorateLifestyleVitals();
+    }
   }
 
   global.RianellLifestyleVitals = {

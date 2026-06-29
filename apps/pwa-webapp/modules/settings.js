@@ -467,6 +467,14 @@ export function installSettingsModule(deps) {
     var n = track.querySelectorAll('.settings-carousel-pane').length;
     if (n < 1) return;
     settingsCarouselGo(0);
+    if (typeof window !== 'undefined' && window.RianellGraphicsPortfolio &&
+      typeof window.RianellGraphicsPortfolio.initGraphicsPortfolioSettings === 'function') {
+      window.RianellGraphicsPortfolio.initGraphicsPortfolioSettings();
+    }
+    if (typeof window !== 'undefined' && window.RianellGraphicsPortfolio &&
+      typeof window.RianellGraphicsPortfolio.decorateAllScreens === 'function') {
+      window.RianellGraphicsPortfolio.decorateAllScreens();
+    }
   }
 
   var _settingsEscapeAndTrapHandler = null;

@@ -362,6 +362,7 @@
   <link rel="stylesheet" href="css/tokens.css?v=1">
   <link rel="stylesheet" href="styles.css?v=119" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=119&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css">
+  <link rel="stylesheet" href="css/graphics-portfolio.css">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -1577,6 +1578,16 @@
             <span class="settings-theme-choice__label" data-i18n="common.rainbow">Rainbow</span>
           </button>
         </div>
+        <div class="settings-section settings-graphics-section">
+          <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-user"></use></svg><span data-i18n="settings.avatar.title">Profile companion</span></h4>
+          <p class="settings-hint" data-i18n="settings.avatar.hint">Choose an abstract companion that appears in badges and the header.</p>
+          <div id="settingsAvatarCarouselMount"></div>
+        </div>
+        <div class="settings-section settings-graphics-section">
+          <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-palette"></use></svg><span data-i18n="settings.vibe.title">Ambient vibe</span></h4>
+          <p class="settings-hint" data-i18n="settings.vibe.hint">Sets background mood and animation intensity across the app.</p>
+          <div id="settingsVibePickerMount"></div>
+        </div>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Accessibility" data-i18n-title="settings.accessibility.title" data-settings-pane-i18n="settings.accessibility.title" role="tabpanel" aria-hidden="true">
@@ -2386,6 +2397,7 @@
     <div id="homeTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-home">
       <div id="homeWelcomeCard" class="home-welcome-card-wrap" data-scroll-reveal hidden style="display:none!important"></div>
       <div class="home-today-header">
+        <div id="profileAvatarHeader" class="profile-avatar-header" role="img" data-i18n-aria="settings.avatar.title"></div>
         <h2 class="tab-title home-today-greeting" id="homeGreeting" data-i18n="home.greeting.today">Today</h2>
         <div class="home-today-meta">
           <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
@@ -2419,6 +2431,7 @@
       <div class="log-wizard-body">
         <div class="log-wizard-center">
       <div class="log-wizard-chrome" id="logWizardChrome">
+        <div id="logWizardAvatar" class="log-wizard-avatar" aria-hidden="true"></div>
         <p class="log-wizard-step-indicator" id="logWizardStepIndicator"><span id="logWizardStepLabel" data-i18n="common.step.1.of.10">Step 1 of 10</span></p>
         <div class="log-wizard-progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1" id="logWizardProgressBar" aria-labelledby="logWizardStepLabel">
           <div class="log-wizard-progress-fill" id="logWizardProgressFill"></div>
@@ -2817,12 +2830,13 @@
         </div>
         <input type="hidden" id="painLocation" name="painLocation" />
         <div class="pain-body-wrapper" id="painBodyDiagram" aria-label="Select body areas for pain" data-i18n-aria="common.select.body.areas.for.pain">
-          <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
+          <svg class="pain-body-svg pain-body-svg--set-d" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
             </defs>
-            <!-- Body outline (background) - smooth human silhouette -->
-            <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+            <!-- Set D abstract mannequin outline (regions unchanged for click handlers) -->
+            <path class="pain-body-outline pain-body-outline--abstract" d="M70 18 L52 38 L48 72 L42 128 L50 220 L58 268 L70 274 L82 268 L90 220 L98 128 L92 72 L88 38 Z" fill="rgba(255,255,255,0.04)" stroke="var(--avatar-primary)" stroke-width="1" opacity="0.45"/>
+            <path class="pain-body-outline__guides" d="M48 72 L22 95 L20 175 M92 72 L118 95 L120 175 M54 158 L50 268 M86 158 L90 268" fill="none" stroke="var(--avatar-secondary)" stroke-width="1" opacity="0.35" aria-hidden="true"/>
             <!-- Clickable regions (front view, rounded human-like shapes) -->
             <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
@@ -3850,11 +3864,12 @@
               </div>
               <input type="hidden" id="editPainLocation" />
               <div class="pain-body-wrapper" id="editPainBodyDiagram" aria-label="Select body areas for pain" data-i18n-aria="common.select.body.areas.for.pain">
-                <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
+                <svg class="pain-body-svg pain-body-svg--set-d" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <filter id="edit-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
                   </defs>
-                  <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+                  <path class="pain-body-outline pain-body-outline--abstract" d="M70 18 L52 38 L48 72 L42 128 L50 220 L58 268 L70 274 L82 268 L90 220 L98 128 L92 72 L88 38 Z" fill="rgba(255,255,255,0.04)" stroke="var(--avatar-primary)" stroke-width="1" opacity="0.45"/>
+                  <path class="pain-body-outline__guides" d="M48 72 L22 95 L20 175 M92 72 L118 95 L120 175 M54 158 L50 268 M86 158 L90 268" fill="none" stroke="var(--avatar-secondary)" stroke-width="1" opacity="0.35" aria-hidden="true"/>
                   <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="chest" d="M46 72 Q38 80 42 96 L46 108 L94 108 L98 96 Q102 80 94 72 Q86 68 70 68 Q54 68 46 72 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
@@ -4979,6 +4994,7 @@
   <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=3"></script>
   <script defer src="modules/oasis-canvas.js"></script>
+  <script defer src="modules/graphics-portfolio.js?v=1"></script>
   <script defer src="push-subscribe.js?v=1"></script>
   <script defer src="appointment-pdf.js?v=2"></script>
   <script defer src="qr-handoff.js?v=1"></script>
