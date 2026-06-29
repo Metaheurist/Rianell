@@ -25504,3 +25504,22 @@ body.light-mode .checkin-slider-stop-label {
 body.light-mode .checkin-slider-stop[data-selected="true"] .checkin-slider-stop-icon {
   color: var(--home-checkin-icon-color);
 }
+
+/* Graphics portfolio — avatar theme slots (values from tokens.css) */
+:root {
+  --avatar-primary: var(--primary-color);
+  --avatar-secondary: var(--secondary-color);
+  --avatar-glow: var(--oasis-glow);
+  --avatar-dark: var(--bg-secondary);
+  --avatar-health-state: 2;
+}
+
+[data-health-state='0'] .profile-avatar-header__glyph,
+[data-health-state='1'] .profile-avatar-header__glyph {
+  opacity: 0.65;
+  filter: grayscale(0.35);
+}
+
+[data-health-state='4'] .profile-avatar-header__glyph {
+  filter: drop-shadow(0 0 6px var(--avatar-glow));
+}

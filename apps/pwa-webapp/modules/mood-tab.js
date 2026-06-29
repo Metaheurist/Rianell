@@ -512,6 +512,10 @@
 
     root.innerHTML = html;
 
+    if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.decorateMoodTab === 'function') {
+      global.RianellGraphicsPortfolio.decorateMoodTab();
+    }
+
     attachMoodReadingData(root, summary.readings || []);
     wireMoodReadingRibbon(root);
     var latestCard = root.querySelector('.mood-reading-card--latest');

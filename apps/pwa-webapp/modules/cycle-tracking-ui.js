@@ -98,8 +98,12 @@
 
   function phaseSvg(name, className) {
     var safe = String(name || '').replace(/[^a-z0-9-]/gi, '');
-    var cls = className || 'cycle-phase-icon-svg ui-svg-icon';
-    return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safe + '"></use></svg>';
+    var phaseId = safe.replace(/^cycle-/, '');
+    var hrefId = ['menstrual', 'follicular', 'ovulation', 'luteal'].indexOf(phaseId) >= 0
+      ? 'cycle-' + phaseId
+      : safe;
+    var cls = className || 'cycle-phase-icon-svg ui-svg-icon cycle-phase-emblem';
+    return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + hrefId + '"></use></svg>';
   }
 
   function dayInPhaseRange(dayNum, phaseId) {
@@ -258,6 +262,9 @@
         });
       });
       scrollActiveDayIntoView();
+      if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.decorateCycleBeacon === 'function') {
+        global.RianellGraphicsPortfolio.decorateCycleBeacon();
+      }
     }
     updateReadout();
   }

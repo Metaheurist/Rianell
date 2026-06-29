@@ -462,6 +462,12 @@
     slider.style.setProperty('--metric-fill-pct', pct.toFixed(1) + '%');
     slider.style.setProperty('--metric-fill-color', zone.color);
     applyVisualState(widget, slider.id, raw);
+    if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.injectMetricEntityCompanion === 'function') {
+      var map = global.RianellGraphicsPortfolio.SLIDER_TO_ENTITY || {};
+      var entityId = map[slider.id] || slider.id;
+      var zoneName = zone.id === 'good' ? 'good' : zone.id === 'bad' ? 'bad' : 'neutral';
+      global.RianellGraphicsPortfolio.injectMetricEntityCompanion(widget, entityId, zoneName);
+    }
   }
 
   function nudgeSlider(id, delta) {
@@ -531,6 +537,12 @@
     }
     container.appendChild(body);
 
+    if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.injectMetricEntityCompanion === 'function') {
+      var map = global.RianellGraphicsPortfolio.SLIDER_TO_ENTITY || {};
+      var entityId = map[id] || id;
+      global.RianellGraphicsPortfolio.injectMetricEntityCompanion(container, entityId, 'neutral');
+    }
+
     slider.addEventListener('focus', function () {
       container.classList.add('metric-widget--focused');
     });
@@ -555,6 +567,9 @@
       if (slider) buildWidget(slider);
     });
     bindSteppers(document);
+    if (global.RianellGraphicsPortfolio && typeof global.RianellGraphicsPortfolio.decorateLogScreens === 'function') {
+      global.RianellGraphicsPortfolio.decorateLogScreens();
+    }
   }
 
   function refreshAll() {

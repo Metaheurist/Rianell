@@ -3475,6 +3475,10 @@ function svgIcon(name, className, title) {
     'weather-pressure', 'weather-pressure-high', 'weather-pressure-low',
     'weather-rain', 'weather-snow', 'weather-temp-cold', 'weather-temp-hot',
     'weather-temp-mild', 'weather-temp-warm', 'weather-thunder', 'weather-unknown',
+    'voidorb', 'tidewarden', 'leafcircuit', 'prismcore', 'moonthread',
+    'emberveil', 'riftecho', 'stonebloom', 'glasswave', 'ashspiral',
+    'coralnode', 'starlace', 'mistveil', 'thornloop', 'sunwarden',
+    'duskmantle', 'ironbloom', 'vortexseed', 'lumenshard', 'driftmoss',
   ]);
   var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
   if (!KNOWN_SVG_ICONS.has(safeName)) safeName = 'notice';
@@ -9650,6 +9654,26 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   purgeAItimelineDetachedOverlays();
   resultsContent.innerHTML = html;
 
+  if (window.RianellGraphicsPortfolio) {
+    var gp = window.RianellGraphicsPortfolio;
+    if (typeof gp.computeAvatarHealthState === 'function' && typeof gp.applyAvatarHealthState === 'function') {
+      var flareRisk = analysis.flareUpRisk && analysis.flareUpRisk.level ? analysis.flareUpRisk.level : null;
+      var healthPayload = {
+        wellbeingScore: analysis.wellbeingScore,
+        flareRisk: flareRisk,
+        avgMood: analysis.trends && analysis.trends.mood ? analysis.trends.mood.average : null,
+        avgSleep: analysis.trends && analysis.trends.sleep ? analysis.trends.sleep.average : null,
+      };
+      var healthLevel = gp.computeAvatarHealthState(healthPayload);
+      gp.applyAvatarHealthState(healthLevel);
+      if (appSettings) {
+        appSettings.avatarHealthState = healthLevel;
+        if (typeof saveSettings === 'function') saveSettings();
+      }
+    }
+    if (typeof gp.decorateInsightsArtwork === 'function') gp.decorateInsightsArtwork();
+  }
+
   if (window.OasisCanvas) {
     var thinkDone = resultsContent.querySelector('.ai-loading-text');
     if (thinkDone) window.OasisCanvas.unmorphThinkingText(thinkDone);
@@ -10845,6 +10869,8 @@ function renderAchievementsPane() {
       '<span class="achievements-counter__total"> / ' + totalCount + ' ' + escapeHTML(t('achievements.title')) + '</span>' +
       '<p class="achievements-counter__label">' + escapeHTML(counterText) + '</p>' +
     '</div>';
+  var GP = typeof window !== 'undefined' ? window.RianellGraphicsPortfolio : null;
+  var profileAvatar = (appSettings && appSettings.profileAvatar) ? appSettings.profileAvatar : 'voidorb';
   grid.innerHTML = counterHtml + snapshots.map(function (s) {
     var title = escapeHTML(t(s.i18nTitle));
     var desc = escapeHTML(t(s.i18nDescription));
@@ -10852,21 +10878,21 @@ function renderAchievementsPane() {
       ? escapeHTML(t('achievements.unlocked'))
       : escapeHTML(t('achievements.progress').replace('{days}', String(s.daysElapsed)).replace('{required}', String(s.requiredDays)));
     var percentText = escapeHTML(t('achievements.progressPercent').replace('{percent}', String(Math.round(s.progress * 100))));
-    var iconCls = s.unlocked ? 'achievement-icon--unlocked' : 'achievement-icon--locked';
     var pillCls = s.unlocked ? 'achievement-status-pill--unlocked' : 'achievement-status-pill--locked';
     var cardCls = s.unlocked ? 'achievement-card achievement-card--unlocked' : 'achievement-card';
     var tierCls = 'achievement-tier-badge achievement-tier-badge--' + String(s.tier || 'bronze');
-    var lockSvg = s.unlocked
-      ? '<svg class="achievement-lock-badge ui-svg-icon achievement-check-badge" aria-hidden="true"><use href="#icon-check"></use></svg>'
-      : '<svg class="achievement-lock-badge ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>';
     var fillWidth = s.unlocked ? '100' : String(Math.round(s.progress * 100));
+    var badgeHtml = GP && typeof GP.renderBadgeCompositeHTML === 'function'
+      ? GP.renderBadgeCompositeHTML(s.id, s.tier || 'bronze', s.unlocked, profileAvatar)
+      : '<div class="achievement-icon-inner ' + (s.unlocked ? 'achievement-icon--unlocked' : 'achievement-icon--locked') + '">' +
+          svgIcon(s.icon, 'ui-svg-icon') + '</div>';
+    var dayChip = '<span class="achievement-day-chip" data-days="' + String(s.daysElapsed) + '">' +
+      escapeHTML(String(s.daysElapsed)) + '<span class="achievement-day-chip__sep">/</span>' + escapeHTML(String(s.requiredDays || '')) +
+      '</span>';
     return (
       '<article class="' + cardCls + '" data-achievement-id="' + escapeHTML(s.id) + '" data-tier="' + escapeHTML(s.tier || '') + '">' +
-        '<div class="achievement-icon-wrap" style="--achievement-progress:' + s.progress + '">' +
-          '<div class="achievement-icon-inner ' + iconCls + '">' +
-            svgIcon(s.icon, 'ui-svg-icon') +
-            lockSvg +
-          '</div>' +
+        '<div class="achievement-icon-wrap graphics-achievement-wrap" style="--achievement-progress:' + s.progress + '">' +
+          badgeHtml +
         '</div>' +
         '<div class="achievement-card-body">' +
           '<div class="achievement-card-title-row">' +
@@ -10880,7 +10906,10 @@ function renderAchievementsPane() {
             '</div>' +
             '<span class="achievement-progress-percent">' + percentText + '</span>' +
           '</div>' +
-          '<span class="achievement-status-pill ' + pillCls + '">' + progressText + '</span>' +
+          '<div class="achievement-card-footer">' +
+            dayChip +
+            '<span class="achievement-status-pill ' + pillCls + '">' + progressText + '</span>' +
+          '</div>' +
         '</div>' +
       '</article>'
     );
@@ -10893,6 +10922,9 @@ function renderAchievementsPane() {
         el.style.width = target + '%';
       });
     });
+    if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.animateAchievementDayChips === 'function') {
+      window.RianellGraphicsPortfolio.animateAchievementDayChips(grid);
+    }
   });
 }
 
@@ -10927,6 +10959,11 @@ function fireAchievementUnlockNotifications(newlyUnlocked) {
     }
   });
   if (newlyUnlocked.length) saveAchievementState(state);
+  if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.playAchievementUnlockSequence === 'function') {
+    window.RianellGraphicsPortfolio.playAchievementUnlockSequence(newlyUnlocked);
+  } else if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.reactHeaderAvatar === 'function') {
+    window.RianellGraphicsPortfolio.reactHeaderAvatar();
+  }
 }
 
 var _achievementToastDismissTimer = null;
@@ -11358,6 +11395,9 @@ function updateGoalsProgressBlock() {
   });
   if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
   if (typeof updateGoalsHeaderUnseenBadge === 'function') updateGoalsHeaderUnseenBadge();
+  if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.decorateGoalsProgress === 'function') {
+    window.RianellGraphicsPortfolio.decorateGoalsProgress();
+  }
 }
 
 function flushOfflineQueue() {
@@ -17124,7 +17164,9 @@ let appSettings = {
   simpleMode: false,
   brainFogMode: false,
   highContrastEnabled: false,
-  profileAvatar: 'leaf',
+  profileAvatar: 'voidorb',
+  userVibe: 'calm',
+  avatarHealthState: 2,
   displayNameTheme: 'mint',
   trackingProfile: { condition: '', fields: { mood: true, pain: true, notes: true, sleep: false, fatigue: false }, configuredAt: null },
   dateFormat: 'locale',
@@ -17466,6 +17508,20 @@ function loadSettings() {
   } else if (!Array.isArray(appSettings.customChartMetrics)) {
     appSettings.customChartMetrics = [];
   }
+  if (window.RianellShared && typeof window.RianellShared.normalizeProfileAvatar === 'function') {
+    appSettings.profileAvatar = window.RianellShared.normalizeProfileAvatar(appSettings.profileAvatar);
+  } else {
+    appSettings.profileAvatar = appSettings.profileAvatar || 'voidorb';
+  }
+  if (window.RianellShared && typeof window.RianellShared.normalizeUserVibe === 'function') {
+    appSettings.userVibe = window.RianellShared.normalizeUserVibe(appSettings.userVibe);
+  } else {
+    appSettings.userVibe = appSettings.userVibe || 'calm';
+  }
+  if (typeof appSettings.avatarHealthState !== 'number' || !isFinite(appSettings.avatarHealthState)) {
+    appSettings.avatarHealthState = 2;
+  }
+  appSettings.avatarHealthState = Math.max(0, Math.min(4, Math.round(appSettings.avatarHealthState)));
   if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.readProcessingActivity === 'function') {
     appSettings.processingActivityLog = window.RianellShared.readProcessingActivity(appSettings.processingActivityLog);
   } else if (!Array.isArray(appSettings.processingActivityLog)) {
@@ -20022,6 +20078,14 @@ function loadSettingsState() {
   var caregiverNameInput = document.getElementById('caregiverDependentNameInput');
   if (caregiverNameInput) caregiverNameInput.value = appSettings.caregiverDependentName || '';
   syncPrivacyActivityLogUi();
+  if (window.RianellGraphicsPortfolio) {
+    if (typeof window.RianellGraphicsPortfolio.applyUserVibe === 'function') {
+      window.RianellGraphicsPortfolio.applyUserVibe(appSettings.userVibe);
+    }
+    if (typeof window.RianellGraphicsPortfolio.initGraphicsPortfolioSettings === 'function') {
+      window.RianellGraphicsPortfolio.initGraphicsPortfolioSettings();
+    }
+  }
 }
 
 var captureSettingsModalCarouselState;
@@ -25763,6 +25827,9 @@ function runRianellBootAfterDomReady() {
   // Sync platform.deviceClass from DeviceBenchmark if ready (so isLowDevice etc. use benchmark tier)
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
     window.PerformanceUtils.applyBenchmarkToPlatform();
+  }
+  if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.init === 'function') {
+    window.RianellGraphicsPortfolio.init({ analysis: currentAIAnalysis || null });
   }
   // Tier 5 or GPU-good: enable GPU-friendly chart containers (compositor layer promotion)
   var chartSectionEl = document.getElementById('chartSection');
