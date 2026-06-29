@@ -6894,7 +6894,6 @@ ${questionsBlock}
     "welcome",
     "appearance",
     "avatarPick",
-    "vibe",
     "signIn",
     "region",
     "coachTone",
@@ -6918,7 +6917,6 @@ ${questionsBlock}
     const setupCards = [
       "appearance",
       "avatarPick",
-      "vibe",
       "region",
       "coachTone",
       "helperLevel",
@@ -6959,13 +6957,6 @@ ${questionsBlock}
       kind: "avatar-carousel",
       titleKey: "onboarding.questionnaire.avatarPick.title",
       bodyKey: "onboarding.questionnaire.avatarPick.body",
-      illustration: "sparkle",
-      settingsHintKey: "onboarding.questionnaire.settingsHint"
-    },
-    vibe: {
-      kind: "vibe-picker",
-      titleKey: "onboarding.questionnaire.vibe.title",
-      bodyKey: "onboarding.questionnaire.vibe.body",
       illustration: "sparkle",
       settingsHintKey: "onboarding.questionnaire.settingsHint"
     },
@@ -7132,10 +7123,6 @@ ${questionsBlock}
         if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
         if (typeof p.avatarPickAt === "string" && p.avatarPickAt.length > 0) return true;
         return false;
-      case "vibe":
-        if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
-        if (typeof p.vibePickAt === "string" && p.vibePickAt.length > 0) return true;
-        return false;
       case "coachTone":
       case "helperLevel":
       case "communityHelp":
@@ -7231,16 +7218,6 @@ ${questionsBlock}
           ...p,
           profileAvatar: avatar || p.profileAvatar || "voidorb",
           avatarPickAt: choiceId === "continue" ? now : p.avatarPickAt
-        };
-      }
-      case "vibe": {
-        if (choiceId !== "continue" && choiceId !== "skip") return p;
-        const vibeCandidates = ["calm", "energy", "nature", "clinical", "dark"];
-        const userVibe = typeof extra.userVibe === "string" && vibeCandidates.includes(extra.userVibe) ? extra.userVibe : p.userVibe || "calm";
-        return {
-          ...p,
-          userVibe,
-          vibePickAt: choiceId === "continue" ? now : p.vibePickAt
         };
       }
       case "signIn":

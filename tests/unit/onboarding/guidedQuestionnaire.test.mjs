@@ -23,7 +23,6 @@ test('buildGuidedQuestionnaire includes welcome and preference cards for fresh u
   assert.ok(ids.includes('welcome'));
   assert.ok(ids.includes('appearance'));
   assert.ok(ids.includes('avatarPick'));
-  assert.ok(ids.includes('vibe'));
   assert.equal(ids.includes('signIn'), false);
   assert.ok(ids.includes('region'));
   assert.ok(ids.includes('coachTone'));
@@ -101,28 +100,27 @@ test('resolveNextGuidedCardIndex after appearance is avatarPick', () => {
   assert.equal(cards[idx]?.id, 'avatarPick');
 });
 
-test('applyQuestionnaireAnswer avatarPick and vibe persist preferences', () => {
+test('resolveNextGuidedCardIndex after avatarPick is region', () => {
+  const cards = buildGuidedQuestionnaire(freshPwaPrefs, { platform: 'pwa' });
+  const idx = resolveNextGuidedCardIndex(cards, 'avatarPick');
+  assert.equal(cards[idx]?.id, 'region');
+});
+
+test('applyQuestionnaireAnswer avatarPick persists preferences', () => {
   const picked = applyQuestionnaireAnswer(freshPwaPrefs, 'avatarPick', 'continue', {
     profileAvatar: 'moonthread',
   });
   assert.equal(picked.profileAvatar, 'moonthread');
   assert.ok(picked.avatarPickAt);
-
-  const vibe = applyQuestionnaireAnswer(picked, 'vibe', 'continue', { userVibe: 'nature' });
-  assert.equal(vibe.userVibe, 'nature');
-  assert.ok(vibe.vibePickAt);
 });
 
-test('avatarPick and vibe cards skipped when already configured', () => {
+test('avatarPick card skipped when already configured', () => {
   const prefs = {
     ...freshPwaPrefs,
     profileAvatar: 'voidorb',
     avatarPickAt: '2026-01-01T00:00:00.000Z',
-    userVibe: 'calm',
-    vibePickAt: '2026-01-01T00:00:00.000Z',
   };
   assert.equal(shouldSkipGuidedCard('avatarPick', prefs, { platform: 'pwa' }), true);
-  assert.equal(shouldSkipGuidedCard('vibe', prefs, { platform: 'pwa' }), true);
 });
 
 test('applyQuestionnaireAnswer region confirm persists region and default locale', () => {
