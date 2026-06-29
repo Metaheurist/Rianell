@@ -31,3 +31,68 @@ test('styles.css aiSlideInFade uses refined vertical travel', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /@keyframes aiSlideInFade[\s\S]*translateY\(18px\)/);
 });
+
+test('oasis.css: oasisBreath1 keyframe exists', () => {
+  const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
+  assert.ok(css.includes('@keyframes oasisBreath1'), 'oasisBreath1 keyframe missing');
+});
+
+test('oasis.css: oasisParticleFly keyframe exists', () => {
+  const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
+  assert.ok(css.includes('@keyframes oasisParticleFly'), 'oasisParticleFly keyframe missing');
+});
+
+test('oasis.css: calmGlow keyframe exists', () => {
+  const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
+  assert.ok(css.includes('@keyframes calmGlow'), 'calmGlow keyframe missing');
+});
+
+test('oasis.css: particle duration <= 1500ms', () => {
+  const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
+  const match = css.match(/--oasis-particle-dur:\s*(\d+)ms/);
+  assert.ok(match, '--oasis-particle-dur variable missing');
+  const ms = parseInt(match[1], 10);
+  assert.ok(ms <= 1500, `Particle duration ${ms}ms exceeds 1500ms ceiling`);
+});
+
+test('oasis.css: keyframes guarded by prefers-reduced-motion', () => {
+  const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
+  const keyframes = [
+    'oasisBreath1',
+    'oasisBreath2',
+    'oasisBreath3',
+    'calmGlow',
+    'oasisCountFlip',
+    'oasisNeuralDraw',
+    'oasisCharReveal',
+    'oasisStreamFly',
+    'oasisHoloSweep',
+    'oasisParticleFly',
+  ];
+  keyframes.forEach((name) => {
+    const kfIdx = css.indexOf('@keyframes ' + name);
+    assert.ok(kfIdx >= 0, `${name} missing`);
+    const mediaBefore = css.lastIndexOf('@media (not (prefers-reduced-motion: reduce))', kfIdx);
+    assert.ok(mediaBefore >= 0 && mediaBefore < kfIdx, `${name} not inside reduced-motion guard`);
+  });
+});
+
+test('OASIS_TOKENS exported from packages/tokens/src/index.mjs', () => {
+  const src = readFileSync('packages/tokens/src/index.mjs', 'utf8');
+  assert.ok(src.includes('export const OASIS_TOKENS'), 'OASIS_TOKENS not exported');
+});
+
+test('OASIS_TOKENS: all 4 team themes have ambient colours', async () => {
+  const { OASIS_TOKENS } = await import('../../../packages/tokens/src/index.mjs');
+  ['mint', 'red-black', 'mono', 'rainbow'].forEach((team) => {
+    assert.ok(OASIS_TOKENS.ambient[team]?.blob1, `ambient.${team}.blob1 missing`);
+    assert.ok(OASIS_TOKENS.ambient[team]?.glow, `ambient.${team}.glow missing`);
+  });
+});
+
+test('oasis-canvas.js exports OasisCanvas API', () => {
+  const src = readFileSync('apps/pwa-webapp/modules/oasis-canvas.js', 'utf8');
+  assert.ok(src.includes('global.OasisCanvas'), 'OasisCanvas not exported to global');
+  assert.ok(src.includes('triggerConfetti'), 'triggerConfetti missing');
+  assert.ok(src.includes('morphThinkingText'), 'morphThinkingText missing');
+});
