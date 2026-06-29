@@ -14,6 +14,8 @@
   var reminderTimePickerOpen = false;
   var selectedRegion = '';
   var reminderTime = '09:00';
+  var draftAppearanceMode = 'light';
+  var draftGlobalTheme = 'mint';
   var _focusTrapTeardown = null;
   var progressSession = null;
 
@@ -111,6 +113,97 @@
   function shouldSuppressStandaloneModals() {
     if (active) return true;
     return !isComplete();
+  }
+
+  function applyLiveAppearancePreview() {
+    if (typeof global.setAppearanceMode === 'function') {
+      global.setAppearanceMode(draftAppearanceMode);
+    }
+    if (typeof global.setGlobalTheme === 'function') {
+      global.setGlobalTheme(draftGlobalTheme);
+    }
+  }
+
+  function renderThemeChoiceButton(themeId, labelKey) {
+    var active = draftGlobalTheme === themeId;
+    return (
+      '<button type="button" class="settings-theme-choice guided-onboarding-theme-choice' +
+      (active ? ' settings-theme-choice--active' : '') +
+      ' settings-theme-choice--' + themeId + '" data-theme-id="' + escapeHtml(themeId) + '" role="radio" aria-checked="' +
+      (active ? 'true' : 'false') + '">' +
+      '<span class="settings-theme-choice__swatch" aria-hidden="true"></span>' +
+      '<span class="settings-theme-choice__label">' + escapeHtml(t(labelKey)) + '</span>' +
+      '</button>'
+    );
+  }
+
+  function renderAppearanceCard(card, body, footer, continueBtn, backBtn, detailsBtn, hint) {
+    var illus = '<div class="guided-onboarding-illus-wrap guided-onboarding-illus-wrap--sparkle" aria-hidden="true">' +
+      illustrationIcon(card.illustration) + '</div>';
+    var preview =
+      '<div class="guided-onboarding-theme-preview guided-onboarding-theme-preview--' + escapeHtml(draftAppearanceMode) +
+      ' theme-' + escapeHtml(draftGlobalTheme) + '" data-preview="1" aria-hidden="true">' +
+      '<div class="guided-onboarding-theme-preview__header"></div>' +
+      '<div class="guided-onboarding-theme-preview__card">' +
+      '<span class="guided-onboarding-theme-preview__line guided-onboarding-theme-preview__line--accent"></span>' +
+      '<span class="guided-onboarding-theme-preview__line"></span>' +
+      '<span class="guided-onboarding-theme-preview__line guided-onboarding-theme-preview__line--short"></span>' +
+      '</div>' +
+      '<span class="guided-onboarding-theme-preview__pill"></span>' +
+      '</div>';
+    var modeRow =
+      '<div class="guided-onboarding-appearance-modes" role="radiogroup" aria-label="' + escapeHtml(t('onboarding.questionnaire.appearance.modeLabel')) + '">' +
+      '<button type="button" class="guided-onboarding-mode-btn' + (draftAppearanceMode === 'light' ? ' guided-onboarding-mode-btn--active' : '') +
+      '" data-appearance-mode="light" role="radio" aria-checked="' + (draftAppearanceMode === 'light' ? 'true' : 'false') + '">' +
+      escapeHtml(t('onboarding.questionnaire.appearance.light')) + '</button>' +
+      '<button type="button" class="guided-onboarding-mode-btn' + (draftAppearanceMode === 'dark' ? ' guided-onboarding-mode-btn--active' : '') +
+      '" data-appearance-mode="dark" role="radio" aria-checked="' + (draftAppearanceMode === 'dark' ? 'true' : 'false') + '">' +
+      escapeHtml(t('onboarding.questionnaire.appearance.dark')) + '</button>' +
+      '</div>';
+    var themeGrid =
+      '<div class="settings-theme-grid guided-onboarding-theme-grid" role="radiogroup" aria-label="' + escapeHtml(t('onboarding.questionnaire.appearance.themeLabel')) + '">' +
+      renderThemeChoiceButton('mint', 'common.mint') +
+      renderThemeChoiceButton('red-black', 'common.red.black') +
+      renderThemeChoiceButton('mono', 'common.black.white') +
+      renderThemeChoiceButton('rainbow', 'common.rainbow') +
+      '</div>';
+    body.innerHTML = illus +
+      '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' +
+      preview +
+      '<p class="guided-onboarding-field-label">' + escapeHtml(t('onboarding.questionnaire.appearance.modeLabel')) + '</p>' +
+      modeRow +
+      '<p class="guided-onboarding-field-label">' + escapeHtml(t('onboarding.questionnaire.appearance.themeLabel')) + '</p>' +
+      themeGrid + hint;
+    bindAppearanceControls(body);
+    if (footer) footer.style.display = 'flex';
+    if (continueBtn) {
+      continueBtn.textContent = t('onboarding.questionnaire.continue');
+      continueBtn.style.display = 'inline-block';
+    }
+    if (backBtn) backBtn.style.visibility = cardIndex > 0 ? 'visible' : 'hidden';
+    if (detailsBtn) detailsBtn.style.display = 'none';
+  }
+
+  function bindAppearanceControls(body) {
+    if (!body) return;
+    body.querySelectorAll('[data-appearance-mode]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        draftAppearanceMode = btn.getAttribute('data-appearance-mode') === 'dark' ? 'dark' : 'light';
+        applyLiveAppearancePreview();
+        renderCurrentCard();
+      });
+    });
+    body.querySelectorAll('[data-theme-id]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        draftGlobalTheme = btn.getAttribute('data-theme-id') || 'mint';
+        applyLiveAppearancePreview();
+        renderCurrentCard();
+      });
+    });
   }
 
   function escapeHtml(s) {
@@ -329,6 +422,11 @@
       if (detailsBtn) detailsBtn.style.display = 'none';
       regionPickerOpen = false;
       reminderTimePickerOpen = false;
+      return;
+    }
+
+    if (card.kind === 'theme') {
+      renderAppearanceCard(card, body, footer, continueBtn, backBtn, detailsBtn, hint);
       return;
     }
 
@@ -591,6 +689,13 @@
       advanceAfterAnswer('healthConsent');
       return;
     }
+    if (card.kind === 'theme') {
+      applyAndAdvance('appearance', 'continue', {
+        appearanceMode: draftAppearanceMode,
+        globalTheme: draftGlobalTheme,
+      });
+      return;
+    }
   }
 
   function onBack() {
@@ -627,8 +732,12 @@
     regionPickerOpen = false;
     reminderTimePickerOpen = false;
     selectedRegion = suggestRegion().hint;
+    var bootPrefs = readPrefs();
+    draftAppearanceMode = bootPrefs.appearanceMode === 'dark' ? 'dark' : 'light';
+    draftGlobalTheme = bootPrefs.globalTheme || 'mint';
     hidePrivacyGateIfOpen();
     cards = rebuildCards();
+    applyLiveAppearancePreview();
     if (typeof S.createGuidedOnboardingProgressSession === 'function') {
       progressSession = S.createGuidedOnboardingProgressSession(readPrefs(), platformContext());
     }
