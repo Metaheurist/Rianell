@@ -18,7 +18,7 @@ export function PrimaryButton({ label, onPress, variant = 'primary', style, disa
   const scale = useRef(new Animated.Value(1)).current;
 
   const springTo = (toValue: number) => {
-    Animated.spring(scale, { toValue, friction: 6, tension: 200, useNativeDriver: true }).start();
+    Animated.spring(scale, { toValue, friction: 12, tension: 200, useNativeDriver: true }).start();
   };
 
   return (

@@ -2,6 +2,11 @@ import React, { useMemo } from 'react';
 import { Animated, Easing, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { getTokens } from '@rianell/tokens';
+import { useReduceMotionFlag } from '../hooks/useReduceMotionFlag';
+
+const RING_RADII = [40, 65, 90];
+const RING_DURATION = 1800;
+const RING_STAGGER = 400;
 
 type Props = {
   /** When preferences are not loaded yet, defaults to mint (web parity). */
@@ -14,6 +19,7 @@ type Props = {
  */
 export function BootLoadingScreen({ team = 'mint', colorblindMode = 'none' }: Props) {
   const scheme = useColorScheme() === 'light' ? 'light' : 'dark';
+  const reduceMotion = useReduceMotionFlag();
   const tokens = useMemo(
     () => getTokens({ team, mode: scheme, colorblindMode }),
     [team, scheme, colorblindMode]
@@ -22,6 +28,27 @@ export function BootLoadingScreen({ team = 'mint', colorblindMode = 'none' }: Pr
   const orbitRotate = React.useRef(new Animated.Value(0)).current;
   const bodyPulse = React.useRef(new Animated.Value(0)).current;
   const sunWobble = React.useRef(new Animated.Value(0)).current;
+  const ringOpacities = React.useRef(RING_RADII.map(() => new Animated.Value(0.35))).current;
+
+  React.useEffect(() => {
+    if (reduceMotion) return;
+    const ringLoops = ringOpacities.map((op, index) => {
+      op.setValue(0.2);
+      return Animated.loop(
+        Animated.sequence([
+          Animated.timing(op, { toValue: 1, duration: RING_DURATION, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(op, { toValue: 0.2, duration: RING_DURATION, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      );
+    });
+    const ringTimers = ringLoops.map((loop, index) =>
+      setTimeout(() => loop.start(), index * RING_STAGGER),
+    );
+    return () => {
+      ringLoops.forEach((loop) => loop.stop());
+      ringTimers.forEach((t) => clearTimeout(t));
+    };
+  }, [reduceMotion, ringOpacities]);
 
   React.useEffect(() => {
     const orbitLoop = Animated.loop(
@@ -72,6 +99,24 @@ export function BootLoadingScreen({ team = 'mint', colorblindMode = 'none' }: Pr
           <Circle cx={82} cy={82} r={66} stroke={scheme === 'light' ? L.mid : 'rgba(255,255,255,0.16)'} strokeWidth={6} fill="none" strokeOpacity={scheme === 'light' ? 0.35 : 1} />
           <Circle cx={82} cy={82} r={66} stroke={L.primary} strokeWidth={6} fill="none" strokeOpacity={0.38} />
         </Svg>
+        {!reduceMotion
+          ? RING_RADII.map((r, i) => (
+              <Animated.View
+                key={`bio-ring-${r}`}
+                pointerEvents="none"
+                style={[
+                  styles.bioRing,
+                  {
+                    width: r * 2,
+                    height: r * 2,
+                    borderRadius: r,
+                    borderColor: L.primary,
+                    opacity: ringOpacities[i],
+                  },
+                ]}
+              />
+            ))
+          : null}
         <Animated.View style={[styles.orbitTrack, { transform: [{ rotate: orbitDeg }] }]}>
           <Animated.View
             style={[
@@ -105,6 +150,10 @@ export function BootLoadingScreen({ team = 'mint', colorblindMode = 'none' }: Pr
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   stage: { width: 164, height: 164, alignItems: 'center', justifyContent: 'center' },
+  bioRing: {
+    position: 'absolute',
+    borderWidth: 1,
+  },
   orbitTrack: { position: 'absolute', width: 132, height: 132, alignItems: 'flex-start', justifyContent: 'center' },
   orbitBody: {
     width: 18,

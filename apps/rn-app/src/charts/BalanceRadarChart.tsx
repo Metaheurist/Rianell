@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Easing, View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, Line, Polygon, Text as SvgText } from 'react-native-svg';
+import { useReduceMotionFlag } from '../hooks/useReduceMotionFlag';
 
 export type RadarPoint = { label: string; value: number };
 
@@ -20,6 +21,34 @@ export function BalanceRadarChart({
   textColor = '#e0f2f1',
   a11yLabel = 'Balance radar chart',
 }: Props) {
+  const reduceMotion = useReduceMotionFlag();
+  const breathAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (reduceMotion) {
+      breathAnim.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breathAnim, {
+          toValue: 1.04,
+          duration: 3000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(breathAnim, {
+          toValue: 1,
+          duration: 3000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [breathAnim, reduceMotion]);
+
   const geometry = useMemo(() => {
     if (points.length < 3) return null;
     const cx = size / 2;
@@ -42,8 +71,27 @@ export function BalanceRadarChart({
 
   if (!geometry) return null;
 
+  const dataPoints = geometry.data.map((p) => `${p.x},${p.y}`).join(' ');
+
   return (
     <View style={styles.wrap} accessibilityLabel={a11yLabel}>
+      {!reduceMotion ? (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: size,
+            height: size,
+            transform: [{ scale: breathAnim }],
+          }}
+          pointerEvents="none"
+        >
+          <Svg width={size} height={size}>
+            <Polygon points={dataPoints} fill="none" stroke={color} strokeWidth={1} opacity={0.25} />
+          </Svg>
+        </Animated.View>
+      ) : null}
       <Svg width={size} height={size}>
         {geometry.rings.map((ring, ri) => (
           <Polygon
@@ -97,5 +145,6 @@ const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
     marginVertical: 8,
+    position: 'relative',
   },
 });
