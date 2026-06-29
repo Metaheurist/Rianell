@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Easing,
   Pressable,
   StyleSheet,
   Text,
@@ -33,6 +34,13 @@ export function AchievementUnlockToast() {
   const translateY = useRef(new Animated.Value(-120)).current;
   const opacity = useRef(new Animated.Value(0)).current;
   const glow = useRef(new Animated.Value(0)).current;
+  const particleAnims = useRef(
+    Array.from({ length: 8 }, () => ({
+      x: new Animated.Value(0),
+      y: new Animated.Value(0),
+      op: new Animated.Value(0),
+    })),
+  ).current;
 
   const hideToast = useCallback(() => {
     Animated.parallel([
@@ -80,6 +88,32 @@ export function AchievementUnlockToast() {
       Animated.spring(translateY, { toValue: 0, useNativeDriver: true, friction: 7, tension: 80 }),
       Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
     ]).start();
+
+    const particleBurst = Animated.parallel(
+      particleAnims.map((anim, i) => {
+        const angle = i * (Math.PI / 4);
+        const dist = 40 + Math.random() * 20;
+        anim.x.setValue(0);
+        anim.y.setValue(0);
+        anim.op.setValue(1);
+        return Animated.parallel([
+          Animated.timing(anim.x, {
+            toValue: Math.cos(angle) * dist,
+            duration: 600,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim.y, {
+            toValue: Math.sin(angle) * dist,
+            duration: 600,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim.op, { toValue: 0, duration: 600, delay: 200, useNativeDriver: true }),
+        ]);
+      }),
+    );
+    particleBurst.start();
 
     const glowLoop = Animated.loop(
       Animated.sequence([
@@ -146,6 +180,24 @@ export function AchievementUnlockToast() {
           </Text>
         </Pressable>
       </Animated.View>
+      {particleAnims.map((anim, i) => (
+        <Animated.View
+          key={`particle-${i}`}
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            alignSelf: 'center',
+            top: '50%',
+            left: '50%',
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: theme.tokens.color.accent,
+            transform: [{ translateX: anim.x }, { translateY: anim.y }],
+            opacity: anim.op,
+          }}
+        />
+      ))}
     </View>
   );
 }

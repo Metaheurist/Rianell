@@ -14,6 +14,7 @@ import { MAX_WEEK_CHAT_TURNS, canSendWeekChatTurn, POOL_INSIGHT_MIN_K } from '@r
 import { fetchPoolInsights } from '../cloud/sync';
 import { EmptyState } from '../components/ui/EmptyState';
 import { AiInsightEmptyPreview } from '../components/ui/EmptyPreview';
+import { OasisNeuralTrace } from '../components/ui/OasisNeuralTrace';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
@@ -181,9 +182,12 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
             {
               backgroundColor:
                 theme.mode === 'light' ? `${theme.tokens.color.text}0D` : 'rgba(0,0,0,0.18)',
+              position: 'relative',
+              overflow: 'hidden',
             },
           ]}
         >
+        <OasisNeuralTrace color={theme.tokens.color.accent + '88'} height={72} />
         <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('nav.ai')}</Text>
 
           <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>

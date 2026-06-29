@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useT } from '../../i18n/I18nProvider';
@@ -22,6 +22,7 @@ export function HomeWelcomeCard({ condition, onDismiss, pills }: Props) {
   const iconScale = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
   const iconPulse = useRef(new Animated.Value(1)).current;
   const pillScale = useRef(new Animated.Value(1)).current;
+  const ringPulse = useRef(new Animated.Value(0)).current;
 
   const body = t('home.welcome.body').replace(
     '{condition}',
@@ -43,10 +44,22 @@ export function HomeWelcomeCard({ condition, onDismiss, pills }: Props) {
       ])
     );
     loop.start();
-    return () => loop.stop();
-  }, [iconPulse, iconScale, opacity, reduceMotion, translateY]);
+    const ringLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ringPulse, { toValue: 1, duration: 1600, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(ringPulse, { toValue: 0, duration: 1600, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+      ]),
+    );
+    ringLoop.start();
+    return () => {
+      loop.stop();
+      ringLoop.stop();
+    };
+  }, [iconPulse, iconScale, opacity, reduceMotion, ringPulse, translateY]);
 
   const iconCombinedScale = Animated.multiply(iconScale, iconPulse);
+  const ringScale = ringPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
+  const ringOpacity = ringPulse.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
 
   const springPillTo = (toValue: number) => {
     Animated.spring(pillScale, { toValue, friction: 6, tension: 200, useNativeDriver: true }).start();
@@ -65,6 +78,21 @@ export function HomeWelcomeCard({ condition, onDismiss, pills }: Props) {
       ]}
       accessibilityRole="none"
     >
+      {!reduceMotion ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFillObject,
+            {
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: theme.color.accent + '55',
+              transform: [{ scale: ringScale }],
+              opacity: ringOpacity,
+            },
+          ]}
+        />
+      ) : null}
       <Pressable
         onPress={onDismiss}
         style={styles.dismiss}
