@@ -594,6 +594,21 @@
     initUiFeedback();
   }
 
+  // ─── OASIS MICRO-INTERACTIONS (v2.1.0) ──────────────────────────────────
+  function triggerMilestoneConfetti(originEl) {
+    if (!global.OasisCanvas) return;
+    global.OasisCanvas.triggerConfetti(originEl || document.body);
+  }
+
+  function triggerDailyCheckInShimmer(cardSelector) {
+    if (!global.OasisCanvas) return;
+    var card = typeof cardSelector === 'string'
+      ? document.querySelector(cardSelector)
+      : cardSelector;
+    global.OasisCanvas.triggerCheckInShimmer(card);
+  }
+  // ─── END OASIS ───────────────────────────────────────────────────────────
+
   global.showToast = showToast;
   global.dismissToast = dismissToast;
   global.haptic = haptic;
@@ -618,4 +633,6 @@
   global.skipAiModelDownloadProgress = skipAiModelDownloadProgress;
   global.applyThemeCrossfade = applyThemeCrossfade;
   global.getTabDirection = getTabDirection;
+  global.triggerMilestoneConfetti = triggerMilestoneConfetti;
+  global.triggerDailyCheckInShimmer = triggerDailyCheckInShimmer;
 })(typeof window !== 'undefined' ? window : globalThis);

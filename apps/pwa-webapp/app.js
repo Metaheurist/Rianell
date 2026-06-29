@@ -7685,10 +7685,16 @@ function fireLogMilestoneCelebrations(prevCount, newCount) {
   if (!key || typeof tUi !== 'function') return;
   if (newCount === 1 && prevCount === 0 && typeof showAchievementToast === 'function') {
     showAchievementToast({ id: 'log-milestone-1', title: tUi(key), body: '' });
+    if (typeof triggerMilestoneConfetti === 'function') {
+      triggerMilestoneConfetti(document.querySelector('.home-hero-card, #homeTab'));
+    }
     return;
   }
   if (typeof showToast === 'function') {
     showToast(tUi(key), { type: 'success' });
+  }
+  if (typeof triggerMilestoneConfetti === 'function') {
+    triggerMilestoneConfetti(document.querySelector('.home-hero-card, .home-card, #homeTab'));
   }
 }
 
@@ -8008,6 +8014,8 @@ async function generateAISummary() {
 
   // Show loading state in results area only (so user sees progress and avoids perceived lag)
   resultsContent.innerHTML = renderAISkeletonLoading(dateRangeText, sortedLogs.length);
+  var thinkEl = resultsContent.querySelector('.ai-loading-text');
+  if (thinkEl && window.OasisCanvas) window.OasisCanvas.morphThinkingText(thinkEl);
 
   // Allow the loading UI to paint before starting heavy analysis
   await new Promise(function(r) {
@@ -9641,6 +9649,17 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
 
   purgeAItimelineDetachedOverlays();
   resultsContent.innerHTML = html;
+
+  if (window.OasisCanvas) {
+    var thinkDone = resultsContent.querySelector('.ai-loading-text');
+    if (thinkDone) window.OasisCanvas.unmorphThinkingText(thinkDone);
+    var insightCard = document.getElementById('aiInsightCard');
+    if (insightCard) {
+      document.querySelectorAll('.ai-quick-stat, .metric-summary-card').forEach(function (src) {
+        window.OasisCanvas.fireDataStreamDots(src, insightCard, 3);
+      });
+    }
+  }
 
   if (typeof loadPoolInsightsPanel === 'function') loadPoolInsightsPanel();
 
@@ -16802,6 +16821,9 @@ function saveQuickMinimalLog() {
   saveLogsToStorage();
   onLogsCountChanged(logs.length);
   if (typeof clearLogDraft === 'function') clearLogDraft();
+  if (typeof triggerDailyCheckInShimmer === 'function') {
+    triggerDailyCheckInShimmer('.home-hero-card, .home-summary-card');
+  }
   logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
   logFormExerciseItems = [];
   logFormStressorsItems = [];
@@ -16969,6 +16991,9 @@ form.addEventListener("submit", e => {
   Logger.debug('Health logs saved to localStorage', { entryCount: logs.length });
   onLogsCountChanged(logs.length);
   if (typeof showFoodSensitivityAlert === 'function') showFoodSensitivityAlert(newEntry);
+  if (typeof triggerDailyCheckInShimmer === 'function') {
+    triggerDailyCheckInShimmer('.home-hero-card, .home-summary-card');
+  }
 
   if (!wasOffline) {
     // Sync anonymized data if contribution is enabled (but not in demo mode)
@@ -25480,6 +25505,10 @@ function switchTab(tabName, skipHash) {
       selectedTab.style.visibility = 'visible';
       selectedTab.style.opacity = '1';
     }
+    if (window.OasisCanvas) window.OasisCanvas.onTabActivated(tabName + 'Tab');
+    if (tabName === 'ai' && window.OasisCanvas) {
+      window.OasisCanvas.injectNeuralTrace(document.getElementById('aiTab'));
+    }
     updateTabNavIndicator(tabName);
     var fabWrap = document.getElementById('appFabWrap');
     if (fabWrap) fabWrap.classList.toggle('app-fab-wrap--hidden', tabName === 'log');
@@ -25980,6 +26009,9 @@ function runRianellBootAfterDomReady() {
 
   /* Reveal the shell before AI preload so consent modals and onboarding overlays stay tappable. */
   revealAppShellWithLocale();
+  setTimeout(function () {
+    if (window.OasisCanvas) window.OasisCanvas.init();
+  }, 0);
   schedulePostShellIdleWork(awaitAiDuringBoot);
 
   if (awaitAiDuringBoot) {
