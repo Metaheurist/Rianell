@@ -6,6 +6,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.2] - 2026-06-29
+
+PWA dashboard polish, scrollable profile companions, animated achievement icons, and removal of ambient vibe UI.
+
+### Added
+
+- **AI dashboard panels:** Ranked “Things to watch” cards, lifestyle stat strip, nutrition/exercise/helpful-pattern panels, status-toned trend sparklines with typical baseline
+- **Mood tab:** Compact reading history, focus row, goal-line sparkline
+- **Achievement icons:** Inline animated SVG per badge type (plate, swimmer, pill glass, book, calendars, bed, tree, clipboard, etc.)
+- **Companion carousel:** `avatar-carousel-shell` with prev/next scroll, 20 unique `avatarSymbolPathsForId` silhouettes, intro + Settings variants
+- **Tests:** `ai-watch-panel`, `ai-lifestyle-panel`, `ai-trend-cards`, `mood-tab-ui`, `achievement-icons`, `avatar-carousel`, `log-metric-widgets`
+
+### Changed
+
+- **Log wizard:** Metric entity companions anchored in widgets; skip widgets with dedicated visuals; lifestyle section title in `index.html`
+- **Onboarding:** Avatar pick only (vibe step removed from `guidedQuestionnaire.mjs`)
+- **Settings:** Profile companion carousel; ambient vibe section removed
+- **LLM:** WASM GPU-cap toast suppressed (`summary-llm.js`)
+
+### Removed
+
+- **Ambient vibe:** Settings picker, onboarding card, parallax vibe scene injection, `applyUserVibe` runtime (legacy classes cleared via `removeLegacyVibeUi`)
+
+---
+
 ## [2.1.1] - 2026-06-29
 
 SVG graphics and animation portfolio — profile companions, ambient vibes, metric entities, and screen decorations across the PWA.

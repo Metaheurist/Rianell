@@ -2,7 +2,25 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.0** - Session stability & memory leak fixes (long-session freeze/crash on Tier 5 desktop PCs).
+**Latest: v2.1.2** - PWA dashboard polish, companion carousel, animated achievements; ambient vibe removed.
+
+### v2.1.2 - 2026-06-29 - Dashboard UX, companions, achievements
+
+- **AI dashboard (PWA):** Overview insight card layout, ranked “Things to watch” cards, lifestyle stat panels, enriched trend metric cards with status-toned sparklines.
+- **Mood tab (PWA):** Compact history cards, single focus row, richer trend sparkline with goal line.
+- **Achievements (PWA):** Per-badge animated SVG icons (food, exercise, medication, milestones, sleep, cycle, full logger) replace avatar-in-badge composites.
+- **Profile companions (PWA):** Horizontal carousel with prev/next controls; 20 unique character silhouettes (shared two-dot art style); intro + Settings pickers.
+- **Log wizard (PWA):** Metric companions anchored inside widgets; no overlapping header icons; lifestyle section title restored.
+- **Removed:** Ambient vibe settings pane and onboarding vibe step (legacy body classes cleared on boot).
+- **LLM:** Suppress “No GPU acceleration” toast; WASM tier cap still applies silently.
+- **Tests:** `ai-watch-panel`, `ai-lifestyle-panel`, `ai-trend-cards`, `mood-tab-ui`, `achievement-icons`, `avatar-carousel`, `log-metric-widgets`; onboarding questionnaire updated for vibe removal.
+- **npm:** Workspace roots at **2.1.2**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.2]`.
+
+### v2.1.1 - 2026-06-29 - SVG graphics and animation portfolio
+
+- **Profile companions & vibes:** 20 avatars, five ambient vibes, metric entities, badge frames (superseded in v2.1.2 for achievements/vibe UI).
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.1]`.
 
 ### v2.1.0 - 2026-06-28 - Session stability and memory leak fixes
 
