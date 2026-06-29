@@ -4,6 +4,7 @@ import {
   rawToWellnessSlider,
   wellnessSliderToRaw,
   classifyWellnessSlider,
+  classifySeverityRaw,
   wellnessSliderFillColor,
 } from '../../../packages/shared/src/metrics/sliderWellness.mjs';
 
@@ -38,6 +39,12 @@ describe('sliderWellness', () => {
     assert.equal(classifyWellnessSlider(9).id, 'good');
     assert.equal(classifyWellnessSlider(5).id, 'moderate');
     assert.equal(classifyWellnessSlider(1).id, 'bad');
+  });
+
+  it('classifies severity raw for symptom-style metrics', () => {
+    assert.equal(classifySeverityRaw(1).id, 'low');
+    assert.equal(classifySeverityRaw(10).id, 'high');
+    assert.equal(classifySeverityRaw(5).id, 'moderate');
   });
 
   it('colors low wellness red and high green', () => {

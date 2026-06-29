@@ -108,9 +108,11 @@ test('resolveNextGuidedCardIndex after avatarPick is region', () => {
 
 test('applyQuestionnaireAnswer avatarPick persists preferences', () => {
   const picked = applyQuestionnaireAnswer(freshPwaPrefs, 'avatarPick', 'continue', {
-    profileAvatar: 'moonthread',
+    profileAvatar: 'gen:seed42',
+    profileAvatarName: 'Sun Warden',
   });
-  assert.equal(picked.profileAvatar, 'moonthread');
+  assert.equal(picked.profileAvatar, 'gen:seed42');
+  assert.equal(picked.profileAvatarName, 'Sun Warden');
   assert.ok(picked.avatarPickAt);
 });
 

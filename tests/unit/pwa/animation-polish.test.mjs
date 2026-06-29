@@ -92,7 +92,12 @@ test('OASIS_TOKENS: all 4 team themes have ambient colours', async () => {
 
 test('oasis-canvas.js exports OasisCanvas API', () => {
   const src = readFileSync('apps/pwa-webapp/modules/oasis-canvas.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
   assert.ok(src.includes('global.OasisCanvas'), 'OasisCanvas not exported to global');
   assert.ok(src.includes('triggerConfetti'), 'triggerConfetti missing');
   assert.ok(src.includes('morphThinkingText'), 'morphThinkingText missing');
+  assert.match(src, /buildNeuralTraceSvg/);
+  assert.match(src, /data-oasis-neural-v/);
+  assert.match(css, /\.oasis-neural-trace[\s\S]*inset: 0/);
+  assert.match(css, /#aiTab[\s\S]*position: relative/);
 });

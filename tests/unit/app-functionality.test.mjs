@@ -105,5 +105,12 @@ test('settings hint text reflects instant background theme apply', () => {
 
 test('voice icon alignment and settings icon rail mobile contract stays intact', () => {
   assert.match(stylesCss, /textarea \+ \.voice-input-btn\s*\{\s*top:\s*50%;\s*transform:\s*translateY\(-50%\);/s);
+  assert.match(stylesCss, /\.voice-input-host\s*\{[\s\S]*overflow:\s*visible;/);
+  assert.match(stylesCss, /\.voice-input-host:has\(textarea\)/);
+  assert.match(stylesCss, /textarea:focus,[\s\S]*textarea:focus-visible[\s\S]*transform:\s*none/);
+  assert.match(stylesCss, /\.input-container:has\(textarea\)/);
   assert.match(stylesCss, /\.settings-carousel-dots\s*\{[\s\S]*flex-wrap:\s*nowrap;[\s\S]*overflow-x:\s*auto;/);
+  assert.match(stylesCss, /\.settings-carousel-viewport\s*\{[\s\S]*container-type:\s*inline-size;/);
+  assert.match(stylesCss, /\.settings-carousel-track\s*\{[\s\S]*100cqw/);
+  assert.match(stylesCss, /\.settings-carousel-pane--search-hidden\s*\{[\s\S]*display:\s*none/);
 });
