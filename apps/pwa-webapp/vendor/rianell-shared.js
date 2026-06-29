@@ -149,6 +149,7 @@ var RianellShared = (() => {
     TUTORIAL_SLIDE_ORDER_AI_ON: () => TUTORIAL_SLIDE_ORDER_AI_ON,
     UNLOCK_DAYS: () => UNLOCK_DAYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
+    USER_VIBE_IDS: () => USER_VIBE_IDS,
     VITAL_SUGGESTION_FIELD_IDS: () => VITAL_SUGGESTION_FIELD_IDS,
     VITAL_SUGGESTION_LOOKBACK_DAYS: () => VITAL_SUGGESTION_LOOKBACK_DAYS,
     WCAG_BODY_TEXT_MIN_CONTRAST: () => WCAG_BODY_TEXT_MIN_CONTRAST,
@@ -494,6 +495,7 @@ var RianellShared = (() => {
     normalizeTrackingProfile: () => normalizeTrackingProfile,
     normalizeTreatmentStarts: () => normalizeTreatmentStarts,
     normalizeTriggerRow: () => normalizeTriggerRow,
+    normalizeUserVibe: () => normalizeUserVibe,
     normalizeVitalMetrics: () => normalizeVitalMetrics,
     normalizeWeatherCoords: () => normalizeWeatherCoords,
     painBodyStateToLocations: () => painBodyStateToLocations,
@@ -3940,10 +3942,46 @@ ${hist}`);
   }
 
   // packages/shared/src/settings/avatars.mjs
-  var PROFILE_AVATAR_IDS = ["leaf", "heart", "star", "sun", "pulse", "shield"];
+  var PROFILE_AVATAR_IDS = [
+    "voidorb",
+    "tidewarden",
+    "leafcircuit",
+    "prismcore",
+    "moonthread",
+    "emberveil",
+    "riftecho",
+    "stonebloom",
+    "glasswave",
+    "ashspiral",
+    "coralnode",
+    "starlace",
+    "mistveil",
+    "thornloop",
+    "sunwarden",
+    "duskmantle",
+    "ironbloom",
+    "vortexseed",
+    "lumenshard",
+    "driftmoss"
+  ];
+  var LEGACY_AVATAR_MAP = {
+    leaf: "leafcircuit",
+    heart: "voidorb",
+    star: "starlace",
+    sun: "sunwarden",
+    pulse: "riftecho",
+    shield: "stonebloom"
+  };
+  var USER_VIBE_IDS = ["calm", "energy", "nature", "clinical", "dark"];
   function normalizeProfileAvatar(value) {
     const id = typeof value === "string" ? value.trim() : "";
-    return PROFILE_AVATAR_IDS.includes(id) ? id : "leaf";
+    if (PROFILE_AVATAR_IDS.includes(id)) return id;
+    if (LEGACY_AVATAR_MAP[id]) return LEGACY_AVATAR_MAP[id];
+    return "voidorb";
+  }
+  function normalizeUserVibe(value) {
+    const v = typeof value === "string" ? value.trim() : "";
+    return USER_VIBE_IDS.includes(v) ? v : "calm";
   }
   function normalizeDisplayNameTheme(value) {
     const allowed = ["mint", "coral", "sky", "violet", "gold"];
@@ -6855,6 +6893,8 @@ ${questionsBlock}
   var GUIDED_QUESTIONNAIRE_CARD_IDS = [
     "welcome",
     "appearance",
+    "avatarPick",
+    "vibe",
     "signIn",
     "region",
     "coachTone",
@@ -6877,6 +6917,8 @@ ${questionsBlock}
   function skipSetupCardsForReturningSignIn(cardId, prefs, ctx) {
     const setupCards = [
       "appearance",
+      "avatarPick",
+      "vibe",
       "region",
       "coachTone",
       "helperLevel",
@@ -6912,6 +6954,20 @@ ${questionsBlock}
       illustration: "sparkle",
       settingsHintKey: "onboarding.questionnaire.settingsHint",
       choices: [{ id: "continue", labelKey: "onboarding.questionnaire.continue" }]
+    },
+    avatarPick: {
+      kind: "avatar-carousel",
+      titleKey: "onboarding.questionnaire.avatarPick.title",
+      bodyKey: "onboarding.questionnaire.avatarPick.body",
+      illustration: "sparkle",
+      settingsHintKey: "onboarding.questionnaire.settingsHint"
+    },
+    vibe: {
+      kind: "vibe-picker",
+      titleKey: "onboarding.questionnaire.vibe.title",
+      bodyKey: "onboarding.questionnaire.vibe.body",
+      illustration: "sparkle",
+      settingsHintKey: "onboarding.questionnaire.settingsHint"
     },
     signIn: {
       kind: "auth",
@@ -7072,6 +7128,14 @@ ${questionsBlock}
         }
         return false;
       }
+      case "avatarPick":
+        if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
+        if (typeof p.avatarPickAt === "string" && p.avatarPickAt.length > 0) return true;
+        return false;
+      case "vibe":
+        if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
+        if (typeof p.vibePickAt === "string" && p.vibePickAt.length > 0) return true;
+        return false;
       case "coachTone":
       case "helperLevel":
       case "communityHelp":
@@ -7158,6 +7222,25 @@ ${questionsBlock}
           globalTheme,
           team: globalTheme,
           appearanceOnboardingAt: now
+        };
+      }
+      case "avatarPick": {
+        if (choiceId !== "continue" && choiceId !== "skip") return p;
+        const avatar = typeof extra.profileAvatar === "string" && extra.profileAvatar.trim() ? extra.profileAvatar.trim() : p.profileAvatar;
+        return {
+          ...p,
+          profileAvatar: avatar || p.profileAvatar || "voidorb",
+          avatarPickAt: choiceId === "continue" ? now : p.avatarPickAt
+        };
+      }
+      case "vibe": {
+        if (choiceId !== "continue" && choiceId !== "skip") return p;
+        const vibeCandidates = ["calm", "energy", "nature", "clinical", "dark"];
+        const userVibe = typeof extra.userVibe === "string" && vibeCandidates.includes(extra.userVibe) ? extra.userVibe : p.userVibe || "calm";
+        return {
+          ...p,
+          userVibe,
+          vibePickAt: choiceId === "continue" ? now : p.vibePickAt
         };
       }
       case "signIn":
