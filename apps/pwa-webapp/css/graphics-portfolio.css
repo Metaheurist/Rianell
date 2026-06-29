@@ -1,0 +1,802 @@
+/*
+ * graphics-portfolio.css — Avatar carousel, vibe picker, metric companions, badge composites.
+ * Animate only transform, opacity, filter (ui-motion.mdc).
+ */
+
+/* ── Vibe body enhancements (extends tokens.css vars) ─────────────────────── */
+body[class*='vibe-'] {
+  --avatar-glow: var(--vibe-particle-color, var(--oasis-glow));
+}
+
+body.vibe-energy .avatar-carousel__item--selected {
+  filter: drop-shadow(0 0 8px var(--vibe-particle-color));
+}
+
+body.vibe-dark .vibe-scene__layer--bg {
+  opacity: 0.55;
+}
+
+body.vibe-clinical .vibe-scene {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Avatar carousel ─────────────────────────────────────────────────────── */
+.avatar-carousel {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 0.5rem 0.25rem 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.avatar-carousel:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-full, 999px);
+}
+
+.avatar-carousel__item {
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 4.5rem;
+  padding: 0.5rem;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.04));
+  cursor: pointer;
+  transition: transform var(--dur-fast, 180ms) var(--ease-out-expo, ease),
+    opacity var(--dur-fast, 180ms) ease,
+    border-color var(--dur-fast, 180ms) ease;
+}
+
+.avatar-carousel__item:hover {
+  transform: translateY(-2px);
+}
+
+.avatar-carousel__item--selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.avatar-carousel__glyph {
+  width: 3rem;
+  height: 3rem;
+}
+
+.avatar-carousel__label {
+  font-size: 0.65rem;
+  opacity: 0.7;
+  text-transform: capitalize;
+  max-width: 4.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Health-state avatar animation intensity */
+[data-health-state='0'] .avatar-carousel__glyph,
+[data-health-state='0'] .graphics-badge-composite__avatar {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+[data-health-state='4'] .avatar-carousel__glyph {
+  filter: drop-shadow(0 0 6px var(--avatar-glow));
+}
+
+/* ── Vibe picker ─────────────────────────────────────────────────────────── */
+.vibe-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.65rem;
+}
+
+.vibe-picker__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem 0.5rem;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: var(--bg-secondary, rgba(255, 255, 255, 0.04));
+  cursor: pointer;
+  transition: transform var(--dur-fast, 180ms) ease, border-color var(--dur-fast, 180ms) ease;
+}
+
+.vibe-picker__card:hover {
+  transform: scale(1.03);
+}
+
+.vibe-picker__card--selected {
+  border-color: var(--primary-color);
+}
+
+.vibe-picker__swatch {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--vibe-ambient-bg, var(--bg-tertiary));
+}
+
+.vibe-picker__swatch--calm { background: radial-gradient(circle, rgba(125, 223, 140, 0.5), transparent 70%); }
+.vibe-picker__swatch--energy { background: radial-gradient(circle, rgba(123, 223, 140, 0.65), transparent 65%); }
+.vibe-picker__swatch--nature { background: radial-gradient(circle, rgba(154, 232, 164, 0.55), transparent 68%); }
+.vibe-picker__swatch--clinical { background: linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 100%); }
+.vibe-picker__swatch--dark { background: radial-gradient(circle, rgba(255, 79, 160, 0.45), rgba(61, 31, 107, 0.6)); }
+
+.vibe-picker__name {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ── Metric entity companion ─────────────────────────────────────────────── */
+.metric-entity-stage {
+  position: absolute;
+  right: -0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.metric-entity {
+  width: 100%;
+  height: 100%;
+  color: var(--primary-color);
+  opacity: 0.85;
+  will-change: transform, opacity;
+}
+
+.metric-entity-stage--zone-good .metric-entity {
+  color: var(--color-success, #4caf50);
+}
+
+.metric-entity-stage--zone-bad .metric-entity {
+  color: var(--color-danger, #f44336);
+}
+
+.metric-entity-stage--zone-neutral .metric-entity {
+  color: var(--color-warning, #ff9800);
+}
+
+/* ── Badge composite ─────────────────────────────────────────────────────── */
+.graphics-badge-composite {
+  position: relative;
+  width: 4rem;
+  height: 4rem;
+}
+
+.graphics-badge-composite__svg {
+  width: 100%;
+  height: 100%;
+}
+
+.graphics-badge-composite__frame {
+  color: var(--primary-color);
+}
+
+.graphics-badge-composite__ring {
+  color: var(--secondary-color);
+}
+
+.graphics-badge-composite__avatar {
+  transform: scale(0.44);
+  transform-origin: 32px 32px;
+}
+
+.graphics-badge-composite__progress {
+  opacity: 0.7;
+  color: var(--primary-color);
+}
+
+.graphics-badge-composite--locked {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.graphics-badge-composite--locked .graphics-badge-composite__progress {
+  stroke-dashoffset: 94;
+}
+
+/* ── Vibe scene parallax ─────────────────────────────────────────────────── */
+.vibe-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background: var(--vibe-ambient-bg, none);
+}
+
+.vibe-scene__layer {
+  position: absolute;
+  inset: -10%;
+  will-change: transform, opacity;
+}
+
+.vibe-scene__layer--bg {
+  background: var(--vibe-ambient-bg, none);
+  opacity: 0.9;
+  transform: translate3d(0, calc(var(--vibe-parallax-y, 0) * 1px), 0);
+}
+
+.vibe-scene__layer--mid {
+  background: radial-gradient(ellipse 60% 40% at 70% 30%, var(--vibe-particle-color, transparent) 0%, transparent 60%);
+  opacity: 0.5;
+  transform: translate3d(0, calc(var(--vibe-parallax-mid, 0) * 1px), 0);
+}
+
+.vibe-scene__layer--fg {
+  background: radial-gradient(circle at 20% 80%, var(--vibe-particle-color, transparent) 0%, transparent 35%);
+  opacity: 0.35;
+  transform: translate3d(0, calc(var(--vibe-parallax-fg, 0) * 1px), 0);
+}
+
+.vibe-scene--static .vibe-scene__layer {
+  transform: none;
+}
+
+/* ── Keyframes (GPU-safe) ─────────────────────────────────────────────────── */
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes avatarIdle {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.85; }
+    50% { transform: translateY(-3px) scale(1.04); opacity: 1; }
+  }
+
+  @keyframes mascotReact {
+    0% { transform: scale(1) rotate(0deg); }
+    30% { transform: scale(1.15) rotate(-6deg); }
+    60% { transform: scale(0.95) rotate(4deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes badgeTierShimmer {
+    0% { opacity: 0.6; filter: brightness(1); }
+    50% { opacity: 1; filter: brightness(1.25); }
+    100% { opacity: 0.6; filter: brightness(1); }
+  }
+
+  .metric-entity-stage--zone-good .metric-entity {
+    animation: avatarIdle calc(4s / var(--vibe-motion-multiplier, 1)) ease-in-out infinite;
+  }
+
+  .metric-entity-stage--zone-bad .metric-entity {
+    animation: mascotReact calc(0.6s / var(--vibe-motion-multiplier, 1)) ease-out;
+  }
+
+  .graphics-badge-composite:not(.graphics-badge-composite--locked) .graphics-badge-composite__ring {
+    animation: badgeTierShimmer 3s ease-in-out infinite;
+  }
+
+  [data-health-state='3'] .avatar-carousel__glyph,
+  [data-health-state='4'] .avatar-carousel__glyph {
+    animation: avatarIdle calc(5s / var(--vibe-motion-multiplier, 1)) ease-in-out infinite;
+  }
+
+  [data-health-state='1'] .avatar-carousel__glyph,
+  [data-health-state='0'] .avatar-carousel__glyph {
+    opacity: 0.7;
+    animation: none;
+  }
+}
+
+/* ── Reduced motion overrides ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .avatar-carousel__item,
+  .vibe-picker__card {
+    transition: none;
+  }
+
+  .avatar-carousel__item:hover,
+  .vibe-picker__card:hover {
+    transform: none;
+  }
+
+  .metric-entity,
+  .graphics-badge-composite__ring,
+  .avatar-carousel__glyph {
+    animation: none !important;
+  }
+
+  .vibe-scene__layer {
+    transform: none !important;
+  }
+}
+
+.rianell-brain-fog .vibe-scene,
+.rianell-brain-fog .metric-entity-stage {
+  display: none !important;
+}
+
+/* ── Header / wizard avatar ─────────────────────────────────────────────── */
+.home-today-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-avatar-header,
+.log-wizard-avatar {
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.log-wizard-avatar {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.log-wizard-chrome {
+  position: relative;
+  padding-right: 3.25rem;
+}
+
+.profile-avatar-header__ring {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--primary-color) 55%, transparent);
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+}
+
+.profile-avatar-header__glyph {
+  width: 1.85rem;
+  height: 1.85rem;
+}
+
+.profile-avatar-header--react .profile-avatar-header__ring {
+  animation: mascotReact 0.55s ease-out;
+}
+
+.avatar-carousel__item--selected .avatar-carousel__glyph {
+  animation: mascotReact 0.45s ease-out;
+}
+
+/* ── Metric entity companion layout ─────────────────────────────────────── */
+.metric-widget--portfolio .metric-widget__body {
+  position: relative;
+}
+
+.metric-entity-stage {
+  position: absolute;
+  right: 0.25rem;
+  top: 0.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.metric-entity {
+  width: 100%;
+  height: 100%;
+  color: var(--metric-color, var(--primary-color));
+}
+
+/* ── Body map aura overlay ────────────────────────────────────────────────── */
+.pain-body-aura__halo {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.pain-region.pain-state-2 ~ .pain-body-aura .pain-body-aura__halo,
+.pain-body-svg:has(.pain-state-2) .pain-body-aura__halo {
+  opacity: 0.22;
+}
+
+/* ── Achievements composite extras ────────────────────────────────────────── */
+.graphics-achievement-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 4.5rem;
+}
+
+.achievement-day-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+}
+
+.achievement-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+/* ── Settings / export / security artwork ───────────────────────────────── */
+.export-format-btn--decorated {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.export-format-art__svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  opacity: 0.8;
+}
+
+.security-lock-illustration {
+  display: grid;
+  place-items: center;
+  margin: 0.5rem 0 1rem;
+}
+
+.security-lock-illustration__svg {
+  width: 3rem;
+  height: 3rem;
+  opacity: 0.75;
+  color: var(--primary-color);
+}
+
+.ai-wellbeing-art {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.ai-hero-row {
+  position: relative;
+}
+
+.ai-quick-stat--decorated {
+  animation: aiStatReveal 0.45s ease both;
+  animation-delay: var(--ai-stat-delay, 0ms);
+}
+
+.log-screen-art {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.25rem;
+  width: 2rem;
+  height: 2rem;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.bristol-slider-container {
+  position: relative;
+}
+
+.cycle-phase-emblem {
+  filter: drop-shadow(0 0 4px var(--avatar-glow));
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes aiStatReveal {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes achievementChipFlip {
+    0% { transform: rotateX(90deg); opacity: 0.4; }
+    100% { transform: rotateX(0deg); opacity: 1; }
+  }
+
+  @keyframes goalsPulseRing {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; }
+    50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 35%, transparent); }
+  }
+
+  .achievement-day-chip--flip {
+    animation: achievementChipFlip 0.45s ease both;
+    animation-delay: var(--chip-flip-delay, 0ms);
+  }
+
+  .goals-status-pill--pulse-ring {
+    animation: goalsPulseRing 2.4s ease-in-out infinite;
+  }
+
+  .vibe-scene__svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .vibe-scene__svg-wrap {
+    position: absolute;
+    inset: 0;
+    opacity: 0.55;
+  }
+}
+
+.graphics-portfolio--low-tier .metric-entity-stage {
+  display: none !important;
+}
+
+.connector-art {
+  display: inline-flex;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.connector-art__svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--primary-color);
+}
+
+.connector-row--connected .connector-art__svg {
+  filter: drop-shadow(0 0 4px var(--avatar-glow));
+}
+
+.bristol-type-strip {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.bristol-type-glyph {
+  width: 0.65rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 20%, transparent);
+  opacity: 0.45;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.bristol-type-glyph--active {
+  opacity: 1;
+  transform: scaleY(1.15);
+  background: var(--primary-color);
+}
+
+.pain-legend-swatch--glow {
+  box-shadow: 0 0 6px var(--avatar-glow);
+}
+
+.mood-portfolio-art {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.25rem;
+  width: 2rem;
+  height: 2rem;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.mood-tab-content {
+  position: relative;
+}
+
+.mood-card--portfolio-reveal {
+  animation: aiStatReveal 0.4s ease both;
+  animation-delay: var(--mood-reveal-delay, 0ms);
+}
+
+/* ── Set D body map ───────────────────────────────────────────────────────── */
+.pain-body-svg--set-d .pain-region {
+  transition: fill 0.28s ease, opacity 0.28s ease, filter 0.28s ease;
+}
+
+.pain-body-outline--abstract {
+  pointer-events: none;
+}
+
+.pain-body-outline__guides {
+  pointer-events: none;
+}
+
+.pain-region-ripple {
+  fill: var(--avatar-primary);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes painRegionRipple {
+    from { transform: scale(1); opacity: 0.45; }
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  .pain-region-ripple {
+    transform-origin: center;
+    animation: painRegionRipple 0.45s ease-out forwards;
+  }
+}
+
+/* ── Phase 6 screen artwork extras ─────────────────────────────────────── */
+.connector-flow-dots {
+  display: inline-flex;
+  gap: 0.2rem;
+  margin-left: auto;
+  padding-right: 0.25rem;
+}
+
+.connector-flow-dots span {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--primary-color);
+  opacity: 0.35;
+}
+
+.connector-row--connected .connector-flow-dots span {
+  opacity: 0.85;
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  .connector-row--connected .connector-flow-dots span {
+    animation: connectorFlowDot 1.2s ease-in-out infinite;
+  }
+
+  .connector-row--connected .connector-flow-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .connector-row--connected .connector-flow-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes connectorFlowDot {
+    0%, 100% { transform: translateY(0); opacity: 0.45; }
+    50% { transform: translateY(-3px); opacity: 1; }
+  }
+}
+
+.goals-days-trail {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.goals-days-trail__svg {
+  width: 100%;
+  max-width: 8rem;
+  height: 0.5rem;
+  color: var(--primary-color);
+  opacity: 0.55;
+}
+
+.ai-wellbeing-ring-wrap--halo {
+  position: relative;
+}
+
+.ai-wellbeing-halo {
+  position: absolute;
+  inset: -0.35rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 25%, transparent);
+  pointer-events: none;
+}
+
+.ai-flare-arc-gauge--portfolio {
+  position: relative;
+}
+
+.ai-flare-needle {
+  position: absolute;
+  left: 50%;
+  bottom: 0.35rem;
+  width: 2px;
+  height: 2.25rem;
+  margin-left: -1px;
+  background: var(--primary-color);
+  transform-origin: bottom center;
+  transform: rotate(-72deg);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.ai-trend-card--portfolio {
+  position: relative;
+  animation: aiStatReveal 0.45s ease both;
+  animation-delay: var(--trend-reveal-delay, 0ms);
+}
+
+.ai-trend-entity {
+  position: absolute;
+  right: 0.35rem;
+  top: 0.35rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.security-pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0 0.75rem;
+}
+
+.security-pin-dots span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary-color) 40%, transparent);
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  .security-pin-dots span {
+    animation: securityPinBounce 1.4s ease-in-out infinite;
+  }
+
+  .security-pin-dots span:nth-child(2) { animation-delay: 0.15s; }
+  .security-pin-dots span:nth-child(3) { animation-delay: 0.3s; }
+  .security-pin-dots span:nth-child(4) { animation-delay: 0.45s; }
+
+  @keyframes securityPinBounce {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(-4px); opacity: 1; }
+  }
+}
+
+.stressor-chip--ripple {
+  animation: stressorChipRipple 0.35s ease;
+}
+
+@keyframes stressorChipRipple {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.cycle-day-beacon {
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px solid var(--avatar-primary);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.cycle-day-node {
+  position: relative;
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  .cycle-day-beacon {
+    animation: cycleBeaconPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes cycleBeaconPulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.03); }
+  }
+}
+
+.vital-widget--portfolio,
+.bbt-thermo-widget--portfolio {
+  position: relative;
+}
+
+.graphics-badge-composite--unlock-sweep {
+  animation: badgeUnlockSweep 0.65s ease;
+}
+
+.achievement-card--just-unlocked {
+  animation: aiStatReveal 0.5s ease;
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes badgeUnlockSweep {
+    0% { filter: brightness(1); transform: scale(1); }
+    40% { filter: brightness(1.35) drop-shadow(0 0 8px var(--avatar-glow)); transform: scale(1.06); }
+    100% { filter: brightness(1); transform: scale(1); }
+  }
+}
