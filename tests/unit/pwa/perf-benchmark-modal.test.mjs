@@ -18,3 +18,30 @@ test('benchmark modal is exposed via god mode developer section', () => {
     /godMode\.viewBenchmarkDetails[\s\S]*desktopOnly:\s*true/,
   );
 });
+
+test('boot benchmark progress uses measuring fallback before i18n is ready', () => {
+  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(appJs, /Measuring performance…/);
+  assert.match(appJs, /translated !== 'common\.measuring\.performance'/);
+});
+
+test('rAF latency benchmark cannot hang forever', () => {
+  const src = readFileSync('apps/pwa-webapp/device-benchmark.js', 'utf8');
+  assert.match(src, /function rafLatency/);
+  assert.match(src, /rAF latency timed out/);
+  assert.match(src, /setTimeout\(function \(\) \{[\s\S]*finish\(/);
+});
+
+test('in-app daily reminder respects first-run suppression', () => {
+  const js = readFileSync('apps/pwa-webapp/notifications.js', 'utf8');
+  assert.match(js, /checkTodayReminder\(\)[\s\S]*shouldSuppressFirstRunLoggingPrompt/);
+  assert.match(js, /settings\.reminder === true/);
+});
+
+test('home today header keeps stacked greeting and date beside avatar', () => {
+  const css = readFileSync('apps/pwa-webapp/css/graphics-portfolio.css', 'utf8');
+  assert.match(css, /\.home-today-header[\s\S]*display:\s*grid/);
+  assert.match(css, /\.home-today-greeting[\s\S]*grid-column:\s*2/);
+  assert.match(css, /\.home-today-meta[\s\S]*grid-column:\s*2/);
+  assert.match(css, /\.profile-avatar-header[\s\S]*grid-row:\s*1\s*\/\s*-1/);
+});
