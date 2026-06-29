@@ -53,18 +53,19 @@
   function injectBlobsIntoPanel(panelEl) {
     if (!panelEl) return;
     // Idempotency: skip if already injected
-    if (panelEl.querySelector('.oasis-blob')) return;
-    // Panel must be position relative/absolute for blobs to clip to it
-    var pos = global.getComputedStyle(panelEl).position;
-    if (pos === 'static') panelEl.style.position = 'relative';
-    panelEl.style.overflow = 'hidden'; // clip blobs to panel bounds
+    if (panelEl.querySelector('.oasis-ambient-layer')) return;
+
+    var layer = document.createElement('div');
+    layer.className = 'oasis-ambient-layer';
+    layer.setAttribute('aria-hidden', 'true');
 
     [1, 2, 3].forEach(function (n) {
       var blob = document.createElement('div');
       blob.className = 'oasis-blob oasis-blob--' + n;
-      blob.setAttribute('aria-hidden', 'true');
-      panelEl.insertBefore(blob, panelEl.firstChild); // prepend — z-index:0 sits behind
+      layer.appendChild(blob);
     });
+
+    panelEl.insertBefore(layer, panelEl.firstChild);
   }
 
   function initAmbientBlobs() {
@@ -249,7 +250,7 @@
 
   // ── E.3 Milestone confetti burst ─────────────────────────────────────────
   // 14 particles. Each gets random trajectory within ±160px x, -260 to -80px y.
-  // Animation ceiling: 900ms (well under the 1 500ms test gate).
+  // Animation ceiling: 800ms duration + 20ms stagger (worst case 13*20+800 = 1060ms < 1500ms gate).
   var CONFETTI_COLOURS = ['#7bdf8c','#4fc3f7','#fff176','#f48fb1','#ce93d8','#80deea','#ffcc80'];
   var CONFETTI_COUNT = 14;
 
@@ -272,7 +273,7 @@
       p.style.setProperty('--px', px);
       p.style.setProperty('--py', py);
       p.style.setProperty('--rot', rot);
-      p.style.animationDelay = (i * 40) + 'ms';
+      p.style.animationDelay = (i * 20) + 'ms';
       document.body.appendChild(p);
       p.addEventListener('animationend', function () {
         if (p.parentNode) p.parentNode.removeChild(p);
