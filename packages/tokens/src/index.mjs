@@ -72,6 +72,63 @@ export const OASIS_TOKENS = {
 };
 // ─── END OASIS TOKENS ───────────────────────────────────────────────────────
 
+/** User vibe preference IDs (ambient + avatar animation personality). search: @rianell/vibe-tokens */
+export const VIBE_IDS = ['calm', 'energy', 'nature', 'clinical', 'dark'];
+
+export const VIBE_TOKENS = {
+  calm: {
+    ambientBg: 'radial-gradient(ellipse 120% 80% at 50% 0%, rgba(26, 92, 58, 0.35) 0%, transparent 55%)',
+    particleColor: 'rgba(125, 223, 140, 0.35)',
+    motionMultiplier: 0.5,
+    particleMode: 'drift',
+  },
+  energy: {
+    ambientBg: 'radial-gradient(ellipse 100% 70% at 50% 20%, rgba(123, 223, 140, 0.28) 0%, transparent 50%)',
+    particleColor: 'rgba(123, 223, 140, 0.55)',
+    motionMultiplier: 1.5,
+    particleMode: 'spark',
+  },
+  nature: {
+    ambientBg: 'radial-gradient(ellipse 110% 75% at 40% 10%, rgba(46, 122, 90, 0.32) 0%, transparent 52%)',
+    particleColor: 'rgba(154, 232, 164, 0.4)',
+    motionMultiplier: 1,
+    particleMode: 'sway',
+  },
+  clinical: {
+    ambientBg: 'none',
+    particleColor: 'transparent',
+    motionMultiplier: 0,
+    particleMode: 'none',
+  },
+  dark: {
+    ambientBg: 'radial-gradient(ellipse 90% 60% at 50% 100%, rgba(61, 31, 107, 0.25) 0%, transparent 55%)',
+    particleColor: 'rgba(255, 79, 160, 0.35)',
+    motionMultiplier: 0.85,
+    particleMode: 'ember',
+  },
+};
+
+/** Avatar fill slots resolved per global theme team. search: @rianell/avatar-theme-tokens */
+export const AVATAR_THEME_TOKENS = {
+  mint: { primary: 'var(--primary-color)', secondary: 'var(--secondary-color)', glow: '#7bdf8c', dark: 'var(--bg-secondary)' },
+  'red-black': { primary: 'var(--primary-color)', secondary: 'var(--secondary-color)', glow: '#ff8d98', dark: 'var(--bg-secondary)' },
+  mono: { primary: 'var(--primary-color)', secondary: 'var(--secondary-color)', glow: '#d0d0d0', dark: 'var(--bg-secondary)' },
+  rainbow: { primary: 'var(--primary-color)', secondary: 'var(--secondary-color)', glow: '#ff4fa0', dark: 'var(--bg-secondary)' },
+};
+
+export function getVibeIds() {
+  return VIBE_IDS.slice();
+}
+
+export function normalizeUserVibe(value) {
+  const v = typeof value === 'string' ? value.trim() : '';
+  return VIBE_IDS.includes(v) ? v : 'calm';
+}
+
+export function resolveAvatarThemeTokens(team) {
+  return AVATAR_THEME_TOKENS[team] || AVATAR_THEME_TOKENS.mint;
+}
+
 const TEAM_TOKENS = {
   mint: {
     dark: {

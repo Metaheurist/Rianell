@@ -1,5 +1,5 @@
 /**
- * Auto-generated from @rianell/tokens — run: node scripts/build/sync-tokens-to-pwa.mjs
+ * Auto-generated from @rianell/tokens — run: npm run sync:tokens
  * Team IDs: mint, red-black, mono, rainbow
  */
 :root {
@@ -15,4 +15,49 @@
   --color-info: #2196f3;
   --color-ai-accent: #e91e63;
   --radius-full: 999px;
+  /* Avatar graphics portfolio — search: @rianell/avatar-theme-tokens */
+  --avatar-primary: var(--primary-color);
+  --avatar-secondary: var(--secondary-color);
+  --avatar-glow: var(--oasis-blob-a, var(--primary-color));
+  --avatar-dark: var(--bg-secondary);
+  --avatar-health-state: 2;
+  --vibe-ambient-bg: none;
+  --vibe-particle-color: transparent;
+  --vibe-motion-multiplier: 1;
+  --vibe-particle-mode: drift;
+}
+
+body.vibe-calm {
+  --vibe-ambient-bg: radial-gradient(ellipse 120% 80% at 50% 0%, rgba(26, 92, 58, 0.35) 0%, transparent 55%);
+  --vibe-particle-color: rgba(125, 223, 140, 0.35);
+  --vibe-motion-multiplier: 0.5;
+  --vibe-particle-mode: drift;
+}
+
+body.vibe-energy {
+  --vibe-ambient-bg: radial-gradient(ellipse 100% 70% at 50% 20%, rgba(123, 223, 140, 0.28) 0%, transparent 50%);
+  --vibe-particle-color: rgba(123, 223, 140, 0.55);
+  --vibe-motion-multiplier: 1.5;
+  --vibe-particle-mode: spark;
+}
+
+body.vibe-nature {
+  --vibe-ambient-bg: radial-gradient(ellipse 110% 75% at 40% 10%, rgba(46, 122, 90, 0.32) 0%, transparent 52%);
+  --vibe-particle-color: rgba(154, 232, 164, 0.4);
+  --vibe-motion-multiplier: 1;
+  --vibe-particle-mode: sway;
+}
+
+body.vibe-clinical {
+  --vibe-ambient-bg: none;
+  --vibe-particle-color: transparent;
+  --vibe-motion-multiplier: 0;
+  --vibe-particle-mode: none;
+}
+
+body.vibe-dark {
+  --vibe-ambient-bg: radial-gradient(ellipse 90% 60% at 50% 100%, rgba(61, 31, 107, 0.25) 0%, transparent 55%);
+  --vibe-particle-color: rgba(255, 79, 160, 0.35);
+  --vibe-motion-multiplier: 0.85;
+  --vibe-particle-mode: ember;
 }
