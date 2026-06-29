@@ -4,12 +4,14 @@ import { getPolicyPack, resolvePolicyPack } from '../privacy/resolvePolicyPack.m
 import { isPrivacyRegionConfigured } from '../privacy/profileSync.mjs';
 import { completeFirstRunWizard } from './firstRunOrchestrator.mjs';
 
-/** @typedef {'info'|'choice'|'consent'|'reminder'|'auth'|'theme'} GuidedCardKind */
+/** @typedef {'info'|'choice'|'consent'|'reminder'|'auth'|'theme'|'avatar-carousel'|'vibe-picker'} GuidedCardKind */
 
 /** Canonical guided onboarding card order (PWA + RN). */
 export const GUIDED_QUESTIONNAIRE_CARD_IDS = [
   'welcome',
   'appearance',
+  'avatarPick',
+  'vibe',
   'signIn',
   'region',
   'coachTone',
@@ -25,7 +27,7 @@ export const GUIDED_QUESTIONNAIRE_CARD_IDS = [
   'finish',
 ];
 
-/** @typedef {'welcome'|'appearance'|'signIn'|'region'|'coachTone'|'helperLevel'|'healthConsent'|'cookies'|'sessionRecording'|'aiDownload'|'communityHelp'|'dailyNudge'|'install'|'accountSignUp'|'finish'} GuidedCardId */
+/** @typedef {'welcome'|'appearance'|'avatarPick'|'vibe'|'signIn'|'region'|'coachTone'|'helperLevel'|'healthConsent'|'cookies'|'sessionRecording'|'aiDownload'|'communityHelp'|'dailyNudge'|'install'|'accountSignUp'|'finish'} GuidedCardId */
 
 /**
  * @param {Record<string, unknown>} prefs
@@ -41,6 +43,8 @@ export function isGuidedOnboardingAuthenticated(prefs, ctx) {
 function skipSetupCardsForReturningSignIn(cardId, prefs, ctx) {
   const setupCards = [
     'appearance',
+    'avatarPick',
+    'vibe',
     'region',
     'coachTone',
     'helperLevel',
@@ -77,6 +81,20 @@ export const GUIDED_CARD_META = {
     illustration: 'sparkle',
     settingsHintKey: 'onboarding.questionnaire.settingsHint',
     choices: [{ id: 'continue', labelKey: 'onboarding.questionnaire.continue' }],
+  },
+  avatarPick: {
+    kind: 'avatar-carousel',
+    titleKey: 'onboarding.questionnaire.avatarPick.title',
+    bodyKey: 'onboarding.questionnaire.avatarPick.body',
+    illustration: 'sparkle',
+    settingsHintKey: 'onboarding.questionnaire.settingsHint',
+  },
+  vibe: {
+    kind: 'vibe-picker',
+    titleKey: 'onboarding.questionnaire.vibe.title',
+    bodyKey: 'onboarding.questionnaire.vibe.body',
+    illustration: 'sparkle',
+    settingsHintKey: 'onboarding.questionnaire.settingsHint',
   },
   signIn: {
     kind: 'auth',
@@ -244,6 +262,14 @@ export function shouldSkipGuidedCard(cardId, prefs, ctx) {
       }
       return false;
     }
+    case 'avatarPick':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
+      if (typeof p.avatarPickAt === 'string' && p.avatarPickAt.length > 0) return true;
+      return false;
+    case 'vibe':
+      if (skipSetupCardsForReturningSignIn(cardId, p, c)) return true;
+      if (typeof p.vibePickAt === 'string' && p.vibePickAt.length > 0) return true;
+      return false;
     case 'coachTone':
     case 'helperLevel':
     case 'communityHelp':
@@ -349,6 +375,31 @@ export function applyQuestionnaireAnswer(prefs, cardId, choiceId, extra = {}) {
         globalTheme,
         team: globalTheme,
         appearanceOnboardingAt: now,
+      };
+    }
+    case 'avatarPick': {
+      if (choiceId !== 'continue' && choiceId !== 'skip') return p;
+      const avatar =
+        typeof extra.profileAvatar === 'string' && extra.profileAvatar.trim()
+          ? extra.profileAvatar.trim()
+          : p.profileAvatar;
+      return {
+        ...p,
+        profileAvatar: avatar || p.profileAvatar || 'voidorb',
+        avatarPickAt: choiceId === 'continue' ? now : p.avatarPickAt,
+      };
+    }
+    case 'vibe': {
+      if (choiceId !== 'continue' && choiceId !== 'skip') return p;
+      const vibeCandidates = ['calm', 'energy', 'nature', 'clinical', 'dark'];
+      const userVibe =
+        typeof extra.userVibe === 'string' && vibeCandidates.includes(extra.userVibe)
+          ? extra.userVibe
+          : p.userVibe || 'calm';
+      return {
+        ...p,
+        userVibe,
+        vibePickAt: choiceId === 'continue' ? now : p.vibePickAt,
       };
     }
     case 'signIn':
