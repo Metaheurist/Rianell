@@ -88,7 +88,7 @@ test('log wizard can progress through stressors and save', async () => {
   await findByText('Work & demands');
   fireEvent.press(getAllByText('Work deadline')[0]);
   fireEvent.press(getByLabelText('Next step'));
-  await findByText('Ability to do Daily activities (0-10)');
+  await findByText('Daily activities (1–10)');
   fireEvent.press(getAllByText('6')[0]);
   fireEvent.press(getAllByText('8')[0]);
   fireEvent.press(getByLabelText('Next step'));
@@ -242,9 +242,9 @@ test('lifestyle values are clamped on save (steps/hydration/daily function)', as
   fireEvent.press(getByLabelText('Next step'));
   fireEvent.press(getByLabelText('Next step'));
   fireEvent.press(getByLabelText('Next step'));
-  await findByText('Ability to do Daily activities (0-10)');
+  await findByText('Daily activities (1–10)');
 
-  const dailyFnInput = getByLabelText('Ability to do Daily activities');
+  const dailyFnInput = getByLabelText('Daily activities');
   const stepsInput = getByLabelText('Steps');
   const hydrationInput = getByLabelText('Hydration');
 
