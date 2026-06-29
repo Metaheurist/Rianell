@@ -169,32 +169,48 @@
 /* ── 8. Neural trace container (Phase D) ────────────────────────────────────── */
 .oasis-neural-trace {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
+  inset: 0;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
 }
-.oasis-neural-trace svg { width: 100%; height: 100%; }
+
+.oasis-neural-trace svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#aiTab {
+  position: relative;
+  overflow: hidden;
+}
+
+#aiTab > :not(.oasis-neural-trace):not(.oasis-ambient-layer) {
+  position: relative;
+  z-index: 1;
+}
+
+#aiTab .oasis-ambient-layer {
+  z-index: 0;
+}
 
 @media (not (prefers-reduced-motion: reduce)) {
   /* stroke-dashoffset is GPU-composited in Chrome/Safari/Firefox via SVG SMIL fallback */
   @keyframes oasisNeuralDraw {
-    0%   { stroke-dashoffset: 600; opacity: 0.2; }
-    15%  { opacity: 0.8; }
-    85%  { opacity: 0.6; }
-    100% { stroke-dashoffset: -600; opacity: 0.1; }
+    0%   { stroke-dashoffset: 800; opacity: 0.15; }
+    15%  { opacity: 0.55; }
+    85%  { opacity: 0.4; }
+    100% { stroke-dashoffset: -800; opacity: 0.12; }
   }
   .oasis-neural-path {
-    stroke-dasharray: 12 8;    /* dash 12px, gap 8px — biological spacing */
-    stroke-dashoffset: 600;
-    animation: oasisNeuralDraw 2400ms linear infinite;
+    stroke-dasharray: 14 10;
+    stroke-dashoffset: 800;
+    animation: oasisNeuralDraw 4.8s linear infinite;
   }
   /* Stagger second path for dual-trace effect */
   .oasis-neural-path--b {
-    animation-delay: -1200ms;  /* half-cycle offset */
+    animation-delay: -2.4s;
   }
 }
 

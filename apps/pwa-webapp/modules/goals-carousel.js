@@ -14,12 +14,33 @@
     return key;
   }
 
-  var KNOWN_GOALS_ICON_NAMES = new Set(['target', 'medal']);
-
   function goalsSvgIcon(name) {
     var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
-    if (!KNOWN_GOALS_ICON_NAMES.has(safeName)) safeName = 'target';
-    return '<svg class="ui-svg-icon goals-dot-icon-svg" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
+    if (safeName === 'medal') {
+      return '<svg class="ui-svg-icon goals-dot-icon-svg goals-dot-icon-svg--medal" viewBox="0 0 24 24" aria-hidden="true">' +
+        '<g class="goals-icon-medal-ribbon">' +
+        '<path d="M8.6 2.4 6.8 8.2 9.6 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<path d="M15.4 2.4 17.2 8.2 14.4 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<path d="M9.6 9.2h4.8" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>' +
+        '</g>' +
+        '<circle class="goals-icon-medal-disc" cx="12" cy="15.4" r="5.65" fill="none" stroke="currentColor" stroke-width="1.65"/>' +
+        '<circle class="goals-icon-medal-disc-inner" cx="12" cy="15.4" r="4.15" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.42"/>' +
+        '<path class="goals-icon-medal-shine" d="M8.8 13.6q3.2-1.4 6.4 0" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity="0.5"/>' +
+        '<path class="goals-icon-medal-star" d="M12 11.8 12.95 13.95 15.35 14.25 13.55 15.75 14.05 18.05 12 16.95 9.95 18.05 10.45 15.75 8.65 14.25 11.05 13.95Z" fill="currentColor"/>' +
+        '</svg>';
+    }
+    return '<svg class="ui-svg-icon goals-dot-icon-svg goals-dot-icon-svg--target" viewBox="0 0 24 24" aria-hidden="true">' +
+      '<circle class="goals-icon-target-ring goals-icon-target-ring--outer" cx="12" cy="12" r="8.35" fill="none" stroke="currentColor" stroke-width="1.55" opacity="0.52"/>' +
+      '<circle class="goals-icon-target-ring goals-icon-target-ring--mid" cx="12" cy="12" r="5.35" fill="none" stroke="currentColor" stroke-width="1.65"/>' +
+      '<circle class="goals-icon-target-ring goals-icon-target-ring--inner" cx="12" cy="12" r="2.65" fill="none" stroke="currentColor" stroke-width="1.65"/>' +
+      '<circle class="goals-icon-target-bullseye" cx="12" cy="12" r="1.05" fill="currentColor"/>' +
+      '<circle class="goals-icon-target-glow" cx="12" cy="12" r="1.85" fill="none" stroke="currentColor" stroke-width="1" opacity="0.35"/>' +
+      '<g class="goals-icon-target-ticks">' +
+      '<line x1="12" y1="1.65" x2="12" y2="3.85" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      '<line x1="12" y1="20.15" x2="12" y2="22.35" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      '<line x1="1.65" y1="12" x2="3.85" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      '<line x1="20.15" y1="12" x2="22.35" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      '</g></svg>';
   }
 
   function ensureGoalsCarouselDots(panes) {
@@ -32,6 +53,7 @@
         btn.type = 'button';
         btn.className = 'goals-carousel-dot';
         btn.setAttribute('role', 'tab');
+        btn.setAttribute('data-goals-dot-icon', i === 0 ? 'target' : 'medal');
         btn.setAttribute('data-i18n-aria', GOALS_PANE_TITLE_KEYS[i] || 'common.goals.targets');
         btn.innerHTML =
           '<span class="goals-carousel-dot__icon" aria-hidden="true">' +

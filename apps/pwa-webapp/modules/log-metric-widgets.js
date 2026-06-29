@@ -54,7 +54,23 @@
     return clamp((val - min) / (max - min), 0, 1);
   }
 
-  function classifyZone(id, wellnessValue) {
+  function isSeverityMetric(id) {
+    return !HIGHER_IS_BETTER[id];
+  }
+
+  function classifySeverityRaw(raw) {
+    var S = global.RianellShared;
+    if (S && typeof S.classifySeverityRaw === 'function') {
+      return S.classifySeverityRaw(raw, t);
+    }
+    var v = clamp(parseInt(raw, 10) || 5, 1, 10);
+    if (v <= 3) return { id: 'low', color: '#7bdf8c', label: t('wizard.metric.severity.low', 'Low') };
+    if (v <= 7) return { id: 'moderate', color: '#ffb74d', label: t('wizard.metric.severity.moderate', 'Moderate') };
+    return { id: 'high', color: '#ff7043', label: t('wizard.metric.severity.high', 'High') };
+  }
+
+  function classifyZone(id, wellnessValue, rawValue) {
+    if (isSeverityMetric(id)) return classifySeverityRaw(rawValue);
     var v = parseInt(wellnessValue, 10);
     if (isNaN(v)) v = 5;
     v = clamp(v, 1, 10);
@@ -64,9 +80,18 @@
   }
 
   function deriveMetricStatus(zoneId) {
-    if (zoneId === 'good') return 'improving';
-    if (zoneId === 'bad') return 'declining';
+    if (zoneId === 'good' || zoneId === 'low') return 'improving';
+    if (zoneId === 'bad' || zoneId === 'high') return 'declining';
     return 'stable';
+  }
+
+  function applySeverityScaleHints(container) {
+    var goodBad = container.querySelector('.slider-good-bad');
+    if (!goodBad) return;
+    goodBad.innerHTML =
+      '<span class="slider-hint-bad" data-i18n="wizard.metric.severity.high">High</span>' +
+      '<span class="slider-hint-good" data-i18n="wizard.metric.severity.low">Low</span>';
+    container.setAttribute('data-metric-scale', 'severity');
   }
 
   function applyOasisMetricFeedback(widget, display, zoneId) {
@@ -90,72 +115,42 @@
           '<circle class="metric-pain-core" cx="32" cy="36" r="9" fill="currentColor" opacity="0.35"/></svg>';
       case 'mobility':
         return '<svg class="metric-svg metric-svg--mobility" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
-          '<defs>' +
-          '<linearGradient id="metricMobilityTrailGrad" x1="36" y1="10" x2="36" y2="78" gradientUnits="userSpaceOnUse">' +
-          '<stop offset="0%" class="metric-mobility-grad-top"/><stop offset="100%" class="metric-mobility-grad-bot"/>' +
-          '</linearGradient>' +
-          '</defs>' +
-          '<path class="metric-mobility-trail-bg" d="M36 10 C44 24 28 38 44 52 C32 66 38 78 36 86" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 6"/>' +
-          '<path class="metric-mobility-trail-fill" d="M36 10 C44 24 28 38 44 52 C32 66 38 78 36 86" fill="none" stroke="url(#metricMobilityTrailGrad)" stroke-width="2.5" stroke-linecap="round"/>' +
-          '<g class="metric-mobility-print metric-mobility-print--1" transform="translate(28 4) rotate(-14)">' +
-          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
-          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
-          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
+          '<ellipse class="metric-mobility-shadow" cx="36" cy="83" rx="12" ry="2.8" fill="currentColor" opacity="0.28"/>' +
+          '<g class="metric-mobility-trampoline" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
+          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="17" y1="74" x2="11" y2="86" stroke-width="2.4"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="55" y1="74" x2="61" y2="86" stroke-width="2.4"/>' +
+          '<line class="metric-mobility-rim" x1="13" y1="74" x2="59" y2="74" stroke-width="2.6"/>' +
+          '<path class="metric-mobility-mat" d="M13 74 Q36 80.5 59 74" stroke-width="2.8"/>' +
+          '<path class="metric-mobility-spring metric-mobility-spring--L" d="M20 74 v4 M24 74 v4 M28 74 v4" stroke-width="1.4" opacity="0.55"/>' +
+          '<path class="metric-mobility-spring metric-mobility-spring--R" d="M44 74 v4 M48 74 v4 M52 74 v4" stroke-width="1.4" opacity="0.55"/>' +
           '</g>' +
-          '<g class="metric-mobility-print metric-mobility-print--2" transform="translate(44 20) rotate(16)">' +
-          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
-          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
-          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
-          '</g>' +
-          '<g class="metric-mobility-print metric-mobility-print--3" transform="translate(22 36) rotate(-14)">' +
-          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
-          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
-          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
-          '</g>' +
-          '<g class="metric-mobility-print metric-mobility-print--4" transform="translate(42 52) rotate(16)">' +
-          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
-          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
-          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
-          '</g>' +
-          '<g class="metric-mobility-print metric-mobility-print--5" transform="translate(26 68) rotate(-14)">' +
-          '<ellipse class="metric-mobility-sole" cx="10" cy="14" rx="7.5" ry="9" fill="currentColor"/>' +
-          '<circle cx="5.5" cy="5" r="2.3" fill="currentColor"/><circle cx="10" cy="3.2" r="2.1" fill="currentColor"/>' +
-          '<circle cx="14.5" cy="5" r="2.2" fill="currentColor"/><circle cx="17" cy="8.5" r="1.9" fill="currentColor"/>' +
-          '</g>' +
-          '<g class="metric-mobility-walker">' +
-          '<circle class="metric-mobility-head" cx="0" cy="0" r="5" fill="currentColor"/>' +
-          '<path class="metric-mobility-torso" d="M0 5 v16" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 21 L-7 36" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 21 L7 36" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 9 L-9 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 9 L9 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
-          '</g>' +
-          '<g class="metric-mobility-speed" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
-          '<line class="metric-mobility-speed-line metric-mobility-speed-line--1" x1="4" y1="44" x2="14" y2="44"/>' +
-          '<line class="metric-mobility-speed-line metric-mobility-speed-line--2" x1="2" y1="50" x2="12" y2="50"/>' +
-          '<line class="metric-mobility-speed-line metric-mobility-speed-line--3" x1="6" y1="56" x2="16" y2="56"/>' +
+          '<g class="metric-mobility-jumper" transform="translate(36 68)">' +
+          '<circle class="metric-mobility-head" cx="0" cy="-20" r="4.5" fill="currentColor"/>' +
+          '<path class="metric-mobility-torso" d="M0 -15 v13" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 -13 L-8 -7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 -13 L8 -7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 -2 L-5 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 -2 L5 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
           '</g></svg>';
       case 'swelling':
-        return '<svg class="metric-svg metric-svg--swelling" viewBox="0 0 64 72" focusable="false" aria-hidden="true">' +
+        return '<svg class="metric-svg metric-svg--swelling" viewBox="0 0 72 84" focusable="false" aria-hidden="true">' +
           '<defs>' +
-          '<radialGradient id="metricKneeSwellGrad" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox">' +
+          '<radialGradient id="metricKneeSwellGrad" cx="0.5" cy="0.42" r="0.58">' +
           '<stop offset="0%" class="metric-knee-swell-grad-core"/>' +
           '<stop offset="68%" class="metric-knee-swell-grad-mid"/>' +
           '<stop offset="100%" class="metric-knee-swell-grad-edge"/>' +
           '</radialGradient>' +
           '</defs>' +
-          '<path class="metric-knee-femur" d="M31 8 v4 M29 12 C26 18 25 30 28 41" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"/>' +
-          '<path class="metric-knee-tibia" d="M30 43 Q31 45 34 68" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="4.2" stroke-linecap="round"/>' +
-          '<path class="metric-knee-fibula" d="M35 45 L37 66" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="2" stroke-linecap="round"/>' +
-          '<g class="metric-knee-swell-group" transform="translate(32 43)">' +
-          '<ellipse class="metric-knee-swell-ring metric-knee-swell-ring--3" cx="0" cy="0" rx="18" ry="20" fill="none" stroke="currentColor" stroke-width="1.1"/>' +
-          '<ellipse class="metric-knee-swell-ring metric-knee-swell-ring--2" cx="0" cy="0" rx="13" ry="15" fill="none" stroke="currentColor" stroke-width="1.3"/>' +
-          '<ellipse class="metric-knee-swell-ring metric-knee-swell-ring--1" cx="0" cy="0" rx="9" ry="11" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
-          '<ellipse class="metric-knee-swell-fluid" cx="0" cy="0" rx="7" ry="8.5" fill="url(#metricKneeSwellGrad)"/>' +
-          '<ellipse class="metric-knee-swell-shine" cx="-2" cy="-2" rx="2.2" ry="2.8" fill="rgba(255,255,255,0.24)"/>' +
+          '<g class="metric-knee-swell-group" transform="translate(36 46)">' +
+          '<ellipse class="metric-knee-swell-fluid" cx="0" cy="0" rx="5" ry="6" fill="url(#metricKneeSwellGrad)"/>' +
+          '<ellipse class="metric-knee-swell-shine" cx="-1.5" cy="-2" rx="2" ry="2.5" fill="rgba(255,255,255,0.28)"/>' +
           '</g>' +
-          '<ellipse class="metric-knee-patella" cx="37" cy="41" rx="5" ry="6.5" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.38)" stroke-width="1.4"/>' +
-          '</svg>';
+          '<g class="metric-knee-bones" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' +
+          '<path class="metric-knee-femur" d="M34 8 v5 M32 13 C28 19 27 31 30 42" stroke-width="4.2"/>' +
+          '<path class="metric-knee-tibia" d="M32 44 Q33 46 36 70" stroke-width="3.6"/>' +
+          '<path class="metric-knee-fibula" d="M37 46 L39 68" stroke-width="2" opacity="0.78"/>' +
+          '</g>' +
+          '<ellipse class="metric-knee-patella" cx="38" cy="42" rx="5" ry="6.5" stroke="currentColor" stroke-width="1.5"/></svg>';
       case 'fatigue':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<rect class="metric-battery-cap" x="28" y="14" width="8" height="4" rx="1" fill="rgba(255,255,255,0.35)"/>' +
@@ -236,7 +231,21 @@
           '</g>' +
           '</svg>';
       case 'weather':
-        return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
+        return '<svg class="metric-svg metric-svg--weather" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
+          '<g class="metric-weather-sun">' +
+          '<circle class="metric-weather-sun-glow" cx="24" cy="22" r="14" fill="currentColor"/>' +
+          '<g class="metric-weather-sun-body" transform="translate(24 22)">' +
+          '<circle class="metric-weather-sun-core" r="7.5" fill="currentColor"/>' +
+          '<g class="metric-weather-sun-rays" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
+          '<line x1="0" y1="-11" x2="0" y2="-15.5"/>' +
+          '<line x1="7.8" y1="-7.8" x2="10.9" y2="-10.9"/>' +
+          '<line x1="11" y1="0" x2="15.5" y2="0"/>' +
+          '<line x1="7.8" y1="7.8" x2="10.9" y2="10.9"/>' +
+          '<line x1="0" y1="11" x2="0" y2="15.5"/>' +
+          '<line x1="-7.8" y1="7.8" x2="-10.9" y2="10.9"/>' +
+          '<line x1="-11" y1="0" x2="-15.5" y2="0"/>' +
+          '<line x1="-7.8" y1="-7.8" x2="-10.9" y2="-10.9"/>' +
+          '</g></g></g>' +
           '<path class="metric-weather-cloud" d="M46 30h-3a12 12 0 1 0-4-22a10 10 0 0 0-18 4a8 8 0 0 0 2 15h23z" fill="rgba(255,255,255,0.08)" stroke="currentColor" stroke-width="1.5"/>' +
           '<path class="metric-weather-lightning" d="M34 26 L30 36 H34 L31 46 L40 32 H35 Z" fill="currentColor"/>' +
           '<line class="metric-rain metric-rain--1" x1="24" y1="36" x2="22" y2="44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
@@ -254,26 +263,81 @@
     }
   }
 
-  var MOBILITY_WALKER = [
-    { x: 38, y: 12, rot: -14 },
-    { x: 54, y: 28, rot: 16 },
-    { x: 32, y: 44, rot: -14 },
-    { x: 52, y: 60, rot: 16 },
-    { x: 36, y: 76, rot: -14 },
-  ];
+  function applyWeatherVisual(widget, visual, wellness, stormR) {
+    var w = clamp(parseInt(wellness, 10) || 5, 1, 10);
+    var storm = clamp(stormR, 0, 1);
+    var cloudOpacity = clamp((9 - w) / 4, 0, 1);
+    var sunStrength = clamp((w - 7) / 3, 0, 1);
+    var sunOn = w >= 8;
 
-  function stampMobilityPrints(visual, prevLit, nextLit) {
-    if (nextLit <= prevLit) return;
-    visual.querySelectorAll('.metric-mobility-print').forEach(function (print, i) {
-      if (i >= prevLit && i < nextLit) {
-        print.classList.remove('metric-mobility-print--stamping');
-        void print.offsetWidth;
-        print.classList.add('metric-mobility-print--stamping');
-        global.setTimeout(function () {
-          print.classList.remove('metric-mobility-print--stamping');
-        }, 520);
+    var cloud = visual.querySelector('.metric-weather-cloud');
+    if (cloud) {
+      cloud.style.opacity = String(cloudOpacity);
+      cloud.setAttribute('transform', 'translate(0 ' + ((1 - cloudOpacity) * -6).toFixed(1) + ')');
+    }
+
+    var sun = visual.querySelector('.metric-weather-sun');
+    if (sun) {
+      sun.style.opacity = String(sunStrength);
+      var sunBody = sun.querySelector('.metric-weather-sun-body');
+      if (sunBody) {
+        var sunScale = 0.7 + sunStrength * 0.3;
+        sunBody.setAttribute('transform', 'translate(24 22) scale(' + sunScale.toFixed(3) + ')');
       }
+    }
+
+    var drops = Math.ceil(storm * 5 * cloudOpacity);
+    visual.querySelectorAll('.metric-rain').forEach(function (drop, i) {
+      drop.classList.toggle('metric-rain--on', i < drops);
     });
+
+    widget.setAttribute('data-weather-sun', sunOn ? 'on' : 'off');
+    widget.style.setProperty('--weather-sun-strength', sunStrength.toFixed(2));
+    widget.classList.toggle('metric-widget--weather-clear', sunOn);
+    widget.classList.toggle('metric-widget--weather-storm', storm >= 0.62 && cloudOpacity > 0.35);
+
+    var lightning = visual.querySelector('.metric-weather-lightning');
+    if (lightning) lightning.classList.toggle('metric-weather-lightning--on', storm >= 0.62 && cloudOpacity > 0.35);
+  }
+
+  function applyMobilityBounce(widget, r) {
+    var peakPx = (5 + r * 28).toFixed(1);
+    var dur = Math.max(0.48, 1.32 - r * 0.78).toFixed(2);
+    widget.style.setProperty('--mobility-bounce-y', '-' + peakPx + 'px');
+    widget.style.setProperty('--mobility-bounce-dur', dur + 's');
+    widget.style.setProperty('--mobility-shadow-op', (0.18 + r * 0.42).toFixed(2));
+    var visual = widget.querySelector('.metric-widget__visual');
+    if (!visual) return;
+    var shadow = visual.querySelector('.metric-mobility-shadow');
+    if (shadow) shadow.setAttribute('rx', (9 + r * 7).toFixed(1));
+  }
+
+  function applySwellingVisual(widget, visual, rawValue) {
+    var r = ratio(parseInt(rawValue, 10) || 5, 1, 10);
+    var fluid = visual.querySelector('.metric-knee-swell-fluid');
+    var fluidRx = 3.8 + r * 8.2;
+    var fluidRy = 4.6 + r * 9.4;
+    if (fluid) {
+      fluid.setAttribute('rx', fluidRx.toFixed(1));
+      fluid.setAttribute('ry', fluidRy.toFixed(1));
+    }
+    var shine = visual.querySelector('.metric-knee-swell-shine');
+    if (shine) shine.style.opacity = r > 0.15 ? String(0.12 + r * 0.38) : '0.1';
+    var patella = visual.querySelector('.metric-knee-patella');
+    if (patella) {
+      patella.setAttribute('cx', (37.5 + r * 1.6).toFixed(1));
+      patella.setAttribute('cy', (42 + r * 1.1).toFixed(1));
+      patella.setAttribute('rx', (4.6 + r * 2.2).toFixed(1));
+      patella.setAttribute('ry', (6 + r * 2.6).toFixed(1));
+    }
+    var tibia = visual.querySelector('.metric-knee-tibia');
+    if (tibia) {
+      tibia.setAttribute('transform', 'rotate(' + (r * 4.2).toFixed(1) + ' 32 44)');
+    }
+    var level = r < 0.28 ? 'low' : r < 0.62 ? 'mid' : 'high';
+    widget.setAttribute('data-swelling-level', level);
+    widget.style.setProperty('--metric-knee-pulse-dur', (2.05 - r * 0.95).toFixed(2) + 's');
+    widget.style.setProperty('--metric-knee-glow-strength', (r * 0.52).toFixed(2));
   }
 
   function lerp(a, b, t) {
@@ -387,10 +451,13 @@
     });
   }
 
-  function applyVisualState(widget, id, rawValue) {
+  function applyVisualState(widget, id, rawValue, wellnessValue) {
     var v = parseInt(rawValue, 10);
     if (isNaN(v)) v = 5;
     var r = ratio(v, 0, 10);
+    var wellness = wellnessValue != null ? parseInt(wellnessValue, 10) : wellnessFromRaw(id, v);
+    if (isNaN(wellness)) wellness = 5;
+    wellness = clamp(wellness, 1, 10);
     var kind = VISUAL[id];
     var visual = widget.querySelector('.metric-widget__visual');
     if (!visual) return;
@@ -410,55 +477,9 @@
       var core = visual.querySelector('.metric-pain-core');
       if (core) core.setAttribute('opacity', String(0.2 + sev * 0.75));
     } else if (kind === 'mobility') {
-      var lit = Math.max(1, Math.ceil(r * 5));
-      var prevLit = parseInt(widget.dataset.mobilityLit || '0', 10);
-      stampMobilityPrints(visual, prevLit, lit);
-      widget.dataset.mobilityLit = String(lit);
-      visual.querySelectorAll('.metric-mobility-print').forEach(function (print, i) {
-        print.classList.toggle('metric-mobility-print--lit', i < lit);
-      });
-      var trail = visual.querySelector('.metric-mobility-trail-fill');
-      if (trail) {
-        var trailLen = trail.getTotalLength ? trail.getTotalLength() : 120;
-        trail.style.strokeDasharray = trailLen.toFixed(1);
-        trail.style.strokeDashoffset = String(trailLen * (1 - r));
-      }
-      var walker = visual.querySelector('.metric-mobility-walker');
-      if (walker) {
-        var pos = MOBILITY_WALKER[Math.min(lit, MOBILITY_WALKER.length) - 1];
-        walker.setAttribute('transform', 'translate(' + pos.x + ' ' + pos.y + ') rotate(' + pos.rot + ')');
-        walker.style.opacity = r > 0.08 ? '1' : '0.35';
-      }
-      var speed = visual.querySelector('.metric-mobility-speed');
-      if (speed) speed.style.opacity = String(clamp((r - 0.35) / 0.65, 0, 1));
+      applyMobilityBounce(widget, r);
     } else if (kind === 'swelling') {
-      var swellScale = 1 + r * 0.95;
-      var swellGroup = visual.querySelector('.metric-knee-swell-group');
-      if (swellGroup) {
-        swellGroup.setAttribute('transform', 'translate(32 43) scale(' + swellScale.toFixed(3) + ')');
-      }
-      var shine = visual.querySelector('.metric-knee-swell-shine');
-      if (shine) shine.style.opacity = r > 0.15 ? String(0.12 + r * 0.4) : '0';
-      var patella = visual.querySelector('.metric-knee-patella');
-      if (patella) {
-        patella.setAttribute('cx', (36 + r * 2.5).toFixed(1));
-        patella.setAttribute('cy', (41 + r * 1.2).toFixed(1));
-        patella.setAttribute('rx', (4.2 + r * 3.2).toFixed(1));
-        patella.setAttribute('ry', (5.5 + r * 3.8).toFixed(1));
-      }
-      var tibia = visual.querySelector('.metric-knee-tibia');
-      if (tibia) {
-        var flex = r * 7;
-        tibia.setAttribute('transform', 'rotate(' + flex.toFixed(1) + ' 30 43)');
-      }
-      visual.querySelectorAll('.metric-knee-swell-ring').forEach(function (ring, i) {
-        var threshold = 0.18 + i * 0.2;
-        var on = r >= threshold;
-        ring.classList.toggle('metric-knee-swell-ring--on', on);
-        ring.style.opacity = on ? String(0.35 + (r - threshold) * 0.75) : '0.1';
-      });
-      widget.style.setProperty('--metric-knee-pulse-dur', (2.1 - r * 0.85).toFixed(2) + 's');
-      widget.style.setProperty('--metric-knee-swell-scale', swellScale.toFixed(3));
+      applySwellingVisual(widget, visual, rawValue);
     } else if (kind === 'fatigue') {
       var fill = visual.querySelector('.metric-battery-fill');
       if (fill) {
@@ -483,13 +504,7 @@
       widget.classList.toggle('metric-widget--irrit-moderate', r > 0.35 && r < 0.65);
       widget.classList.toggle('metric-widget--irrit-storm', r >= 0.65);
     } else if (kind === 'weather') {
-      var drops = Math.ceil(r * 5);
-      visual.querySelectorAll('.metric-rain').forEach(function (drop, i) {
-        drop.classList.toggle('metric-rain--on', i < drops);
-      });
-      widget.classList.toggle('metric-widget--weather-storm', r >= 0.62);
-      var lightning = visual.querySelector('.metric-weather-lightning');
-      if (lightning) lightning.classList.toggle('metric-weather-lightning--on', r >= 0.62);
+      applyWeatherVisual(widget, visual, wellness, r);
     } else if (kind === 'dailyFunction') {
       var prog = visual.querySelector('.metric-ring-progress');
       var check = visual.querySelector('.metric-ring-check');
@@ -508,13 +523,15 @@
     if (isNaN(wellness)) wellness = 5;
     wellness = clamp(wellness, 1, 10);
     var raw = rawFromWellness(slider.id, wellness);
-    var zone = classifyZone(slider.id, wellness);
+    var zone = classifyZone(slider.id, wellness, raw);
+    var severity = isSeverityMetric(slider.id);
     widget.setAttribute('data-metric-zone', zone.id);
+    widget.setAttribute('data-metric-scale', severity ? 'severity' : 'wellness');
     widget.style.setProperty('--metric-color', zone.color);
     widget.setAttribute('data-metric-active', 'true');
     var display = widget.querySelector('.metric-readout__value');
     if (display) {
-      display.textContent = String(wellness);
+      display.textContent = String(severity ? raw : wellness);
       display.classList.add('metric-readout--pulse');
       global.setTimeout(function () { display.classList.remove('metric-readout--pulse'); }, 220);
     }
@@ -524,7 +541,7 @@
     var pct = ((wellness - 1) / 9) * 100;
     slider.style.setProperty('--metric-fill-pct', pct.toFixed(1) + '%');
     slider.style.setProperty('--metric-fill-color', zone.color);
-    applyVisualState(widget, slider.id, raw);
+    applyVisualState(widget, slider.id, raw, wellness);
   }
 
   function nudgeSlider(id, delta) {
@@ -585,7 +602,10 @@
       '<button type="button" class="metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="1" aria-label="Increase">+</button>';
     controls.appendChild(stepper);
 
-    if (goodBad) controls.appendChild(goodBad);
+    if (goodBad) {
+      if (isSeverityMetric(id)) applySeverityScaleHints(container);
+      controls.appendChild(goodBad);
+    }
     body.appendChild(controls);
 
     if (label) {

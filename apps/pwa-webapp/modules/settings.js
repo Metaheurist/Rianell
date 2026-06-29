@@ -511,6 +511,14 @@ export function installSettingsModule(deps) {
     window.settingsModalPaneIndex = 0;
     window.settingsModalScrollPosition = 0;
     window.settingsModalConditionSelectorOpen = false;
+    var search = document.getElementById('settingsSearchInput');
+    if (search) search.value = '';
+    var track = document.getElementById('settingsCarouselTrack');
+    if (track) {
+      track.querySelectorAll('.settings-carousel-pane').forEach(function (pane) {
+        pane.classList.remove('settings-carousel-pane--search-hidden');
+      });
+    }
     var conditionSelector = document.getElementById('medicalConditionSelector');
     var displayContainer = document.getElementById('medicalConditionDisplayContainer');
     if (conditionSelector) conditionSelector.style.display = 'none';

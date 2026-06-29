@@ -357,12 +357,12 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=119" as="style">
-  <link rel="modulepreload" href="app.js?v=56" crossorigin>
+  <link rel="preload" href="styles.css?v=126" as="style">
+  <link rel="modulepreload" href="app.js?v=60" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=119" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=119&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
-  <link rel="stylesheet" href="css/oasis.css">
-  <link rel="stylesheet" href="css/graphics-portfolio.css">
+  <link rel="stylesheet" href="styles.css?v=126" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=126&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="css/oasis.css?v=2">
+  <link rel="stylesheet" href="css/graphics-portfolio.css?v=2">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -1089,8 +1089,8 @@
     <symbol id="icon-chart-up" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/><path d="M15 7h4v4"/></symbol>
     <symbol id="icon-chart-down" viewBox="0 0 24 24"><path d="M4 5v14h16"/><path d="m7 8 4 4 3-3 5 7"/><path d="M15 16h4v-4"/></symbol>
     <symbol id="icon-balance" viewBox="0 0 24 24"><path d="M12 4v17"/><path d="M5 7h14"/><path d="m7 7-4 7h8L7 7Z"/><path d="m17 7-4 7h8l-4-7Z"/></symbol>
-    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="1.75"/><circle class="icon-fill" cx="12" cy="12" r="1.5"/><line x1="12" y1="2" x2="12" y2="3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="12" y1="21" x2="12" y2="22" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="2" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="21" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
-    <symbol id="icon-medal" viewBox="0 0 24 24"><path d="M9 2 7 7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 2 17 7" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 7h10" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><circle cx="12" cy="15" r="6" fill="none" stroke="currentColor" stroke-width="1.75"/><path class="icon-fill" d="M12 12.2 12.9 14.1 15 14.3 13.5 15.7 13.9 17.8 12 16.8 10.1 17.8 10.5 15.7 9 14.3 11.1 14.1Z"/></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.35" fill="none" stroke="currentColor" stroke-width="1.55" opacity="0.52"/><circle cx="12" cy="12" r="5.35" fill="none" stroke="currentColor" stroke-width="1.65"/><circle cx="12" cy="12" r="2.65" fill="none" stroke="currentColor" stroke-width="1.65"/><circle class="icon-fill" cx="12" cy="12" r="1.05"/><circle cx="12" cy="12" r="1.85" fill="none" stroke="currentColor" stroke-width="1" opacity="0.35"/><line x1="12" y1="1.65" x2="12" y2="3.85" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="12" y1="20.15" x2="12" y2="22.35" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="1.65" y1="12" x2="3.85" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="20.15" y1="12" x2="22.35" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+    <symbol id="icon-medal" viewBox="0 0 24 24"><path d="M8.6 2.4 6.8 8.2 9.6 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.4 2.4 17.2 8.2 14.4 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.6 9.2h4.8" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/><circle cx="12" cy="15.4" r="5.65" fill="none" stroke="currentColor" stroke-width="1.65"/><circle cx="12" cy="15.4" r="4.15" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.42"/><path d="M8.8 13.6q3.2-1.4 6.4 0" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity="0.5"/><path class="icon-fill" d="M12 11.8 12.95 13.95 15.35 14.25 13.55 15.75 14.05 18.05 12 16.95 9.95 18.05 10.45 15.75 8.65 14.25 11.05 13.95Z"/></symbol>
     <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/><path d="M8 14h2M12 14h2M16 14h2M8 17h2M12 17h2"/></symbol>
     <symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 0-1 15.9c.9.1 1.4-.5 1.4-1.1 0-.5-.3-.9-.3-1.4 0-.8.7-1.4 1.5-1.4H15a5 5 0 0 0 5-5c0-3.9-3.6-7-8-7Z"/><circle cx="8" cy="10" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="7.5" cy="13" r="1"/></symbol>
     <symbol id="icon-accessibility" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 9h14"/><path d="M12 9v11"/><path d="m8 20 4-7 4 7"/><path d="m7 12 5 1 5-1"/></symbol>
@@ -3004,7 +3004,7 @@
         <div class="section-content" id="lifestyleFactors">
           <div class="slider-container">
             <input type="range" id="dailyFunction" min="1" max="10" step="1" />
-            <label for="dailyFunction" class="slider-label" data-i18n="common.daily.activities">Ability to do Daily activities</label>
+            <label for="dailyFunction" class="slider-label" data-i18n="common.daily.activities">Daily activities</label>
           </div>
           <div class="vital-widget vital-widget--steps" id="stepsWidget" data-vital-active="false" data-vital-zone="idle">
             <label class="field-label-with-icon" data-i18n="common.steps.if.tracked">
@@ -3600,7 +3600,7 @@
           <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Mobility chart" data-i18n-aria="common.loading.mobility.chart"></div>
         </div>
         <div id="dailyFunctionChart" class="chart-container lazy-chart" data-chart-type="dailyFunction">
-          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Ability to do Daily activities chart" data-i18n-aria="common.loading.daily.function.chart"></div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading daily activities chart" data-i18n-aria="common.loading.daily.function.chart"></div>
         </div>
         <div id="swellingChart" class="chart-container lazy-chart" data-chart-type="swelling">
           <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Swelling chart" data-i18n-aria="common.loading.swelling.chart"></div>
@@ -3752,7 +3752,7 @@
           <span class="slider-value" id="editMobilityValue">5</span>
           <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
           
-          <label for="editDailyFunction" data-i18n="common.daily.function.0.10">Ability to do Daily activities (0-10)</label>
+          <label for="editDailyFunction" data-i18n="common.daily.function.0.10">Daily activities (1–10)</label>
           <input type="range" id="editDailyFunction" min="1" max="10" value="5" oninput="updateEditSliderColor('editDailyFunction')" />
           <span class="slider-value" id="editDailyFunctionValue">5</span>
           <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
@@ -4986,11 +4986,11 @@
   <script defer src="llm-load-ladder-sync.js?v=3"></script>
   <script defer src="device-benchmark.js?v=7"></script>
   <script defer src="performance-utils.js"></script>
-  <script defer src="modules/log-metric-widgets.js?v=7"></script>
+  <script defer src="modules/log-metric-widgets.js?v=10"></script>
   <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=3"></script>
   <script defer src="modules/oasis-canvas.js"></script>
-  <script defer src="modules/graphics-portfolio.js?v=1"></script>
+  <script defer src="modules/graphics-portfolio.js?v=4"></script>
   <script defer src="push-subscribe.js?v=1"></script>
   <script defer src="appointment-pdf.js?v=2"></script>
   <script defer src="qr-handoff.js?v=1"></script>
@@ -5032,19 +5032,19 @@
   <script defer src="modules/vitals-suggest-ui.js?v=3"></script>
   <script defer src="modules/drum-picker-scroll.js?v=1"></script>
   <script defer src="modules/bp-input-widget.js?v=3"></script>
-  <script defer src="modules/advanced-vitals-widgets.js?v=3"></script>
+  <script defer src="modules/advanced-vitals-widgets.js?v=4"></script>
   <script defer src="modules/lifestyle-vitals-widgets.js?v=2"></script>
   <script defer src="modules/weekly-review.js?v=7"></script>
   <script defer src="modules/mood-tab.js?v=6"></script>
-  <script defer src="i18n-pwa.js?v=3"></script>
+  <script defer src="i18n-pwa.js?v=4"></script>
   <script defer src="privacy-region.js?v=10"></script>
   <script defer src="guided-onboarding.js?v=5"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script type="module" defer src="app.js?v=56"></script>
+  <script type="module" defer src="app.js?v=60"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
-  <script defer src="modules/goals-carousel.js?v=5"></script>
+  <script defer src="modules/goals-carousel.js?v=7"></script>
   <script defer src="achievements-sync.js?v=1"></script>
   <script defer src="cloud-sync.js?v=2"></script>
   <script>

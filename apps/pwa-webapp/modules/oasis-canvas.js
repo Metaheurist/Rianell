@@ -103,27 +103,44 @@
   }
 
   // ── D.2 Neural trace injection for AI tab ─────────────────────────────
-  // SVG paths are a two-strand bioluminescent trace.
-  // stroke-dasharray: 12 8  →  total pattern length = 20px.
-  // viewBox 400×120 chosen to span the AI tab header width at mobile.
-  var NEURAL_SVG_HTML = [
-    '<svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
-    '  <path class="oasis-neural-path"',
-    '    d="M-20,60 C40,20 80,100 140,60 S220,10 280,60 S360,110 420,60"',
-    '    fill="none" stroke="var(--oasis-glow)" stroke-width="1.5" opacity="0.6"/>',
-    '  <path class="oasis-neural-path oasis-neural-path--b"',
-    '    d="M-20,80 C50,110 100,30 160,80 S240,130 300,80 S380,20 440,80"',
-    '    fill="none" stroke="var(--oasis-glow)" stroke-width="1" opacity="0.4"/>',
-    '</svg>',
-  ].join('');
+  // Full-panel ambient dashed waves (two strands, repeated vertically).
+  function buildNeuralTraceSvg() {
+    var rows = [];
+    var rowCount = 7;
+    var rowStep = 104;
+    var startY = 56;
+    for (var i = 0; i < rowCount; i++) {
+      var yA = startY + i * rowStep;
+      var yB = yA + 28 + (i % 2) * 8;
+      var phase = i * 18;
+      rows.push(
+        '  <path class="oasis-neural-path" style="animation-delay:' + (-i * 0.35) + 's"',
+        '    d="M-60,' + yA + ' C' + (40 + phase) + ',' + (yA - 36) + ' ' + (120 + phase) + ',' + (yA + 34) + ' 200,' + yA +
+        ' S' + (320 + phase) + ',' + (yA - 42) + ' 460,' + yA + '"',
+        '    fill="none" stroke="var(--oasis-glow)" stroke-width="1.35" opacity="0.42"/>',
+        '  <path class="oasis-neural-path oasis-neural-path--b" style="animation-delay:' + (-1.2 - i * 0.35) + 's"',
+        '    d="M-60,' + yB + ' C' + (50 + phase) + ',' + (yB + 38) + ' ' + (130 + phase) + ',' + (yB - 32) + ' 210,' + yB +
+        ' S' + (330 + phase) + ',' + (yB + 40) + ' 460,' + yB + '"',
+        '    fill="none" stroke="var(--oasis-glow)" stroke-width="1" opacity="0.28"/>'
+      );
+    }
+    return [
+      '<svg viewBox="0 0 400 720" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+      rows.join('\n'),
+      '</svg>',
+    ].join('\n');
+  }
 
   function injectNeuralTrace(containerEl) {
     if (!containerEl) return;
-    if (containerEl.querySelector('.oasis-neural-trace')) return; // idempotent
+    var existing = containerEl.querySelector('.oasis-neural-trace');
+    if (existing && existing.getAttribute('data-oasis-neural-v') === '2') return;
+    if (existing) existing.remove();
     var wrapper = document.createElement('div');
     wrapper.className = 'oasis-neural-trace';
+    wrapper.setAttribute('data-oasis-neural-v', '2');
     wrapper.setAttribute('aria-hidden', 'true');
-    wrapper.innerHTML = NEURAL_SVG_HTML;
+    wrapper.innerHTML = buildNeuralTraceSvg();
     containerEl.insertBefore(wrapper, containerEl.firstChild);
   }
 

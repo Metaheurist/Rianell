@@ -185,6 +185,157 @@
     return id ? avatarSymbolPathsForId(id) : avatarSymbolPathsForId('voidorb');
   }
 
+  function avatarRngFromSeed(seed) {
+    if (S.createMulberry32 && S.hashAvatarSeed) {
+      return S.createMulberry32(S.hashAvatarSeed(seed));
+    }
+    var n = 0;
+    var s = String(seed || '');
+    for (var i = 0; i < s.length; i++) n = ((n << 5) - n + s.charCodeAt(i)) | 0;
+    return function () {
+      n = (n * 1664525 + 1013904223) | 0;
+      return ((n >>> 0) & 0xfffffff) / 0x10000000;
+    };
+  }
+
+  function avatarFaceFeaturesMarkup(rng, cx, faceCy, faceRx, faceRy) {
+    var eyeFill = 'fill="var(--avatar-eye, #1a1a1a)"';
+    var strokeEye = 'stroke="var(--avatar-eye, #1a1a1a)"';
+    var gap = 4 + rng() * 4;
+    var eyeY = faceCy - 1;
+    var eyes = '';
+    var eyeStyle = Math.floor(rng() * 4);
+    if (eyeStyle === 0) {
+      eyes = avatarCompanionEyes(cx, eyeY, gap);
+    } else if (eyeStyle === 1) {
+      eyes = '<path d="M' + (cx - gap - 2) + ' ' + (eyeY + 1) + ' Q' + (cx - gap) + ' ' + (eyeY - 5) + ' ' + (cx - gap + 2) + ' ' + (eyeY + 1) + '" ' + strokeEye + ' stroke-width="1.6" fill="none" stroke-linecap="round"/>' +
+        '<path d="M' + (cx + gap - 2) + ' ' + (eyeY + 1) + ' Q' + (cx + gap) + ' ' + (eyeY - 5) + ' ' + (cx + gap + 2) + ' ' + (eyeY + 1) + '" ' + strokeEye + ' stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+    } else if (eyeStyle === 2) {
+      eyes = '<circle cx="' + (cx - gap) + '" cy="' + eyeY + '" r="' + (2.4 + rng()).toFixed(1) + '" ' + eyeFill + '/>' +
+        '<circle cx="' + (cx + gap) + '" cy="' + eyeY + '" r="' + (2.4 + rng()).toFixed(1) + '" ' + eyeFill + '/>' +
+        '<circle cx="' + (cx - gap + 1) + '" cy="' + (eyeY - 1) + '" r="0.9" fill="#fff" opacity="0.75"/>';
+    } else {
+      eyes = '<ellipse cx="' + (cx - gap) + '" cy="' + eyeY + '" rx="2.8" ry="3.4" ' + eyeFill + '/>' +
+        '<ellipse cx="' + (cx + gap) + '" cy="' + eyeY + '" rx="2.8" ry="3.4" ' + eyeFill + '/>';
+    }
+
+    var mouth = '';
+    var mouthType = Math.floor(rng() * 4);
+    var mouthY = faceCy + faceRy * 0.42;
+    if (mouthType === 0) {
+      mouth = '<path d="M' + (cx - 5 - rng() * 2) + ' ' + mouthY + ' Q' + cx + ' ' + (mouthY + 4 + rng() * 2) + ' ' + (cx + 5 + rng() * 2) + ' ' + mouthY + '" ' + strokeEye + ' stroke-width="1.35" fill="none" stroke-linecap="round"/>';
+    } else if (mouthType === 1) {
+      mouth = '<ellipse cx="' + cx + '" cy="' + (mouthY + 1) + '" rx="2.2" ry="1.6" ' + eyeFill + ' opacity="0.85"/>';
+    } else if (mouthType === 2) {
+      mouth = '<line x1="' + (cx - 4) + '" y1="' + mouthY + '" x2="' + (cx + 4) + '" y2="' + mouthY + '" ' + strokeEye + ' stroke-width="1.35" stroke-linecap="round"/>';
+    }
+
+    return eyes + mouth;
+  }
+
+  function avatarSymbolPathsFromSeed(seed) {
+    var rng = avatarRngFromSeed(seed);
+    var cx = 32;
+    var f = 'fill="var(--avatar-primary)"';
+    var s = 'stroke="var(--avatar-secondary)" stroke-width="1.5" fill="none"';
+    var glow = avatarCompanionGlow(cx, 28 + rng() * 4, 7 + rng() * 6);
+
+    var faceRx = 10 + rng() * 6;
+    var faceRy = 11 + rng() * 7;
+    var faceCy = 24 + rng() * 5;
+    var face = '<ellipse class="avatar-generated-face" cx="' + cx + '" cy="' + faceCy.toFixed(1) + '" rx="' + faceRx.toFixed(1) + '" ry="' + faceRy.toFixed(1) + '" ' + f + '/>';
+    var features = avatarFaceFeaturesMarkup(rng, cx, faceCy, faceRx, faceRy);
+
+    var bodyType = Math.floor(rng() * 9);
+    var bodyY = faceCy + faceRy;
+    var body = '';
+    switch (bodyType) {
+      case 0:
+        body = '<ellipse cx="' + cx + '" cy="' + (bodyY + 10).toFixed(1) + '" rx="' + (12 + rng() * 10).toFixed(1) + '" ry="' + (7 + rng() * 6).toFixed(1) + '" ' + f + ' opacity="0.88"/>';
+        break;
+      case 1:
+        body = '<path d="M' + (cx - 16 - rng() * 4) + ' ' + (bodyY + 4) + ' Q' + cx + ' ' + (bodyY - 6) + ' ' + (cx + 16 + rng() * 4) + ' ' + (bodyY + 4) + ' V' + (bodyY + 18 + rng() * 6) + ' H' + (cx - 16) + ' Z" ' + f + '/>';
+        break;
+      case 2:
+        body = '<rect x="' + (cx - 14 - rng() * 4).toFixed(1) + '" y="' + (bodyY - 2).toFixed(1) + '" width="' + (28 + rng() * 8).toFixed(1) + '" height="' + (16 + rng() * 8).toFixed(1) + '" rx="8" ' + f + ' opacity="0.9"/>';
+        break;
+      case 3:
+        body = '<path d="M32 ' + (bodyY - 4).toFixed(1) + ' C' + (cx + 18).toFixed(1) + ' ' + (bodyY + 2).toFixed(1) + ' ' + (cx + 14).toFixed(1) + ' ' + (bodyY + 20).toFixed(1) + ' 32 ' + (bodyY + 20).toFixed(1) +
+          ' C' + (cx - 14).toFixed(1) + ' ' + (bodyY + 20).toFixed(1) + ' ' + (cx - 18).toFixed(1) + ' ' + (bodyY + 2).toFixed(1) + ' 32 ' + (bodyY - 4).toFixed(1) + 'Z" ' + f + '/>';
+        break;
+      case 4:
+        body = '<path d="M32 ' + (bodyY - 8).toFixed(1) + ' L' + (cx + 12).toFixed(1) + ' ' + (bodyY + 16).toFixed(1) + ' L' + (cx - 12).toFixed(1) + ' ' + (bodyY + 16).toFixed(1) + ' Z" ' + f + '/>';
+        break;
+      case 5:
+        body = '<ellipse cx="24" cy="' + (bodyY + 8).toFixed(1) + '" rx="' + (8 + rng() * 4).toFixed(1) + '" ry="' + (6 + rng() * 3).toFixed(1) + '" ' + f + ' opacity="0.72"/>' +
+          '<ellipse cx="40" cy="' + (bodyY + 6).toFixed(1) + '" rx="' + (9 + rng() * 4).toFixed(1) + '" ry="' + (7 + rng() * 3).toFixed(1) + '" ' + f + ' opacity="0.82"/>' +
+          '<ellipse cx="' + cx + '" cy="' + (bodyY + 12).toFixed(1) + '" rx="' + (12 + rng() * 4).toFixed(1) + '" ry="' + (8 + rng() * 3).toFixed(1) + '" ' + f + '/>';
+        break;
+      case 6:
+        body = '<circle cx="' + cx + '" cy="' + (bodyY + 8).toFixed(1) + '" r="' + (10 + rng() * 8).toFixed(1) + '" ' + f + '/>' +
+          '<path d="M' + (cx - 10) + ' ' + (bodyY - 2) + ' L' + (cx + 10) + ' ' + (bodyY + 18) + ' M' + (cx + 10) + ' ' + (bodyY - 2) + ' L' + (cx - 10) + ' ' + (bodyY + 18) + '" ' + s + ' opacity="0.55"/>';
+        break;
+      case 7:
+        body = '<path d="M32 ' + (bodyY - 2).toFixed(1) + ' C' + (cx + 20).toFixed(1) + ' ' + (bodyY + 4).toFixed(1) + ' ' + (cx + 16).toFixed(1) + ' ' + (bodyY + 22).toFixed(1) + ' 32 ' + (bodyY + 22).toFixed(1) +
+          ' C' + (cx - 16).toFixed(1) + ' ' + (bodyY + 22).toFixed(1) + ' ' + (cx - 20).toFixed(1) + ' ' + (bodyY + 4).toFixed(1) + ' 32 ' + (bodyY - 2).toFixed(1) + 'Z" ' + f + '/>' +
+          '<path d="M32 ' + (bodyY + 2).toFixed(1) + ' C' + (cx + 10).toFixed(1) + ' ' + (bodyY + 8).toFixed(1) + ' ' + (cx + 8).toFixed(1) + ' ' + (bodyY + 16).toFixed(1) + ' 32 ' + (bodyY + 16).toFixed(1) +
+          ' C' + (cx - 8).toFixed(1) + ' ' + (bodyY + 16).toFixed(1) + ' ' + (cx - 10).toFixed(1) + ' ' + (bodyY + 8).toFixed(1) + ' 32 ' + (bodyY + 2).toFixed(1) + 'Z" fill="var(--avatar-secondary)" opacity="0.32"/>';
+        break;
+      default:
+        body = '<path d="M32 ' + (bodyY - 6).toFixed(1) + ' L' + (cx + 14).toFixed(1) + ' ' + (bodyY + 14).toFixed(1) + ' L' + (cx - 14).toFixed(1) + ' ' + (bodyY + 14).toFixed(1) + ' Z" ' + f + '/>' +
+          '<path d="M32 ' + (bodyY - 2).toFixed(1) + ' L36 ' + (bodyY + 10).toFixed(1) + ' L28 ' + (bodyY + 10).toFixed(1) + ' Z" fill="var(--avatar-secondary)" opacity="0.28"/>';
+        break;
+    }
+
+    var accent = '';
+    if (rng() > 0.55) {
+      var rayCount = 4 + Math.floor(rng() * 5);
+      for (var ri = 0; ri < rayCount; ri++) {
+        var angle = (ri / rayCount) * Math.PI * 2;
+        var x1 = cx + Math.cos(angle) * (faceRy + 6);
+        var y1 = faceCy + Math.sin(angle) * (faceRy + 6);
+        var x2 = cx + Math.cos(angle) * (faceRy + 12 + rng() * 4);
+        var y2 = faceCy + Math.sin(angle) * (faceRy + 12 + rng() * 4);
+        accent += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" ' + s + ' stroke-linecap="round" opacity="0.45"/>';
+      }
+    }
+
+    return glow + body + accent + face + features;
+  }
+
+  function generatedIconIdFromSeed(seed) {
+    var slug = S.generatedAvatarIconSlug ? S.generatedAvatarIconSlug(seed) : String(seed || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    return 'icon-gen-' + (slug || '0');
+  }
+
+  function ensureGeneratedAvatarSymbol(seed) {
+    if (!seed) return false;
+    var svg = document.querySelector('.rianell-icon-sprite');
+    if (!svg) return false;
+    appendSymbol(svg, generatedIconIdFromSeed(seed), '0 0 64 64', avatarSymbolPathsFromSeed(seed));
+    return true;
+  }
+
+  function isGeneratedAvatarId(avatarId) {
+    return S.isGeneratedProfileAvatar ? S.isGeneratedProfileAvatar(avatarId) : false;
+  }
+
+  function parseGeneratedSeed(avatarId) {
+    return S.parseGeneratedAvatarSeed ? S.parseGeneratedAvatarSeed(avatarId) : null;
+  }
+
+  function buildGeneratedAvatarId(seed) {
+    return S.buildGeneratedProfileAvatarId ? S.buildGeneratedProfileAvatarId(seed) : ('gen:' + seed);
+  }
+
+  function createRandomAvatarSeed() {
+    return S.createRandomAvatarSeed ? S.createRandomAvatarSeed() : String(Date.now());
+  }
+
+  function avatarNameFromSeed(seed) {
+    return S.generateAvatarNameFromSeed ? S.generateAvatarNameFromSeed(seed) : String(seed || 'Companion');
+  }
+
   function metricEntityPaths(id) {
     var stroke = 'stroke="currentColor" stroke-width="1.5" fill="none"';
     var fill = 'fill="currentColor"';
@@ -212,8 +363,8 @@
     switch (id) {
       case 'food_logging': return '<circle cx="32" cy="32" r="28" ' + stroke + '/><path d="M20 20 h8 v12 h-8z M36 18 h8 v14 h-8z" fill="currentColor"/>';
       case 'exercise_logging': return '<polygon points="32,6 56,20 48,54 16,54 8,20" ' + stroke + '/><path d="M22 32 h20" ' + stroke + '/>';
-      case 'medication_logging': return '<rect x="10" y="10" width="44" height="44" rx="8" ' + stroke + '/><circle cx="32" cy="32" r="10" ' + stroke + '/>';
-      case 'milestone_3': return '<circle cx="32" cy="32" r="26" ' + stroke + '/><text x="32" y="38" text-anchor="middle" font-size="18" fill="currentColor">3</text>';
+      case 'medication_logging': return '<rect x="14" y="26" width="36" height="12" rx="6" ' + stroke + '/><line x1="32" y1="27" x2="32" y2="37" ' + stroke + ' opacity="0.45"/>';
+      case 'milestone_3': return '<path d="M30 14 v36 L12 36 V18 Z" ' + stroke + '/><path d="M34 14 v36 L52 36 V18 Z" ' + stroke + '/><line x1="32" y1="16" x2="32" y2="48" ' + stroke + ' opacity="0.35"/>';
       case 'milestone_30': return '<circle cx="32" cy="32" r="26" ' + stroke + ' stroke-dasharray="4 3"/><text x="32" y="38" text-anchor="middle" font-size="16" fill="currentColor">30</text>';
       case 'milestone_60': return '<rect x="8" y="8" width="48" height="48" rx="24" ' + stroke + '/><text x="32" y="38" text-anchor="middle" font-size="16" fill="currentColor">60</text>';
       case 'milestone_90': return '<polygon points="32,4 60,32 32,60 4,32" ' + stroke + '/><text x="32" y="38" text-anchor="middle" font-size="16" fill="currentColor">90</text>';
@@ -270,24 +421,22 @@
           '</g></g>';
       case 'medication_logging':
         return '<g class="ach-icon ach-icon--medication_logging">' +
-          '<path class="ach-glass" d="M21 11 h22 v7 l-9 38 h-4 l-9-38z" ' + stroke + '/>' +
-          '<line x1="21" y1="18" x2="43" y2="18" ' + stroke + ' opacity="0.5"/>' +
-          '<rect class="ach-pill" x="28" y="30" width="8" height="15" rx="4" ' + fill + '/>' +
-          '<line class="ach-pill-score" x1="28" y1="37" x2="36" y2="37" stroke="rgba(255,255,255,0.55)" stroke-width="1"/>' +
-          '<circle class="ach-sizzle ach-sizzle--1" cx="25" cy="25" r="1.6" ' + fill + ' opacity="0.7"/>' +
-          '<circle class="ach-sizzle ach-sizzle--2" cx="33" cy="23" r="1.3" ' + fill + ' opacity="0.6"/>' +
-          '<circle class="ach-sizzle ach-sizzle--3" cx="39" cy="27" r="1.1" ' + fill + ' opacity="0.5"/>' +
-          '<circle class="ach-sizzle ach-sizzle--4" cx="30" cy="21" r="0.9" ' + fill + ' opacity="0.45"/>' +
-          '</g>';
+          '<g class="ach-pill-spin">' +
+          '<rect class="ach-pill-body" x="14" y="26" width="36" height="12" rx="6" ' + stroke + '/>' +
+          '<rect class="ach-pill-half ach-pill-half--left" x="15" y="27" width="16" height="10" rx="5" ' + fill + ' opacity="0.72"/>' +
+          '<rect class="ach-pill-half ach-pill-half--right" x="31" y="27" width="16" height="10" rx="5" ' + fill + '/>' +
+          '<line class="ach-pill-score" x1="32" y1="27" x2="32" y2="37" stroke="rgba(255,255,255,0.55)" stroke-width="0.85"/>' +
+          '</g></g>';
       case 'milestone_3':
         return '<g class="ach-icon ach-icon--milestone_3">' +
-          '<rect class="ach-book-spine" x="30" y="12" width="4" height="40" rx="1" ' + fill + ' opacity="0.5"/>' +
-          '<path class="ach-book-cover ach-book-cover--left" d="M30 12 v40 L12 38 V16 Z" ' + stroke + '/>' +
-          '<path class="ach-book-cover ach-book-cover--right" d="M34 12 v40 L52 38 V16 Z" ' + stroke + '/>' +
-          '<path class="ach-book-page" d="M32 17 v30" ' + stroke + ' opacity="0.35"/>' +
-          '<path class="ach-book-page" d="M28 20 v24" ' + stroke + ' opacity="0.2"/>' +
-          '<path class="ach-book-page" d="M36 20 v24" ' + stroke + ' opacity="0.2"/>' +
-          '</g>';
+          '<g class="ach-book">' +
+          '<rect class="ach-book-spine" x="30" y="13" width="4" height="40" rx="1" ' + fill + ' opacity="0.55"/>' +
+          '<path class="ach-book-cover ach-book-cover--left" d="M30 13 v40 L10 37 V17 Z" ' + stroke + ' fill="currentColor" fill-opacity="0.1"/>' +
+          '<path class="ach-book-cover ach-book-cover--right" d="M34 13 v40 L54 37 V17 Z" ' + stroke + ' fill="currentColor" fill-opacity="0.1"/>' +
+          '<path class="ach-book-page ach-book-page--left" d="M27 18 v30" ' + stroke + ' opacity="0.28"/>' +
+          '<path class="ach-book-page ach-book-page--right" d="M37 18 v30" ' + stroke + ' opacity="0.28"/>' +
+          '<path class="ach-book-page ach-book-page--center" d="M32 15 v36" ' + stroke + ' opacity="0.45"/>' +
+          '</g></g>';
       case 'milestone_30':
         return '<g class="ach-icon ach-icon--milestone_30">' +
           '<rect class="ach-cal-frame" x="10" y="8" width="44" height="48" rx="3" ' + stroke + '/>' +
@@ -424,6 +573,11 @@
       appendSymbol(svg, 'icon-cycle-' + phase, '0 0 32 32', cyclePhasePaths(phase));
     });
 
+    var settings = global.appSettings || {};
+    if (settings.profileAvatar && isGeneratedAvatarId(settings.profileAvatar)) {
+      ensureGeneratedAvatarSymbol(parseGeneratedSeed(settings.profileAvatar));
+    }
+
     _spritesInjected = true;
     return true;
   }
@@ -493,12 +647,20 @@
   }
 
   function renderAvatarSvgUse(avatarId, className, title) {
-    var id = normalizeAvatar(avatarId);
+    var rawId = typeof avatarId === 'string' ? avatarId.trim() : '';
+    var iconRef = rawId;
+    if (isGeneratedAvatarId(rawId)) {
+      var genSeed = parseGeneratedSeed(rawId);
+      ensureGeneratedAvatarSymbol(genSeed);
+      iconRef = generatedIconIdFromSeed(genSeed).replace(/^icon-/, '');
+    } else {
+      iconRef = normalizeAvatar(rawId);
+    }
     var cls = className ? ' class="' + escAttr(className) + '"' : '';
     var titleTag = title ? '<title>' + escAttr(title) + '</title>' : '';
     return '<svg' + cls + ' viewBox="0 0 64 64" aria-hidden="' + (title ? 'false' : 'true') + '" role="img">' +
       titleTag +
-      '<use href="#icon-' + escAttr(id) + '"></use></svg>';
+      '<use href="#icon-' + escAttr(iconRef) + '"></use></svg>';
   }
 
   function avatarCarouselNavIcon(direction) {
@@ -551,7 +713,106 @@
   }
 
   function avatarLabel(avatarId) {
+    if (isGeneratedAvatarId(avatarId)) {
+      var settings = global.appSettings || {};
+      if (settings.profileAvatar === avatarId && settings.profileAvatarName) {
+        return String(settings.profileAvatarName);
+      }
+      var seed = parseGeneratedSeed(avatarId);
+      return seed ? avatarNameFromSeed(seed) : 'Companion';
+    }
     return tUi('avatar.' + avatarId, avatarId);
+  }
+
+  function shuffleIconSvg() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.5-5.7M20 12a8 8 0 0 1-13.5 5.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+      '<path d="M16 4h4v4M8 20H4v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function resolveRandomPickerState(currentId, options) {
+    options = options || {};
+    var id = typeof currentId === 'string' ? currentId.trim() : '';
+    if (isGeneratedAvatarId(id)) {
+      var existingSeed = parseGeneratedSeed(id);
+      return {
+        id: id,
+        seed: existingSeed,
+        name: avatarNameFromSeed(existingSeed),
+      };
+    }
+    if (id && AVATAR_IDS.indexOf(normalizeAvatar(id)) >= 0 && options.autoSeed === false) {
+      var preset = normalizeAvatar(id);
+      return { id: preset, seed: null, name: avatarLabel(preset), preset: true };
+    }
+    var seed = createRandomAvatarSeed();
+    return {
+      id: buildGeneratedAvatarId(seed),
+      seed: seed,
+      name: avatarNameFromSeed(seed),
+    };
+  }
+
+  function renderRandomAvatarPickerHTML(currentId, options) {
+    options = options || {};
+    var variant = options.variant ? String(options.variant) : 'intro';
+    var state = resolveRandomPickerState(currentId, options);
+    var shellCls = 'avatar-random-shell' + (variant ? ' avatar-random-shell--' + escAttr(variant) : '');
+    var shuffleLabel = tUi('onboarding.questionnaire.avatarPick.shuffle', 'Shuffle character');
+    return '<div class="' + shellCls + '" data-avatar-id="' + escAttr(state.id) + '" data-avatar-seed="' + escAttr(state.seed || '') + '">' +
+      '<div class="avatar-random-card" role="group" aria-label="' + escAttr(state.name) + '">' +
+      '<div class="avatar-random-face-wrap">' +
+      '<span class="avatar-random-face-ring" aria-hidden="true"></span>' +
+      renderAvatarSvgUse(state.id, 'avatar-random-glyphs avatar-carousel__glyph avatar-carousel__glyph--idle', state.name) +
+      '</div>' +
+      '<p class="avatar-random-name">' + escAttr(state.name) + '</p>' +
+      '</div>' +
+      '<button type="button" class="avatar-random-shuffle" aria-label="' + escAttr(shuffleLabel) + '">' +
+      shuffleIconSvg() + '<span>' + escAttr(shuffleLabel) + '</span></button>' +
+      '</div>';
+  }
+
+  function bindRandomAvatarPicker(container, onChange) {
+    if (!container) return;
+    var shell = container.classList.contains('avatar-random-shell')
+      ? container
+      : container.querySelector('.avatar-random-shell');
+    if (!shell) return;
+
+    function applyState(seed) {
+      if (!seed) return;
+      var newId = buildGeneratedAvatarId(seed);
+      var name = avatarNameFromSeed(seed);
+      ensureGeneratedAvatarSymbol(seed);
+      shell.setAttribute('data-avatar-id', newId);
+      shell.setAttribute('data-avatar-seed', seed);
+      var nameEl = shell.querySelector('.avatar-random-name');
+      var card = shell.querySelector('.avatar-random-card');
+      var wrap = shell.querySelector('.avatar-random-face-wrap');
+      if (nameEl) nameEl.textContent = name;
+      if (card) card.setAttribute('aria-label', name);
+      if (wrap) {
+        wrap.innerHTML = '<span class="avatar-random-face-ring" aria-hidden="true"></span>' +
+          renderAvatarSvgUse(newId, 'avatar-random-glyphs avatar-carousel__glyph avatar-carousel__glyph--idle', name);
+      }
+      if (typeof onChange === 'function') onChange({ id: newId, name: name, seed: seed });
+    }
+
+    function shuffle() {
+      applyState(createRandomAvatarSeed());
+      shell.classList.remove('avatar-random-shell--shuffle');
+      void shell.offsetWidth;
+      shell.classList.add('avatar-random-shell--shuffle');
+    }
+
+    var shuffleBtn = shell.querySelector('.avatar-random-shuffle');
+    if (shuffleBtn) shuffleBtn.addEventListener('click', shuffle);
+
+    var initialSeed = shell.getAttribute('data-avatar-seed');
+    if (initialSeed) {
+      applyState(initialSeed);
+    } else {
+      shuffle();
+    }
   }
 
   function bindAvatarCarousel(container, onSelect) {
@@ -644,7 +905,9 @@
   }
 
   function updateHeaderAvatar(avatarId) {
-    var id = normalizeAvatar(avatarId || (global.appSettings && global.appSettings.profileAvatar));
+    var raw = avatarId || (global.appSettings && global.appSettings.profileAvatar);
+    var id = isGeneratedAvatarId(raw) ? raw : normalizeAvatar(raw);
+    if (isGeneratedAvatarId(id)) ensureGeneratedAvatarSymbol(parseGeneratedSeed(id));
     var label = avatarLabel(id);
     var html = '<div class="profile-avatar-header__ring">' +
       renderAvatarSvgUse(id, 'profile-avatar-header__glyph avatar-carousel__glyph--idle', label) +
@@ -674,12 +937,21 @@
     var settings = global.appSettings || {};
     var avatarMount = document.getElementById('settingsAvatarCarouselMount');
     if (avatarMount) {
-      avatarMount.innerHTML = renderAvatarCarouselHTML(settings.profileAvatar, { variant: 'settings' });
-      bindAvatarCarousel(avatarMount, function (id) {
-        settings.profileAvatar = normalizeAvatar(id);
-        if (global.appSettings) global.appSettings.profileAvatar = settings.profileAvatar;
+      var current = settings.profileAvatar || 'voidorb';
+      var useGen = isGeneratedAvatarId(current);
+      avatarMount.innerHTML = renderRandomAvatarPickerHTML(current, {
+        variant: 'settings',
+        autoSeed: !useGen && !current,
+      });
+      bindRandomAvatarPicker(avatarMount, function (state) {
+        settings.profileAvatar = state.id;
+        settings.profileAvatarName = state.name;
+        if (global.appSettings) {
+          global.appSettings.profileAvatar = state.id;
+          global.appSettings.profileAvatarName = state.name;
+        }
         if (typeof global.saveSettings === 'function') global.saveSettings();
-        updateHeaderAvatar(settings.profileAvatar);
+        updateHeaderAvatar(state.id);
         reactHeaderAvatar();
       });
     }
@@ -930,6 +1202,27 @@
     });
   }
 
+  function decorateSymptomChips(scope) {
+    var root = scope && scope.querySelectorAll ? scope : document;
+    root.querySelectorAll('.symptom-chip').forEach(function (chip) {
+      chip.classList.add('symptom-chip--portfolio');
+    });
+    var containers = scope && scope.classList && scope.classList.contains('symptom-tiles-container')
+      ? [scope]
+      : Array.prototype.slice.call(root.querySelectorAll('.symptom-tiles-container, .symptom-chips, #tilePickerSheetBody'));
+    containers.forEach(function (container) {
+      if (container.dataset.symptomRippleBound === '1') return;
+      container.dataset.symptomRippleBound = '1';
+      container.addEventListener('click', function (evt) {
+        var chip = evt.target.closest('.symptom-chip');
+        if (!chip) return;
+        chip.classList.remove('symptom-chip--ripple');
+        void chip.offsetWidth;
+        chip.classList.add('symptom-chip--ripple');
+      });
+    });
+  }
+
   function decorateCycleBeacon() {
     document.querySelectorAll('.cycle-day-node--active').forEach(function (node) {
       if (node.querySelector('.cycle-day-beacon')) return;
@@ -1088,6 +1381,7 @@
     decorateGoalsProgress();
     decorateMoodTab();
     decorateStressorChips();
+    decorateSymptomChips();
     decorateCycleBeacon();
     decorateLifestyleVitals();
   }
@@ -1161,6 +1455,9 @@
     applyAvatarHealthState: applyAvatarHealthState,
     renderAvatarCarouselHTML: renderAvatarCarouselHTML,
     bindAvatarCarousel: bindAvatarCarousel,
+    renderRandomAvatarPickerHTML: renderRandomAvatarPickerHTML,
+    bindRandomAvatarPicker: bindRandomAvatarPicker,
+    avatarSymbolPathsFromSeed: avatarSymbolPathsFromSeed,
     renderAvatarSvgUse: renderAvatarSvgUse,
     renderBadgeCompositeHTML: renderBadgeCompositeHTML,
     renderAchievementIconHTML: renderAchievementIconHTML,
@@ -1174,6 +1471,7 @@
     decorateLogScreens: decorateLogScreens,
     decorateGoalsProgress: decorateGoalsProgress,
     decorateMoodTab: decorateMoodTab,
+    decorateSymptomChips: decorateSymptomChips,
     animateAchievementDayChips: animateAchievementDayChips,
     playAchievementUnlockSequence: playAchievementUnlockSequence,
     decorateLifestyleVitals: decorateLifestyleVitals,

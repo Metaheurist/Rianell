@@ -17,6 +17,7 @@
   var draftAppearanceMode = 'light';
   var draftGlobalTheme = 'mint';
   var draftProfileAvatar = '';
+  var draftProfileAvatarName = '';
   var avatarPickMade = false;
   var _focusTrapTeardown = null;
   var progressSession = null;
@@ -434,16 +435,17 @@
 
     if (card.kind === 'avatar-carousel') {
       var GP = global.RianellGraphicsPortfolio;
-      var bootAvatar = draftProfileAvatar || (readPrefs().profileAvatar || 'voidorb');
-      if (GP && typeof GP.renderAvatarCarouselHTML === 'function') {
+      var bootAvatar = draftProfileAvatar || (readPrefs().profileAvatar || '');
+      if (GP && typeof GP.renderRandomAvatarPickerHTML === 'function') {
         body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' +
-          GP.renderAvatarCarouselHTML(bootAvatar, { variant: 'intro' }) + hint;
-        if (typeof GP.bindAvatarCarousel === 'function') {
-          GP.bindAvatarCarousel(body, function (id) {
-            draftProfileAvatar = id;
+          GP.renderRandomAvatarPickerHTML(bootAvatar, { variant: 'intro', autoSeed: true }) + hint;
+        if (typeof GP.bindRandomAvatarPicker === 'function') {
+          GP.bindRandomAvatarPicker(body, function (state) {
+            draftProfileAvatar = state.id;
+            draftProfileAvatarName = state.name;
             avatarPickMade = true;
-            writePrefs({ profileAvatar: id });
-            if (typeof GP.updateHeaderAvatar === 'function') GP.updateHeaderAvatar(id);
+            writePrefs({ profileAvatar: state.id, profileAvatarName: state.name });
+            if (typeof GP.updateHeaderAvatar === 'function') GP.updateHeaderAvatar(state.id);
             if (continueBtn) continueBtn.textContent = t('onboarding.questionnaire.avatarPick.continueSelected');
           });
         }
@@ -729,6 +731,7 @@
     if (card.kind === 'avatar-carousel') {
       applyAndAdvance('avatarPick', avatarPickMade ? 'continue' : 'skip', {
         profileAvatar: draftProfileAvatar || readPrefs().profileAvatar || 'voidorb',
+        profileAvatarName: draftProfileAvatarName || readPrefs().profileAvatarName || '',
       });
       return;
     }
@@ -771,7 +774,8 @@
     var bootPrefs = readPrefs();
     draftAppearanceMode = bootPrefs.appearanceMode === 'dark' ? 'dark' : 'light';
     draftGlobalTheme = bootPrefs.globalTheme || 'mint';
-    draftProfileAvatar = bootPrefs.profileAvatar || 'voidorb';
+    draftProfileAvatar = bootPrefs.profileAvatar || '';
+    draftProfileAvatarName = bootPrefs.profileAvatarName || '';
     avatarPickMade = !!bootPrefs.avatarPickAt;
     hidePrivacyGateIfOpen();
     cards = rebuildCards();
