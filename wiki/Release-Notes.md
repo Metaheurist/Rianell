@@ -1,15 +1,30 @@
 # Release Notes
 
-## Latest release (v2.1.1)
+## Latest release (v2.1.2)
+
+**Date:** 2026-06-29
+
+### Highlights
+
+- **Companion carousel:** Scrollable picker with 20 unique character silhouettes in onboarding and Settings.
+- **Animated achievements:** Per-badge SVG icons (food, exercise, medication, milestones, sleep, cycle, full logger).
+- **AI dashboard polish:** Ranked watch cards, lifestyle panels, status-toned trend sparklines.
+- **Mood tab:** Compact history and richer sparkline.
+- **Removed:** Ambient vibe settings and onboarding step (Oasis motion unchanged).
+
+See **v2.1.1** below for the initial graphics portfolio release.
+
+---
+
+## Previous (v2.1.1)
 
 **Date:** 2026-06-29
 
 ### Highlights
 
 - **Profile companions:** Choose from 20 abstract SVG avatars during onboarding or in Settings.
-- **Ambient vibes:** Five personalities (Calm, Energy, Nature, Clinical, Dark) tune background parallax and avatar motion.
-- **Living UI:** Metric companions on sliders, badge composites on achievements, Set D pain body map, and decorated export/connector/goals screens.
-- **Accessibility:** Clinical vibe and reduced-motion respect; tier-0 devices skip heavy companions.
+- **Living UI:** Metric companions on sliders, Set D pain body map, and decorated export/connector/goals screens.
+- **Accessibility:** Reduced-motion respect; tier-0 devices skip heavy companions.
 
 See **v2.1.0-oasis** below for the bioluminescent UI overhaul.
 

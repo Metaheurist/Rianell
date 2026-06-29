@@ -4,15 +4,24 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.2 documentation sync (dashboard UX, companions, achievements)
+
+- **PWA AI:** Overview/watch/lifestyle/trend panel refresh in `app.js` + `styles.css`; unit tests under `tests/unit/pwa/ai-*.test.mjs`.
+- **PWA mood:** `modules/mood-tab.js` compact layout; `mood-tab-ui.test.mjs`.
+- **PWA achievements:** `renderAchievementIconHTML` animated SVG badges; `achievement-icons.test.mjs`.
+- **PWA companions:** Scrollable `avatar-carousel-shell` with 20 character silhouettes; `avatar-carousel.test.mjs`.
+- **Removed:** Ambient vibe UI and onboarding step; `removeLegacyVibeUi` on portfolio init.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.2]`; wiki [[Features-Guide]] § Profile companion.
+
 ### v2.1.1 documentation sync (SVG graphics & animation portfolio)
 
 - **Tokens:** `VIBE_TOKENS`, `AVATAR_THEME_TOKENS`, `getVibeIds`, `normalizeUserVibe` in `packages/tokens/src/index.mjs`; synced via `scripts/build/sync-tokens-to-pwa.mjs` → `apps/pwa-webapp/css/tokens.css`.
-- **Shared:** `packages/shared/src/settings/avatars.mjs` — 20 `PROFILE_AVATAR_IDS`, legacy map, `USER_VIBE_IDS`; onboarding `avatarPick` + `vibe` cards in `guidedQuestionnaire.mjs`.
+- **Shared:** `packages/shared/src/settings/avatars.mjs` — 20 `PROFILE_AVATAR_IDS`, legacy map; onboarding `avatarPick` card in `guidedQuestionnaire.mjs` (vibe step removed v2.1.2).
 - **PWA (new):** `modules/graphics-portfolio.js`, `css/graphics-portfolio.css` (`window.RianellGraphicsPortfolio`); wired from `index.html`, `app.js`, `guided-onboarding.js`, settings/log/cycle/mood modules.
 - **Sprites:** injected at runtime (avatars, metric entities, badge frames, cycle phases) — tier-0 devices skip metric companions.
 - **Body map:** Set D abstract mannequin in `index.html`; aura + tap ripple via portfolio module.
 - **Tests:** `tests/unit/pwa/graphics-portfolio.test.mjs`, `tests/unit/settings/avatars.test.mjs`.
-- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.1]`; wiki [[Features-Guide]] § Profile companion & vibe.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.1]`; wiki [[Features-Guide]] § Profile companion.
 
 ### v2.1.0-oasis documentation sync (UI Oasis Overhaul)
 

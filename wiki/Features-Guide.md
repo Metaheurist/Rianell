@@ -36,7 +36,7 @@ Step through date, vitals, symptoms, food, exercise, medications, and notes. You
 
 When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes **Period started today**, cycle day (1–35, expandable to 45), phase, and optional flow — with suggested values from your last period start.
 
-**First-run:** A guided questionnaire modal asks one friendly multichoice question at a time (appearance, **profile companion**, **ambient vibe**, region, coach tone, helper level, consents, optional AI download). Progress dots and a step counter match on web and native. Tutorial is opt-in from the finish card or Settings replay; tutorial slides use side arrows with **Finish** on the last slide only.
+**First-run:** A guided questionnaire modal asks one friendly multichoice question at a time (appearance, **profile companion**, region, coach tone, helper level, consents, optional AI download). Progress dots and a step counter match on web and native. Tutorial is opt-in from the finish card or Settings replay; tutorial slides use side arrows with **Finish** on the last slide only.
 
 **Sliders:** Every symptom and wellness metric uses the same scale — **Bad (0)** on the left, **Good (10)** on the right. Symptom scores (fatigue, pain, etc.) are stored in their original semantics but displayed on the unified scale.
 
@@ -57,19 +57,11 @@ Swipe or use arrows to move between panes. Locked wizard steps link here when a 
 
 ---
 
-## Profile companion and vibe (v2.1.1)
+## Profile companion (v2.1.2)
 
-During first-run setup (or later in **Settings → Display**), pick one of **20 abstract profile companions** and an **ambient vibe**:
+During first-run setup (or later in **Settings → Display**), pick one of **20 abstract profile companions** from a **scrollable carousel** (arrow buttons or swipe). Each companion has a unique silhouette (orb, tide, leaf, prism, moon, ember, and more) with the same friendly two-dot style and soft glow.
 
-| Vibe | Effect |
-|------|--------|
-| **Calm** | Soft drift particles, gentle motion |
-| **Energy** | Brighter sparks, faster parallax |
-| **Nature** | Organic sway, green ambient wash |
-| **Clinical** | Minimal motion (accessibility-friendly) |
-| **Dark** | Ember particles, dusk palette |
-
-Your companion appears in the header, achievements badges, and log wizard. **Metric companions** (small animated glyphs) sit beside wellness sliders on capable devices. Low-tier phones skip companions to save GPU budget.
+Your companion appears in the **header** and **log wizard**. Achievement badges use **animated icons** matched to each badge type (not the companion portrait). **Metric companions** (small animated glyphs) sit beside wellness sliders on capable devices. Low-tier phones skip metric companions to save GPU budget.
 
 ---
 
