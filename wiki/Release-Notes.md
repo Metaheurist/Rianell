@@ -1,6 +1,21 @@
 # Release Notes
 
-## Latest release (v2.1.0)
+## Latest release (v2.1.0-oasis)
+
+**Date:** 2026-06-29
+
+### Highlights
+
+- **UI Oasis:** Ambient bioluminescent blobs on tab panels, calm-glow metric rings, AI neural trace, thinking-text morph, milestone confetti, and check-in shimmer on web.
+- **Mobile polish:** `OasisNeuralTrace` on AI screen, ghost breath on balance radar, welcome-card pulse ring, boot loading rings, achievement particle burst.
+- **Accessibility:** Brain-fog mode disables spectacle animations; reduced motion gates OS setting **and** in-app preference.
+- **Zero new dependencies:** All motion uses existing CSS keyframes and React Native `Animated`.
+
+See also **v2.1.0** (session stability) below.
+
+---
+
+## Previous (v2.1.0)
 
 **Date:** 2026-06-28
 

@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.0-oasis documentation sync (UI Oasis Overhaul)
+
+- **Tokens:** `OASIS_TOKENS` in `packages/tokens/src/index.mjs` — per-team ambient palettes, motion timings, status glow strings.
+- **PWA (new files):** `apps/pwa-webapp/css/oasis.css`, `modules/oasis-canvas.js` (`window.OasisCanvas`); wired from `index.html` + surgical `app.js` hooks. **`styles.css` unchanged** for oasis (file-protection rule).
+- **PWA effects:** Ambient blobs, magnetic CTAs, calm-glow metrics, AI neural trace, thinking-text morph, data-stream dots, confetti, check-in shimmer.
+- **RN:** `OasisNeuralTrace.tsx`, `BalanceRadarChart` breath ring, `HomeWelcomeCard` pulse, `BootLoadingScreen` rings, `AchievementUnlockToast` burst; `useReduceMotionFlag` OR-gates OS + in-app pref.
+- **Tests:** `animation-polish.test.mjs` (8 assertions), `oasis-particles.test.mjs`, `benchmarks/specs/oasis-particles.spec.ts`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.0-oasis]`; [UI_OASIS_PLAN.md](../UI_OASIS_PLAN.md).
+
 ### v2.1.0 documentation sync (Session stability and memory leak fixes)
 
 - **Root cause confirmed:** 421 MB AI heap spike (triple ONNX WebGPU + MLC + WASM runtime load), 200+ `connect-src 'none'` CSPRO violations/load, unbounded `__rianellBootLog` growth, un-teardown `MutationObserver` instances on Tier 5 desktop.
