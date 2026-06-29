@@ -18,4 +18,9 @@ test('achievement icons cover all badge IDs', () => {
     assert.match(js, new RegExp("case '" + id + "':"), 'missing icon case: ' + id);
     assert.match(js, new RegExp('ach-icon--' + id));
   });
+  assert.match(js, /ach-pill-spin/);
+  assert.match(readFileSync('apps/pwa-webapp/css/graphics-portfolio.css', 'utf8'), /achPillSpin/);
+  const css = readFileSync('apps/pwa-webapp/css/graphics-portfolio.css', 'utf8');
+  assert.match(css, /\.ach-icon--milestone_3 \.ach-book-cover--left[\s\S]*achBookOpenLeft/);
+  assert.match(css, /\.ach-icon--milestone_3 \.ach-book-cover--right[\s\S]*achBookOpenRight/);
 });

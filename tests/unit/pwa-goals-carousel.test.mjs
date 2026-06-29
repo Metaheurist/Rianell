@@ -28,10 +28,16 @@ test('goals-carousel.js resolves i18n via RianellI18n.t', () => {
   assert.match(src, /syncGoalsCarouselViewportHeight/);
 });
 
-test('goals-carousel dot icons use ui-svg-icon for theme stroke', () => {
+test('goals-carousel dot icons use inline animated SVG markup', () => {
   const src = fs.readFileSync(carouselPath, 'utf8');
+  const css = fs.readFileSync(path.join(root, 'apps/pwa-webapp/styles.css'), 'utf8');
   assert.match(src, /ui-svg-icon goals-dot-icon-svg/);
+  assert.match(src, /goals-icon-target-ring--mid/);
+  assert.match(src, /goals-icon-medal-shine/);
+  assert.match(src, /data-goals-dot-icon/);
   assert.match(src, /goals-carousel-dot__icon/);
+  assert.match(css, /goalsTargetRingMid/);
+  assert.match(css, /goalsMedalShine/);
 });
 
 test('cycle-tracking-ui uses unified 45-day timeline and period-start anchor', () => {

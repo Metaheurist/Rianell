@@ -18,7 +18,7 @@ test('graphics-portfolio.css styles companion carousel navigation', () => {
   assert.match(css, /\.avatar-carousel__glyph-wrap/);
 });
 
-test('guided onboarding uses intro carousel variant', () => {
+test('guided onboarding uses intro random picker variant', () => {
   const js = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
-  assert.match(js, /renderAvatarCarouselHTML\(bootAvatar, \{ variant: 'intro' \}\)/);
+  assert.match(js, /renderRandomAvatarPickerHTML\(bootAvatar, \{ variant: 'intro'/);
 });

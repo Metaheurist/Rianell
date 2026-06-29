@@ -4,9 +4,14 @@ import assert from 'node:assert/strict';
 
 test('app.js renders Things to watch as ranked metric cards', () => {
   const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const catalog = readFileSync('i18n-packs/locale-packs/v1/en-GB.json', 'utf8');
   assert.match(js, /function renderAIThingsToWatch/);
   assert.match(js, /ai-watch-grid/);
   assert.match(js, /ai-watch-card__bar-fill/);
+  assert.match(js, /tUiOr\('ai\.watch\.intro'/);
+  assert.match(js, /tUiOr\('ai\.watch\.unusualReadings'/);
+  assert.match(js, /tUiOr\('ai\.watch\.footnote'/);
+  assert.match(catalog, /"ai\.watch\.intro"/);
   assert.doesNotMatch(js, /ai-list ai-list-warning/);
 });
 
