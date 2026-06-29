@@ -1,5 +1,5 @@
 /**
- * graphics-portfolio.js — Avatar entities, vibes, metric companions, badge composites.
+ * graphics-portfolio.js — Avatar entities, metric companions, achievement icons.
  * Namespace: window.RianellGraphicsPortfolio
  */
 (function (global) {
@@ -14,8 +14,6 @@
     'coralnode', 'starlace', 'mistveil', 'thornloop', 'sunwarden',
     'duskmantle', 'ironbloom', 'vortexseed', 'lumenshard', 'driftmoss',
   ];
-
-  var VIBE_IDS = ['calm', 'energy', 'nature', 'clinical', 'dark'];
 
   var METRIC_ENTITY_IDS = [
     'mood', 'sleep', 'fatigue', 'pain', 'mobility', 'stiffness',
@@ -46,9 +44,8 @@
 
   var CYCLE_PHASE_IDS = ['menstrual', 'follicular', 'ovulation', 'luteal'];
 
-  var VIBE_CLASS_PREFIX = 'vibe-';
+  var LEGACY_VIBE_CLASS_IDS = ['calm', 'energy', 'nature', 'clinical', 'dark'];
   var _spritesInjected = false;
-  var _vibeSceneInjected = false;
 
   function prefersReducedMotion() {
     try {
@@ -65,12 +62,6 @@
       if (opts && opts.reduceAnimations) return true;
     }
     return false;
-  }
-
-  function normalizeVibe(vibeId) {
-    if (S.normalizeUserVibe) return S.normalizeUserVibe(vibeId);
-    var v = typeof vibeId === 'string' ? vibeId.trim() : '';
-    return VIBE_IDS.indexOf(v) >= 0 ? v : 'calm';
   }
 
   function normalizeAvatar(avatarId) {
@@ -102,46 +93,96 @@
     svg.appendChild(sym);
   }
 
-  function avatarSymbolPaths(idx) {
-    var fill = 'fill="var(--avatar-primary)"';
-    var stroke = 'stroke="var(--avatar-secondary)" stroke-width="1.75" fill="none"';
-    var a = idx * 17;
-    var r = 14 + (idx % 5);
-    var cx = 32 + ((idx % 3) - 1) * 2;
-    var cy = 32 + ((idx % 4) - 1.5) * 2;
-    var parts = [];
+  function avatarCompanionEyes(cx, cy, gap) {
+    gap = gap || 7;
+    var eyeFill = 'fill="var(--avatar-eye, #1a1a1a)"';
+    return '<circle cx="' + (cx - gap) + '" cy="' + (cy - 3) + '" r="3.25" ' + eyeFill + '/>' +
+      '<circle cx="' + (cx + gap) + '" cy="' + (cy - 3) + '" r="3.25" ' + eyeFill + '/>';
+  }
 
-    switch (idx % 7) {
-      case 0:
-        parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" ' + fill + '/>');
-        parts.push('<circle cx="' + (cx - 6) + '" cy="' + (cy - 4) + '" r="3" fill="var(--avatar-secondary)"/>');
-        parts.push('<circle cx="' + (cx + 6) + '" cy="' + (cy - 4) + '" r="3" fill="var(--avatar-secondary)"/>');
-        break;
-      case 1:
-        parts.push('<polygon points="' + cx + ',' + (cy - r) + ' ' + (cx + r) + ',' + (cy + r) + ' ' + (cx - r) + ',' + (cy + r) + '" ' + fill + '/>');
-        parts.push('<line x1="' + (cx - 8) + '" y1="' + cy + '" x2="' + (cx + 8) + '" y2="' + cy + '" ' + stroke + '/>');
-        break;
-      case 2:
-        parts.push('<rect x="' + (cx - r) + '" y="' + (cy - r) + '" width="' + (r * 2) + '" height="' + (r * 2) + '" rx="4" transform="rotate(' + a + ' ' + cx + ' ' + cy + ')" ' + fill + '/>');
-        parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="5" fill="var(--avatar-secondary)"/>');
-        break;
-      case 3:
-        parts.push('<path d="M' + (cx - r) + ',' + cy + ' A' + r + ',' + r + ' 0 1 1 ' + (cx + r) + ',' + cy + ' A' + (r - 5) + ',' + (r - 5) + ' 0 1 0 ' + (cx - r) + ',' + cy + 'Z" ' + fill + '/>');
-        break;
-      case 4:
-        parts.push('<path d="M' + cx + ',' + (cy - r) + ' L' + (cx + r) + ',' + cy + ' L' + cx + ',' + (cy + r) + ' L' + (cx - r) + ',' + cy + 'Z" ' + fill + '/>');
-        parts.push('<path d="M' + cx + ',' + (cy - 6) + ' L' + (cx + 6) + ',' + cy + ' L' + cx + ',' + (cy + 6) + ' L' + (cx - 6) + ',' + cy + 'Z" fill="var(--avatar-secondary)"/>');
-        break;
-      case 5:
-        parts.push('<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + (r + 2) + '" ry="' + (r - 2) + '" transform="rotate(' + a + ' ' + cx + ' ' + cy + ')" ' + fill + '/>');
-        parts.push('<path d="M' + (cx - 10) + ',' + (cy + 8) + ' Q' + cx + ',' + (cy + 16) + ' ' + (cx + 10) + ',' + (cy + 8) + '" ' + stroke + '/>');
-        break;
+  function avatarCompanionGlow(cx, cy, ry) {
+    ry = ry || 9;
+    return '<ellipse class="avatar-companion-glow" cx="' + cx + '" cy="' + (cy + 20) + '" rx="22" ry="' + ry + '" fill="var(--avatar-glow)" opacity="0.48"/>';
+  }
+
+  function avatarSymbolPathsForId(avatarId) {
+    var id = normalizeAvatar(avatarId);
+    var f = 'fill="var(--avatar-primary)"';
+    var s = 'stroke="var(--avatar-secondary)" stroke-width="1.5" fill="none"';
+    var cx = 32;
+    var cy = 30;
+    var glow = avatarCompanionGlow(cx, cy);
+    var eyes = avatarCompanionEyes(cx, cy);
+
+    switch (id) {
+      case 'voidorb':
+        return glow + '<circle cx="' + cx + '" cy="' + cy + '" r="18" ' + f + '/>' + eyes;
+      case 'tidewarden':
+        return glow + '<path d="M32 11 C46 18 47 33 32 43 C17 33 18 18 32 11Z" ' + f + '/>' +
+          '<path d="M20 39 Q32 48 44 39" ' + s + ' opacity="0.55"/>' + eyes;
+      case 'leafcircuit':
+        return glow + '<path d="M32 14 C22 22 20 36 32 42 C44 36 42 22 32 14Z" ' + f + '/>' +
+          '<path d="M32 18 v20 M26 24 l12 8 M38 24 l-12 8" ' + s + ' opacity="0.45"/>' + eyes;
+      case 'prismcore':
+        return glow + '<polygon points="32,10 48,22 42,44 22,44 16,22" ' + f + '/>' +
+          '<line x1="32" y1="10" x2="32" y2="44" ' + s + ' opacity="0.35"/>' + eyes;
+      case 'moonthread':
+        return glow + '<path d="M40 18 A16 16 0 1 1 28 40 A11 11 0 1 0 40 18Z" ' + f + '/>' +
+          '<path d="M44 24 Q52 30 46 38" ' + s + ' stroke-linecap="round"/>' + avatarCompanionEyes(30, cy, 5);
+      case 'emberveil':
+        return glow + '<path d="M32 42 C26 34 24 24 32 14 C40 24 38 34 32 42Z" ' + f + '/>' +
+          '<path d="M18 20 Q32 8 46 20" ' + s + ' opacity="0.5"/>' + eyes;
+      case 'riftecho':
+        return glow + '<circle cx="' + cx + '" cy="' + cy + '" r="17" ' + f + '/>' +
+          '<path d="M26 18 L38 42 M38 18 L26 42" ' + s + ' stroke-width="2" opacity="0.65"/>' + eyes;
+      case 'stonebloom':
+        return glow + '<circle cx="' + cx + '" cy="' + cy + '" r="14" ' + f + '/>' +
+          '<path d="M32 12 L38 22 L48 24 L40 32 L42 42 L32 36 L22 42 L24 32 L16 24 L26 22Z" ' + s + ' opacity="0.4"/>' + eyes;
+      case 'glasswave':
+        return glow + '<rect x="14" y="16" width="36" height="28" rx="8" ' + f + ' opacity="0.92"/>' +
+          '<path d="M16 30 Q24 24 32 30 T48 30" ' + s + ' opacity="0.55"/>' + eyes;
+      case 'ashspiral':
+        return glow + '<circle cx="32" cy="30" r="10" ' + f + '/>' +
+          '<path d="M32 14 A18 18 0 0 1 44 32 A12 12 0 0 1 32 44 A8 8 0 0 1 24 36" ' + s + ' stroke-width="4" stroke-linecap="round"/>' + eyes;
+      case 'coralnode':
+        return glow + '<path d="M32 42 V28 M32 28 L22 18 M32 28 L42 18 M22 18 L18 12 M42 18 L46 12" ' + s + ' stroke-width="2.25" stroke-linecap="round"/>' +
+          '<circle cx="32" cy="30" r="9" ' + f + '/>' + eyes;
+      case 'starlace':
+        return glow + '<path d="M32 12 L36 24 L48 24 L38 32 L42 44 L32 36 L22 44 L26 32 L16 24 L28 24Z" ' + f + '/>' + eyes;
+      case 'mistveil':
+        return glow + '<ellipse cx="24" cy="30" rx="11" ry="8" ' + f + ' opacity="0.75"/>' +
+          '<ellipse cx="38" cy="28" rx="12" ry="9" ' + f + ' opacity="0.85"/>' +
+          '<ellipse cx="32" cy="34" rx="14" ry="10" ' + f + '/>' + eyes;
+      case 'thornloop':
+        return glow + '<circle cx="' + cx + '" cy="' + cy + '" r="15" ' + f + '/>' +
+          '<path d="M32 10 v6 M32 44 v6 M10 30 h6 M50 30 h6 M18 18 l4 4 M46 18 l-4 4 M18 42 l4-4 M46 42 l-4-4" ' + s + ' stroke-linecap="round"/>' + eyes;
+      case 'sunwarden':
+        return glow + '<circle cx="' + cx + '" cy="' + cy + '" r="13" ' + f + '/>' +
+          '<path d="M32 8 v5 M32 47 v5 M8 30 h5 M51 30 h5 M15 15 l3.5 3.5 M45.5 45.5 l-3.5-3.5 M49 15 l-3.5 3.5 M15 45 l3.5-3.5" ' + s + ' stroke-linecap="round"/>' + eyes;
+      case 'duskmantle':
+        return glow + '<path d="M14 34 A18 18 0 0 1 50 34 V44 H14Z" ' + f + '/>' +
+          '<path d="M14 34 Q32 18 50 34" ' + s + ' opacity="0.45"/>' + avatarCompanionEyes(cx, 28, 6);
+      case 'ironbloom':
+        return glow + '<circle cx="' + cx + '" cy="' + cy + '" r="11" ' + f + '/>' +
+          '<path d="M32 12 v6 M32 42 v6 M12 30 h6 M46 30 h6 M18 18 l4 4 M46 18 l-4 4 M18 42 l4-4 M46 42 l-4-4" ' + s + '/>' +
+          '<circle cx="32" cy="30" r="16" ' + s + ' opacity="0.35"/>' + eyes;
+      case 'vortexseed':
+        return glow + '<path d="M32 14 C42 20 44 32 32 42 C20 32 22 20 32 14Z" ' + f + '/>' +
+          '<path d="M32 18 C38 22 38 30 32 34 C26 30 26 22 32 18Z" fill="var(--avatar-secondary)" opacity="0.35"/>' + eyes;
+      case 'lumenshard':
+        return glow + '<path d="M32 10 L42 44 L32 38 L22 44Z" ' + f + '/>' +
+          '<path d="M32 16 L36 36 L32 33 L28 36Z" fill="var(--avatar-secondary)" opacity="0.3"/>' + eyes;
+      case 'driftmoss':
+        return glow + '<ellipse cx="' + cx + '" cy="' + (cy + 4) + '" rx="20" ry="12" ' + f + '/>' +
+          '<path d="M18 34 Q26 28 32 34 T46 34" ' + s + ' opacity="0.4"/>' + avatarCompanionEyes(cx, 26, 6);
       default:
-        parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" ' + stroke + '/>');
-        parts.push('<path d="M' + (cx - r + 2) + ',' + (cy - 2) + ' L' + (cx + r - 2) + ',' + (cy - 2) + ' M' + cx + ',' + (cy - r + 2) + ' L' + cx + ',' + (cy + r - 2) + '" ' + stroke + '/>');
-        parts.push('<circle cx="' + cx + '" cy="' + cy + '" r="4" ' + fill + '/>');
+        return glow + '<circle cx="' + cx + '" cy="' + cy + '" r="16" ' + f + '/>' + eyes;
     }
-    return parts.join('');
+  }
+
+  function avatarSymbolPaths(idx) {
+    var id = AVATAR_IDS[idx];
+    return id ? avatarSymbolPathsForId(id) : avatarSymbolPathsForId('voidorb');
   }
 
   function metricEntityPaths(id) {
@@ -154,13 +195,13 @@
       case 'pain': return '<path d="M16 6 L18 14 L26 14 L20 19 L22 27 L16 22 L10 27 L12 19 L6 14 L14 14Z" ' + fill + '/>';
       case 'mobility': return '<circle cx="8" cy="24" r="3" ' + fill + '/><circle cx="24" cy="8" r="3" ' + fill + '/><path d="M10 22 L22 10" ' + stroke + '/>';
       case 'stiffness': return '<path d="M8 8 L24 24 M24 8 L8 24" ' + stroke + '/><circle cx="16" cy="16" r="4" ' + fill + '/>';
-      case 'swelling': return '<ellipse cx="16" cy="16" rx="12" ry="8" ' + stroke + '/><ellipse cx="16" cy="16" rx="6" ry="4" ' + fill + '/>';
+      case 'swelling': return '<path d="M14 6 v6 M12 12 C10 16 10 22 12 26" ' + stroke + ' stroke-width="2"/><path d="M13 26 Q14 28 17 30" ' + stroke + ' stroke-width="1.8"/><ellipse cx="15" cy="24" rx="5" ry="6" ' + fill + ' opacity="0.55"/><ellipse cx="18" cy="23" rx="3" ry="4" ' + stroke + '/>';
       case 'steps': return '<path d="M10 22 L14 10 L18 18 L22 6" ' + stroke + ' stroke-linecap="round"/><circle cx="22" cy="6" r="2" ' + fill + '/>';
       case 'hydration': return '<path d="M16 6 C12 14 10 18 10 22 a6 6 0 0 0 12 0 c0-4-2-8-6-16Z" ' + fill + ' opacity="0.8"/>';
       case 'bpm': return '<path d="M6 16 H10 L13 8 L19 24 L22 16 H26" ' + stroke + ' stroke-linecap="round"/>';
       case 'flare': return '<path d="M16 4 L18 14 L28 14 L20 20 L23 30 L16 24 L9 30 L12 20 L4 14 L14 14Z" ' + fill + '/>';
       case 'dailyFunction': return '<rect x="6" y="8" width="20" height="16" rx="2" ' + stroke + '/><path d="M10 14 h12 M10 18 h8" ' + stroke + '/>';
-      case 'irritability': return '<path d="M8 20 Q16 8 24 20" ' + stroke + '/><circle cx="12" cy="14" r="2" ' + fill + '/><circle cx="20" cy="14" r="2" ' + fill + '/>';
+      case 'irritability': return '<circle cx="16" cy="20" r="9" ' + stroke + '/><path d="M12 18 Q16 16 20 18" ' + stroke + '/><ellipse cx="16" cy="10" rx="8" ry="4.5" ' + stroke + '/><path d="M22 6 v4 M22 4 h3" ' + stroke + ' stroke-linecap="round"/>';
       case 'weatherSensitivity': return '<ellipse cx="16" cy="18" rx="10" ry="6" ' + stroke + '/><path d="M10 12 h12" ' + stroke + '/><circle cx="16" cy="10" r="4" ' + fill + ' opacity="0.7"/>';
       default: return '<circle cx="16" cy="16" r="8" ' + fill + '/>';
     }
@@ -182,6 +223,159 @@
       case 'full_logger': return '<path d="M32 4 l6 14 h14 l-11 9 4 14-13-8-13 8 4-14-11-9 h14z" fill="currentColor" opacity="0.9"/>';
       default: return '<circle cx="32" cy="32" r="26" ' + stroke + '/>';
     }
+  }
+
+  function achCalGridMarkup(ox, oy, cols, rows, cellW, cellH, activeCount, delayOffset) {
+    var out = '';
+    var total = cols * rows;
+    var baseDelay = delayOffset || 0;
+    for (var i = 0; i < total; i++) {
+      var c = i % cols;
+      var r = Math.floor(i / cols);
+      var active = i < activeCount;
+      var delay = active ? ' style="animation-delay:' + (baseDelay + i * 0.06).toFixed(2) + 's"' : '';
+      out += '<rect class="ach-cal-cell' + (active ? ' ach-cal-cell--active' : '') + '"' + delay +
+        ' x="' + (ox + c * cellW) + '" y="' + (oy + r * cellH) +
+        '" width="' + (cellW - 1.1) + '" height="' + (cellH - 1.1) + '" rx="1"/>';
+    }
+    return out;
+  }
+
+  function achievementIconSvgMarkup(id) {
+    var fill = 'fill="currentColor"';
+    var stroke = 'stroke="currentColor" stroke-width="1.5" fill="none"';
+    switch (id) {
+      case 'food_logging':
+        return '<g class="ach-icon ach-icon--food_logging">' +
+          '<ellipse class="ach-food-plate" cx="32" cy="40" rx="23" ry="7" ' + fill + ' opacity="0.2"/>' +
+          '<ellipse class="ach-food-plate-rim" cx="32" cy="38" rx="21" ry="6" ' + stroke + '/>' +
+          '<ellipse class="ach-food-mound" cx="32" cy="35" rx="13" ry="6" ' + fill + ' opacity="0.85"/>' +
+          '<path class="ach-food-sauce" d="M25 31 Q27 37 24 43" ' + stroke + ' stroke-width="2" stroke-linecap="round"/>' +
+          '<path class="ach-food-steam ach-food-steam--1" d="M23 20 Q21 14 23 9" ' + stroke + ' stroke-linecap="round"/>' +
+          '<path class="ach-food-steam ach-food-steam--2" d="M32 18 Q30 12 32 6" ' + stroke + ' stroke-linecap="round"/>' +
+          '<path class="ach-food-steam ach-food-steam--3" d="M41 20 Q43 14 41 9" ' + stroke + ' stroke-linecap="round"/>' +
+          '</g>';
+      case 'exercise_logging':
+        return '<g class="ach-icon ach-icon--exercise_logging">' +
+          '<rect class="ach-pool" x="5" y="26" width="54" height="30" rx="5" ' + stroke + '/>' +
+          '<path class="ach-pool-wave ach-pool-wave--1" d="M5 34 Q15 30 25 34 T45 34 T55 34" ' + stroke + ' stroke-width="1.75"/>' +
+          '<path class="ach-pool-wave ach-pool-wave--2" d="M5 42 Q15 38 25 42 T45 42 T55 42" ' + stroke + ' stroke-width="1.5" opacity="0.7"/>' +
+          '<g class="ach-swimmer">' +
+          '<ellipse cx="32" cy="33" rx="6" ry="2.5" ' + fill + ' opacity="0.75"/>' +
+          '<circle cx="32" cy="29" r="3.5" ' + fill + '/>' +
+          '<path d="M26 33 L20 37" ' + stroke + ' stroke-linecap="round"/>' +
+          '<path d="M38 33 L44 37" ' + stroke + ' stroke-linecap="round"/>' +
+          '<path d="M28 35 L23 40" ' + stroke + ' stroke-linecap="round"/>' +
+          '<path d="M36 35 L41 40" ' + stroke + ' stroke-linecap="round"/>' +
+          '</g></g>';
+      case 'medication_logging':
+        return '<g class="ach-icon ach-icon--medication_logging">' +
+          '<path class="ach-glass" d="M21 11 h22 v7 l-9 38 h-4 l-9-38z" ' + stroke + '/>' +
+          '<line x1="21" y1="18" x2="43" y2="18" ' + stroke + ' opacity="0.5"/>' +
+          '<rect class="ach-pill" x="28" y="30" width="8" height="15" rx="4" ' + fill + '/>' +
+          '<line class="ach-pill-score" x1="28" y1="37" x2="36" y2="37" stroke="rgba(255,255,255,0.55)" stroke-width="1"/>' +
+          '<circle class="ach-sizzle ach-sizzle--1" cx="25" cy="25" r="1.6" ' + fill + ' opacity="0.7"/>' +
+          '<circle class="ach-sizzle ach-sizzle--2" cx="33" cy="23" r="1.3" ' + fill + ' opacity="0.6"/>' +
+          '<circle class="ach-sizzle ach-sizzle--3" cx="39" cy="27" r="1.1" ' + fill + ' opacity="0.5"/>' +
+          '<circle class="ach-sizzle ach-sizzle--4" cx="30" cy="21" r="0.9" ' + fill + ' opacity="0.45"/>' +
+          '</g>';
+      case 'milestone_3':
+        return '<g class="ach-icon ach-icon--milestone_3">' +
+          '<rect class="ach-book-spine" x="30" y="12" width="4" height="40" rx="1" ' + fill + ' opacity="0.5"/>' +
+          '<path class="ach-book-cover ach-book-cover--left" d="M30 12 v40 L12 38 V16 Z" ' + stroke + '/>' +
+          '<path class="ach-book-cover ach-book-cover--right" d="M34 12 v40 L52 38 V16 Z" ' + stroke + '/>' +
+          '<path class="ach-book-page" d="M32 17 v30" ' + stroke + ' opacity="0.35"/>' +
+          '<path class="ach-book-page" d="M28 20 v24" ' + stroke + ' opacity="0.2"/>' +
+          '<path class="ach-book-page" d="M36 20 v24" ' + stroke + ' opacity="0.2"/>' +
+          '</g>';
+      case 'milestone_30':
+        return '<g class="ach-icon ach-icon--milestone_30">' +
+          '<rect class="ach-cal-frame" x="10" y="8" width="44" height="48" rx="3" ' + stroke + '/>' +
+          '<rect x="10" y="8" width="44" height="10" rx="3" ' + fill + ' opacity="0.22"/>' +
+          achCalGridMarkup(13, 21, 6, 5, 6.5, 6.5, 30) +
+          '</g>';
+      case 'milestone_60':
+        return '<g class="ach-icon ach-icon--milestone_60">' +
+          '<g class="ach-cal-duo ach-cal-duo--left">' +
+          '<rect x="6" y="14" width="24" height="38" rx="2" ' + stroke + '/>' +
+          '<rect x="6" y="14" width="24" height="7" rx="2" ' + fill + ' opacity="0.2"/>' +
+          achCalGridMarkup(8, 24, 4, 5, 5, 5.5, 30) +
+          '</g>' +
+          '<g class="ach-cal-duo ach-cal-duo--right">' +
+          '<rect x="34" y="14" width="24" height="38" rx="2" ' + stroke + '/>' +
+          '<rect x="34" y="14" width="24" height="7" rx="2" ' + fill + ' opacity="0.2"/>' +
+          achCalGridMarkup(36, 24, 4, 5, 5, 5.5, 30, 1.8) +
+          '</g></g>';
+      case 'milestone_90':
+        return '<g class="ach-icon ach-icon--milestone_90">' +
+          '<rect class="ach-desk-cal" x="15" y="18" width="34" height="40" rx="2" ' + stroke + '/>' +
+          '<rect x="15" y="18" width="34" height="9" rx="2" ' + fill + ' opacity="0.25"/>' +
+          '<path d="M21 14 v6 M32 14 v6 M43 14 v6" ' + stroke + ' stroke-linecap="round"/>' +
+          '<g class="ach-page ach-page--1"><rect x="17" y="30" width="30" height="24" rx="1" ' + stroke + ' opacity="0.5"/></g>' +
+          '<g class="ach-page ach-page--2"><rect x="19" y="28" width="30" height="24" rx="1" ' + stroke + ' opacity="0.35"/></g>' +
+          '<g class="ach-page ach-page--fly ach-page--fly-1"><rect x="38" y="22" width="14" height="18" rx="1" ' + stroke + '/></g>' +
+          '<g class="ach-page ach-page--fly ach-page--fly-2"><rect x="42" y="18" width="12" height="16" rx="1" ' + stroke + ' opacity="0.6"/></g>' +
+          '</g>';
+      case 'milestone_180':
+        return '<g class="ach-icon ach-icon--milestone_180">' +
+          '<rect x="27" y="6" width="10" height="5" rx="2" ' + fill + ' opacity="0.6"/>' +
+          '<circle class="ach-stopwatch-face" cx="32" cy="36" r="23" ' + stroke + '/>' +
+          '<line class="ach-stopwatch-hand" x1="32" y1="36" x2="32" y2="18" ' + stroke + ' stroke-width="2" stroke-linecap="round"/>' +
+          '<circle cx="32" cy="36" r="2.5" ' + fill + '/>' +
+          '<text x="32" y="44" text-anchor="middle" font-size="8" fill="currentColor" opacity="0.55">180</text>' +
+          '</g>';
+      case 'sleep_pioneer':
+        return '<g class="ach-icon ach-icon--sleep_pioneer">' +
+          '<path class="ach-bed-frame" d="M8 42 h48 v8 H8 Z" ' + stroke + '/>' +
+          '<rect x="10" y="32" width="20" height="10" rx="2" ' + fill + ' opacity="0.35"/>' +
+          '<path d="M30 40 h22" ' + stroke + ' stroke-linecap="round"/>' +
+          '<path d="M12 32 v-4 h16 v4" ' + stroke + '/>' +
+          '<text class="ach-zzz ach-zzz--1" x="38" y="26" font-size="9" fill="currentColor">z</text>' +
+          '<text class="ach-zzz ach-zzz--2" x="44" y="20" font-size="8" fill="currentColor">z</text>' +
+          '<text class="ach-zzz ach-zzz--3" x="34" y="15" font-size="11" font-weight="700" fill="currentColor">Z</text>' +
+          '</g>';
+      case 'cycle_tracker':
+        return '<g class="ach-icon ach-icon--cycle_tracker">' +
+          '<rect class="ach-ground" x="6" y="52" width="52" height="4" rx="1" ' + fill + ' opacity="0.25"/>' +
+          '<g class="ach-sapling">' +
+          '<line x1="32" y1="52" x2="32" y2="44" ' + stroke + ' stroke-width="2"/>' +
+          '<circle cx="32" cy="42" r="3.5" ' + fill + ' opacity="0.7"/>' +
+          '</g>' +
+          '<g class="ach-tree-grow">' +
+          '<rect class="ach-trunk" x="30" y="30" width="4" height="22" rx="1" ' + fill + ' opacity="0.65"/>' +
+          '<circle class="ach-foliage ach-foliage--1" cx="32" cy="24" r="9" ' + fill + ' opacity="0.55"/>' +
+          '<circle class="ach-foliage ach-foliage--2" cx="24" cy="32" r="6" ' + fill + ' opacity="0.45"/>' +
+          '<circle class="ach-foliage ach-foliage--3" cx="40" cy="32" r="6" ' + fill + ' opacity="0.45"/>' +
+          '</g></g>';
+      case 'full_logger':
+        return '<g class="ach-icon ach-icon--full_logger">' +
+          '<rect class="ach-clipboard" x="13" y="9" width="38" height="46" rx="3" ' + stroke + '/>' +
+          '<rect x="23" y="5" width="18" height="7" rx="2" ' + stroke + '/>' +
+          '<g class="ach-ticks">' +
+          '<path class="ach-tick ach-tick--1" d="M18 24 l4 4 10-10" ' + stroke + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<path class="ach-tick ach-tick--2" d="M18 32 l4 4 10-10" ' + stroke + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<path class="ach-tick ach-tick--3" d="M18 40 l4 4 10-10" ' + stroke + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<path class="ach-tick ach-tick--4" d="M18 48 l4 4 10-10" ' + stroke + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<line class="ach-tick-line ach-tick-line--1" x1="36" y1="24" x2="48" y2="24" ' + stroke + ' opacity="0.35"/>' +
+          '<line class="ach-tick-line ach-tick-line--2" x1="36" y1="32" x2="48" y2="32" ' + stroke + ' opacity="0.35"/>' +
+          '<line class="ach-tick-line ach-tick-line--3" x1="36" y1="40" x2="48" y2="40" ' + stroke + ' opacity="0.35"/>' +
+          '<line class="ach-tick-line ach-tick-line--4" x1="36" y1="48" x2="48" y2="48" ' + stroke + ' opacity="0.35"/>' +
+          '</g></g>';
+      default:
+        return '<circle cx="32" cy="32" r="20" ' + stroke + '/>';
+    }
+  }
+
+  function renderAchievementIconHTML(achievementId, tier, unlocked) {
+    var achId = BADGE_FRAME_IDS.indexOf(achievementId) >= 0 ? achievementId : BADGE_FRAME_IDS[0];
+    var tierId = BADGE_TIERS.indexOf(tier) >= 0 ? tier : 'bronze';
+    var lockCls = unlocked ? ' graphics-achievement-icon--unlocked' : ' graphics-achievement-icon--locked';
+    return '<div class="graphics-achievement-icon graphics-achievement-icon--' + escAttr(achId) +
+      ' graphics-achievement-icon--tier-' + escAttr(tierId) + lockCls +
+      '" data-achievement="' + escAttr(achId) + '" data-tier="' + escAttr(tierId) + '">' +
+      '<svg class="graphics-achievement-icon__svg" viewBox="0 0 64 64" role="img" aria-hidden="true">' +
+      achievementIconSvgMarkup(achId) +
+      '</svg></div>';
   }
 
   function tierRingPaths(tier) {
@@ -234,27 +428,13 @@
     return true;
   }
 
-  function stripVibeClasses() {
+  function removeLegacyVibeUi() {
     if (!document.body) return;
-    VIBE_IDS.forEach(function (id) {
-      document.body.classList.remove(VIBE_CLASS_PREFIX + id);
+    LEGACY_VIBE_CLASS_IDS.forEach(function (id) {
+      document.body.classList.remove('vibe-' + id);
     });
-  }
-
-  function applyUserVibe(vibeId) {
-    var vibe = normalizeVibe(vibeId);
-    stripVibeClasses();
-    if (document.body) document.body.classList.add(VIBE_CLASS_PREFIX + vibe);
-    if (global.appSettings && typeof global.appSettings === 'object') {
-      global.appSettings.userVibe = vibe;
-    }
     var scene = document.getElementById('vibe-scene');
-    if (scene) {
-      scene.setAttribute('data-vibe', vibe);
-      scene.classList.toggle('vibe-scene--static', shouldReduceAnimations());
-      refreshVibeSceneArt(vibe);
-    }
-    return vibe;
+    if (scene) scene.remove();
   }
 
   function computeAvatarHealthState(analysis) {
@@ -321,18 +501,40 @@
       '<use href="#icon-' + escAttr(id) + '"></use></svg>';
   }
 
-  function renderAvatarCarouselHTML(selectedId) {
+  function avatarCarouselNavIcon(direction) {
+    if (direction === 'left') {
+      return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6 L9 12 L15 18" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6 L15 12 L9 18" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  function renderAvatarCarouselHTML(selectedId, options) {
+    options = options || {};
     var sel = normalizeAvatar(selectedId);
-    var html = '<div class="avatar-carousel" role="listbox" aria-label="Profile avatar" tabindex="0">';
+    var variant = options.variant ? String(options.variant) : '';
+    var shellCls = 'avatar-carousel-shell' + (variant ? ' avatar-carousel-shell--' + escAttr(variant) : '');
+    var prevLabel = tUi('common.back', 'Previous');
+    var nextLabel = tUi('common.next', 'Next');
+    var html = '<div class="' + shellCls + '">' +
+      '<button type="button" class="avatar-carousel-nav avatar-carousel-nav--prev" aria-label="' + escAttr(prevLabel) + '">' +
+      avatarCarouselNavIcon('left') + '</button>' +
+      '<div class="avatar-carousel" role="listbox" aria-label="' + escAttr(tUi('settings.avatar.title', 'Profile companion')) + '" tabindex="0">';
     AVATAR_IDS.forEach(function (id) {
       var isSel = id === sel;
       var label = avatarLabel(id);
-      html += '<button type="button" class="avatar-carousel__item' + (isSel ? ' avatar-carousel__item--selected' : '') + '" role="option" aria-selected="' + (isSel ? 'true' : 'false') + '" data-avatar-id="' + escAttr(id) + '" aria-label="' + escAttr(label) + '">';
+      html += '<button type="button" class="avatar-carousel__item avatar-carousel__item--' + escAttr(id) +
+        (isSel ? ' avatar-carousel__item--selected' : '') + '" role="option" aria-selected="' + (isSel ? 'true' : 'false') +
+        '" data-avatar-id="' + escAttr(id) + '" aria-label="' + escAttr(label) + '">';
+      html += '<span class="avatar-carousel__glyph-wrap"><span class="avatar-carousel__glyph-ring" aria-hidden="true"></span>';
       html += renderAvatarSvgUse(id, 'avatar-carousel__glyph avatar-carousel__glyph--idle', label);
+      html += '</span>';
       html += '<span class="avatar-carousel__label">' + escAttr(label) + '</span>';
       html += '</button>';
     });
-    html += '</div>';
+    html += '</div>' +
+      '<button type="button" class="avatar-carousel-nav avatar-carousel-nav--next" aria-label="' + escAttr(nextLabel) + '">' +
+      avatarCarouselNavIcon('right') + '</button>' +
+      '</div>';
     return html;
   }
 
@@ -352,34 +554,23 @@
     return tUi('avatar.' + avatarId, avatarId);
   }
 
-  function vibeLabel(vibeId) {
-    var key = 'settings.vibe.' + vibeId;
-    if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
-      var t = global.RianellI18n.t(key);
-      if (t && t !== key) return t;
-    }
-    return vibeId.charAt(0).toUpperCase() + vibeId.slice(1);
-  }
-
-  function renderVibePickerHTML(selectedVibe) {
-    var sel = normalizeVibe(selectedVibe);
-    var html = '<div class="vibe-picker" role="radiogroup" aria-label="Ambient vibe">';
-    VIBE_IDS.forEach(function (id) {
-      var isSel = id === sel;
-      html += '<button type="button" class="vibe-picker__card' + (isSel ? ' vibe-picker__card--selected' : '') + '" role="radio" aria-checked="' + (isSel ? 'true' : 'false') + '" data-vibe-id="' + escAttr(id) + '">';
-      html += '<span class="vibe-picker__swatch vibe-picker__swatch--' + escAttr(id) + '" aria-hidden="true"></span>';
-      html += '<span class="vibe-picker__name">' + escAttr(vibeLabel(id)) + '</span>';
-      html += '</button>';
-    });
-    html += '</div>';
-    return html;
-  }
-
   function bindAvatarCarousel(container, onSelect) {
     if (!container) return;
+    var shell = container.classList.contains('avatar-carousel-shell')
+      ? container
+      : container.querySelector('.avatar-carousel-shell');
     var items = container.querySelectorAll('.avatar-carousel__item');
-    var carousel = container.classList.contains('avatar-carousel') ? container : container.querySelector('.avatar-carousel');
-    if (!carousel) carousel = container;
+    var carousel = container.querySelector('.avatar-carousel');
+    if (!carousel) return;
+
+    function scrollItemIntoView(btn) {
+      if (!btn) return;
+      btn.scrollIntoView({
+        behavior: shouldReduceAnimations() ? 'auto' : 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    }
 
     function selectItem(btn) {
       if (!btn) return;
@@ -389,6 +580,7 @@
         el.classList.toggle('avatar-carousel__item--selected', active);
         el.setAttribute('aria-selected', active ? 'true' : 'false');
       });
+      scrollItemIntoView(btn);
       if (typeof onSelect === 'function') onSelect(id);
     }
 
@@ -419,51 +611,36 @@
         if (items[items.length - 1]) items[items.length - 1].focus();
       }
     });
-  }
 
-  function bindVibePicker(container, onSelect) {
-    if (!container) return;
-    var cards = container.querySelectorAll('.vibe-picker__card');
-
-    function selectCard(card) {
-      if (!card) return;
-      var vibeId = card.getAttribute('data-vibe-id');
-      var apply = function () {
-        applyUserVibe(vibeId);
-        cards.forEach(function (el) {
-          var active = el === card;
-          el.classList.toggle('vibe-picker__card--selected', active);
-          el.setAttribute('aria-checked', active ? 'true' : 'false');
+    if (shell) {
+      var prevBtn = shell.querySelector('.avatar-carousel-nav--prev');
+      var nextBtn = shell.querySelector('.avatar-carousel-nav--next');
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+          var current = carousel.querySelector('.avatar-carousel__item--selected');
+          var idx = current ? Array.prototype.indexOf.call(items, current) : 0;
+          var prev = items[Math.max(idx - 1, 0)];
+          selectItem(prev);
+          if (prev) prev.focus();
         });
-        if (typeof onSelect === 'function') onSelect(vibeId);
-      };
-      if (typeof global.applyThemeCrossfade === 'function') {
-        global.applyThemeCrossfade(apply);
-      } else {
-        apply();
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+          var current = carousel.querySelector('.avatar-carousel__item--selected');
+          var idx = current ? Array.prototype.indexOf.call(items, current) : 0;
+          var next = items[Math.min(idx + 1, items.length - 1)];
+          selectItem(next);
+          if (next) next.focus();
+        });
       }
     }
 
-    cards.forEach(function (card) {
-      card.addEventListener('click', function () { selectCard(card); });
-    });
+    var initial = carousel.querySelector('.avatar-carousel__item--selected') || items[0];
+    requestAnimationFrame(function () { scrollItemIntoView(initial); });
   }
 
   function renderBadgeCompositeHTML(achievementId, tier, unlocked, avatarId) {
-    var achId = BADGE_FRAME_IDS.indexOf(achievementId) >= 0 ? achievementId : BADGE_FRAME_IDS[0];
-    var tierId = BADGE_TIERS.indexOf(tier) >= 0 ? tier : 'bronze';
-    var avId = normalizeAvatar(avatarId);
-    var lockedCls = unlocked ? '' : ' graphics-badge-composite--locked';
-    var clipId = 'badge-clip-' + achId + '-' + tierId;
-
-    return '<div class="graphics-badge-composite' + lockedCls + '" data-achievement="' + escAttr(achId) + '" data-tier="' + escAttr(tierId) + '">' +
-      '<svg class="graphics-badge-composite__svg" viewBox="0 0 64 64" role="img" aria-hidden="true">' +
-      '<defs><clipPath id="' + escAttr(clipId) + '"><circle cx="32" cy="32" r="14"/></clipPath></defs>' +
-      '<use href="#icon-tier-' + escAttr(tierId) + '" class="graphics-badge-composite__ring"></use>' +
-      '<use href="#icon-badge-' + escAttr(achId) + '" class="graphics-badge-composite__frame"></use>' +
-      '<g clip-path="url(#' + escAttr(clipId) + ')"><use href="#icon-' + escAttr(avId) + '" class="graphics-badge-composite__avatar"></use></g>' +
-      '<circle class="graphics-badge-composite__progress" cx="32" cy="32" r="30" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="188.5" stroke-dashoffset="' + (unlocked ? '0' : '94') + '" transform="rotate(-90 32 32)"/>' +
-      '</svg></div>';
+    return renderAchievementIconHTML(achievementId, tier, unlocked);
   }
 
   function updateHeaderAvatar(avatarId) {
@@ -496,23 +673,14 @@
   function initGraphicsPortfolioSettings() {
     var settings = global.appSettings || {};
     var avatarMount = document.getElementById('settingsAvatarCarouselMount');
-    var vibeMount = document.getElementById('settingsVibePickerMount');
     if (avatarMount) {
-      avatarMount.innerHTML = renderAvatarCarouselHTML(settings.profileAvatar);
+      avatarMount.innerHTML = renderAvatarCarouselHTML(settings.profileAvatar, { variant: 'settings' });
       bindAvatarCarousel(avatarMount, function (id) {
         settings.profileAvatar = normalizeAvatar(id);
         if (global.appSettings) global.appSettings.profileAvatar = settings.profileAvatar;
         if (typeof global.saveSettings === 'function') global.saveSettings();
         updateHeaderAvatar(settings.profileAvatar);
         reactHeaderAvatar();
-      });
-    }
-    if (vibeMount) {
-      vibeMount.innerHTML = renderVibePickerHTML(settings.userVibe);
-      bindVibePicker(vibeMount, function (vibeId) {
-        settings.userVibe = normalizeVibe(vibeId);
-        if (global.appSettings) global.appSettings.userVibe = settings.userVibe;
-        if (typeof global.saveSettings === 'function') global.saveSettings();
       });
     }
     updateHeaderAvatar(settings.profileAvatar);
@@ -524,38 +692,6 @@
       if (opts && (opts.tier === 0 || opts.reduceAnimations)) return true;
     }
     return false;
-  }
-
-  function vibeSceneSvgMarkup(vibeId) {
-    var stroke = 'stroke="var(--avatar-primary)" stroke-width="1" fill="none" opacity="0.35"';
-    var fill = 'fill="var(--avatar-glow)" opacity="0.25"';
-    switch (normalizeVibe(vibeId)) {
-      case 'energy':
-        return '<svg class="vibe-scene__svg" viewBox="0 0 400 240" aria-hidden="true"><circle cx="80" cy="60" r="28" ' + stroke + '/><circle cx="320" cy="100" r="18" ' + fill + '/><path d="M40 180 Q120 120 200 160 T360 140" ' + stroke + '/></svg>';
-      case 'nature':
-        return '<svg class="vibe-scene__svg" viewBox="0 0 400 240" aria-hidden="true"><path d="M60 200 Q90 120 120 200" ' + stroke + '/><path d="M280 210 Q310 100 340 210" ' + stroke + '/><ellipse cx="200" cy="80" rx="40" ry="12" ' + fill + '/></svg>';
-      case 'clinical':
-        return '';
-      case 'dark':
-        return '<svg class="vibe-scene__svg" viewBox="0 0 400 240" aria-hidden="true"><circle cx="100" cy="180" r="3" ' + fill + '/><circle cx="240" cy="120" r="2" ' + fill + '/><circle cx="330" cy="200" r="2.5" ' + fill + '/></svg>';
-      default:
-        return '<svg class="vibe-scene__svg" viewBox="0 0 400 240" aria-hidden="true"><circle cx="120" cy="80" r="20" ' + fill + '/><circle cx="300" cy="140" r="14" ' + fill + '/><circle cx="200" cy="200" r="10" ' + fill + '/></svg>';
-    }
-  }
-
-  function refreshVibeSceneArt(vibeId) {
-    var scene = document.getElementById('vibe-scene');
-    if (!scene) return;
-    var fg = scene.querySelector('.vibe-scene__layer--fg');
-    if (!fg) return;
-    var existing = fg.querySelector('.vibe-scene__svg-wrap');
-    if (existing) existing.remove();
-    var markup = vibeSceneSvgMarkup(vibeId);
-    if (!markup) return;
-    var wrap = document.createElement('div');
-    wrap.className = 'vibe-scene__svg-wrap';
-    wrap.innerHTML = markup;
-    fg.appendChild(wrap);
   }
 
   var PAIN_BODY_ABSTRACT_OUTLINE = 'M70 18 L52 38 L48 72 L42 128 L50 220 L58 268 L70 274 L82 268 L90 220 L98 128 L92 72 L88 38 Z';
@@ -713,28 +849,11 @@
     document.querySelectorAll('.ai-trend-card').forEach(function (card, idx) {
       if (card.classList.contains('ai-trend-card--portfolio')) return;
       card.classList.add('ai-trend-card--portfolio');
-      card.style.setProperty('--trend-reveal-delay', String(idx * 45) + 'ms');
-      if (card.querySelector('.ai-trend-entity')) return;
-      var metricKey = card.getAttribute('data-metric') || '';
-      var entityId = metricKey === 'pain' ? 'pain' : metricKey === 'sleep' ? 'sleep' : metricKey === 'mood' ? 'mood' : '';
-      if (!entityId || METRIC_ENTITY_IDS.indexOf(entityId) < 0) return;
-      var corner = document.createElement('span');
-      corner.className = 'ai-trend-entity';
-      corner.setAttribute('aria-hidden', 'true');
-      corner.innerHTML = '<svg viewBox="0 0 32 32"><use href="#icon-metric-' + escAttr(entityId) + '"></use></svg>';
-      card.appendChild(corner);
+      card.style.setProperty('--trend-reveal-delay', String(idx * 40) + 'ms');
     });
   }
 
   function decorateInsightsArtwork() {
-    var hero = document.querySelector('.ai-hero-row');
-    if (hero && !hero.querySelector('.ai-wellbeing-art')) {
-      var art = document.createElement('div');
-      art.className = 'ai-wellbeing-art';
-      art.setAttribute('aria-hidden', 'true');
-      art.innerHTML = '<svg viewBox="0 0 64 64"><use href="#icon-gauge"></use></svg>';
-      hero.appendChild(art);
-    }
     decorateWellbeingHalo();
     decorateFlareNeedle();
     decorateTrendCards();
@@ -754,7 +873,15 @@
         flow.innerHTML = '<span></span><span></span><span></span>';
         row.appendChild(flow);
       }
-      if (row.querySelector('.connector-art')) return;
+      var existingIcon = row.querySelector('.connector-icon');
+      var legacyArt = row.querySelector('.connector-art');
+      if (existingIcon) {
+        existingIcon.classList.add('connector-icon--decorated');
+        if (legacyArt) legacyArt.remove();
+        row.classList.add('connector-row--decorated');
+        return;
+      }
+      if (legacyArt) return;
       var id = row.getAttribute('data-connector') || 'strava';
       var icon = id === 'withings' ? 'heart-pulse' : 'run';
       var art = document.createElement('span');
@@ -817,31 +944,18 @@
     var stepsSlider = document.getElementById('stepsSlider');
     if (stepsSlider) {
       var stepsWrap = stepsSlider.closest('.vital-widget') || stepsSlider.closest('.slider-container');
-      if (stepsWrap) {
-        stepsWrap.classList.add('vital-widget--portfolio');
-        var stepsVal = parseInt(stepsSlider.value, 10) || 0;
-        var stepsZone = stepsVal >= 8000 ? 'good' : stepsVal >= 3000 ? 'neutral' : 'bad';
-        injectMetricEntityCompanion(stepsWrap, 'steps', stepsZone);
-      }
+      if (stepsWrap) stepsWrap.classList.add('vital-widget--portfolio');
     }
     var hydrationSlider = document.getElementById('hydrationSlider');
     if (hydrationSlider) {
       var hydWrap = hydrationSlider.closest('.vital-widget') || hydrationSlider.closest('.slider-container');
-      if (hydWrap) {
-        hydWrap.classList.add('vital-widget--portfolio');
-        var hydVal = parseFloat(hydrationSlider.value) || 0;
-        var hydZone = hydVal >= 6 ? 'good' : hydVal >= 3 ? 'neutral' : 'bad';
-        injectMetricEntityCompanion(hydWrap, 'hydration', hydZone);
-      }
+      if (hydWrap) hydWrap.classList.add('vital-widget--portfolio');
     }
     document.querySelectorAll('.bbt-thermo-widget').forEach(function (widget) {
       widget.classList.add('bbt-thermo-widget--portfolio');
     });
     document.querySelectorAll('[id*="bpm"], .vital-widget--heart, .bp-reading-widget').forEach(function (widget) {
       widget.classList.add('vital-widget--portfolio');
-      if (!widget.querySelector('.metric-entity-stage[data-metric="bpm"]')) {
-        injectMetricEntityCompanion(widget, 'bpm', 'neutral');
-      }
     });
   }
 
@@ -912,18 +1026,40 @@
       var card = document.querySelector('.achievement-card[data-achievement-id="' + escAttr(snap.id) + '"]');
       if (!card) return;
       card.classList.add('achievement-card--just-unlocked');
-      var composite = card.querySelector('.graphics-badge-composite');
+      var composite = card.querySelector('.graphics-achievement-icon, .graphics-badge-composite');
       if (composite) {
-        composite.classList.remove('graphics-badge-composite--unlock-sweep');
+        composite.classList.remove('graphics-achievement-icon--unlock-sweep', 'graphics-badge-composite--unlock-sweep');
         void composite.offsetWidth;
-        composite.classList.add('graphics-badge-composite--unlock-sweep');
+        composite.classList.add('graphics-achievement-icon--unlock-sweep');
       }
     });
     animateAchievementDayChips(document.getElementById('achievementsGrid'));
     reactHeaderAvatar();
   }
 
+  function widgetHasDedicatedVisual(widgetEl) {
+    return !!(widgetEl && widgetEl.querySelector('.metric-widget__visual, .vital-widget__visual'));
+  }
+
+  function removeMisplacedMetricEntityStages() {
+    document.querySelectorAll(
+      '.section-content > .metric-entity-stage, ' +
+      '.metric-widget + .metric-entity-stage, ' +
+      '.vital-widget + .metric-entity-stage, ' +
+      '.slider-container.metric-widget + .metric-entity-stage'
+    ).forEach(function (stage) {
+      stage.remove();
+    });
+    document.querySelectorAll('.metric-widget, .vital-widget').forEach(function (widget) {
+      if (!widgetHasDedicatedVisual(widget)) return;
+      widget.querySelectorAll('.metric-entity-stage').forEach(function (stage) {
+        stage.remove();
+      });
+    });
+  }
+
   function decorateLogScreens() {
+    removeMisplacedMetricEntityStages();
     document.querySelectorAll('.metric-widget').forEach(function (widget) {
       widget.classList.add('metric-widget--portfolio');
     });
@@ -971,10 +1107,10 @@
   function injectMetricEntityCompanion(widgetEl, metricId, zoneId) {
     if (isLowTierDevice()) return null;
     if (!widgetEl || METRIC_ENTITY_IDS.indexOf(metricId) < 0) return null;
-    var parent = widgetEl.parentElement;
-    if (!parent) return null;
-    if (parent.querySelector('.metric-entity-stage[data-metric="' + metricId + '"]')) {
-      var existing = parent.querySelector('.metric-entity-stage[data-metric="' + metricId + '"]');
+    if (widgetHasDedicatedVisual(widgetEl)) return null;
+
+    var existing = widgetEl.querySelector('.metric-entity-stage[data-metric="' + metricId + '"]');
+    if (existing) {
       syncMetricEntityZone(existing, zoneId);
       return existing;
     }
@@ -987,69 +1123,16 @@
     stage.setAttribute('aria-hidden', 'true');
     stage.innerHTML = '<svg class="metric-entity metric-entity--' + escAttr(metricId) + '" viewBox="0 0 32 32"><use href="#icon-metric-' + escAttr(metricId) + '"></use></svg>';
 
-    if (widgetEl.nextSibling) {
-      parent.insertBefore(stage, widgetEl.nextSibling);
-    } else {
-      parent.appendChild(stage);
-    }
+    widgetEl.classList.add('metric-companion-host');
+    widgetEl.appendChild(stage);
     return stage;
-  }
-
-  function injectVibeScene() {
-    if (_vibeSceneInjected || !document.body) return null;
-    if (document.getElementById('vibe-scene')) {
-      _vibeSceneInjected = true;
-      return document.getElementById('vibe-scene');
-    }
-
-    var reduced = shouldReduceAnimations();
-    var scene = document.createElement('div');
-    scene.id = 'vibe-scene';
-    scene.className = 'vibe-scene' + (reduced ? ' vibe-scene--static' : '');
-    scene.setAttribute('aria-hidden', 'true');
-
-    var layers = [
-      { cls: 'vibe-scene__layer vibe-scene__layer--bg' },
-      { cls: 'vibe-scene__layer vibe-scene__layer--mid' },
-      { cls: 'vibe-scene__layer vibe-scene__layer--fg' },
-    ];
-    layers.forEach(function (layer) {
-      var el = document.createElement('div');
-      el.className = layer.cls;
-      scene.appendChild(el);
-    });
-
-    document.body.insertBefore(scene, document.body.firstChild);
-    _vibeSceneInjected = true;
-    refreshVibeSceneArt((global.appSettings && global.appSettings.userVibe) || 'calm');
-
-    if (!reduced) {
-      var ticking = false;
-      global.addEventListener('scroll', function () {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(function () {
-          var y = global.scrollY || 0;
-          var mult = reduced ? 0 : 1;
-          scene.style.setProperty('--vibe-parallax-y', String(y * 0.15 * mult));
-          scene.style.setProperty('--vibe-parallax-mid', String(y * 0.08 * mult));
-          scene.style.setProperty('--vibe-parallax-fg', String(y * 0.04 * mult));
-          ticking = false;
-        });
-      }, { passive: true });
-    }
-
-    return scene;
   }
 
   function init(opts) {
     injectSpriteSymbols();
-    injectVibeScene();
+    removeLegacyVibeUi();
 
     var settings = global.appSettings || {};
-    var vibe = settings.userVibe || 'calm';
-    applyUserVibe(vibe);
-
     var level = 2;
     if (opts && opts.analysis) {
       level = computeAvatarHealthState(opts.analysis);
@@ -1061,7 +1144,6 @@
     decorateAllScreens();
 
     return {
-      vibe: vibe,
       healthState: level,
       spritesInjected: _spritesInjected,
     };
@@ -1069,24 +1151,20 @@
 
   global.RianellGraphicsPortfolio = {
     AVATAR_IDS: AVATAR_IDS.slice(),
-    VIBE_IDS: VIBE_IDS.slice(),
     METRIC_ENTITY_IDS: METRIC_ENTITY_IDS.slice(),
     SLIDER_TO_ENTITY: Object.assign({}, SLIDER_TO_ENTITY),
     BADGE_FRAME_IDS: BADGE_FRAME_IDS.slice(),
     BADGE_TIERS: BADGE_TIERS.slice(),
     CYCLE_PHASE_IDS: CYCLE_PHASE_IDS.slice(),
     injectSpriteSymbols: injectSpriteSymbols,
-    applyUserVibe: applyUserVibe,
     computeAvatarHealthState: computeAvatarHealthState,
     applyAvatarHealthState: applyAvatarHealthState,
     renderAvatarCarouselHTML: renderAvatarCarouselHTML,
-    renderVibePickerHTML: renderVibePickerHTML,
     bindAvatarCarousel: bindAvatarCarousel,
-    bindVibePicker: bindVibePicker,
     renderAvatarSvgUse: renderAvatarSvgUse,
     renderBadgeCompositeHTML: renderBadgeCompositeHTML,
+    renderAchievementIconHTML: renderAchievementIconHTML,
     injectMetricEntityCompanion: injectMetricEntityCompanion,
-    injectVibeScene: injectVibeScene,
     initGraphicsPortfolioSettings: initGraphicsPortfolioSettings,
     updateHeaderAvatar: updateHeaderAvatar,
     reactHeaderAvatar: reactHeaderAvatar,
@@ -1105,7 +1183,7 @@
     init: init,
     shouldReduceAnimations: shouldReduceAnimations,
     normalizeAvatar: normalizeAvatar,
-    normalizeVibe: normalizeVibe,
+    removeLegacyVibeUi: removeLegacyVibeUi,
   };
 
 })(typeof window !== 'undefined' ? window : globalThis);

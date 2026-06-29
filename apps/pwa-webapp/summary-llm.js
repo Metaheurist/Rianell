@@ -29,7 +29,6 @@
   var WEBNN_CACHE_KEY = 'rianell.webnn.available';
   var WEBNN_CACHE_TTL_MS = 86400000;
   var webNnProbePromise = null;
-  var wasmCapToastShown = false;
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
   var MAX_HOME_QUESTION_CACHE = 8;
@@ -442,11 +441,6 @@
 
   function applyWasmCapToTierKey(tierKey, webGpuOverride) {
     var cap = resolveWasmOnlyCapForTier(tierKey, webGpuOverride);
-    if (cap.capped && cap.warning && !wasmCapToastShown &&
-        typeof window !== 'undefined' && typeof window.showToast === 'function') {
-      wasmCapToastShown = true;
-      window.showToast(cap.warning, { type: 'info' });
-    }
     return cap.tier;
   }
 

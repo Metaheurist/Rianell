@@ -6,8 +6,17 @@ test('graphics-portfolio module exports RianellGraphicsPortfolio namespace', () 
   const js = readFileSync('apps/pwa-webapp/modules/graphics-portfolio.js', 'utf8');
   assert.match(js, /global\.RianellGraphicsPortfolio\s*=/);
   assert.match(js, /injectSpriteSymbols/);
-  assert.match(js, /playAchievementUnlockSequence/);
-  assert.match(js, /decorateLifestyleVitals/);
+  assert.match(js, /removeLegacyVibeUi/);
+  assert.match(js, /renderAchievementIconHTML/);
+  assert.match(js, /avatarSymbolPathsForId/);
+  assert.match(js, /avatar-carousel-shell/);
+  assert.doesNotMatch(js, /renderVibePickerHTML/);
+});
+
+test('index.html omits ambient vibe settings section', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.doesNotMatch(html, /settingsVibePickerMount/);
+  assert.doesNotMatch(html, /settings\.vibe\.title/);
 });
 
 test('graphics-portfolio.js defines twenty avatar IDs', () => {
@@ -47,4 +56,22 @@ test('sync-tokens-to-pwa emits vibe and avatar CSS variables', () => {
   const script = readFileSync('scripts/build/sync-tokens-to-pwa.mjs', 'utf8');
   assert.match(script, /VIBE_TOKENS/);
   assert.match(script, /avatar-primary/);
+});
+
+test('injectMetricEntityCompanion skips widgets with dedicated visuals and anchors inside host', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/graphics-portfolio.js', 'utf8');
+  assert.match(js, /function widgetHasDedicatedVisual/);
+  assert.match(js, /widgetHasDedicatedVisual\(widgetEl\)\) return null/);
+  assert.match(js, /widgetEl\.appendChild\(stage\)/);
+  assert.match(js, /removeMisplacedMetricEntityStages/);
+  assert.doesNotMatch(js, /parent\.insertBefore\(stage, widgetEl\.nextSibling\)/);
+});
+
+test('decorateConnectors reuses existing connector-icon instead of injecting duplicate art', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/graphics-portfolio.js', 'utf8');
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.match(html, /class="ui-svg-icon connector-icon"/);
+  assert.match(js, /var existingIcon = row\.querySelector\('\.connector-icon'\)/);
+  assert.match(js, /if \(legacyArt\) legacyArt\.remove\(\)/);
+  assert.doesNotMatch(js, /if \(row\.querySelector\('\.connector-art'\)\) return;/);
 });
