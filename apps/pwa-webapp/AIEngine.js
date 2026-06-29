@@ -2724,7 +2724,7 @@ const AIEngine = {
     
     // Daily function
     if (trends.dailyFunction && trends.dailyFunction.average < 6) {
-      advice.push("📋 **Ability to do Daily activities**: Reduced scores suggest need for activity pacing, assistive devices if needed, and occupational therapy consultation.");
+      advice.push("📋 **Daily activities**: Reduced scores suggest need for activity pacing, assistive devices if needed, and occupational therapy consultation.");
     }
 
     return advice;
@@ -2840,7 +2840,7 @@ const AIEngine = {
     // Daily function
     if (trends.dailyFunction && trends.dailyFunction.average < 6) {
       enhancedAdvice.push(
-        `📋 **Ability to do Daily activities**: Reduced scores (avg ${trends.dailyFunction.average.toFixed(1)}/10) suggest need for support. ` +
+        `📋 **Daily activities**: Reduced scores (avg ${trends.dailyFunction.average.toFixed(1)}/10) suggest need for support. ` +
         `Action steps: 1) Activity pacing, 2) Assistive devices if needed, ` +
         `3) Occupational therapy consultation, 4) Break tasks into smaller steps. ` +
         `Timeframe: Start this week, consider OT referral if function < 5/10 for >2 weeks.`

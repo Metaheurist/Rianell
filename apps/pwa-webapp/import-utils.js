@@ -177,6 +177,7 @@ function parseCSV(csvContent) {
   
   const headers = lines[0].split(',').map(h => h.trim());
   const dailyFunctionHeaderAliases = [
+    'Daily activities',
     'Ability to do Daily activities',
     'Daily Function',
     'Daily Activities',

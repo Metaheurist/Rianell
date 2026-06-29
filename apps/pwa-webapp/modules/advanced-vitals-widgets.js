@@ -58,24 +58,28 @@
   }
 
   function classifyGlucose(val, unit) {
-    if (val == null || isNaN(val)) return { id: 'idle', label: '-', color: '#8aa89a' };
+    if (val == null || isNaN(val)) return { id: 'idle', label: '-', color: '#8aa89a', urgent: false };
     if (unit === 'mgdl') {
-      if (val < 70) return { id: 'low', label: t('wizard.vitals.glucose.low', 'Low'), color: '#64b5f6' };
-      if (val <= 140) return { id: 'normal', label: t('wizard.vitals.glucose.normal', 'In range'), color: '#7bdf8c' };
-      if (val <= 200) return { id: 'high', label: t('wizard.vitals.glucose.high', 'High'), color: '#ffb74d' };
-      return { id: 'veryHigh', label: t('wizard.vitals.glucose.veryHigh', 'Very high'), color: '#ff7043' };
+      if (val < 54) return { id: 'critical', label: t('wizard.vitals.glucose.criticalLow', 'Critical (low)'), color: '#ff5252', urgent: true };
+      if (val < 70) return { id: 'low', label: t('wizard.vitals.glucose.low', 'Low'), color: '#64b5f6', urgent: false };
+      if (val <= 140) return { id: 'normal', label: t('wizard.vitals.glucose.normal', 'In range'), color: '#7bdf8c', urgent: false };
+      if (val <= 200) return { id: 'high', label: t('wizard.vitals.glucose.high', 'High'), color: '#ffb74d', urgent: false };
+      if (val <= 250) return { id: 'veryHigh', label: t('wizard.vitals.glucose.veryHigh', 'Very high'), color: '#ff7043', urgent: true };
+      return { id: 'critical', label: t('wizard.vitals.glucose.criticalHigh', 'Critical (high)'), color: '#ff1744', urgent: true };
     }
-    if (val < 3.9) return { id: 'low', label: t('wizard.vitals.glucose.low', 'Low'), color: '#64b5f6' };
-    if (val <= 7.8) return { id: 'normal', label: t('wizard.vitals.glucose.normal', 'In range'), color: '#7bdf8c' };
-    if (val <= 11.1) return { id: 'high', label: t('wizard.vitals.glucose.high', 'High'), color: '#ffb74d' };
-    return { id: 'veryHigh', label: t('wizard.vitals.glucose.veryHigh', 'Very high'), color: '#ff7043' };
+    if (val < 3.0) return { id: 'critical', label: t('wizard.vitals.glucose.criticalLow', 'Critical (low)'), color: '#ff5252', urgent: true };
+    if (val < 3.9) return { id: 'low', label: t('wizard.vitals.glucose.low', 'Low'), color: '#64b5f6', urgent: false };
+    if (val <= 7.8) return { id: 'normal', label: t('wizard.vitals.glucose.normal', 'In range'), color: '#7bdf8c', urgent: false };
+    if (val <= 11.1) return { id: 'high', label: t('wizard.vitals.glucose.high', 'High'), color: '#ffb74d', urgent: false };
+    if (val <= 20) return { id: 'veryHigh', label: t('wizard.vitals.glucose.veryHigh', 'Very high'), color: '#ff7043', urgent: val > 15 };
+    return { id: 'critical', label: t('wizard.vitals.glucose.criticalHigh', 'Critical (high)'), color: '#ff1744', urgent: true };
   }
 
   function classifySpO2(val) {
-    if (val == null || isNaN(val)) return { id: 'idle', label: '-', color: '#8aa89a' };
-    if (val >= 95) return { id: 'normal', label: t('wizard.vitals.spo2.normal', 'Normal'), color: '#4dd0e1' };
-    if (val >= 90) return { id: 'low', label: t('wizard.vitals.spo2.low', 'Low'), color: '#ffb74d' };
-    return { id: 'critical', label: t('wizard.vitals.spo2.critical', 'Critical'), color: '#ff5252' };
+    if (val == null || isNaN(val)) return { id: 'idle', label: '-', color: '#8aa89a', urgent: false };
+    if (val >= 95) return { id: 'normal', label: t('wizard.vitals.spo2.normal', 'Normal'), color: '#4dd0e1', urgent: false };
+    if (val >= 90) return { id: 'low', label: t('wizard.vitals.spo2.low', 'Low'), color: '#ffb74d', urgent: false };
+    return { id: 'critical', label: t('wizard.vitals.spo2.critical', 'Critical'), color: '#ff5252', urgent: true };
   }
 
   function classifyHrv(val) {
@@ -88,8 +92,15 @@
   function applyZone(widget, zone, pulseSec) {
     if (!widget) return;
     widget.setAttribute('data-vital-zone', zone.id);
+    widget.setAttribute('data-vital-urgent', zone.urgent ? 'true' : 'false');
     widget.style.setProperty('--vital-color', zone.color);
     if (pulseSec != null) widget.style.setProperty('--vital-pulse-rate', pulseSec + 's');
+  }
+
+  function updateVitalBadge(badge, zone, idleLabel) {
+    if (!badge) return;
+    badge.classList.toggle('vital-zone-badge--urgent', !!(zone && zone.urgent));
+    badge.textContent = zone && zone.id !== 'idle' ? zone.label : idleLabel;
   }
 
   function deriveVitalStatus(zoneId) {
@@ -262,7 +273,7 @@
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
-    if (badge) badge.textContent = active ? zone.label : t('wizard.vitals.glucose.hint', 'Slide to set glucose');
+    updateVitalBadge(badge, active ? zone : null, t('wizard.vitals.glucose.hint', 'Slide to set glucose'));
     applyOasisVitalFeedback(widget, display, zone);
     updateGlucoseDroplet(active, val, range, active && markActive && val > prevVal + 0.001);
     widget.dataset.glucosePrev = String(active ? val : range.default);
@@ -305,7 +316,7 @@
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
-    if (badge) badge.textContent = active ? zone.label : t('wizard.vitals.spo2.hint', 'Slide drum to set SpO₂');
+    updateVitalBadge(badge, active ? zone : null, t('wizard.vitals.spo2.hint', 'Slide drum to set SpO₂'));
     applyOasisVitalFeedback(widget, display, zone);
     if (ring) {
       var pct = active ? ratio(val, SPO2.min, SPO2.max) : 0;

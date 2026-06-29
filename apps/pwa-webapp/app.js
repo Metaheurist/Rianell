@@ -185,6 +185,11 @@ function tUi(key, params) {
   }
   return key;
 }
+/** tUi with English fallback when the catalog is not loaded yet. */
+function tUiOr(key, fallback, params) {
+  var val = tUi(key, params);
+  return val && val !== key ? val : fallback;
+}
 if (typeof window !== 'undefined') window.tUi = tUi;
 
 /** Content catalog label (food, exercise, stressor, etc.) with English fallback. */
@@ -1424,7 +1429,7 @@ function formatLogEntryAsText(log) {
     '',
     'FUNCTION (1-10)',
     '  Mobility: ' + (log.mobility ?? '-'),
-    '  Ability to do Daily activities: ' + (log.dailyFunction ?? '-'),
+    '  Daily activities: ' + (log.dailyFunction ?? '-'),
     '',
     'FLARE',
     '  ' + (log.flare || '-')
@@ -1457,7 +1462,7 @@ function formatLogEntryAsText(log) {
 // Single-row CSV for one log (same headers as exportToCSV)
 function formatLogEntryAsCSV(log) {
   if (!log) return '';
-  const headers = "Date,BPM,Weight,Blood Pressure,Blood Glucose,SpO2,HRV,Body Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Ability to do Daily activities,Swelling,Flare,Mood,Irritability,Notes";
+  const headers = "Date,BPM,Weight,Blood Pressure,Blood Glucose,SpO2,HRV,Body Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily activities,Swelling,Flare,Mood,Irritability,Notes";
   const bp = (log.bloodPressureSystolic && log.bloodPressureDiastolic)
     ? log.bloodPressureSystolic + '/' + log.bloodPressureDiastolic
     : '';
@@ -1583,7 +1588,7 @@ function openShareModalForLogsInRange() {
     if (typeof exportToCSV === 'function') {
       exportToCSV(rangeLogs);
     } else {
-      const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Ability to do Daily activities,Swelling,Flare,Mood,Irritability,Notes";
+      const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily activities,Swelling,Flare,Mood,Irritability,Notes";
       const rows = rangeLogs.map(log => formatLogEntryAsCSV(log).split('\n')[1]).join("\n");
       const blob = new Blob([headers + "\n" + rows], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
@@ -4834,7 +4839,7 @@ class FormValidator {
       'sleep': 'Sleep Quality',
       'jointPain': 'Joint Pain',
       'mobility': 'Mobility',
-      'dailyFunction': 'Ability to do Daily activities',
+      'dailyFunction': 'Daily activities',
       'swelling': 'Swelling',
       'mood': 'Mood',
       'irritability': 'Irritability',
@@ -5910,7 +5915,7 @@ async function createCombinedChart() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6476,7 +6481,7 @@ function toggleMetric(field) {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6535,7 +6540,7 @@ function selectAllMetrics() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6698,7 +6703,7 @@ function toggleBalanceMetric(field) {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6755,7 +6760,7 @@ function selectAllBalanceMetrics() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6783,7 +6788,7 @@ function deselectAllBalanceMetrics() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -6891,7 +6896,7 @@ async function createBalanceChart() {
     { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
     { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
     { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
-    { field: 'dailyFunction', name: 'Ability to do Daily activities', color: '#8bc34a', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily activities', color: '#8bc34a', scale: '1-10' },
     { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
     { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
     { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
@@ -7370,7 +7375,7 @@ function exportData() {
       alert('No data to export.');
       return;
     }
-  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Ability to do Daily activities,Swelling,Flare,Mood,Irritability,Notes";
+  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily activities,Swelling,Flare,Mood,Irritability,Notes";
   const csvContent = "data:text/csv;charset=utf-8," 
     + headers + "\n"
     + exportLogs.map(log => Object.values(log).join(",")).join("\n");
@@ -7418,7 +7423,7 @@ function importData() {
           // Validate headers
           const requiredHeaders = [
             'Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility',
-            ['Ability to do Daily activities', 'Daily Function', 'Daily Activities'],
+            ['Daily activities', 'Daily Function', 'Daily Activities', 'Ability to do Daily activities'],
             'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes'
           ];
           const headerOk = requiredHeaders.every(function (h) {
@@ -9081,7 +9086,7 @@ function renderAIThingsToWatch(anomalies) {
   html += '<div class="ai-watch-panel__header">';
   html += '<h4 class="ai-watch-panel__title" id="ai-heading-watch">' + svgIcon('notice', 'ai-inline-icon icon-warning') + ' ' + escapeHTML(tUi('ai.section.thingsToWatch')) + '</h4>';
   if (outliers.length) {
-    html += '<p class="ai-watch-panel__intro">' + escapeHTML(tUi('ai.watch.intro', 'Readings that stand out from your usual range in this period, ranked by how often.')) + '</p>';
+    html += '<p class="ai-watch-panel__intro">' + escapeHTML(tUiOr('ai.watch.intro', 'Readings that stand out from your usual range in this period, ranked by how often.')) + '</p>';
   }
   html += '</div>';
 
@@ -9093,10 +9098,10 @@ function renderAIThingsToWatch(anomalies) {
       html += '<article class="ai-watch-card ai-watch-card--' + sev + '" role="listitem" data-metric="' + escapeAttr(item.metric || '') + '">';
       html += '<div class="ai-watch-card__row">';
       html += '<span class="ai-watch-card__label">' + escapeHTML(item.label) + '</span>';
-      html += '<span class="ai-watch-card__count" aria-label="' + escapeAttr(item.count + ' unusual readings') + '">' + escapeHTML(String(item.count)) + '</span>';
+      html += '<span class="ai-watch-card__count" aria-label="' + escapeAttr(tUiOr('ai.watch.countAria', item.count + ' unusual readings', { count: item.count })) + '">' + escapeHTML(String(item.count)) + '</span>';
       html += '</div>';
       html += '<div class="ai-watch-card__bar" role="presentation" aria-hidden="true"><span class="ai-watch-card__bar-fill" style="width:' + pct + '%"></span></div>';
-      html += '<span class="ai-watch-card__hint">' + escapeHTML(tUi('ai.watch.unusualReadings', 'unusual readings')) + '</span>';
+      html += '<span class="ai-watch-card__hint">' + escapeHTML(tUiOr('ai.watch.unusualReadings', 'unusual readings')) + '</span>';
       html += '</article>';
     });
     html += '</div>';
@@ -9110,7 +9115,7 @@ function renderAIThingsToWatch(anomalies) {
     html += '</ul>';
   }
 
-  html += '<p class="ai-watch-panel__footnote" role="note">' + escapeHTML(tUi('ai.watch.footnote', 'Patterns in your logs only — not a diagnosis. Mention significant changes to your care team.')) + '</p>';
+  html += '<p class="ai-watch-panel__footnote" role="note">' + escapeHTML(tUiOr('ai.watch.footnote', 'Patterns in your logs only — not a diagnosis. Mention significant changes to your care team.')) + '</p>';
   html += '</div>';
   return html;
 }
@@ -12264,12 +12269,19 @@ function renderLogFoodCategoryList(category, listId) {
 }
 
 // --- Tile picker: mobile-friendly filter (client-side search on chip labels) ---
-function createTilePickerSearchEl(inputId, placeholder, ariaLabel) {
+function createTilePickerSearchEl(inputId, placeholder, ariaLabel, i18nKeys) {
   const wrap = document.createElement('div');
   wrap.className = 'tile-picker-search-wrap';
   const label = document.createElement('label');
   label.className = 'visually-hidden';
   label.htmlFor = inputId;
+  const keys = i18nKeys || {};
+  if (keys.placeholderKey) {
+    placeholder = tUiOr(keys.placeholderKey, placeholder);
+  }
+  if (keys.ariaKey) {
+    ariaLabel = tUiOr(keys.ariaKey, ariaLabel);
+  }
   label.textContent = ariaLabel;
   const input = document.createElement('input');
   input.type = 'search';
@@ -12279,6 +12291,14 @@ function createTilePickerSearchEl(inputId, placeholder, ariaLabel) {
   input.setAttribute('autocomplete', 'off');
   input.setAttribute('enterkeyhint', 'search');
   input.setAttribute('aria-label', ariaLabel);
+  if (keys.placeholderKey) {
+    input.setAttribute('data-i18n-placeholder', keys.placeholderKey);
+    input.setAttribute('data-i18n-placeholder-fallback', placeholder);
+  }
+  if (keys.ariaKey) {
+    input.setAttribute('data-i18n-aria', keys.ariaKey);
+    input.setAttribute('data-i18n-aria-fallback', ariaLabel);
+  }
   wrap.appendChild(label);
   wrap.appendChild(input);
   return wrap;
@@ -12615,6 +12635,29 @@ function syncSymptomTilesVisual(containerId) {
   }
   run(document.getElementById(containerId));
   if (containerId === 'logSymptomsTiles') run(document.getElementById('logSymptomsFrequent'));
+}
+
+function refreshTilePickerSearchI18n(containerId) {
+  var input = document.getElementById('tileSearch_' + containerId);
+  if (!input) return;
+  var phKey = input.getAttribute('data-i18n-placeholder');
+  var ariaKey = input.getAttribute('data-i18n-aria');
+  if (phKey) {
+    var phFallback = input.getAttribute('data-i18n-placeholder-fallback') || 'Filter…';
+    input.placeholder = tUiOr(phKey, phFallback);
+  }
+  if (ariaKey) {
+    var ariaFallback = input.getAttribute('data-i18n-aria-fallback') || input.getAttribute('aria-label') || 'Filter';
+    var aria = tUiOr(ariaKey, ariaFallback);
+    input.setAttribute('aria-label', aria);
+    var wrap = input.closest('.tile-picker-search-wrap');
+    var label = wrap && wrap.querySelector('label.visually-hidden');
+    if (label) label.textContent = aria;
+  }
+}
+
+function refreshSymptomPickerSearchI18n(containerId) {
+  refreshTilePickerSearchI18n(containerId);
 }
 
 // Build chip grid for one meal (log form) - grouped by food group, three sections per tile: icon, name, nutrition
@@ -13067,6 +13110,28 @@ const SYMPTOM_ICONS = {
   'Other': 'fa-solid fa-ellipsis'
 };
 
+const SYMPTOM_ICON_ANIM = {
+  'Nausea': 'symptom-chip-icon--sway',
+  'Appetite loss': 'symptom-chip-icon--drift',
+  'Digestive issues': 'symptom-chip-icon--pulse-soft',
+  'Bloating': 'symptom-chip-icon--pulse-soft',
+  'Breathing difficulty': 'symptom-chip-icon--breathe',
+  'Cough': 'symptom-chip-icon--breathe',
+  'Chest tightness': 'symptom-chip-icon--heartbeat',
+  'Dizziness': 'symptom-chip-icon--spin',
+  'Headache': 'symptom-chip-icon--throb',
+  'Tingling or numbness': 'symptom-chip-icon--wave',
+  'Migraine': 'symptom-chip-icon--throb',
+  'Fever': 'symptom-chip-icon--pulse',
+  'Chills': 'symptom-chip-icon--shiver',
+  'Night sweats': 'symptom-chip-icon--pulse',
+  'Body fatigue': 'symptom-chip-icon--drain',
+  'Skin rash': 'symptom-chip-icon--sparkle',
+  'Eye irritation': 'symptom-chip-icon--blink',
+  'Dry skin': 'symptom-chip-icon--sparkle',
+  'Itching': 'symptom-chip-icon--wave'
+};
+
 // Pain body diagram: region id -> display label (front view; includes joint points as circles)
 const PAIN_BODY_REGIONS = [
   { id: 'head', label: 'Head' },
@@ -13386,7 +13451,10 @@ function renderSymptomTiles(containerId) {
   if (!container) return;
   const symSearchId = 'tileSearch_' + containerId;
   container.innerHTML = '';
-  container.appendChild(createTilePickerSearchEl(symSearchId, tUi('logs.picker.filterSymptoms'), tUi('logs.picker.filterSymptomsAria')));
+  container.appendChild(createTilePickerSearchEl(symSearchId, 'Filter symptoms\u2026', 'Filter symptoms', {
+    placeholderKey: 'logs.picker.filterSymptoms',
+    ariaKey: 'logs.picker.filterSymptomsAria'
+  }));
   SYMPTOM_GROUPS.forEach(grp => {
     const opts = SYMPTOM_OPTIONS.filter(o => o.group === grp.id);
     if (opts.length === 0) return;
@@ -13409,7 +13477,8 @@ function renderSymptomTiles(containerId) {
       btn.title = tUi('common.toggle') + ' ' + optLabel;
       const iconClass = SYMPTOM_ICONS[opt.value] || 'fa-solid fa-circle-dot';
       const iconEl = document.createElement('span');
-      iconEl.className = 'symptom-chip-icon';
+      const animClass = SYMPTOM_ICON_ANIM[opt.value] || '';
+      iconEl.className = 'symptom-chip-icon' + (animClass ? ' ' + animClass : '');
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'symptom-chip-name';
@@ -13428,6 +13497,10 @@ function renderSymptomTiles(containerId) {
   const symSearchInput = document.getElementById(symSearchId);
   if (symSearchInput) attachTilePickerSearch(container, symSearchInput);
   syncSymptomTilesVisual(containerId);
+  if (typeof window !== 'undefined' && window.RianellGraphicsPortfolio &&
+    typeof window.RianellGraphicsPortfolio.decorateSymptomChips === 'function') {
+    window.RianellGraphicsPortfolio.decorateSymptomChips(container);
+  }
 }
 
 function renderLogSymptomsItems() {
@@ -13451,7 +13524,10 @@ function renderLogSymptomsItems() {
   var symTiles = document.getElementById('logSymptomsTiles');
   var hasSymptomTiles = symTiles && symTiles.querySelector('.symptom-chips');
   if (!hasSymptomTiles) renderSymptomTiles('logSymptomsTiles');
-  else syncSymptomTilesVisual('logSymptomsTiles');
+  else {
+    syncSymptomTilesVisual('logSymptomsTiles');
+    refreshSymptomPickerSearchI18n('logSymptomsTiles');
+  }
 }
 
 function normalizeMedTimePickerValue(v) {
@@ -15109,7 +15185,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">${svgIcon('document', 'metric-svg-icon', 'Ability to do Daily activities')} ${typeof tUi === 'function' ? tUi('common.daily.activities') : 'Ability to do Daily activities'}</span>
+          <span class="metric-label">${svgIcon('document', 'metric-svg-icon', 'Daily activities')} ${typeof tUi === 'function' ? tUi('common.daily.activities') : 'Daily activities'}</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${log.dailyFunction}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.dailyFunction}/10</span>`
@@ -17022,7 +17098,7 @@ async function updateChartsImmediate() {
     chart("sleepChart", "Sleep Quality", "sleep", "rgb(63,81,181)"),
     chart("jointPainChart", "Joint Pain Level", "jointPain", "rgb(255,87,34)"),
     chart("mobilityChart", "Mobility Level", "mobility", "rgb(0,188,212)"),
-    chart("dailyFunctionChart", "Ability to do Daily activities level", "dailyFunction", "rgb(139,195,74)"),
+    chart("dailyFunctionChart", "Daily activities level", "dailyFunction", "rgb(139,195,74)"),
     chart("swellingChart", "Joint Swelling Level", "swelling", "rgb(156,39,176)"),
     chart("moodChart", "Mood Level", "mood", "rgb(103,58,183)"),
     chart("irritabilityChart", "Irritability Level", "irritability", "rgb(121,85,72)"),
@@ -23656,6 +23732,14 @@ function openTilePickerSheet(triggerEl) {
     void anchor.offsetHeight;
     body.scrollTop = 0;
   } catch (e) {}
+  var searchInput = anchor.querySelector('.tile-picker-search[id^="tileSearch_"]');
+  if (searchInput && typeof refreshTilePickerSearchI18n === 'function') {
+    refreshTilePickerSearchI18n(searchInput.id.replace(/^tileSearch_/, ''));
+  }
+  if (typeof window !== 'undefined' && window.RianellGraphicsPortfolio &&
+    typeof window.RianellGraphicsPortfolio.decorateSymptomChips === 'function') {
+    window.RianellGraphicsPortfolio.decorateSymptomChips(anchor);
+  }
 }
 
 function initializeTilePickerSheet() {
@@ -24703,14 +24787,86 @@ function buildLogReviewSummaryHtml() {
     return el ? String(el.value || '').trim() : '';
   }
 
-  function addRow(rows, label, value) {
+  function isSeverityMetricField(field) {
+    return !SLIDER_HIGHER_IS_BETTER[field];
+  }
+
+  function reviewMetricRaw(field, wellnessVal) {
+    return metricRawFromWellness(field, wellnessVal);
+  }
+
+  function reviewMetricZone(field, raw) {
+    var S = typeof window !== 'undefined' ? window.RianellShared : null;
+    if (isSeverityMetricField(field)) {
+      if (S && typeof S.classifySeverityRaw === 'function') {
+        return S.classifySeverityRaw(parseInt(raw, 10), function (k, fb) { return tUiOr(k, fb); });
+      }
+      var v = Math.max(1, Math.min(10, parseInt(raw, 10) || 5));
+      if (v <= 3) return { color: '#7bdf8c' };
+      if (v <= 7) return { color: '#ffb74d' };
+      return { color: '#ff7043' };
+    }
+    if (S && typeof S.classifyWellnessSlider === 'function') {
+      return S.classifyWellnessSlider(parseInt(raw, 10), function (k, fb) { return tUiOr(k, fb); });
+    }
+    var w = Math.max(1, Math.min(10, parseInt(raw, 10) || 5));
+    if (w >= 8) return { color: '#7bdf8c' };
+    if (w >= 4) return { color: '#ffb74d' };
+    return { color: '#ff8a65' };
+  }
+
+  function reviewMetricBarHtml(field, raw) {
+    var n = parseInt(raw, 10);
+    if (isNaN(n)) return '';
+    var pct = ((Math.max(1, Math.min(10, n)) - 1) / 9) * 100;
+    var zone = reviewMetricZone(field, isSeverityMetricField(field) ? n : metricWellnessFromRaw(field, n));
+    return (
+      '<div class="log-review-metric-bar" role="img" aria-hidden="true">' +
+        '<div class="log-review-metric-bar__fill" style="width:' + pct.toFixed(1) + '%;background:' + zone.color + '"></div>' +
+      '</div>'
+    );
+  }
+
+  function formatReviewMetric(field, wellnessVal) {
+    var raw = reviewMetricRaw(field, wellnessVal);
+    return (
+      '<div class="log-review-metric">' +
+        reviewMetricBarHtml(field, raw) +
+        '<span class="log-review-metric-text">' + escapeHTML(String(raw) + '/10') + '</span>' +
+      '</div>'
+    );
+  }
+
+  function classifyReviewGlucose(val) {
+    var unit = appSettings.glucoseUnit === 'mgdl' ? 'mgdl' : 'mmol';
+    var n = parseFloat(val);
+    if (isNaN(n)) return { urgent: false };
+    if (unit === 'mgdl') {
+      if (n < 54 || n > 250) return { urgent: true };
+      if (n > 200) return { urgent: true };
+      return { urgent: false };
+    }
+    if (n < 3.0 || n > 20) return { urgent: true };
+    if (n > 15) return { urgent: true };
+    return { urgent: false };
+  }
+
+  function classifyReviewSpO2(val) {
+    var n = parseFloat(val);
+    if (isNaN(n)) return { urgent: false };
+    return { urgent: n < 90 };
+  }
+
+  function addRow(rows, label, value, options) {
     if (value === undefined || value === null) return;
     var v = String(value).trim();
     if (!v) return;
+    var opts = options || {};
+    var rowClass = 'log-review-row' + (opts.urgent ? ' log-review-row--urgent' : '');
     rows.push(
-      '<div class="log-review-row">' +
+      '<div class="' + rowClass + '">' +
         '<span class="log-review-label">' + escapeHTML(label) + '</span>' +
-        '<span class="log-review-value">' + escapeHTML(v) + '</span>' +
+        '<span class="log-review-value">' + (opts.html ? v : escapeHTML(v)) + '</span>' +
       '</div>'
     );
   }
@@ -24745,8 +24901,15 @@ function buildLogReviewSummaryHtml() {
   } else if (bpm) {
     addRow(vitals, tUi('wizard.review.row.heartRate'), bpm + ' bpm');
   }
-  if (readValue('bloodGlucose')) addRow(vitals, tUi('wizard.vitals.bloodGlucose'), readValue('bloodGlucose') + ' ' + (appSettings.glucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L'));
-  if (readValue('spO2')) addRow(vitals, tUi('wizard.vitals.spO2'), readValue('spO2') + '%');
+  if (readValue('bloodGlucose')) {
+    var gVal = readValue('bloodGlucose');
+    var gUnit = appSettings.glucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L';
+    addRow(vitals, tUi('wizard.vitals.bloodGlucose'), gVal + ' ' + gUnit, { urgent: classifyReviewGlucose(gVal).urgent });
+  }
+  if (readValue('spO2')) {
+    var spo2Val = readValue('spO2');
+    addRow(vitals, tUi('wizard.vitals.spO2'), spo2Val + '%', { urgent: classifyReviewSpO2(spo2Val).urgent });
+  }
   if (readValue('hrv')) addRow(vitals, tUi('wizard.vitals.hrv'), readValue('hrv') + ' ms');
   if (readValue('bodyWeight')) addRow(vitals, tUi('wizard.vitals.weight'), readValue('bodyWeight') + ' ' + (appSettings.bodyWeightUnit || 'kg'));
   html.push(sectionCard('wizard.review.vitals', vitals, { showWhenEmpty: true }));
@@ -24759,8 +24922,8 @@ function buildLogReviewSummaryHtml() {
     swelling: 'wizard.review.row.swelling'
   };
   Object.keys(symptomMap).forEach(function(id) {
-    var v = readValue(id);
-    if (v) addRow(symptoms, tUi(symptomMap[id]), v + '/10');
+    var wellness = readValue(id);
+    if (wellness) addRow(symptoms, tUi(symptomMap[id]), formatReviewMetric(id, wellness), { html: true });
   });
   addRow(symptoms, tUi('wizard.review.row.painLocations'), readValue('painLocation'));
   if (typeof logFormSymptomsItems !== 'undefined' && logFormSymptomsItems.length) {
@@ -24778,8 +24941,8 @@ function buildLogReviewSummaryHtml() {
     dailyFunction: 'wizard.review.row.dailyFunction'
   };
   Object.keys(wellbeingMap).forEach(function(id) {
-    var v = readValue(id);
-    if (v) addRow(wellbeing, tUi(wellbeingMap[id]), v + '/10');
+    var wellness = readValue(id);
+    if (wellness) addRow(wellbeing, tUi(wellbeingMap[id]), formatReviewMetric(id, wellness), { html: true });
   });
   var steps = readValue('steps');
   var hydration = readValue('hydration');
