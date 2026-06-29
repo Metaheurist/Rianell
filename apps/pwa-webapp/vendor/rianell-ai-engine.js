@@ -1231,7 +1231,7 @@ var RianellAIEngine = (() => {
     { field: "sleep", label: "Sleep Quality", max: 10 },
     { field: "jointPain", label: "Joint Pain", max: 10 },
     { field: "mobility", label: "Mobility", max: 10 },
-    { field: "dailyFunction", label: "Ability to do Daily activities", max: 10 },
+    { field: "dailyFunction", label: "Daily activities", max: 10 },
     { field: "swelling", label: "Swelling", max: 10 },
     { field: "mood", label: "Mood", max: 10 },
     { field: "irritability", label: "Irritability", max: 10 },

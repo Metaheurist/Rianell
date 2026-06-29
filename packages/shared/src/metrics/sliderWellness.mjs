@@ -54,6 +54,14 @@ export function classifyWellnessSlider(wellness, t = (k, fb) => fb) {
   return { id: 'bad', color: '#ff8a65', label: t('common.bad', 'Bad') };
 }
 
+/** Symptom / burden metrics: classify stored raw severity (1 = low, 10 = high). */
+export function classifySeverityRaw(raw, t = (k, fb) => fb) {
+  const v = clampInt(raw, SLIDER_MIN, SLIDER_MAX);
+  if (v <= 3) return { id: 'low', color: '#7bdf8c', label: t('wizard.metric.severity.low', 'Low') };
+  if (v <= 7) return { id: 'moderate', color: '#ffb74d', label: t('wizard.metric.severity.moderate', 'Moderate') };
+  return { id: 'high', color: '#ff7043', label: t('wizard.metric.severity.high', 'High') };
+}
+
 export function wellnessSliderFillColor(wellness) {
   const v = clampInt(wellness, SLIDER_MIN, SLIDER_MAX);
   if (v >= 8) return '#4CAF50';

@@ -28,6 +28,8 @@ var RianellShared = (() => {
     APPOINTMENT_COUNTDOWN_DAYS: () => APPOINTMENT_COUNTDOWN_DAYS,
     APPOINTMENT_DISCLAIMER: () => APPOINTMENT_DISCLAIMER,
     APPOINTMENT_RANGE_DAYS: () => APPOINTMENT_RANGE_DAYS,
+    AVATAR_NAME_PREFIXES: () => AVATAR_NAME_PREFIXES,
+    AVATAR_NAME_SUFFIXES: () => AVATAR_NAME_SUFFIXES,
     BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     COHORT_MIN_K: () => COHORT_MIN_K,
@@ -61,6 +63,7 @@ var RianellShared = (() => {
     GAD7_FOLLOWUP_QUESTIONS: () => GAD7_FOLLOWUP_QUESTIONS,
     GAD7_MAX_SCORE: () => GAD7_MAX_SCORE,
     GAD7_QUESTIONS: () => GAD7_QUESTIONS,
+    GENERATED_AVATAR_PREFIX: () => GENERATED_AVATAR_PREFIX,
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
     GOLDEN_LLM_INTENTS: () => GOLDEN_LLM_INTENTS,
     GOLDEN_LLM_LOCALES: () => GOLDEN_LLM_LOCALES,
@@ -202,6 +205,7 @@ var RianellShared = (() => {
     buildFirstRunPlan: () => buildFirstRunPlan,
     buildFlareRiskNotificationContent: () => buildFlareRiskNotificationContent,
     buildFocusScrollMargin: () => buildFocusScrollMargin,
+    buildGeneratedProfileAvatarId: () => buildGeneratedProfileAvatarId,
     buildGuidedOnboardingProgressSteps: () => buildGuidedOnboardingProgressSteps,
     buildGuidedQuestionnaire: () => buildGuidedQuestionnaire,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
@@ -272,9 +276,11 @@ var RianellShared = (() => {
     countDistinctLogDays: () => countDistinctLogDays,
     countHighFodmapDays: () => countHighFodmapDays,
     createGuidedOnboardingProgressSession: () => createGuidedOnboardingProgressSession,
+    createMulberry32: () => createMulberry32,
     createOAuthState: () => createOAuthState,
     createOnboardingProgressSession: () => createOnboardingProgressSession,
     createQrHandoffPayload: () => createQrHandoffPayload,
+    createRandomAvatarSeed: () => createRandomAvatarSeed,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
@@ -327,11 +333,13 @@ var RianellShared = (() => {
     formatStructuredLlmOutput: () => formatStructuredLlmOutput,
     formatVitalSuggestionDisplay: () => formatVitalSuggestionDisplay,
     formatWeekChatHistory: () => formatWeekChatHistory,
+    generateAvatarNameFromSeed: () => generateAvatarNameFromSeed,
     generateCodeVerifier: () => generateCodeVerifier,
     generateDek: () => generateDek,
     generateRawApiKey: () => generateRawApiKey,
     generateSalt: () => generateSalt,
     generateShareCode: () => generateShareCode,
+    generatedAvatarIconSlug: () => generatedAvatarIconSlug,
     getAchievementToastQueueLength: () => getAchievementToastQueueLength,
     getBrainFogFontScale: () => getBrainFogFontScale,
     getCommunityTriggers: () => getCommunityTriggers,
@@ -369,6 +377,7 @@ var RianellShared = (() => {
     hasEnabledMedSchedule: () => hasEnabledMedSchedule,
     hasLoggedToday: () => hasLoggedToday,
     hashApiKey: () => hashApiKey,
+    hashAvatarSeed: () => hashAvatarSeed,
     hashMedicalConditionLabel: () => hashMedicalConditionLabel,
     identity: () => identity,
     inferTreatmentStartsFromLogs: () => inferTreatmentStartsFromLogs,
@@ -384,6 +393,7 @@ var RianellShared = (() => {
     isCustomMetricField: () => isCustomMetricField,
     isCycleDayLate: () => isCycleDayLate,
     isFirstRunWizardComplete: () => isFirstRunWizardComplete,
+    isGeneratedProfileAvatar: () => isGeneratedProfileAvatar,
     isGoodDayLog: () => isGoodDayLog,
     isGuidedOnboardingAuthenticated: () => isGuidedOnboardingAuthenticated,
     isHealthLoggingUnlocked: () => isHealthLoggingUnlocked,
@@ -501,6 +511,7 @@ var RianellShared = (() => {
     painBodyStateToLocations: () => painBodyStateToLocations,
     parseAppointmentDate: () => parseAppointmentDate,
     parseDoctorQuestionsResponse: () => parseDoctorQuestionsResponse,
+    parseGeneratedAvatarSeed: () => parseGeneratedAvatarSeed,
     parseGoogleSheetId: () => parseGoogleSheetId,
     parseIsoDateLocal: () => parseIsoDateLocal,
     parseLogsCsv: () => parseLogsCsv,
@@ -3964,6 +3975,71 @@ ${hist}`);
     "lumenshard",
     "driftmoss"
   ];
+  var GENERATED_AVATAR_PREFIX = "gen:";
+  var AVATAR_NAME_PREFIXES = [
+    "Sun",
+    "Moon",
+    "Star",
+    "Iron",
+    "Glass",
+    "Mist",
+    "Dusk",
+    "Dawn",
+    "Stone",
+    "Leaf",
+    "Coral",
+    "Ash",
+    "Ember",
+    "Tide",
+    "Storm",
+    "Cloud",
+    "Frost",
+    "Wild",
+    "Velvet",
+    "Bright",
+    "Quiet",
+    "Swift",
+    "Gentle",
+    "Bold",
+    "Pale",
+    "Deep",
+    "Soft",
+    "Kind",
+    "Calm",
+    "Warm"
+  ];
+  var AVATAR_NAME_SUFFIXES = [
+    "Warden",
+    "Mantle",
+    "Bloom",
+    "Shard",
+    "Orb",
+    "Thread",
+    "Veil",
+    "Echo",
+    "Spiral",
+    "Node",
+    "Lace",
+    "Loop",
+    "Seed",
+    "Moss",
+    "Wave",
+    "Core",
+    "Guard",
+    "Spark",
+    "Drift",
+    "Glimmer",
+    "Hollow",
+    "Grove",
+    "Haven",
+    "Pulse",
+    "Wisp",
+    "Crown",
+    "Root",
+    "Gleam",
+    "Shade",
+    "Trail"
+  ];
   var LEGACY_AVATAR_MAP = {
     leaf: "leafcircuit",
     heart: "voidorb",
@@ -3973,8 +4049,56 @@ ${hist}`);
     shield: "stonebloom"
   };
   var USER_VIBE_IDS = ["calm", "energy", "nature", "clinical", "dark"];
+  function hashAvatarSeed(seed) {
+    const s = String(seed || "");
+    let h = 1779033703 ^ s.length;
+    for (let i = 0; i < s.length; i += 1) {
+      h = Math.imul(h ^ s.charCodeAt(i), 3432918353);
+      h = h << 13 | h >>> 19;
+    }
+    return h >>> 0;
+  }
+  function createMulberry32(seedNum) {
+    let a = seedNum >>> 0;
+    return function next() {
+      a |= 0;
+      a = a + 1831565813 | 0;
+      let t2 = Math.imul(a ^ a >>> 15, 1 | a);
+      t2 = t2 + Math.imul(t2 ^ t2 >>> 7, 61 | t2) ^ t2;
+      return ((t2 ^ t2 >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function createRandomAvatarSeed() {
+    if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+      const bytes = new Uint32Array(2);
+      crypto.getRandomValues(bytes);
+      return bytes[0].toString(36) + bytes[1].toString(36);
+    }
+    return String(Date.now()) + Math.random().toString(36).slice(2, 8);
+  }
+  function isGeneratedProfileAvatar(value) {
+    return typeof value === "string" && value.startsWith(GENERATED_AVATAR_PREFIX) && value.length > GENERATED_AVATAR_PREFIX.length;
+  }
+  function parseGeneratedAvatarSeed(value) {
+    if (!isGeneratedProfileAvatar(value)) return null;
+    return value.slice(GENERATED_AVATAR_PREFIX.length);
+  }
+  function buildGeneratedProfileAvatarId(seed) {
+    const s = typeof seed === "string" ? seed.trim() : String(seed || "");
+    return s ? `${GENERATED_AVATAR_PREFIX}${s}` : "";
+  }
+  function generateAvatarNameFromSeed(seed) {
+    const rng = createMulberry32(hashAvatarSeed(seed));
+    const prefix = AVATAR_NAME_PREFIXES[Math.floor(rng() * AVATAR_NAME_PREFIXES.length)];
+    const suffix = AVATAR_NAME_SUFFIXES[Math.floor(rng() * AVATAR_NAME_SUFFIXES.length)];
+    return `${prefix} ${suffix}`;
+  }
+  function generatedAvatarIconSlug(seed) {
+    return String(seed || "").replace(/[^a-zA-Z0-9_-]/g, "") || "0";
+  }
   function normalizeProfileAvatar(value) {
     const id = typeof value === "string" ? value.trim() : "";
+    if (isGeneratedProfileAvatar(id)) return id;
     if (PROFILE_AVATAR_IDS.includes(id)) return id;
     if (LEGACY_AVATAR_MAP[id]) return LEGACY_AVATAR_MAP[id];
     return "voidorb";
@@ -5347,7 +5471,7 @@ ${hist}`);
     sleep: "Sleep",
     jointPain: "Joint Pain",
     mobility: "Mobility",
-    dailyFunction: "Ability to do Daily activities",
+    dailyFunction: "Daily activities",
     swelling: "Swelling",
     flare: "Flare",
     mood: "Mood",
@@ -5374,7 +5498,7 @@ ${hist}`);
     return [header, ...rows].join("\n");
   }
   var LOG_CSV_LEGACY_HEADER_ALIASES = {
-    dailyFunction: ["Daily Function", "Daily Activities"]
+    dailyFunction: ["Daily Function", "Daily Activities", "Ability to do Daily activities"]
   };
   function parseCsvLine(line) {
     const values = [];
@@ -7214,9 +7338,11 @@ ${questionsBlock}
       case "avatarPick": {
         if (choiceId !== "continue" && choiceId !== "skip") return p;
         const avatar = typeof extra.profileAvatar === "string" && extra.profileAvatar.trim() ? extra.profileAvatar.trim() : p.profileAvatar;
+        const avatarName = typeof extra.profileAvatarName === "string" && extra.profileAvatarName.trim() ? extra.profileAvatarName.trim() : p.profileAvatarName;
         return {
           ...p,
           profileAvatar: avatar || p.profileAvatar || "voidorb",
+          profileAvatarName: avatarName || p.profileAvatarName || "",
           avatarPickAt: choiceId === "continue" ? now : p.avatarPickAt
         };
       }

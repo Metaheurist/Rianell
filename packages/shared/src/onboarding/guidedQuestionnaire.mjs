@@ -370,9 +370,14 @@ export function applyQuestionnaireAnswer(prefs, cardId, choiceId, extra = {}) {
         typeof extra.profileAvatar === 'string' && extra.profileAvatar.trim()
           ? extra.profileAvatar.trim()
           : p.profileAvatar;
+      const avatarName =
+        typeof extra.profileAvatarName === 'string' && extra.profileAvatarName.trim()
+          ? extra.profileAvatarName.trim()
+          : p.profileAvatarName;
       return {
         ...p,
         profileAvatar: avatar || p.profileAvatar || 'voidorb',
+        profileAvatarName: avatarName || p.profileAvatarName || '',
         avatarPickAt: choiceId === 'continue' ? now : p.avatarPickAt,
       };
     }
