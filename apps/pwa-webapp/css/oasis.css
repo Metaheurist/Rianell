@@ -1,0 +1,295 @@
+/*
+ * oasis.css — UI Oasis Overhaul v2.1.0
+ * All selectors scoped to .oasis-* or [data-oasis] to avoid collisions.
+ * Animate ONLY: transform, opacity, filter (ui-motion.mdc rule).
+ * Every @keyframes block is wrapped in @media (not (prefers-reduced-motion: reduce)).
+ */
+
+/* ── 1. CSS custom properties (theme-agnostic fallbacks) ───────────────────── */
+:root {
+  --oasis-blob1:          #1a5c3a; /* overridden by .rianell-theme-* below */
+  --oasis-blob2:          #0d3d2e;
+  --oasis-blob3:          #2e7a5a;
+  --oasis-glow:           #7bdf8c;
+  --oasis-breath-dur:     6000ms;
+  --oasis-glow-dur:       3200ms;
+  --oasis-particle-dur:   900ms;
+  --oasis-blur-radius:    80px;
+  --oasis-blob-opacity:   0.55;
+}
+
+/* Per-team overrides — piggyback on existing .rianell-theme-* classes */
+.rianell-theme-mint          { --oasis-blob1: #1a5c3a; --oasis-blob2: #0d3d2e; --oasis-blob3: #2e7a5a; --oasis-glow: #7bdf8c; }
+.rianell-theme-red-black     { --oasis-blob1: #6b1a2e; --oasis-blob2: #3d0d1a; --oasis-blob3: #a0294a; --oasis-glow: #ff8d98; }
+.rianell-theme-mono          { --oasis-blob1: #1e1e1e; --oasis-blob2: #2d2d2d; --oasis-blob3: #3a3a3a; --oasis-glow: #d0d0d0; }
+.rianell-theme-rainbow       { --oasis-blob1: #1a1550; --oasis-blob2: #2a0d40; --oasis-blob3: #3d1f6b; --oasis-glow: #ff4fa0; }
+
+/* Light mode: reduce blob opacity to avoid washing out light backgrounds */
+.rianell-appearance-light    { --oasis-blob-opacity: 0.28; --oasis-blur-radius: 60px; }
+
+/* Brain fog mode: kill all oasis animations immediately */
+.rianell-brain-fog .oasis-blob,
+.rianell-brain-fog .oasis-grain { display: none !important; }
+.rianell-brain-fog [data-oasis-counter] { animation: none !important; }
+
+/* ── 2. Ambient blob base styles ────────────────────────────────────────────── */
+.oasis-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;             /* behind all content — content must be z-index: 1+ */
+  will-change: transform, opacity;
+  opacity: var(--oasis-blob-opacity);
+  /* filter: blur() is GPU-composited — safe per ui-motion.mdc */
+  filter: blur(var(--oasis-blur-radius));
+}
+
+.oasis-blob--1 { background: var(--oasis-blob1); width: 340px; height: 340px; top: -80px;  left: -60px;  }
+.oasis-blob--2 { background: var(--oasis-blob2); width: 260px; height: 260px; bottom: 20px; right: -40px; }
+.oasis-blob--3 { background: var(--oasis-blob3); width: 200px; height: 200px; top: 40%;    left: 30%;    }
+
+/* ── 3. Breath keyframes (prefers-reduced-motion guarded) ───────────────────── */
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes oasisBreath1 {
+    0%   { transform: translate(0px,  0px)   scale(1.00); opacity: calc(var(--oasis-blob-opacity) * 0.8); }
+    33%  { transform: translate(18px, -12px) scale(1.06); opacity: var(--oasis-blob-opacity); }
+    66%  { transform: translate(-8px,  16px) scale(0.97); opacity: calc(var(--oasis-blob-opacity) * 0.9); }
+    100% { transform: translate(0px,  0px)   scale(1.00); opacity: calc(var(--oasis-blob-opacity) * 0.8); }
+  }
+  @keyframes oasisBreath2 {
+    0%   { transform: translate(0px,  0px)   scale(1.00); opacity: calc(var(--oasis-blob-opacity) * 0.7); }
+    40%  { transform: translate(-14px, 10px) scale(1.08); opacity: var(--oasis-blob-opacity); }
+    75%  { transform: translate(10px, -8px)  scale(0.95); opacity: calc(var(--oasis-blob-opacity) * 0.85); }
+    100% { transform: translate(0px,  0px)   scale(1.00); opacity: calc(var(--oasis-blob-opacity) * 0.7); }
+  }
+  @keyframes oasisBreath3 {
+    0%   { transform: translate(0px, 0px) scale(1.00); }
+    50%  { transform: translate(6px, 14px) scale(1.04); }
+    100% { transform: translate(0px, 0px) scale(1.00); }
+  }
+
+  .oasis-blob--1 { animation: oasisBreath1 var(--oasis-breath-dur) var(--ease-out-expo) infinite; }
+  .oasis-blob--2 { animation: oasisBreath2 calc(var(--oasis-breath-dur) * 1.18) var(--ease-out-expo) infinite reverse; }
+  .oasis-blob--3 { animation: oasisBreath3 calc(var(--oasis-breath-dur) * 0.83) var(--ease-out-expo) infinite; }
+}
+
+/* ── 4. SVG grain texture overlay ───────────────────────────────────────────── */
+/* Grain is a ::before on each tab-content. The SVG feTurbulence is inlined as
+   data URI — zero HTTP requests. GPU-composited via will-change: transform.    */
+.tab-content::before,
+.settings-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.032;
+  will-change: transform;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+/* Ensure content inside tab panels sits above blobs and grain */
+.tab-content > * { position: relative; z-index: 1; }
+
+/* ── 5. Calm-glow ring for healthy metrics ───────────────────────────────────── */
+[data-metric-status="improving"] .metric-widget__ring,
+[data-metric-status="improving"] .metric-card {
+  /* filter is GPU-composited — safe */
+  filter: drop-shadow(0 0 8px var(--oasis-glow));
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes calmGlow {
+    0%, 100% { filter: drop-shadow(0 0 4px  var(--oasis-glow)); opacity: 1; }
+    50%       { filter: drop-shadow(0 0 12px var(--oasis-glow)); opacity: 0.92; }
+  }
+  [data-metric-status="improving"] .metric-widget__ring {
+    animation: calmGlow var(--oasis-glow-dur) var(--ease-out-expo) infinite;
+  }
+}
+
+/* Status 'declining' — remove glow, never shame with harsh colour */
+[data-metric-status="declining"] .metric-widget__ring { filter: none; }
+
+/* ── 6. Positive-trend shimmer on vitals cards ──────────────────────────────── */
+/* Piggybacks on existing shimmerSweep keyframe already in styles.css */
+[data-metric-status="improving"] .vitals-card::after,
+[data-metric-status="improving"].vital-widget::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg,
+    transparent 40%,
+    rgba(255,255,255,0.07) 50%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+@media (not (prefers-reduced-motion: reduce)) {
+  [data-metric-status="improving"] .vitals-card::after {
+    animation: shimmerSweep 2800ms var(--ease-out-expo) infinite;
+    /* shimmerSweep is defined in styles.css — reuse, do not redefine */
+  }
+}
+
+/* ── 7. Morphing counter flip on value change ────────────────────────────────── */
+/* Triggered by JS: element.classList.add('oasis-count-flip') */
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes oasisCountFlip {
+    0%   { transform: scaleY(1);    opacity: 1; }
+    30%  { transform: scaleY(0.3);  opacity: 0; }
+    60%  { transform: scaleY(0.3);  opacity: 0; }
+    100% { transform: scaleY(1);    opacity: 1; }
+  }
+  .oasis-count-flip {
+    animation: oasisCountFlip 280ms var(--ease-spring) forwards;
+    transform-origin: center;
+    display: inline-block;
+  }
+}
+
+/* ── 8. Neural trace container (Phase D) ────────────────────────────────────── */
+.oasis-neural-trace {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.oasis-neural-trace svg { width: 100%; height: 100%; }
+
+@media (not (prefers-reduced-motion: reduce)) {
+  /* stroke-dashoffset is GPU-composited in Chrome/Safari/Firefox via SVG SMIL fallback */
+  @keyframes oasisNeuralDraw {
+    0%   { stroke-dashoffset: 600; opacity: 0.2; }
+    15%  { opacity: 0.8; }
+    85%  { opacity: 0.6; }
+    100% { stroke-dashoffset: -600; opacity: 0.1; }
+  }
+  .oasis-neural-path {
+    stroke-dasharray: 12 8;    /* dash 12px, gap 8px — biological spacing */
+    stroke-dashoffset: 600;
+    animation: oasisNeuralDraw 2400ms linear infinite;
+  }
+  /* Stagger second path for dual-trace effect */
+  .oasis-neural-path--b {
+    animation-delay: -1200ms;  /* half-cycle offset */
+  }
+}
+
+/* ── 9. Thinking-engine text morph (Phase D) ──────────────────────────────────── */
+/* Applied by JS: each character in .ai-thinking-text gets .oasis-char-reveal */
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes oasisCharReveal {
+    from { clip-path: inset(0 100% 0 0); opacity: 0; }
+    to   { clip-path: inset(0   0% 0 0); opacity: 1; }
+  }
+  .oasis-char-reveal {
+    display: inline-block;
+    animation: oasisCharReveal 120ms var(--ease-out-expo) both;
+  }
+}
+
+/* ── 10. Data-stream dots (Phase D) ─────────────────────────────────────────── */
+.oasis-stream-dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--oasis-glow);
+  pointer-events: none;
+  z-index: 3;
+  will-change: transform, opacity;
+}
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes oasisStreamFly {
+    0%   { transform: translate(var(--dot-x0), var(--dot-y0)) scale(0.5); opacity: 0; }
+    15%  { opacity: 1; transform: translate(var(--dot-x0), var(--dot-y0)) scale(1); }
+    85%  { opacity: 0.7; }
+    100% { transform: translate(var(--dot-x1), var(--dot-y1)) scale(0.4); opacity: 0; }
+  }
+  .oasis-stream-dot { animation: oasisStreamFly 800ms var(--ease-out-expo) forwards; }
+}
+
+/* ── 11. Magnetic CTA reset spring ──────────────────────────────────────────── */
+/* Applied via JS — this class is the rest-state after mouseleave */
+.oasis-magnet-reset {
+  transition: transform var(--dur-fast) var(--ease-spring) !important;
+  transform: translate(0px, 0px) !important;
+}
+
+/* ── 12. Check-in holographic shimmer ─────────────────────────────────────────── */
+.oasis-checkin-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.oasis-checkin-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg,
+    transparent 20%,
+    rgba(255,255,255,0.14) 38%,
+    rgba(255,255,255,0.22) 50%,
+    rgba(255,255,255,0.14) 62%,
+    transparent 80%
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes oasisHoloSweep {
+    from { transform: translateX(-120%); }
+    to   { transform: translateX(120%); }
+  }
+  .oasis-checkin-shimmer::after {
+    animation: oasisHoloSweep 700ms var(--ease-out-expo) forwards;
+  }
+}
+
+/* ── 13. Milestone confetti particles ────────────────────────────────────────── */
+.oasis-particle {
+  position: fixed;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 9998;
+  will-change: transform, opacity;
+  /* --px, --py, --rot CSS custom props set by JS per-particle */
+}
+@media (not (prefers-reduced-motion: reduce)) {
+  @keyframes oasisParticleFly {
+    0%   { transform: translate(0, 0) rotate(0deg) scale(1);      opacity: 1; }
+    60%  { opacity: 0.9; }
+    100% { transform: translate(var(--px), var(--py)) rotate(var(--rot)) scale(0.3); opacity: 0; }
+  }
+  .oasis-particle {
+    animation: oasisParticleFly var(--oasis-particle-dur) var(--ease-out-expo) forwards;
+  }
+}
+/* Phase F — brain fog extended overrides */
+.rianell-brain-fog .oasis-neural-trace { display: none !important; }
+.rianell-brain-fog .oasis-particle { animation: none !important; opacity: 0 !important; }
+.rianell-brain-fog .oasis-count-flip { animation: none !important; transform: none !important; }
+.rianell-brain-fog .oasis-checkin-shimmer::after { display: none !important; }
+.rianell-brain-fog [data-metric-status="improving"] .metric-widget__ring,
+.rianell-brain-fog [data-metric-status="improving"].metric-widget,
+.rianell-brain-fog [data-metric-status="improving"].vital-widget {
+  animation: none !important;
+  filter: drop-shadow(0 0 4px var(--oasis-glow));
+}
+[data-metric-status="improving"].metric-widget,
+[data-metric-status="improving"].vital-widget {
+  filter: drop-shadow(0 0 8px var(--oasis-glow));
+}
+@media (not (prefers-reduced-motion: reduce)) {
+  [data-metric-status="improving"].metric-widget .metric-widget__visual,
+  [data-metric-status="improving"].vital-widget {
+    animation: calmGlow var(--oasis-glow-dur) var(--ease-out-expo) infinite;
+  }
+}

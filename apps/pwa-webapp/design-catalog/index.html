@@ -7,6 +7,7 @@
   <title>Rianell Design Catalog (dev)</title>
   <link rel="stylesheet" href="../css/tokens.css" />
   <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../css/oasis.css" />
   <style>
     .catalog-page { max-width: 960px; margin: 0 auto; padding: 1.5rem; color: var(--color-text, #e0f2f1); }
     .catalog-page h1 { margin-bottom: 0.25rem; }
@@ -146,6 +147,19 @@
         <li><strong>Home hero card</strong> - adaptive layout / scroll-reveal not ported to RN Home screen.</li>
         <li><strong>ApexCharts views</strong> - web-only chart library; RN uses different chart stack.</li>
       </ul>
+    </section>
+
+    <section class="catalog-section" id="oasis-canvas">
+      <h2>8. Oasis canvas (v2.1.0-oasis)</h2>
+      <p class="catalog-desc">Ambient blobs, calm-glow metrics, and check-in shimmer from <code>css/oasis.css</code>.</p>
+      <div class="catalog-row" style="position:relative;min-height:120px;overflow:hidden;border-radius:12px;background:rgba(0,0,0,0.25);">
+        <div class="oasis-blob oasis-blob--1" style="position:absolute;width:80px;height:80px;filter:blur(24px);"></div>
+        <div class="metric-widget catalog-card-demo" data-metric-status="improving" style="position:relative;z-index:1;max-width:200px;">
+          <div class="metric-widget__visual" style="width:48px;height:48px;border-radius:50%;background:rgba(123,223,140,0.2);"></div>
+          <span>Improving metric</span>
+        </div>
+      </div>
+      <div class="oasis-checkin-shimmer catalog-card-demo" style="margin-top:1rem;min-height:48px;">Check-in shimmer preview</div>
     </section>
 
     <p class="catalog-meta">Plan 01 T2 · dev-only · excluded from production minify bundle</p>

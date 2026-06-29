@@ -63,6 +63,18 @@
     return { id: 'bad', color: '#ff8a65', label: t('common.bad', 'Bad') };
   }
 
+  function deriveMetricStatus(zoneId) {
+    if (zoneId === 'good') return 'improving';
+    if (zoneId === 'bad') return 'declining';
+    return 'stable';
+  }
+
+  function applyOasisMetricFeedback(widget, display, zoneId) {
+    if (!global.OasisCanvas || !widget) return;
+    global.OasisCanvas.applyMetricStatus(widget, deriveMetricStatus(zoneId));
+    if (display) global.OasisCanvas.triggerCountFlip(display);
+  }
+
   function visualHtml(kind) {
     switch (kind) {
       case 'stiffness':
@@ -443,6 +455,7 @@
       display.classList.add('metric-readout--pulse');
       global.setTimeout(function () { display.classList.remove('metric-readout--pulse'); }, 220);
     }
+    applyOasisMetricFeedback(widget, display, zone.id);
     var badge = widget.querySelector('.metric-zone-badge');
     if (badge) badge.textContent = zone.label;
     var pct = ((wellness - 1) / 9) * 100;

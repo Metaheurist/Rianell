@@ -92,6 +92,18 @@
     if (pulseSec != null) widget.style.setProperty('--vital-pulse-rate', pulseSec + 's');
   }
 
+  function deriveVitalStatus(zoneId) {
+    if (zoneId === 'normal' || zoneId === 'good') return 'improving';
+    if (zoneId === 'idle' || zoneId === 'set' || zoneId === 'moderate') return 'stable';
+    return 'declining';
+  }
+
+  function applyOasisVitalFeedback(widget, display, zone) {
+    if (!global.OasisCanvas || !widget || !zone) return;
+    global.OasisCanvas.applyMetricStatus(widget, deriveVitalStatus(zone.id));
+    if (display) global.OasisCanvas.triggerCountFlip(display);
+  }
+
   function buildDrum(scrollEl, cfg) {
     if (!scrollEl || scrollEl.dataset.vitalDrumBuilt === '1') return;
     scrollEl.dataset.vitalDrumBuilt = '1';
@@ -251,6 +263,7 @@
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
     if (badge) badge.textContent = active ? zone.label : t('wizard.vitals.glucose.hint', 'Slide to set glucose');
+    applyOasisVitalFeedback(widget, display, zone);
     updateGlucoseDroplet(active, val, range, active && markActive && val > prevVal + 0.001);
     widget.dataset.glucosePrev = String(active ? val : range.default);
     slider.style.setProperty('--vital-fill-pct', (ratio(val, range.min, range.max) * 100).toFixed(1) + '%');
@@ -293,6 +306,7 @@
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
     if (badge) badge.textContent = active ? zone.label : t('wizard.vitals.spo2.hint', 'Slide drum to set SpO₂');
+    applyOasisVitalFeedback(widget, display, zone);
     if (ring) {
       var pct = active ? ratio(val, SPO2.min, SPO2.max) : 0;
       ring.style.strokeDashoffset = String(283 * (1 - pct));
@@ -322,6 +336,7 @@
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
     if (badge) badge.textContent = active ? zone.label : t('wizard.vitals.hrv.hint', 'Slide to set HRV');
+    applyOasisVitalFeedback(widget, display, zone);
     slider.style.setProperty('--vital-fill-pct', (ratio(val, HRV.min, HRV.max) * 100).toFixed(1) + '%');
   }
 
