@@ -5576,6 +5576,20 @@ body.light-mode .crisis-help-btn {
   min-width: 200px;
   max-width: 340px;
   width: 100%;
+  --rs-track-rest: rgba(255, 255, 255, 0.14);
+}
+
+body.light-mode .range-slider-group {
+  --rs-track-rest: color-mix(in srgb, var(--primary-color) 14%, rgba(0, 0, 0, 0.1));
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary-color) 4%, rgba(var(--neutral-card-rgb), 0.92));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, rgba(0, 0, 0, 0.06));
+  box-shadow: none;
+}
+
+body.light-mode .range-slider-label {
+  color: rgba(var(--text-light-rgb), 0.55);
 }
 
 .range-slider {
@@ -5666,7 +5680,7 @@ body.light-mode .crisis-help-btn {
 .range-slider-label {
   font-size: 0.6rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(var(--text-light-rgb), 0.46);
   text-align: center;
   flex: 1;
   white-space: nowrap;
@@ -9886,6 +9900,150 @@ input[type="range"]:active::-moz-range-thumb {
   cursor: grabbing;
   transform: scale(1.06);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+/* Stepped range sliders (analysis / chart / log / mood / prediction) — override generic range pseudo-elements */
+.range-slider-group input[type="range"].range-slider {
+  --slider-fill-color: var(--primary-color);
+  height: auto;
+  min-height: 36px;
+  padding: 14px 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.range-slider-group input[type="range"].range-slider:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.range-slider-group input[type="range"].range-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--rs-fill, var(--primary-color)) var(--rs-pct, 0%),
+    var(--rs-track-rest) var(--rs-pct, 0%),
+    var(--rs-track-rest) 100%
+  );
+  border: none;
+  box-shadow: none;
+}
+
+.range-slider-group input[type="range"].range-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--rs-track-rest);
+  border: none;
+  box-shadow: none;
+}
+
+.range-slider-group input[type="range"].range-slider::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px 0 0 999px;
+  background: var(--rs-fill, var(--primary-color));
+}
+
+.range-slider-group input[type="range"].range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: calc((4px - 16px) / 2);
+  border-radius: 50%;
+  background: var(--accent-active-gradient);
+  border: 2px solid color-mix(in srgb, var(--primary-color) 62%, #ffffff);
+  box-shadow: 0 1px 5px color-mix(in srgb, var(--primary-color) 24%, rgba(0, 0, 0, 0.18));
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.range-slider-group input[type="range"].range-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-active-gradient);
+  border: 2px solid color-mix(in srgb, var(--primary-color) 62%, #ffffff);
+  box-shadow: 0 1px 5px color-mix(in srgb, var(--primary-color) 24%, rgba(0, 0, 0, 0.18));
+  cursor: grab;
+}
+
+.range-slider-group input[type="range"].range-slider:active::-webkit-slider-thumb,
+.range-slider-group input[type="range"].range-slider:active::-moz-range-thumb {
+  cursor: grabbing;
+  transform: scale(1.08);
+}
+
+.range-slider-group input[type="range"].range-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 1px 5px color-mix(in srgb, var(--primary-color) 24%, rgba(0, 0, 0, 0.18)),
+    0 0 0 3px color-mix(in srgb, var(--primary-color) 24%, transparent);
+}
+
+.range-slider-group input[type="range"].range-slider.rs-off::-webkit-slider-thumb,
+.range-slider-group input[type="range"].range-slider.rs-off::-moz-range-thumb {
+  background: linear-gradient(135deg, #f44336, #e53935);
+  border-color: color-mix(in srgb, #f44336 70%, #ffffff);
+  box-shadow: 0 1px 6px rgba(244, 67, 54, 0.35);
+}
+
+.range-slider-group input[type="range"].range-slider.rs-off::-webkit-slider-runnable-track,
+.range-slider-group input[type="range"].range-slider.rs-off::-moz-range-progress {
+  --rs-fill: #f44336;
+}
+
+/* Prediction range (amber accent, not primary green) */
+.range-slider-group.rs-prediction input[type="range"].range-slider:not(.rs-off)::-webkit-slider-thumb,
+.range-slider-group.rs-prediction input[type="range"].range-slider:not(.rs-off)::-moz-range-thumb {
+  background: linear-gradient(135deg, #ffc107, #ffb300);
+  border-color: color-mix(in srgb, #ffc107 68%, #ffffff);
+  box-shadow: 0 1px 5px rgba(255, 193, 7, 0.35);
+}
+
+body.light-mode .range-slider-group input[type="range"].range-slider {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.light-mode .range-slider-group input[type="range"].range-slider:hover,
+body.light-mode .range-slider-group input[type="range"].range-slider:focus {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+body.light-mode .range-slider-group input[type="range"].range-slider::-webkit-slider-thumb,
+body.light-mode .range-slider-group input[type="range"].range-slider::-moz-range-thumb {
+  border-color: color-mix(in srgb, var(--primary-color) 72%, #ffffff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+body.light-mode .range-slider-group input[type="range"].range-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.14),
+    0 0 0 3px color-mix(in srgb, var(--primary-color) 22%, transparent);
+}
+
+body.light-mode .range-slider-group.rs-accent .range-slider-label.active {
+  color: color-mix(in srgb, var(--primary-color) 78%, #0a3d18);
+}
+
+body.light-mode .range-slider-group.rs-prediction .range-slider-label.active {
+  color: #c17900;
+}
+
+body.light-mode .range-slider-group.rs-prediction .range-slider-label:first-child.active {
+  color: #c62828;
+}
+
+body.light-mode .range-slider-group.rs-prediction input[type="range"].range-slider:not(.rs-off)::-webkit-slider-thumb,
+body.light-mode .range-slider-group.rs-prediction input[type="range"].range-slider:not(.rs-off)::-moz-range-thumb {
+  border-color: color-mix(in srgb, #f9a825 75%, #ffffff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
 /* Good / bad: subtle caps, no glow */
@@ -15784,13 +15942,13 @@ body.light-mode .settings-button-top:hover {
 .achievements-counter__total {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-dim);
+  color: rgba(var(--text-light-rgb), 0.72);
 }
 
 .achievements-counter__label {
   margin: 4px 0 0;
   font-size: 0.75rem;
-  color: var(--text-dim);
+  color: rgba(var(--text-light-rgb), 0.65);
 }
 
 .achievements-grid {
@@ -15805,8 +15963,14 @@ body.light-mode .settings-button-top:hover {
   align-items: flex-start;
   padding: 12px;
   border-radius: var(--radius-md, 12px);
-  background: color-mix(in srgb, var(--primary-color) 8%, var(--card-bg, #1a1a1a));
-  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 10%, rgba(var(--neutral-card-rgb), 0.55));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, var(--border-subtle, transparent));
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.achievement-card--unlocked {
+  background: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 12%, rgba(var(--neutral-card-rgb), 0.55));
+  border-color: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 30%, transparent);
 }
 
 .achievement-icon-wrap {
@@ -15819,7 +15983,7 @@ body.light-mode .settings-button-top:hover {
   place-items: center;
   background: conic-gradient(
     var(--primary-color) calc(var(--achievement-progress, 0) * 360deg),
-    color-mix(in srgb, var(--text-dim) 40%, transparent) 0
+    color-mix(in srgb, var(--text-primary) 28%, transparent) 0
   );
   padding: 3px;
 }
@@ -15830,7 +15994,8 @@ body.light-mode .settings-button-top:hover {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--card-bg, #121212);
+  background: color-mix(in srgb, var(--primary-color) 8%, rgba(var(--neutral-card-rgb), 0.88));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 14%, transparent);
 }
 
 .achievement-icon-inner .ui-svg-icon {
@@ -15864,13 +16029,13 @@ body.light-mode .settings-button-top:hover {
 .achievement-card-title {
   margin: 0 0 4px;
   font-weight: 600;
-  color: var(--text-light);
+  color: var(--text-primary);
 }
 
 .achievement-card-desc {
   margin: 0 0 8px;
   font-size: 0.85rem;
-  color: var(--text-dim);
+  color: rgba(var(--text-light-rgb), 0.72);
   line-height: 1.35;
 }
 
@@ -15894,9 +16059,9 @@ body.light-mode .settings-button-top:hover {
 }
 
 .achievement-tier-badge--bronze { color: #cd7f32; }
-.achievement-tier-badge--silver { color: #a8b4c4; }
-.achievement-tier-badge--gold { color: #d4af37; }
-.achievement-tier-badge--platinum { color: #7dd3fc; }
+.achievement-tier-badge--silver { color: #8b9cb3; }
+.achievement-tier-badge--gold { color: #c9a227; }
+.achievement-tier-badge--platinum { color: #5eb8e8; }
 
 .achievement-progress-row {
   display: flex;
@@ -15930,7 +16095,7 @@ body.light-mode .settings-button-top:hover {
 .achievement-progress-percent {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--text-dim);
+  color: rgba(var(--text-light-rgb), 0.78);
   min-width: 2.25rem;
   text-align: right;
 }
@@ -15948,13 +16113,41 @@ body.light-mode .settings-button-top:hover {
 }
 
 .achievement-status-pill--locked {
-  background: color-mix(in srgb, var(--text-dim) 25%, transparent);
-  color: var(--text-dim);
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: rgba(var(--text-light-rgb), 0.72);
 }
 
 .achievement-status-pill--unlocked {
-  background: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 22%, transparent);
+  background: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 18%, transparent);
   color: var(--ui-icon-success, var(--primary-color));
+}
+
+body.light-mode .achievement-card {
+  background: color-mix(in srgb, var(--primary-color) 5%, rgba(var(--neutral-card-rgb), 0.98));
+  border-color: color-mix(in srgb, var(--primary-color) 20%, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+body.light-mode .achievement-card--unlocked {
+  background: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 8%, rgba(var(--neutral-card-rgb), 0.98));
+  border-color: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 28%, rgba(0, 0, 0, 0.06));
+}
+
+body.light-mode .achievement-icon-inner {
+  background: #fff;
+}
+
+body.light-mode .achievement-tier-badge--silver { color: #5c6b7a; }
+body.light-mode .achievement-tier-badge--gold { color: #9a7b0a; }
+body.light-mode .achievement-tier-badge--platinum { color: #0277bd; }
+
+body.light-mode .achievement-toast {
+  background: var(--card-bg-light);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}
+
+body.light-mode .achievement-toast__message {
+  color: rgba(var(--text-light-rgb), 0.72);
 }
 
 .achievement-toast {
@@ -15970,7 +16163,7 @@ body.light-mode .settings-button-top:hover {
   padding: 12px 14px;
   border-radius: 14px;
   border: 1.5px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
-  background: var(--card-bg, #121212);
+  background: color-mix(in srgb, var(--primary-color) 6%, rgba(var(--neutral-card-rgb), 0.92));
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   opacity: 0;
   pointer-events: none;
@@ -16020,7 +16213,7 @@ body.light-mode .settings-button-top:hover {
 .achievement-toast__title {
   margin: 0 0 2px;
   font-weight: 700;
-  color: var(--text-light);
+  color: var(--text-primary);
   font-size: 0.95rem;
   line-height: 1.3;
 }
@@ -16028,7 +16221,7 @@ body.light-mode .settings-button-top:hover {
 .achievement-toast__message {
   margin: 0;
   font-size: 0.82rem;
-  color: var(--text-dim);
+  color: rgba(var(--text-light-rgb), 0.72);
   line-height: 1.35;
 }
 
@@ -23438,6 +23631,85 @@ body.first-run-wizard-active #appShell {
   margin: 0 0 18px;
   text-align: center;
   color: var(--text-primary);
+}
+.guided-onboarding-field-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 14px 0 8px;
+  color: var(--text-secondary, var(--text-primary));
+}
+.guided-onboarding-theme-preview {
+  width: min(240px, 72%);
+  margin: 0 auto 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 24%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--bg-dark, #070807));
+  display: grid;
+  gap: 10px;
+  transition: background var(--dur-fast) var(--ease-out-expo), border-color var(--dur-fast) var(--ease-out-expo);
+}
+.guided-onboarding-theme-preview--light {
+  background: color-mix(in srgb, var(--primary-color) 12%, #ffffff 88%);
+}
+.guided-onboarding-theme-preview__header {
+  height: 28px;
+  border-radius: 10px;
+  background: var(--primary-color);
+  opacity: 0.92;
+}
+.guided-onboarding-theme-preview__card {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 6%, transparent);
+}
+.guided-onboarding-theme-preview__line {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-light, #fff) 28%, transparent);
+}
+.guided-onboarding-theme-preview__line--accent {
+  width: 42%;
+  background: var(--primary-color);
+}
+.guided-onboarding-theme-preview__line--short { width: 54%; }
+.guided-onboarding-theme-preview__line:not(.guided-onboarding-theme-preview__line--accent):not(.guided-onboarding-theme-preview__line--short) {
+  width: 68%;
+}
+.guided-onboarding-theme-preview__pill {
+  width: 72px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--primary-color);
+}
+.guided-onboarding-appearance-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.guided-onboarding-mode-btn {
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 12px 10px;
+  transition: border-color var(--dur-fast) var(--ease-out-expo), transform var(--dur-fast) var(--ease-spring);
+}
+.guided-onboarding-mode-btn--active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 35%, transparent);
+}
+.guided-onboarding-theme-grid {
+  margin-top: 0;
+}
+.guided-onboarding-theme-choice {
+  cursor: pointer;
 }
 .guided-onboarding-auth {
   display: flex;
