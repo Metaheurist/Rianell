@@ -6,6 +6,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.1] - 2026-06-29
+
+SVG graphics and animation portfolio — profile companions, ambient vibes, metric entities, and screen decorations across the PWA.
+
+### Added
+
+- **`VIBE_TOKENS` / `AVATAR_THEME_TOKENS`** in `@rianell/tokens` — five user vibes and per-team avatar CSS variables synced to `apps/pwa-webapp/css/tokens.css`
+- **20 profile avatars** (`PROFILE_AVATAR_IDS`) with legacy icon mapping in `@rianell/shared`
+- **Onboarding cards:** `avatarPick` (carousel) and `vibe` (picker) after appearance
+- **`apps/pwa-webapp/modules/graphics-portfolio.js`** — `window.RianellGraphicsPortfolio` (runtime SVG sprites, vibe parallax scene, metric companions, badge composites, Set D body map, Phase 6 screen art)
+- **`apps/pwa-webapp/css/graphics-portfolio.css`** — carousel, companions, unlock sweep, connector flow dots, reduced-motion guards
+- **i18n:** avatar names, vibe labels, onboarding copy; Tier A overrides in `scripts/lib/graphics-portfolio-tier-a-overrides.mjs`
+- **Tests:** `graphics-portfolio.test.mjs`, `avatars.test.mjs`; extended `guidedQuestionnaire.test.mjs` and `tokens.test.mjs`
+
+### Changed
+
+- **Pain body map:** abstract Set D mannequin outline (regions and click handlers unchanged)
+- **Achievements:** badge composite frames, day-chip flip, confetti unlock sequence
+- **Settings:** avatar carousel and vibe picker mounts; lifestyle steps/hydration metric companions
+
+---
+
 ## [2.1.0-oasis] - 2026-06-29
 
 UI Oasis Overhaul — bioluminescent ambient canvas, living stats, AI neural traces, and celebration micro-interactions across PWA and React Native. Zero new npm dependencies.

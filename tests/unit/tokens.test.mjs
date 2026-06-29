@@ -22,3 +22,18 @@ test('colorblind overrides change accent token', () => {
   assert.notEqual(trit.color.accent, base.color.accent);
 });
 
+test('VIBE_TOKENS defines five ambient personalities', async () => {
+  const { VIBE_IDS, VIBE_TOKENS, getVibeIds, normalizeUserVibe, resolveAvatarThemeTokens } =
+    await import('@rianell/tokens');
+  assert.deepEqual(getVibeIds(), VIBE_IDS);
+  assert.equal(VIBE_IDS.length, 5);
+  for (const id of VIBE_IDS) {
+    assert.ok(VIBE_TOKENS[id], `missing vibe token for ${id}`);
+    assert.ok('motionMultiplier' in VIBE_TOKENS[id]);
+  }
+  assert.equal(normalizeUserVibe('dark'), 'dark');
+  assert.equal(normalizeUserVibe('invalid'), 'calm');
+  assert.ok(resolveAvatarThemeTokens('mint').primary);
+  assert.ok(resolveAvatarThemeTokens('unknown-team').primary);
+});
+

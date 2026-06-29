@@ -1,6 +1,21 @@
 # Release Notes
 
-## Latest release (v2.1.0-oasis)
+## Latest release (v2.1.1)
+
+**Date:** 2026-06-29
+
+### Highlights
+
+- **Profile companions:** Choose from 20 abstract SVG avatars during onboarding or in Settings.
+- **Ambient vibes:** Five personalities (Calm, Energy, Nature, Clinical, Dark) tune background parallax and avatar motion.
+- **Living UI:** Metric companions on sliders, badge composites on achievements, Set D pain body map, and decorated export/connector/goals screens.
+- **Accessibility:** Clinical vibe and reduced-motion respect; tier-0 devices skip heavy companions.
+
+See **v2.1.0-oasis** below for the bioluminescent UI overhaul.
+
+---
+
+## Previous (v2.1.0-oasis)
 
 **Date:** 2026-06-29
 
