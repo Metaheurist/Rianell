@@ -41,10 +41,10 @@
   --space-unit: 0.25rem;
 
   /* Nav icon tokens ? inherit theme via --primary-color / --text-light (body.theme-*) */
-  --nav-icon-size: 1.35rem;
-  --nav-icon-size-bottom: 1.22rem;
-  --nav-icon-stroke: 2;
-  --nav-icon-idle-opacity: 0.78;
+  --nav-icon-size: 1.4rem;
+  --nav-icon-size-bottom: 1.28rem;
+  --nav-icon-stroke: 1.75;
+  --nav-icon-idle-opacity: 0.82;
   --nav-icon-active-glow: color-mix(in srgb, var(--primary-color) 42%, transparent);
   --ui-icon-size: 1.08em;
   --ui-icon-stroke: 2;
@@ -1554,7 +1554,25 @@ body.light-mode .motd-sway-wrap {
     align-items: center;
     justify-content: center;
     line-height: 0;
+    position: relative;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+    transition: transform var(--dur-fast) var(--ease-spring), filter var(--transition-fast);
+  }
+
+  .app-bottom-nav-btn[aria-current="page"] .app-bottom-nav-icon,
+  .app-bottom-nav-btn.active .app-bottom-nav-icon {
+    filter: drop-shadow(0 0 8px var(--nav-icon-active-glow));
+  }
+
+  .app-bottom-nav-btn[aria-current="page"] .app-bottom-nav-icon::before,
+  .app-bottom-nav-btn.active .app-bottom-nav-icon::before {
+    content: '';
+    position: absolute;
+    inset: -5px -4px;
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+    opacity: 1;
+    z-index: -1;
   }
 
   .tab-icon-svg {
@@ -1571,6 +1589,15 @@ body.light-mode .motd-sway-wrap {
   .app-bottom-nav-btn.active .tab-icon-svg {
     opacity: 1;
     filter: drop-shadow(0 0 5px var(--nav-icon-active-glow));
+  }
+
+  .app-bottom-nav-btn:hover:not(.active):not([aria-current="page"]) .tab-icon-svg {
+    opacity: 0.95;
+    transform: scale(1.06);
+  }
+
+  .tab-icon-svg * {
+    vector-effect: non-scaling-stroke;
   }
 
   body.log-wizard-active .app-mobile-bottom-chrome {
@@ -5291,6 +5318,7 @@ body.theme-rainbow .app-bottom-nav-btn.active {
   align-items: center;
   justify-content: center;
   line-height: 0;
+  position: relative;
   transition: transform var(--transition-fluid);
 }
 
@@ -5301,20 +5329,84 @@ body.theme-rainbow .app-bottom-nav-btn.active {
   flex-shrink: 0;
   color: currentColor;
   opacity: var(--nav-icon-idle-opacity);
-  transition: opacity var(--transition-fast), transform var(--transition-fluid), filter var(--transition-fast);
+  transform-origin: center;
+  transition: opacity var(--transition-fast), transform var(--dur-fast) var(--ease-spring), filter var(--transition-fast);
+}
+
+.tab-icon-svg * {
+  vector-effect: non-scaling-stroke;
 }
 
 .tab-btn:hover:not(.active) .tab-icon {
-  transform: scale(1.1);
+  transform: translateY(-1px);
+}
+
+.tab-btn:hover:not(.active) .tab-icon-svg {
+  opacity: 0.95;
+  transform: scale(1.06);
 }
 
 .tab-btn.active .tab-icon {
-  transform: scale(1.1);
+  transform: translateY(-1px);
 }
 
 .tab-btn.active .tab-icon-svg {
   opacity: 1;
   filter: drop-shadow(0 0 6px var(--nav-icon-active-glow));
+}
+
+@media (not (prefers-reduced-motion: reduce)) {
+  .main-nav-tab.active[data-tab="home"] .tab-icon-svg,
+  .main-nav-tab[aria-current="page"][data-tab="home"] .tab-icon-svg {
+    animation: navIconHome 2.4s ease-in-out infinite;
+  }
+
+  .main-nav-tab.active[data-tab="logs"] .tab-icon-svg,
+  .main-nav-tab[aria-current="page"][data-tab="logs"] .tab-icon-svg {
+    animation: navIconLogs 2.1s ease-in-out infinite;
+  }
+
+  .main-nav-tab.active[data-tab="charts"] .tab-icon-svg,
+  .main-nav-tab[aria-current="page"][data-tab="charts"] .tab-icon-svg {
+    animation: navIconCharts 1.9s ease-in-out infinite;
+  }
+
+  .main-nav-tab.active[data-tab="mood"] .tab-icon-svg,
+  .main-nav-tab[aria-current="page"][data-tab="mood"] .tab-icon-svg {
+    animation: navIconMood 2.6s ease-in-out infinite;
+  }
+
+  .main-nav-tab.active[data-tab="ai"] .tab-icon-svg,
+  .main-nav-tab[aria-current="page"][data-tab="ai"] .tab-icon-svg {
+    animation: navIconAi 2.2s ease-in-out infinite;
+  }
+}
+
+@keyframes navIconHome {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-2px) scale(1.05); }
+}
+
+@keyframes navIconLogs {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-2.5deg) scale(1.03); }
+  75% { transform: rotate(2.5deg) scale(1.03); }
+}
+
+@keyframes navIconCharts {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes navIconMood {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  35% { transform: rotate(-3deg) scale(1.04); }
+  65% { transform: rotate(3deg) scale(1.04); }
+}
+
+@keyframes navIconAi {
+  0%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 6px var(--nav-icon-active-glow)); }
+  50% { transform: scale(1.1) rotate(10deg); filter: drop-shadow(0 0 10px var(--nav-icon-active-glow)); }
 }
 
 .tab-text {
@@ -6354,6 +6446,7 @@ body.light-mode .range-slider-label {
   border-left: none;
   padding: 0;
   margin-bottom: 0;
+  width: 100%;
 }
 
 .ai-trend-card--improving {
@@ -6466,48 +6559,73 @@ body.light-mode .range-slider-label {
 .ai-trend-stats-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .ai-trend-stat {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
-  padding: 0.35rem 0.4rem;
+  align-items: stretch;
+  gap: 0.2rem;
+  padding: 0.4rem 0.35rem;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.12);
   min-width: 0;
+  text-align: center;
 }
 
 .ai-trend-stat__label {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
   color: rgba(var(--text-light-rgb), 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ai-trend-stat__value {
-  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.08rem;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.ai-trend-stat__num {
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--text-light);
   font-variant-numeric: tabular-nums;
 }
 
-.ai-trend-stat--latest .ai-trend-stat__value {
+.ai-trend-stat__unit {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(var(--text-light-rgb), 0.52);
+  line-height: 1.1;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.ai-trend-stat--latest .ai-trend-stat__num {
   font-weight: 800;
   color: var(--trend-spark);
 }
 
-.ai-trend-stat--improving .ai-trend-stat__value {
+.ai-trend-stat--improving .ai-trend-stat__num {
   color: var(--ai-status-optimal, var(--primary-color));
 }
 
-.ai-trend-stat--worsening .ai-trend-stat__value {
+.ai-trend-stat--worsening .ai-trend-stat__num {
   color: var(--ai-status-alert, #f44336);
 }
 
-.ai-trend-stat--stable .ai-trend-stat__value {
+.ai-trend-stat--stable .ai-trend-stat__num {
   color: rgba(var(--text-light-rgb), 0.75);
 }
 
@@ -7555,8 +7673,35 @@ body.light-mode .ai-pain-body-legend {
 .ai-trends-grid {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-  align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  align-items: stretch;
+}
+
+@media (min-width: 900px) {
+  .ai-trends-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .ai-trends-grid .ai-trend-card--metric:last-child:nth-child(3n + 1):not(:only-child) {
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 1280px) {
+  .ai-trends-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ai-trends-grid .ai-trend-card--metric:last-child:nth-child(3n + 1):not(:only-child) {
+    grid-column: auto;
+  }
+
+  .ai-trends-grid .ai-trend-card--metric:last-child:nth-child(4n + 1):not(:only-child) {
+    grid-column: 2 / span 2;
+    max-width: 320px;
+    justify-self: center;
+    width: 100%;
+  }
 }
 
 .ai-trend-card {
@@ -9282,6 +9427,14 @@ body.light-mode .ai-trend-stat {
   background: rgba(0, 0, 0, 0.04);
 }
 
+body.light-mode .ai-trend-stat__num {
+  color: var(--text-dark);
+}
+
+body.light-mode .ai-trend-stat__unit {
+  color: rgba(0, 0, 0, 0.5);
+}
+
 body.light-mode .ai-trend-title__name {
   color: var(--text-dark);
 }
@@ -10431,15 +10584,16 @@ body.light-mode .character-counter {
   transform-origin: 32px 36px;
 }
 
-/* Mobility — stick figure on trampoline */
+/* Mobility — stick figure jumping on trampoline */
 .metric-widget--mobility {
-  --mobility-bounce-dur: 1.25s;
-  --mobility-bounce-y: -8px;
-  --mobility-shadow-op: 0.28;
+  --mobility-bounce-dur: 1.45s;
+  --mobility-bounce-y: -6px;
+  --mobility-shadow-op: 0.22;
 }
 
 .metric-widget--mobility .metric-widget__visual {
   flex-basis: 64px;
+  overflow: visible;
 }
 
 .metric-mobility-shadow {
@@ -10455,32 +10609,31 @@ body.light-mode .character-counter {
 
 .metric-mobility-mat {
   transform-box: fill-box;
-  transform-origin: 36px 74px;
+  transform-origin: 36px 72px;
+}
+
+.metric-mobility-jumper-anchor {
+  pointer-events: none;
 }
 
 .metric-mobility-jumper {
   color: var(--metric-color);
-  opacity: 0.52;
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  filter: drop-shadow(0 2px 7px color-mix(in srgb, var(--metric-color) 45%, transparent));
-  transition: opacity 0.3s ease, filter 0.3s ease;
-}
-
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-jumper {
   opacity: 1;
+  transform-box: fill-box;
+  transform-origin: 0 2px;
+  filter: drop-shadow(0 2px 7px color-mix(in srgb, var(--metric-color) 45%, transparent));
 }
 
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-jumper {
-  animation: metricMobilityBounce var(--mobility-bounce-dur, 1.25s) ease-in-out infinite;
+.metric-widget--mobility .metric-mobility-jumper {
+  animation: metricMobilityBounce var(--mobility-bounce-dur, 1.45s) ease-in-out infinite;
 }
 
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-mat {
-  animation: metricMobilityMatSquash var(--mobility-bounce-dur, 1.25s) ease-in-out infinite;
+.metric-widget--mobility .metric-mobility-mat {
+  animation: metricMobilityMatSquash var(--mobility-bounce-dur, 1.45s) ease-in-out infinite;
 }
 
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-shadow {
-  animation: metricMobilityShadow var(--mobility-bounce-dur, 1.25s) ease-in-out infinite;
+.metric-widget--mobility .metric-mobility-shadow {
+  animation: metricMobilityShadow var(--mobility-bounce-dur, 1.45s) ease-in-out infinite;
 }
 
 .metric-mobility-leg--L,
@@ -10491,70 +10644,73 @@ body.light-mode .character-counter {
 }
 
 .metric-mobility-leg--L {
-  transform-origin: 0 -2px;
+  transform-origin: 0 -3px;
 }
 
 .metric-mobility-leg--R {
-  transform-origin: 0 -2px;
+  transform-origin: 0 -3px;
 }
 
 .metric-mobility-arm--L {
-  transform-origin: 0 -13px;
+  transform-origin: 0 -15px;
 }
 
 .metric-mobility-arm--R {
-  transform-origin: 0 -13px;
+  transform-origin: 0 -15px;
 }
 
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-leg--L {
-  animation: metricMobilityLegL var(--mobility-bounce-dur, 1.25s) ease-in-out infinite;
+.metric-widget--mobility .metric-mobility-leg--L {
+  animation: metricMobilityLegL var(--mobility-bounce-dur, 1.45s) ease-in-out infinite;
 }
 
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-leg--R {
-  animation: metricMobilityLegR var(--mobility-bounce-dur, 1.25s) ease-in-out infinite;
+.metric-widget--mobility .metric-mobility-leg--R {
+  animation: metricMobilityLegR var(--mobility-bounce-dur, 1.45s) ease-in-out infinite;
 }
 
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-arm--L {
-  animation: metricMobilityArmL var(--mobility-bounce-dur, 1.25s) ease-in-out infinite;
+.metric-widget--mobility .metric-mobility-arm--L {
+  animation: metricMobilityArmL var(--mobility-bounce-dur, 1.45s) ease-in-out infinite;
 }
 
-.metric-widget--mobility[data-metric-active="true"] .metric-mobility-arm--R {
-  animation: metricMobilityArmR var(--mobility-bounce-dur, 1.25s) ease-in-out infinite;
+.metric-widget--mobility .metric-mobility-arm--R {
+  animation: metricMobilityArmR var(--mobility-bounce-dur, 1.45s) ease-in-out infinite;
 }
 
 @keyframes metricMobilityBounce {
-  0%, 100% { transform: translateY(0); }
-  48% { transform: translateY(var(--mobility-bounce-y, -8px)); }
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  12% { transform: translateY(1px) scaleY(0.94); }
+  46% { transform: translateY(var(--mobility-bounce-y, -6px)) scaleY(1.04); }
+  62% { transform: translateY(calc(var(--mobility-bounce-y, -6px) * 0.35)) scaleY(1.01); }
 }
 
 @keyframes metricMobilityMatSquash {
   0%, 100% { transform: scaleY(1); }
-  10%, 90% { transform: scaleY(0.9); }
+  12% { transform: scaleY(0.82); }
+  46% { transform: scaleY(1.05); }
 }
 
 @keyframes metricMobilityShadow {
-  0%, 100% { transform: scaleX(1); opacity: var(--mobility-shadow-op, 0.28); }
-  48% { transform: scaleX(0.5); opacity: calc(var(--mobility-shadow-op, 0.28) * 0.45); }
+  0%, 100% { transform: scaleX(1); opacity: var(--mobility-shadow-op, 0.22); }
+  46% { transform: scaleX(0.42); opacity: calc(var(--mobility-shadow-op, 0.22) * 0.4); }
 }
 
 @keyframes metricMobilityLegL {
-  0%, 100% { transform: rotate(24deg); }
-  48% { transform: rotate(-8deg); }
+  0%, 100% { transform: rotate(32deg); }
+  46% { transform: rotate(-14deg); }
 }
 
 @keyframes metricMobilityLegR {
-  0%, 100% { transform: rotate(-24deg); }
-  48% { transform: rotate(8deg); }
+  0%, 100% { transform: rotate(-32deg); }
+  46% { transform: rotate(14deg); }
 }
 
 @keyframes metricMobilityArmL {
-  0%, 100% { transform: rotate(28deg); }
-  48% { transform: rotate(-42deg); }
+  0%, 100% { transform: rotate(34deg); }
+  46% { transform: rotate(-52deg); }
 }
 
 @keyframes metricMobilityArmR {
-  0%, 100% { transform: rotate(-28deg); }
-  48% { transform: rotate(42deg); }
+  0%, 100% { transform: rotate(-34deg); }
+  46% { transform: rotate(52deg); }
 }
 
 body.light-mode .metric-mobility-trampoline {
@@ -10569,7 +10725,7 @@ body.light-mode .metric-mobility-jumper {
   max-width: 64px;
 }
 
-/* Swelling — side-view knee with expanding joint fluid (bones paint above fluid) */
+/* Swelling — side-view knee with pulsing joint fluid and ripple rings */
 .metric-widget--swelling .metric-widget__visual {
   flex: 0 0 64px;
   overflow: visible;
@@ -10587,10 +10743,16 @@ body.light-mode .metric-mobility-jumper {
 .metric-knee-patella {
   fill: color-mix(in srgb, var(--metric-color) 10%, rgba(255, 255, 255, 0.88));
   stroke: color-mix(in srgb, var(--metric-color) 62%, #234029);
+  transform-box: fill-box;
+  transform-origin: center;
   transition: cx 0.42s cubic-bezier(0.22, 1, 0.36, 1),
     cy 0.42s cubic-bezier(0.22, 1, 0.36, 1),
     rx 0.42s cubic-bezier(0.22, 1, 0.36, 1),
     ry 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.metric-widget--swelling[data-swelling-level="high"] .metric-knee-patella {
+  animation: metricKneePatellaWobble var(--metric-knee-pulse-dur, 1.5s) ease-in-out infinite;
 }
 
 .metric-knee-swell-grad-core {
@@ -10611,15 +10773,26 @@ body.light-mode .metric-mobility-jumper {
   transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.metric-knee-swell-group {
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+.metric-knee-swell-anchor {
+  color: var(--metric-color);
+  pointer-events: none;
+}
+
+.metric-knee-swell-pulse {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.metric-widget--swelling .metric-knee-swell-pulse {
+  animation: metricKneeSwellPulse var(--metric-knee-pulse-dur, 1.6s) ease-in-out infinite;
+  filter: drop-shadow(0 0 calc(7px * var(--metric-knee-glow-strength, 0.35)) color-mix(in srgb, var(--metric-color) 48%, transparent));
 }
 
 .metric-knee-swell-fluid {
   transform-origin: center;
   transform-box: fill-box;
   transition: rx 0.42s cubic-bezier(0.22, 1, 0.36, 1), ry 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-  opacity: 0.82;
+  opacity: 0.88;
 }
 
 .metric-knee-swell-shine {
@@ -10627,19 +10800,45 @@ body.light-mode .metric-mobility-jumper {
   pointer-events: none;
 }
 
-.metric-widget--swelling[data-swelling-level="mid"][data-metric-active="true"] .metric-knee-swell-fluid,
-.metric-widget--swelling[data-swelling-level="high"][data-metric-active="true"] .metric-knee-swell-fluid {
-  filter: drop-shadow(0 0 calc(6px * var(--metric-knee-glow-strength, 0.3)) color-mix(in srgb, var(--metric-color) 42%, transparent));
-  animation: metricKneeSwellPulse var(--metric-knee-pulse-dur, 1.8s) ease-in-out infinite;
+.metric-knee-ripple {
+  transform-origin: center;
+  transform-box: fill-box;
+  stroke: color-mix(in srgb, var(--metric-color) 72%, transparent);
+  opacity: 0;
+}
+
+.metric-widget--swelling[data-swelling-level="mid"] .metric-knee-ripple--1,
+.metric-widget--swelling[data-swelling-level="high"] .metric-knee-ripple--1 {
+  animation: metricKneeRipple var(--metric-knee-pulse-dur, 1.6s) ease-out infinite;
+}
+
+.metric-widget--swelling[data-swelling-level="high"] .metric-knee-ripple--2 {
+  animation: metricKneeRipple var(--metric-knee-pulse-dur, 1.6s) ease-out infinite 0.38s;
+}
+
+.metric-widget--swelling[data-swelling-level="high"][data-metric-zone="bad"] .metric-knee-swell-pulse {
+  animation-duration: calc(var(--metric-knee-pulse-dur, 1.6s) * 0.78);
+}
+
+.metric-widget--swelling[data-swelling-level="high"][data-metric-zone="bad"] .metric-knee-ripple--1,
+.metric-widget--swelling[data-swelling-level="high"][data-metric-zone="bad"] .metric-knee-ripple--2 {
+  animation-duration: calc(var(--metric-knee-pulse-dur, 1.6s) * 0.78);
 }
 
 @keyframes metricKneeSwellPulse {
-  0%, 100% { transform: scale(1); opacity: 0.82; }
-  50% { transform: scale(calc(1 + var(--metric-knee-glow-strength, 0.3) * 0.12)); opacity: 0.92; }
+  0%, 100% { transform: scale(1); opacity: 0.88; }
+  50% { transform: scale(calc(var(--metric-knee-fluid-scale, 1) + var(--metric-knee-glow-strength, 0.35) * 0.14)); opacity: 1; }
 }
 
-.metric-widget--swelling[data-swelling-level="high"][data-metric-zone="bad"] .metric-knee-swell-fluid {
-  animation-duration: calc(var(--metric-knee-pulse-dur, 1.8s) * 0.72);
+@keyframes metricKneeRipple {
+  0% { transform: scale(0.72); opacity: 0.62; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+
+@keyframes metricKneePatellaWobble {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  35% { transform: rotate(-2.5deg) translateY(0.6px); }
+  65% { transform: rotate(2deg) translateY(-0.4px); }
 }
 
 .metric-svg--swelling {
@@ -10658,16 +10857,17 @@ body.light-mode .metric-widget--swelling .metric-knee-patella {
 }
 
 body.light-mode .metric-widget--swelling[data-swelling-level="low"] .metric-knee-swell-fluid {
-  opacity: 0.62;
+  opacity: 0.68;
 }
 
-body.light-mode .metric-widget--swelling[data-swelling-level="mid"][data-metric-active="true"] .metric-knee-swell-fluid,
-body.light-mode .metric-widget--swelling[data-swelling-level="high"][data-metric-active="true"] .metric-knee-swell-fluid {
-  filter: drop-shadow(0 0 calc(5px * var(--metric-knee-glow-strength, 0.3)) color-mix(in srgb, var(--metric-color) 38%, rgba(0, 0, 0, 0.14)));
+body.light-mode .metric-widget--swelling .metric-knee-swell-pulse {
+  filter: drop-shadow(0 0 calc(6px * var(--metric-knee-glow-strength, 0.35)) color-mix(in srgb, var(--metric-color) 40%, rgba(0, 0, 0, 0.16)));
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .metric-knee-swell-fluid {
+  .metric-knee-swell-pulse,
+  .metric-knee-ripple,
+  .metric-knee-patella {
     animation: none !important;
   }
 }
@@ -11043,14 +11243,16 @@ body.light-mode .metric-widget--weatherSensitivity[data-weather-sun="on"] .metri
   .metric-widget[data-metric-active="true"][data-weather-sun="on"] .metric-weather-sun-rays,
   .metric-widget[data-metric-active="true"][data-weather-sun="on"] .metric-weather-sun-glow,
   .metric-widget[data-metric-active="true"][data-weather-sun="on"] .metric-weather-sun-core,
-  .metric-widget[data-metric-active="true"] .metric-knee-swell-fluid,
-  .metric-widget[data-metric-active="true"] .metric-mobility-jumper,
-  .metric-widget[data-metric-active="true"] .metric-mobility-mat,
-  .metric-widget[data-metric-active="true"] .metric-mobility-shadow,
-  .metric-widget[data-metric-active="true"] .metric-mobility-leg--L,
-  .metric-widget[data-metric-active="true"] .metric-mobility-leg--R,
-  .metric-widget[data-metric-active="true"] .metric-mobility-arm--L,
-  .metric-widget[data-metric-active="true"] .metric-mobility-arm--R,
+  .metric-widget[data-metric-active="true"] .metric-knee-swell-pulse,
+  .metric-widget--swelling .metric-knee-ripple,
+  .metric-widget--swelling .metric-knee-patella,
+  .metric-widget--mobility .metric-mobility-jumper,
+  .metric-widget--mobility .metric-mobility-mat,
+  .metric-widget--mobility .metric-mobility-shadow,
+  .metric-widget--mobility .metric-mobility-leg--L,
+  .metric-widget--mobility .metric-mobility-leg--R,
+  .metric-widget--mobility .metric-mobility-arm--L,
+  .metric-widget--mobility .metric-mobility-arm--R,
   .metric-widget[data-metric-active="true"] .metric-battery-fill {
     animation: none !important;
   }
@@ -25849,7 +26051,9 @@ body.guided-onboarding-active #appShell {
   .mood-empty-icon,
   .home-welcome-icon,
   .targets-button-top--prompt,
-  .targets-button-top--prompt .targets-face-icon {
+  .targets-button-top--prompt .targets-face-icon,
+  .main-nav-tab.active .tab-icon-svg,
+  .main-nav-tab[aria-current="page"] .tab-icon-svg {
     animation: none;
   }
   .ai-ghost-shimmer {

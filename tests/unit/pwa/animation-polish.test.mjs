@@ -24,6 +24,8 @@ test('styles.css shimmer and nav icon polish', () => {
     css,
     /\.app-bottom-nav-btn\.active \.app-bottom-nav-icon[\s\S]*translateY\(-1px\)/,
   );
+  assert.match(css, /@keyframes navIconHome/);
+  assert.match(css, /@keyframes navIconAi/);
   assert.match(css, /\.boot-skeleton__bar--short[\s\S]*animation-delay: 0\.2s/);
 });
 
@@ -100,4 +102,19 @@ test('oasis-canvas.js exports OasisCanvas API', () => {
   assert.match(src, /data-oasis-neural-v/);
   assert.match(css, /\.oasis-neural-trace[\s\S]*inset: 0/);
   assert.match(css, /#aiTab[\s\S]*position: relative/);
+});
+
+test('oasis.css neural trace uses slower reversed dash animation', () => {
+  const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
+  assert.match(css, /--oasis-neural-dur:\s*9s/);
+  assert.match(css, /stroke-dashoffset:\s*-800[\s\S]*stroke-dashoffset:\s*800/);
+});
+
+test('index.html nav symbols are polished multi-path icons', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.match(html, /id="rianell-nav-home"[\s\S]*nav-icon-home-roof/);
+  assert.match(html, /id="rianell-nav-logs"[\s\S]*nav-icon-logs-board/);
+  assert.match(html, /id="rianell-nav-charts"[\s\S]*nav-icon-charts-bar--1/);
+  assert.match(html, /id="rianell-nav-mood"[\s\S]*nav-icon-mood-eye--L/);
+  assert.match(html, /id="rianell-nav-ai"[\s\S]*nav-icon-ai-star/);
 });
