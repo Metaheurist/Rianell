@@ -115,40 +115,62 @@
           '<circle class="metric-pain-core" cx="32" cy="36" r="9" fill="currentColor" opacity="0.35"/></svg>';
       case 'mobility':
         return '<svg class="metric-svg metric-svg--mobility" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
-          '<ellipse class="metric-mobility-shadow" cx="36" cy="84" rx="14" ry="3" fill="currentColor" opacity="0.22"/>' +
+          '<defs>' +
+          '<filter id="metricMobilityGlow" x="-40%" y="-40%" width="180%" height="180%">' +
+          '<feGaussianBlur stdDeviation="2.2" result="blur"/>' +
+          '</filter>' +
+          '</defs>' +
+          '<ellipse class="metric-mobility-shadow" cx="36" cy="84.5" rx="20" ry="3.5" fill="currentColor" opacity="0.2"/>' +
           '<g class="metric-mobility-trampoline" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
-          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="16" y1="72" x2="10" y2="86" stroke-width="2.5"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="56" y1="72" x2="62" y2="86" stroke-width="2.5"/>' +
-          '<line class="metric-mobility-rim" x1="12" y1="72" x2="60" y2="72" stroke-width="2.8"/>' +
-          '<path class="metric-mobility-mat" d="M12 72 Q36 79 60 72" stroke-width="3"/>' +
-          '<path class="metric-mobility-spring metric-mobility-spring--L" d="M18 72 v5 M22 72 v5 M26 72 v5" stroke-width="1.5" opacity="0.5"/>' +
-          '<path class="metric-mobility-spring metric-mobility-spring--R" d="M46 72 v5 M50 72 v5 M54 72 v5" stroke-width="1.5" opacity="0.5"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="13" y1="73" x2="7" y2="86" stroke-width="2.6"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="59" y1="73" x2="65" y2="86" stroke-width="2.6"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--L2" x1="21" y1="73" x2="17" y2="86" stroke-width="2.2" opacity="0.85"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--R2" x1="51" y1="73" x2="55" y2="86" stroke-width="2.2" opacity="0.85"/>' +
+          '<line class="metric-mobility-rim" x1="9" y1="73" x2="63" y2="73" stroke-width="3.4"/>' +
+          '<g class="metric-mobility-mat-wrap">' +
+          '<path class="metric-mobility-mat" d="M11 70.5 Q36 73.5 61 70.5" stroke-width="3.2"/>' +
           '</g>' +
-          '<g class="metric-mobility-jumper-anchor" transform="translate(36 66)">' +
+          '</g>' +
+          '<ellipse class="metric-mobility-air-shadow" cx="36" cy="69" rx="9" ry="2.8" fill="currentColor" filter="url(#metricMobilityGlow)" opacity="0"/>' +
+          '<g class="metric-mobility-jumper-anchor" transform="translate(36 70)">' +
           '<g class="metric-mobility-jumper">' +
-          '<circle class="metric-mobility-head" cx="0" cy="-22" r="5" fill="currentColor"/>' +
-          '<path class="metric-mobility-torso" d="M0 -17 v14" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 -15 L-9 -8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 -15 L9 -8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 -3 L-6 2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 -3 L6 2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<circle class="metric-mobility-head" cx="0" cy="-21" r="4.8" fill="currentColor"/>' +
+          '<path class="metric-mobility-torso" d="M0 -16 v13" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 -14 L-8 -7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 -14 L8 -7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 -3 L-6 5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 -3 L6 5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
           '</g></g></svg>';
       case 'swelling':
-        return '<svg class="metric-svg metric-svg--swelling-balloon" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
+        return '<svg class="metric-svg metric-svg--swelling-balloon" viewBox="0 0 72 92" focusable="false" aria-hidden="true">' +
           '<defs>' +
-          '<radialGradient id="metricBalloonGrad" cx="0.42" cy="0.38" r="0.62">' +
+          '<radialGradient id="metricBalloonGrad" cx="0.36" cy="0.28" r="0.72">' +
           '<stop offset="0%" class="metric-balloon-grad-core"/>' +
-          '<stop offset="70%" class="metric-balloon-grad-mid"/>' +
+          '<stop offset="52%" class="metric-balloon-grad-mid"/>' +
           '<stop offset="100%" class="metric-balloon-grad-edge"/>' +
           '</radialGradient>' +
+          '<filter id="metricBalloonGlow" x="-60%" y="-60%" width="220%" height="220%">' +
+          '<feGaussianBlur stdDeviation="4.5" result="blur"/>' +
+          '</filter>' +
           '</defs>' +
-          '<g class="metric-balloon-anchor">' +
-          '<path class="metric-balloon-string" d="M36 78 v8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.55"/>' +
-          '<ellipse class="metric-balloon-knot" cx="36" cy="76" rx="3.2" ry="2.4" fill="currentColor" opacity="0.72"/>' +
-          '<path class="metric-balloon-neck" d="M34 68 Q36 72 38 68" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-          '<path class="metric-balloon-body" fill="url(#metricBalloonGrad)" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>' +
-          '<ellipse class="metric-balloon-shine" cx="0" cy="0" rx="4" ry="5" fill="rgba(255,255,255,0.35)"/>' +
-          '</g></svg>';
+          '<ellipse class="metric-balloon-glow" cx="36" cy="48" rx="16" ry="14" filter="url(#metricBalloonGlow)"/>' +
+          '<g class="metric-balloon-pin">' +
+          '<line class="metric-balloon-pin-stem" x1="36" y1="77" x2="36" y2="88" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
+          '<circle class="metric-balloon-pin-head" cx="36" cy="76" r="3" fill="currentColor"/>' +
+          '</g>' +
+          '<g class="metric-balloon-float">' +
+          '<g class="metric-balloon-body-group">' +
+          '<g class="metric-balloon-breathe">' +
+          '<path class="metric-balloon-body" d="M36 70 C19 70 11 54 11 37 C11 19 22 5 36 3 C50 5 61 19 61 37 C61 54 53 70 36 70 Z" fill="url(#metricBalloonGrad)" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>' +
+          '<ellipse class="metric-balloon-shine" cx="27" cy="20" rx="8" ry="10" fill="rgba(255,255,255,0.42)"/>' +
+          '<ellipse class="metric-balloon-shine-soft" cx="29" cy="22" rx="4.5" ry="5.5" fill="rgba(255,255,255,0.16)"/>' +
+          '<g class="metric-balloon-face">' +
+          '<circle class="metric-balloon-eye metric-balloon-eye--L" cx="28" cy="43" r="1.7" fill="currentColor"/>' +
+          '<circle class="metric-balloon-eye metric-balloon-eye--R" cx="44" cy="43" r="1.7" fill="currentColor"/>' +
+          '<path class="metric-balloon-mouth" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' +
+          '</g>' +
+          '<path class="metric-balloon-neck" d="M33.5 67.5 Q36 71.5 38.5 67.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.7"/>' +
+          '</g></g></g></svg>';
       case 'fatigue':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<rect class="metric-battery-cap" x="28" y="14" width="8" height="4" rx="1" fill="rgba(255,255,255,0.35)"/>' +
@@ -299,73 +321,86 @@
   }
 
   function applyMobilityBounce(widget, r) {
-    var peakPx = (5 + r * 28).toFixed(1);
-    var dur = Math.max(0.48, 1.32 - r * 0.78).toFixed(2);
-    widget.style.setProperty('--mobility-bounce-y', '-' + peakPx + 'px');
+    var peakPx = (18 + r * 38).toFixed(1);
+    var dur = Math.max(0.52, 1.28 - r * 0.74).toFixed(2);
+    var level = r < 0.28 ? 'low' : r < 0.62 ? 'mid' : 'high';
+    widget.setAttribute('data-mobility-level', level);
+    widget.style.setProperty('--mobility-bounce-peak', '-' + peakPx + 'px');
     widget.style.setProperty('--mobility-bounce-dur', dur + 's');
-    widget.style.setProperty('--mobility-shadow-op', (0.18 + r * 0.42).toFixed(2));
+    widget.style.setProperty('--mobility-shadow-op', (0.16 + r * 0.48).toFixed(2));
+    widget.style.setProperty('--mobility-mat-sag', (1.35 + r * 0.45).toFixed(2));
     var visual = widget.querySelector('.metric-widget__visual');
     if (!visual) return;
     var shadow = visual.querySelector('.metric-mobility-shadow');
-    if (shadow) shadow.setAttribute('rx', (9 + r * 7).toFixed(1));
+    if (shadow) shadow.setAttribute('rx', (14 + r * 8).toFixed(1));
+    var mat = visual.querySelector('.metric-mobility-mat');
+    if (mat) {
+      var sag = 2.8 + r * 1.2;
+      mat.setAttribute('d', 'M11 70.5 Q36 ' + (70.5 + sag).toFixed(1) + ' 61 70.5');
+    }
   }
 
-  /** Balloon body path snapshots — knot/neck stay fixed; chamber morphs via d lerp. */
-  var BALLOON_BODY_DEFLATED = { cx: 36, top: 52, rx: 9, ry: 5, bulge: 8 };
-  var BALLOON_BODY_MID = { cx: 34, top: 38, rx: 16, ry: 14, bulge: 20 };
-  var BALLOON_BODY_INFLATED = { cx: 26, top: 18, rx: 28, ry: 26, bulge: 34 };
+  /** Balloon scales from the pin anchor (36, 72) — matches low / mid / high reference frames. */
+  var BALLOON_SCALE_LOW = { sx: 0.38, sy: 0.34, ty: 10, lean: 0 };
+  var BALLOON_SCALE_MID = { sx: 0.72, sy: 0.68, ty: 2, lean: -1 };
+  var BALLOON_SCALE_HIGH = { sx: 1.05, sy: 1.08, ty: -4, lean: -5 };
 
-  function balloonBodyPathFromShape(s) {
-    var cx = s.cx;
-    var neckY = 68;
-    var top = s.top;
-    var rx = s.rx;
-    var ry = s.ry;
-    var bulge = s.bulge;
-    return 'M' + (cx - rx * 0.35).toFixed(1) + ' ' + neckY +
-      ' C' + (cx - rx).toFixed(1) + ' ' + (neckY - 4) +
-      ' ' + (cx - rx).toFixed(1) + ' ' + top +
-      ' ' + cx.toFixed(1) + ' ' + (top - 2) +
-      ' C' + (cx + rx).toFixed(1) + ' ' + top +
-      ' ' + (cx + rx).toFixed(1) + ' ' + (neckY - 4) +
-      ' ' + (cx + rx * 0.35).toFixed(1) + ' ' + neckY +
-      ' C' + (cx + rx * 0.2).toFixed(1) + ' ' + (neckY + bulge * 0.15) +
-      ' ' + cx.toFixed(1) + ' ' + (neckY + bulge * 0.22) +
-      ' ' + (cx - rx * 0.2).toFixed(1) + ' ' + (neckY + bulge * 0.15) + ' Z';
-  }
-
-  function lerpBalloonShape(a, b, t) {
+  function lerpBalloonScale(a, b, t) {
     return {
-      cx: lerp(a.cx, b.cx, t),
-      top: lerp(a.top, b.top, t),
-      rx: lerp(a.rx, b.rx, t),
-      ry: lerp(a.ry, b.ry, t),
-      bulge: lerp(a.bulge, b.bulge, t),
+      sx: lerp(a.sx, b.sx, t),
+      sy: lerp(a.sy, b.sy, t),
+      ty: lerp(a.ty, b.ty, t),
+      lean: lerp(a.lean, b.lean, t),
     };
   }
 
-  function balloonShapeForValue(rawValue) {
+  function balloonScaleForValue(rawValue) {
     var v = clamp(parseInt(rawValue, 10) || 1, 1, 10);
     var t = (v - 1) / 9;
     if (t <= 0.5) {
-      return lerpBalloonShape(BALLOON_BODY_DEFLATED, BALLOON_BODY_MID, t / 0.5);
+      return lerpBalloonScale(BALLOON_SCALE_LOW, BALLOON_SCALE_MID, t / 0.5);
     }
-    return lerpBalloonShape(BALLOON_BODY_MID, BALLOON_BODY_INFLATED, (t - 0.5) / 0.5);
+    return lerpBalloonScale(BALLOON_SCALE_MID, BALLOON_SCALE_HIGH, (t - 0.5) / 0.5);
+  }
+
+  function updateBalloonFace(visual, t) {
+    var face = visual.querySelector('.metric-balloon-face');
+    if (face) {
+      face.style.opacity = String(lerp(1, 0, clamp((t - 0.38) / 0.42, 0, 1)));
+    }
+    var mouth = visual.querySelector('.metric-balloon-mouth');
+    if (mouth) {
+      var smile = 1 - clamp(t / 0.75, 0, 1);
+      var wingY = lerp(47, 51, t);
+      var midY = lerp(52, 46, smile);
+      mouth.setAttribute('d', 'M30 ' + wingY.toFixed(1) + ' Q36 ' + midY.toFixed(1) + ' 42 ' + wingY.toFixed(1));
+    }
+    visual.querySelectorAll('.metric-balloon-eye').forEach(function (eye) {
+      eye.setAttribute('r', lerp(1.3, 1.9, clamp(t * 1.2, 0, 1)).toFixed(2));
+    });
   }
 
   function updateSwellingBalloon(visual, rawValue) {
-    var shape = balloonShapeForValue(rawValue);
-    var body = visual.querySelector('.metric-balloon-body');
-    if (body) body.setAttribute('d', balloonBodyPathFromShape(shape));
-    var shine = visual.querySelector('.metric-balloon-shine');
-    if (shine) {
-      shine.setAttribute('cx', (shape.cx - shape.rx * 0.25).toFixed(1));
-      shine.setAttribute('cy', (shape.top + shape.ry * 0.35).toFixed(1));
-      shine.setAttribute('rx', (shape.rx * 0.22).toFixed(1));
-      shine.setAttribute('ry', (shape.ry * 0.28).toFixed(1));
-      shine.style.opacity = String(0.15 + (shape.rx / 28) * 0.45);
+    var v = clamp(parseInt(rawValue, 10) || 1, 1, 10);
+    var t = (v - 1) / 9;
+    var scale = balloonScaleForValue(rawValue);
+    var group = visual.querySelector('.metric-balloon-body-group');
+    if (group) {
+      group.style.setProperty('--balloon-sx', scale.sx.toFixed(3));
+      group.style.setProperty('--balloon-sy', scale.sy.toFixed(3));
+      group.style.setProperty('--balloon-tx', scale.lean.toFixed(1) + 'px');
+      group.style.setProperty('--balloon-ty', scale.ty.toFixed(1) + 'px');
     }
-    return shape;
+    var glow = visual.querySelector('.metric-balloon-glow');
+    if (glow) {
+      glow.setAttribute('cx', (36 + scale.lean * 0.6).toFixed(1));
+      glow.setAttribute('cy', (58 - t * 18).toFixed(1));
+      glow.setAttribute('rx', lerp(11, 30, t).toFixed(1));
+      glow.setAttribute('ry', lerp(9, 28, t).toFixed(1));
+      glow.style.opacity = String(lerp(0.28, 0.72, t));
+    }
+    updateBalloonFace(visual, t);
+    return scale;
   }
 
   function applySwellingVisual(widget, visual, rawValue) {
@@ -373,8 +408,9 @@
     updateSwellingBalloon(visual, rawValue);
     var level = r < 0.28 ? 'low' : r < 0.62 ? 'mid' : 'high';
     widget.setAttribute('data-swelling-level', level);
-    widget.style.setProperty('--metric-balloon-pulse-dur', (2.4 - r * 1.1).toFixed(2) + 's');
-    widget.style.setProperty('--metric-balloon-glow', (0.1 + r * 0.65).toFixed(2));
+    widget.style.setProperty('--metric-balloon-pulse-dur', (2.6 - r * 1.2).toFixed(2) + 's');
+    widget.style.setProperty('--metric-balloon-glow', (0.15 + r * 0.85).toFixed(2));
+    widget.style.setProperty('--metric-balloon-strain', (clamp((r - 0.55) / 0.45, 0, 1)).toFixed(2));
   }
 
   function lerp(a, b, t) {
