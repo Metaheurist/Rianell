@@ -1,6 +1,37 @@
 # Release Notes
 
-## Latest release (v2.1.2)
+## Latest release (v2.1.4)
+
+**Date:** 2026-06-30
+
+### Highlights
+
+- **Companion names:** Onboarding shows friendly generated names instead of numeric seeds.
+- **App lock icon:** Padlock renders as a clear outline on the security screen.
+- **Metric animations:** Mobility stick-figure trampoline bounce; swelling knee pulse and ripples.
+- **AI trends:** Cleaner Typical / Latest / Outlook layout on trend cards.
+- **Navbar polish:** Redesigned tab icons with subtle active animations.
+- **AI background:** Slower, reversed neural trace dash animation.
+
+See **v2.1.3** below for log wizard severity and picker polish.
+
+---
+
+## Previous (v2.1.3)
+
+**Date:** 2026-06-29
+
+### Highlights
+
+- **Severity scale:** Low / Moderate / High labels on symptom sliders with raw 1–10 readout.
+- **Log review:** Metric intensity bars and urgent vitals highlighting.
+- **Symptom picker:** Animated chip icons and i18n fallbacks.
+- **Goals modal:** Redesigned target/medal tab art.
+- **AI tab:** Full-panel neural trace background.
+
+---
+
+## Previous (v2.1.2)
 
 **Date:** 2026-06-29
 
