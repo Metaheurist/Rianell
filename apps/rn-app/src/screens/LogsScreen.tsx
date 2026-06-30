@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
+import { ScreenCard } from '../components/ui/ScreenCard';
 import { useT } from '../i18n/I18nProvider';
 import { EmptyState } from '../components/ui/EmptyState';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -86,11 +88,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   const theme = useTheme();
   const { t, locale } = useT();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const bg =
-    theme.tokens.color.background ===
-    'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
-      ? '#ffffff'
-      : theme.tokens.color.background;
+  const bg = resolveScreenBackground(theme);
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [range, setRange] = useState<LogRangePreset>(30);
@@ -300,7 +298,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
-      <View style={styles.card}>
+      <ScreenCard flex>
         <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>{t('logs.title')}</Text>
         <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
           Filter by date range and sort (Today / 7 / 30 / 90 / All / Custom - web parity).
@@ -453,7 +451,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
             removeClippedSubviews
           />
         )}
-      </View>
+      </ScreenCard>
       <Modal visible={selectedEntry != null} transparent animationType="slide" onRequestClose={() => setSelectedEntry(null)}>
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { backgroundColor: 'rgba(20,30,28,0.97)' }]}>
@@ -605,7 +603,6 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
-  card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)', flex: 1 },
   title: { fontWeight: '700', marginBottom: 6 },
   lead: { opacity: 0.9, marginBottom: 12 },
   sectionLabel: { fontWeight: '600', marginBottom: 6, opacity: 0.85 },

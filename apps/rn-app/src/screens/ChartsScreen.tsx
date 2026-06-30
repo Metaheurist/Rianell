@@ -15,6 +15,8 @@ import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
+import { ScreenCard } from '../components/ui/ScreenCard';
 import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList } from '../navigation/RootNavigator';
 import { loadLogs, type LogEntry } from '../storage/logs';
@@ -177,11 +179,7 @@ export function ChartsScreen({
   const route = useRoute<ChartsRoute>();
   const theme = useTheme();
   const { t, locale } = useT();
-  const bg =
-    theme.tokens.color.background ===
-    'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
-      ? '#ffffff'
-      : theme.tokens.color.background;
+  const bg = resolveScreenBackground(theme);
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [range, setRange] = useState<ChartRange>(7);
@@ -288,15 +286,7 @@ export function ChartsScreen({
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor:
-                theme.mode === 'light' ? `${theme.tokens.color.text}0D` : 'rgba(0,0,0,0.18)',
-            },
-          ]}
-        >
+        <ScreenCard>
           <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('charts.title')}</Text>
           <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
             {view === 'balance'
@@ -609,7 +599,7 @@ export function ChartsScreen({
               </View>
             ))
           )}
-        </View>
+        </ScreenCard>
       </ScrollView>
     </SafeAreaView>
   );
@@ -618,7 +608,6 @@ export function ChartsScreen({
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   scrollContent: { paddingBottom: 32 },
-  card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
   title: { fontWeight: '700', marginBottom: 8 },
   lead: { opacity: 0.95, marginBottom: 16 },
   emptyHint: { opacity: 0.9, marginTop: 4, marginBottom: 8, lineHeight: 22 },

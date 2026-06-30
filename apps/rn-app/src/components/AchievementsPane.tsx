@@ -9,6 +9,7 @@ import {
 } from '@rianell/shared';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
+import { useReduceMotionFlag } from '../hooks/useReduceMotionFlag';
 import type { TrackingProfile } from '../storage/preferences';
 
 type Props = {
@@ -36,21 +37,21 @@ function AchievementProgressBar({
   success: string;
   accessibilityLabel: string;
 }) {
+  const reduceMotion = useReduceMotionFlag();
   const anim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (reduceMotion) {
+      anim.setValue(progress);
+      return;
+    }
     Animated.spring(anim, {
       toValue: progress,
-      useNativeDriver: false,
+      useNativeDriver: true,
       friction: 8,
       tension: 60,
     }).start();
-  }, [anim, progress]);
-
-  const width = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
+  }, [anim, progress, reduceMotion]);
 
   return (
     <View
@@ -63,7 +64,7 @@ function AchievementProgressBar({
         style={[
           styles.progressFill,
           {
-            width,
+            transform: [{ scaleX: anim }],
             backgroundColor: unlocked ? success : accent,
             shadowColor: unlocked ? success : accent,
           },
@@ -266,6 +267,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: 4,
+    width: '100%',
     borderRadius: 2,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,

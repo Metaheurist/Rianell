@@ -10,6 +10,8 @@ type Theme = {
   color: ReturnType<typeof getTokens>['color'];
   motion?: ReturnType<typeof getTokens>['motion'];
   radius?: ReturnType<typeof getTokens>['radius'];
+  spacing?: ReturnType<typeof getTokens>['spacing'];
+  surface?: ReturnType<typeof getTokens>['surface'];
   textScale: number;
   font: (size: number) => number;
 };
@@ -30,6 +32,8 @@ export function ThemeProvider({ prefs, children }: { prefs: Preferences; childre
       color: tokens.color,
       motion: tokens.motion,
       radius: tokens.radius,
+      spacing: tokens.spacing,
+      surface: tokens.surface,
       textScale,
       font: (size: number) => size * textScale,
     };
