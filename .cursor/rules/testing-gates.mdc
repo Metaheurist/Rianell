@@ -1,0 +1,45 @@
+---
+description: Test and verification gate requirements — run before committing or finishing any phase
+alwaysApply: true
+---
+
+# Rianell testing gates
+
+## Minimum gate — every change
+
+```bash
+npm run test:unit          # 491 assertions must all pass
+node scripts/verify/doc-links.mjs --strict   # exit 0 required
+```
+
+## Phase-specific gates
+
+| Condition | Command |
+|-----------|---------|
+| After Phase 7 (foundation) | `npm run verify:migration:foundation` |
+| Phase 20+ | `npm run verify:migration` |
+| Phase 23+ (root hygiene) | `npm run verify:root-hygiene` |
+| Phase 22 epic close | `npm run migrate:deploy-observe` |
+| Phase 23 local sign-off | `npm run migrate:root-hygiene-observe` |
+
+## Feature-area gates
+
+| Touched area | Gate command |
+|--------------|-------------|
+| i18n strings | `npm run verify:i18n` (includes `--max-pct=13` coverage) |
+| CSP / headers | `npm run verify:csp` |
+| PWA boot / shell | `npm run audit:boot` |
+| Security | `npm run verify:cspro` |
+| Accessibility | `npm run verify:a11y` |
+| Core Web Vitals | `npm run verify:cwv` (via `run-cwv-audit.mjs`) |
+
+## Gate protocol (from MASTER.md)
+
+1. Local gate passes → update CHANGELOG → commit → watch CI until green
+2. Record CI run URL in MASTER.md §Section rollup CI column
+3. Only then set Plan status to `done`
+
+## Do not skip
+
+- Never set a plan to `done` without a green CI run (or explicit `—` for post-14 plans)
+- Verification checkpoints (phases 18, 19) must not be skipped even when phases run sequentially

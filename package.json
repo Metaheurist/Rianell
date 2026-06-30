@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "2.1.4",
+  "version": "2.1.6",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -41,6 +41,7 @@
     "verify:policy-packs": "node scripts/verify/verify-policy-packs.mjs",
     "verify:i18n": "node scripts/verify/i18n-all.mjs",
     "verify:a11y-tokens": "node scripts/verify/verify-a11y-tokens.mjs",
+    "verify:design-tokens": "node scripts/verify/verify-design-tokens.mjs",
     "verify:api-spec": "node scripts/verify/verify-api-spec.mjs",
     "verify:dast-contract": "node scripts/verify/verify-dast-contract.mjs",
     "verify:axe-ci": "node scripts/verify/verify-axe-ci.mjs",

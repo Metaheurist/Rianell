@@ -1,0 +1,38 @@
+---
+description: Security and privacy rules — secrets, keys, GDPR, ONNX model storage
+alwaysApply: true
+---
+
+# Rianell security & privacy
+
+## Never commit these files
+
+- `security/.env` or root `.env` — Supabase credentials
+- `security/.encryption_key` — encryption key material
+- `supabase-config.js` — contains API keys
+- `apps/pwa-webapp/models/**/onnx*` — ONNX weights are gitignored; weights live in Supabase Storage only
+
+## API key rules
+
+- Frontend code always uses the **publishable / anon key** (`SUPABASE_ANON_KEY`)
+- **Never** use the `service_role` key in client-side code
+- Pool insight RPCs must have `REVOKE EXECUTE ON FUNCTION … FROM anon`; `GRANT EXECUTE` to `authenticated` only
+
+## Health data (GDPR Art. 9)
+
+- Health data requires explicit user consent before processing or upload
+- Screening responses (PHQ-9/GAD-7) must **never** be written to logs, IndexedDB, AsyncStorage, or Supabase
+- Anonymised data sharing is opt-in only (`dataSharing` preference)
+- Smartlook session recording is off by default; SDK must not load until user opts in
+
+## E2E encryption
+
+- Exports use PBKDF2 + AES-GCM (`P4` feature)
+- Passphrase-derived DEK wrapping via `keyManagement.mjs`
+- AsyncStorage is encrypted via `secureStorage.mjs` (Plan 21)
+
+## CI supply-chain
+
+- Run `npm audit` and `pip-audit` before deploy
+- `scripts/verify/verify-csp-connect-src.mjs` must pass before any CSP change ships
+- Gitleaks runs on every CI push; new secrets in `i18n-packs/` or `tier-a-exact-overrides.mjs` must be added to `.gitleaks.toml` allowlist
