@@ -9574,17 +9574,30 @@ function wrapAIChapter(chapterId, titleKey, iconName, innerHtml, chapterDelay) {
     '</div>';
 }
 
+function trendValueParts(num, unit) {
+  var u = unit || '';
+  return {
+    num: String(num),
+    unit: u,
+    display: String(num) + (u ? (u.charAt(0) === '/' ? u : ' ' + u) : ''),
+  };
+}
+
 function formatAITrendValueDisplay(metric, trend) {
   var isBPM = metric === 'bpm';
   var isHRV = metric === 'hrv';
   var isWeight = metric === 'weight';
   var isSteps = metric === 'steps';
   var isHydration = metric === 'hydration';
-  var averageDisplay, currentDisplay, predictedDisplay = '';
+  var glassesWord = typeof tUi === 'function' ? tUi('common.glasses') : 'glasses';
+  var average;
+  var current;
+  var predicted = null;
   if (isBPM || isHRV) {
-    averageDisplay = Math.round(trend.average).toString() + (isHRV ? ' ms' : '');
-    currentDisplay = Math.round(trend.current).toString() + (isHRV ? ' ms' : '');
-    if (trend.projected7Days != null) predictedDisplay = Math.round(trend.projected7Days).toString() + (isHRV ? ' ms' : '');
+    var msUnit = isHRV ? 'ms' : '';
+    average = trendValueParts(Math.round(trend.average), msUnit);
+    current = trendValueParts(Math.round(trend.current), msUnit);
+    if (trend.projected7Days != null) predicted = trendValueParts(Math.round(trend.projected7Days), msUnit);
   } else if (isWeight) {
     var weightUnit = appSettings.weightUnit || 'kg';
     var suffix = weightUnit === 'lb' ? 'lb' : 'kg';
@@ -9596,23 +9609,39 @@ function formatAITrendValueDisplay(metric, trend) {
       curW = parseFloat(kgToLb(curW));
       if (predW != null) predW = parseFloat(kgToLb(predW));
     }
-    averageDisplay = avgW.toFixed(1) + suffix;
-    currentDisplay = curW.toFixed(1) + suffix;
-    if (predW != null) predictedDisplay = predW.toFixed(1) + suffix;
+    average = trendValueParts(avgW.toFixed(1), suffix);
+    current = trendValueParts(curW.toFixed(1), suffix);
+    if (predW != null) predicted = trendValueParts(predW.toFixed(1), suffix);
   } else if (isSteps) {
-    averageDisplay = Math.round(trend.average).toLocaleString();
-    currentDisplay = Math.round(trend.current).toLocaleString();
-    if (trend.projected7Days != null) predictedDisplay = Math.round(trend.projected7Days).toLocaleString();
+    average = trendValueParts(Math.round(trend.average).toLocaleString(), '');
+    current = trendValueParts(Math.round(trend.current).toLocaleString(), '');
+    if (trend.projected7Days != null) predicted = trendValueParts(Math.round(trend.projected7Days).toLocaleString(), '');
   } else if (isHydration) {
-    averageDisplay = trend.average.toFixed(1) + ' glasses';
-    currentDisplay = trend.current.toFixed(1) + ' glasses';
-    if (trend.projected7Days != null) predictedDisplay = trend.projected7Days.toFixed(1) + ' glasses';
+    average = trendValueParts(trend.average.toFixed(1), glassesWord);
+    current = trendValueParts(trend.current.toFixed(1), glassesWord);
+    if (trend.projected7Days != null) predicted = trendValueParts(trend.projected7Days.toFixed(1), glassesWord);
   } else {
-    averageDisplay = Math.round(trend.average) + '/10';
-    currentDisplay = Math.round(trend.current) + '/10';
-    if (trend.projected7Days != null) predictedDisplay = Math.round(trend.projected7Days) + '/10';
+    average = trendValueParts(Math.round(trend.average), '/10');
+    current = trendValueParts(Math.round(trend.current), '/10');
+    if (trend.projected7Days != null) predicted = trendValueParts(Math.round(trend.projected7Days), '/10');
   }
-  return { averageDisplay: averageDisplay, currentDisplay: currentDisplay, predictedDisplay: predictedDisplay };
+  return {
+    average: average,
+    current: current,
+    predicted: predicted,
+    averageDisplay: average.display,
+    currentDisplay: current.display,
+    predictedDisplay: predicted ? predicted.display : '',
+  };
+}
+
+function renderAITrendStatValue(parts) {
+  if (!parts) return '';
+  if (parts.unit) {
+    return '<span class="ai-trend-stat__num">' + escapeHTML(parts.num) + '</span>' +
+      '<span class="ai-trend-stat__unit">' + escapeHTML(parts.unit) + '</span>';
+  }
+  return '<span class="ai-trend-stat__num">' + escapeHTML(parts.num) + '</span>';
 }
 
 function renderAITrendCardHtml(metric, trend, index, animationDelay) {
@@ -9642,9 +9671,9 @@ function renderAITrendCardHtml(metric, trend, index, animationDelay) {
     '</header>' +
     (spark ? '<div class="ai-trend-chart">' + spark + '</div>' : '') +
     '<div class="ai-trend-stats-row">' +
-    '<div class="ai-trend-stat"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.typical')) + '</span><span class="ai-trend-stat__value">' + escapeHTML(vals.averageDisplay) + '</span></div>' +
-    '<div class="ai-trend-stat ai-trend-stat--latest"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.latest')) + '</span><span class="ai-trend-stat__value">' + escapeHTML(vals.currentDisplay) + '</span></div>' +
-    (vals.predictedDisplay ? '<div class="ai-trend-stat ai-trend-stat--outlook ai-trend-stat--' + predictedClass + '"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.outlook')) + '</span><span class="ai-trend-stat__value">' + escapeHTML(vals.predictedDisplay) + '</span></div>' : '') +
+    '<div class="ai-trend-stat"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.typical')) + '</span><span class="ai-trend-stat__value">' + renderAITrendStatValue(vals.average) + '</span></div>' +
+    '<div class="ai-trend-stat ai-trend-stat--latest"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.latest')) + '</span><span class="ai-trend-stat__value">' + renderAITrendStatValue(vals.current) + '</span></div>' +
+    (vals.predicted ? '<div class="ai-trend-stat ai-trend-stat--outlook ai-trend-stat--' + predictedClass + '"><span class="ai-trend-stat__label">' + escapeHTML(tUi('common.outlook')) + '</span><span class="ai-trend-stat__value">' + renderAITrendStatValue(vals.predicted) + '</span></div>' : '') +
     '</div></div></article>';
 }
 
