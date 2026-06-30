@@ -6,6 +6,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.4] - 2026-06-30
+
+PWA visual polish: companion names, lock icon, metric animations, trend layout, and nav icon motion.
+
+### Fixed
+
+- **Companion names:** Onboarding “Meet your companion” shows generated names (e.g. Sun Warden) instead of raw seed timestamps — `graphics-portfolio.js` lazy-loads `RianellShared` after script order fix
+- **Security lock:** Padlock SVG renders as stroke outline, not solid grey blob (`icon-lock` / `icon-lock-open` symbols + illustration CSS)
+- **AI trend cards:** Typical / Latest / Outlook stat values split num/unit; wider grid prevents cramped labels and orphan cards
+
+### Changed
+
+- **Mobility metric:** Stick-figure jumper on trampoline with bounce tied to score; limb and mat squash animations
+- **Swelling metric:** Side-view knee with pulsing joint fluid and ripple rings scaled by severity
+- **AI neural trace:** Slower (9s) reversed dash animation on full-panel background
+- **Navbar icons:** Redesigned Home / Logs / Charts / Mood / AI symbols with per-tab active motion and hover polish
+
+### Tests
+
+- Extended `graphics-portfolio`, `animation-polish`, `log-metric-widgets`, `ai-trend-cards`
+
+---
+
 ## [2.1.3] - 2026-06-29
 
 Log wizard clarity, picker polish, goals tab art, and full-panel AI ambient trace.

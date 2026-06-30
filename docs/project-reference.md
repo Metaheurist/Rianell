@@ -4,6 +4,17 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.4 documentation sync (companion names, lock SVG, metric motion, nav polish)
+
+- **PWA companions:** Lazy `shared()` in `graphics-portfolio.js`; script order after `rianell-shared.js` in `index.html`.
+- **PWA app lock:** Stroke padlock symbols (`icon-lock`, `icon-lock-open`); `docs/icons/lock.svg`; `graphics-portfolio.css` illustration rules.
+- **PWA log metrics:** Mobility trampoline jumper + swelling knee pulse in `log-metric-widgets.js` + `styles.css`.
+- **PWA AI trends:** `renderAITrendStatValue()` num/unit split in `app.js`; grid layout in `styles.css`.
+- **PWA AI tab:** Neural trace timing/direction in `css/oasis.css` (`--oasis-neural-dur: 9s`).
+- **PWA navbar:** Redesigned `rianell-nav-*` symbols and `navIcon*` keyframes in `index.html` + `styles.css`.
+- **Tests:** `graphics-portfolio`, `animation-polish`, `log-metric-widgets`, `ai-trend-cards`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.4]`.
+
 ### v2.1.3 documentation sync (log wizard clarity, pickers, goals art)
 
 - **Shared:** `classifySeverityRaw` in `packages/shared/src/metrics/sliderWellness.mjs`.

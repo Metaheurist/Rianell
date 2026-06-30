@@ -2,7 +2,19 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.3** - Log wizard severity scale, urgent vitals, picker polish, goals tab SVG art, full-panel AI trace.
+**Latest: v2.1.4** - Companion name fix, lock SVG, mobility/swelling animations, trend layout, nav icon polish.
+
+### v2.1.4 - 2026-06-30 - PWA visual polish batch
+
+- **Companions (PWA):** Generated avatar names on onboarding; `graphics-portfolio.js` loads after `rianell-shared.js`.
+- **App lock (PWA):** Stroke-based padlock symbols and security illustration CSS.
+- **Log metrics (PWA):** Mobility trampoline stick-figure bounce; swelling knee pulse and ripple rings.
+- **AI trends (PWA):** Stat num/unit split, wider trend card grid.
+- **AI tab (PWA):** Slower reversed neural trace dash animation (9s).
+- **Navbar (PWA):** Polished tab SVG icons with active per-tab motion.
+- **Tests:** `graphics-portfolio`, `animation-polish`, `log-metric-widgets`, `ai-trend-cards`.
+- **npm:** Workspace roots at **2.1.4**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.4]`.
 
 ### v2.1.3 - 2026-06-29 - Log wizard clarity and picker polish
 
