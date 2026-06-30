@@ -33,11 +33,11 @@ test('goals-carousel dot icons use inline animated SVG markup', () => {
   const css = fs.readFileSync(path.join(root, 'apps/pwa-webapp/styles.css'), 'utf8');
   assert.match(src, /ui-svg-icon goals-dot-icon-svg/);
   assert.match(src, /goals-icon-target-ring--mid/);
-  assert.match(src, /goals-icon-medal-shine/);
+  assert.match(src, /goals-icon-fill/);
   assert.match(src, /data-goals-dot-icon/);
   assert.match(src, /goals-carousel-dot__icon/);
   assert.match(css, /goalsTargetRingMid/);
-  assert.match(css, /goalsMedalShine/);
+  assert.match(css, /\.goals-dot-icon-svg \.goals-icon-fill/);
 });
 
 test('cycle-tracking-ui uses unified 45-day timeline and period-start anchor', () => {
@@ -51,4 +51,13 @@ test('cycle-tracking-ui uses unified 45-day timeline and period-start anchor', (
   assert.match(src, /buildTimeline/);
   assert.match(src, /markPeriodStartedToday/);
   assert.match(src, /RianellI18n\.t/);
+  assert.match(src, /isInteractiveTarget/);
+  assert.match(src, /DRAG_THRESHOLD_PX/);
+});
+
+test('cycle beacon decoration removes stale selection rings', () => {
+  const portfolioPath = path.join(root, 'apps/pwa-webapp/modules/graphics-portfolio.js');
+  const src = fs.readFileSync(portfolioPath, 'utf8');
+  assert.match(src, /function decorateCycleBeacon/);
+  assert.match(src, /cycle-day-beacon[\s\S]*remove\(\)/);
 });

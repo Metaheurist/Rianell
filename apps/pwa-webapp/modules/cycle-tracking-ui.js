@@ -362,8 +362,16 @@
     if (!el || scrollBound) return;
     scrollBound = true;
     var dragging = false;
+    var pendingDrag = false;
     var startX = 0;
     var startScroll = 0;
+    var activePointerId = null;
+    var DRAG_THRESHOLD_PX = 8;
+
+    function isInteractiveTarget(target) {
+      if (!target || typeof target.closest !== 'function') return false;
+      return !!target.closest('button, a, input, select, textarea, label, [role="button"]');
+    }
 
     el.addEventListener(
       'wheel',
@@ -377,27 +385,42 @@
 
     el.addEventListener('pointerdown', function (e) {
       if (e.button !== 0) return;
-      dragging = true;
+      if (isInteractiveTarget(e.target)) return;
+      pendingDrag = true;
+      dragging = false;
+      activePointerId = e.pointerId;
       startX = e.pageX;
       startScroll = el.scrollLeft;
-      el.classList.add('cycle-ribbon-scroll--dragging');
-      if (el.setPointerCapture) el.setPointerCapture(e.pointerId);
     });
     el.addEventListener('pointerup', function (e) {
-      if (!dragging) return;
+      if (activePointerId != null && e.pointerId !== activePointerId) return;
+      pendingDrag = false;
       dragging = false;
+      activePointerId = null;
       el.classList.remove('cycle-ribbon-scroll--dragging');
       if (el.releasePointerCapture) {
         try { el.releasePointerCapture(e.pointerId); } catch (_err) { /* noop */ }
       }
     });
-    el.addEventListener('pointercancel', function () {
+    el.addEventListener('pointercancel', function (e) {
+      if (activePointerId != null && e.pointerId !== activePointerId) return;
+      pendingDrag = false;
       dragging = false;
+      activePointerId = null;
       el.classList.remove('cycle-ribbon-scroll--dragging');
     });
     el.addEventListener('pointermove', function (e) {
-      if (!dragging) return;
-      el.scrollLeft = startScroll - (e.pageX - startX);
+      if (activePointerId != null && e.pointerId !== activePointerId) return;
+      if (!pendingDrag && !dragging) return;
+      var dx = e.pageX - startX;
+      if (!dragging) {
+        if (Math.abs(dx) < DRAG_THRESHOLD_PX) return;
+        dragging = true;
+        el.classList.add('cycle-ribbon-scroll--dragging');
+        if (el.setPointerCapture) el.setPointerCapture(e.pointerId);
+      }
+      el.scrollLeft = startScroll - dx;
+      e.preventDefault();
     });
   }
 

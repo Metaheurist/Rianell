@@ -19,27 +19,24 @@
     if (safeName === 'medal') {
       return '<svg class="ui-svg-icon goals-dot-icon-svg goals-dot-icon-svg--medal" viewBox="0 0 24 24" aria-hidden="true">' +
         '<g class="goals-icon-medal-ribbon">' +
-        '<path d="M8.6 2.4 6.8 8.2 9.6 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '<path d="M15.4 2.4 17.2 8.2 14.4 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '<path d="M9.6 9.2h4.8" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>' +
+        '<path d="M8.8 2.6 7.2 7.8 9.8 8.6" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<path d="M15.2 2.6 16.8 7.8 14.2 8.6" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<path d="M9.8 8.6h4.4" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>' +
         '</g>' +
-        '<circle class="goals-icon-medal-disc" cx="12" cy="15.4" r="5.65" fill="none" stroke="currentColor" stroke-width="1.65"/>' +
-        '<circle class="goals-icon-medal-disc-inner" cx="12" cy="15.4" r="4.15" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.42"/>' +
-        '<path class="goals-icon-medal-shine" d="M8.8 13.6q3.2-1.4 6.4 0" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity="0.5"/>' +
-        '<path class="goals-icon-medal-star" d="M12 11.8 12.95 13.95 15.35 14.25 13.55 15.75 14.05 18.05 12 16.95 9.95 18.05 10.45 15.75 8.65 14.25 11.05 13.95Z" fill="currentColor"/>' +
+        '<circle class="goals-icon-medal-disc" cx="12" cy="15.2" r="5.9" fill="none" stroke="currentColor" stroke-width="1.25"/>' +
+        '<path class="goals-icon-medal-star goals-icon-fill" d="M12 11.6 12.85 13.55 15.05 13.82 13.35 15.2 13.8 17.35 12 16.35 10.2 17.35 10.65 15.2 8.95 13.82 11.15 13.55Z"/>' +
         '</svg>';
     }
     return '<svg class="ui-svg-icon goals-dot-icon-svg goals-dot-icon-svg--target" viewBox="0 0 24 24" aria-hidden="true">' +
-      '<circle class="goals-icon-target-ring goals-icon-target-ring--outer" cx="12" cy="12" r="8.35" fill="none" stroke="currentColor" stroke-width="1.55" opacity="0.52"/>' +
-      '<circle class="goals-icon-target-ring goals-icon-target-ring--mid" cx="12" cy="12" r="5.35" fill="none" stroke="currentColor" stroke-width="1.65"/>' +
-      '<circle class="goals-icon-target-ring goals-icon-target-ring--inner" cx="12" cy="12" r="2.65" fill="none" stroke="currentColor" stroke-width="1.65"/>' +
-      '<circle class="goals-icon-target-bullseye" cx="12" cy="12" r="1.05" fill="currentColor"/>' +
-      '<circle class="goals-icon-target-glow" cx="12" cy="12" r="1.85" fill="none" stroke="currentColor" stroke-width="1" opacity="0.35"/>' +
+      '<circle class="goals-icon-target-ring goals-icon-target-ring--outer" cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.15" opacity="0.5"/>' +
+      '<circle class="goals-icon-target-ring goals-icon-target-ring--mid" cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.25"/>' +
+      '<circle class="goals-icon-target-ring goals-icon-target-ring--inner" cx="12" cy="12" r="2.75" fill="none" stroke="currentColor" stroke-width="1.25"/>' +
+      '<circle class="goals-icon-target-bullseye goals-icon-fill" cx="12" cy="12" r="1.15"/>' +
       '<g class="goals-icon-target-ticks">' +
-      '<line x1="12" y1="1.65" x2="12" y2="3.85" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
-      '<line x1="12" y1="20.15" x2="12" y2="22.35" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
-      '<line x1="1.65" y1="12" x2="3.85" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
-      '<line x1="20.15" y1="12" x2="22.35" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>' +
+      '<line x1="12" y1="1.5" x2="12" y2="3.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+      '<line x1="12" y1="20.4" x2="12" y2="22.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+      '<line x1="1.5" y1="12" x2="3.6" y2="12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
+      '<line x1="20.4" y1="12" x2="22.5" y2="12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
       '</g></svg>';
   }
 
