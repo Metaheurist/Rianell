@@ -10,6 +10,8 @@ test('app.js renders enriched AI trend metric cards', () => {
   assert.match(js, /ai-trend-card--metric/);
   assert.match(js, /ai-trend-chart/);
   assert.match(js, /ai-trend-stats-row/);
+  assert.match(js, /function renderAITrendStatValue/);
+  assert.match(js, /ai-trend-stat__num/);
   assert.match(js, /data-metric="/);
   assert.doesNotMatch(js, /border-left-color:/);
   assert.doesNotMatch(js, /style="color:' \+ trendColor/);
@@ -23,5 +25,6 @@ test('styles.css defines trend sparkline and status surfaces', () => {
   assert.match(css, /\.ai-trend-card--worsening/);
   assert.match(css, /\.ai-trend-card--stable/);
   assert.match(css, /\.ai-trend-metric-icon/);
+  assert.match(css, /\.ai-trend-stat__unit/);
   assert.doesNotMatch(css, /border-left: 4px solid #e91e63/);
 });
