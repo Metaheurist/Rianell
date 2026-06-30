@@ -6,7 +6,10 @@
   'use strict';
 
   var PU = global.PerformanceUtils;
-  var S = global.RianellShared || {};
+
+  function shared() {
+    return global.RianellShared || {};
+  }
 
   var AVATAR_IDS = [
     'voidorb', 'tidewarden', 'leafcircuit', 'prismcore', 'moonthread',
@@ -65,7 +68,7 @@
   }
 
   function normalizeAvatar(avatarId) {
-    if (S.normalizeProfileAvatar) return S.normalizeProfileAvatar(avatarId);
+    if (shared().normalizeProfileAvatar) return shared().normalizeProfileAvatar(avatarId);
     var id = typeof avatarId === 'string' ? avatarId.trim() : '';
     return AVATAR_IDS.indexOf(id) >= 0 ? id : 'voidorb';
   }
@@ -186,8 +189,8 @@
   }
 
   function avatarRngFromSeed(seed) {
-    if (S.createMulberry32 && S.hashAvatarSeed) {
-      return S.createMulberry32(S.hashAvatarSeed(seed));
+    if (shared().createMulberry32 && shared().hashAvatarSeed) {
+      return shared().createMulberry32(shared().hashAvatarSeed(seed));
     }
     var n = 0;
     var s = String(seed || '');
@@ -304,7 +307,7 @@
   }
 
   function generatedIconIdFromSeed(seed) {
-    var slug = S.generatedAvatarIconSlug ? S.generatedAvatarIconSlug(seed) : String(seed || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    var slug = shared().generatedAvatarIconSlug ? shared().generatedAvatarIconSlug(seed) : String(seed || '').replace(/[^a-zA-Z0-9_-]/g, '');
     return 'icon-gen-' + (slug || '0');
   }
 
@@ -317,23 +320,23 @@
   }
 
   function isGeneratedAvatarId(avatarId) {
-    return S.isGeneratedProfileAvatar ? S.isGeneratedProfileAvatar(avatarId) : false;
+    return shared().isGeneratedProfileAvatar ? shared().isGeneratedProfileAvatar(avatarId) : false;
   }
 
   function parseGeneratedSeed(avatarId) {
-    return S.parseGeneratedAvatarSeed ? S.parseGeneratedAvatarSeed(avatarId) : null;
+    return shared().parseGeneratedAvatarSeed ? shared().parseGeneratedAvatarSeed(avatarId) : null;
   }
 
   function buildGeneratedAvatarId(seed) {
-    return S.buildGeneratedProfileAvatarId ? S.buildGeneratedProfileAvatarId(seed) : ('gen:' + seed);
+    return shared().buildGeneratedProfileAvatarId ? shared().buildGeneratedProfileAvatarId(seed) : ('gen:' + seed);
   }
 
   function createRandomAvatarSeed() {
-    return S.createRandomAvatarSeed ? S.createRandomAvatarSeed() : String(Date.now());
+    return shared().createRandomAvatarSeed ? shared().createRandomAvatarSeed() : String(Date.now());
   }
 
   function avatarNameFromSeed(seed) {
-    return S.generateAvatarNameFromSeed ? S.generateAvatarNameFromSeed(seed) : String(seed || 'Companion');
+    return shared().generateAvatarNameFromSeed ? shared().generateAvatarNameFromSeed(seed) : String(seed || 'Companion');
   }
 
   function metricEntityPaths(id) {
@@ -1083,7 +1086,7 @@
       var illus = document.createElement('div');
       illus.className = 'security-lock-illustration';
       illus.setAttribute('aria-hidden', 'true');
-      illus.innerHTML = '<svg viewBox="0 0 64 64" class="security-lock-illustration__svg"><use href="#icon-lock"></use></svg>';
+      illus.innerHTML = '<svg viewBox="0 0 24 24" class="security-lock-illustration__svg ui-svg-icon"><use href="#icon-lock"></use></svg>';
       section.insertBefore(illus, section.firstChild.nextSibling);
       if (!section.querySelector('.security-pin-dots')) {
         var dots = document.createElement('div');
