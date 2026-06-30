@@ -75,3 +75,26 @@ test('decorateConnectors reuses existing connector-icon instead of injecting dup
   assert.match(js, /if \(legacyArt\) legacyArt\.remove\(\)/);
   assert.doesNotMatch(js, /if \(row\.querySelector\('\.connector-art'\)\) return;/);
 });
+
+test('graphics-portfolio resolves avatar names via lazy shared() after script load', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/graphics-portfolio.js', 'utf8');
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.match(js, /function shared\(\)/);
+  assert.match(js, /global\.RianellShared/);
+  assert.doesNotMatch(js, /var S = global\.RianellShared \|\| \{\}/);
+  assert.match(js, /generateAvatarNameFromSeed\(seed\)/);
+  const sharedIdx = html.indexOf('vendor/rianell-shared.js');
+  const portfolioIdx = html.indexOf('modules/graphics-portfolio.js');
+  assert.ok(sharedIdx >= 0 && portfolioIdx > sharedIdx, 'graphics-portfolio must load after rianell-shared.js');
+  assert.match(html, /graphics-portfolio\.js\?v=5/);
+});
+
+test('security lock symbols use stroke outlines not solid fill blobs', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  const lockBlock = html.match(/id="icon-lock"[\s\S]*?<\/symbol>/);
+  assert.ok(lockBlock, 'icon-lock symbol missing');
+  assert.match(lockBlock[0], /fill="none"/);
+  assert.match(lockBlock[0], /stroke="currentColor"/);
+  const css = readFileSync('apps/pwa-webapp/css/graphics-portfolio.css', 'utf8');
+  assert.match(css, /\.security-lock-illustration__svg/);
+});
