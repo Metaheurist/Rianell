@@ -6,6 +6,61 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+---
+
+## [2.1.6] - 2026-06-30
+
+Six-guardrail technical audit remediation: canonical tokens, RN screen primitives, transform-only progress motion, and CI guard script.
+
+### Added
+
+- **`docs/design-token-contract.md`** — `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only (getdesign Airbnb crawl)
+- **`SPACING_TOKENS` / `SURFACE_TOKENS`** in `@rianell/tokens`; synced to PWA via `npm run sync:tokens`
+- **RN primitives:** `ScreenCard`, `ScreenContainer`, `RangeChip`, `themeHelpers.ts`
+- **`scripts/verify/verify-design-tokens.mjs`** + `npm run verify:design-tokens` (CI unit-tests job)
+- **Cursor guardrails:** `.cursor/rules/` (layout, brand-tokens, ui-motion), skills, MCP guide
+
+### Changed
+
+- **PWA progress bars** — `scaleX(var(--progress))` instead of animating `width` (wizard, goals, achievements, import, AI download, password strength)
+- **Tab nav indicator** — `translateX` + `scaleX` (no width transition)
+- **RN screens** — `resolveScreenBackground()` + `ScreenCard` on Home, Logs, AI, Charts, LogWizard; tab bar background via theme helper
+- **`AchievementsPane` / `OasisNeuralTrace`** — native-driver `scaleX` progress; opacity pulse trace (reduced-motion gated)
+
+### Tests
+
+- `tests/unit/tokens.test.mjs` — spacing/surface/`resolveScreenBackground`
+- `tests/unit/verify-design-tokens.test.mjs` — guard script + progress CSS contracts
+
+---
+
+## [2.1.5] - 2026-06-30
+
+PWA UI/UX fixes batch: log metrics, onboarding, AI ambient, feature defaults, and companion polish.
+
+### Fixed
+
+- **Joint swelling:** Morphing balloon SVG replaces knee metaphor; body path morphs with slider severity
+- **Mobility trampoline:** Jumper/mat animation phases aligned (jumper at bottom when mat depressed)
+- **Where it hurts:** Stroke-only anatomical silhouette; neutral/mild/pain region colors; edit form matches main diagram
+- **Stool type (Bristol):** Removed green circular status icon overlay on slider card
+- **Mood metric:** Square shadow artifact fixed — circular icon wrap, drop-shadow on head only
+- **Onboarding avatar:** Loader removed; companion picker shown before instructional copy
+- **Profile companion:** Larger settings framing, seeded accessories (glasses, hats, etc.), per-render motion profiles
+
+### Changed
+
+- **AI Insights background:** Dashed neural paths replaced with slow pulsing vein layers (`oasisVeinDrift` / `oasisVeinPulse`)
+- **Feature toggles:** Cycle tracking, digestive module, and barcode food logging default **on** (PWA + RN)
+- **Daily log:** Cycle tracking and BBT panels in collapsed-by-default accordions
+- **Getting started achievement (`milestone_3`):** 3D self-opening book SVG with perspective cover/page animations
+
+### Tests
+
+- Updated `achievement-icons`, `animation-polish`, and `log-metric-widgets` unit tests for new visuals
+
+---
+
 ## [2.1.4] - 2026-06-30
 
 PWA visual polish: companion names, lock icon, metric animations, trend layout, and nav icon motion.

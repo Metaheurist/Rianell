@@ -14,6 +14,8 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run test:unit` | Node unit tests (`tests/unit/`) |
 | `npm run verify:i18n` | Full locale/prompt/MOTD gate suite |
 | `npm run verify:a11y-tokens` | WCAG contrast gate for `@rianell/tokens` theme pairs |
+| `npm run verify:design-tokens` | Guardrail: no hardcoded RN card scaffolds or width-based progress in critical UI |
+| `npm run sync:tokens` | Regenerate `apps/pwa-webapp/css/tokens.css` from `@rianell/tokens` |
 | `npm run parity:*` | Platform parity checks |
 | `npm run benchmark` | Performance benchmarks workspace |
 | `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
@@ -45,7 +47,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 ### Phase 1 — Foundation (max 3 parallel)
 
-- **unit-tests** — `test:unit`, `verify:a11y-tokens`, parity, `verify:i18n`
+- **unit-tests** — `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, parity, `verify:i18n`
 - **prepare-minified-assets** — minified PWA + Capacitor dist → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** — Gitleaks, OSV, npm/pip audit (reusable workflow)
 

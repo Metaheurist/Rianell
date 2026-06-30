@@ -1,6 +1,35 @@
 # Release Notes
 
-## Latest release (v2.1.4)
+## Latest release (v2.1.6)
+
+**Date:** 2026-06-30
+
+### Highlights
+
+- **Design token contract:** `@rianell/tokens` is the single runtime authority; spacing/surface/radius synced to PWA CSS.
+- **RN screen cards:** Shared `ScreenCard` primitive replaces duplicated dark-glass scaffolds across main tabs.
+- **Motion compliance:** Progress bars and tab indicator use GPU-friendly `transform` (not `width` animation).
+- **CI guard:** `npm run verify:design-tokens` blocks regressions in critical PWA/RN UI files.
+- **Cursor guardrails:** Layout, brand-token, and ui-motion rules for agent-assisted UI work.
+
+See **v2.1.5** below for log metrics, onboarding, and companion polish.
+
+---
+
+## Previous (v2.1.5)
+
+**Date:** 2026-06-30
+
+### Highlights
+
+- **Joint swelling / mobility / pain diagram:** Metric and body-map visual fixes.
+- **Onboarding:** Companion picker before copy; profile companion framing and accessories.
+- **AI Insights:** Pulsing vein ambient layers; feature toggles default on for cycle/digestive/barcode.
+- **Getting started achievement:** 3D book SVG milestone art.
+
+---
+
+## Previous (v2.1.4)
 
 **Date:** 2026-06-30
 

@@ -22,7 +22,7 @@ Rianell/
 ├── server/             # Python HTTP server + Tk dashboard
 ├── supabase/           # Schema, edge functions
 ├── scripts/            # Build, i18n, parity, model upload
-├── docs/               # Maintainer documentation
+├── docs/               # Maintainer documentation (incl. design-token-contract.md)
 ├── wiki/               # This wiki (synced to GitHub Wiki)
 ├── benchmarks/         # Performance + AI benchmark runner
 └── artifacts/          # CI artifacts (APK, iOS zip, server EXE)
@@ -50,6 +50,8 @@ From repository root after `npm ci`:
 | `npm run dev:web` / `python -m server` | Local PWA via Python server |
 | `npm run build:web` | Minified, content-hashed PWA build |
 | `npm run test:unit` | Node unit tests |
+| `npm run sync:tokens` | Regenerate PWA CSS vars from `@rianell/tokens` |
+| `npm run verify:design-tokens` | Guardrail check on critical UI files |
 | `npm run typecheck:mobile` | TypeScript check for RN app |
 | `npm run verify:i18n` | Full i18n gate suite |
 | `npm run parity:web` | Platform parity check (web) |

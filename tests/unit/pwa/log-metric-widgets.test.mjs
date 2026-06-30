@@ -2,41 +2,42 @@ import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-test('swelling widget uses side-view knee SVG with scalable joint fluid', () => {
+test('swelling widget uses morphing balloon SVG tied to slider value', () => {
   const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
-  assert.match(js, /case 'swelling':[\s\S]*metric-knee-femur/);
-  assert.match(js, /metric-knee-tibia/);
-  assert.match(js, /metric-knee-patella/);
-  assert.match(js, /metric-knee-swell-anchor/);
-  assert.match(js, /metric-knee-swell-pulse/);
-  assert.match(js, /metric-knee-ripple/);
-  assert.match(js, /metric-knee-bones/);
-  assert.doesNotMatch(js, /metric-swell-bone-h/);
+  assert.match(js, /case 'swelling':[\s\S]*metric-balloon-body/);
+  assert.match(js, /metric-balloon-knot/);
+  assert.match(js, /metric-balloon-neck/);
+  assert.match(js, /metric-balloon-string/);
+  assert.match(js, /metric-svg--swelling-balloon/);
+  assert.match(js, /BALLOON_BODY_DEFLATED/);
+  assert.match(js, /updateSwellingBalloon/);
+  assert.doesNotMatch(js, /metric-knee-femur/);
   assert.doesNotMatch(js, /metric-knee-swell-group/);
 });
 
-test('swelling visual state scales knee joint fluid from raw severity', () => {
+test('swelling visual state morphs balloon body from raw severity', () => {
   const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
   assert.match(js, /function applySwellingVisual/);
-  assert.match(js, /fluidRx = 3\.8 \+ r \* 8\.2/);
+  assert.match(js, /balloonShapeForValue/);
   assert.match(js, /data-swelling-level/);
   assert.match(js, /ratio\(parseInt\(rawValue, 10\) \|\| 5, 1, 10\)/);
+  assert.match(js, /--metric-balloon-pulse-dur/);
 });
 
-test('swelling widget keeps knee art inside bounds in light mode CSS', () => {
+test('swelling widget keeps balloon art inside bounds in light mode CSS', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /\.metric-widget--swelling \.metric-widget__visual[\s\S]*overflow: visible/);
-  assert.match(css, /body\.light-mode \.metric-widget--swelling \.metric-knee-bones/);
-  assert.match(css, /data-swelling-level="low"/);
+  assert.match(css, /body\.light-mode \.metric-widget--swelling \.metric-balloon-knot/);
+  assert.match(css, /data-swelling-level="mid"/);
+  assert.match(css, /data-swelling-level="high"/);
   assert.doesNotMatch(css, /metric-knee-swell-ring/);
 });
 
-test('swelling knee animation styles use transform-only pulse and ripple rings', () => {
+test('swelling balloon animation styles use opacity pulse on body', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
-  assert.match(css, /@keyframes metricKneeSwellPulse[\s\S]*transform: scale/);
-  assert.match(css, /@keyframes metricKneeRipple/);
-  assert.match(css, /\.metric-knee-swell-pulse/);
-  assert.match(css, /\.metric-knee-ripple/);
+  assert.match(css, /@keyframes metricBalloonPulse[\s\S]*opacity/);
+  assert.match(css, /\.metric-balloon-body/);
+  assert.match(css, /--metric-balloon-glow/);
   assert.doesNotMatch(css, /metric-swell-fluid/);
 });
 
@@ -60,9 +61,9 @@ test('mobility widget uses trampoline stick-figure bounce tied to score', () => 
   assert.doesNotMatch(js, /metric-mobility-walker/);
 });
 
-test('mobility trampoline animation styles scale height and speed via CSS vars', () => {
+test('mobility trampoline animation styles use phase-aligned bounce and mat squash', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
-  assert.match(css, /@keyframes metricMobilityBounce[\s\S]*var\(--mobility-bounce-y/);
+  assert.match(css, /@keyframes metricMobilityBounce[\s\S]*translateY\(-30px\)/);
   assert.match(css, /metricMobilityMatSquash/);
   assert.match(css, /\.metric-mobility-jumper-anchor/);
   assert.match(css, /\.metric-widget--mobility \.metric-mobility-jumper/);

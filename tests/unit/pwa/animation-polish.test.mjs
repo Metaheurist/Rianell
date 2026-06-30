@@ -65,7 +65,8 @@ test('oasis.css: keyframes guarded by prefers-reduced-motion', () => {
     'oasisBreath3',
     'calmGlow',
     'oasisCountFlip',
-    'oasisNeuralDraw',
+    'oasisVeinDrift',
+    'oasisVeinPulse',
     'oasisCharReveal',
     'oasisStreamFly',
     'oasisHoloSweep',
@@ -104,10 +105,12 @@ test('oasis-canvas.js exports OasisCanvas API', () => {
   assert.match(css, /#aiTab[\s\S]*position: relative/);
 });
 
-test('oasis.css neural trace uses slower reversed dash animation', () => {
+test('oasis.css neural trace uses slow pulsing vein animations', () => {
   const css = readFileSync('apps/pwa-webapp/css/oasis.css', 'utf8');
   assert.match(css, /--oasis-neural-dur:\s*9s/);
-  assert.match(css, /stroke-dashoffset:\s*-800[\s\S]*stroke-dashoffset:\s*800/);
+  assert.match(css, /\.oasis-neural-vein--main[\s\S]*oasisVeinDrift/);
+  assert.match(css, /\.oasis-neural-vein[\s\S]*oasisVeinPulse/);
+  assert.doesNotMatch(css, /stroke-dashoffset:\s*-800/);
 });
 
 test('index.html nav symbols are polished multi-path icons', () => {
