@@ -115,42 +115,46 @@
           '<circle class="metric-pain-core" cx="32" cy="36" r="9" fill="currentColor" opacity="0.35"/></svg>';
       case 'mobility':
         return '<svg class="metric-svg metric-svg--mobility" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
-          '<ellipse class="metric-mobility-shadow" cx="36" cy="83" rx="12" ry="2.8" fill="currentColor" opacity="0.28"/>' +
+          '<ellipse class="metric-mobility-shadow" cx="36" cy="84" rx="14" ry="3" fill="currentColor" opacity="0.22"/>' +
           '<g class="metric-mobility-trampoline" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
-          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="17" y1="74" x2="11" y2="86" stroke-width="2.4"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="55" y1="74" x2="61" y2="86" stroke-width="2.4"/>' +
-          '<line class="metric-mobility-rim" x1="13" y1="74" x2="59" y2="74" stroke-width="2.6"/>' +
-          '<path class="metric-mobility-mat" d="M13 74 Q36 80.5 59 74" stroke-width="2.8"/>' +
-          '<path class="metric-mobility-spring metric-mobility-spring--L" d="M20 74 v4 M24 74 v4 M28 74 v4" stroke-width="1.4" opacity="0.55"/>' +
-          '<path class="metric-mobility-spring metric-mobility-spring--R" d="M44 74 v4 M48 74 v4 M52 74 v4" stroke-width="1.4" opacity="0.55"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="16" y1="72" x2="10" y2="86" stroke-width="2.5"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="56" y1="72" x2="62" y2="86" stroke-width="2.5"/>' +
+          '<line class="metric-mobility-rim" x1="12" y1="72" x2="60" y2="72" stroke-width="2.8"/>' +
+          '<path class="metric-mobility-mat" d="M12 72 Q36 79 60 72" stroke-width="3"/>' +
+          '<path class="metric-mobility-spring metric-mobility-spring--L" d="M18 72 v5 M22 72 v5 M26 72 v5" stroke-width="1.5" opacity="0.5"/>' +
+          '<path class="metric-mobility-spring metric-mobility-spring--R" d="M46 72 v5 M50 72 v5 M54 72 v5" stroke-width="1.5" opacity="0.5"/>' +
           '</g>' +
-          '<g class="metric-mobility-jumper" transform="translate(36 68)">' +
-          '<circle class="metric-mobility-head" cx="0" cy="-20" r="4.5" fill="currentColor"/>' +
-          '<path class="metric-mobility-torso" d="M0 -15 v13" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 -13 L-8 -7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 -13 L8 -7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 -2 L-5 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 -2 L5 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
-          '</g></svg>';
+          '<g class="metric-mobility-jumper-anchor" transform="translate(36 66)">' +
+          '<g class="metric-mobility-jumper">' +
+          '<circle class="metric-mobility-head" cx="0" cy="-22" r="5" fill="currentColor"/>' +
+          '<path class="metric-mobility-torso" d="M0 -17 v14" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 -15 L-9 -8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 -15 L9 -8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 -3 L-6 2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 -3 L6 2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
+          '</g></g></svg>';
       case 'swelling':
-        return '<svg class="metric-svg metric-svg--swelling" viewBox="0 0 72 84" focusable="false" aria-hidden="true">' +
+        return '<svg class="metric-svg metric-svg--swelling" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
           '<defs>' +
-          '<radialGradient id="metricKneeSwellGrad" cx="0.5" cy="0.42" r="0.58">' +
+          '<radialGradient id="metricKneeSwellGrad" cx="0.5" cy="0.45" r="0.55">' +
           '<stop offset="0%" class="metric-knee-swell-grad-core"/>' +
-          '<stop offset="68%" class="metric-knee-swell-grad-mid"/>' +
+          '<stop offset="65%" class="metric-knee-swell-grad-mid"/>' +
           '<stop offset="100%" class="metric-knee-swell-grad-edge"/>' +
           '</radialGradient>' +
           '</defs>' +
-          '<g class="metric-knee-swell-group" transform="translate(36 46)">' +
+          '<g class="metric-knee-swell-anchor" transform="translate(36 50)">' +
+          '<ellipse class="metric-knee-ripple metric-knee-ripple--2" cx="0" cy="0" rx="9" ry="11" fill="none" stroke="currentColor" stroke-width="1.3"/>' +
+          '<ellipse class="metric-knee-ripple metric-knee-ripple--1" cx="0" cy="0" rx="6.5" ry="8" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
+          '<g class="metric-knee-swell-pulse">' +
           '<ellipse class="metric-knee-swell-fluid" cx="0" cy="0" rx="5" ry="6" fill="url(#metricKneeSwellGrad)"/>' +
-          '<ellipse class="metric-knee-swell-shine" cx="-1.5" cy="-2" rx="2" ry="2.5" fill="rgba(255,255,255,0.28)"/>' +
-          '</g>' +
+          '<ellipse class="metric-knee-swell-shine" cx="-1.5" cy="-2" rx="2.2" ry="2.8" fill="rgba(255,255,255,0.32)"/>' +
+          '</g></g>' +
           '<g class="metric-knee-bones" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' +
-          '<path class="metric-knee-femur" d="M34 8 v5 M32 13 C28 19 27 31 30 42" stroke-width="4.2"/>' +
-          '<path class="metric-knee-tibia" d="M32 44 Q33 46 36 70" stroke-width="3.6"/>' +
-          '<path class="metric-knee-fibula" d="M37 46 L39 68" stroke-width="2" opacity="0.78"/>' +
+          '<path class="metric-knee-femur" d="M33 6 v6 M31 12 C27 20 26 32 29 44" stroke-width="4.5"/>' +
+          '<path class="metric-knee-tibia" d="M31 46 Q32 48 35 72" stroke-width="3.8"/>' +
+          '<path class="metric-knee-fibula" d="M36 47 L38 70" stroke-width="2.2" opacity="0.8"/>' +
           '</g>' +
-          '<ellipse class="metric-knee-patella" cx="38" cy="42" rx="5" ry="6.5" stroke="currentColor" stroke-width="1.5"/></svg>';
+          '<ellipse class="metric-knee-patella" cx="37" cy="44" rx="5" ry="6.5" stroke="currentColor" stroke-width="1.6"/></svg>';
       case 'fatigue':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<rect class="metric-battery-cap" x="28" y="14" width="8" height="4" rx="1" fill="rgba(255,255,255,0.35)"/>' +
@@ -325,19 +329,20 @@
     if (shine) shine.style.opacity = r > 0.15 ? String(0.12 + r * 0.38) : '0.1';
     var patella = visual.querySelector('.metric-knee-patella');
     if (patella) {
-      patella.setAttribute('cx', (37.5 + r * 1.6).toFixed(1));
-      patella.setAttribute('cy', (42 + r * 1.1).toFixed(1));
-      patella.setAttribute('rx', (4.6 + r * 2.2).toFixed(1));
-      patella.setAttribute('ry', (6 + r * 2.6).toFixed(1));
+      patella.setAttribute('cx', (36.5 + r * 1.8).toFixed(1));
+      patella.setAttribute('cy', (44 + r * 1.2).toFixed(1));
+      patella.setAttribute('rx', (4.8 + r * 2.4).toFixed(1));
+      patella.setAttribute('ry', (6.2 + r * 2.8).toFixed(1));
     }
     var tibia = visual.querySelector('.metric-knee-tibia');
     if (tibia) {
-      tibia.setAttribute('transform', 'rotate(' + (r * 4.2).toFixed(1) + ' 32 44)');
+      tibia.setAttribute('transform', 'rotate(' + (r * 5).toFixed(1) + ' 31 46)');
     }
     var level = r < 0.28 ? 'low' : r < 0.62 ? 'mid' : 'high';
     widget.setAttribute('data-swelling-level', level);
-    widget.style.setProperty('--metric-knee-pulse-dur', (2.05 - r * 0.95).toFixed(2) + 's');
-    widget.style.setProperty('--metric-knee-glow-strength', (r * 0.52).toFixed(2));
+    widget.style.setProperty('--metric-knee-pulse-dur', (2.1 - r * 1.05).toFixed(2) + 's');
+    widget.style.setProperty('--metric-knee-glow-strength', (0.12 + r * 0.68).toFixed(2));
+    widget.style.setProperty('--metric-knee-fluid-scale', (1 + r * 0.22).toFixed(2));
   }
 
   function lerp(a, b, t) {
@@ -613,6 +618,8 @@
       container.insertBefore(label, container.firstChild);
     }
     container.appendChild(body);
+
+    refreshSlider(slider);
 
     slider.addEventListener('focus', function () {
       container.classList.add('metric-widget--focused');
