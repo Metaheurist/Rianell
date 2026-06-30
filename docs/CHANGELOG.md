@@ -2,15 +2,20 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.6** - Design token contract, RN screen primitives, transform-only progress motion, CI design-token guard.
+**Latest: v2.1.6** - Design token contract, RN screen primitives, transform-only progress motion, CI design-token guard, Mood Control Deck, log metric polish, benchmark reliability.
 
 ### v2.1.6 - 2026-06-30 - Design token contract and motion guardrails
 
+- **Mood tab (PWA):** Mood Control Deck — unified 3D glass panel with daypart orbs, aurora backdrop, parallax tilt, and 3D quick-action tiles (Mood tab only; Home check-in unchanged).
+- **Log metrics (PWA):** Swelling balloon pin anchor; irritability thought cloud; mobility trampoline bounce; weather sun/cloud crossfade.
+- **Cycle tracking (PWA):** Unified 45-day timeline with period-start anchor; cycle beacon decoration cleanup.
+- **Goals carousel (PWA):** Refined animated target/medal dot SVG icons.
+- **Device benchmark (PWA):** Async sliced CPU suite with stall/hard-cap timeouts (v8).
 - **Tokens:** `SPACING_TOKENS` / `SURFACE_TOKENS` in `@rianell/tokens`; `docs/design-token-contract.md` (runtime authority); PWA sync via `npm run sync:tokens`.
 - **RN:** `ScreenCard`, `ScreenContainer`, `RangeChip`, `themeHelpers.ts`; `resolveScreenBackground()` on Home, Logs, AI, Charts, LogWizard.
 - **PWA motion:** Progress bars and tab indicator use `scaleX`/`translateX` (not `width`); `setProgressScale()` helper in `app.js`.
 - **CI:** `npm run verify:design-tokens` in unit-tests job; Cursor guardrails (`.cursor/rules/`, skills).
-- **Tests:** `tokens.test.mjs`, `verify-design-tokens.test.mjs`.
+- **Tests:** `tokens.test.mjs`, `verify-design-tokens.test.mjs`, `mood-tab-ui`, `log-metric-widgets`, `pwa-goals-carousel`, `perf-benchmark-modal`, `ai-engine-parity`.
 - **npm:** Workspace roots at **2.1.6**.
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.6]`.
 

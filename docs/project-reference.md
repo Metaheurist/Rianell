@@ -4,14 +4,19 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
-### v2.1.6 documentation sync (design token contract, RN primitives, motion guardrails)
+### v2.1.6 documentation sync (design token contract, RN primitives, motion guardrails, Mood Control Deck)
 
 - **Contract:** `docs/design-token-contract.md` — `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only.
+- **Mood tab (PWA):** Mood Control Deck in `modules/mood-tab.js` + scoped `.mood-control-deck` CSS; Home check-in card unchanged.
+- **Log metrics (PWA):** Swelling balloon, irritability, mobility trampoline, weather widgets in `log-metric-widgets.js` + `styles.css`.
+- **Cycle tracking (PWA):** 45-day timeline in `cycle-tracking-ui.js`; beacon cleanup in `graphics-portfolio.js`.
+- **Goals carousel (PWA):** Animated dot SVG icons in `goals-carousel.js`.
+- **Device benchmark (PWA):** Async sliced suite + timeouts in `device-benchmark.js` (v8).
 - **Tokens:** `SPACING_TOKENS`, `SURFACE_TOKENS` in `packages/tokens/src/index.mjs`; synced via `scripts/build/sync-tokens-to-pwa.mjs`.
 - **RN:** `apps/rn-app/src/components/ScreenCard.tsx`, `ScreenContainer.tsx`, `RangeChip.tsx`, `themeHelpers.ts`; tab screens use `resolveScreenBackground()`.
 - **PWA motion:** `setProgressScale()` in `app.js`; progress fills in `styles.css` use `transform: scaleX(var(--progress))`; tab indicator uses `translateX` + `scaleX`.
 - **Verify:** `scripts/verify/verify-design-tokens.mjs` + `npm run verify:design-tokens` (CI unit-tests job).
-- **Tests:** `tests/unit/tokens.test.mjs`, `tests/unit/verify-design-tokens.test.mjs`.
+- **Tests:** `mood-tab-ui`, `log-metric-widgets`, `pwa-goals-carousel`, `perf-benchmark-modal`, `ai-engine-parity`, `tokens`, `verify-design-tokens`.
 - **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.6]`; wiki [[Release-Notes]] § v2.1.6.
 
 ### v2.1.5 documentation sync (log metrics, onboarding, companion polish)

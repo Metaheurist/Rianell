@@ -14,6 +14,7 @@ Six-guardrail technical audit remediation: canonical tokens, RN screen primitive
 
 ### Added
 
+- **Mood Control Deck (PWA Mood tab)** — unified 3D glass panel replacing separate check-in slider and quick-action buttons; daypart orbs with depth, aurora backdrop, parallax tilt, and 3D action tiles (`mood-tab.js`, scoped `.mood-control-deck` CSS). Home check-in card unchanged.
 - **`docs/design-token-contract.md`** — `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only (getdesign Airbnb crawl)
 - **`SPACING_TOKENS` / `SURFACE_TOKENS`** in `@rianell/tokens`; synced to PWA via `npm run sync:tokens`
 - **RN primitives:** `ScreenCard`, `ScreenContainer`, `RangeChip`, `themeHelpers.ts`
@@ -22,6 +23,10 @@ Six-guardrail technical audit remediation: canonical tokens, RN screen primitive
 
 ### Changed
 
+- **PWA log metrics:** Pin-anchored swelling balloon with face/glow tiers; irritability chill-face + thought cloud; mobility trampoline bounce phases; weather sun/cloud crossfade tied to wellness score (`log-metric-widgets.js`, scoped CSS).
+- **PWA cycle tracking:** Unified 45-day timeline with period-start anchor and drag threshold on day beacons (`cycle-tracking-ui.js`); stale selection rings removed in `decorateCycleBeacon`.
+- **PWA goals carousel:** Refined target/medal dot SVG icons with fill animations and viewport height sync.
+- **PWA device benchmark:** Async sliced CPU suite, stall/hard-cap timeouts, and non-blocking string ops so boot benchmark cannot hang the main thread (`device-benchmark.js` v8).
 - **PWA progress bars** — `scaleX(var(--progress))` instead of animating `width` (wizard, goals, achievements, import, AI download, password strength)
 - **Tab nav indicator** — `translateX` + `scaleX` (no width transition)
 - **RN screens** — `resolveScreenBackground()` + `ScreenCard` on Home, Logs, AI, Charts, LogWizard; tab bar background via theme helper
@@ -31,6 +36,11 @@ Six-guardrail technical audit remediation: canonical tokens, RN screen primitive
 
 - `tests/unit/tokens.test.mjs` — spacing/surface/`resolveScreenBackground`
 - `tests/unit/verify-design-tokens.test.mjs` — guard script + progress CSS contracts
+- `tests/unit/pwa/mood-tab-ui.test.mjs` — Mood Control Deck markup/CSS contracts
+- `tests/unit/pwa/log-metric-widgets.test.mjs` — swelling balloon, irritability, mobility, weather widgets
+- `tests/unit/pwa-goals-carousel.test.mjs` — goals dot SVG + cycle timeline contracts
+- `tests/unit/pwa/perf-benchmark-modal.test.mjs` — benchmark slice/timeout guards
+- `tests/unit/ai-engine-parity.test.mjs` — rolling date fixtures for 30-day filter
 
 ---
 

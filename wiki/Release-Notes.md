@@ -7,6 +7,10 @@
 ### Highlights
 
 - **Design token contract:** `@rianell/tokens` is the single runtime authority; spacing/surface/radius synced to PWA CSS.
+- **Mood Control Deck:** Unified 3D glass panel on the Mood tab — daypart orbs, aurora backdrop, parallax tilt, and quick-action tiles (Home check-in unchanged).
+- **Log metric polish:** Swelling balloon, irritability thought cloud, mobility trampoline, weather sun/cloud widgets.
+- **Cycle timeline:** 45-day unified cycle view with period-start anchor.
+- **Benchmark reliability:** Async sliced CPU suite with stall/hard-cap timeouts so boot benchmark cannot hang.
 - **RN screen cards:** Shared `ScreenCard` primitive replaces duplicated dark-glass scaffolds across main tabs.
 - **Motion compliance:** Progress bars and tab indicator use GPU-friendly `transform` (not `width` animation).
 - **CI guard:** `npm run verify:design-tokens` blocks regressions in critical PWA/RN UI files.

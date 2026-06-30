@@ -125,6 +125,7 @@ Rianell uses gentle, GPU-friendly motion to make logging feel calmer — especia
 | Effect | Where | Respects reduced motion? |
 |--------|-------|--------------------------|
 | Ambient blobs | Home, Logs, Charts, Mood, AI tabs (web) | Yes — hidden on low-tier devices and when reduced motion is on |
+| Mood Control Deck | Mood tab check-in + quick actions (web) | Parallax/aurora disabled when reduced motion is on |
 | Calm-glow metrics | Improving vitals/metrics (web) | Static glow remains in brain-fog mode; pulse disabled |
 | Neural trace | AI tab (web + mobile) | Hidden when reduced motion is on |
 | Milestone confetti | After achievements / milestones (web) | Skipped when reduced motion or brain fog |
