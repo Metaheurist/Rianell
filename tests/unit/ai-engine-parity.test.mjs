@@ -12,14 +12,21 @@ import {
   exportAnalysisJsonForResearch,
 } from '@rianell/ai-engine';
 
+function daysAgo(n) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 const FIXTURE_LOGS = [
-  { date: '2026-06-01', mood: 4, sleep: 3, fatigue: 8, flare: 'Yes', stressors: ['Work'] },
-  { date: '2026-06-02', mood: 5, sleep: 4, fatigue: 7, flare: 'No', stressors: ['Work'] },
-  { date: '2026-06-03', mood: 6, sleep: 5, fatigue: 6, flare: 'No' },
-  { date: '2026-06-04', mood: 3, sleep: 3, fatigue: 9, flare: 'Yes', stressors: ['Work'] },
-  { date: '2026-06-05', mood: 7, sleep: 6, fatigue: 5, flare: 'No' },
-  { date: '2026-06-06', mood: 6, sleep: 5, fatigue: 6, flare: 'No' },
-  { date: '2026-06-07', mood: 5, sleep: 4, fatigue: 7, flare: 'No' },
+  { date: daysAgo(6), mood: 4, sleep: 3, fatigue: 8, flare: 'Yes', stressors: ['Work'] },
+  { date: daysAgo(5), mood: 5, sleep: 4, fatigue: 7, flare: 'No', stressors: ['Work'] },
+  { date: daysAgo(4), mood: 6, sleep: 5, fatigue: 6, flare: 'No' },
+  { date: daysAgo(3), mood: 3, sleep: 3, fatigue: 9, flare: 'Yes', stressors: ['Work'] },
+  { date: daysAgo(2), mood: 7, sleep: 6, fatigue: 5, flare: 'No' },
+  { date: daysAgo(1), mood: 6, sleep: 5, fatigue: 6, flare: 'No' },
+  { date: daysAgo(0), mood: 5, sleep: 4, fatigue: 7, flare: 'No' },
 ];
 
 test('analyzeHealthMetrics returns summary for logs', () => {
