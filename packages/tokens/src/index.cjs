@@ -143,6 +143,65 @@ const TEAM_TOKENS = {
   },
 };
 
+/** Canonical Rianell spacing scale (4px base). Synced to PWA via npm run sync:tokens. */
+const SPACING_TOKENS = {
+  xxs: 2,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  base: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+  section: 64,
+};
+
+/** Surface fills — dark/light pairs for cards, glass, modals. */
+const SURFACE_TOKENS = {
+  dark: {
+    card: 'rgba(0,0,0,0.18)',
+    cardSolid: 'rgba(22,24,26,0.88)',
+    glass: 'rgba(255,255,255,0.08)',
+    borderMuted: 'rgba(255,255,255,0.12)',
+    modalBackdrop: 'rgba(0,0,0,0.5)',
+  },
+  light: {
+    card: 'rgba(255,255,255,0.95)',
+    cardSolid: '#ffffff',
+    glass: 'rgba(255,255,255,0.6)',
+    borderMuted: 'rgba(0,0,0,0.08)',
+    modalBackdrop: 'rgba(0,0,0,0.45)',
+  },
+};
+
+const ON_ACCENT = '#041008';
+
+const SEMANTIC_COLORS = {
+  success: '#4caf50',
+  danger: '#f44336',
+  warning: '#ff9800',
+  info: '#2196f3',
+  aiAccent: '#e91e63',
+  statusImproving: '#4caf50',
+  statusStable: '#2196f3',
+  statusDeclining: '#f44336',
+  onAccent: ON_ACCENT,
+};
+
+function isLightGradientBackground(background) {
+  return typeof background === 'string' && background.trim().startsWith('linear-gradient');
+}
+
+function resolveScreenBackground(color, mode = 'dark') {
+  const bg = color && color.background ? color.background : '#070807';
+  if (isLightGradientBackground(bg) && mode === 'light') return '#ffffff';
+  return bg;
+}
+
+function resolveSurfaceTokens(mode = 'dark') {
+  return mode === 'light' ? SURFACE_TOKENS.light : SURFACE_TOKENS.dark;
+}
+
 function applyColorblindOverride(tokens, colorblindMode) {
   if (!colorblindMode || colorblindMode === 'none') return tokens;
   const out = JSON.parse(JSON.stringify(tokens));
@@ -179,13 +238,43 @@ function applyColorblindOverride(tokens, colorblindMode) {
   return out;
 }
 
+function withSemanticColors(tokens, mode) {
+  return {
+    ...tokens,
+    color: {
+      ...tokens.color,
+      ...SEMANTIC_COLORS,
+    },
+    spacing: { ...SPACING_TOKENS },
+    surface: resolveSurfaceTokens(mode),
+    motion: {
+      easeSpring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      easeOutExpo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      durInstant: 100,
+      durFast: 180,
+      durNormal: 280,
+      durSlow: 450,
+    },
+    radius: { sm: 8, md: 12, lg: 16, xl: 24, full: 999 },
+  };
+}
+
 function getTokens(opts) {
   const team = opts && typeof opts.team === 'string' ? opts.team : 'mint';
   const mode = opts && (opts.mode === 'light' || opts.mode === 'dark') ? opts.mode : 'dark';
   const colorblindMode = opts && typeof opts.colorblindMode === 'string' ? opts.colorblindMode : 'none';
   const t = TEAM_TOKENS[team] ? team : 'mint';
   const base = TEAM_TOKENS[t][mode];
-  return applyColorblindOverride(base, colorblindMode);
+  return applyColorblindOverride(withSemanticColors(base, mode), colorblindMode);
 }
 
-module.exports = { getTeamIds, getTokens };
+module.exports = {
+  getTeamIds,
+  getTokens,
+  SPACING_TOKENS,
+  SURFACE_TOKENS,
+  ON_ACCENT,
+  isLightGradientBackground,
+  resolveScreenBackground,
+  resolveSurfaceTokens,
+};

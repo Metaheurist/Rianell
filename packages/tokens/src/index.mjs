@@ -2,6 +2,40 @@ export function getTeamIds() {
   return ['mint', 'red-black', 'mono', 'rainbow'];
 }
 
+/** Canonical Rianell spacing scale (4px base). Synced to PWA via npm run sync:tokens. */
+export const SPACING_TOKENS = {
+  xxs: 2,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  base: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+  section: 64,
+};
+
+/** Surface fills — dark/light pairs for cards, glass, modals. */
+export const SURFACE_TOKENS = {
+  dark: {
+    card: 'rgba(0,0,0,0.18)',
+    cardSolid: 'rgba(22,24,26,0.88)',
+    glass: 'rgba(255,255,255,0.08)',
+    borderMuted: 'rgba(255,255,255,0.12)',
+    modalBackdrop: 'rgba(0,0,0,0.5)',
+  },
+  light: {
+    card: 'rgba(255,255,255,0.95)',
+    cardSolid: '#ffffff',
+    glass: 'rgba(255,255,255,0.6)',
+    borderMuted: 'rgba(0,0,0,0.08)',
+    modalBackdrop: 'rgba(0,0,0,0.45)',
+  },
+};
+
+/** Text on primary/accent fills (mint team default). */
+export const ON_ACCENT = '#041008';
+
 /** Semantic UI colors — mirror apps/pwa-webapp/styles.css :root tokens. */
 const SEMANTIC_COLORS = {
   success: '#4caf50',
@@ -12,7 +46,25 @@ const SEMANTIC_COLORS = {
   statusImproving: '#4caf50',
   statusStable: '#2196f3',
   statusDeclining: '#f44336',
+  onAccent: ON_ACCENT,
 };
+
+/** True when background is a CSS gradient string (light team themes). */
+export function isLightGradientBackground(background) {
+  return typeof background === 'string' && background.trim().startsWith('linear-gradient');
+}
+
+/** Screen root background: flatten light gradients to white for RN SafeAreaView. */
+export function resolveScreenBackground(color, mode = 'dark') {
+  const bg = color && color.background ? color.background : '#070807';
+  if (isLightGradientBackground(bg) && mode === 'light') return '#ffffff';
+  return bg;
+}
+
+/** Pick dark or light surface token set. */
+export function resolveSurfaceTokens(mode = 'dark') {
+  return mode === 'light' ? SURFACE_TOKENS.light : SURFACE_TOKENS.dark;
+}
 
 /** Boot / loading overlay palette — keep web index.html critical CSS in sync (search: @rianell/loader-tokens). */
 /** Recovery overlay/button layout — keep web index.html + styles.css in sync (search: @rianell/recovery-tokens). */
@@ -322,13 +374,15 @@ function applyColorblindOverride(tokens, colorblindMode) {
   return t;
 }
 
-function withSemanticColors(tokens) {
+function withSemanticColors(tokens, mode) {
   return {
     ...tokens,
     color: {
       ...tokens.color,
       ...SEMANTIC_COLORS,
     },
+    spacing: { ...SPACING_TOKENS },
+    surface: resolveSurfaceTokens(mode),
     motion: {
       easeSpring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
       easeOutExpo: 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -344,5 +398,5 @@ function withSemanticColors(tokens) {
 export function getTokens({ team, mode, colorblindMode } = {}) {
   const t = TEAM_TOKENS[team] ? team : 'mint';
   const m = mode === 'light' || mode === 'dark' ? mode : 'dark';
-  return applyColorblindOverride(withSemanticColors(TEAM_TOKENS[t][m]), colorblindMode);
+  return applyColorblindOverride(withSemanticColors(TEAM_TOKENS[t][m], m), colorblindMode);
 }
