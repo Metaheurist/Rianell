@@ -12,7 +12,10 @@
   var CACHE_KEY = 'rianellPerfBenchmark';
   var BENCHMARK_VERSION = 5;
   var MAX_TIER = 5;
-  var DEFAULT_TOTAL_CAP_MS = 1200;
+  var DEFAULT_TOTAL_CAP_MS = 12000;
+  var SUITE_STALL_MS = 12000;
+  var SUITE_HARD_CAP_MS = 45000;
+  var BENCHMARK_SLICE_MS = 8;
 
   function nowMs() {
     return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -235,8 +238,9 @@
   }
 
   function stringOps(size) {
-    var s = '';
-    for (var i = 0; i < size; i++) s += String.fromCharCode(97 + (i % 26));
+    var parts = new Array(size);
+    for (var i = 0; i < size; i++) parts[i] = String.fromCharCode(97 + (i % 26));
+    var s = parts.join('');
     var m = s.match(/abc/g);
     return (m && m.length) ? m.length : 0;
   }
@@ -779,37 +783,120 @@
     var startAll = nowMs();
     var platformType = getPlatformType();
     var env = getEnvSnapshot(platformType);
+    var suiteAborted = false;
+    var finishCalled = false;
+    var lastStepIndex = -1;
+    var stallTimer = null;
+    var hardCapTimer = null;
 
-    // Quick CPU estimate to pick suite workloads (single pass - no 1.4M retry on fast PCs).
+    function scheduleBenchmarkStep(fn) {
+      if (suiteAborted) return;
+      if (typeof requestAnimationFrame === 'function' &&
+          typeof document !== 'undefined' &&
+          document.visibilityState !== 'hidden') {
+        requestAnimationFrame(function () { setTimeout(fn, 0); });
+      } else {
+        setTimeout(fn, (typeof document !== 'undefined' && document.visibilityState === 'hidden') ? 32 : 0);
+      }
+    }
+
+    function runWorkInSlices(tickFn, isDone, done) {
+      if (suiteAborted) return;
+      var sliceStart = nowMs();
+      while (!isDone()) {
+        tickFn();
+        if (nowMs() - sliceStart >= BENCHMARK_SLICE_MS) {
+          touchStepWatchdog();
+          scheduleBenchmarkStep(function () { runWorkInSlices(tickFn, isDone, done); });
+          return;
+        }
+      }
+      done();
+    }
+
+    function cpuArithAsync(iterations, done) {
+      var total = 0;
+      var i = 0;
+      var batch = 50000;
+      runWorkInSlices(
+        function () {
+          var limit = Math.min(i + batch, iterations);
+          for (; i < limit; i++) {
+            total = (total + ((i * 31 + 17) % 97)) | 0;
+          }
+        },
+        function () { return i >= iterations; },
+        function () { done(total); }
+      );
+    }
+
+    function arrayThroughputAsync(size, done) {
+      var arr = new Array(size);
+      var i = 0;
+      var j = 0;
+      var phase = 'fill';
+      var s = 0;
+      var batch = 50000;
+      runWorkInSlices(
+        function () {
+          if (phase === 'fill') {
+            var fillLimit = Math.min(i + batch, size);
+            for (; i < fillLimit; i++) arr[i] = (i * 13) & 255;
+            if (i >= size) phase = 'scan';
+          } else {
+            var scanLimit = Math.min(j + batch, size);
+            for (; j < scanLimit; j++) {
+              var v = arr[j];
+              if ((v & 3) === 0) s += v;
+            }
+          }
+        },
+        function () { return phase === 'scan' && j >= size; },
+        function () { done(s); }
+      );
+    }
+
+    function touchStepWatchdog() {
+      lastStepIndex = index;
+      if (stallTimer) clearTimeout(stallTimer);
+      stallTimer = setTimeout(function () {
+        if (suiteAborted || finishCalled) return;
+        if (index === lastStepIndex) {
+          if (typeof console !== 'undefined' && console.warn) {
+            console.warn('[Benchmark] suite stalled at step', index, '- finishing with available samples');
+          }
+          finish(true);
+        }
+      }, SUITE_STALL_MS);
+    }
+
+    hardCapTimer = setTimeout(function () {
+      if (finishCalled) return;
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[Benchmark] suite hard cap reached - finishing with available samples');
+      }
+      finish(true);
+    }, SUITE_HARD_CAP_MS);
+
     var estimateIters = 280000;
-    var est0 = nowMs();
-    cpuArith(estimateIters);
-    var estMs = nowMs() - est0;
-    var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
-    var provisionalTier = msPer200kToTier(estMsPer200k);
-    var workloads = computeSuiteWorkloads(provisionalTier);
-
-    var baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
-    var repeats = baseRepeats;
-
-    // Borderline tiers: add more repeats for stability.
-    var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
-    var near = thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08);
-    if (near) repeats = Math.min(baseRepeats + 2, 9);
-
-    var jsonPayload = makeJsonPayload(workloads.jsonSize);
+    var workloads = null;
+    var baseRepeats = 5;
+    var repeats = 5;
+    var jsonPayload = null;
 
     var subtests = [];
     var cpuMsPer200kSamples = [];
     var cpuMsSamples = [];
     var index = 0;
-    var totalSteps = (repeats * 5) + repeats; // 6 steps per repeat: cpu, array, json, string, dom, rAF
+    var totalSteps = 30;
+    var provisionalTier = 3;
 
     function pct() {
       return Math.max(0, Math.min(100, Math.floor((index / Math.max(1, totalSteps)) * 100)));
     }
 
     function progress(phase, testId, enFallback) {
+      touchStepWatchdog();
       var currentLabel = testId ? resolveBenchmarkLabel(testId, enFallback || '') : (enFallback || '');
       var percent = pct();
       if (typeof console !== 'undefined' && console.log) {
@@ -820,94 +907,131 @@
       }
     }
 
-    if (typeof console !== 'undefined' && console.log) {
-      console.log('[Benchmark] start', 'platformType', platformType, 'repeats', repeats, 'totalSteps', totalSteps, 'workloads', workloads);
+    function runTimedTestAsync(testId, label, runAsync, unit, metaFn, onResult) {
+      var t0 = nowMs();
+      runAsync(function (out) {
+        if (suiteAborted) return;
+        var res = { id: testId, label: label, ms: nowMs() - t0, unit: unit, out: out };
+        if (metaFn) metaFn(res);
+        onResult(res);
+      });
     }
 
     function runRepeat(rep) {
+      if (suiteAborted || finishCalled) return;
       if ((nowMs() - startAll) > totalCapMs) {
-        finish();
+        finish(false);
         return;
       }
       progress('running', 'cpu', 'CPU arithmetic');
-      var cpuRes = runTestSync('cpu', resolveBenchmarkLabel('cpu', 'CPU arithmetic'), function () { return cpuArith(workloads.cpuIterations); }, 'iters', function () {});
-      cpuRes.iterations = workloads.cpuIterations;
-      cpuRes.msPer200k = msPer200kFromRun(workloads.cpuIterations, cpuRes.ms);
-      cpuMsPer200kSamples.push(cpuRes.msPer200k);
-      cpuMsSamples.push(cpuRes.ms);
-      subtests.push({ repeat: rep, id: cpuRes.id, label: cpuRes.label, ms: cpuRes.ms, iterations: cpuRes.iterations, msPer200k: cpuRes.msPer200k });
-      index++;
-      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'CPU arithmetic', 'repeat', rep + 1, 'ms', cpuRes.ms, 'msPer200k', cpuRes.msPer200k);
-
-      setTimeout(function () {
-        progress('running', 'array', 'Array throughput');
-        var arrRes = runTestSync('array', resolveBenchmarkLabel('array', 'Array throughput'), function () { return arrayThroughput(workloads.arraySize); }, 'elems', function () {});
-        arrRes.size = workloads.arraySize;
-        subtests.push({ repeat: rep, id: arrRes.id, label: arrRes.label, ms: arrRes.ms, size: arrRes.size });
+      runTimedTestAsync('cpu', resolveBenchmarkLabel('cpu', 'CPU arithmetic'), function (done) {
+        cpuArithAsync(workloads.cpuIterations, done);
+      }, 'iters', function (res) {
+        res.iterations = workloads.cpuIterations;
+        res.msPer200k = msPer200kFromRun(workloads.cpuIterations, res.ms);
+      }, function (cpuRes) {
+        if (suiteAborted) return;
+        cpuMsPer200kSamples.push(cpuRes.msPer200k);
+        cpuMsSamples.push(cpuRes.ms);
+        subtests.push({ repeat: rep, id: cpuRes.id, label: cpuRes.label, ms: cpuRes.ms, iterations: cpuRes.iterations, msPer200k: cpuRes.msPer200k });
         index++;
-        if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'Array throughput', 'repeat', rep + 1, 'ms', arrRes.ms);
+        touchStepWatchdog();
+        if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'CPU arithmetic', 'repeat', rep + 1, 'ms', cpuRes.ms, 'msPer200k', cpuRes.msPer200k);
 
-        setTimeout(function () {
-          progress('running', 'json', 'JSON parse/stringify');
-          var jsonRes = runTestSync('json', resolveBenchmarkLabel('json', 'JSON parse/stringify'), function () { return jsonParseStringify(jsonPayload); }, 'bytes', function () {});
-          jsonRes.size = workloads.jsonSize;
-          subtests.push({ repeat: rep, id: jsonRes.id, label: jsonRes.label, ms: jsonRes.ms, size: jsonRes.size });
-          index++;
-          if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'JSON parse/stringify', 'repeat', rep + 1, 'ms', jsonRes.ms);
-
-          setTimeout(function () {
-            progress('running', 'string', 'String ops');
-            var strRes = runTestSync('string', resolveBenchmarkLabel('string', 'String ops'), function () { return stringOps(workloads.stringSize); }, 'chars', function () {});
-            strRes.size = workloads.stringSize;
-            subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
+        scheduleBenchmarkStep(function () {
+          progress('running', 'array', 'Array throughput');
+          runTimedTestAsync('array', resolveBenchmarkLabel('array', 'Array throughput'), function (done) {
+            arrayThroughputAsync(workloads.arraySize, done);
+          }, 'elems', function (res) {
+            res.size = workloads.arraySize;
+          }, function (arrRes) {
+            if (suiteAborted) return;
+            subtests.push({ repeat: rep, id: arrRes.id, label: arrRes.label, ms: arrRes.ms, size: arrRes.size });
             index++;
-            if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strRes.ms);
+            touchStepWatchdog();
+            if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'Array throughput', 'repeat', rep + 1, 'ms', arrRes.ms);
 
-            setTimeout(function () {
-              progress('running', 'dom', 'DOM fragment build');
-              var domRes = runTestSync('dom', resolveBenchmarkLabel('dom', 'DOM fragment build'), function () { return domFragmentBuild(workloads.domNodes); }, 'nodes', function () {});
-              domRes.count = workloads.domNodes;
-              subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
+            scheduleBenchmarkStep(function () {
+              progress('running', 'json', 'JSON parse/stringify');
+              var jsonRes = runTestSync('json', resolveBenchmarkLabel('json', 'JSON parse/stringify'), function () { return jsonParseStringify(jsonPayload); }, 'bytes', function () {});
+              jsonRes.size = workloads.jsonSize;
+              subtests.push({ repeat: rep, id: jsonRes.id, label: jsonRes.label, ms: jsonRes.ms, size: jsonRes.size });
               index++;
-              if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domRes.ms);
+              touchStepWatchdog();
+              if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'JSON parse/stringify', 'repeat', rep + 1, 'ms', jsonRes.ms);
 
-              progress('running', 'raf', 'rAF latency');
-              rafLatency(workloads.rafFrames, function (rafRes) {
-                if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
-                subtests.push({ repeat: rep, id: 'raf', label: resolveBenchmarkLabel('raf', 'rAF latency'), ms: rafRes.avgMs, samples: rafRes.samples });
+              scheduleBenchmarkStep(function () {
+                progress('running', 'string', 'String ops');
+                var strRes = runTestSync('string', resolveBenchmarkLabel('string', 'String ops'), function () { return stringOps(workloads.stringSize); }, 'chars', function () {});
+                strRes.size = workloads.stringSize;
+                subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
                 index++;
-                progress('done', null, '');
-                if (rep + 1 >= repeats) finish();
-                else runRepeat(rep + 1);
+                touchStepWatchdog();
+                if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strRes.ms);
+
+                scheduleBenchmarkStep(function () {
+                  progress('running', 'dom', 'DOM fragment build');
+                  var domRes = runTestSync('dom', resolveBenchmarkLabel('dom', 'DOM fragment build'), function () { return domFragmentBuild(workloads.domNodes); }, 'nodes', function () {});
+                  domRes.count = workloads.domNodes;
+                  subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
+                  index++;
+                  touchStepWatchdog();
+                  if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domRes.ms);
+
+                  progress('running', 'raf', 'rAF latency');
+                  rafLatency(workloads.rafFrames, function (rafRes) {
+                    if (suiteAborted) return;
+                    if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
+                    subtests.push({ repeat: rep, id: 'raf', label: resolveBenchmarkLabel('raf', 'rAF latency'), ms: rafRes.avgMs, samples: rafRes.samples });
+                    index++;
+                    touchStepWatchdog();
+                    progress('done', null, '');
+                    if (rep + 1 >= repeats) finish(false);
+                    else scheduleBenchmarkStep(function () { runRepeat(rep + 1); });
+                  });
+                });
               });
-            }, 0);
-          }, 0);
-        }, 0);
-      }, 0);
+            });
+          });
+        });
+      });
     }
 
-    function finish() {
-      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] finish', 'steps', index + '/' + totalSteps);
+    function finish(forced) {
+      if (finishCalled) return;
+      finishCalled = true;
+      suiteAborted = true;
+      if (stallTimer) clearTimeout(stallTimer);
+      if (hardCapTimer) clearTimeout(hardCapTimer);
+      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] finish', 'steps', index + '/' + totalSteps, forced ? '(forced)' : '');
       if (typeof onProgress === 'function') onProgress(100, { phase: 'done' });
 
       var msPer200kMed = median(cpuMsPer200kSamples);
-      var tier = msPer200kToTier(msPer200kMed);
+      var tier = cpuMsPer200kSamples.length > 0 ? msPer200kToTier(msPer200kMed) : getTierFromHeuristic();
       var score = msPer200kMed > 0 ? (1000 / msPer200kMed) : 0;
       if (typeof console !== 'undefined' && console.log) {
         console.log('[Benchmark] result', 'tier', tier, 'score', score, 'msPer200kMed', msPer200kMed, 'cpuSamples', cpuMsPer200kSamples.length);
       }
 
-      // If the result moved across major class boundaries, ensure we have enough repeats (only if we still have budget).
       var classBefore = getLegacyDeviceClass(provisionalTier);
       var classAfter = getLegacyDeviceClass(tier);
-      if (classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
+      if (!forced && classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
         repeats = Math.min(9, repeats + 2);
         totalSteps = (repeats * 5) + repeats;
-        runRepeat(baseRepeats); // add extra repeats
+        suiteAborted = false;
+        finishCalled = false;
+        hardCapTimer = setTimeout(function () {
+          if (finishCalled) return;
+          if (typeof console !== 'undefined' && console.warn) {
+            console.warn('[Benchmark] suite hard cap reached - finishing with available samples');
+          }
+          finish(true);
+        }, Math.max(1000, SUITE_HARD_CAP_MS - (nowMs() - startAll)));
+        touchStepWatchdog();
+        scheduleBenchmarkStep(function () { runRepeat(baseRepeats); });
         return;
       }
 
-      // Summaries per test: median ms and coefficient of variation.
       var perTest = {};
       for (var i = 0; i < subtests.length; i++) {
         var st = subtests[i];
@@ -943,7 +1067,7 @@
           msPer200k: msPer200kMed,
           msPer200kSamples: cpuMsPer200kSamples,
           msSamples: cpuMsSamples,
-          iterations: workloads.cpuIterations
+          iterations: workloads ? workloads.cpuIterations : estimateIters
         },
         repeats: repeats,
         totalMs: nowMs() - startAll,
@@ -953,6 +1077,9 @@
         raw: subtests,
         ts: Date.now()
       };
+      if (forced && cpuMsPer200kSamples.length === 0) {
+        result.heuristic = true;
+      }
       runGpuBenchmarkAsync(function (gpu) {
         result.gpu = gpu;
         if (typeof console !== 'undefined' && console.log) {
@@ -963,9 +1090,30 @@
     }
 
     progress('starting', 'warmup', 'Warmup');
-    setTimeout(function () {
-      runRepeat(0);
-    }, 0);
+    var est0 = nowMs();
+    cpuArithAsync(estimateIters, function () {
+      if (suiteAborted) return;
+      var estMs = nowMs() - est0;
+      var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
+      provisionalTier = msPer200kToTier(estMsPer200k);
+      workloads = computeSuiteWorkloads(provisionalTier);
+      baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
+      repeats = baseRepeats;
+
+      var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
+      var near = thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08);
+      if (near) repeats = Math.min(baseRepeats + 2, 9);
+
+      jsonPayload = makeJsonPayload(workloads.jsonSize);
+      totalSteps = (repeats * 5) + repeats;
+      touchStepWatchdog();
+
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[Benchmark] start', 'platformType', platformType, 'repeats', repeats, 'totalSteps', totalSteps, 'workloads', workloads);
+      }
+
+      scheduleBenchmarkStep(function () { runRepeat(0); });
+    });
   }
 
   function runBenchmarkIfNeeded(onProgress, onComplete) {
