@@ -361,7 +361,7 @@
   <link rel="modulepreload" href="app.js?v=60" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
   <link rel="stylesheet" href="styles.css?v=126" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=126&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
-  <link rel="stylesheet" href="css/oasis.css?v=2">
+  <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=2">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
@@ -1098,8 +1098,8 @@
     <symbol id="icon-save" viewBox="0 0 24 24"><path d="M5 4h12l2 2v14H5Z"/><path d="M8 4v6h8V4"/><path d="M8 20v-6h8v6"/></symbol>
     <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m6 7 1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></symbol>
     <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="3"/></symbol>
-    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
-    <symbol id="icon-lock-open" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 7-2.65"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-lock-open" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M8 11V8a4 4 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m4 17-.7 3.7L7 20l11-11-3-3Z"/><path d="m14 6 3 3"/></symbol>
     <symbol id="icon-food" viewBox="0 0 24 24"><path d="M7 3v8M10 3v8M4 3v8a3 3 0 0 0 6 0"/><path d="M7 14v7"/><path d="M17 3c2 1.6 3 3.6 3 6 0 2.2-1.2 4-3 4V3Z"/><path d="M17 13v8"/></symbol>
     <symbol id="icon-notice" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19Z"/><path d="M12 9v5M12 17h.01"/></symbol>
@@ -2279,25 +2279,35 @@
   <div class="app-shell" id="appShell">
     <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
       <symbol id="rianell-nav-home" viewBox="0 0 24 24">
-        <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path class="nav-icon-home-roof" d="M4.25 10.75 12 4.25l7.75 6.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="nav-icon-home-body" d="M5.5 10.25V19a1 1 0 0 0 1 1h3.75v-6h3.5v6H17.5a1 1 0 0 0 1-1v-8.75" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="nav-icon-home-door" d="M11.25 17v-3.25h1.5V17" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
       </symbol>
       <symbol id="rianell-nav-logs" viewBox="0 0 24 24">
-        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="2"/>
-        <path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <rect class="nav-icon-logs-board" x="7.25" y="5.25" width="9.5" height="14.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/>
+        <path class="nav-icon-logs-clip" d="M9.25 5.25h5.5a1.25 1.25 0 0 1 1.25 1.25V7.5a1.75 1.75 0 0 1-1.75 1.75h-4.5A1.75 1.75 0 0 1 8 7.5V6.5a1.25 1.25 0 0 1 1.25-1.25Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        <path class="nav-icon-logs-line nav-icon-logs-line--1" d="M9.5 12.25h5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-logs-line nav-icon-logs-line--2" d="M9.5 16h5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <circle class="nav-icon-logs-dot" cx="12" cy="9.1" r="0.75" fill="currentColor"/>
       </symbol>
       <symbol id="rianell-nav-charts" viewBox="0 0 24 24">
-        <path d="M4 19V5M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <path d="M8 17V11M12 17V7M16 17v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path class="nav-icon-charts-axis" d="M4.5 19.25V5.25M4.5 19.25H19.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-charts-bar nav-icon-charts-bar--1" d="M8.25 17.25V11.5" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"/>
+        <path class="nav-icon-charts-bar nav-icon-charts-bar--2" d="M12 17.25V7.25" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"/>
+        <path class="nav-icon-charts-bar nav-icon-charts-bar--3" d="M15.75 17.25v-4.5" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"/>
       </symbol>
       <symbol id="rianell-nav-mood" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
-        <path d="M8.5 10.5h.01M15.5 10.5h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M8.5 15c1.2 1.5 2.5 2.25 3.5 2.25S14.8 16.5 16 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle class="nav-icon-mood-face" cx="12" cy="12" r="8.75" fill="none" stroke="currentColor" stroke-width="1.75"/>
+        <circle class="nav-icon-mood-eye nav-icon-mood-eye--L" cx="9.1" cy="10.4" r="1.15" fill="currentColor"/>
+        <circle class="nav-icon-mood-eye nav-icon-mood-eye--R" cx="14.9" cy="10.4" r="1.15" fill="currentColor"/>
+        <path class="nav-icon-mood-smile" d="M8.75 14.35c.95 1.35 2.05 2.05 3.25 2.05s2.3-.7 3.25-2.05" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
       </symbol>
       <symbol id="rianell-nav-ai" viewBox="0 0 24 24">
-        <path d="M12 3 13.5 8.5 19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M5 19l1.2 2.4M19 19l-1.2 2.4M3 14h2.4M18.6 14H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path class="nav-icon-ai-star" d="M12 3.25 13.55 8.55 18.75 10l-5.2 1.45L12 16.75l-1.55-5.2L5.25 10l5.2-1.45L12 3.25Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        <path class="nav-icon-ai-spark nav-icon-ai-spark--1" d="M5.25 18.75 6.35 21" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-ai-spark nav-icon-ai-spark--2" d="M18.75 18.75 17.65 21" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-ai-spark nav-icon-ai-spark--3" d="M3.5 13.75h2.35" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-ai-spark nav-icon-ai-spark--4" d="M18.15 13.75H20.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
       </symbol>
     </svg>
     <!-- Sibling of .container (not inside scroll/transform) so fixed top-right matches FAB behavior -->
@@ -4990,7 +5000,6 @@
   <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=3"></script>
   <script defer src="modules/oasis-canvas.js"></script>
-  <script defer src="modules/graphics-portfolio.js?v=4"></script>
   <script defer src="push-subscribe.js?v=1"></script>
   <script defer src="appointment-pdf.js?v=2"></script>
   <script defer src="qr-handoff.js?v=1"></script>
@@ -5027,6 +5036,7 @@
   })();
   </script>
   <script defer src="vendor/rianell-shared.js?v=7"></script>
+  <script defer src="modules/graphics-portfolio.js?v=5"></script>
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
   <script defer src="modules/vitals-suggest-ui.js?v=3"></script>

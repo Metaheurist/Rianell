@@ -168,6 +168,7 @@
 
 /* ── 8. Neural trace container (Phase D) ────────────────────────────────────── */
 .oasis-neural-trace {
+  --oasis-neural-dur: 9s;
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -198,19 +199,19 @@
 @media (not (prefers-reduced-motion: reduce)) {
   /* stroke-dashoffset is GPU-composited in Chrome/Safari/Firefox via SVG SMIL fallback */
   @keyframes oasisNeuralDraw {
-    0%   { stroke-dashoffset: 800; opacity: 0.15; }
+    0%   { stroke-dashoffset: -800; opacity: 0.15; }
     15%  { opacity: 0.55; }
     85%  { opacity: 0.4; }
-    100% { stroke-dashoffset: -800; opacity: 0.12; }
+    100% { stroke-dashoffset: 800; opacity: 0.12; }
   }
   .oasis-neural-path {
     stroke-dasharray: 14 10;
-    stroke-dashoffset: 800;
-    animation: oasisNeuralDraw 4.8s linear infinite;
+    stroke-dashoffset: -800;
+    animation: oasisNeuralDraw var(--oasis-neural-dur, 9s) linear infinite;
   }
   /* Stagger second path for dual-trace effect */
   .oasis-neural-path--b {
-    animation-delay: -2.4s;
+    animation-delay: calc(var(--oasis-neural-dur, 9s) * -0.5);
   }
 }
 
