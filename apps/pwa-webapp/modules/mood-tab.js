@@ -26,6 +26,16 @@
       .replace(/"/g, '&quot;');
   }
 
+  function escapeAttr(s) {
+    return escapeHTML(s);
+  }
+
+  function checkinPeriodLabelKey(period) {
+    if (period === 'AM') return 'home.checkin.am';
+    if (period === 'PM') return 'home.checkin.pm';
+    return 'home.checkin.midday';
+  }
+
   function getLogs() {
     return global.logs && Array.isArray(global.logs) ? global.logs : [];
   }
@@ -489,8 +499,7 @@
       '</svg></div>';
   }
 
-  function renderMoodCheckinSection(todayStr, simpleMode) {
-    if (simpleMode) return '';
+  function resolveMoodDeckCheckinState(todayStr) {
     var logArr = getLogs();
     var todayLog = logArr.find(function (l) { return l && l.date === todayStr; });
     var done = S && typeof S.completedCheckinPeriods === 'function'
@@ -507,11 +516,101 @@
         if (openPeriod) _moodSelectedPeriod = openPeriod;
       }
     }
-    var ctaLabel = t('home.checkin.cta');
-    var sliderHtml = typeof global.renderCheckinSliderHtml === 'function'
-      ? global.renderCheckinSliderHtml(periods, done, _moodSelectedPeriod, function (key) { return t(key); }, ctaLabel)
-      : '';
-    return '<section class="mood-checkin-section"><h3 class="mood-section-title">' + escapeHTML(t('mood.checkin.title')) + '</h3>' + sliderHtml + '</section>';
+    return { done: done, periods: periods };
+  }
+
+  function renderMoodDeckAmbientSvg() {
+    return '<svg class="mood-deck-ambient__svg" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+      '<defs>' +
+      '<radialGradient id="moodDeckAuroraA" cx="22%" cy="38%" r="55%">' +
+      '<stop offset="0%" stop-color="var(--primary-color)" stop-opacity="0.28"/>' +
+      '<stop offset="100%" stop-color="var(--primary-color)" stop-opacity="0"/>' +
+      '</radialGradient>' +
+      '<radialGradient id="moodDeckAuroraB" cx="78%" cy="62%" r="50%">' +
+      '<stop offset="0%" stop-color="var(--primary-color)" stop-opacity="0.18"/>' +
+      '<stop offset="100%" stop-color="var(--primary-color)" stop-opacity="0"/>' +
+      '</radialGradient>' +
+      '</defs>' +
+      '<ellipse class="mood-deck-aurora mood-deck-aurora--a" cx="72" cy="68" rx="92" ry="58" fill="url(#moodDeckAuroraA)"/>' +
+      '<ellipse class="mood-deck-aurora mood-deck-aurora--b" cx="248" cy="112" rx="78" ry="48" fill="url(#moodDeckAuroraB)"/>' +
+      '</svg>';
+  }
+
+  function renderMoodDeckDaypartTrack(periods, done, selectedPeriod, ctaLabel) {
+    var html = '<div class="checkin-slider-wrap mood-deck-orbs-wrap"><div class="checkin-slider-track mood-deck-track">';
+    periods.forEach(function (period, idx) {
+      if (idx > 0) html += '<div class="checkin-slider-line mood-deck-track-line" aria-hidden="true"></div>';
+      var label = t(checkinPeriodLabelKey(period));
+      var isDone = done.has(period);
+      var isSelected = period === selectedPeriod;
+      html += '<button type="button" class="checkin-slider-stop mood-deck-orb' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(label) + '">';
+      html += '<span class="checkin-slider-icon-slot mood-deck-orb-icon-slot" aria-hidden="true">';
+      html += svgIcon(checkinPeriodIconName(period), 'checkin-slider-stop-icon mood-deck-orb-icon');
+      html += '</span>';
+      html += '<span class="checkin-slider-stop-label mood-deck-orb-label">' + escapeHTML(label) + '</span>';
+      html += '</button>';
+    });
+    html += '</div>';
+    html += '<button type="button" class="checkin-cta-btn mood-deck-cta" data-checkin-cta aria-label="' + escapeAttr(ctaLabel) + '">' + escapeHTML(ctaLabel) + '</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function renderMoodDeckActionTile(id, label, iconName, extraClass) {
+    var cls = 'mood-deck-tile' + (extraClass ? ' ' + extraClass : '');
+    return '<button type="button" class="' + cls + '" id="' + escapeHTML(id) + '" aria-label="' + escapeAttr(label) + '">' +
+      '<span class="mood-deck-tile-icon" aria-hidden="true">' + svgIcon(iconName, 'mood-deck-tile-icon-svg') + '</span>' +
+      '<span class="mood-deck-tile-label">' + escapeHTML(label) + '</span>' +
+      '</button>';
+  }
+
+  function renderMoodControlDeck(todayStr, simpleMode) {
+    var title = t('mood.checkin.title');
+    var html = '<section class="mood-control-deck" aria-labelledby="mood-deck-title">';
+    html += '<div class="mood-deck-tilt">';
+    html += '<div class="mood-deck-ambient" aria-hidden="true">' + renderMoodDeckAmbientSvg() + '</div>';
+    html += '<div class="mood-deck-surface">';
+    html += '<h3 id="mood-deck-title" class="mood-deck-title">' + escapeHTML(title) + '</h3>';
+
+    if (!simpleMode) {
+      var checkin = resolveMoodDeckCheckinState(todayStr);
+      var ctaLabel = t('home.checkin.cta');
+      html += '<div class="mood-deck-orbs">' + renderMoodDeckDaypartTrack(checkin.periods, checkin.done, _moodSelectedPeriod, ctaLabel) + '</div>';
+    }
+
+    html += '<div class="mood-deck-tiles">';
+    html += renderMoodDeckActionTile('moodViewChartsBtn', t('mood.viewCharts'), 'chart-bars', 'mood-deck-tile--chart action-btn');
+    if (!simpleMode) {
+      html += renderMoodDeckActionTile('moodPhq2Btn', t('mentalHealth.phq2.action'), 'heart-pulse', 'mood-deck-tile--mood settings-data-btn');
+      html += renderMoodDeckActionTile('moodGad2Btn', t('mentalHealth.gad2.action'), 'brain-wave', 'mood-deck-tile--anxiety settings-data-btn');
+    }
+    html += '</div>';
+    html += '</div></div></section>';
+    return html;
+  }
+
+  function wireMoodDeckParallax(deck) {
+    if (!deck) return;
+    var reduceMotion = global.RianellGraphicsPortfolio &&
+      typeof global.RianellGraphicsPortfolio.shouldReduceAnimations === 'function' &&
+      global.RianellGraphicsPortfolio.shouldReduceAnimations();
+    if (reduceMotion) return;
+    if (typeof window.matchMedia === 'function' && !window.matchMedia('(pointer: fine)').matches) return;
+
+    var tilt = deck.querySelector('.mood-deck-tilt');
+    if (!tilt) return;
+
+    deck.addEventListener('pointermove', function (e) {
+      var rect = deck.getBoundingClientRect();
+      var x = (e.clientX - rect.left) / rect.width - 0.5;
+      var y = (e.clientY - rect.top) / rect.height - 0.5;
+      tilt.style.setProperty('--deck-rx', (y * -5).toFixed(2) + 'deg');
+      tilt.style.setProperty('--deck-ry', (x * 7).toFixed(2) + 'deg');
+    });
+    deck.addEventListener('pointerleave', function () {
+      tilt.style.setProperty('--deck-rx', '0deg');
+      tilt.style.setProperty('--deck-ry', '0deg');
+    });
   }
 
   function renderMoodTab() {
@@ -555,15 +654,7 @@
       html += '</section>';
     }
 
-    html += renderMoodCheckinSection(todayStr, simpleMode);
-
-    html += '<div class="mood-actions">';
-    html += '<button type="button" class="action-btn" id="moodViewChartsBtn">' + escapeHTML(t('mood.viewCharts')) + '</button>';
-    if (!simpleMode) {
-      html += '<button type="button" class="settings-data-btn" id="moodPhq2Btn">' + escapeHTML(t('mentalHealth.phq2.action')) + '</button>';
-      html += '<button type="button" class="settings-data-btn" id="moodGad2Btn">' + escapeHTML(t('mentalHealth.gad2.action')) + '</button>';
-    }
-    html += '</div>';
+    html += renderMoodControlDeck(todayStr, simpleMode);
 
     root.innerHTML = html;
 
@@ -580,13 +671,14 @@
     var moodTimelineScroll = root.querySelector('.mood-timeline-scroll:not(.mood-reading-ribbon-scroll)');
     if (moodTimelineScroll) wireMoodTimelineScroll(moodTimelineScroll);
 
-    var moodCheckinSection = root.querySelector('.mood-checkin-section');
-    if (moodCheckinSection && typeof global.wireCheckinSliderEvents === 'function') {
-      global.wireCheckinSliderEvents(moodCheckinSection, function () { return _moodSelectedPeriod; }, function (period) {
+    var moodControlDeck = root.querySelector('.mood-control-deck');
+    if (moodControlDeck && typeof global.wireCheckinSliderEvents === 'function') {
+      global.wireCheckinSliderEvents(moodControlDeck, function () { return _moodSelectedPeriod; }, function (period) {
         _moodSelectedPeriod = period;
         _moodPeriodUserPick = true;
       });
     }
+    wireMoodDeckParallax(moodControlDeck);
 
     var chartsBtn = document.getElementById('moodViewChartsBtn');
     if (chartsBtn) {
