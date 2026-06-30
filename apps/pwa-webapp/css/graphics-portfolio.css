@@ -935,6 +935,15 @@ body.light-mode .graphics-achievement-icon {
   color: var(--primary-color);
 }
 
+.security-lock-illustration__svg,
+.security-lock-illustration__svg * {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .ai-hero-row {
   position: relative;
 }
