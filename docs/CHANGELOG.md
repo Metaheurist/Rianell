@@ -2,7 +2,27 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.4** - Companion name fix, lock SVG, mobility/swelling animations, trend layout, nav icon polish.
+**Latest: v2.1.6** - Design token contract, RN screen primitives, transform-only progress motion, CI design-token guard.
+
+### v2.1.6 - 2026-06-30 - Design token contract and motion guardrails
+
+- **Tokens:** `SPACING_TOKENS` / `SURFACE_TOKENS` in `@rianell/tokens`; `docs/design-token-contract.md` (runtime authority); PWA sync via `npm run sync:tokens`.
+- **RN:** `ScreenCard`, `ScreenContainer`, `RangeChip`, `themeHelpers.ts`; `resolveScreenBackground()` on Home, Logs, AI, Charts, LogWizard.
+- **PWA motion:** Progress bars and tab indicator use `scaleX`/`translateX` (not `width`); `setProgressScale()` helper in `app.js`.
+- **CI:** `npm run verify:design-tokens` in unit-tests job; Cursor guardrails (`.cursor/rules/`, skills).
+- **Tests:** `tokens.test.mjs`, `verify-design-tokens.test.mjs`.
+- **npm:** Workspace roots at **2.1.6**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.6]`.
+
+### v2.1.5 - 2026-06-30 - Log metrics, onboarding, and companion polish
+
+- **Log metrics (PWA):** Joint swelling balloon morph; mobility trampoline phases; body-map stroke silhouette; Bristol stool overlay removed; mood shadow fix.
+- **Onboarding (PWA):** Companion picker before copy; profile companion framing and accessories.
+- **AI Insights (PWA):** Pulsing vein ambient layers; feature toggles default on (cycle, digestive, barcode).
+- **Achievements (PWA):** 3D self-opening book SVG for getting-started milestone.
+- **Tests:** `achievement-icons`, `animation-polish`, `log-metric-widgets`.
+- **npm:** Workspace roots at **2.1.5**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.5]`.
 
 ### v2.1.4 - 2026-06-30 - PWA visual polish batch
 
