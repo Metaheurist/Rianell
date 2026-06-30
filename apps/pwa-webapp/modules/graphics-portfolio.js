@@ -1348,6 +1348,12 @@
   }
 
   function decorateCycleBeacon() {
+    document.querySelectorAll('.cycle-day-beacon').forEach(function (beacon) {
+      var parent = beacon.parentElement;
+      if (!parent || !parent.classList.contains('cycle-day-node--active')) {
+        beacon.remove();
+      }
+    });
     document.querySelectorAll('.cycle-day-node--active').forEach(function (node) {
       if (node.querySelector('.cycle-day-beacon')) return;
       var beacon = document.createElement('span');
