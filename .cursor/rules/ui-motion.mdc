@@ -1,0 +1,38 @@
+---
+description: UI motion and animation standards for Rianell PWA and React Native surfaces
+globs: apps/**/*.{tsx,css,js},packages/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Rianell UI motion standards
+
+## Performance constraints (non-negotiable)
+
+- Animate only **`transform`**, **`opacity`**, and **`filter`** — GPU-bound only
+- Never animate `width`, `height`, `top`, `left`, or `padding` — these force layout
+- The main thread must stay free for Supabase sync and on-device AI inference
+
+## Animation tokens (PWA)
+
+- Boot skeleton delays use the existing CSS custom property ladder in `styles.css`
+- Tab transitions: `ai-animate-in` nth-child stagger, shimmer timing already defined in `styles.css`
+- Bottom-nav icon lift: use the existing `.bottom-nav__icon--lift` class
+- Reduced motion: always gate new animations with `@media (prefers-reduced-motion: reduce)` or the `reducedMotion` pref
+
+## Loading / AI states
+
+- Never show a bare spinner during LLM inference — use skeleton loaders with `bioluminescent-shimmer` timing
+- Transition from loading → insight revealed must be a staggered `ai-animate-in` reveal sequence
+- AI Synthesis state: characters morph/ripple via CSS `clip-path` or `transform: scaleY()` only
+
+## React Native (RN)
+
+- Motion utilities: `PrimaryButton`, `Skeleton`, `Toast`, `EmptyState`, `HomeWelcomeCard`, `SettingsChapter` already have motion applied
+- Screen stagger/slide implemented on AI, Charts, Mood, and Log Wizard screens — match this pattern for new screens
+- RTL: always check `isRtl` for directional animations (chevron mirroring, slide direction)
+
+## Design philosophy
+
+- Whimsical but never clinical — health stats should feel alive, not like a spreadsheet
+- Milestone achievements trigger micro-celebrations (particle burst, card shimmer) — use existing toast queue
+- Security feedback (auth, encryption) uses a concentric ripple pattern on confirmation

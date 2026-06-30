@@ -1,0 +1,48 @@
+---
+description: i18n key naming, canonical source, and verification gate for Rianell locale strings
+globs: i18n-packs/**,apps/**/i18n*,packages/shared/src/i18n/**
+alwaysApply: false
+---
+
+# Rianell i18n conventions
+
+## Key naming format
+
+`{namespace}.{semantic.slug}` — always lowercase dot-separated words derived from English copy.
+
+```json
+// ✅ CORRECT
+"wizard.saveEntry": "Save entry",
+"settings.privacy.title": "Privacy & region",
+"common.goals.setPrompt": "Set a goal"
+
+// ❌ WRONG — no namespace, camelCase slug, or arbitrary keys
+"saveEntry": "Save entry",
+"privacyTitle": "Privacy & region"
+```
+
+## Namespace order (rollout sequence)
+
+`common` → `nav` → `gate` → `consent` → `settings` → `wizard` → `logs` →
+`modal` → `toast` → `charts` → `ai` → `export` → `tutorial` → `units` → `policy`
+
+## Canonical source
+
+- **`i18n-packs/locale-packs/v1/en-GB.json`** is the canonical source of truth
+- Synced to apps via `scripts/i18n/sync-i18n-assets.mjs`
+- Intentional English (brand names, medical codes like PHQ-2) → add to `scripts/.audit/i18n-allowlist.json`
+
+## After any i18n change
+
+```bash
+npm run verify:i18n   # sync + locale/prompt/motd/HTML/audit + coverage --strict --max-pct=13
+```
+
+## MT / generation scripts
+
+| Task | Script |
+|------|--------|
+| Generate Tier A overrides | `scripts/i18n/generate-locale-overrides.mjs` |
+| Batch MT pass | `scripts/i18n/batch-mt-hybrid-keys.mjs` |
+| Translate prompt packs | `scripts/i18n/translate-prompt-packs.mjs` |
+| Verify mixed-language strings | `scripts/verify/verify-mixed-language-strings.mjs --locale=<lc>` |

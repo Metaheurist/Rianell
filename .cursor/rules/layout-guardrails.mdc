@@ -1,0 +1,44 @@
+---
+description: Triggers automatically on layout adjustments, styling, responsive CSS, typography, and component structure tasks.
+globs: src/components/**/*, app/**/*.tsx, src/**/*.ts, apps/**/*.{tsx,css,js}, packages/**/*.{tsx,css}, **/*.css
+alwaysApply: false
+---
+
+# Layout Automation & Guardrail Rules
+
+## Impeccable Engine
+
+Ensure layout logic, flexbox grids, and explicit typographic sizing pass the 23-point alignment filter before appending styling.
+
+- Run `npx impeccable run` or invoke `/impeccable polish` / `/impeccable layout` on touched surfaces before shipping layout changes.
+- Load `.cursor/skills/impeccable/SKILL.md` when editing component structure, spacing grids, or typographic hierarchy.
+- Prefer committed design tokens from `DESIGN.md` and existing CSS custom properties over ad-hoc pixel values.
+- The Impeccable pre-edit hook (`.cursor/hooks.json`) auto-scans UI file edits — address detector findings before continuing.
+
+## UI UX Pro Max Framework (sipro / uipro)
+
+Observe strict spacing rules (sipro principles). Never default to generic, loose padding values or blocky element stacking.
+
+- Load `.cursor/skills/ui-ux-pro-max/SKILL.md` for spacing, density, and visual rhythm decisions.
+- Activate the playbook with `npx ui-ux-pro-max-cli init --ai cursor` (alias: `uipro init --ai cursor`).
+- Use the bundled UX guideline search (`scripts/search.py` inside the ui-ux-pro-max skill) for stack-specific spacing patterns.
+- Avoid uniform `p-6` / `gap-4` defaults on every container — vary rhythm by content hierarchy and viewport.
+
+## Taste Metrics
+
+Enforce high-fidelity, human-like design variance over robotic AI structures.
+
+- Load `.cursor/skills/design-taste-frontend/SKILL.md` for landing pages, portfolios, and consumer-facing redesigns.
+- Maintain **Design Variance: 6**, **Motion Intensity: 4**, and **Visual Density: 5** unless the brief explicitly calls for a calmer or denser surface.
+- Declare a one-line "Design Read" before generating new UI (page kind, audience, vibe, design system family).
+- Reject AI-slop defaults: purple gradients, three equal feature cards, generic glassmorphism, Inter + slate-900 without justification.
+
+## Monorepo surfaces
+
+| Surface | Primary paths |
+|---------|---------------|
+| PWA | `apps/pwa-webapp/`, `apps/pwa-webapp/styles.css` |
+| React Native | `apps/rn-app/src/components/` |
+| Shared UI | `packages/` |
+
+Cross-reference `.cursor/rules/ui-motion.mdc` for animation constraints on Rianell health surfaces.

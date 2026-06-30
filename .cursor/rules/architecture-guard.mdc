@@ -1,0 +1,43 @@
+---
+description: Enforce Rianell monorepo layout — dependency direction, naming, workspace rules
+alwaysApply: true
+---
+
+# Rianell architecture guard
+
+## Dependency direction (hard rule)
+
+- `packages/*` must **never** import from `apps/*`
+- Apps import shared code only via `@rianell/*` package names or synced assets (tokens, i18n JSON)
+- Scripts may import `@rianell/*` and `@rianell/build-tools`
+
+```js
+// ❌ WRONG — package importing an app
+import { thing } from '../../apps/pwa-webapp/app.js';
+
+// ✅ CORRECT — app importing a package
+import { thing } from '@rianell/shared';
+```
+
+## Where new code lives
+
+| Need | Location |
+|------|----------|
+| New deployable UI | `apps/<name>/` + workspace entry |
+| Shared library | `packages/<name>/` with `@rianell/<name>` scope |
+| Build / verify automation | `scripts/<concern>/` |
+| User-facing docs | `wiki/` |
+| Dev / security docs | `docs/` |
+
+## Naming conventions
+
+- Directories: **kebab-case**, no spaces (`artifacts/` not `App build/`)
+- npm scope: always `@rianell/`
+- Script categories: `scripts/<concern>/` (build, i18n, verify, ci, audit, wiki, models, dev)
+
+## Workspace rules
+
+- Python `server/` is **not** a JS workspace — do not add it to `workspaces` in root `package.json`
+- `i18n-packs/` stays at repo root — do not move into `packages/`
+- **No nested `package-lock.json`** under any workspace directory (CI guards this from Phase 13)
+- Generated files (`app.*.min.js`, `asset-manifest.json`, `.server-dist/`) are never source of truth
