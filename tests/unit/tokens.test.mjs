@@ -22,6 +22,22 @@ test('colorblind overrides change accent token', () => {
   assert.notEqual(trit.color.accent, base.color.accent);
 });
 
+test('getTokens exposes spacing, surface, radius, and onAccent', () => {
+  const tokens = getTokens({ team: 'mint', mode: 'dark' });
+  assert.equal(tokens.spacing.base, 16);
+  assert.equal(tokens.radius.lg, 16);
+  assert.equal(tokens.color.onAccent, '#041008');
+  assert.ok(tokens.surface.card.includes('rgba'));
+});
+
+test('resolveScreenBackground flattens light gradients', async () => {
+  const { resolveScreenBackground, isLightGradientBackground } = await import('@rianell/tokens');
+  const grad = 'linear-gradient(135deg, #a8e6cf 0%, #fff 100%)';
+  assert.equal(isLightGradientBackground(grad), true);
+  assert.equal(resolveScreenBackground({ background: grad }, 'light'), '#ffffff');
+  assert.equal(resolveScreenBackground({ background: '#070807' }, 'dark'), '#070807');
+});
+
 test('VIBE_TOKENS defines five ambient personalities', async () => {
   const { VIBE_IDS, VIBE_TOKENS, getVibeIds, normalizeUserVibe, resolveAvatarThemeTokens } =
     await import('@rianell/tokens');

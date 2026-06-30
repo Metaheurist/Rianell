@@ -17,6 +17,7 @@ Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cur
 | Command | When |
 |---------|------|
 | `npm run test:unit` | Every phase |
+| `npm run verify:design-tokens` | UI token/motion changes in PWA or RN screens |
 | `npm run verify:root-hygiene` | Phase 23+ (root layout) |
 | `npm run verify:migration:foundation` | After Phase 7 |
 | `npm run verify:migration` | Phase 20+ |

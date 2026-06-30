@@ -106,6 +106,9 @@ jobs:
       - name: Doc links and stale path scan
         run: node scripts/verify/doc-links.mjs --strict
 
+      - name: Design token guardrails (critical UI files)
+        run: npm run verify:design-tokens
+
       - name: Root directory hygiene (Phase 23)
         run: npm run verify:root-hygiene
 
