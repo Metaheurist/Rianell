@@ -32,6 +32,15 @@ test('rAF latency benchmark cannot hang forever', () => {
   assert.match(src, /setTimeout\(function \(\) \{[\s\S]*finish\(/);
 });
 
+test('CPU suite yields during boot and cannot stall at array step', () => {
+  const src = readFileSync('apps/pwa-webapp/device-benchmark.js', 'utf8');
+  assert.match(src, /function cpuArithAsync/);
+  assert.match(src, /function arrayThroughputAsync/);
+  assert.match(src, /scheduleBenchmarkStep/);
+  assert.match(src, /suite stalled at step/);
+  assert.match(src, /parts\.join\(''\)/);
+});
+
 test('in-app daily reminder respects first-run suppression', () => {
   const js = readFileSync('apps/pwa-webapp/notifications.js', 'utf8');
   assert.match(js, /checkTodayReminder\(\)[\s\S]*shouldSuppressFirstRunLoggingPrompt/);
