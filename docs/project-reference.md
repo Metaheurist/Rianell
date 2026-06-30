@@ -4,6 +4,25 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.6 documentation sync (design token contract, RN primitives, motion guardrails)
+
+- **Contract:** `docs/design-token-contract.md` — `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only.
+- **Tokens:** `SPACING_TOKENS`, `SURFACE_TOKENS` in `packages/tokens/src/index.mjs`; synced via `scripts/build/sync-tokens-to-pwa.mjs`.
+- **RN:** `apps/rn-app/src/components/ScreenCard.tsx`, `ScreenContainer.tsx`, `RangeChip.tsx`, `themeHelpers.ts`; tab screens use `resolveScreenBackground()`.
+- **PWA motion:** `setProgressScale()` in `app.js`; progress fills in `styles.css` use `transform: scaleX(var(--progress))`; tab indicator uses `translateX` + `scaleX`.
+- **Verify:** `scripts/verify/verify-design-tokens.mjs` + `npm run verify:design-tokens` (CI unit-tests job).
+- **Tests:** `tests/unit/tokens.test.mjs`, `tests/unit/verify-design-tokens.test.mjs`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.6]`; wiki [[Release-Notes]] § v2.1.6.
+
+### v2.1.5 documentation sync (log metrics, onboarding, companion polish)
+
+- **PWA log metrics:** Swelling balloon morph, mobility trampoline phases, body-map stroke silhouette in `log-metric-widgets.js` + `styles.css`.
+- **PWA onboarding:** Companion picker order in `guided-onboarding.js`; profile companion carousel/accessories in settings.
+- **PWA AI tab:** Vein ambient layers in `css/oasis.css`; cycle/digestive/barcode defaults in shared settings.
+- **PWA achievements:** 3D book SVG in `achievement-icons` rendering path.
+- **Tests:** `achievement-icons`, `animation-polish`, `log-metric-widgets`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.5]`; wiki [[Release-Notes]] § v2.1.5.
+
 ### v2.1.4 documentation sync (companion names, lock SVG, metric motion, nav polish)
 
 - **PWA companions:** Lazy `shared()` in `graphics-portfolio.js`; script order after `rianell-shared.js` in `index.html`.
