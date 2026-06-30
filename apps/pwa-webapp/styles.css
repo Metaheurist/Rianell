@@ -37,8 +37,24 @@
   --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
   --shadow-focus: 0 0 0 2px var(--primary-color);
 
-  /* Design tokens: spacing */
+  /* Design tokens: spacing (4px base — sync @rianell/tokens) */
   --space-unit: 0.25rem;
+  --space-xxs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-base: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-section: 64px;
+
+  /* Surface tokens — mirror @rianell/tokens SURFACE_TOKENS.dark */
+  --surface-card: rgba(0, 0, 0, 0.18);
+  --surface-card-solid: rgba(22, 24, 26, 0.88);
+  --surface-glass: rgba(255, 255, 255, 0.08);
+  --surface-border-muted: rgba(255, 255, 255, 0.12);
+  --surface-modal-backdrop: rgba(0, 0, 0, 0.5);
 
   /* Nav icon tokens ? inherit theme via --primary-color / --text-light (body.theme-*) */
   --nav-icon-size: 1.4rem;
@@ -661,6 +677,16 @@ body.light-mode::before {
   50% { opacity: 0.7; }
 }
 
+#importProgressBar {
+  height: 100%;
+  width: 100%;
+  background: var(--primary-gradient);
+  border-radius: 4px;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform 0.3s ease;
+}
+
 /* Light mode styles */
 body.light-mode {
   background: var(--background-light);
@@ -686,6 +712,11 @@ body.light-mode {
   --btn-chrome-shadow-hover: 0 4px 0 rgba(0, 0, 0, 0.05), 0 10px 24px rgba(0, 0, 0, 0.1), 0 8px 20px var(--accent-fill-14);
   --btn-chrome-text: var(--text-dark);
   --surface-main: rgba(255, 255, 255, 0.9);
+  --surface-card: rgba(255, 255, 255, 0.95);
+  --surface-card-solid: #ffffff;
+  --surface-glass: rgba(255, 255, 255, 0.6);
+  --surface-border-muted: rgba(0, 0, 0, 0.08);
+  --surface-modal-backdrop: rgba(0, 0, 0, 0.45);
   --surface-border: var(--accent-border);
   --surface-outer-glow: 0 0 0 1px var(--accent-fill-20), 0 8px 32px rgba(0, 0, 0, 0.1);
   --tutorial-cta-finish-bg: var(--accent-fill-14);
@@ -2243,10 +2274,12 @@ body.light-mode .vitals-advanced-body {
 
 .log-wizard-progress-fill {
   height: 100%;
-  width: 12.5%;
+  width: 100%;
   border-radius: 4px;
   background: var(--primary-gradient);
-  transition: width var(--transition-fluid);
+  transform: scaleX(var(--progress, 0.125));
+  transform-origin: left center;
+  transition: transform var(--transition-fluid);
 }
 
 .log-wizard-steps {
@@ -2269,9 +2302,9 @@ body.light-mode .vitals-advanced-body {
 }
 
 .cycle-track-panel {
-  margin-top: 8px;
-  padding: 14px;
-  border-radius: 14px;
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
   background: color-mix(in srgb, var(--primary-color) 8%, rgba(12, 14, 16, 0.55));
 }
@@ -10342,6 +10375,60 @@ body.light-mode .form-validation-summary {
   color: var(--text-light);
 }
 
+.log-accordion {
+  margin-bottom: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary-color) 4%, var(--bg-secondary, rgba(255, 255, 255, 0.03)));
+  overflow: hidden;
+}
+
+.log-accordion__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-light);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.log-accordion__summary::-webkit-details-marker {
+  display: none;
+}
+
+.log-accordion__summary::after {
+  content: '›';
+  margin-left: auto;
+  font-size: 1.1rem;
+  opacity: 0.55;
+  transform: rotate(90deg);
+  transition: transform 0.28s ease;
+}
+
+.log-accordion[open] .log-accordion__summary::after {
+  transform: rotate(-90deg);
+}
+
+.log-accordion__body {
+  padding: 0 1rem 1rem;
+  animation: logAccordionReveal 0.32s ease;
+}
+
+@keyframes logAccordionReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .log-accordion__body {
+    animation: none;
+  }
+}
+
 .character-counter {
   font-size: 0.8rem;
   color: #888;
@@ -10676,16 +10763,27 @@ body.light-mode .character-counter {
 }
 
 @keyframes metricMobilityBounce {
-  0%, 100% { transform: translateY(0) scaleY(1); }
-  12% { transform: translateY(1px) scaleY(0.94); }
-  46% { transform: translateY(var(--mobility-bounce-y, -6px)) scaleY(1.04); }
-  62% { transform: translateY(calc(var(--mobility-bounce-y, -6px) * 0.35)) scaleY(1.01); }
+  0%, 100% {
+    transform: translateY(15px);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: translateY(-30px);
+    animation-timing-function: ease-in;
+  }
 }
 
 @keyframes metricMobilityMatSquash {
-  0%, 100% { transform: scaleY(1); }
-  12% { transform: scaleY(0.82); }
-  46% { transform: scaleY(1.05); }
+  0%, 100% {
+    transform: scaleY(1.4) translateY(4px);
+    transform-origin: top center;
+  }
+  15%, 85% {
+    transform: scaleY(1) translateY(0);
+  }
+  50% {
+    transform: scaleY(1) translateY(0);
+  }
 }
 
 @keyframes metricMobilityShadow {
@@ -10725,7 +10823,7 @@ body.light-mode .metric-mobility-jumper {
   max-width: 64px;
 }
 
-/* Swelling — side-view knee with pulsing joint fluid and ripple rings */
+/* Swelling — dynamic balloon metaphor (chamber morphs with slider value) */
 .metric-widget--swelling .metric-widget__visual {
   flex: 0 0 64px;
   overflow: visible;
@@ -10735,139 +10833,62 @@ body.light-mode .metric-mobility-jumper {
   filter: none;
 }
 
-.metric-knee-bones {
-  color: color-mix(in srgb, var(--metric-color) 52%, #234029);
-  opacity: 0.96;
-}
-
-.metric-knee-patella {
-  fill: color-mix(in srgb, var(--metric-color) 10%, rgba(255, 255, 255, 0.88));
-  stroke: color-mix(in srgb, var(--metric-color) 62%, #234029);
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: cx 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    cy 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    rx 0.42s cubic-bezier(0.22, 1, 0.36, 1),
-    ry 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.metric-widget--swelling[data-swelling-level="high"] .metric-knee-patella {
-  animation: metricKneePatellaWobble var(--metric-knee-pulse-dur, 1.5s) ease-in-out infinite;
-}
-
-.metric-knee-swell-grad-core {
+.metric-balloon-grad-core {
   stop-color: color-mix(in srgb, var(--metric-color) 78%, #fff 22%);
 }
 
-.metric-knee-swell-grad-mid {
+.metric-balloon-grad-mid {
   stop-color: color-mix(in srgb, var(--metric-color) 58%, rgba(0, 0, 0, 0.22));
 }
 
-.metric-knee-swell-grad-edge {
+.metric-balloon-grad-edge {
   stop-color: color-mix(in srgb, var(--metric-color) 24%, transparent 76%);
 }
 
-.metric-knee-femur,
-.metric-knee-tibia,
-.metric-knee-fibula {
-  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.metric-knee-swell-anchor {
+.metric-balloon-body {
+  transition: d 0.42s cubic-bezier(0.22, 1, 0.36, 1);
   color: var(--metric-color);
-  pointer-events: none;
 }
 
-.metric-knee-swell-pulse {
-  transform-origin: center;
-  transform-box: fill-box;
+.metric-balloon-knot,
+.metric-balloon-neck,
+.metric-balloon-string {
+  color: color-mix(in srgb, var(--metric-color) 72%, #234029);
 }
 
-.metric-widget--swelling .metric-knee-swell-pulse {
-  animation: metricKneeSwellPulse var(--metric-knee-pulse-dur, 1.6s) ease-in-out infinite;
-  filter: drop-shadow(0 0 calc(7px * var(--metric-knee-glow-strength, 0.35)) color-mix(in srgb, var(--metric-color) 48%, transparent));
-}
-
-.metric-knee-swell-fluid {
-  transform-origin: center;
-  transform-box: fill-box;
-  transition: rx 0.42s cubic-bezier(0.22, 1, 0.36, 1), ry 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-  opacity: 0.88;
-}
-
-.metric-knee-swell-shine {
+.metric-balloon-shine {
   transition: opacity 0.3s ease;
   pointer-events: none;
 }
 
-.metric-knee-ripple {
-  transform-origin: center;
-  transform-box: fill-box;
-  stroke: color-mix(in srgb, var(--metric-color) 72%, transparent);
-  opacity: 0;
+.metric-widget--swelling[data-swelling-level="mid"] .metric-balloon-body,
+.metric-widget--swelling[data-swelling-level="high"] .metric-balloon-body {
+  animation: metricBalloonPulse var(--metric-balloon-pulse-dur, 2.2s) ease-in-out infinite;
+  filter: drop-shadow(0 0 calc(8px * var(--metric-balloon-glow, 0.35)) color-mix(in srgb, var(--metric-color) 48%, transparent));
 }
 
-.metric-widget--swelling[data-swelling-level="mid"] .metric-knee-ripple--1,
-.metric-widget--swelling[data-swelling-level="high"] .metric-knee-ripple--1 {
-  animation: metricKneeRipple var(--metric-knee-pulse-dur, 1.6s) ease-out infinite;
+.metric-widget--swelling[data-swelling-level="high"] .metric-balloon-body {
+  animation-duration: calc(var(--metric-balloon-pulse-dur, 2.2s) * 0.82);
 }
 
-.metric-widget--swelling[data-swelling-level="high"] .metric-knee-ripple--2 {
-  animation: metricKneeRipple var(--metric-knee-pulse-dur, 1.6s) ease-out infinite 0.38s;
+@keyframes metricBalloonPulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
 }
 
-.metric-widget--swelling[data-swelling-level="high"][data-metric-zone="bad"] .metric-knee-swell-pulse {
-  animation-duration: calc(var(--metric-knee-pulse-dur, 1.6s) * 0.78);
-}
-
-.metric-widget--swelling[data-swelling-level="high"][data-metric-zone="bad"] .metric-knee-ripple--1,
-.metric-widget--swelling[data-swelling-level="high"][data-metric-zone="bad"] .metric-knee-ripple--2 {
-  animation-duration: calc(var(--metric-knee-pulse-dur, 1.6s) * 0.78);
-}
-
-@keyframes metricKneeSwellPulse {
-  0%, 100% { transform: scale(1); opacity: 0.88; }
-  50% { transform: scale(calc(var(--metric-knee-fluid-scale, 1) + var(--metric-knee-glow-strength, 0.35) * 0.14)); opacity: 1; }
-}
-
-@keyframes metricKneeRipple {
-  0% { transform: scale(0.72); opacity: 0.62; }
-  100% { transform: scale(1.75); opacity: 0; }
-}
-
-@keyframes metricKneePatellaWobble {
-  0%, 100% { transform: rotate(0deg) translateY(0); }
-  35% { transform: rotate(-2.5deg) translateY(0.6px); }
-  65% { transform: rotate(2deg) translateY(-0.4px); }
-}
-
-.metric-svg--swelling {
+.metric-svg--swelling-balloon {
   max-width: 60px;
   overflow: visible;
 }
 
-body.light-mode .metric-widget--swelling .metric-knee-bones {
+body.light-mode .metric-widget--swelling .metric-balloon-knot,
+body.light-mode .metric-widget--swelling .metric-balloon-neck,
+body.light-mode .metric-widget--swelling .metric-balloon-string {
   color: #234029;
-  opacity: 1;
-}
-
-body.light-mode .metric-widget--swelling .metric-knee-patella {
-  fill: rgba(255, 255, 255, 0.92);
-  stroke: #234029;
-}
-
-body.light-mode .metric-widget--swelling[data-swelling-level="low"] .metric-knee-swell-fluid {
-  opacity: 0.68;
-}
-
-body.light-mode .metric-widget--swelling .metric-knee-swell-pulse {
-  filter: drop-shadow(0 0 calc(6px * var(--metric-knee-glow-strength, 0.35)) color-mix(in srgb, var(--metric-color) 40%, rgba(0, 0, 0, 0.16)));
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .metric-knee-swell-pulse,
-  .metric-knee-ripple,
-  .metric-knee-patella {
+  .metric-balloon-body {
     animation: none !important;
   }
 }
@@ -10901,6 +10922,15 @@ body.light-mode .metric-widget--swelling .metric-knee-swell-pulse {
 }
 
 /* Mood — animated face (sad → happy) */
+.metric-widget--mood .metric-widget__icon-wrap {
+  border-radius: 50%;
+  overflow: visible;
+}
+
+.metric-widget--mood .metric-svg--mood {
+  filter: none;
+}
+
 .metric-mood-grad-top {
   stop-color: color-mix(in srgb, var(--metric-color) 35%, #fff 65%);
 }
@@ -12450,10 +12480,10 @@ body.light-mode .pain-body-legend-chips li {
 .pain-body-wrapper {
   max-width: 240px;
   margin: 0 auto;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border: 1px solid var(--accent-glow-30);
+  padding: 8px 4px;
+  background: transparent;
+  border-radius: 0;
+  border: none;
 }
 
 .pain-body-svg {
@@ -12465,39 +12495,42 @@ body.light-mode .pain-body-legend-chips li {
 
 .pain-region {
   cursor: pointer;
-  transition: fill 0.2s ease, filter 0.2s ease;
-  stroke: currentColor;
-  stroke-width: 2;
+  transition: fill 0.2s ease, filter 0.2s ease, stroke 0.2s ease;
+  stroke-width: 2.5px;
   vector-effect: non-scaling-stroke;
+  paint-order: stroke fill;
 }
 
 .pain-region:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.08);
 }
 
 .pain-region.pain-state-0 {
-  fill: var(--accent-border-hover);
-  color: var(--accent-border-hover);
+  fill: #F1F5F9;
+  stroke: #CBD5E1;
+  color: #CBD5E1;
 }
 
 .pain-region.pain-state-1 {
-  fill: rgba(255, 193, 7, 0.65);
-  color: rgba(255, 193, 7, 0.65);
+  fill: rgba(254, 240, 138, 0.8);
+  stroke: #EAB308;
+  color: #EAB308;
 }
 
 .pain-region.pain-state-2 {
-  fill: rgba(244, 67, 54, 0.7);
-  color: rgba(244, 67, 54, 0.7);
+  fill: rgba(254, 226, 226, 0.8);
+  stroke: #EF4444;
+  color: #EF4444;
 }
 
 body.light-mode .pain-body-wrapper {
-  background: var(--accent-subtle-bg);
-  border-color: var(--accent-glow-30);
+  background: transparent;
+  border-color: transparent;
 }
 
-body.light-mode .pain-region.pain-state-0 { fill: var(--accent-border); color: var(--accent-border); }
-body.light-mode .pain-region.pain-state-1 { fill: rgba(255, 193, 7, 0.5); color: rgba(255, 193, 7, 0.5); }
-body.light-mode .pain-region.pain-state-2 { fill: rgba(244, 67, 54, 0.55); color: rgba(244, 67, 54, 0.55); }
+body.light-mode .pain-region.pain-state-0 { fill: #F1F5F9; stroke: #CBD5E1; color: #CBD5E1; }
+body.light-mode .pain-region.pain-state-1 { fill: rgba(254, 240, 138, 0.8); stroke: #EAB308; color: #EAB308; }
+body.light-mode .pain-region.pain-state-2 { fill: rgba(254, 226, 226, 0.8); stroke: #EF4444; color: #EF4444; }
 
 /* For direct inputs (like painLocation) */
 .entry.editing .metric-item > input[type="text"],
@@ -17736,8 +17769,10 @@ body.light-mode .settings-button-top:hover {
   height: 100%;
   border-radius: 2px;
   background: var(--primary-color);
-  width: 0;
-  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 100%;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 0 6px color-mix(in srgb, var(--primary-color) 60%, transparent);
 }
 
@@ -18199,9 +18234,12 @@ body.light-mode .goals-value-label {
 
 .goals-bar-fill {
   height: 100%;
+  width: 100%;
   border-radius: 3px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 62%, transparent), color-mix(in srgb, var(--primary-color) 92%, transparent));
-  transition: width 0.3s ease;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform 0.3s ease;
 }
 
 .goals-meta {
@@ -21653,9 +21691,11 @@ body.light-mode .danger-zone {
 
 .password-strength-fill {
   height: 100%;
-  width: 0%;
+  width: 100%;
   background-color: #f44336;
-  transition: width 0.3s ease, background-color 0.3s ease;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform 0.3s ease, background-color 0.3s ease;
   border-radius: 2px;
 }
 
@@ -23110,7 +23150,10 @@ body.light-mode .tile-picker-search::placeholder {
   height: 100%;
   border-radius: inherit;
   background: var(--primary-color);
-  transition: width 0.25s var(--ease-out-expo, ease-out);
+  width: 100%;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform 0.25s var(--ease-out-expo, ease-out);
 }
 
 .ai-model-download-consent .modal-body p {
@@ -23163,7 +23206,10 @@ body.light-mode .tile-picker-search::placeholder {
   height: 100%;
   border-radius: inherit;
   background: var(--primary-color);
-  transition: width 0.25s var(--ease-out-expo, ease-out);
+  width: 100%;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left center;
+  transition: transform 0.25s var(--ease-out-expo, ease-out);
 }
 
 .ai-model-download-progress__pct {
@@ -23218,7 +23264,11 @@ body.ai-model-download-blocking .app-bottom-nav {
 @keyframes tabEnterLeft { from { opacity: 0; transform: translateX(-38px); } }
 @keyframes tabEnterRight { from { opacity: 0; transform: translateX(38px); } }
 
-#tabNavIndicator { transition: transform var(--transition-fluid), width var(--transition-fluid); }
+#tabNavIndicator {
+  width: 1px;
+  transform-origin: left center;
+  transition: transform var(--transition-fluid), opacity var(--transition-fluid);
+}
 
 .app-bottom-nav-btn.active .app-bottom-nav-icon {
   transform: scale(1.12) translateY(-1px);
@@ -25455,6 +25505,11 @@ body.first-run-wizard-active #appShell {
   text-align: center;
   color: var(--text-primary);
 }
+
+.guided-onboarding-lead--below-avatar {
+  margin-top: 0.75rem;
+  margin-bottom: 12px;
+}
 .guided-onboarding-field-label {
   font-size: 0.82rem;
   font-weight: 700;
@@ -27133,10 +27188,12 @@ body.light-mode .dev-panel-tab-btn--active {
 }
 .dm-wizard-progress__fill {
   height: 100%;
-  width: 33%;
+  width: 100%;
   background: var(--primary-color);
   border-radius: 2px;
-  transition: width var(--transition-fluid);
+  transform: scaleX(var(--progress, 0.33));
+  transform-origin: left center;
+  transition: transform var(--transition-fluid);
 }
 .dm-wizard-body {
   min-height: 200px;
