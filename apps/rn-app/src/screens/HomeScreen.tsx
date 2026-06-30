@@ -25,6 +25,8 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
+import { ScreenCard, screenCardStyle } from '../components/ui/ScreenCard';
 import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
 import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
@@ -373,7 +375,7 @@ export function HomeScreen({
   const reduceMotion = useReduceMotionFlag();
   const fabPulse = useRef(new Animated.Value(0)).current;
   const prevLogCountRef = useRef<number | null>(null);
-  const bg = theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)' ? '#ffffff' : theme.tokens.color.background;
+  const bg = resolveScreenBackground(theme);
   const accent = theme.tokens.color.accent;
 
   const [loggedToday, setLoggedToday] = useState<boolean | null>(null);
@@ -917,12 +919,9 @@ export function HomeScreen({
           ? t('home.status.notLoggedStreakBrokenDetail')
           : t('home.status.notLoggedTodayDetail');
       return (
-        <View
+        <ScreenCard
           key="hero"
-          style={[
-            styles.card,
-            !loggedToday && cardContext.streakBroken && !cardContext.streakGrace ? styles.heroStreakNudgeCard : null,
-          ]}
+          style={!loggedToday && cardContext.streakBroken && !cardContext.streakGrace ? styles.heroStreakNudgeCard : undefined}
         >
           <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>Rianell</Text>
           {loggedToday === null ? (
@@ -1170,7 +1169,7 @@ export function HomeScreen({
               </Pressable>
             </View>
           ) : null}
-        </View>
+        </ScreenCard>
       );
     }
     if (cardId === 'streak' || cardId === 'weeklyReview') {
@@ -1189,7 +1188,7 @@ export function HomeScreen({
       return (
         <Pressable
           key="goals"
-          style={styles.card}
+          style={screenCardStyle(theme)}
           accessibilityRole="button"
           accessibilityLabel={t('home.goals.title')}
           onPress={() => requestOpenGoalsModal(0)}
@@ -1221,7 +1220,7 @@ export function HomeScreen({
     }
     if (cardId === 'personalBest' && personalBestHighlight) {
       return (
-        <View key="personalBest" style={styles.card}>
+        <ScreenCard key="personalBest">
           <Text style={[styles.title, { color: accent, fontSize: theme.font(16) }]}>
             {personalBestHighlight.kind === 'goodDays'
               ? t('gamification.personalBest.goodDays', { n: String(personalBestHighlight.n) })
@@ -1235,7 +1234,7 @@ export function HomeScreen({
           >
             <Text style={{ color: theme.tokens.color.text + '99' }}>{t('common.close')}</Text>
           </Pressable>
-        </View>
+        </ScreenCard>
       );
     }
     return null;
@@ -1667,7 +1666,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: 'rgba(0,0,0,0.55)',
   },
-  card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)', marginBottom: 12 },
+  card: {},
   heroInset: {
     position: 'relative',
     marginTop: 12,

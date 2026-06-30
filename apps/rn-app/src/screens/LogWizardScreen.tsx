@@ -25,6 +25,8 @@ import { FoodSearchInput } from '../components/FoodSearchInput';
 import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
 import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
+import { ScreenCard } from '../components/ui/ScreenCard';
 import { addLogEntry, getFrequentLogItems, loadLogs, type LogEntry } from '../storage/logs';
 import { persistWizardLogEntry } from '../storage/wizardPersist';
 import { getDefaultPreferences, type Preferences } from '../storage/preferences';
@@ -715,10 +717,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const toast = useToast();
   const reduceMotion = useReduceMotionFlag();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const bg =
-    theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
-      ? '#ffffff'
-      : theme.tokens.color.background;
+  const bg = resolveScreenBackground(theme);
   const rowDir = isRtl ? 'row-reverse' : 'row';
 
   const [step, setStep] = useState<Step>(0);
@@ -835,12 +834,12 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   }
 
   function toggleEnergyPicker() {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (!reduceMotion) LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setEnergyPickerOpen((v) => !v);
   }
 
   function toggleStressorPicker() {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (!reduceMotion) LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setStressorPickerOpen((v) => !v);
   }
 
@@ -1356,8 +1355,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
-      <View
-        style={styles.card}
+      <ScreenCard
+        flex
+        style={{ paddingEnd: 52 }}
         onTouchStart={onWizardTouchStart}
         onTouchEnd={onWizardTouchEnd}
       >
@@ -1368,7 +1368,15 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           {t('wizard.progress.stepOfTotal', { current: step + 1, total: WIZARD_STEPS })}
         </Text>
         <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: WIZARD_STEPS, now: step + 1 }}>
-          <View style={[styles.progressFill, { width: `${((step + 1) / WIZARD_STEPS) * 100}%`, backgroundColor: theme.tokens.color.accent }]} />
+          <View
+            style={[
+              styles.progressFill,
+              {
+                transform: [{ scaleX: (step + 1) / WIZARD_STEPS }],
+                backgroundColor: theme.tokens.color.accent,
+              },
+            ]}
+          />
         </View>
         <View style={[styles.stepDots, { flexDirection: rowDir }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           {Array.from({ length: WIZARD_STEPS }, (_, i) => (
@@ -2535,7 +2543,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             <Text style={[styles.sideNextIcon, { fontSize: theme.font(28) }]}>{isRtl ? '‹' : '›'}</Text>
           </Pressable>
         ) : null}
-      </View>
+      </ScreenCard>
     </SafeAreaView>
   );
 }
@@ -2625,7 +2633,7 @@ function BodyRegionChoice({
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
-  card: { flex: 1, borderRadius: 16, padding: 16, paddingEnd: 52, backgroundColor: 'rgba(0,0,0,0.18)' },
+  card: {},
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: 108 },
   unlockBanner: {
@@ -2650,7 +2658,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10,
   },
-  progressFill: { height: '100%', borderRadius: 999 },
+  progressFill: { height: '100%', width: '100%', borderRadius: 999 },
   stepDots: { flexDirection: 'row', gap: 6, marginBottom: 12, justifyContent: 'center' },
   stepDot: { width: 8, height: 8, borderRadius: 999 },
   stepDotActive: { width: 20 },

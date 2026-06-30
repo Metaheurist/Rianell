@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../theme/ThemeProvider';
+import { SPACING_TOKENS, onAccentText } from '../../theme/themeHelpers';
 
 type Props = {
   label: string;
@@ -16,6 +17,7 @@ export function PrimaryButton({ label, onPress, variant = 'primary', style, disa
   const theme = useTheme();
   const isPrimary = variant === 'primary';
   const scale = useRef(new Animated.Value(1)).current;
+  const radius = theme.radius?.sm ?? 8;
 
   const springTo = (toValue: number) => {
     Animated.spring(scale, { toValue, friction: 12, tension: 200, useNativeDriver: true }).start();
@@ -39,13 +41,18 @@ export function PrimaryButton({ label, onPress, variant = 'primary', style, disa
       <Animated.View
         style={[
           styles.inner,
+          {
+            borderRadius: radius,
+            paddingVertical: SPACING_TOKENS.md,
+            paddingHorizontal: SPACING_TOKENS.base,
+          },
           isPrimary
             ? { backgroundColor: theme.color.accent, borderColor: theme.color.accent }
             : { backgroundColor: 'rgba(18,20,21,0.97)', borderColor: theme.color.accent + '44' },
           { transform: [{ scale }] },
         ]}
       >
-        <Text style={[styles.label, { color: isPrimary ? '#041008' : theme.color.text }]}>{label}</Text>
+        <Text style={[styles.label, { color: isPrimary ? onAccentText() : theme.color.text }]}>{label}</Text>
       </Animated.View>
     </Pressable>
   );
@@ -54,10 +61,7 @@ export function PrimaryButton({ label, onPress, variant = 'primary', style, disa
 const styles = StyleSheet.create({
   base: { alignSelf: 'stretch' },
   inner: {
-    borderRadius: 8,
     borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
     alignItems: 'center',
   },
   label: { fontWeight: '600', fontSize: 16 },

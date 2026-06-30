@@ -20,6 +20,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { getTeamIds } from '@rianell/tokens';
 import type { AppearanceMode, LlmCoachPersona, Preferences, PreferredLlmModelSize } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
 import { useT } from '../i18n/I18nProvider';
 import { speakLabel } from '../accessibility/tts';
 import {
@@ -157,11 +158,7 @@ export function SettingsScreen({
     null,
   );
   const [paneIndex, setPaneIndex] = useState(0);
-  const bg =
-    theme.tokens.color.background ===
-    'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
-      ? '#ffffff'
-      : theme.tokens.color.background;
+  const bg = resolveScreenBackground(theme);
   const tts = { enabled: prefs.accessibility.ttsEnabled, readModeEnabled: prefs.accessibility.ttsReadModeEnabled };
 
   const [importOpen, setImportOpen] = useState(false);

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useReduceMotionFlag } from '../../hooks/useReduceMotionFlag';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -43,6 +44,7 @@ type Props = {
 
 export function SettingsChapter({ title, iconName, defaultOpen = false, children }: Props) {
   const theme = useTheme();
+  const reduceMotion = useReduceMotionFlag();
   const [expanded, setExpanded] = useState(defaultOpen);
   const rotation = useRef(new Animated.Value(defaultOpen ? 0 : -90)).current;
 
@@ -56,7 +58,7 @@ export function SettingsChapter({ title, iconName, defaultOpen = false, children
   }, [expanded, rotation]);
 
   const toggle = () => {
-    LayoutAnimation.configureNext(CHAPTER_SPRING_LAYOUT);
+    if (!reduceMotion) LayoutAnimation.configureNext(CHAPTER_SPRING_LAYOUT);
     setExpanded((v) => !v);
   };
 

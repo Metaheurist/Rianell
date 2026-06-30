@@ -3,6 +3,8 @@ import { Animated, Pressable, ScrollView, StyleSheet, Text, TextInput, View, typ
 import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
+import { ScreenCard } from '../components/ui/ScreenCard';
 import { useT } from '../i18n/I18nProvider';
 import { loadLogs } from '../storage/logs';
 import { Share } from 'react-native';
@@ -49,11 +51,7 @@ function fmt(value: number | null): string {
 export function AiScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
   const { t, locale } = useT();
-  const bg =
-    theme.tokens.color.background ===
-    'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
-      ? '#ffffff'
-      : theme.tokens.color.background;
+  const bg = resolveScreenBackground(theme);
   const [range, setRange] = useState<AiRange>(30);
   const [logs, setLogs] = useState<Awaited<ReturnType<typeof loadLogs>>>([]);
   const [summaryNote, setSummaryNote] = useState<string>('');
@@ -176,17 +174,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
       >
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor:
-                theme.mode === 'light' ? `${theme.tokens.color.text}0D` : 'rgba(0,0,0,0.18)',
-              position: 'relative',
-              overflow: 'hidden',
-            },
-          ]}
-        >
+        <ScreenCard style={{ position: 'relative', overflow: 'hidden' }}>
         <OasisNeuralTrace color={theme.tokens.color.accent + '88'} height={72} />
         <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('nav.ai')}</Text>
 
@@ -649,7 +637,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               ))}
             </>
           ) : null}
-        </View>
+        </ScreenCard>
       </ScrollView>
     </SafeAreaView>
   );
@@ -658,7 +646,6 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
   scrollContent: { paddingBottom: 28 },
-  card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
   title: { fontWeight: '700', marginBottom: 8 },
   text: { opacity: 0.95, marginBottom: 10 },
   section: { marginTop: 12, marginBottom: 6, fontWeight: '800', opacity: 0.85 },

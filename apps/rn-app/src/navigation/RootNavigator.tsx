@@ -5,6 +5,7 @@ import { NavigationContainer, DefaultTheme, DarkTheme, useNavigationContainerRef
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
 import { HomeScreen } from '../screens/HomeScreen';
 import { LogsScreenRoute } from '../screens/LogsScreenRoute';
 import { ChartsScreen } from '../screens/ChartsScreen';
@@ -224,10 +225,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
     void isTabBadgeActive('tabBadge_charts').then(setChartsBadge);
     void isTabBadgeActive('tabBadge_ai').then(setAiBadge);
   }, []);
-  const tabBg =
-    theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
-      ? '#ffffff'
-      : theme.tokens.color.background;
+  const tabBg = resolveScreenBackground(theme);
   const accent = theme.tokens.color.accent;
   const inactiveLabel =
     theme.mode === 'dark' ? 'rgba(232, 238, 236, 0.78)' : 'rgba(0, 0, 0, 0.55)';

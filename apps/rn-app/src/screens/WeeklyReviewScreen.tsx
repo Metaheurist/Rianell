@@ -12,6 +12,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
+import { resolveScreenBackground } from '../theme/themeHelpers';
 import { useT } from '../i18n/I18nProvider';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useToast } from '../components/ui/Toast';
@@ -122,11 +123,7 @@ export function WeeklyReviewScreen({
   };
 
   const current = WEEKLY_REVIEW_STEPS[step];
-  const bg =
-    theme.tokens.color.background ===
-    'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
-      ? '#ffffff'
-      : theme.tokens.color.background;
+  const bg = resolveScreenBackground(theme);
 
   return (
     <SafeAreaView style={[styles.wrap, { backgroundColor: bg }]}>
