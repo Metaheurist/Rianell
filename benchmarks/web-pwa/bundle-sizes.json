@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-30T00:07:39.261Z",
+  "generatedAt": "2026-06-30T06:33:08.534Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4916069,
-    "cssBytes": 741646,
-    "jsGzipBytes": 1164104,
-    "cssGzipBytes": 126806
+    "jsBytes": 4918282,
+    "cssBytes": 747275,
+    "jsGzipBytes": 1164641,
+    "cssGzipBytes": 127732
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1135642,
-      "gzipBytes": 246897
+      "bytes": 1136475,
+      "gzipBytes": 247159
     },
     {
-      "file": "ci-minified/site/app.e17b7ace2ca4.min.js",
-      "bytes": 839054,
-      "gzipBytes": 194463
+      "file": "ci-minified/site/app.de435a3fc5ce.min.js",
+      "bytes": 839727,
+      "gzipBytes": 194652
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/styles.2ab317087983.css",
-      "bytes": 670016,
-      "gzipBytes": 111587
+      "file": "ci-minified/site/styles.221b270e9332.css",
+      "bytes": 675375,
+      "gzipBytes": 112455
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -55,8 +55,8 @@
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
-      "bytes": 73681,
-      "gzipBytes": 15820
+      "bytes": 73847,
+      "gzipBytes": 15843
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -74,19 +74,19 @@
       "gzipBytes": 9317
     },
     {
+      "file": "ci-minified/site/modules/log-metric-widgets.js",
+      "bytes": 37581,
+      "gzipBytes": 8024
+    },
+    {
       "file": "ci-minified/site/modules/weekly-review.js",
       "bytes": 37373,
       "gzipBytes": 8186
     },
     {
       "file": "ci-minified/site/css/graphics-portfolio.css",
-      "bytes": 37042,
-      "gzipBytes": 6771
-    },
-    {
-      "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 37040,
-      "gzipBytes": 7961
+      "bytes": 37227,
+      "gzipBytes": 6808
     },
     {
       "file": "ci-minified/site/guided-onboarding.js",
@@ -160,8 +160,8 @@
     },
     {
       "file": "ci-minified/site/css/oasis.css",
-      "bytes": 14223,
-      "gzipBytes": 3598
+      "bytes": 14308,
+      "gzipBytes": 3619
     },
     {
       "file": "ci-minified/site/security-utils.js",
