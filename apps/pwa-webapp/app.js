@@ -4162,7 +4162,7 @@ function updateExportWizardUI() {
     }
   }
   var progress = document.getElementById('exportWizardProgress');
-  if (progress) progress.style.width = (step / 3 * 100) + '%';
+  if (progress) setProgressScale(progress, (step / 3) * 100);
   var backBtn = document.getElementById('exportWizardBack');
   var nextBtn = document.getElementById('exportWizardNext');
   if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
@@ -4274,7 +4274,7 @@ function updateImportWizardUI() {
     if (el) el.classList.toggle('dm-wizard-step--active', i === step);
   }
   var progress = document.getElementById('importWizardProgress');
-  if (progress) progress.style.width = (step / 3 * 100) + '%';
+  if (progress) setProgressScale(progress, (step / 3) * 100);
   var backBtn = document.getElementById('importWizardBack');
   var nextBtn = document.getElementById('importWizardNext');
   if (backBtn) backBtn.style.display = step > 1 ? '' : 'none';
@@ -11278,10 +11278,7 @@ function renderAchievementsPane() {
   requestAnimationFrame(function () {
     grid.querySelectorAll('.achievement-progress-fill').forEach(function (el) {
       var target = el.getAttribute('data-progress') || '0';
-      el.style.width = '0%';
-      requestAnimationFrame(function () {
-        el.style.width = target + '%';
-      });
+      animateProgressScale(el, target);
     });
     if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.animateAchievementDayChips === 'function') {
       window.RianellGraphicsPortfolio.animateAchievementDayChips(grid);
@@ -11660,9 +11657,8 @@ function getLogsLast7Days() {
 function animateGoalsBars(block) {
   if (!block) return;
   block.querySelectorAll('.goals-bar-fill').forEach(function (bar) {
-    var w = bar.style.width;
-    bar.style.width = '0%';
-    requestAnimationFrame(function () { bar.style.width = w; });
+    var pct = parseFloat(bar.getAttribute('data-progress') || '0');
+    animateProgressScale(bar, pct);
   });
 }
 
@@ -11707,7 +11703,7 @@ function updateGoalsProgressBlock() {
     var si = insight(stepsMet, 7, goals.steps > 0 ? Math.round((stepsAvg / goals.steps) * 100) : 0);
     rows.push('<div class="goals-metric-row">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">' + tUi('charts.metric.steps') + '</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
-      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + stepsPct + '%"></div></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + stepsPct + '"></div></div>' +
       '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
   }
   if (goals.hydration > 0) {
@@ -11719,7 +11715,7 @@ function updateGoalsProgressBlock() {
     var si = insight(hydMet, 7, goals.hydration > 0 ? Math.round((parseFloat(hydAvg) / goals.hydration) * 100) : 0);
     rows.push('<div class="goals-metric-row">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">' + tUi('charts.metric.hydration') + '</span>' + buildHydrationGoalsNumsHtml(hydAvg, goals.hydration) + '</div>' +
-      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + hydPct + '%"></div></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + hydPct + '"></div></div>' +
       '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met">' + daysDots(hydMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
   }
   if (goals.sleep > 0) {
@@ -11731,7 +11727,7 @@ function updateGoalsProgressBlock() {
     var si = insight(sleepMet, 7, goals.sleep > 0 ? Math.round((parseFloat(sleepAvg) / goals.sleep) * 100) : 0);
     rows.push('<div class="goals-metric-row">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-moon"></i></span><span class="goals-metric-name">' + tUi('export.csv.sleep') + '</span><span class="goals-metric-nums">' + sleepAvg + ' / ' + goals.sleep + '</span></div>' +
-      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + sleepPct + '%"></div></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + sleepPct + '"></div></div>' +
       '<div class="goals-meta"><span class="goals-days" title="' + sleepMet + ' of 7 days met">' + daysDots(sleepMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
   }
   if (goals.goodDaysPerWeek > 0) {
@@ -11742,7 +11738,7 @@ function updateGoalsProgressBlock() {
     var goodPct = goals.goodDaysPerWeek > 0 ? Math.min(100, Math.round((goodThisWeek / goals.goodDaysPerWeek) * 100)) : 0;
     rows.push('<div class="goals-metric-row">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-face-smile"></i></span><span class="goals-metric-name">' + tUi('common.good.days') + '</span><span class="goals-metric-nums">' + goodThisWeek + ' / ' + goals.goodDaysPerWeek + (streak > 0 ? ' · ' + streak + ' in a row' : '') + '</span></div>' +
-      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + goodPct + '%"></div></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + goodPct + '"></div></div>' +
       '<div class="goals-meta"><span class="goals-status-pill ' + goodCls + '">' + goodLabel + '</span></div></div>');
   }
   if (rows.length === 0) { block.style.display = 'none'; return; }
@@ -17608,9 +17604,9 @@ let appSettings = {
   logFavorites: { meals: [], exercises: [], medCombos: [] },
   symptomTemplates: [],
   medSchedule: [],
-  cycleModuleEnabled: false,
-  digestiveModuleEnabled: false,
-  barcodeFoodLoggingEnabled: false,
+  cycleModuleEnabled: true,
+  digestiveModuleEnabled: true,
+  barcodeFoodLoggingEnabled: true,
   barcodeFoodLoggingEnabledAt: null,
   glucoseUnit: 'mmol',
   temperatureUnit: 'celsius',
@@ -18466,7 +18462,7 @@ function refreshLlmModelSettingsHints() {
     progressWrap.setAttribute('aria-hidden', showProgress ? 'false' : 'true');
     if (showProgress) {
       var pct = modelStatus.pct || 0;
-      if (progressFill) progressFill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+      if (progressFill) setProgressScale(progressFill, Math.max(0, Math.min(100, pct)));
       if (progressPct) progressPct.textContent = pct + '%';
     }
   }
@@ -21118,7 +21114,7 @@ function updatePasswordStrengthUI(inputId, fillId, labelId) {
   if (!input || !fill) return;
   var result = checkPasswordStrengthLocal(input.value || '');
   var pct = Math.min(100, Math.max(0, (result.score / 4) * 100));
-  fill.style.width = pct + '%';
+  fill.style.setProperty('--progress', String(Math.max(0, Math.min(100, pct)) / 100));
   var colors = ['#f44336', '#ff9800', '#ffc107', '#8bc34a', '#4caf50'];
   fill.style.backgroundColor = colors[result.score] || colors[0];
   if (label) {
@@ -25029,7 +25025,7 @@ function updateLogWizardChrome() {
       ? tUi('wizard.progress.stepOfTotal', { current: currentLogWizardStep + 1, total: LOG_WIZARD_TOTAL_STEPS }) + (stepTitle ? ' - ' + stepTitle : '')
       : 'Step ' + (currentLogWizardStep + 1) + ' of ' + LOG_WIZARD_TOTAL_STEPS + (stepTitle ? ' - ' + stepTitle : '');
   }
-  if (fill) fill.style.width = ((currentLogWizardStep + 1) / LOG_WIZARD_TOTAL_STEPS * 100) + '%';
+  if (fill) setProgressScale(fill, ((currentLogWizardStep + 1) / LOG_WIZARD_TOTAL_STEPS) * 100);
   if (bar) {
     bar.setAttribute('aria-valuenow', String(currentLogWizardStep + 1));
     bar.setAttribute('aria-valuemax', String(LOG_WIZARD_TOTAL_STEPS));
@@ -26027,6 +26023,26 @@ function ensureChartsStylesLoaded() {
   document.head.appendChild(l);
 }
 
+// Motion-safe progress scale (transform-only — search: @rianell/progress-scale)
+function setProgressScale(el, pct) {
+  if (!el) return;
+  var n = Math.max(0, Math.min(100, Number(pct) || 0)) / 100;
+  el.style.setProperty('--progress', String(n));
+}
+
+function animateProgressScale(el, pct) {
+  if (!el) return;
+  var target = Math.max(0, Math.min(100, Number(pct) || 0));
+  if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setProgressScale(el, target);
+    return;
+  }
+  setProgressScale(el, 0);
+  requestAnimationFrame(function () {
+    setProgressScale(el, target);
+  });
+}
+
 // Tab switching functionality
 function updateTabNavIndicator(tabName) {
   var nav = document.querySelector('.tab-navigation');
@@ -26034,12 +26050,14 @@ function updateTabNavIndicator(tabName) {
   if (!nav || !indicator) return;
   var selectedBtnTop = nav.querySelector('.tab-btn[data-tab="' + (tabName || tabNameRef || 'home') + '"]');
   if (!selectedBtnTop) {
-    indicator.style.width = '0';
+    indicator.style.transform = 'translateX(0) scaleX(0)';
     indicator.style.opacity = '0';
     return;
   }
-  indicator.style.width = selectedBtnTop.offsetWidth + 'px';
-  indicator.style.transform = 'translateX(' + selectedBtnTop.offsetLeft + 'px)';
+  var w = selectedBtnTop.offsetWidth;
+  var x = selectedBtnTop.offsetLeft;
+  indicator.style.width = '1px';
+  indicator.style.transform = 'translateX(' + x + 'px) scaleX(' + w + ')';
   indicator.style.opacity = '1';
 }
 

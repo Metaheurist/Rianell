@@ -2475,8 +2475,10 @@
         </div>
       </div>
       <div class="log-required-block hidden" id="logCycleBlock">
+        <details class="log-accordion log-accordion--cycle" id="logCycleAccordion">
+          <summary class="log-accordion__summary" data-i18n="wizard.cycle.title">Cycle tracking</summary>
+          <div class="log-accordion__body">
         <div class="cycle-track-panel">
-          <p class="cycle-track-title" data-i18n="wizard.cycle.title">Cycle tracking</p>
           <p class="cycle-track-lead" data-i18n="wizard.cycle.lead">Tap where you are in your cycle today.</p>
           <p class="cycle-suggest-hint" id="logCycleSuggestHint" hidden></p>
           <input type="hidden" id="logCycleDay" value="" />
@@ -2492,6 +2494,12 @@
             <p class="cycle-day-readout" id="logCycleDayReadout" aria-live="polite"></p>
           </div>
           <button type="button" class="cycle-track-clear" id="logCycleClear" data-i18n="wizard.cycle.clear">Clear cycle info</button>
+        </div>
+          </div>
+        </details>
+        <details class="log-accordion log-accordion--bbt" id="logBbtAccordion">
+          <summary class="log-accordion__summary" data-i18n="wizard.cycle.bbt">Basal body temperature</summary>
+          <div class="log-accordion__body">
           <div class="cycle-bbt-row" id="logCycleBbtRow">
             <div class="bbt-thermo-widget" id="bbtThermoWidget" data-bbt-active="false" aria-labelledby="bbtWidgetLabel">
               <div class="bbt-thermo-header">
@@ -2554,7 +2562,8 @@
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </details>
       </div>
       <p class="settings-hint log-quick-log-hint" data-i18n="common.only.need.date.and.flare.save.a.minimal.">Only need date and flare? Save a minimal entry and add details later.</p>
       <button type="button" class="log-wizard-quick-save-btn" id="logWizardQuickSaveBtn" onclick="saveQuickMinimalLog()" data-i18n="wizard.action.saveMinimal">Save minimal log</button>
@@ -2839,9 +2848,8 @@
             <defs>
               <filter id="pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
             </defs>
-            <!-- Set D abstract mannequin outline (regions unchanged for click handlers) -->
-            <path class="pain-body-outline pain-body-outline--abstract" d="M70 18 L52 38 L48 72 L42 128 L50 220 L58 268 L70 274 L82 268 L90 220 L98 128 L92 72 L88 38 Z" fill="rgba(255,255,255,0.04)" stroke="var(--avatar-primary)" stroke-width="1" opacity="0.45"/>
-            <path class="pain-body-outline__guides" d="M48 72 L22 95 L20 175 M92 72 L118 95 L120 175 M54 158 L50 268 M86 158 L90 268" fill="none" stroke="var(--avatar-secondary)" stroke-width="1" opacity="0.35" aria-hidden="true"/>
+            <!-- Clean anatomical outline (stroke only — no capsule fill) -->
+            <path class="pain-body-outline pain-body-outline--abstract" d="M70 14 C58 14 48 22 46 34 C44 44 42 52 40 72 C38 92 42 118 44 148 C46 178 48 210 52 248 C54 262 62 272 70 276 C78 272 86 262 88 248 C92 210 94 178 96 148 C98 118 102 92 100 72 C98 52 96 44 94 34 C92 22 82 14 70 14 Z" fill="none" stroke="#CBD5E1" stroke-width="1.2" opacity="0.55"/>
             <!-- Clickable regions (front view, rounded human-like shapes) -->
             <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
@@ -2859,12 +2867,12 @@
             <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_foot" d="M56 268 L52 266 L38 274 L40 280 L54 278 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_foot" d="M54 268 Q48 272 38 276 Q36 278 40 280 L54 278 Q58 274 56 268 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_foot" d="M84 268 L88 266 L102 274 L100 280 L86 278 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_foot" d="M86 268 Q92 272 102 276 Q104 278 100 280 L86 278 Q82 274 84 268 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <!-- Joint points (balls) - same click/cycle behaviour as body regions -->
             <circle class="pain-region pain-state-0" data-region="left_elbow" cx="25" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <circle class="pain-region pain-state-0" data-region="right_elbow" cx="115" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
@@ -3874,8 +3882,7 @@
                   <defs>
                     <filter id="edit-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
                   </defs>
-                  <path class="pain-body-outline pain-body-outline--abstract" d="M70 18 L52 38 L48 72 L42 128 L50 220 L58 268 L70 274 L82 268 L90 220 L98 128 L92 72 L88 38 Z" fill="rgba(255,255,255,0.04)" stroke="var(--avatar-primary)" stroke-width="1" opacity="0.45"/>
-                  <path class="pain-body-outline__guides" d="M48 72 L22 95 L20 175 M92 72 L118 95 L120 175 M54 158 L50 268 M86 158 L90 268" fill="none" stroke="var(--avatar-secondary)" stroke-width="1" opacity="0.35" aria-hidden="true"/>
+                  <path class="pain-body-outline pain-body-outline--abstract" d="M70 14 C58 14 48 22 46 34 C44 44 42 52 40 72 C38 92 42 118 44 148 C46 178 48 210 52 248 C54 262 62 272 70 276 C78 272 86 262 88 248 C92 210 94 178 96 148 C98 118 102 92 100 72 C98 52 96 44 94 34 C92 22 82 14 70 14 Z" fill="none" stroke="#CBD5E1" stroke-width="1.2" opacity="0.55"/>
                   <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="chest" d="M46 72 Q38 80 42 96 L46 108 L94 108 L98 96 Q102 80 94 72 Q86 68 70 68 Q54 68 46 72 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
@@ -3892,12 +3899,12 @@
                   <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_foot" d="M56 268 L52 266 L38 274 L40 280 L54 278 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_foot" d="M54 268 Q48 272 38 276 Q36 278 40 280 L54 278 Q58 274 56 268 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_foot" d="M84 268 L88 266 L102 274 L100 280 L86 278 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_foot" d="M86 268 Q92 272 102 276 Q104 278 100 280 L86 278 Q82 274 84 268 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <!-- Joint points (balls) -->
                   <circle class="pain-region pain-state-0" data-region="left_elbow" cx="25" cy="131" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <circle class="pain-region pain-state-0" data-region="right_elbow" cx="115" cy="131" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
@@ -4945,7 +4952,7 @@
             <span id="importProgressPercent" style="font-size: 0.9rem; color: var(--primary-color); font-weight: bold;">0%</span>
           </div>
           <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
-            <div id="importProgressBar" style="height: 100%; width: 0%; background: var(--primary-gradient); border-radius: 4px; transition: width 0.3s ease;"></div>
+            <div id="importProgressBar"></div>
           </div>
           <div id="importProgressStatus" style="margin-top: 0.5rem; font-size: 0.85rem; color: rgba(224, 242, 241, 0.7);">Preparing import...</div>
         </div>

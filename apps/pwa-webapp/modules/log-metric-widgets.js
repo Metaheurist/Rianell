@@ -134,27 +134,21 @@
           '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 -3 L6 2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
           '</g></g></svg>';
       case 'swelling':
-        return '<svg class="metric-svg metric-svg--swelling" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
+        return '<svg class="metric-svg metric-svg--swelling-balloon" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
           '<defs>' +
-          '<radialGradient id="metricKneeSwellGrad" cx="0.5" cy="0.45" r="0.55">' +
-          '<stop offset="0%" class="metric-knee-swell-grad-core"/>' +
-          '<stop offset="65%" class="metric-knee-swell-grad-mid"/>' +
-          '<stop offset="100%" class="metric-knee-swell-grad-edge"/>' +
+          '<radialGradient id="metricBalloonGrad" cx="0.42" cy="0.38" r="0.62">' +
+          '<stop offset="0%" class="metric-balloon-grad-core"/>' +
+          '<stop offset="70%" class="metric-balloon-grad-mid"/>' +
+          '<stop offset="100%" class="metric-balloon-grad-edge"/>' +
           '</radialGradient>' +
           '</defs>' +
-          '<g class="metric-knee-swell-anchor" transform="translate(36 50)">' +
-          '<ellipse class="metric-knee-ripple metric-knee-ripple--2" cx="0" cy="0" rx="9" ry="11" fill="none" stroke="currentColor" stroke-width="1.3"/>' +
-          '<ellipse class="metric-knee-ripple metric-knee-ripple--1" cx="0" cy="0" rx="6.5" ry="8" fill="none" stroke="currentColor" stroke-width="1.5"/>' +
-          '<g class="metric-knee-swell-pulse">' +
-          '<ellipse class="metric-knee-swell-fluid" cx="0" cy="0" rx="5" ry="6" fill="url(#metricKneeSwellGrad)"/>' +
-          '<ellipse class="metric-knee-swell-shine" cx="-1.5" cy="-2" rx="2.2" ry="2.8" fill="rgba(255,255,255,0.32)"/>' +
-          '</g></g>' +
-          '<g class="metric-knee-bones" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' +
-          '<path class="metric-knee-femur" d="M33 6 v6 M31 12 C27 20 26 32 29 44" stroke-width="4.5"/>' +
-          '<path class="metric-knee-tibia" d="M31 46 Q32 48 35 72" stroke-width="3.8"/>' +
-          '<path class="metric-knee-fibula" d="M36 47 L38 70" stroke-width="2.2" opacity="0.8"/>' +
-          '</g>' +
-          '<ellipse class="metric-knee-patella" cx="37" cy="44" rx="5" ry="6.5" stroke="currentColor" stroke-width="1.6"/></svg>';
+          '<g class="metric-balloon-anchor">' +
+          '<path class="metric-balloon-string" d="M36 78 v8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.55"/>' +
+          '<ellipse class="metric-balloon-knot" cx="36" cy="76" rx="3.2" ry="2.4" fill="currentColor" opacity="0.72"/>' +
+          '<path class="metric-balloon-neck" d="M34 68 Q36 72 38 68" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+          '<path class="metric-balloon-body" fill="url(#metricBalloonGrad)" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>' +
+          '<ellipse class="metric-balloon-shine" cx="0" cy="0" rx="4" ry="5" fill="rgba(255,255,255,0.35)"/>' +
+          '</g></svg>';
       case 'fatigue':
         return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<rect class="metric-battery-cap" x="28" y="14" width="8" height="4" rx="1" fill="rgba(255,255,255,0.35)"/>' +
@@ -316,33 +310,71 @@
     if (shadow) shadow.setAttribute('rx', (9 + r * 7).toFixed(1));
   }
 
+  /** Balloon body path snapshots — knot/neck stay fixed; chamber morphs via d lerp. */
+  var BALLOON_BODY_DEFLATED = { cx: 36, top: 52, rx: 9, ry: 5, bulge: 8 };
+  var BALLOON_BODY_MID = { cx: 34, top: 38, rx: 16, ry: 14, bulge: 20 };
+  var BALLOON_BODY_INFLATED = { cx: 26, top: 18, rx: 28, ry: 26, bulge: 34 };
+
+  function balloonBodyPathFromShape(s) {
+    var cx = s.cx;
+    var neckY = 68;
+    var top = s.top;
+    var rx = s.rx;
+    var ry = s.ry;
+    var bulge = s.bulge;
+    return 'M' + (cx - rx * 0.35).toFixed(1) + ' ' + neckY +
+      ' C' + (cx - rx).toFixed(1) + ' ' + (neckY - 4) +
+      ' ' + (cx - rx).toFixed(1) + ' ' + top +
+      ' ' + cx.toFixed(1) + ' ' + (top - 2) +
+      ' C' + (cx + rx).toFixed(1) + ' ' + top +
+      ' ' + (cx + rx).toFixed(1) + ' ' + (neckY - 4) +
+      ' ' + (cx + rx * 0.35).toFixed(1) + ' ' + neckY +
+      ' C' + (cx + rx * 0.2).toFixed(1) + ' ' + (neckY + bulge * 0.15) +
+      ' ' + cx.toFixed(1) + ' ' + (neckY + bulge * 0.22) +
+      ' ' + (cx - rx * 0.2).toFixed(1) + ' ' + (neckY + bulge * 0.15) + ' Z';
+  }
+
+  function lerpBalloonShape(a, b, t) {
+    return {
+      cx: lerp(a.cx, b.cx, t),
+      top: lerp(a.top, b.top, t),
+      rx: lerp(a.rx, b.rx, t),
+      ry: lerp(a.ry, b.ry, t),
+      bulge: lerp(a.bulge, b.bulge, t),
+    };
+  }
+
+  function balloonShapeForValue(rawValue) {
+    var v = clamp(parseInt(rawValue, 10) || 1, 1, 10);
+    var t = (v - 1) / 9;
+    if (t <= 0.5) {
+      return lerpBalloonShape(BALLOON_BODY_DEFLATED, BALLOON_BODY_MID, t / 0.5);
+    }
+    return lerpBalloonShape(BALLOON_BODY_MID, BALLOON_BODY_INFLATED, (t - 0.5) / 0.5);
+  }
+
+  function updateSwellingBalloon(visual, rawValue) {
+    var shape = balloonShapeForValue(rawValue);
+    var body = visual.querySelector('.metric-balloon-body');
+    if (body) body.setAttribute('d', balloonBodyPathFromShape(shape));
+    var shine = visual.querySelector('.metric-balloon-shine');
+    if (shine) {
+      shine.setAttribute('cx', (shape.cx - shape.rx * 0.25).toFixed(1));
+      shine.setAttribute('cy', (shape.top + shape.ry * 0.35).toFixed(1));
+      shine.setAttribute('rx', (shape.rx * 0.22).toFixed(1));
+      shine.setAttribute('ry', (shape.ry * 0.28).toFixed(1));
+      shine.style.opacity = String(0.15 + (shape.rx / 28) * 0.45);
+    }
+    return shape;
+  }
+
   function applySwellingVisual(widget, visual, rawValue) {
     var r = ratio(parseInt(rawValue, 10) || 5, 1, 10);
-    var fluid = visual.querySelector('.metric-knee-swell-fluid');
-    var fluidRx = 3.8 + r * 8.2;
-    var fluidRy = 4.6 + r * 9.4;
-    if (fluid) {
-      fluid.setAttribute('rx', fluidRx.toFixed(1));
-      fluid.setAttribute('ry', fluidRy.toFixed(1));
-    }
-    var shine = visual.querySelector('.metric-knee-swell-shine');
-    if (shine) shine.style.opacity = r > 0.15 ? String(0.12 + r * 0.38) : '0.1';
-    var patella = visual.querySelector('.metric-knee-patella');
-    if (patella) {
-      patella.setAttribute('cx', (36.5 + r * 1.8).toFixed(1));
-      patella.setAttribute('cy', (44 + r * 1.2).toFixed(1));
-      patella.setAttribute('rx', (4.8 + r * 2.4).toFixed(1));
-      patella.setAttribute('ry', (6.2 + r * 2.8).toFixed(1));
-    }
-    var tibia = visual.querySelector('.metric-knee-tibia');
-    if (tibia) {
-      tibia.setAttribute('transform', 'rotate(' + (r * 5).toFixed(1) + ' 31 46)');
-    }
+    updateSwellingBalloon(visual, rawValue);
     var level = r < 0.28 ? 'low' : r < 0.62 ? 'mid' : 'high';
     widget.setAttribute('data-swelling-level', level);
-    widget.style.setProperty('--metric-knee-pulse-dur', (2.1 - r * 1.05).toFixed(2) + 's');
-    widget.style.setProperty('--metric-knee-glow-strength', (0.12 + r * 0.68).toFixed(2));
-    widget.style.setProperty('--metric-knee-fluid-scale', (1 + r * 0.22).toFixed(2));
+    widget.style.setProperty('--metric-balloon-pulse-dur', (2.4 - r * 1.1).toFixed(2) + 's');
+    widget.style.setProperty('--metric-balloon-glow', (0.1 + r * 0.65).toFixed(2));
   }
 
   function lerp(a, b, t) {

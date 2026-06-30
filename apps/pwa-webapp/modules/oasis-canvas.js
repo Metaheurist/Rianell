@@ -106,22 +106,26 @@
   // Full-panel ambient dashed waves (two strands, repeated vertically).
   function buildNeuralTraceSvg() {
     var rows = [];
-    var rowCount = 7;
-    var rowStep = 104;
-    var startY = 56;
+    var rowCount = 5;
+    var rowStep = 130;
+    var startY = 48;
     for (var i = 0; i < rowCount; i++) {
       var yA = startY + i * rowStep;
-      var yB = yA + 28 + (i % 2) * 8;
-      var phase = i * 18;
+      var yB = yA + 22 + (i % 2) * 10;
+      var phase = i * 22;
       rows.push(
-        '  <path class="oasis-neural-path" style="animation-delay:' + (-i * 0.35) + 's"',
-        '    d="M-60,' + yA + ' C' + (40 + phase) + ',' + (yA - 36) + ' ' + (120 + phase) + ',' + (yA + 34) + ' 200,' + yA +
-        ' S' + (320 + phase) + ',' + (yA - 42) + ' 460,' + yA + '"',
-        '    fill="none" stroke="var(--oasis-glow)" stroke-width="1.35" opacity="0.42"/>',
-        '  <path class="oasis-neural-path oasis-neural-path--b" style="animation-delay:' + (-1.2 - i * 0.35) + 's"',
-        '    d="M-60,' + yB + ' C' + (50 + phase) + ',' + (yB + 38) + ' ' + (130 + phase) + ',' + (yB - 32) + ' 210,' + yB +
-        ' S' + (330 + phase) + ',' + (yB + 40) + ' 460,' + yB + '"',
-        '    fill="none" stroke="var(--oasis-glow)" stroke-width="1" opacity="0.28"/>'
+        '  <path class="oasis-neural-vein oasis-neural-vein--main" style="animation-delay:' + (-i * 2.8) + 's"',
+        '    d="M-40,' + yA + ' C' + (50 + phase) + ',' + (yA - 28) + ' ' + (140 + phase) + ',' + (yA + 24) + ' 220,' + yA +
+        ' S' + (340 + phase) + ',' + (yA - 32) + ' 480,' + yA + '"',
+        '    fill="none" stroke="var(--oasis-glow)" stroke-width="1.4" opacity="0.2"/>',
+        '  <path class="oasis-neural-vein oasis-neural-vein--branch" style="animation-delay:' + (-3.5 - i * 2.2) + 's"',
+        '    d="M-30,' + yB + ' C' + (60 + phase) + ',' + (yB + 30) + ' ' + (150 + phase) + ',' + (yB - 26) + ' 230,' + yB +
+        ' S' + (350 + phase) + ',' + (yB + 28) + ' 470,' + yB + '"',
+        '    fill="none" stroke="var(--oasis-glow)" stroke-width="0.75" opacity="0.12"/>',
+        '  <path class="oasis-neural-vein oasis-neural-vein--glow" style="animation-delay:' + (-5 - i * 3.1) + 's"',
+        '    d="M-50,' + (yA + 8) + ' C' + (45 + phase) + ',' + (yA - 18) + ' ' + (130 + phase) + ',' + (yA + 16) + ' 210,' + (yA + 8) +
+        ' S' + (330 + phase) + ',' + (yA - 20) + ' 460,' + (yA + 8) + '"',
+        '    fill="none" stroke="var(--oasis-glow)" stroke-width="2.2" opacity="0.08"/>'
       );
     }
     return [
@@ -134,11 +138,11 @@
   function injectNeuralTrace(containerEl) {
     if (!containerEl) return;
     var existing = containerEl.querySelector('.oasis-neural-trace');
-    if (existing && existing.getAttribute('data-oasis-neural-v') === '2') return;
+    if (existing && existing.getAttribute('data-oasis-neural-v') === '3') return;
     if (existing) existing.remove();
     var wrapper = document.createElement('div');
     wrapper.className = 'oasis-neural-trace';
-    wrapper.setAttribute('data-oasis-neural-v', '2');
+    wrapper.setAttribute('data-oasis-neural-v', '3');
     wrapper.setAttribute('aria-hidden', 'true');
     wrapper.innerHTML = buildNeuralTraceSvg();
     containerEl.insertBefore(wrapper, containerEl.firstChild);

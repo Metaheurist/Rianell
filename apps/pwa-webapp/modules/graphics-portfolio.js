@@ -236,6 +236,111 @@
     return eyes + mouth;
   }
 
+  var AVATAR_MOTION_IDS = ['float', 'breathe', 'tilt', 'sparkle', 'wiggle', 'blink'];
+
+  function pickAvatarAccessoryType(rng) {
+    var roll = rng();
+    if (roll < 0.35) return 'none';
+    if (roll < 0.53) return 'glasses';
+    if (roll < 0.65) return 'sunglasses';
+    if (roll < 0.77) return rng() > 0.5 ? 'cap' : 'beanie';
+    if (roll < 0.85) return rng() > 0.5 ? 'crown' : 'halo';
+    if (roll < 0.93) return rng() > 0.5 ? 'scarf' : 'bow';
+    return rng() > 0.5 ? 'headphones' : 'sparkleOrbit';
+  }
+
+  function avatarAccessoryMarkup(rng, cx, faceCy, faceRx, faceRy, bodyY) {
+    var type = pickAvatarAccessoryType(rng);
+    var stroke = 'stroke="currentColor" stroke-width="1.45" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+    var fill = 'fill="currentColor"';
+    var eye = 'fill="var(--avatar-eye, #1a1a1a)"';
+    var topY = faceCy - faceRy;
+    var midY = faceCy - 1;
+    var leftX = cx - faceRx * 0.62;
+    var rightX = cx + faceRx * 0.62;
+
+    switch (type) {
+      case 'glasses':
+        return '<g class="avatar-accessory avatar-accessory--glasses">' +
+          '<circle cx="' + leftX.toFixed(1) + '" cy="' + midY.toFixed(1) + '" r="4.2" ' + stroke + '/>' +
+          '<circle cx="' + rightX.toFixed(1) + '" cy="' + midY.toFixed(1) + '" r="4.2" ' + stroke + '/>' +
+          '<path d="M' + (leftX + 4.2).toFixed(1) + ' ' + midY.toFixed(1) + ' H' + (rightX - 4.2).toFixed(1) + '" ' + stroke + ' opacity="0.8"/>' +
+        '</g>';
+      case 'sunglasses':
+        return '<g class="avatar-accessory avatar-accessory--sunglasses">' +
+          '<path d="M' + (leftX - 5).toFixed(1) + ' ' + (midY - 3).toFixed(1) + ' h9 q2 0 1.2 3.8 q-0.8 3.8-4.8 3.8 q-4 0-5.4-7.6Z" ' + eye + ' opacity="0.88"/>' +
+          '<path d="M' + (rightX - 4).toFixed(1) + ' ' + (midY - 3).toFixed(1) + ' h9 q-1.4 7.6-5.4 7.6 q-4 0-4.8-3.8 q-0.8-3.8 1.2-3.8Z" ' + eye + ' opacity="0.88"/>' +
+        '</g>';
+      case 'cap':
+        return '<g class="avatar-accessory avatar-accessory--cap">' +
+          '<path d="M' + (cx - faceRx - 2).toFixed(1) + ' ' + (topY + 3).toFixed(1) + ' Q' + cx + ' ' + (topY - 8).toFixed(1) + ' ' + (cx + faceRx + 2).toFixed(1) + ' ' + (topY + 3).toFixed(1) + ' Q' + cx + ' ' + (topY + 9).toFixed(1) + ' ' + (cx - faceRx - 2).toFixed(1) + ' ' + (topY + 3).toFixed(1) + 'Z" ' + fill + ' opacity="0.62"/>' +
+        '</g>';
+      case 'beanie':
+        return '<g class="avatar-accessory avatar-accessory--beanie">' +
+          '<path d="M' + (cx - faceRx - 1).toFixed(1) + ' ' + (topY + 4).toFixed(1) + ' Q' + cx + ' ' + (topY - 10).toFixed(1) + ' ' + (cx + faceRx + 1).toFixed(1) + ' ' + (topY + 4).toFixed(1) + ' v5 H' + (cx - faceRx - 1).toFixed(1) + 'Z" ' + fill + ' opacity="0.55"/>' +
+          '<circle cx="' + cx + '" cy="' + (topY - 8).toFixed(1) + '" r="2.7" ' + fill + ' opacity="0.72"/>' +
+        '</g>';
+      case 'crown':
+        return '<g class="avatar-accessory avatar-accessory--crown">' +
+          '<path d="M' + (cx - 10) + ' ' + (topY + 4).toFixed(1) + ' l4-8 l6 7 l6-7 l4 8 v5 h-20Z" ' + stroke + ' fill="currentColor" fill-opacity="0.18"/>' +
+        '</g>';
+      case 'halo':
+        return '<g class="avatar-accessory avatar-accessory--halo">' +
+          '<ellipse cx="' + cx + '" cy="' + (topY - 5).toFixed(1) + '" rx="' + (faceRx * 0.8).toFixed(1) + '" ry="3.2" ' + stroke + ' opacity="0.58"/>' +
+        '</g>';
+      case 'bow':
+        return '<g class="avatar-accessory avatar-accessory--bow">' +
+          '<path d="M' + (cx - faceRx).toFixed(1) + ' ' + (topY + 7).toFixed(1) + ' q-7-5-9 2 q3 5 9-2Z" ' + fill + ' opacity="0.55"/>' +
+          '<path d="M' + (cx - faceRx).toFixed(1) + ' ' + (topY + 7).toFixed(1) + ' q7-5 9 2 q-3 5-9-2Z" ' + fill + ' opacity="0.75"/>' +
+        '</g>';
+      case 'scarf':
+        return '<g class="avatar-accessory avatar-accessory--scarf">' +
+          '<path d="M' + (cx - faceRx * 0.8).toFixed(1) + ' ' + (bodyY + 1).toFixed(1) + ' Q' + cx + ' ' + (bodyY + 5).toFixed(1) + ' ' + (cx + faceRx * 0.8).toFixed(1) + ' ' + (bodyY + 1).toFixed(1) + '" ' + stroke + ' stroke-width="3" opacity="0.58"/>' +
+        '</g>';
+      case 'headphones':
+        return '<g class="avatar-accessory avatar-accessory--headphones">' +
+          '<path d="M' + (cx - faceRx - 3).toFixed(1) + ' ' + (midY + 1).toFixed(1) + ' Q' + cx + ' ' + (topY - 9).toFixed(1) + ' ' + (cx + faceRx + 3).toFixed(1) + ' ' + (midY + 1).toFixed(1) + '" ' + stroke + ' opacity="0.62"/>' +
+          '<rect x="' + (cx - faceRx - 5).toFixed(1) + '" y="' + (midY - 1).toFixed(1) + '" width="5" height="10" rx="2.4" ' + fill + ' opacity="0.52"/>' +
+          '<rect x="' + (cx + faceRx).toFixed(1) + '" y="' + (midY - 1).toFixed(1) + '" width="5" height="10" rx="2.4" ' + fill + ' opacity="0.52"/>' +
+        '</g>';
+      case 'sparkleOrbit':
+        return '<g class="avatar-accessory avatar-accessory--sparkle-orbit">' +
+          '<path d="M' + (cx + faceRx + 5).toFixed(1) + ' ' + (topY + 5).toFixed(1) + ' l1.6 3.2 3.4 1.2-3.4 1.2-1.6 3.2-1.6-3.2-3.4-1.2 3.4-1.2Z" ' + fill + ' opacity="0.58"/>' +
+        '</g>';
+      default:
+        return '';
+    }
+  }
+
+  function avatarMotionFromSeed(seed) {
+    var rng = avatarRngFromSeed(String(seed || '') + ':motion');
+    return AVATAR_MOTION_IDS[Math.floor(rng() * AVATAR_MOTION_IDS.length)] || 'float';
+  }
+
+  function randomRenderMotion() {
+    return AVATAR_MOTION_IDS[Math.floor(Math.random() * AVATAR_MOTION_IDS.length)] || 'float';
+  }
+
+  function setAvatarMotion(shell, seed, forceNew) {
+    if (!shell) return;
+    var motion = forceNew ? randomRenderMotion() : avatarMotionFromSeed(seed);
+    AVATAR_MOTION_IDS.forEach(function (id) {
+      shell.classList.remove('avatar-random-shell--motion-' + id);
+    });
+    shell.classList.add('avatar-random-shell--motion-' + motion);
+    shell.setAttribute('data-avatar-motion', motion);
+  }
+
+  function setHeaderAvatarMotion(el, seed) {
+    if (!el) return;
+    var motion = seed ? avatarMotionFromSeed(seed) : 'float';
+    AVATAR_MOTION_IDS.forEach(function (id) {
+      el.classList.remove('profile-avatar-header--motion-' + id);
+    });
+    el.classList.add('profile-avatar-header--motion-' + motion);
+    el.setAttribute('data-avatar-motion', motion);
+  }
+
   function avatarSymbolPathsFromSeed(seed) {
     var rng = avatarRngFromSeed(seed);
     var cx = 32;
@@ -243,9 +348,9 @@
     var s = 'stroke="var(--avatar-secondary)" stroke-width="1.5" fill="none"';
     var glow = avatarCompanionGlow(cx, 28 + rng() * 4, 7 + rng() * 6);
 
-    var faceRx = 10 + rng() * 6;
-    var faceRy = 11 + rng() * 7;
-    var faceCy = 24 + rng() * 5;
+    var faceRx = 9 + rng() * 5;
+    var faceRy = 10 + rng() * 6;
+    var faceCy = 22 + rng() * 4;
     var face = '<ellipse class="avatar-generated-face" cx="' + cx + '" cy="' + faceCy.toFixed(1) + '" rx="' + faceRx.toFixed(1) + '" ry="' + faceRy.toFixed(1) + '" ' + f + '/>';
     var features = avatarFaceFeaturesMarkup(rng, cx, faceCy, faceRx, faceRy);
 
@@ -303,7 +408,16 @@
       }
     }
 
-    return glow + body + accent + face + features;
+    var accessories = avatarAccessoryMarkup(rng, cx, faceCy, faceRx, faceRy, bodyY);
+
+    return glow +
+      '<g class="avatar-generated-character">' +
+        '<g class="avatar-generated-body">' + body + '</g>' +
+        '<g class="avatar-generated-accent">' + accent + '</g>' +
+        face +
+        '<g class="avatar-generated-features">' + features + '</g>' +
+        accessories +
+      '</g>';
   }
 
   function generatedIconIdFromSeed(seed) {
@@ -432,13 +546,14 @@
           '</g></g>';
       case 'milestone_3':
         return '<g class="ach-icon ach-icon--milestone_3">' +
-          '<g class="ach-book">' +
-          '<rect class="ach-book-spine" x="30" y="13" width="4" height="40" rx="1" ' + fill + ' opacity="0.55"/>' +
-          '<path class="ach-book-cover ach-book-cover--left" d="M30 13 v40 L10 37 V17 Z" ' + stroke + ' fill="currentColor" fill-opacity="0.1"/>' +
-          '<path class="ach-book-cover ach-book-cover--right" d="M34 13 v40 L54 37 V17 Z" ' + stroke + ' fill="currentColor" fill-opacity="0.1"/>' +
-          '<path class="ach-book-page ach-book-page--left" d="M27 18 v30" ' + stroke + ' opacity="0.28"/>' +
-          '<path class="ach-book-page ach-book-page--right" d="M37 18 v30" ' + stroke + ' opacity="0.28"/>' +
-          '<path class="ach-book-page ach-book-page--center" d="M32 15 v36" ' + stroke + ' opacity="0.45"/>' +
+          '<ellipse class="ach-book-shadow" cx="32" cy="52" rx="20" ry="5" fill="currentColor" opacity="0.12"/>' +
+          '<g class="ach-book ach-book--self-opening">' +
+          '<path class="ach-book-cover ach-book-cover--left" d="M32 14 L12 18 L12 46 L32 50 Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.14"/>' +
+          '<path class="ach-book-cover ach-book-cover--right" d="M32 14 L52 18 L52 46 L32 50 Z" stroke="currentColor" stroke-width="1.5" fill="currentColor" fill-opacity="0.14"/>' +
+          '<path class="ach-book-pages ach-book-pages--left" d="M30 18 v28 M27 20 v24 M24 22 v20" stroke="currentColor" stroke-width="0.9" opacity="0.35"/>' +
+          '<path class="ach-book-pages ach-book-pages--right" d="M34 18 v28 M37 20 v24 M40 22 v20" stroke="currentColor" stroke-width="0.9" opacity="0.35"/>' +
+          '<path class="ach-book-page ach-book-page--turning" d="M32 16 v32" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>' +
+          '<rect class="ach-book-spine" x="30" y="14" width="4" height="36" rx="1" fill="currentColor" opacity="0.55"/>' +
           '</g></g>';
       case 'milestone_30':
         return '<g class="ach-icon ach-icon--milestone_30">' +
@@ -759,9 +874,11 @@
     options = options || {};
     var variant = options.variant ? String(options.variant) : 'intro';
     var state = resolveRandomPickerState(currentId, options);
-    var shellCls = 'avatar-random-shell' + (variant ? ' avatar-random-shell--' + escAttr(variant) : '');
+    var motion = state.seed ? avatarMotionFromSeed(state.seed) : randomRenderMotion();
+    var shellCls = 'avatar-random-shell avatar-random-shell--motion-' + escAttr(motion) +
+      (variant ? ' avatar-random-shell--' + escAttr(variant) : '');
     var shuffleLabel = tUi('onboarding.questionnaire.avatarPick.shuffle', 'Shuffle character');
-    return '<div class="' + shellCls + '" data-avatar-id="' + escAttr(state.id) + '" data-avatar-seed="' + escAttr(state.seed || '') + '">' +
+    return '<div class="' + shellCls + '" data-avatar-id="' + escAttr(state.id) + '" data-avatar-seed="' + escAttr(state.seed || '') + '" data-avatar-motion="' + escAttr(motion) + '">' +
       '<div class="avatar-random-card" role="group" aria-label="' + escAttr(state.name) + '">' +
       '<div class="avatar-random-face-wrap">' +
       '<span class="avatar-random-face-ring" aria-hidden="true"></span>' +
@@ -797,6 +914,7 @@
         wrap.innerHTML = '<span class="avatar-random-face-ring" aria-hidden="true"></span>' +
           renderAvatarSvgUse(newId, 'avatar-random-glyphs avatar-carousel__glyph avatar-carousel__glyph--idle', name);
       }
+      setAvatarMotion(shell, seed, true);
       if (typeof onChange === 'function') onChange({ id: newId, name: name, seed: seed });
     }
 
@@ -813,6 +931,7 @@
     var initialSeed = shell.getAttribute('data-avatar-seed');
     if (initialSeed) {
       applyState(initialSeed);
+      setAvatarMotion(shell, initialSeed, false);
     } else {
       shuffle();
     }
@@ -923,6 +1042,8 @@
       el.classList.toggle('profile-avatar-header--react', false);
       void el.offsetWidth;
       el.classList.add('profile-avatar-header--visible');
+      var seed = isGeneratedAvatarId(id) ? parseGeneratedSeed(id) : null;
+      setHeaderAvatarMotion(el, seed);
     });
   }
 
@@ -1358,14 +1479,6 @@
     removeMisplacedMetricEntityStages();
     document.querySelectorAll('.metric-widget').forEach(function (widget) {
       widget.classList.add('metric-widget--portfolio');
-    });
-    document.querySelectorAll('.bristol-slider-container').forEach(function (el) {
-      if (el.querySelector('.log-screen-art')) return;
-      var art = document.createElement('div');
-      art.className = 'log-screen-art log-screen-art--bristol';
-      art.setAttribute('aria-hidden', 'true');
-      art.innerHTML = '<svg viewBox="0 0 32 32"><use href="#icon-gut"></use></svg>';
-      el.insertBefore(art, el.firstChild);
     });
   }
 

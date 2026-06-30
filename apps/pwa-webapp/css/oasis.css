@@ -197,21 +197,39 @@
 }
 
 @media (not (prefers-reduced-motion: reduce)) {
-  /* stroke-dashoffset is GPU-composited in Chrome/Safari/Firefox via SVG SMIL fallback */
-  @keyframes oasisNeuralDraw {
-    0%   { stroke-dashoffset: -800; opacity: 0.15; }
-    15%  { opacity: 0.55; }
-    85%  { opacity: 0.4; }
-    100% { stroke-dashoffset: 800; opacity: 0.12; }
+  @keyframes oasisVeinDrift {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-14px, 8px, 0) scale(1.015); }
   }
-  .oasis-neural-path {
-    stroke-dasharray: 14 10;
-    stroke-dashoffset: -800;
-    animation: oasisNeuralDraw var(--oasis-neural-dur, 9s) linear infinite;
+
+  @keyframes oasisVeinPulse {
+    0%, 100% { opacity: 0.14; filter: drop-shadow(0 0 0 rgba(123, 223, 140, 0)); }
+    50% { opacity: 0.26; filter: drop-shadow(0 0 6px rgba(123, 223, 140, 0.16)); }
   }
-  /* Stagger second path for dual-trace effect */
-  .oasis-neural-path--b {
-    animation-delay: calc(var(--oasis-neural-dur, 9s) * -0.5);
+
+  .oasis-neural-vein {
+    transform-box: fill-box;
+    transform-origin: center;
+    will-change: transform, opacity, filter;
+  }
+
+  .oasis-neural-vein--main {
+    animation:
+      oasisVeinDrift 22s ease-in-out infinite,
+      oasisVeinPulse 20s ease-in-out infinite;
+  }
+
+  .oasis-neural-vein--branch {
+    animation:
+      oasisVeinDrift 28s ease-in-out infinite reverse,
+      oasisVeinPulse 26s ease-in-out infinite;
+  }
+
+  .oasis-neural-vein--glow {
+    animation:
+      oasisVeinDrift 32s ease-in-out infinite,
+      oasisVeinPulse 30s ease-in-out infinite;
+    opacity: 0.1;
   }
 }
 

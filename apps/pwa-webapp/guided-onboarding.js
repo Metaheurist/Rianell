@@ -437,8 +437,8 @@
       var GP = global.RianellGraphicsPortfolio;
       var bootAvatar = draftProfileAvatar || (readPrefs().profileAvatar || '');
       if (GP && typeof GP.renderRandomAvatarPickerHTML === 'function') {
-        body.innerHTML = illus + '<p class="guided-onboarding-lead">' + escapeHtml(t(card.bodyKey)) + '</p>' +
-          GP.renderRandomAvatarPickerHTML(bootAvatar, { variant: 'intro', autoSeed: true }) + hint;
+        body.innerHTML = GP.renderRandomAvatarPickerHTML(bootAvatar, { variant: 'intro', autoSeed: true }) +
+          '<p class="guided-onboarding-lead guided-onboarding-lead--below-avatar">' + escapeHtml(t(card.bodyKey)) + '</p>' + hint;
         if (typeof GP.bindRandomAvatarPicker === 'function') {
           GP.bindRandomAvatarPicker(body, function (state) {
             draftProfileAvatar = state.id;

@@ -395,7 +395,7 @@
       '<span class="ai-model-download-banner__pct">0%</span>' +
       '</div>' +
       '<div class="ai-model-download-banner__track">' +
-      '<div class="ai-model-download-banner__fill" style="width:0%"></div>' +
+      '<div class="ai-model-download-banner__fill"></div>' +
       '</div>';
     document.body.appendChild(el);
     return el;
@@ -419,7 +419,7 @@
       '<div class="modal-body ai-model-download-progress__body">' +
       '<p class="ai-model-download-progress__label">' + tUi('common.preparing.on.device.ai') + '</p>' +
       '<div class="ai-model-download-progress__track">' +
-      '<div class="ai-model-download-progress__fill" style="width:0%"></div>' +
+      '<div class="ai-model-download-progress__fill"></div>' +
       '</div>' +
       '<p class="ai-model-download-progress__pct">0%</p>' +
       '<p class="settings-hint ai-model-download-progress__hint">' + tUi('common.wi.fi.recommended.keep.this.screen.open.') + '</p>' +
@@ -444,7 +444,7 @@
     var fill = root.querySelector(fillSel);
     if (labelEl) labelEl.textContent = formatAiDownloadLabel(state);
     if (pctEl) pctEl.textContent = pct + '%';
-    if (fill) fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    if (fill) fill.style.setProperty('--progress', String(Math.max(0, Math.min(100, pct)) / 100));
   }
 
   function isAiDownloadProgressModalOpen(modal) {

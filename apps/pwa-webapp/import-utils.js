@@ -343,7 +343,7 @@ function showImportProgress(percent, status) {
     progressContainer.style.display = 'block';
   }
   if (progressBar) {
-    progressBar.style.width = percent + '%';
+    progressBar.style.setProperty('--progress', String(Math.max(0, Math.min(100, percent)) / 100));
   }
   if (progressPercent) {
     progressPercent.textContent = Math.round(percent) + '%';
