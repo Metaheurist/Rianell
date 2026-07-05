@@ -21,10 +21,12 @@ Dependency maintenance release: patch-updates group, lighthouse 13, and RN Scrol
 ### Fixed
 
 - **RN carousel refs:** `GoalsModal`, `MoodScreen`, and `SettingsScreen` use `React.ComponentRef<typeof ScrollView>` so `tsc` passes after @types/react 19.2.17
+- **CI Lighthouse probe:** Wait for `asset-manifest.json` main bundle before LHCI (same warm-up as Playwright); `pauseAfterLoadMs` in `lighthouserc.js` reduces CLS flake on cold runners
 
 ### Tests
 
 - `tests/unit/rn-scroll-ref-contract.test.mjs` — ScrollView ref typing + dependabot ignore contracts
+- `tests/unit/lighthouse-ci-probe.test.mjs` — LHCI warm-up and CLS budget contracts
 
 ---
 
