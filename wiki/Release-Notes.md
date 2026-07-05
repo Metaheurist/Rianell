@@ -1,6 +1,21 @@
 # Release Notes
 
-## Latest release (v2.1.6)
+## Latest release (v2.1.7)
+
+**Date:** 2026-07-06
+
+### Highlights
+
+- **Dependency patches:** react 19.2.7, @types/react 19.2.17, react-native-svg, @react-navigation, @playwright/test, and related lockfile sync.
+- **Lighthouse 13:** Dev-only benchmark runner bump (production npm audit unchanged).
+- **RN type safety:** Carousel ScrollView refs updated for React 19 / @types/react 19.2.17.
+- **Dependabot:** Incompatible major bumps (jest 30, babel-preset 0.86+, expo-modules-core 56+) ignored until SDK upgrade.
+
+See **v2.1.6** below for design token contract and Mood Control Deck.
+
+---
+
+## Previous (v2.1.6)
 
 **Date:** 2026-06-30
 

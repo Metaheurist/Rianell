@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.6** - Design token contract, RN screen primitives, transform-only progress motion, CI design-token guard, Mood Control Deck, log metric polish, benchmark reliability.
+**Latest: v2.1.7** - Patch dependency updates, lighthouse 13 (dev), RN ScrollView ref fixes for React 19 types, dependabot ignore rules for incompatible majors.
+
+### v2.1.7 - 2026-07-06 - Dependency patch release
+
+- **npm patch-updates:** react 19.2.7, @types/react 19.2.17, react-native-svg, @react-navigation, @react-native/babel-preset 0.83.10, @playwright/test 1.61.1.
+- **benchmarks:** lighthouse 13.4.0 (dev-only).
+- **RN:** ScrollView carousel refs use `ComponentRef<typeof ScrollView>` (GoalsModal, MoodScreen, SettingsScreen).
+- **Dependabot:** ignore jest ≥30, babel-preset ≥0.84, expo-modules-core ≥56 on Expo SDK 55 stack.
+- **Tests:** `rn-scroll-ref-contract.test.mjs`.
+- **npm:** Workspace roots at **2.1.7**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.7]`.
 
 ### v2.1.6 - 2026-06-30 - Design token contract and motion guardrails
 

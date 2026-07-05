@@ -76,17 +76,17 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `@huggingface/transformers` | 3.3.2 |
 | `@react-native-async-storage/async-storage` | ^3.0.1 |
 | `@react-native-community/netinfo` | ^11.4.1 |
-| `@react-navigation/bottom-tabs` | ^7.18.3 |
+| `@react-navigation/bottom-tabs` | ^7.18.7 |
 | `@react-navigation/core` | ^7.21.2 |
 | `@react-navigation/native` | ^7.2.0 |
-| `@react-navigation/native-stack` | ^7.17.6 |
+| `@react-navigation/native-stack` | ^7.17.9 |
 | `@rianell/ai-engine` | file:../../packages/ai-engine |
 | `@rianell/cloud-sync` | file:../../packages/cloud-sync |
 | `@rianell/llm` | file:../../packages/llm |
 | `@rianell/shared` | file:../../packages/shared |
 | `@rianell/tokens` | file:../../packages/tokens |
 | `@supabase/supabase-js` | ^2.100.1 |
-| `@ungap/structured-clone` | ^1.3.0 |
+| `@ungap/structured-clone` | ^1.3.2 |
 | `expo` | ~55.0.8 |
 | `expo-av` | ^16.0.8 |
 | `expo-constants` | ~55.0.9 |
@@ -103,13 +103,13 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo-speech-recognition` | ^3.1.2 |
 | `expo-status-bar` | ~55.0.4 |
 | `onnxruntime-react-native` | ^1.22.0 |
-| `react` | 19.2.4 |
+| `react` | 19.2.7 |
 | `react-freeze` | ^1.0.0 |
 | `react-native` | 0.83.2 |
 | `react-native-safe-area-context` | ^5.7.0 |
 | `react-native-screens` | ^4.24.0 |
 | `react-native-smartlook-analytics` | ^2.1.21 |
-| `react-native-svg` | ^15.12.0 |
+| `react-native-svg` | ^15.15.5 |
 | `react-native-transformers` | ^1.0.0 |
 | `warn-once` | ^0.1.1 |
 
@@ -117,16 +117,16 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 
 | Package | Version |
 |---------|---------|
-| `@react-native/babel-preset` | 0.83.2 |
+| `@react-native/babel-preset` | 0.83.10 |
 | `@testing-library/jest-native` | ^5.4.3 |
 | `@testing-library/react-native` | ^13.3.3 |
 | `@types/jest` | ^30.0.0 |
-| `@types/react` | ~19.2.2 |
+| `@types/react` | ~19.2.17 |
 | `babel-preset-expo` | ~55.0.12 |
 | `jest` | ^29.7.0 |
 | `jest-expo` | ~55.0.11 |
 | `lodash` | ^4.18.1 |
-| `react-test-renderer` | 19.2.4 |
+| `react-test-renderer` | 19.2.7 |
 | `stacktrace-js` | ^2.0.2 |
 | `typescript` | ~5.9.2 |
 
@@ -146,10 +146,10 @@ Workspace **`@rianell/benchmark-runner`**.
 
 | Package | Version |
 |---------|---------|
-| `@playwright/test` | ^1.49.1 |
+| `@playwright/test` | ^1.61.1 |
 | `chrome-launcher` | ^1.1.2 |
-| `lighthouse` | ^12.2.1 |
-| `playwright` | ^1.49.1 |
+| `lighthouse` | ^13.4.0 |
+| `playwright` | ^1.61.1 |
 | `serve-handler` | ^6.1.6 |
 
 ---

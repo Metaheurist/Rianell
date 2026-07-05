@@ -4,6 +4,14 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.7 documentation sync (dependency patches, lighthouse 13, RN ScrollView refs)
+
+- **npm:** Patch-updates group (react 19.2.7, @types/react, react-native-svg, @react-navigation, @playwright/test, babel-preset 0.83.10); lighthouse 13.4.0 in `benchmarks/`.
+- **RN:** Carousel ScrollView refs in `GoalsModal.tsx`, `MoodScreen.tsx`, `SettingsScreen.tsx` use `ComponentRef<typeof ScrollView>`.
+- **Dependabot:** `.github/dependabot.yml` ignores jest ≥30, babel-preset ≥0.84, expo-modules-core ≥56.
+- **Tests:** `tests/unit/rn-scroll-ref-contract.test.mjs`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.7]`; wiki [[Release-Notes]] § v2.1.7.
+
 ### v2.1.6 documentation sync (design token contract, RN primitives, motion guardrails, Mood Control Deck)
 
 - **Contract:** `docs/design-token-contract.md` — `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only.
