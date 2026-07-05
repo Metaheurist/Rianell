@@ -1,7 +1,7 @@
 {
   "name": "@rianell/pwa-webapp",
   "private": true,
-  "version": "2.1.6",
+  "version": "2.1.7",
   "scripts": {
     "build": "node build-site.mjs",
     "build:apk": "node build-site.mjs --skip-trace",
