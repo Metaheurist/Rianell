@@ -4,8 +4,8 @@ Schema version: **1** · Generated for Rianell security program.
 ## npm workspaces
 | Package | Version |
 |---------|---------|
-| `rianell` (root) | 2.0.5 |
-| `apps/rn-app` | 2.0.5 |
+| `rianell` (root) | 2.1.6 |
+| `apps/rn-app` | 2.1.6 |
 ## Python
 See `requirements.txt` (scanned by pip-audit in CI).
 ## PWA CDN URLs (index.html)
