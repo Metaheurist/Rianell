@@ -7,6 +7,8 @@ module.exports = {
       settings: {
         preset: 'desktop',
         chromeFlags: '--no-sandbox --headless',
+        // Let fonts/shell settle before CLS is sampled (matches Playwright probe warm-up).
+        pauseAfterLoadMs: 2000,
       },
     },
     assert: {
