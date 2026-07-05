@@ -148,7 +148,7 @@ Workspace **`@rianell/benchmark-runner`**.
 |---------|---------|
 | `@playwright/test` | ^1.61.1 |
 | `chrome-launcher` | ^1.1.2 |
-| `lighthouse` | ^12.2.1 |
+| `lighthouse` | ^13.4.0 |
 | `playwright` | ^1.61.1 |
 | `serve-handler` | ^6.1.6 |
 
