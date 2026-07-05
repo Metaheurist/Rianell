@@ -8,6 +8,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.7] - 2026-07-06
+
+Dependency maintenance release: patch-updates group, lighthouse 13, and RN ScrollView ref fixes for React 19 types.
+
+### Changed
+
+- **npm patch-updates:** react 19.2.7, @types/react 19.2.17, react-native-svg 15.15.5, @react-navigation/bottom-tabs 7.18.7, @react-navigation/native-stack 7.17.9, @react-native/babel-preset 0.83.10, @playwright/test 1.61.1, @ungap/structured-clone 1.3.2
+- **benchmarks:** lighthouse 12.2.1 → 13.4.0 (dev-only; production npm audit unchanged)
+- **Dependabot:** ignore incompatible major bumps for jest ≥30, @react-native/babel-preset ≥0.84, expo-modules-core ≥56 while on Expo SDK 55 / RN 0.83
+
+### Fixed
+
+- **RN carousel refs:** `GoalsModal`, `MoodScreen`, and `SettingsScreen` use `React.ComponentRef<typeof ScrollView>` so `tsc` passes after @types/react 19.2.17
+
+### Tests
+
+- `tests/unit/rn-scroll-ref-contract.test.mjs` — ScrollView ref typing + dependabot ignore contracts
+
+---
+
 ## [2.1.6] - 2026-06-30
 
 Six-guardrail technical audit remediation: canonical tokens, RN screen primitives, transform-only progress motion, and CI guard script.
