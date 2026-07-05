@@ -7,15 +7,22 @@ import {
   predictFutureValues,
 } from '@rianell/ai-engine';
 
+function daysAgo(n) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 const FIXTURE = [
-  { date: '2026-06-01', mood: 3, sleep: 3, fatigue: 9, flare: 'No' },
-  { date: '2026-06-02', mood: 4, sleep: 4, fatigue: 8, flare: 'No' },
-  { date: '2026-06-03', mood: 5, sleep: 4, fatigue: 7, flare: 'No' },
-  { date: '2026-06-04', mood: 2, sleep: 2, fatigue: 9, flare: 'Yes' },
-  { date: '2026-06-05', mood: 3, sleep: 3, fatigue: 8, flare: 'No' },
-  { date: '2026-06-06', mood: 4, sleep: 4, fatigue: 7, flare: 'No' },
-  { date: '2026-06-07', mood: 5, sleep: 5, fatigue: 6, flare: 'No' },
-  { date: '2026-06-08', mood: 6, sleep: 6, fatigue: 5, flare: 'No' },
+  { date: daysAgo(7), mood: 3, sleep: 3, fatigue: 9, flare: 'No' },
+  { date: daysAgo(6), mood: 4, sleep: 4, fatigue: 8, flare: 'No' },
+  { date: daysAgo(5), mood: 5, sleep: 4, fatigue: 7, flare: 'No' },
+  { date: daysAgo(4), mood: 2, sleep: 2, fatigue: 9, flare: 'Yes' },
+  { date: daysAgo(3), mood: 3, sleep: 3, fatigue: 8, flare: 'No' },
+  { date: daysAgo(2), mood: 4, sleep: 4, fatigue: 7, flare: 'No' },
+  { date: daysAgo(1), mood: 5, sleep: 5, fatigue: 6, flare: 'No' },
+  { date: daysAgo(0), mood: 6, sleep: 6, fatigue: 5, flare: 'No' },
 ];
 
 test('correlationConfidenceLevel maps pearson strength', () => {
@@ -38,7 +45,7 @@ test('buildCorrelationCards returns cards with confidence badge data', () => {
 test('buildFlarePostMortem compares before/after flare window', () => {
   const post = buildFlarePostMortem(FIXTURE, { windowDays: 3 });
   assert.ok(post);
-  assert.equal(post.flareDate, '2026-06-04');
+  assert.equal(post.flareDate, daysAgo(4));
   assert.ok(post.beforeDays >= 1);
   assert.ok(post.afterDays >= 1);
   assert.ok(Array.isArray(post.diverging));
