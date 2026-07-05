@@ -154,9 +154,7 @@ export function SettingsScreen({
   const { width } = useWindowDimensions();
   /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across ten pane icons. */
   const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 8 * 4) / 10));
-  const scrollRef = useRef<{ scrollTo: (options: { x: number; animated?: boolean }) => void } | null>(
-    null,
-  );
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const [paneIndex, setPaneIndex] = useState(0);
   const bg = resolveScreenBackground(theme);
   const tts = { enabled: prefs.accessibility.ttsEnabled, readModeEnabled: prefs.accessibility.ttsReadModeEnabled };
