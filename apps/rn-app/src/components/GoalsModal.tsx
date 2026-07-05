@@ -35,9 +35,7 @@ export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onC
   const theme = useTheme();
   const { t } = useT();
   const { width } = useWindowDimensions();
-  const scrollRef = useRef<{ scrollTo: (options: { x: number; animated?: boolean }) => void } | null>(
-    null,
-  );
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const [paneIndex, setPaneIndex] = useState(initialPane);
   const [carouselHeight, setCarouselHeight] = useState(280);
   const paneHeightsRef = useRef<number[]>([0, 0]);
