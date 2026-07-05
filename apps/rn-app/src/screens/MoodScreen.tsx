@@ -11,7 +11,6 @@ import {
   Text,
   TextInput,
   View,
-  type ScrollViewImperativeMethods,
 } from 'react-native';
 import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -198,7 +197,7 @@ function MoodReadingRibbon({
   textMuted: string;
   t: (key: string) => string;
 }) {
-  const scrollRef = useRef<ScrollViewImperativeMethods | null>(null);
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const ordered = useMemo(() => [...readings].reverse(), [readings]);
   const [activeIndex, setActiveIndex] = useState(Math.max(0, ordered.length - 1));
   const active = ordered[activeIndex] ?? ordered[ordered.length - 1];
