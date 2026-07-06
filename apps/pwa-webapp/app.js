@@ -19013,15 +19013,22 @@ if (typeof window !== 'undefined') {
 
 function initWebGLSurfacesForTab(tabId) {
   if (!tabId || typeof lazyLoadWebGL !== 'function') return;
-  lazyLoadWebGL().then(function (webgl) {
-    if (!webgl || !webgl.canUseWebGL || !webgl.canUseWebGL()) return;
-    if (tabId === 'home' && typeof webgl.initHomeAmbient === 'function') {
-      webgl.initHomeAmbient();
-    }
-    if (tabId === 'mood' && typeof webgl.initMoodOrb === 'function') {
-      webgl.initMoodOrb();
-    }
-  }).catch(function () {});
+  var start = function () {
+    lazyLoadWebGL().then(function (webgl) {
+      if (!webgl || !webgl.canUseWebGL || !webgl.canUseWebGL()) return;
+      if (tabId === 'home' && typeof webgl.initHomeAmbient === 'function') {
+        webgl.initHomeAmbient();
+      }
+      if (tabId === 'mood' && typeof webgl.initMoodOrb === 'function') {
+        webgl.initMoodOrb();
+      }
+    }).catch(function () {});
+  };
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(start, { timeout: 6500 });
+  } else {
+    setTimeout(start, 4000);
+  }
 }
 if (typeof window !== 'undefined') window.initWebGLSurfacesForTab = initWebGLSurfacesForTab;
 

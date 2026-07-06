@@ -1880,6 +1880,14 @@ body.light-mode .app-log-fab {
 }
 
 /* Home / Today */
+#homeTab {
+  position: relative;
+}
+
+.rianell-webgl-host {
+  position: relative;
+}
+
 .home-today-header {
   margin-bottom: 1rem;
   text-align: center;
@@ -1888,6 +1896,8 @@ body.light-mode .app-log-fab {
 .home-today-greeting {
   margin-bottom: 0.35rem;
   text-align: center;
+  min-height: 2.75rem;
+  line-height: 1.35;
 }
 
 .home-today-meta {
@@ -1904,6 +1914,7 @@ body.light-mode .app-log-fab {
   opacity: 0.85;
   text-align: left;
   flex: 0 1 auto;
+  min-height: 1.35rem;
 }
 
 .home-weather-strip {
@@ -2088,6 +2099,7 @@ body.light-mode .app-log-fab {
   border: 1px solid var(--border-subtle);
   margin-bottom: 1rem;
   font-size: var(--text-base);
+  min-height: 4.5rem;
 }
 
 .home-today-status--streak-nudge {

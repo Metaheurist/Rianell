@@ -45,7 +45,7 @@
     canvas.className = 'rianell-webgl-canvas';
     canvas.setAttribute('aria-hidden', 'true');
     canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.55;';
-    host.style.position = host.style.position || 'relative';
+    host.classList.add('rianell-webgl-host');
     host.insertBefore(canvas, host.firstChild);
 
     var gl = canvas.getContext('webgl2', { alpha: true, antialias: false, powerPreference: 'low-power' })
