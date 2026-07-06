@@ -10,7 +10,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **benchmarks:** lighthouse 13.4.0 (dev-only).
 - **RN:** ScrollView carousel refs use `ComponentRef<typeof ScrollView>` (GoalsModal, MoodScreen, SettingsScreen).
 - **Dependabot:** ignore jest ≥30, babel-preset ≥0.84, expo-modules-core ≥56 on Expo SDK 55 stack.
-- **Tests:** `rn-scroll-ref-contract.test.mjs`.
+- **CI:** Lighthouse Pages probe waits for main bundle + `pauseAfterLoadMs` before CLS assert.
+- **Tests:** `rn-scroll-ref-contract.test.mjs`, `lighthouse-ci-probe.test.mjs`.
 - **npm:** Workspace roots at **2.1.7**.
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.1.7]`.
 
