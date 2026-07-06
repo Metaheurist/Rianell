@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 
 test('lighthouserc waits for shell settle before CLS sampling', () => {
   const cfg = readFileSync('lighthouserc.js', 'utf8');
-  assert.match(cfg, /pauseAfterLoadMs:\s*2000/);
+  assert.match(cfg, /pauseAfterLoadMs:\s*5000/);
+  assert.match(cfg, /numberOfRuns:\s*5/);
   assert.match(cfg, /cumulative-layout-shift.*maxNumericValue:\s*0\.1/s);
 });
 
