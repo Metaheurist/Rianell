@@ -3,12 +3,12 @@ module.exports = {
   ci: {
     collect: {
       // Match benchmarks/github-pages (median of 3) — single runs spike on CI runners.
-      numberOfRuns: 3,
+      numberOfRuns: 5,
       settings: {
         preset: 'desktop',
         chromeFlags: '--no-sandbox --headless',
-        // Let fonts/shell settle before CLS is sampled (matches Playwright probe warm-up).
-        pauseAfterLoadMs: 2000,
+        // Let PWA shell/fonts settle; LHCI on cold runners spikes CLS without this.
+        pauseAfterLoadMs: 5000,
       },
     },
     assert: {
