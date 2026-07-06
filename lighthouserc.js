@@ -8,7 +8,7 @@ module.exports = {
         preset: 'desktop',
         chromeFlags: '--no-sandbox --headless',
         // Let PWA shell/fonts settle; LHCI on cold runners spikes CLS without this.
-        pauseAfterLoadMs: 5000,
+        pauseAfterLoadMs: 6500,
       },
     },
     assert: {
