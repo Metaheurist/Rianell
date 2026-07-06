@@ -1149,6 +1149,7 @@
     "home.discover.sectionSubtitle": "On-device · private · wellness only",
     "home.discover.sectionTitle": "Ask Rianell",
     "home.chat.disclaimer": "Wellness guidance only — not medical advice. Chat clears when you Chiudi this panel.",
+    "home.chat.inputLabel": "Chiedi informazioni sui tuoi registri sanitari",
     "home.chat.followup.mood": "What affects my Umore lately?",
     "home.chat.followup.patterns": "What patterns do you see?",
     "home.chat.followup.sleep": "How is my Sonno trending?",

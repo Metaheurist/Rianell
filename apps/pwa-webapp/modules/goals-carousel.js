@@ -16,28 +16,9 @@
 
   function goalsSvgIcon(name) {
     var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
-    if (safeName === 'medal') {
-      return '<svg class="ui-svg-icon goals-dot-icon-svg goals-dot-icon-svg--medal" viewBox="0 0 24 24" aria-hidden="true">' +
-        '<g class="goals-icon-medal-ribbon">' +
-        '<path d="M8.8 2.6 7.2 7.8 9.8 8.6" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '<path d="M15.2 2.6 16.8 7.8 14.2 8.6" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>' +
-        '<path d="M9.8 8.6h4.4" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>' +
-        '</g>' +
-        '<circle class="goals-icon-medal-disc" cx="12" cy="15.2" r="5.9" fill="none" stroke="currentColor" stroke-width="1.25"/>' +
-        '<path class="goals-icon-medal-star goals-icon-fill" d="M12 11.6 12.85 13.55 15.05 13.82 13.35 15.2 13.8 17.35 12 16.35 10.2 17.35 10.65 15.2 8.95 13.82 11.15 13.55Z"/>' +
-        '</svg>';
-    }
-    return '<svg class="ui-svg-icon goals-dot-icon-svg goals-dot-icon-svg--target" viewBox="0 0 24 24" aria-hidden="true">' +
-      '<circle class="goals-icon-target-ring goals-icon-target-ring--outer" cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.15" opacity="0.5"/>' +
-      '<circle class="goals-icon-target-ring goals-icon-target-ring--mid" cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.25"/>' +
-      '<circle class="goals-icon-target-ring goals-icon-target-ring--inner" cx="12" cy="12" r="2.75" fill="none" stroke="currentColor" stroke-width="1.25"/>' +
-      '<circle class="goals-icon-target-bullseye goals-icon-fill" cx="12" cy="12" r="1.15"/>' +
-      '<g class="goals-icon-target-ticks">' +
-      '<line x1="12" y1="1.5" x2="12" y2="3.6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
-      '<line x1="12" y1="20.4" x2="12" y2="22.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
-      '<line x1="1.5" y1="12" x2="3.6" y2="12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
-      '<line x1="20.4" y1="12" x2="22.5" y2="12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' +
-      '</g></svg>';
+    var iconId = safeName === 'medal' ? 'medal' : 'target';
+    return '<svg class="ui-svg-icon goals-dot-icon-svg goals-dot-icon-svg--' + iconId + '" viewBox="0 0 24 24" aria-hidden="true">' +
+      '<use href="#icon-' + iconId + '"></use></svg>';
   }
 
   function ensureGoalsCarouselDots(panes) {

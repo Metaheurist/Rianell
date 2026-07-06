@@ -156,7 +156,11 @@
     if (input) {
       input.placeholder = t('ai.weekChat.placeholder');
       var label = overlay.querySelector('label[for="aiChatInput"]');
-      if (label) label.textContent = t('home.chat.inputLabel');
+      if (label) {
+        label.textContent = typeof global.tUiOr === 'function'
+          ? global.tUiOr('home.chat.inputLabel', 'Ask about your health logs')
+          : t('home.chat.inputLabel') || 'Ask about your health logs';
+      }
     }
     var send = overlay.querySelector('#aiChatSend');
     if (send) send.textContent = t('ai.weekChat.send');

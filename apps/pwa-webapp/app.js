@@ -24402,12 +24402,6 @@ function renderHomeWelcomeCard(logArr) {
   });
 }
 
-var _homeDiscoveryModalKind = null;
-
-function closeHomeDiscoveryModal() {
-  closeHomeDiscoveryModal = function () {};
-}
-
 function openHomeDiscoveryModal(kind) {
   var seedKey = kind === 'ai' ? 'home.discover.ai.seed' : 'home.discover.mood.seed';
   var seed = typeof tUi === 'function' ? tUi(seedKey) : '';
@@ -24554,7 +24548,7 @@ function renderHomeDiscoveryChips(logArr) {
   if (typeof initRipple === 'function') initRipple(wrap);
 }
 
-function updateHomeTodayPanel() {
+async function updateHomeTodayPanel() {
   var greet = document.getElementById('homeGreeting');
   var dateEl = document.getElementById('homeTodayDate');
   var statusEl = document.getElementById('homeTodayStatus');
@@ -24621,7 +24615,7 @@ function updateHomeTodayPanel() {
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
   if (typeof renderCommunityTipsPane === 'function') {
     var conditionTags = appSettings && appSettings.medicalCondition ? [appSettings.medicalCondition] : [];
-    renderCommunityTipsPane(conditionTags);
+    try { await renderCommunityTipsPane(conditionTags); } catch (e) { /* ignore */ }
   }
   if (typeof renderCohortBenchmarkCard === 'function') renderCohortBenchmarkCard();
   if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
@@ -24787,7 +24781,6 @@ if (typeof window !== 'undefined') {
   window.renderHomeWelcomeCard = renderHomeWelcomeCard;
   window.renderHomeDiscoveryChips = renderHomeDiscoveryChips;
   window.openHomeDiscoveryModal = openHomeDiscoveryModal;
-  window.closeHomeDiscoveryModal = closeHomeDiscoveryModal;
   window.initLogMilestoneTracking = initLogMilestoneTracking;
   window.onLogsCountChanged = onLogsCountChanged;
   window.updateTabDiscoveryBadges = updateTabDiscoveryBadges;
@@ -24809,16 +24802,14 @@ function openLogWizardFromHome() {
   }
 }
 
-function refreshAllTabsForLocaleChange() {
+async function refreshAllTabsForLocaleChange() {
   if (typeof window !== 'undefined' && !window.__rianellAppInitStarted) return;
   var hadAiContent = false;
   var aiResults = document.getElementById('aiResultsContent');
   if (aiResults && aiResults.innerHTML && aiResults.innerHTML.trim()) hadAiContent = true;
 
-  if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
-  if (typeof renderCommunityTipsPane === 'function') {
-    var communityTags = appSettings && appSettings.medicalCondition ? [appSettings.medicalCondition] : [];
-    renderCommunityTipsPane(communityTags);
+  if (typeof updateHomeTodayPanel === 'function') {
+    try { await updateHomeTodayPanel(); } catch (e) { /* ignore */ }
   }
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
   if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
