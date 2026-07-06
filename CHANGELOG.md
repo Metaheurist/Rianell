@@ -28,7 +28,7 @@ Security hardening, dead-code removal, and structure cleanup pass.
 
 ### Fixed
 
-- **XSS sink invariants** documented for `showAlertModal` and share modal `bodyHTML` call sites
+- **Security DAST:** ZAP baseline no longer fails on Timestamp Disclosure [10096] (health log dates in client bundles)
 - **home.chat.inputLabel** present in all 14 locale packs; `ai-chat.js` uses `tUiOr` fallback
 
 ### Removed

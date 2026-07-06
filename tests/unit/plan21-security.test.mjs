@@ -15,6 +15,12 @@ test('CI workflow references security verify scripts', () => {
   assert.match(ci, /verify:csp|verify:llm-security|verify-no-service-role/);
 });
 
+test('ZAP rules ignore expected health-app false positives', () => {
+  const rules = readFileSync(join(root, '.zap/rules.tsv'), 'utf8');
+  assert.match(rules, /10096\tIGNORE/);
+  assert.match(rules, /Timestamp Disclosure/);
+});
+
 test('llm security contract blocks commercial hosts', async () => {
   const { validateRemoteLlmEndpoint } = await import('@rianell/shared');
   const r = validateRemoteLlmEndpoint('https://api.openai.com/v1/chat');
