@@ -46,3 +46,19 @@ jobs:
       - name: npm audit (dev included)
         continue-on-error: true
         run: npm audit --audit-level=moderate
+
+  live-csp-drift:
+    name: Live CSP drift (non-blocking)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node-ci
+      - name: Live CSP connect-src check
+        continue-on-error: true
+        run: node scripts/verify/verify-csp-connect-src-live.mjs
+      - name: Live CSP report-only check
+        continue-on-error: true
+        run: node scripts/verify/verify-csp-report-only-live.mjs
+      - name: Live CSPRO none check
+        continue-on-error: true
+        run: node scripts/verify/verify-no-cspro-none.mjs

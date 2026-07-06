@@ -2,7 +2,7 @@
 
 **Product:** Rianell  
 **Purpose:** Track security, privacy, and platform-parity hardening milestones with dates and evidence.  
-**Last updated:** 2026-06-13
+**Last updated:** 2026-07-06
 
 ---
 
@@ -94,6 +94,18 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | 2026-06-13 | SH-01…04 | Security/privacy documentation pack created |
 | 2026-06-13 | — | v1.49.1 parity follow-up per CHANGELOG |
 | 2026-06-13 | RP-GATE-1…4 | v1.51 privacy region policy engine shipped |
+| 2026-07-06 | SH-11 | Safe hardening pass: SW push URL same-origin guard, `verify-no-unsafe-sinks.mjs` in CI, live CSP drift job on `security-audit-scheduled.yml`, XSS sink invariants documented in `app.js` |
+
+### SH-11 detail (2026-07-06)
+
+| Change | Evidence |
+|--------|----------|
+| Service worker rejects cross-origin push notification URLs | `apps/pwa-webapp/sw.js` — `resolveSameOriginPushUrl()` |
+| New CI guard for `eval` / `new Function` / unexpected `document.write` | `scripts/verify/verify-no-unsafe-sinks.mjs`, `npm run verify:unsafe-sinks` |
+| Live production CSP drift checks (scheduled, non-blocking) | `.github/workflows/security-audit-scheduled.yml` — `live-csp-drift` job |
+| `showAlertModal` / `openShareModal` innerHTML invariants documented | `apps/pwa-webapp/app.js` |
+| **Deferred:** remove `'unsafe-inline'` / `'unsafe-eval'` from meta CSP | Requires refactoring inline `onclick` handlers — tracked under SH-06 |
+| **By design:** Python `server/` exposes `/api/encryption-key` on loopback/LAN secret only | Dev/LAN tool, not production edge |
 
 ---
 
