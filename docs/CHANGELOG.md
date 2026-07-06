@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.7** - Patch dependency updates, lighthouse 13 (dev), RN ScrollView ref fixes for React 19 types, dependabot ignore rules for incompatible majors.
+**Latest: v2.1.8** - Home AI discovery cards and ephemeral on-device health chat.
+
+### v2.1.8 - 2026-07-06 - Home AI chat and discovery upgrade
+
+- **PWA Home:** Discovery chips redesigned as rich prompt cards with hints, AI presence cue, and data-aware prompts for users with logs.
+- **PWA:** New `modules/ai-chat.js` — ephemeral bottom-sheet / side-panel chat wired to on-device `generateHealthChatWithLLM`; supersedes static discovery modals and single-turn home Q&A.
+- **Shared:** `packages/shared/src/ai/chatContext.mjs` — screening exclusion, URL/script redaction, delimiter spoof neutralization, 1800-char context cap.
+- **Security:** Extended `llm-security-contract.mjs`; instruction hierarchy in `weekChat.system`; adversarial prompt tests; updated `ai-security.md`, `threat-model.md`, DPIA.
+- **Audit:** Chat open/close cycle in `stress-test-memory.mjs`; real Playwright heap profiling in `memory-profile.mjs`.
+- **Tests:** `chat-context.test.mjs`, `pwa/ai-chat-security.test.mjs`, `pwa/home-discovery-ui.test.mjs`.
 
 ### v2.1.7 - 2026-07-06 - Dependency patch release
 

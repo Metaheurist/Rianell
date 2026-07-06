@@ -3468,7 +3468,7 @@ function svgIcon(name, className, title) {
   var KNOWN_SVG_ICONS = new Set([
     'accessibility', 'activity', 'android', 'apple', 'balance', 'bandage', 'brain', 'brain-wave', 'bundle',
     'calendar', 'calendar-heatmap', 'chart-bars', 'chart-down', 'chart-up', 'check', 'checkin-am', 'checkin-midday',
-    'checkin-pm', 'cloud', 'cloud-up', 'code', 'cycle', 'cycle-follicular', 'cycle-luteal',
+    'checkin-pm', 'chevron-left', 'chevron-right', 'close', 'backspace', 'cloud', 'cloud-up', 'code', 'cycle', 'cycle-follicular', 'cycle-luteal',
     'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
     'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal',
     'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-globe', 'onboard-heart',
@@ -17974,13 +17974,6 @@ function loadSettings() {
   applyAccessibilityTextScale();
   applyAccessibilityColorblindMode();
   if (typeof applyBrainFogModeClass === 'function') applyBrainFogModeClass();
-  setTimeout(function () {
-    if (typeof renderCommunityTipsPane === 'function') {
-      var tags = appSettings && appSettings.medicalCondition ? [appSettings.medicalCondition] : [];
-      renderCommunityTipsPane(tags);
-    }
-    if (typeof renderCohortBenchmarkCard === 'function') renderCohortBenchmarkCard();
-  }, 800);
   
   // Set up background sync if contribution is enabled
   if (appSettings.contributeAnonData && typeof setupBackgroundSync === 'function') {
@@ -19076,6 +19069,57 @@ async function lazyLoadCharts() {
 }
 if (typeof window !== 'undefined') window.lazyLoadCharts = lazyLoadCharts;
 
+async function lazyLoadWebGL() {
+  if (window.RianellWebGL) return window.RianellWebGL;
+  try {
+    const mod = await import('./lazy-webgl.mjs');
+    return mod.lazyLoadWebGL ? mod.lazyLoadWebGL() : null;
+  } catch (e) {
+    return null;
+  }
+}
+if (typeof window !== 'undefined') window.lazyLoadWebGL = lazyLoadWebGL;
+
+function syncReduceMotionBodyClass() {
+  if (typeof document === 'undefined') return;
+  var osReduce = false;
+  try {
+    osReduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (e) { /* ignore */ }
+  var appReduce = false;
+  try {
+    var prefs = window.RianellPrefs && typeof window.RianellPrefs.get === 'function'
+      ? window.RianellPrefs.get('reducedMotion') : false;
+    appReduce = prefs === true || prefs === 'true';
+  } catch (e2) { /* ignore */ }
+  var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile
+    ? window.PerformanceUtils.getOptimizationProfile() : null;
+  var tierReduce = !!(profile && profile.reduceUIAnimations);
+  document.body.classList.toggle('reduce-motion', osReduce || appReduce || tierReduce);
+}
+if (typeof window !== 'undefined') window.syncReduceMotionBodyClass = syncReduceMotionBodyClass;
+if (typeof window !== 'undefined') {
+  window.addEventListener('rianell:prefs:change', function (e) {
+    if (e && e.detail && e.detail.key === 'reducedMotion' && typeof syncReduceMotionBodyClass === 'function') {
+      syncReduceMotionBodyClass();
+    }
+  });
+}
+
+function initWebGLSurfacesForTab(tabId) {
+  if (!tabId || typeof lazyLoadWebGL !== 'function') return;
+  lazyLoadWebGL().then(function (webgl) {
+    if (!webgl || !webgl.canUseWebGL || !webgl.canUseWebGL()) return;
+    if (tabId === 'home' && typeof webgl.initHomeAmbient === 'function') {
+      webgl.initHomeAmbient();
+    }
+    if (tabId === 'mood' && typeof webgl.initMoodOrb === 'function') {
+      webgl.initMoodOrb();
+    }
+  }).catch(function () {});
+}
+if (typeof window !== 'undefined') window.initWebGLSurfacesForTab = initWebGLSurfacesForTab;
+
 var _migrationSource = null;
 var _migrationParsed = null;
 
@@ -19966,12 +20010,16 @@ if (typeof window !== 'undefined') {
 async function renderCommunityTipsPane(conditionTags) {
   var el = document.getElementById('communityTipsFeed');
   if (!el) return;
+  if (typeof window !== 'undefined' && window.RianellI18n && typeof window.RianellI18n.ensureCatalogs === 'function') {
+    var locale = typeof window.RianellI18n.getLocale === 'function' ? window.RianellI18n.getLocale() : 'en-GB';
+    await window.RianellI18n.ensureCatalogs(locale);
+  }
   var condition = conditionTags && conditionTags[0] ? conditionTags[0] : '';
   el.setAttribute('data-community-feed', 'true');
   el.setAttribute('data-conditions', condition);
   var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
-  var titleText = tUi('community.tips.title') || 'Community tips';
-  var emptyText = tUi('community.tips.empty') || 'No community tips yet. Be the first to share!';
+  var titleText = tUiOr('community.tips.title', 'Community tips');
+  var emptyText = tUiOr('community.tips.empty', 'No community tips yet. Be the first to share!');
   var rows = [];
   try {
     if (typeof fetchCommunityTriggerRows === 'function') {
@@ -19982,9 +20030,9 @@ async function renderCommunityTipsPane(conditionTags) {
   if (Shared && typeof Shared.getCommunityTriggers === 'function' && Array.isArray(rows)) {
     try { tips = Shared.getCommunityTriggers(rows, condition); } catch (e) {}
   }
-  var html = '<div class="community-tips-header"><span class="community-tips-title">' + titleText + '</span></div>';
+  var html = '<div class="community-tips-header"><span class="community-tips-title">' + escapeHTML(titleText) + '</span></div>';
   if (!tips.length) {
-    html += '<p class="community-tips-empty">' + emptyText + '</p>';
+    html += '<p class="community-tips-empty">' + escapeHTML(emptyText) + '</p>';
   } else {
     html += '<ul class="community-tips-list">';
     tips.slice(0, 5).forEach(function(tip) {
@@ -23890,7 +23938,6 @@ function applyHomeCardLayout() {
 
 var _microCheckinPeriod = null;
 var _homeSelectedPeriod = null;
-var _checkinDragMoved = false;
 
 function defaultCheckinPeriod() {
   var h = new Date().getHours();
@@ -23944,26 +23991,21 @@ function _checkinSelectStop(container, period) {
 
 function wireCheckinSliderEvents(container, getSelected, setSelected) {
   if (!container) return;
-  var track = container.querySelector('.checkin-slider-track');
-  if (!track) return;
-  track.addEventListener('pointerdown', function() { _checkinDragMoved = false; }, { passive: true });
-  track.addEventListener('pointermove', function(e) {
-    if (e.buttons) _checkinDragMoved = true;
-  }, { passive: true });
 
   container.querySelectorAll('.checkin-slider-stop:not(.is-done)').forEach(function(stop) {
-    stop.addEventListener('pointerup', function() {
+    stop.addEventListener('click', function() {
       var period = stop.getAttribute('data-period');
+      if (!period) return;
       var wasSelected = stop.getAttribute('data-selected') === 'true';
       _checkinSelectStop(container, period);
       if (typeof setSelected === 'function') setSelected(period);
-      if (wasSelected && !_checkinDragMoved) openMicroCheckinModal(period);
+      if (wasSelected) openMicroCheckinModal(period);
     });
   });
 
   var cta = container.querySelector('[data-checkin-cta]');
   if (cta) {
-    cta.addEventListener('pointerup', function() {
+    cta.addEventListener('click', function() {
       var period = typeof getSelected === 'function' ? getSelected() : null;
       openMicroCheckinModal(period || defaultCheckinPeriod());
     });
@@ -24174,10 +24216,10 @@ function homeWeatherIconClass(iconId, extra) {
 }
 
 function renderHomeWeatherEnablePromptHtml() {
-  var label = typeof tUi === 'function' ? tUi('home.weather.enablePrompt') : 'Optional weather';
-  return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(label) + '">' +
-    '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon') + '</span>' +
-    '<span class="home-weather-enable-prompt__label">' + escapeHTML(label) + '</span></button>';
+  var label = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable local weather';
+  var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Optional weather';
+  return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(label) + '" title="' + escapeAttr(hint) + '">' +
+    '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon') + '</span></button>';
 }
 
 function renderHomeWeatherStripHtml(snap) {
@@ -24363,90 +24405,153 @@ function renderHomeWelcomeCard(logArr) {
 var _homeDiscoveryModalKind = null;
 
 function closeHomeDiscoveryModal() {
-  var overlay = document.getElementById('homeDiscoveryModalOverlay');
-  if (!overlay) return;
-  overlay.style.display = 'none';
-  overlay.setAttribute('hidden', '');
-  document.body.classList.remove('modal-active');
-  _homeDiscoveryModalKind = null;
+  closeHomeDiscoveryModal = function () {};
 }
 
 function openHomeDiscoveryModal(kind) {
-  var overlay = document.getElementById('homeDiscoveryModalOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'homeDiscoveryModalOverlay';
-    overlay.className = 'modal-overlay home-discovery-modal-overlay';
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.innerHTML = '<div class="modal-content home-discovery-modal-content" role="document"></div>';
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) closeHomeDiscoveryModal();
-    });
+  var seedKey = kind === 'ai' ? 'home.discover.ai.seed' : 'home.discover.mood.seed';
+  var seed = typeof tUi === 'function' ? tUi(seedKey) : '';
+  if (typeof openAiHealthChat === 'function') {
+    openAiHealthChat({ seedPrompt: seed });
   }
-  _homeDiscoveryModalKind = kind;
-  var content = overlay.querySelector('.home-discovery-modal-content');
-  if (!content) return;
-  var titleKey = kind === 'ai' ? 'home.discover.ai' : 'home.discover.mood';
-  var bodyKey = kind === 'ai' ? 'home.discover.ai.info' : 'home.discover.mood.info';
-  var html = '<div class="modal-header"><h3>' + escapeHTML(tUi(titleKey)) + '</h3>';
-  html += '<button type="button" class="modal-close" aria-label="' + escapeAttr(tUi('common.close')) + '">&times;</button></div>';
-  html += '<div class="modal-body"><p>' + escapeHTML(tUi(bodyKey)) + '</p></div>';
-  html += '<div class="modal-footer">';
-  if (kind === 'mood') {
-    html += '<button type="button" class="action-btn home-discovery-modal-cta">' + escapeHTML(tUi('home.discover.mood.cta')) + '</button>';
-  } else {
-    html += '<button type="button" class="action-btn home-discovery-modal-cta">' + escapeHTML(tUi('common.close')) + '</button>';
+}
+
+function discoveryCardIcon(name) {
+  if (typeof svgIcon === 'function') return svgIcon(name, 'home-discovery-card-icon-svg');
+  return '';
+}
+
+function buildStaticDiscoveryCards() {
+  return [
+    { id: 'mood', icon: 'chart-bars', titleKey: 'home.discover.mood', hintKey: 'home.discover.mood.hint', seedKey: 'home.discover.mood.seed' },
+    { id: 'goals', icon: 'target', titleKey: 'home.discover.goals', hintKey: 'home.discover.goals.hint', seedKey: 'home.discover.goals.seed', action: 'goals' },
+    { id: 'ai', icon: 'brain-wave', titleKey: 'home.discover.ai', hintKey: 'home.discover.ai.hint', seedKey: 'home.discover.ai.seed' },
+  ];
+}
+
+function renderDiscoveryCardHtml(card, index) {
+  var title = typeof tUi === 'function' ? tUi(card.titleKey, card.labelParams) : card.titleKey;
+  var hint = typeof tUi === 'function' ? tUi(card.hintKey || '') : (card.hintKey || '');
+  var delay = Math.min(index, 5) * 0.08;
+  var html = '<article class="home-discovery-card" style="--discovery-stagger:' + delay + 's">';
+  html += '<button type="button" class="home-discovery-card-main" data-discovery-chip="' + escapeHTML(card.id) + '"';
+  if (card.seedKey) html += ' data-discovery-seed-key="' + escapeHTML(card.seedKey) + '"';
+  if (card.labelKey) html += ' data-home-question-id="' + escapeHTML(card.id) + '"';
+  html += '>';
+  html += '<span class="home-discovery-card-icon" aria-hidden="true">' + discoveryCardIcon(card.icon || 'sparkle-ring') + '</span>';
+  html += '<span class="home-discovery-card-copy">';
+  html += '<span class="home-discovery-card-title">' + escapeHTML(title) + '</span>';
+  if (hint) html += '<span class="home-discovery-card-hint">' + escapeHTML(hint) + '</span>';
+  html += '</span></button>';
+  if (card.action === 'goals') {
+    html += '<button type="button" class="home-discovery-card-secondary" data-discovery-action="goals-direct">';
+    html += escapeHTML(typeof tUi === 'function' ? tUi('home.discover.goals.direct') : 'Open goals');
+    html += '</button>';
   }
-  html += '</div>';
-  content.innerHTML = html;
-  content.onclick = function (e) { e.stopPropagation(); };
-  var closeBtn = content.querySelector('.modal-close');
-  if (closeBtn) closeBtn.onclick = closeHomeDiscoveryModal;
-  var cta = content.querySelector('.home-discovery-modal-cta');
-  if (cta) {
-    cta.onclick = function () {
-      closeHomeDiscoveryModal();
-      if (kind === 'mood' && typeof switchTab === 'function') switchTab('mood');
-    };
+  html += '</article>';
+  return html;
+}
+
+function openDiscoveryChatFromCard(btn, logArr) {
+  if (!btn) return;
+  var seedKey = btn.getAttribute('data-discovery-seed-key');
+  var questionId = btn.getAttribute('data-home-question-id');
+  var seed = '';
+  if (questionId && window._homeAiSuggestionChips) {
+    var chip = (window._homeAiSuggestionChips || []).find(function (c) { return c.id === questionId; });
+    if (chip) seed = typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey;
+  } else if (seedKey) {
+    seed = typeof tUi === 'function' ? tUi(seedKey) : seedKey;
   }
-  overlay.removeAttribute('hidden');
-  overlay.style.display = 'block';
-  document.body.classList.add('modal-active');
+  var S = getHomeSharedAi();
+  var snap = window._homeAiAnalysisSnapshot || (S && typeof S.computeHomeAnalysisSnapshot === 'function'
+    ? S.computeHomeAnalysisSnapshot(logArr || [])
+    : null);
+  if (typeof openAiHealthChat === 'function') {
+    openAiHealthChat({ seedPrompt: seed, analysis: snap });
+  }
 }
 
 function renderHomeDiscoveryChips(logArr) {
   var wrap = document.getElementById('homeDiscoveryChips');
   if (!wrap) return;
   var count = Array.isArray(logArr) ? logArr.length : 0;
-  if (count !== 0) {
+  var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false && appSettings.simpleMode !== true;
+  if (!aiOn) {
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    return;
+  }
+  var cards = [];
+  if (count === 0) {
+    cards = buildStaticDiscoveryCards();
+  } else {
+    var S = getHomeSharedAi();
+    var todayStr = getTodayDateStr();
+    var loggedToday = logArr.some(function (l) { return l && l.date === todayStr; });
+    var snap = S && typeof S.computeHomeAnalysisSnapshot === 'function'
+      ? S.computeHomeAnalysisSnapshot(logArr)
+      : null;
+    var bundle = S && typeof S.pickHomeAiSuggestionBundle === 'function'
+      ? S.pickHomeAiSuggestionBundle(logArr, snap, {
+        aiEnabled: aiOn,
+        loggedToday: loggedToday,
+        todayStr: todayStr,
+        homeGapQuestionCache: appSettings.homeGapQuestionCache,
+        medSchedule: appSettings.medSchedule || [],
+        homeQuestionAnswerState: appSettings.homeQuestionAnswerState,
+      })
+      : { chips: [], gapCacheUpdate: null };
+    if (bundle.gapCacheUpdate) {
+      appSettings.homeGapQuestionCache = bundle.gapCacheUpdate;
+      if (typeof saveSettings === 'function') saveSettings();
+    }
+    window._homeAiAnalysisSnapshot = snap;
+    window._homeAiSuggestionChips = bundle.chips || [];
+    (bundle.chips || []).forEach(function (chip) {
+      cards.push({
+        id: chip.id,
+        icon: 'brain-wave',
+        titleKey: chip.labelKey,
+        labelParams: chip.labelParams,
+        hintKey: 'home.discover.askAnything.hint',
+      });
+    });
+    cards.push({
+      id: 'ask-anything',
+      icon: 'sparkle-ring',
+      titleKey: 'home.discover.askAnything',
+      hintKey: 'home.discover.askAnything.hint',
+      seedKey: '',
+    });
+  }
+  if (!cards.length) {
     wrap.hidden = true;
     wrap.innerHTML = '';
     return;
   }
   wrap.hidden = false;
-  var chips = [
-    { id: 'mood', key: 'home.discover.mood' },
-    { id: 'goals', key: 'home.discover.goals' },
-    { id: 'ai', key: 'home.discover.ai' }
-  ];
-  var html = '<div class="home-discovery-row">';
-  chips.forEach(function (chip) {
-    html += '<button type="button" class="home-discovery-chip" data-discovery-chip="' + escapeHTML(chip.id) + '">';
-    html += escapeHTML(tUi(chip.key));
-    html += '</button>';
-  });
-  html += '</div>';
+  var html = '<section class="home-discovery-section" aria-label="' + escapeAttr(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '">';
+  html += '<header class="home-discovery-header">';
+  html += '<span class="home-discovery-ai-glyph" aria-hidden="true">' + discoveryCardIcon('brain-wave') + '</span>';
+  html += '<div class="home-discovery-header-copy">';
+  html += '<p class="home-discovery-section-title">' + escapeHTML(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '</p>';
+  html += '<p class="home-discovery-section-sub">' + escapeHTML(typeof tUi === 'function' ? tUi('home.discover.sectionSubtitle') : '') + '</p>';
+  html += '</div></header>';
+  html += '<div class="home-discovery-grid">';
+  cards.forEach(function (card, i) { html += renderDiscoveryCardHtml(card, i); });
+  html += '</div></section>';
   wrap.innerHTML = html;
-  wrap.querySelectorAll('[data-discovery-chip]').forEach(function (btn) {
-    btn.onclick = function () {
-      var id = btn.getAttribute('data-discovery-chip');
-      if (id === 'goals' && typeof openGoalsModal === 'function') openGoalsModal(0);
-      else if (id === 'mood') openHomeDiscoveryModal('mood');
-      else if (id === 'ai') openHomeDiscoveryModal('ai');
+  wrap.querySelectorAll('.home-discovery-card-main').forEach(function (btn) {
+    btn.onclick = function () { openDiscoveryChatFromCard(btn, logArr); };
+  });
+  wrap.querySelectorAll('[data-discovery-action="goals-direct"]').forEach(function (btn) {
+    btn.onclick = function (e) {
+      e.stopPropagation();
+      if (typeof openGoalsModal === 'function') openGoalsModal(0);
     };
   });
+  if (typeof initRipple === 'function') initRipple(wrap);
 }
 
 function updateHomeTodayPanel() {
@@ -24514,6 +24619,11 @@ function updateHomeTodayPanel() {
   if (typeof renderHomeWelcomeCard === 'function') renderHomeWelcomeCard(logArr);
   if (typeof renderHomeDiscoveryChips === 'function') renderHomeDiscoveryChips(logArr);
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
+  if (typeof renderCommunityTipsPane === 'function') {
+    var conditionTags = appSettings && appSettings.medicalCondition ? [appSettings.medicalCondition] : [];
+    renderCommunityTipsPane(conditionTags);
+  }
+  if (typeof renderCohortBenchmarkCard === 'function') renderCohortBenchmarkCard();
   if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
   if (hero) {
     hero.classList.add('rianell-in-view');
@@ -24543,69 +24653,8 @@ function shouldSuppressFirstRunLoggingPrompt() {
 function renderHomeAiSuggestions() {
   var container = document.getElementById('homeAiSuggestions');
   if (!container) return;
-  var S = getHomeSharedAi();
-  if (!S || typeof S.pickHomeAiSuggestions !== 'function') {
-    container.innerHTML = '';
-    container.hidden = true;
-    return;
-  }
-  var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false && appSettings.simpleMode !== true;
-  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
-  if (!logArr.length) {
-    container.innerHTML = '';
-    container.hidden = true;
-    return;
-  }
-  var todayStr = getTodayDateStr();
-  var loggedToday = logArr.some(function(l) { return l && l.date === todayStr; });
-  var snap = typeof S.computeHomeAnalysisSnapshot === 'function'
-    ? S.computeHomeAnalysisSnapshot(logArr)
-    : null;
-  var bundle = typeof S.pickHomeAiSuggestionBundle === 'function'
-    ? S.pickHomeAiSuggestionBundle(logArr, snap, {
-      aiEnabled: aiOn,
-      loggedToday: loggedToday,
-      todayStr: todayStr,
-      homeGapQuestionCache: appSettings.homeGapQuestionCache,
-      medSchedule: appSettings.medSchedule || [],
-      homeQuestionAnswerState: appSettings.homeQuestionAnswerState
-    })
-    : { chips: S.pickHomeAiSuggestions(logArr, snap, { aiEnabled: aiOn, loggedToday: loggedToday }), gapCacheUpdate: null };
-  var chips = bundle.chips || [];
-  if (bundle.gapCacheUpdate) {
-    appSettings.homeGapQuestionCache = bundle.gapCacheUpdate;
-    if (typeof saveSettings === 'function') saveSettings();
-  }
-  window._homeAiAnalysisSnapshot = snap;
-  window._homeAiSuggestionChips = chips;
-  if (!chips.length) {
-    container.innerHTML = '';
-    container.hidden = true;
-    return;
-  }
-  var modelStatus = typeof window.getAiModelStatus === 'function' ? window.getAiModelStatus() : null;
-  var llmReady = !!(modelStatus && modelStatus.state === 'ready');
-  container.hidden = false;
-  container.innerHTML = chips.map(function(chip) {
-    var lockedAttr = llmReady ? '' : ' disabled aria-disabled="true"';
-    var lockedClass = llmReady ? '' : ' home-ai-suggestion--locked';
-    return (
-      '<button type="button" class="action-btn home-ai-suggestion' + lockedClass + '"' + lockedAttr +
-      ' data-ripple data-home-question-id="' +
-      escapeHTML(chip.id) + '">' + escapeHTML(typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey) +
-      '</button>'
-    );
-  }).join('');
-  if (!container._homeAiSuggestionsClickBound) {
-    container._homeAiSuggestionsClickBound = true;
-    container.addEventListener('click', function(e) {
-      var btn = e.target && e.target.closest ? e.target.closest('[data-home-question-id]') : null;
-      if (!btn || !container.contains(btn)) return;
-      if (btn.disabled || btn.getAttribute('aria-disabled') === 'true') return;
-      openHomeQuestionModal(btn.getAttribute('data-home-question-id'));
-    });
-  }
-  if (typeof initRipple === 'function') initRipple(container);
+  container.innerHTML = '';
+  container.hidden = true;
 }
 
 var _homeQuestionModalRequestId = 0;
@@ -24626,6 +24675,18 @@ function isHomeQuestionModalRequestStale(requestId) {
 function openHomeQuestionModal(questionId) {
   var chips = window._homeAiSuggestionChips || [];
   var chip = chips.find(function(c) { return c.id === questionId; });
+  var seed = chip
+    ? (typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey)
+    : '';
+  var S = getHomeSharedAi();
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  var snap = window._homeAiAnalysisSnapshot || (S && typeof S.computeHomeAnalysisSnapshot === 'function'
+    ? S.computeHomeAnalysisSnapshot(logArr)
+    : null);
+  if (typeof openAiHealthChat === 'function') {
+    openAiHealthChat({ seedPrompt: seed, analysis: snap });
+    return;
+  }
   if (!chip) return;
   _homeQuestionModalRequestId += 1;
   var requestId = _homeQuestionModalRequestId;
@@ -24755,6 +24816,10 @@ function refreshAllTabsForLocaleChange() {
   if (aiResults && aiResults.innerHTML && aiResults.innerHTML.trim()) hadAiContent = true;
 
   if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
+  if (typeof renderCommunityTipsPane === 'function') {
+    var communityTags = appSettings && appSettings.medicalCondition ? [appSettings.medicalCondition] : [];
+    renderCommunityTipsPane(communityTags);
+  }
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
   if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
   if (typeof updateDashboardTitle === 'function') updateDashboardTitle();
@@ -26098,6 +26163,7 @@ function switchTab(tabName, skipHash) {
       selectedTab.style.opacity = '1';
     }
     if (window.OasisCanvas) window.OasisCanvas.onTabActivated(tabName + 'Tab');
+    if (typeof initWebGLSurfacesForTab === 'function') initWebGLSurfacesForTab(tabName);
     if (tabName === 'ai' && window.OasisCanvas) {
       window.OasisCanvas.injectNeuralTrace(document.getElementById('aiTab'));
     }
@@ -26732,6 +26798,8 @@ function runRianellBootAfterDomReady() {
         markShellPainted();
       }
       startAppAfterPrivacyGate();
+      if (typeof syncReduceMotionBodyClass === 'function') syncReduceMotionBodyClass();
+      if (typeof initWebGLSurfacesForTab === 'function') initWebGLSurfacesForTab('home');
     }
     if (meta && (meta.cached || meta.heuristic)) {
       revealAndStart();

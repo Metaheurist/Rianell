@@ -66,6 +66,18 @@ export {
   buildWeekChatFallback,
 } from '../ai/weekChat.mjs';
 export {
+  MAX_HEALTH_CHAT_CONTEXT_CHARS,
+  MAX_HEALTH_CHAT_TURNS,
+  buildChatContext,
+  buildHealthChatUserPayload,
+  buildHealthChatFallback,
+  formatHealthChatHistory,
+  canSendHealthChatTurn,
+  redactUntrustedText,
+  isScreeningField,
+  sanitizeObjectForChatContext,
+} from '../ai/chatContext.mjs';
+export {
   validateRemoteLlmEndpoint,
   isPwaOnDeviceLlmOnly,
   BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,

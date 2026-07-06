@@ -12,6 +12,7 @@
 |---------|------------|---------------------|--------------|
 | **Deterministic analysis** | `@rianell/ai-engine` (regression, correlation, flare prediction) | No | Always on when user runs AI Analysis |
 | **On-device LLM (PWA)** | Transformers.js `@3.3.2` (self-hosted `/vendor/` or jsDelivr fallback) + **Hugging Face Hub** weights only | Weights downloaded from HF; **prompts stay on device** | Consent modal + download UI; **WebGPU** tried before WASM (`webgl` is not a valid Transformers device) |
+| **Ephemeral health chat (PWA Home)** | `modules/ai-chat.js` + `buildChatContext` (`@rianell/shared`) | **No persistence** — in-memory only, cleared on close/`beforeunload` | Opens from Home discovery cards; 5-turn limit; on-device inference via `generateHealthChatWithLLM` |
 | **On-device LLM (RN)** | `@rianell/llm` + `llmNative.ts` (ORT) or `llmJs.ts` (Expo Go WASM) | HF Hub download to app documents; prompts on device | `AiModelDownloadGate`; Android NNAPI / iOS CoreML before CPU |
 | **Rule-based fallbacks** | Shared MOTD / summary templates | No | Automatic when LLM unavailable or times out |
 | **Anonymized training pool** | Encrypted blobs in `anonymized_data` | Yes (opt-in) | Separate consent in settings |
@@ -84,6 +85,9 @@ There is **no cross-user** prompt injection path today (no shared server prompt 
 | Control | Implementation |
 |---------|----------------|
 | **UGC delimiters (v1.60)** | User notes in LLM context wrapped in `---USER_NOTE---` / `---END_USER_NOTE---` (`summary-llm.js`); notes never passed through UI translation |
+| **Health chat context builder (v1.134)** | `packages/shared/src/ai/chatContext.mjs` — screening field exclusion, URL/script redaction, delimiter spoof neutralization, 1800-char cap |
+| **Ephemeral chat (v1.134)** | `apps/pwa-webapp/modules/ai-chat.js` — no `localStorage`/IndexedDB; `wipeState()` on close and `beforeunload`; enforced by `llm-security-contract.mjs` |
+| **Instruction hierarchy (AI-01 partial)** | `weekChat.system` prompt ranks system instructions above `---USER_NOTE---` content and user messages |
 | Structured prompts | Intent-specific templates (`buildLlmContext`) separate system instructions from user payload |
 | Output length caps | Suggest-note append capped (500 chars on medications step) |
 | Timeout + fallback | Rule-based summary/MOTD if LLM stalls |
@@ -94,7 +98,7 @@ There is **no cross-user** prompt injection path today (no shared server prompt 
 
 | ID | Control | Priority |
 |----|---------|----------|
-| AI-01 | Delimiter hardening and instruction hierarchy in prompt templates | P1 |
+| AI-01 | Delimiter hardening and instruction hierarchy in prompt templates | P1 | **Partial** — `weekChat.system` hierarchy + delimiter spoof stripping in `chatContext.mjs` |
 | AI-02 | Output schema validation (reject non-prose / markup) | P2 |
 | AI-03 | Optional "strict mode" — deterministic analysis only | P2 |
 | AI-04 | Log redaction layer before prompt assembly (strip URLs, script-like tokens) | P3 |

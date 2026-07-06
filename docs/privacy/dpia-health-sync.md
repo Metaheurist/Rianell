@@ -29,6 +29,7 @@ A DPIA is required because Rianell involves:
 | **Cloud backup** | User authenticates; client generates AES key; stores key in `user_keys`; encrypts logs/settings/`ai_state` into `health_data`. |
 | **Anonymized contribution** | Opt-in: client strips direct identifiers, encrypts payload, inserts into `anonymized_data` with optional `medical_condition` label and `user_id` link. |
 | **On-device AI** | Deterministic `@rianell/ai-engine` + optional Transformers.js LLM using local logs; model weights from Hugging Face. |
+| **Ephemeral health chat (PWA)** | Home discovery cards open `ai-chat.js` — multi-turn Q&A over local logs; **not persisted**; cleared on panel close. |
 
 ### 2.2 Scope
 
@@ -58,6 +59,7 @@ Users are **consumers** tracking chronic illness / wellness — vulnerable to mi
 | Is cloud sync necessary? | **Proportionate** optional feature; local-only mode remains viable. |
 | Is `user_id` on anonymized rows necessary? | **Debatable** — enables deduplication and erasure; weakens anonymization. Prefer future unlink or hash. |
 | Is on-device LLM necessary? | **Optional**; fallbacks exist. User consent required. |
+| Is ephemeral chat storage necessary? | **No** — chat transcript is held in memory only for the open session; no cloud sync of chat history. |
 | Data minimisation | Logs limited by schema; notes capped; bug reports minimised. |
 
 ---

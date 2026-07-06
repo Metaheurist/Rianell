@@ -122,6 +122,15 @@ async function run() {
       await new Promise(r => setTimeout(r, 500));
     }
 
+    // Ephemeral health chat open/close (no LLM inference — UI teardown path)
+    await page.evaluate(() => {
+      try {
+        if (typeof openAiHealthChat === 'function') openAiHealthChat({ seedPrompt: '' });
+        if (typeof closeAiHealthChat === 'function') closeAiHealthChat();
+      } catch (_) {}
+    }).catch(() => {});
+    await new Promise(r => setTimeout(r, 150));
+
     // Force GC hint via large allocation sweep (helps surface real leaks)
     await page.evaluate(() => {
       try { let x = new Array(100000).fill(0); x = null; } catch (_) {}
