@@ -70,19 +70,19 @@ Optional **session recording** (Smartlook, EU region) helps improve usability on
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-RN%20309%20%7C%20RN%20iOS%20309%20%7C%20Server%20642%20%7C%20Web%20642-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/28760447624)
+[![CI builds](https://img.shields.io/badge/build-RN%20310%20%7C%20RN%20iOS%20310%20%7C%20Server%20658%20%7C%20Web%20658-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/28828577477)
 
 **CI builds** (React Native CLI + server + web)
 
 | Channel | Build |
 | :--- | :---: |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **Android** APK (React Native CLI) | **309** |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **309** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **642** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **642** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **642** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **Android** APK (React Native CLI) | **310** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **310** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **658** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **658** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **658** |
 
-Latest: [`artifacts/RNCLI-Android/app-debug-beta.apk`](artifacts/RNCLI-Android/latest.json) · [`artifacts/iOS/Health-Tracker-ios-alpha-build-309.zip`](artifacts/iOS/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #642](https://github.com/Metaheurist/Rianell/actions/runs/28760447624) · `130b3fd`
+Latest: [`artifacts/RNCLI-Android/app-debug-beta.apk`](artifacts/RNCLI-Android/latest.json) · [`artifacts/iOS/Health-Tracker-ios-alpha-build-310.zip`](artifacts/iOS/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #658](https://github.com/Metaheurist/Rianell/actions/runs/28828577477) · `894d90a`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
