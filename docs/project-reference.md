@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.1.9 documentation sync (security hardening, dead-code removal, module extraction)
+
+- **Security:** `verify-no-unsafe-sinks` in CI; SW push URL same-origin guard; live CSP drift on scheduled workflow; SH-11 entry in `security-hardening-execution-log.md`.
+- **Cleanup:** removed `print-styles.css`, `model-chunk-loader.js`, `first-run-wizard.js`, `scripts/migration/legacy/`; moved `UI_OASIS_PLAN.md` → `docs/plans/`.
+- **Structure:** `modules/share-modal.js` extracted from `app.js`.
+- **i18n:** `home.chat.inputLabel` in all locales; community tips render awaits catalog load.
+- **Wiki:** `API-and-Integrations.md`, `Accessibility.md`; Release Notes §2.1.8–2.1.9.
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.9]`.
+
 ### v2.1.7 documentation sync (dependency patches, lighthouse 13, RN ScrollView refs)
 
 - **npm:** Patch-updates group (react 19.2.7, @types/react, react-native-svg, @react-navigation, @playwright/test, babel-preset 0.83.10); lighthouse 13.4.0 in `benchmarks/`.
