@@ -8,6 +8,42 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.9] - 2026-07-06
+
+Security hardening, dead-code removal, and structure cleanup pass.
+
+### Added
+
+- **scripts/verify/verify-no-unsafe-sinks.mjs** — CI guard against new `eval`, `new Function`, or unexpected `document.write` in PWA source
+- **modules/share-modal.js** — extracted share modal UI from `app.js` (proof-pattern module split)
+- **wiki/API-and-Integrations.md** and **wiki/Accessibility.md** — API surface and a11y entry points
+- **Scheduled live CSP drift job** — non-blocking checks in `security-audit-scheduled.yml`
+
+### Changed
+
+- **sw.js** — push notification click URLs validated same-origin via `resolveSameOriginPushUrl()`
+- **UI_OASIS_PLAN.md** moved to `docs/plans/UI_OASIS_PLAN.md`
+- **Community tips** — `renderCommunityTipsPane` awaited inside `updateHomeTodayPanel` (i18n race fix)
+- **Home discovery** — removed broken `closeHomeDiscoveryModal` noop; cards open AI chat directly
+
+### Fixed
+
+- **XSS sink invariants** documented for `showAlertModal` and share modal `bodyHTML` call sites
+- **home.chat.inputLabel** present in all 14 locale packs; `ai-chat.js` uses `tUiOr` fallback
+
+### Removed
+
+- Dead PWA files: `print-styles.css`, `model-chunk-loader.js`, `first-run-wizard.js`
+- Archived `scripts/migration/legacy/` one-shots
+- Unused deps: `lodash`, `stacktrace-js` (RN), `js-yaml` (root devDep); stale `verify-openapi.mjs`
+
+### Tests
+
+- `verify-no-unsafe-sinks`, SW push URL, dead-code removal, share-modal extraction contracts
+- 735 unit tests passing
+
+---
+
 ## [2.1.8] - 2026-07-06
 
 Visual System Upgrade (agentic plan P0–P7): unified motion tokens, SVG sprite chrome, tier-gated WebGL ambient layer, and RN reduce-motion parity.
