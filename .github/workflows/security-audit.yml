@@ -42,6 +42,7 @@ jobs:
           chmod +x gitleaks
 
       - name: Gitleaks (secret scan, working tree)
+        id: gitleaks
         run: ./gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1 --redact
 
       - name: Verify no service_role in client sources
@@ -65,6 +66,7 @@ jobs:
           git diff --exit-code docs/security-inventory.md
 
       - name: Vulnerability scan — npm audit (production deps)
+        id: npm-audit-prod
         run: npm audit --audit-level=high --omit=dev
 
       - name: Vulnerability scan — npm audit (dev, non-blocking)
@@ -98,7 +100,7 @@ jobs:
 
       - name: Upload OSV SARIF
         if: always() && hashFiles('osv-npm.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         continue-on-error: true
         with:
           sarif_file: osv-npm.sarif
@@ -113,7 +115,7 @@ jobs:
       - name: Generate CycloneDX SBOM (artifact)
         continue-on-error: true
         run: |
-          npx --yes @cyclonedx/cyclonedx-npm@1.19.0 --output-file sbom.cdx.json --omit dev
+          npx --yes @cyclonedx/cyclonedx-npm@1.19.0 --output-file sbom.cdx.json --omit dev || true
       - uses: actions/upload-artifact@v5
         if: always() && hashFiles('sbom.cdx.json') != ''
         with:
@@ -138,10 +140,11 @@ jobs:
           install-audit-tools: "true"
 
       - name: Vulnerability scan — pip-audit (requirements.txt)
+        id: pip-audit
         run: pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539
 
       - name: Cancel workflow on failure
-        if: failure()
+        if: failure() && (steps.gitleaks.outcome == 'failure' || steps.npm-audit-prod.outcome == 'failure' || steps.pip-audit.outcome == 'failure')
         uses: actions/github-script@v8
         with:
           script: |
