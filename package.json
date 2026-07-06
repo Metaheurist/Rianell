@@ -109,7 +109,7 @@
     "design-catalog": "node scripts/dev/open-design-catalog.mjs"
   },
   "devDependencies": {
-    "@babel/core": "7.29.7",
+    "@babel/core": "8.0.1",
     "@babel/generator": "^7.26.5",
     "@babel/parser": "^7.26.7",
     "@babel/traverse": "^7.26.7",
