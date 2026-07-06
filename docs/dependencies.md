@@ -33,7 +33,6 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
 | `esbuild` | 0.28.1 |
-| `js-yaml` | 4.2.0 |
 | `sharp` | ^0.33.5 |
 | `turbo` | ^2.9.18 |
 
@@ -125,9 +124,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `babel-preset-expo` | ~55.0.12 |
 | `jest` | ^29.7.0 |
 | `jest-expo` | ~55.0.11 |
-| `lodash` | ^4.18.1 |
 | `react-test-renderer` | 19.2.7 |
-| `stacktrace-js` | ^2.0.2 |
 | `typescript` | ~5.9.2 |
 
 ---
