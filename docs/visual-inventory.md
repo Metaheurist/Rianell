@@ -69,7 +69,7 @@ Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgra
 
 ## Baseline capture manifest
 
-See [audit-history/visual-baseline-manifest.json](../audit-history/visual-baseline-manifest.json). Capture via `npm run audit:probe-shell:screenshot` at 390×844 and 1280×800, light + dark, before/after each phase.
+Local capture targets live in `audit-history/visual-baseline-manifest.json` (gitignored audit output). Tracked baseline: [audit-history/baseline.json](../audit-history/baseline.json). Capture via `npm run audit:probe-shell:screenshot` at 390×844 and 1280×800, light + dark, before/after each phase.
 
 ## Phase completion log
 
