@@ -164,8 +164,8 @@ self.addEventListener('push', function (event) {
   event.waitUntil(
     self.registration.showNotification(title, {
       body: body,
-      icon: '/Icons/Icon-192.png',
-      badge: '/Icons/Icon-192.png',
+      icon: '/Icons/beta/Icon-192.png',
+      badge: '/Icons/beta/Icon-192.png',
       data: data,
     })
   );
