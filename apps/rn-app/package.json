@@ -32,7 +32,7 @@
     "expo-crypto": "~55.0.4",
     "expo-file-system": "~55.0.22",
     "expo-haptics": "~55.0.4",
-    "expo-local-authentication": "~55.0.4",
+    "expo-local-authentication": "~57.0.0",
     "expo-modules-autolinking": "^55.0.11",
     "expo-modules-core": "55.0.25",
     "expo-print": "~55.0.4",
