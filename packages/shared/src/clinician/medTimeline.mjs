@@ -75,9 +75,18 @@ export function buildMedicationTimeline(logs, treatmentStarts = [], opts = {}) {
   return { rows, spanStart, spanEnd };
 }
 
+/** Semantic export SVG colors — mirror @rianell/tokens SEMANTIC_COLORS */
+export const EXPORT_SVG_COLORS = {
+  ink: '#1a1a1a',
+  inkMuted: '#333333',
+  success: '#4caf50',
+  successFill: 'rgba(76,175,80,0.25)',
+};
+
 export function buildTimelineSvg(rows, opts = {}) {
   const list = Array.isArray(rows) ? rows : [];
   if (!list.length) return '';
+  const colors = { ...EXPORT_SVG_COLORS, ...(opts.colors || {}) };
   const width = opts.width ?? 520;
   const rowH = 28;
   const height = 40 + list.length * rowH;
@@ -88,9 +97,9 @@ export function buildTimelineSvg(rows, opts = {}) {
       const barW = Math.max(40, width - left - 24);
       const label = String(row.label || '').slice(0, 18);
       const detail = `${row.preFatigueAvg ?? '-'} → ${row.postFatigueAvg ?? '-'}`;
-      return `<text x="8" y="${y + 12}" font-size="10" fill="#333">${label}</text>` +
-        `<rect x="${left}" y="${y}" width="${barW}" height="16" fill="rgba(76,175,80,0.25)" stroke="#4caf50"/>` +
-        `<text x="${left + 6}" y="${y + 12}" font-size="9" fill="#222">${row.startDate} · fatigue ${detail}</text>`;
+      return `<text x="8" y="${y + 12}" font-size="10" fill="${colors.inkMuted}">${label}</text>` +
+        `<rect x="${left}" y="${y}" width="${barW}" height="16" fill="${colors.successFill}" stroke="${colors.success}"/>` +
+        `<text x="${left + 6}" y="${y + 12}" font-size="9" fill="${colors.ink}">${row.startDate} · fatigue ${detail}</text>`;
     })
     .join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${bars}</svg>`;

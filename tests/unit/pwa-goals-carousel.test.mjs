@@ -28,12 +28,11 @@ test('goals-carousel.js resolves i18n via RianellI18n.t', () => {
   assert.match(src, /syncGoalsCarouselViewportHeight/);
 });
 
-test('goals-carousel dot icons use inline animated SVG markup', () => {
+test('goals-carousel dot icons use sprite symbols with animated CSS', () => {
   const src = fs.readFileSync(carouselPath, 'utf8');
   const css = fs.readFileSync(path.join(root, 'apps/pwa-webapp/styles.css'), 'utf8');
   assert.match(src, /ui-svg-icon goals-dot-icon-svg/);
-  assert.match(src, /goals-icon-target-ring--mid/);
-  assert.match(src, /goals-icon-fill/);
+  assert.match(src, /<use href="#icon-/);
   assert.match(src, /data-goals-dot-icon/);
   assert.match(src, /goals-carousel-dot__icon/);
   assert.match(css, /goalsTargetRingMid/);
