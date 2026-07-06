@@ -1,6 +1,34 @@
 # Release Notes
 
-## Latest release (v2.1.7)
+## Latest release (v2.1.9)
+
+**Date:** 2026-07-06
+
+### Highlights
+
+- **Security:** Service worker rejects cross-origin push notification URLs; new CI guard blocks `eval` / unsafe sinks in PWA source.
+- **Cleanup:** Removed dead files (`print-styles.css`, `model-chunk-loader.js`, `first-run-wizard.js`) and archived legacy migration scripts.
+- **Structure:** Share modal extracted to `modules/share-modal.js` as a module-split proof pattern.
+- **i18n:** `home.chat.inputLabel` in all locales; community tips wait for catalog load before render.
+- **Wiki:** New API/Integrations and Accessibility pages.
+
+See **v2.1.8** below for the Visual System Upgrade.
+
+---
+
+## Previous (v2.1.8)
+
+**Date:** 2026-07-06
+
+### Highlights
+
+- **Visual System Upgrade:** Motion tokens, SVG sprite chrome, lazy WebGL ambient layer (home/mood/achievements).
+- **RN parity:** Reduce-motion honored on Home, AI, boot, and primary button screens.
+- **Home discovery:** AI chat cards replace legacy discovery modal.
+
+---
+
+## Previous (v2.1.7)
 
 **Date:** 2026-07-06
 

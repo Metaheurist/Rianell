@@ -7,6 +7,7 @@
 - [[Cloud-Sync-and-Backup]]
 - [[Privacy-and-Your-Data]]
 - [[Settings-and-Languages]]
+- [[Accessibility]]
 - [[Downloads]]
 - [[Troubleshooting]]
 - [[FAQ]]
@@ -16,6 +17,7 @@
 - [[Developer-Setup]]
 - [[Architecture-Overview]]
 - [[Platforms-and-Parity]]
+- [[API-and-Integrations]]
 - [[Build-Test-and-CI]]
 - [[Contributing]]
 
