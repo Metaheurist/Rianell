@@ -141,6 +141,8 @@ function spinOmegaToHeartbeatDuration(absOmega: number) {
   return 3.2 - t * (3.2 - 0.8);
 }
 
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+
 function HomeMotdHeartbeat({
   motd,
   theme,
