@@ -8,6 +8,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.1.8] - 2026-07-06
+
+Visual System Upgrade (agentic plan P0–P7): unified motion tokens, SVG sprite chrome, tier-gated WebGL ambient layer, and RN reduce-motion parity.
+
+### Added
+
+- **docs/visual-inventory.md** — living registry of SVG, motion, and surface upgrade status
+- **audit-history/visual-baseline-manifest.json** — screenshot targets for before/after diffs
+- **apps/pwa-webapp/lazy-webgl.mjs** + **modules/webgl-scene.js** — lazy-loaded WebGL2 particle scenes (home ambient, mood orb, achievement burst)
+- **Sprite icons:** `icon-chevron-left`, `icon-chevron-right`, `icon-close`, `icon-backspace`
+- **@rianell/tokens:** `--dur-slower` (700ms), `ACHIEVEMENT_TIER_COLORS`, `EXPORT_SVG_COLORS` in medTimeline
+
+### Changed
+
+- **Motion foundation:** legacy `--transition-*` aliases map to `--dur-*` + `--ease-out-expo`; global `body.reduce-motion` synced from OS + in-app pref
+- **Goals carousel:** medal/target icons use sprite `<use>` (deduped inline SVG)
+- **UI chrome:** pin keypad, carousel arrows, log wizard nav, tutorial arrows use SVG sprites (emoji/text retired)
+- **Home:** hero card stagger entrance; pointer-hover lift on quick actions (desktop)
+- **Charts:** panel crossfade on load
+- **RN:** `HomeScreen`, `AiScreen`, `PrimaryButton`, `BootLoadingScreen` honor `useReduceMotionFlag`; achievement tiers from tokens
+
+### Fixed
+
+- **sw.js** push notification icon aligned to CI contract (`Icons/beta/Icon-192.png`)
+
+### Tests
+
+- Extended `tests/unit/pwa/animation-polish.test.mjs` (motion tokens, reduce-motion, WebGL wiring, push icon)
+- Updated `tests/unit/pwa-goals-carousel.test.mjs` for sprite-based dot icons
+- 708 unit tests passing
+
+---
+
 ## [2.1.7] - 2026-07-06
 
 Dependency maintenance release: patch-updates group, lighthouse 13, and RN ScrollView ref fixes for React 19 types.

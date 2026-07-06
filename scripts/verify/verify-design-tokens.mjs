@@ -37,6 +37,7 @@ const CSS_FORBIDDEN = [
   { re: /\.log-wizard-progress-fill[^}]*transition:\s*width/, msg: 'log-wizard progress must animate transform only' },
   { re: /\.achievement-progress-fill[^}]*transition:\s*width/, msg: 'achievement progress must animate transform only' },
   { re: /#tabNavIndicator[^}]*transition:[^;]*width/, msg: 'tab indicator must not transition width' },
+  { re: /--transition-fast:\s*0\.\d+s/, msg: 'legacy hardcoded --transition-fast — alias to --dur-* tokens' },
 ];
 
 const failures = [];
