@@ -26240,10 +26240,15 @@ function __rianellShouldSkipLoadingBurst() {
   return false;
 }
 
-function __rianellApplyShellWarmSkipOverlay() {
-  try {
-    if (sessionStorage.getItem('rianell_shell_warm') !== '1') return false;
-  } catch (e) { return false; }
+function __rianellApplyShellWarmSkipOverlay(force) {
+  if (!force) {
+    try {
+      if (sessionStorage.getItem('rianell_shell_warm') !== '1') return false;
+    } catch (e) { return false; }
+  }
+  if (document.documentElement) {
+    document.documentElement.classList.add('rianell-lhci-probe');
+  }
   if (document.body) {
     document.body.classList.remove('loading');
     document.body.classList.add('loaded');
@@ -26264,7 +26269,8 @@ function runRianellBootAfterDomReady() {
   if (window.__rianellBootAfterDomStarted) return;
   window.__rianellBootAfterDomStarted = true;
   if (typeof ensureAppShellDomPlacement === 'function') ensureAppShellDomPlacement();
-  var shellWarmSkip = __rianellApplyShellWarmSkipOverlay();
+  var shellWarmSkip = __rianellApplyShellWarmSkipOverlay()
+    || (__rianellShouldSkipLoadingBurst() && __rianellApplyShellWarmSkipOverlay(true));
   if (!window.__rianellBootWatchdogId) {
     var bootWatchdogMs = (typeof window.isMobileViewport === 'function' && window.isMobileViewport()) ? 12000 : 22000;
     window.__rianellBootWatchdogId = setTimeout(function () {
