@@ -152,8 +152,26 @@ flowchart LR
   Settings[User notes / context] --> Prompt
   Prompt --> LLM[Transformers.js pipeline]
   HF[Hugging Face weights] --> LLM
-  LLM --> Output[Summary / suggest note / MOTD]
+  LLM --> Output[Summary / suggest note / MOTD / health chat]
   Output --> UI[Rendered as text — escapeHTML]
+```
+
+### 5.4 Ephemeral health chat (PWA Home)
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant C as ai-chat.js
+  participant S as buildChatContext
+  participant L as On-device LLM
+
+  U->>C: Tap discovery card / send message
+  C->>S: Assemble capped context (no screening fields)
+  S-->>C: Redacted prompt payload
+  C->>L: generateHealthChatWithLLM (max 5 turns)
+  L-->>C: Assistant reply (memory only)
+  U->>C: Close panel
+  C->>C: wipeState — no storage writes
 ```
 
 ---

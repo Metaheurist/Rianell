@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=127" as="style">
+  <link rel="preload" href="styles.css?v=128" as="style">
   <link rel="modulepreload" href="app.js?v=60" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=127" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=127&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=128" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=128&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=2">
   <style>
@@ -1085,7 +1085,7 @@
     <symbol id="icon-user" viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></symbol>
     <symbol id="icon-cloud" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/></symbol>
     <symbol id="icon-brain" viewBox="0 0 24 24"><path d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z"/><path d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z"/><path d="M10 9H7.5M14 9h2.5M10 14H7.5M14 14h2.5"/></symbol>
-    <symbol id="icon-chart-bars" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><rect fill="none" x="7" y="10" width="3" height="6" rx="1"/><rect fill="none" x="12" y="6" width="3" height="10" rx="1"/><rect fill="none" x="17" y="8" width="3" height="8" rx="1"/></symbol>
+    <symbol id="icon-chart-bars" viewBox="0 0 24 24"><path d="M4 19V5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><path d="M4 19h16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><rect class="icon-fill" x="7" y="10" width="3" height="6" rx="1"/><rect class="icon-fill" x="12" y="6" width="3" height="10" rx="1"/><rect class="icon-fill" x="17" y="8" width="3" height="8" rx="1"/></symbol>
     <symbol id="icon-chart-up" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/><path d="M15 7h4v4"/></symbol>
     <symbol id="icon-chart-down" viewBox="0 0 24 24"><path d="M4 5v14h16"/><path d="m7 8 4 4 3-3 5 7"/><path d="M15 16h4v-4"/></symbol>
     <symbol id="icon-balance" viewBox="0 0 24 24"><path d="M12 4v17"/><path d="M5 7h14"/><path d="m7 7-4 7h8L7 7Z"/><path d="m17 7-4 7h8l-4-7Z"/></symbol>
@@ -1105,7 +1105,11 @@
     <symbol id="icon-notice" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19Z"/><path d="M12 9v5M12 17h.01"/></symbol>
     <symbol id="icon-document" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6Z"/><path d="M14 3v4h4"/><path d="M8 11h8M8 15h8M8 18h5"/></symbol>
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-chevron-left" viewBox="0 0 24 24"><path d="M15 6 9 12l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="icon-backspace" viewBox="0 0 24 24"><path d="M6 7h11a3 3 0 0 1 0 6H9l-3 3V4l3 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m14 10-2 2 2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-code" viewBox="0 0 24 24"><path d="M8 6L3 12L8 18M16 6L21 12L16 18M13 4L11 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-sleep" viewBox="0 0 24 24"><path d="M21 14.5A7.5 7.5 0 0 1 9.6 8.6 6.5 6.5 0 1 0 21 14.5Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></symbol>
     <symbol id="icon-cycle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
@@ -1179,7 +1183,7 @@
     <symbol id="icon-weather-aqi-moderate" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="M12 8v5"/><circle class="icon-fill" cx="12" cy="16" r="1"/></symbol>
     <symbol id="icon-weather-aqi-poor" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="M9.5 14.5h5"/></symbol>
     <!-- AI Analysis tab - custom icons (2026 overhaul) -->
-    <symbol id="icon-brain-wave" viewBox="0 0 24 24"><path d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z"/><path d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z"/><path d="M3 12h2M19 12h2M6 16h1.5M16.5 16H18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="icon-brain-wave" viewBox="0 0 24 24"><path class="icon-fill" d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z"/><path class="icon-fill" d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z"/><path d="M3 12h2M19 12h2M6 16h1.5M16.5 16H18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="icon-heart-pulse" viewBox="0 0 24 24"><path d="M12 20s-6-3.5-6-9a4 4 0 0 1 7-2.5A4 4 0 0 1 20 11c0 5.5-6 9-6 9Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M4 12h3l2-3 3 6 2-4h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-shield-check" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 8.7 7 9.8 4-1.1 7-5.3 7-9.8V6l-7-3Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="icon-gut" viewBox="0 0 24 24"><ellipse cx="12" cy="13" rx="7" ry="8" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M8 10c1.5-2 4.5-2 6 0M8 16c1.5 2 4.5 2 6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
@@ -1227,9 +1231,9 @@
           <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('7')">7</button>
           <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('8')">8</button>
           <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('9')">9</button>
-          <button type="button" class="pin-key pin-key--del" onclick="RianellAppLock.keypadPress('del')" aria-label="Delete">⌫</button>
+          <button type="button" class="pin-key pin-key--del" onclick="RianellAppLock.keypadPress('del')" aria-label="Delete"><svg class="ui-svg-icon pin-key__icon" aria-hidden="true"><use href="#icon-backspace"></use></svg></button>
           <button type="button" class="pin-key" onclick="RianellAppLock.keypadPress('0')">0</button>
-          <button type="button" class="pin-key pin-key--ok" onclick="RianellAppLock.keypadPress('ok')" aria-label="Unlock">✓</button>
+          <button type="button" class="pin-key pin-key--ok" onclick="RianellAppLock.keypadPress('ok')" aria-label="Unlock"><svg class="ui-svg-icon pin-key__icon" aria-hidden="true"><use href="#icon-check"></use></svg></button>
         </div>
         <input type="tel" id="appLockPinInput" autocomplete="off" inputmode="numeric" class="pin-hidden-input" maxlength="8" tabindex="-1" aria-hidden="true" />
       </div>
@@ -1308,7 +1312,7 @@
   <!-- Settings Menu Overlay - Full Page Container -->
   <div class="settings-overlay" id="settingsOverlay" data-benchmark="settings-overlay" role="dialog" aria-modal="true" aria-label="Settings" data-i18n-aria="settings.title">
     <div class="settings-menu" onclick="event.stopPropagation()">
-      <button type="button" class="settings-carousel-side settings-carousel-side--prev" id="settingsCarouselPrev" onclick="settingsCarouselStep(-1)" aria-label="Previous settings section" data-i18n-aria="common.previous.settings.section">‹</button>
+      <button type="button" class="settings-carousel-side settings-carousel-side--prev" id="settingsCarouselPrev" onclick="settingsCarouselStep(-1)" aria-label="Previous settings section" data-i18n-aria="common.previous.settings.section"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg></button>
       <div class="settings-menu-inner">
       <div class="settings-header">
         <div class="settings-header-text">
@@ -1910,9 +1914,9 @@
               <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('7')">7</button>
               <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('8')">8</button>
               <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('9')">9</button>
-              <button type="button" class="pin-key pin-key--del" onclick="RianellAppLock.setupKeypadPress('del')" aria-label="Delete">⌫</button>
+              <button type="button" class="pin-key pin-key--del" onclick="RianellAppLock.setupKeypadPress('del')" aria-label="Delete"><svg class="ui-svg-icon pin-key__icon" aria-hidden="true"><use href="#icon-backspace"></use></svg></button>
               <button type="button" class="pin-key" onclick="RianellAppLock.setupKeypadPress('0')">0</button>
-              <button type="button" class="pin-key pin-key--ok" onclick="RianellAppLock.setupKeypadPress('ok')" aria-label="Confirm">✓</button>
+              <button type="button" class="pin-key pin-key--ok" onclick="RianellAppLock.setupKeypadPress('ok')" aria-label="Confirm"><svg class="ui-svg-icon pin-key__icon" aria-hidden="true"><use href="#icon-check"></use></svg></button>
             </div>
           </div>
           <div id="appLockPassphraseSetupUi" style="display:none;">
@@ -1946,14 +1950,14 @@
       </div>
       </div>
       </div>
-      <button type="button" class="settings-carousel-side settings-carousel-side--next" id="settingsCarouselNext" onclick="settingsCarouselStep(1)" aria-label="Next settings section" data-i18n-aria="common.next.settings.section">›</button>
+      <button type="button" class="settings-carousel-side settings-carousel-side--next" id="settingsCarouselNext" onclick="settingsCarouselStep(1)" aria-label="Next settings section" data-i18n-aria="common.next.settings.section"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
     </div>
   </div>
 
   <!-- Goals & Targets Modal -->
   <div class="modal-overlay goals-modal-overlay" id="goalsModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Goals and targets" data-i18n-aria="common.goals.and.targets">
     <div class="modal-content goals-modal-content goals-modal-carousel-shell" onclick="event.stopPropagation()">
-      <button type="button" class="goals-carousel-side goals-carousel-side--prev" id="goalsCarouselPrev" onclick="goalsCarouselStep(-1)" aria-label="Previous section" data-i18n-aria="common.previous.settings.section">‹</button>
+      <button type="button" class="goals-carousel-side goals-carousel-side--prev" id="goalsCarouselPrev" onclick="goalsCarouselStep(-1)" aria-label="Previous section" data-i18n-aria="common.previous.settings.section"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg></button>
       <div class="goals-modal-inner">
         <div class="modal-header goals-modal-header">
           <div class="goals-header-text">
@@ -2011,7 +2015,7 @@
           <button type="button" class="modal-save-btn" onclick="saveGoalsAndClose()" data-i18n="common.save">Save</button>
         </div>
       </div>
-      <button type="button" class="goals-carousel-side goals-carousel-side--next" id="goalsCarouselNext" onclick="goalsCarouselStep(1)" aria-label="Next section" data-i18n-aria="common.next.settings.section">›</button>
+      <button type="button" class="goals-carousel-side goals-carousel-side--next" id="goalsCarouselNext" onclick="goalsCarouselStep(1)" aria-label="Next section" data-i18n-aria="common.next.settings.section"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
     </div>
   </div>
 
@@ -2409,7 +2413,7 @@
           <div id="homeWeatherStrip" class="home-weather-strip" aria-live="polite" hidden></div>
         </div>
       </div>
-      <div id="homeHeroCard" class="home-hero-card" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
+      <div id="homeHeroCard" class="home-hero-card home-hero-stagger" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
         <div id="homeTodayStatus" class="home-today-status"></div>
         <div id="homeStreakCard" class="home-hero-inset home-streak-inset" data-home-card="streak" hidden></div>
         <div id="homeWeeklyReviewCard" class="home-hero-inset home-weekly-review-inset" data-home-card="weeklyReview" hidden></div>
@@ -3377,8 +3381,8 @@
           </button>
         </div>
       </div>
-      <button type="button" class="log-wizard-side-nav log-wizard-side-nav--prev" id="logWizardSidePrevBtn" aria-label="Previous step" data-i18n-aria="wizard.aria.previousStep">‹</button>
-      <button type="button" class="log-wizard-side-nav log-wizard-side-nav--next" id="logWizardSideNextBtn" aria-label="Next step" data-i18n-aria="wizard.aria.nextStep">›</button>
+      <button type="button" class="log-wizard-side-nav log-wizard-side-nav--prev" id="logWizardSidePrevBtn" aria-label="Previous step" data-i18n-aria="wizard.aria.previousStep"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg></button>
+      <button type="button" class="log-wizard-side-nav log-wizard-side-nav--next" id="logWizardSideNextBtn" aria-label="Next step" data-i18n-aria="wizard.aria.nextStep"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
     </form>
     </div>
 
@@ -4324,7 +4328,7 @@
         <button class="modal-close" onclick="closeTutorialModal()" aria-label="Close tutorial" data-i18n-aria="common.close.tutorial">&times;</button>
       </div>
       <div class="tutorial-slides-wrap">
-        <button type="button" class="tutorial-arrow tutorial-arrow-left" id="tutorialArrowLeft" onclick="tutorialPrevSlide()" aria-label="Previous slide" data-i18n-aria="common.previous.slide" style="display: none;">‹</button>
+        <button type="button" class="tutorial-arrow tutorial-arrow-left" id="tutorialArrowLeft" onclick="tutorialPrevSlide()" aria-label="Previous slide" data-i18n-aria="common.previous.slide" style="display: none;"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg></button>
         <div class="modal-body tutorial-modal-body">
         <div class="tutorial-slide tutorial-slide-active" id="tutorialSlide0" data-slide="0">
           <p class="tutorial-text" data-i18n="tutorial.slide0.body">Do you want to use <strong  data-i18n="nav.ai">AI Analysis</strong> (patterns, insights, summary) and <strong>Goals & targets</strong>? You can turn this on later in Settings.</p>
@@ -4450,7 +4454,7 @@
           <p class="tutorial-text" data-i18n="tutorial.slide7.body">You're all set. Close to start logging, try <strong  data-i18n="settings.demo.title">Demo Mode</strong>, or create an account to save your data in the cloud.</p>
         </div>
         </div>
-        <button type="button" class="tutorial-arrow tutorial-arrow-right" id="tutorialArrowRight" onclick="tutorialNextSlide()" aria-label="Next slide" data-i18n-aria="common.next.slide">›</button>
+        <button type="button" class="tutorial-arrow tutorial-arrow-right" id="tutorialArrowRight" onclick="tutorialNextSlide()" aria-label="Next slide" data-i18n-aria="common.next.slide"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
       </div>
       <div class="modal-footer tutorial-modal-footer">
         <div class="tutorial-footer-right">
@@ -5042,7 +5046,7 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=7"></script>
+  <script defer src="vendor/rianell-shared.js?v=8"></script>
   <script defer src="modules/graphics-portfolio.js?v=5"></script>
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
@@ -5053,6 +5057,7 @@
   <script defer src="modules/lifestyle-vitals-widgets.js?v=2"></script>
   <script defer src="modules/weekly-review.js?v=7"></script>
   <script defer src="modules/mood-tab.js?v=7"></script>
+  <script defer src="modules/ai-chat.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=4"></script>
   <script defer src="privacy-region.js?v=10"></script>
   <script defer src="guided-onboarding.js?v=5"></script>

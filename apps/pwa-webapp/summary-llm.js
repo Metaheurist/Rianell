@@ -1934,6 +1934,7 @@
   window.generateExplainChartWithLLM = generateExplainChartWithLLM;
   window.generateStructuredSummaryWithLLM = generateStructuredSummaryWithLLM;
   window.generateWeekChatWithLLM = generateWeekChatWithLLM;
+  window.generateHealthChatWithLLM = generateWeekChatWithLLM;
   window.generateMotdWithLLM = generateMotdWithLLM;
   window.buildSuggestContext = buildSuggestContext;
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;

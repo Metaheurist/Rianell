@@ -84,6 +84,39 @@ if (/api\.openai\.com|api\.anthropic\.com|openrouter\.ai/i.test(summaryLlm)) {
 if (!summaryLlm.includes("cachedActiveEngine === 'gguf'")) {
   errors.push('summary-llm.js must wire GGUF engine in runChatInference');
 }
+if (!summaryLlm.includes('generateHealthChatWithLLM')) {
+  errors.push('summary-llm.js must export generateHealthChatWithLLM alias for health chat');
+}
+
+const aiChatPath = 'apps/pwa-webapp/modules/ai-chat.js';
+if (!existsSync(join(root, aiChatPath))) {
+  errors.push('missing apps/pwa-webapp/modules/ai-chat.js');
+} else {
+  const aiChat = read(aiChatPath);
+  if (/localStorage|sessionStorage|indexedDB/i.test(aiChat)) {
+    errors.push('ai-chat.js must not persist chat to storage (ephemeral only)');
+  }
+  if (!/wipeState|beforeunload/.test(aiChat)) {
+    errors.push('ai-chat.js must clear state on close and beforeunload');
+  }
+  if (!/generateHealthChatWithLLM|generateWeekChatWithLLM/.test(aiChat)) {
+    errors.push('ai-chat.js must call on-device generateHealthChatWithLLM');
+  }
+  if (!/buildChatContext/.test(aiChat)) {
+    errors.push('ai-chat.js must assemble context via buildChatContext');
+  }
+  if (/api\.openai\.com|api\.anthropic\.com|openrouter\.ai/i.test(aiChat)) {
+    errors.push('ai-chat.js must not reference commercial LLM API hosts');
+  }
+}
+
+const chatContext = read('packages/shared/src/ai/chatContext.mjs');
+if (!chatContext.includes('isScreeningField')) {
+  errors.push('chatContext.mjs must exclude screening fields from prompts');
+}
+if (!chatContext.includes('MAX_HEALTH_CHAT_TURNS')) {
+  errors.push('chatContext.mjs must define MAX_HEALTH_CHAT_TURNS');
+}
 if (!indexHtml.includes('llm-runtime-profiles-sync.js')) {
   errors.push('index.html must load llm-runtime-profiles-sync.js');
 }
