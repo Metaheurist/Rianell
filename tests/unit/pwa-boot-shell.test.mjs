@@ -145,12 +145,12 @@ test('app.js wires onFirstRunWizardComplete after guided onboarding', () => {
   assert.match(appJs, /window\.appSettings && typeof saveSettings === 'function'/);
 });
 
-test('first-run-wizard.js is a deprecation shim for guided onboarding', () => {
-  const shim = readFileSync('apps/pwa-webapp/first-run-wizard.js', 'utf8');
-  assert.match(shim, /deprecated/i);
-  assert.match(shim, /RianellGuidedOnboarding/);
-  assert.match(shim, /RianellFirstRunWizard/);
-  assert.doesNotMatch(shim, /buildUnifiedOnboardingSteps/);
+test('guided-onboarding.js replaces deprecated first-run-wizard shim', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  const onboarding = readFileSync('apps/pwa-webapp/guided-onboarding.js', 'utf8');
+  assert.match(html, /guided-onboarding\.js/);
+  assert.doesNotMatch(html, /first-run-wizard\.js/);
+  assert.match(onboarding, /RianellGuidedOnboarding/);
 });
 
 test('index.html syncs system appearance before boot shell paints', () => {

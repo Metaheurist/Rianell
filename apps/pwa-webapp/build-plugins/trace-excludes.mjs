@@ -16,7 +16,6 @@ const EXCLUDED_SUFFIXES = ['.min.js'];
 /** Optional: whole file basename (e.g. heavy / fragile loaders). */
 const EXCLUDED_OPTIONAL_BASENAMES = new Set([
   'summary-llm.js',
-  'model-chunk-loader.js',
 ]);
 
 /**

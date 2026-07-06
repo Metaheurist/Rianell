@@ -37,7 +37,7 @@ scripts/
   models/              LLM weight download/upload/verify
   dev/                 cross-platform dev:web launcher
   lib/                 deprecated shims → @rianell/build-tools
-  migration/legacy/    one-shot Phase 2 migration scripts (archived)
+  migration/    one-shot migration scripts (Phase 2 archived; legacy/ removed 2026-07)
 audit-history/         boot audit JSON (baseline + phase archives tracked)
 artifacts/             CI binaries + latest.json (was App build/)
 docs/                  developer documentation (authoritative for devs)
