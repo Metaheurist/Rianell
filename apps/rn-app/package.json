@@ -40,7 +40,7 @@
     "expo-sharing": "~55.0.20",
     "expo-speech": "^55.0.9",
     "expo-speech-recognition": "^3.1.2",
-    "expo-status-bar": "~55.0.4",
+    "expo-status-bar": "~57.0.0",
     "onnxruntime-react-native": "^1.22.0",
     "react": "19.2.7",
     "react-freeze": "^1.0.0",
