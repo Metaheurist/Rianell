@@ -38,6 +38,32 @@ test('mood tab renders unified Mood Control Deck with 3D panel hooks', () => {
   assert.doesNotMatch(js, /class="mood-actions"/);
 });
 
+test('check-in slider wires click handlers for period selection (RN parity)', () => {
+  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(js, /function wireCheckinSliderEvents/);
+  assert.match(js, /addEventListener\('click'/);
+  assert.doesNotMatch(js, /_checkinDragMoved/);
+});
+
+test('mood deck tile icons inherit stroke/fill token rules', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /\.mood-deck-tile-icon-svg \*,[\s\S]*stroke: currentColor/);
+  assert.match(css, /\.mood-deck-tile-icon-svg \.icon-fill[\s\S]*fill: currentColor/);
+});
+
+test('chart-bars and brain-wave sprites use currentColor (not invisible/black fills)', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  const chartBars = html.match(/id="icon-chart-bars"[^>]*>([\s\S]*?)<\/symbol>/);
+  const brainWave = html.match(/id="icon-brain-wave"[^>]*>([\s\S]*?)<\/symbol>/);
+  assert.ok(chartBars, 'icon-chart-bars symbol');
+  assert.ok(brainWave, 'icon-brain-wave symbol');
+  assert.match(chartBars[1], /class="icon-fill"/);
+  assert.match(chartBars[1], /stroke="currentColor"/);
+  assert.doesNotMatch(chartBars[1], /fill="none" x="7"/);
+  assert.match(brainWave[1], /class="icon-fill" d="M9 4\.2/);
+  assert.match(brainWave[1], /class="icon-fill" d="M15 4\.2/);
+});
+
 test('mood control deck CSS uses token-scoped 3D depth and reduced-motion guard', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /\.mood-control-deck[\s\S]*perspective:/);

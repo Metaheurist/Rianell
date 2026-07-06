@@ -33,6 +33,14 @@ export const SURFACE_TOKENS = {
   },
 };
 
+/** Achievement tier ring colors — mirror graphics-portfolio.css badge tiers */
+export const ACHIEVEMENT_TIER_COLORS = {
+  bronze: '#CD7F32',
+  silver: '#A8B4C4',
+  gold: '#D4AF37',
+  platinum: '#7DD3FC',
+};
+
 /** Text on primary/accent fills (mint team default). */
 export const ON_ACCENT = '#041008';
 
@@ -390,6 +398,7 @@ function withSemanticColors(tokens, mode) {
       durFast: 180,
       durNormal: 280,
       durSlow: 450,
+      durSlower: 700,
     },
     radius: { sm: 8, md: 12, lg: 16, xl: 24, full: 999 },
   };

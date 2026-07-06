@@ -24,6 +24,9 @@ test('styles.css tokenises shell shade, toggles, and optional weather prompt', (
   assert.match(css, /body::before[\s\S]*var\(--shell-shade-spot-a\)/);
   assert.match(css, /\.toggle-switch\.active[\s\S]*var\(--toggle-active-shadow\)/);
   assert.match(css, /\.home-weather-enable-prompt[\s\S]*var\(--home-weather-prompt-border\)/);
+  assert.match(css, /@keyframes homeWeatherPromptRadiate/);
+  assert.match(css, /\.home-weather-enable-prompt::before[\s\S]*homeWeatherPromptRadiate/);
+  assert.doesNotMatch(css, /\.home-weather-enable-prompt__label/);
   const shellShadeBlock = css.match(/body::before\s*\{[\s\S]*?\}/);
   assert.ok(shellShadeBlock, 'body::before block should exist');
   assert.doesNotMatch(shellShadeBlock[0], /rgba\(123,\s*223,\s*140/);
@@ -37,6 +40,9 @@ test('app.js theme helpers read from document.body and refresh on theme change',
   assert.match(appJs, /function colorToRgba/);
   assert.match(appJs, /borderColor: color/);
   assert.match(appJs, /getElementById\('aiResultsContent'\)/);
+  assert.match(appJs, /function renderHomeWeatherEnablePromptHtml/);
+  assert.doesNotMatch(appJs, /home-weather-enable-prompt__label/);
+  assert.match(appJs, /home\.weather\.enable/);
 });
 
 test('styles.css tokenises light-mode text and card surfaces', () => {

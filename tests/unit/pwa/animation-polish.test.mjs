@@ -80,6 +80,30 @@ test('oasis.css: keyframes guarded by prefers-reduced-motion', () => {
   });
 });
 
+test('styles.css motion tokens include dur-slower and legacy transition aliases', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /--dur-slower:\s*700ms/);
+  assert.match(css, /--transition-fast:\s*var\(--dur-fast\)/);
+});
+
+test('styles.css body.reduce-motion disables webgl and hero stagger', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /body\.reduce-motion[\s\S]*\.rianell-webgl-canvas/);
+  assert.match(css, /body\.reduce-motion[\s\S]*\.home-hero-stagger/);
+});
+
+test('app.js wires lazyLoadWebGL and syncReduceMotionBodyClass', () => {
+  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(js, /async function lazyLoadWebGL/);
+  assert.match(js, /function syncReduceMotionBodyClass/);
+  assert.match(js, /initWebGLSurfacesForTab/);
+});
+
+test('sw.js push icon uses beta contract path', () => {
+  const sw = readFileSync('apps/pwa-webapp/sw.js', 'utf8');
+  assert.match(sw, /Icons\/beta\/Icon-192\.png/);
+});
+
 test('OASIS_TOKENS exported from packages/tokens/src/index.mjs', () => {
   const src = readFileSync('packages/tokens/src/index.mjs', 'utf8');
   assert.ok(src.includes('export const OASIS_TOKENS'), 'OASIS_TOKENS not exported');
