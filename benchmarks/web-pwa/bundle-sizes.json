@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-06T02:30:29.605Z",
+  "generatedAt": "2026-07-06T23:19:34.322Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4940161,
-    "cssBytes": 768307,
-    "jsGzipBytes": 1169138,
-    "cssGzipBytes": 131279
+    "jsBytes": 4966830,
+    "cssBytes": 779036,
+    "jsGzipBytes": 1176734,
+    "cssGzipBytes": 132516
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1137153,
-      "gzipBytes": 247368
+      "bytes": 1137697,
+      "gzipBytes": 247774
     },
     {
-      "file": "ci-minified/site/app.e2455c8f1947.min.js",
-      "bytes": 840241,
-      "gzipBytes": 194786
+      "file": "ci-minified/site/app.e32490924123.min.js",
+      "bytes": 841218,
+      "gzipBytes": 195280
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/styles.298782270c27.css",
-      "bytes": 690771,
-      "gzipBytes": 115100
+      "file": "ci-minified/site/styles.301024c280c3.css",
+      "bytes": 704009,
+      "gzipBytes": 117185
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 384288,
-      "gzipBytes": 87701
+      "bytes": 390890,
+      "gzipBytes": 89042
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -55,8 +55,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 79360,
-      "gzipBytes": 17826
+      "bytes": 79144,
+      "gzipBytes": 17787
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -164,6 +164,11 @@
       "gzipBytes": 3633
     },
     {
+      "file": "ci-minified/site/modules/ai-chat.js",
+      "bytes": 13569,
+      "gzipBytes": 3542
+    },
+    {
       "file": "ci-minified/site/security-utils.js",
       "bytes": 12801,
       "gzipBytes": 3787
@@ -174,11 +179,6 @@
       "gzipBytes": 3076
     },
     {
-      "file": "ci-minified/site/modules/goals-carousel.js",
-      "bytes": 11488,
-      "gzipBytes": 2889
-    },
-    {
       "file": "ci-minified/site/i18n-pwa.js",
       "bytes": 11446,
       "gzipBytes": 2730
@@ -187,6 +187,16 @@
       "file": "ci-minified/site/modules/bp-input-widget.js",
       "bytes": 11400,
       "gzipBytes": 2795
+    },
+    {
+      "file": "ci-minified/site/modules/goals-carousel.js",
+      "bytes": 9514,
+      "gzipBytes": 2516
+    },
+    {
+      "file": "ci-minified/site/modules/webgl-scene.js",
+      "bytes": 8246,
+      "gzipBytes": 2893
     },
     {
       "file": "ci-minified/site/modules/vitals-suggest-ui.js",
@@ -209,14 +219,14 @@
       "gzipBytes": 1807
     },
     {
+      "file": "ci-minified/site/sw.js",
+      "bytes": 6535,
+      "gzipBytes": 2341
+    },
+    {
       "file": "ci-minified/site/encryption-utils.js",
       "bytes": 6239,
       "gzipBytes": 1997
-    },
-    {
-      "file": "ci-minified/site/sw.js",
-      "bytes": 6192,
-      "gzipBytes": 2250
     },
     {
       "file": "ci-minified/site/storage-utils.js",
@@ -229,11 +239,6 @@
       "gzipBytes": 1475
     },
     {
-      "file": "ci-minified/site/model-chunk-loader.js",
-      "bytes": 5780,
-      "gzipBytes": 1722
-    },
-    {
       "file": "ci-minified/site/qr-handoff.js",
       "bytes": 5705,
       "gzipBytes": 1631
@@ -242,6 +247,11 @@
       "file": "ci-minified/site/background-loader.js",
       "bytes": 5449,
       "gzipBytes": 1591
+    },
+    {
+      "file": "ci-minified/site/modules/share-modal.js",
+      "bytes": 5443,
+      "gzipBytes": 1462
     },
     {
       "file": "ci-minified/site/push-subscribe.js",
@@ -285,8 +295,8 @@
     },
     {
       "file": "ci-minified/site/css/tokens.css",
-      "bytes": 2810,
-      "gzipBytes": 955
+      "bytes": 2833,
+      "gzipBytes": 961
     },
     {
       "file": "ci-minified/site/achievements-sync.js",
@@ -297,11 +307,6 @@
       "file": "ci-minified/site/modules/main-thread-governor.js",
       "bytes": 2567,
       "gzipBytes": 998
-    },
-    {
-      "file": "ci-minified/site/print-styles.css",
-      "bytes": 2532,
-      "gzipBytes": 854
     },
     {
       "file": "ci-minified/site/llm-load-ladder-sync.js",
@@ -317,11 +322,6 @@
       "file": "ci-minified/site/trace-runtime.js",
       "bytes": 1803,
       "gzipBytes": 685
-    },
-    {
-      "file": "ci-minified/site/first-run-wizard.js",
-      "bytes": 1085,
-      "gzipBytes": 499
     },
     {
       "file": "ci-minified/site/src/buildDownloads.js",
