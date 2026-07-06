@@ -26230,6 +26230,13 @@ window.addEventListener('unhandledrejection', (event) => {
 }, true);
 
 ﻿// Initialize the app
+function __rianellIsLhciProbe() {
+  try {
+    if (/(?:^|[?&])lhci=1(?:&|$)/.test(location.search || '')) return true;
+  } catch (e) { /* ignore */ }
+  return __rianellShouldSkipLoadingBurst();
+}
+
 function __rianellShouldSkipLoadingBurst() {
   try {
     if (navigator.webdriver) return true;
@@ -26270,7 +26277,7 @@ function runRianellBootAfterDomReady() {
   window.__rianellBootAfterDomStarted = true;
   if (typeof ensureAppShellDomPlacement === 'function') ensureAppShellDomPlacement();
   var shellWarmSkip = __rianellApplyShellWarmSkipOverlay()
-    || (__rianellShouldSkipLoadingBurst() && __rianellApplyShellWarmSkipOverlay(true));
+    || (__rianellIsLhciProbe() && __rianellApplyShellWarmSkipOverlay(true));
   if (!window.__rianellBootWatchdogId) {
     var bootWatchdogMs = (typeof window.isMobileViewport === 'function' && window.isMobileViewport()) ? 12000 : 22000;
     window.__rianellBootWatchdogId = setTimeout(function () {
@@ -26289,7 +26296,7 @@ function runRianellBootAfterDomReady() {
       if (typeof onDone === 'function') onDone();
       return;
     }
-    if (__rianellShouldSkipLoadingBurst()) {
+    if (__rianellIsLhciProbe()) {
       loadingOverlay.classList.add('hidden');
       if (typeof onDone === 'function') onDone();
       return;

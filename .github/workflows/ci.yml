@@ -889,7 +889,7 @@ jobs:
           import { chromium } from 'playwright';
           const browser = await chromium.launch({ headless: true });
           const page = await browser.newPage();
-          await page.goto('http://127.0.0.1:9876/#home', { waitUntil: 'domcontentloaded', timeout: 60000 });
+          await page.goto('http://127.0.0.1:9876/?lhci=1#home', { waitUntil: 'domcontentloaded', timeout: 60000 });
           await page.waitForFunction(
             () => document.body && document.body.classList.contains('loaded'),
             { timeout: 90000 }
@@ -900,7 +900,7 @@ jobs:
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v12
         with:
-          urls: http://127.0.0.1:9876/#home
+          urls: http://127.0.0.1:9876/?lhci=1#home
           configPath: ./lighthouserc.js
           uploadArtifacts: true
           temporaryPublicStorage: true

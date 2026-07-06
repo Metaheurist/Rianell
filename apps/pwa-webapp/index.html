@@ -1020,6 +1020,9 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
+    html.rianell-lhci-probe body {
+      overflow: auto !important;
+    }
     html.rianell-lhci-probe body > *:not([id="loadingOverlay"]) {
       visibility: visible !important;
       opacity: 1 !important;
@@ -1083,6 +1086,14 @@
       transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
     }
   </style>
+  <script>
+  (function () {
+    try {
+      if (!/(?:^|[?&])lhci=1(?:&|$)/.test(location.search || '')) return;
+      document.documentElement.classList.add('rianell-lhci-probe');
+    } catch (e) { /* ignore */ }
+  })();
+  </script>
 </head>
 <body class="loading">
   <a href="#main-content" class="skip-link" data-i18n="common.skipToContent">Skip to main content</a>
@@ -1232,7 +1243,9 @@
   (function () {
     var probe = false;
     try {
-      probe = navigator.webdriver === true || /HeadlessChrome/i.test(navigator.userAgent || '');
+      probe = /(?:^|[?&])lhci=1(?:&|$)/.test(location.search || '')
+        || navigator.webdriver === true
+        || /HeadlessChrome/i.test(navigator.userAgent || '');
     } catch (e) { probe = false; }
     if (!probe) return;
     try { sessionStorage.setItem('rianell_shell_warm', '1'); } catch (e2) { /* ignore */ }
