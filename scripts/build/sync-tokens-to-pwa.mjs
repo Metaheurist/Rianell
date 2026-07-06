@@ -58,6 +58,7 @@ const header = `/**
   --dur-fast: 180ms;
   --dur-normal: 280ms;
   --dur-slow: 450ms;
+  --dur-slower: 700ms;
   --color-success: #4caf50;
   --color-danger: #f44336;
   --color-warning: #ff9800;

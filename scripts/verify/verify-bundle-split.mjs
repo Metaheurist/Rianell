@@ -9,6 +9,7 @@ const appJs = fs.readFileSync(path.join(root, 'apps/pwa-webapp/app.js'), 'utf8')
 
 const checks = [
   { name: 'lazyCharts pref', ok: /lazyCharts/.test(appJs) },
+  { name: 'lazyWebGL pref', ok: /lazyLoadWebGL/.test(appJs) },
   { name: 'lazy import marker', ok: /import\s*\(\s*['"]\.\/lazy-/.test(appJs) || /lazyLoadCharts/.test(appJs) },
   { name: 'build-site esbuild', ok: /esbuild/.test(buildSite) },
 ];
