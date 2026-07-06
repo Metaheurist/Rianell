@@ -26230,10 +26230,41 @@ window.addEventListener('unhandledrejection', (event) => {
 }, true);
 
 ﻿// Initialize the app
+function __rianellShouldSkipLoadingBurst() {
+  try {
+    if (navigator.webdriver) return true;
+  } catch (e) { /* ignore */ }
+  try {
+    if (/HeadlessChrome/i.test(navigator.userAgent || '')) return true;
+  } catch (e2) { /* ignore */ }
+  return false;
+}
+
+function __rianellApplyShellWarmSkipOverlay() {
+  try {
+    if (sessionStorage.getItem('rianell_shell_warm') !== '1') return false;
+  } catch (e) { return false; }
+  if (document.body) {
+    document.body.classList.remove('loading');
+    document.body.classList.add('loaded');
+  }
+  var lo = document.getElementById('loadingOverlay');
+  if (lo) {
+    lo.classList.add('hidden');
+    lo.classList.remove('loading-overlay--bursting');
+  }
+  return true;
+}
+
+function __rianellMarkShellWarm() {
+  try { sessionStorage.setItem('rianell_shell_warm', '1'); } catch (e) { /* ignore */ }
+}
+
 function runRianellBootAfterDomReady() {
   if (window.__rianellBootAfterDomStarted) return;
   window.__rianellBootAfterDomStarted = true;
   if (typeof ensureAppShellDomPlacement === 'function') ensureAppShellDomPlacement();
+  var shellWarmSkip = __rianellApplyShellWarmSkipOverlay();
   if (!window.__rianellBootWatchdogId) {
     var bootWatchdogMs = (typeof window.isMobileViewport === 'function' && window.isMobileViewport()) ? 12000 : 22000;
     window.__rianellBootWatchdogId = setTimeout(function () {
@@ -26249,6 +26280,11 @@ function runRianellBootAfterDomReady() {
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
   function finishLoadingOverlayWithBurst(onDone) {
     if (!loadingOverlay) {
+      if (typeof onDone === 'function') onDone();
+      return;
+    }
+    if (__rianellShouldSkipLoadingBurst()) {
+      loadingOverlay.classList.add('hidden');
       if (typeof onDone === 'function') onDone();
       return;
     }
@@ -26703,6 +26739,7 @@ function runRianellBootAfterDomReady() {
       startAppAfterPrivacyGate();
       if (typeof syncReduceMotionBodyClass === 'function') syncReduceMotionBodyClass();
       if (typeof initWebGLSurfacesForTab === 'function') initWebGLSurfacesForTab('home');
+      __rianellMarkShellWarm();
     }
     if (meta && (meta.cached || meta.heuristic)) {
       revealAndStart();
@@ -26712,7 +26749,11 @@ function runRianellBootAfterDomReady() {
   }
 
   var DB = (typeof window !== 'undefined' && window.DeviceBenchmark) ? window.DeviceBenchmark : null;
-  if (DB && typeof DB.shouldUseHeuristicBoot === 'function' && DB.shouldUseHeuristicBoot() &&
+  if (shellWarmSkip) {
+    startAppAfterPrivacyGate();
+    if (typeof syncReduceMotionBodyClass === 'function') syncReduceMotionBodyClass();
+    if (typeof initWebGLSurfacesForTab === 'function') initWebGLSurfacesForTab('home');
+  } else if (DB && typeof DB.shouldUseHeuristicBoot === 'function' && DB.shouldUseHeuristicBoot() &&
       typeof DB.isBenchmarkReady === 'function' && !DB.isBenchmarkReady()) {
     var quickPt = typeof DB.getPlatformType === 'function' ? DB.getPlatformType() : 'desktop';
     var quickTier = typeof DB.getPerformanceTier === 'function' ? DB.getPerformanceTier() : 3;
