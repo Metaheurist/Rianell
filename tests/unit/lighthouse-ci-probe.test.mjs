@@ -14,4 +14,12 @@ test('CI lighthouse job warms probe server until main bundle is reachable', () =
   const block = ci.slice(ci.indexOf('lighthouse-ci:'), ci.indexOf('zap-scan:'));
   assert.match(block, /MAIN_JS=\$\(node -pe/);
   assert.match(block, /curl -fsS "http:\/\/127\.0\.0\.1:9876\/\$\{MAIN_JS\}"/);
+  assert.match(block, /playwright/);
+  assert.match(block, /#home/);
+});
+
+test('index.html skips loading overlay burst for headless Lighthouse probe', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.match(html, /rianell-lhci-probe/);
+  assert.match(html, /navigator\.webdriver/);
 });

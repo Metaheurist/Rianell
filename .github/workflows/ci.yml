@@ -885,14 +885,14 @@ jobs:
       - name: Warm PWA shell route before LHCI
         run: |
           set -euo pipefail
-          for i in $(seq 1 10); do
-            if curl -fsS "http://127.0.0.1:9876/#home" -o /dev/null; then
-              sleep 5
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
+          node --input-type=module -e "
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage();
+          await page.goto('http://127.0.0.1:9876/#home', { waitUntil: 'networkidle', timeout: 120000 });
+          await page.waitForTimeout(6500);
+          await browser.close();
+          "
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v12
         with:

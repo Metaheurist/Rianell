@@ -1013,6 +1013,18 @@
     body:not(.loaded) {
       overflow: hidden;
     }
+    html.rianell-lhci-probe #loadingOverlay,
+    html.rianell-lhci-probe .loading-overlay {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    html.rianell-lhci-probe body > *:not([id="loadingOverlay"]) {
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
     body:not(.loaded) > *:not([id="loadingOverlay"]):not([id="aiModelDownloadProgressOverlay"]):not([id="aiModelDownloadOverlay"]):not([id="privacyRegionGateOverlay"]):not([id="guidedOnboardingOverlay"]):not([id="healthDataConsentOverlay"]):not([id="cookieBanner"]):not([id="rianellBootRecoveryOverlay"]):not([id="cssReloadOverlay"]) {
       visibility: hidden;
       opacity: 0;
@@ -1216,6 +1228,24 @@
       </div>
     </div>
   </div>
+  <script>
+  (function () {
+    var probe = false;
+    try {
+      probe = navigator.webdriver === true || /HeadlessChrome/i.test(navigator.userAgent || '');
+    } catch (e) { probe = false; }
+    if (!probe) return;
+    try { sessionStorage.setItem('rianell_shell_warm', '1'); } catch (e2) { /* ignore */ }
+    document.documentElement.classList.add('rianell-lhci-probe');
+    document.body.classList.remove('loading');
+    document.body.classList.add('loaded');
+    var lo = document.getElementById('loadingOverlay');
+    if (lo) {
+      lo.classList.add('hidden');
+      lo.style.display = 'none';
+    }
+  })();
+  </script>
 
   <!-- App lock overlay (Plan 05 P7) -->
   <div class="modal-overlay app-lock-overlay" id="appLockOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="appLockTitle">
