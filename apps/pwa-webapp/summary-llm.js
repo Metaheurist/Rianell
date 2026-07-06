@@ -1894,12 +1894,6 @@
     try {
       await clearTransformersIndexedDb();
     } catch (e) {}
-    try {
-      if (typeof window !== 'undefined' && window.RianellModelChunkLoader &&
-          typeof window.RianellModelChunkLoader.clearAssembledModelCache === 'function') {
-        await window.RianellModelChunkLoader.clearAssembledModelCache();
-      }
-    } catch (e) {}
     if (options.resetConsent && typeof window !== 'undefined' && window.appSettings) {
       window.appSettings.aiModelDownloadConsent = 'deferred';
       if (typeof window.saveSettings === 'function') window.saveSettings();

@@ -106,6 +106,8 @@ backup/
 audit-history/latest-boot-audit.json
 audit-history/latest-boot-audit-previous.json
 audit-history/axe-latest.json
+audit-history/cwv-latest.json
+audit-history/visual-baseline-manifest.json
 !audit-history/baseline.json
 !audit-history/phase-*.json
 

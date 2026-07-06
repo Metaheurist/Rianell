@@ -133,7 +133,7 @@ Rianell uses gentle, GPU-friendly motion to make logging feel calmer — especia
 
 Toggle **Reduced motion** in Settings → Display. Brain fog mode further reduces visual noise while keeping readable status colours.
 
-Developer blueprint: [UI_OASIS_PLAN.md](https://github.com/Metaheurist/Rianell/blob/main/UI_OASIS_PLAN.md).
+Developer blueprint: [UI_OASIS_PLAN.md](https://github.com/Metaheurist/Rianell/blob/main/docs/plans/UI_OASIS_PLAN.md).
 
 ---
 

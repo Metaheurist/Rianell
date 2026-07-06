@@ -84,7 +84,7 @@
 - **PWA effects:** Ambient blobs, magnetic CTAs, calm-glow metrics, AI neural trace, thinking-text morph, data-stream dots, confetti, check-in shimmer.
 - **RN:** `OasisNeuralTrace.tsx`, `BalanceRadarChart` breath ring, `HomeWelcomeCard` pulse, `BootLoadingScreen` rings, `AchievementUnlockToast` burst; `useReduceMotionFlag` OR-gates OS + in-app pref.
 - **Tests:** `animation-polish.test.mjs` (8 assertions), `oasis-particles.test.mjs`, `benchmarks/specs/oasis-particles.spec.ts`.
-- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.0-oasis]`; [UI_OASIS_PLAN.md](../UI_OASIS_PLAN.md).
+- **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.0-oasis]`; [UI_OASIS_PLAN.md](plans/UI_OASIS_PLAN.md).
 
 ### v2.1.0 documentation sync (Session stability and memory leak fixes)
 
