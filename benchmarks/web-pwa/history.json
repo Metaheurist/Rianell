@@ -5,11 +5,11 @@
     "kind": "web",
     "status": "ok",
     "meta": {
-      "timestamp_utc": "2026-07-06T01:03:09.191Z",
-      "git_sha": "458975f7ec8257f5f923e1940a08ba66a493b078",
+      "timestamp_utc": "2026-07-06T02:02:05.479Z",
+      "git_sha": "130b3fd660f4e65fbe58f088d6f69bdbbf50cfa6",
       "runner": "linux",
       "node": "v24.14.1",
-      "github_run_id": "28760059244",
+      "github_run_id": "28760447624",
       "github_run_attempt": "1"
     },
     "lighthouse": {
@@ -23,15 +23,15 @@
     "nav": [
       {
         "step": "cold_dom_ready_to_main",
-        "ms": 4575
+        "ms": 4023
       },
       {
         "step": "click_nav-logs",
-        "ms": 166
+        "ms": 172
       },
       {
         "step": "click_nav-charts",
-        "ms": 154
+        "ms": 153
       },
       {
         "step": "click_nav-home",
@@ -39,11 +39,59 @@
       },
       {
         "step": "open_settings",
-        "ms": 125
+        "ms": 128
       },
       {
         "step": "warm_reload_to_main",
-        "ms": 382
+        "ms": 299
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
+      "timestamp_utc": "2026-07-06T00:03:45.874Z",
+      "git_sha": "62dc4625aa73be885eb1515c06ee15ee8bb97014",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "28758750040",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 13467,
+      "LCP_ms": 20871,
+      "TBT_ms": 891,
+      "CLS": 0,
+      "SpeedIndex_ms": 13467,
+      "TTI_ms": 24637
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 3956
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 171
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 153
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 155
+      },
+      {
+        "step": "open_settings",
+        "ms": 116
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 332
       }
     ]
   },
