@@ -28,6 +28,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { resolveScreenBackground } from '../theme/themeHelpers';
 import { ScreenCard, screenCardStyle } from '../components/ui/ScreenCard';
 import { useT } from '../i18n/I18nProvider';
+import { useReduceMotionFlag } from '../hooks/useReduceMotionFlag';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
 import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
@@ -125,30 +126,6 @@ function defaultCheckinPeriod(): CheckinPeriod {
 
 const CHECKIN_SLIDER_SELECTED_SCALE = 1.8;
 const CHECKIN_SLIDER_UNSELECTED_SCALE = 1;
-
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-
-function useReduceMotionFlag() {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((v) => {
-        if (alive) setReduce(v);
-      })
-      .catch(() => {});
-    const sub = AccessibilityInfo.addEventListener?.('reduceMotionChanged', (v: boolean) => {
-      setReduce(v);
-    });
-    return () => {
-      alive = false;
-      if (typeof sub === 'object' && sub != null && 'remove' in sub) {
-        (sub as { remove: () => void }).remove();
-      }
-    };
-  }, []);
-  return reduce;
-}
 
 function heartbeatDurationFromBpm(bpm: number | null) {
   if (bpm == null || bpm < 30 || bpm > 200) {

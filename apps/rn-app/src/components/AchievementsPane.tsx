@@ -7,6 +7,7 @@ import {
   normalizeAchievementState,
   type AchievementPersistedState,
 } from '@rianell/shared';
+import { ACHIEVEMENT_TIER_COLORS } from '@rianell/tokens';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import { useReduceMotionFlag } from '../hooks/useReduceMotionFlag';
@@ -17,12 +18,7 @@ type Props = {
   achievementState: { achievements: AchievementPersistedState; updatedAt?: string | null };
 };
 
-const TIER_COLORS: Record<string, string> = {
-  bronze: '#CD7F32',
-  silver: '#A8B4C4',
-  gold: '#D4AF37',
-  platinum: '#7DD3FC',
-};
+const TIER_COLORS: Record<string, string> = ACHIEVEMENT_TIER_COLORS;
 
 function AchievementProgressBar({
   progress,

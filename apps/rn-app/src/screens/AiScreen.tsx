@@ -20,6 +20,8 @@ import { OasisNeuralTrace } from '../components/ui/OasisNeuralTrace';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
+import { useReduceMotionFlag } from '../hooks/useReduceMotionFlag';
+
 function AiStaggerOnMount({
   delay,
   children,
@@ -29,13 +31,18 @@ function AiStaggerOnMount({
   children: React.ReactNode;
   style?: ViewStyle;
 }) {
-  const anim = useRef(new Animated.Value(0)).current;
+  const reduceMotion = useReduceMotionFlag();
+  const anim = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
   useEffect(() => {
+    if (reduceMotion) {
+      anim.setValue(1);
+      return;
+    }
     const timer = setTimeout(() => {
       Animated.spring(anim, { toValue: 1, friction: 8, tension: 120, useNativeDriver: true }).start();
     }, delay);
     return () => clearTimeout(timer);
-  }, [anim, delay]);
+  }, [anim, delay, reduceMotion]);
   const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
   return (
     <Animated.View style={[style, { opacity: anim, transform: [{ translateY }] }]}>

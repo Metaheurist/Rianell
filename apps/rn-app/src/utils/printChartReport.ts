@@ -1,6 +1,13 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
+/** Mirror @rianell/tokens SEMANTIC_COLORS for export SVG */
+const EXPORT_CHART_COLORS = {
+  success: '#4caf50',
+  successFill: 'rgba(76,175,80,0.25)',
+  inkMuted: '#444444',
+} as const;
+
 export type ChartExportRow = { label: string; value: string };
 
 export async function printOrShareChartReport(options: {
@@ -82,8 +89,8 @@ export function buildRadarSvgForExport(
   const labelsSvg = labels
     .map((label, i) => {
       const p = pointAt(i, maxR + 14);
-      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" font-size="9" fill="#444">${escapeHtml(label.slice(0, 16))}</text>`;
+      return `<text x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" font-size="9" fill="${EXPORT_CHART_COLORS.inkMuted}">${escapeHtml(label.slice(0, 16))}</text>`;
     })
     .join('');
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${rings}${axes}<polygon points="${dataPts}" fill="rgba(76,175,80,0.25)" stroke="#4caf50" stroke-width="2"/>${labelsSvg}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${rings}${axes}<polygon points="${dataPts}" fill="${EXPORT_CHART_COLORS.successFill}" stroke="${EXPORT_CHART_COLORS.success}" stroke-width="2"/>${labelsSvg}</svg>`;
 }

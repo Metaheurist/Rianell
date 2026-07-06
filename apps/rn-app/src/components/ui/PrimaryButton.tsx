@@ -13,13 +13,20 @@ type Props = {
   accessibilityLabel?: string;
 };
 
+import { useReduceMotionFlag } from '../../hooks/useReduceMotionFlag';
+
 export function PrimaryButton({ label, onPress, variant = 'primary', style, disabled, accessibilityLabel }: Props) {
   const theme = useTheme();
+  const reduceMotion = useReduceMotionFlag();
   const isPrimary = variant === 'primary';
   const scale = useRef(new Animated.Value(1)).current;
   const radius = theme.radius?.sm ?? 8;
 
   const springTo = (toValue: number) => {
+    if (reduceMotion) {
+      scale.setValue(1);
+      return;
+    }
     Animated.spring(scale, { toValue, friction: 12, tension: 200, useNativeDriver: true }).start();
   };
 

@@ -51,6 +51,7 @@ export function BootLoadingScreen({ team = 'mint', colorblindMode = 'none' }: Pr
   }, [reduceMotion, ringOpacities]);
 
   React.useEffect(() => {
+    if (reduceMotion) return;
     const orbitLoop = Animated.loop(
       Animated.timing(orbitRotate, {
         toValue: 1,
@@ -80,7 +81,7 @@ export function BootLoadingScreen({ team = 'mint', colorblindMode = 'none' }: Pr
       pulseLoop.stop();
       wobbleLoop.stop();
     };
-  }, [bodyPulse, orbitRotate, sunWobble]);
+  }, [reduceMotion, bodyPulse, orbitRotate, sunWobble]);
 
   const orbitDeg = orbitRotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   const pulseScale = bodyPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] });
