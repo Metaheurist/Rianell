@@ -847,6 +847,8 @@ function showAlertModal(message, title, onClose, options) {
     const textEl = messageEl.querySelector('.alert-modal-message-text');
     if (textEl) textEl.textContent = message;
   } else if (useHtml) {
+    // Invariant: opts.html is only for app-authored markup (e.g. formatReviewMetric bars).
+    // Never pass user-derived or i18n strings here without escapeHTML first.
     messageEl.innerHTML = message;
   } else {
     messageEl.textContent = message;
@@ -1316,6 +1318,7 @@ function openShareModal(options) {
 
   if (titleEl) titleEl.textContent = options.title || tUi('common.share');
 
+  // Invariant: bodyHTML must be static or built with escapeHTML; callers at shareLogEntry/shareChart/shareAi.
   bodyEl.innerHTML = options.bodyHTML != null ? options.bodyHTML : '';
   footerEl.innerHTML = '';
 

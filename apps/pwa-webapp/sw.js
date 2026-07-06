@@ -152,6 +152,17 @@ function parsePushPayload(event) {
   }
 }
 
+function resolveSameOriginPushUrl(url) {
+  try {
+    var base = self.location.origin;
+    var resolved = new URL(url || '/', base);
+    if (resolved.origin !== base) return '/';
+    return resolved.pathname + resolved.search + resolved.hash;
+  } catch (e) {
+    return '/';
+  }
+}
+
 self.addEventListener('push', function (event) {
   var payload = parsePushPayload(event) || {};
   var title = payload.title || 'Rianell';
@@ -159,7 +170,7 @@ self.addEventListener('push', function (event) {
   var data = {
     type: payload.type || 'app_update',
     minCacheVersion: payload.minCacheVersion || null,
-    url: payload.url || '/',
+    url: resolveSameOriginPushUrl(payload.url || '/'),
   };
   event.waitUntil(
     self.registration.showNotification(title, {
@@ -174,7 +185,7 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
   var data = event.notification && event.notification.data ? event.notification.data : {};
-  var targetUrl = data.url || '/';
+  var targetUrl = resolveSameOriginPushUrl(data.url || '/');
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
       for (var i = 0; i < clientList.length; i++) {
