@@ -1,8 +1,17 @@
 # Health App Server - Python Dependencies
-# Python 3.8 or higher required. Install with: pip install -r requirements.txt
+# Python 3.10+ recommended (3.8+ minimum). Install with: pip install -r requirements.txt
+#
+# pip resolves direct + peer constraints together. Re-run after upgrading supabase or
+# pydantic manually so versions stay aligned (launch-server.ps1 does this automatically).
 
 # Supabase client library (required for database operations)
-supabase>=2.0.0
+supabase>=2.31.0
+
+# Pydantic stack — keeps pydantic-core in sync with postgrest/supabase-auth (avoids SystemError on import)
+pydantic>=2.10,<3
+
+# Supabase realtime peer dependency (realtime 2.31.x requires websockets<16)
+websockets>=11,<16
 
 # File watching for auto-reload (optional but recommended)
 watchdog>=3.0.0

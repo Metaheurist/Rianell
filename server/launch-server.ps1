@@ -108,15 +108,21 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
     $pythonExe = (Get-Command python).Source
 } elseif (Get-Command py -ErrorAction SilentlyContinue) {
     $pythonExe = "py"
-    $pyArgs = @("-3", "-m", "server")
-    Write-Host "Starting Rianell server from: $ProjectRoot"
-    if ($NoCompile) {
-        Write-Host "Serving uncompiled web source: $(Join-Path $ProjectRoot 'apps\pwa-webapp')"
+}
+
+if ($pythonExe) {
+    Write-Host "Syncing Python requirements (requirements.txt)..."
+    $reqFile = Join-Path $ProjectRoot "requirements.txt"
+    if ($pythonExe -eq "py") {
+        & py -3 -m pip install -r $reqFile
     } else {
-        Write-Host "Serving local minified bundle: $LocalSiteDir"
+        & $pythonExe -m pip install -r $reqFile
     }
-    & $pythonExe @pyArgs @args
-    exit $LASTEXITCODE
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "pip install returned exit $LASTEXITCODE. Static file server may still start; Supabase APIs may be unavailable until dependencies align."
+    }
+} else {
+    Write-Warning "Python not found on PATH; skipping pip sync."
 }
 
 if (-not $pythonExe) {
@@ -130,5 +136,10 @@ if ($NoCompile) {
 } else {
     Write-Host "Serving local minified bundle: $LocalSiteDir"
 }
-& $pythonExe -m server @args
+
+if ($pythonExe -eq "py") {
+    & $pythonExe -3 -m server @args
+} else {
+    & $pythonExe -m server @args
+}
 exit $LASTEXITCODE
