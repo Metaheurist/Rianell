@@ -74,7 +74,20 @@ Windows: `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1`
 
 Check `PORT` / `HOST` in your local secrets file under `security/` (see [SECURITY.md](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)). Logs in `logs/` directory.
 
+`launch-server.ps1` runs `pip install -r requirements.txt` automatically. If the dashboard shows **pydantic-core** or import errors, click **Install requirements** on the Tools or Data tab.
+
 ---
+
+## Supabase “getaddrinfo failed” in server dashboard
+
+The Python server cannot resolve the hostname in `SUPABASE_URL`. This is a **configuration** issue, not a broken install.
+
+1. Open [Supabase Dashboard](https://app.supabase.com) → your project → **Project Settings → API**.
+2. Copy **Project URL** into `SUPABASE_URL` in `security/.env` (and keys as documented in [[Developer-Setup]]).
+3. Verify DNS: `nslookup your-project-ref.supabase.co` should return an address.
+4. Restart the server and click **Refresh** on the Overview or Data tab.
+
+The local PWA at `http://localhost:8080` still works without cloud sync.
 
 ## Where to report bugs
 

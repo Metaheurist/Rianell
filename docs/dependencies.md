@@ -155,7 +155,9 @@ Workspace **`@rianell/benchmark-runner`**.
 
 | Package | Constraint | Role |
 |---------|------------|------|
-| `supabase` | >=2.0.0 | Supabase client |
+| `supabase` | >=2.31.0 | Supabase client |
+| `pydantic` | >=2.10,<3 | — |
+| `websockets` | >=11,<16 | — |
 | `watchdog` | >=3.0.0 | File watching / auto-reload (recommended) |
 | `python-dotenv` | >=1.2.2 | `.env` loading |
 | `cryptography` | >=48.0.1 | Encryption for anonymised data |

@@ -233,16 +233,17 @@ npm run test:mobile
 
 ![Rianell Server Dashboard - local URL, Supabase connection, database viewer, and live server logs](images/server-dashboard.png)
 
-The Tkinter dashboard provides:
+The Tkinter dashboard (`server/dashboard_ui.py`) provides a **responsive** layout:
 
-1. **Server Status**:
-   - View server URL and status
-   - Restart server without closing dashboard
+- **Landscape:** left sidebar navigation (Home · Data · Tools · Logs)
+- **Portrait / narrow:** bottom tab bar with the same four sections
 
-2. **Supabase Database Management**:
-   - **Search**: Search anonymised data by medical condition
-   - **Delete**: Remove data (all, by condition, or specific IDs)
-   - **Export**: Export data to CSV files
-   - **Viewer**: Real-time database viewer showing last 100 records
+**Overview tab** — status cards for local server URL, Supabase connection, live reload, and Clean Chromium; quick actions to search data or open logs.
 
-3. **Server Logs**: Real-time log viewer using **`[DEBUG]`** / **`[INFO]`** / **`[WARNING]`** / **`[ERROR]`** / **`[CRITICAL]`** at the start of each line (two spaces after the bracket), with colour on that tag (e.g. blue for `[INFO]`, red bold for `[ERROR]`). The terminal and `logs/*.log` files still use **emoji** prefixes-see [Logging](project-reference.md#logging).
+**Data tab** — connection refresh, condition search, record count badge, export / wipe / sample-data actions, and a database viewer (last 100 rows, multi-select).
+
+**Tools tab** — live reload pause/start, push reload to browsers, Chromium download, pip `requirements.txt` install.
+
+**Logs tab** — colour-coded stream with level filter (All / Info+ / Warning+ / Errors only), clear, and auto-scroll toggle. Lines use **`[LEVEL]`** brackets (file/console logs still use emoji — see [Logging](project-reference.md#logging)).
+
+**Supabase DNS errors:** if the dashboard shows “DNS failed” or “host unreachable”, update `SUPABASE_URL` in `security/.env` with your live project URL from the Supabase dashboard.

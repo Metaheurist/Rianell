@@ -6,6 +6,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.0] - 2026-07-07
+
+Home dashboard 3D polish, modern server dashboard UI, and Python server dependency hardening.
+
+### Added
+
+- **PWA Three.js modules:** `goals-progress-3d.js`, `discovery-orb-3d.js`, `weather-orb-3d.js` — tier-gated lazy 3D for goals pillars, Ask Rianell orb, and weather enable prompt
+- **PWA vendor:** `vendor/three/three.module.min.js` + LICENSE for on-demand ES module import
+- **Server dashboard:** `server/dashboard_ui.py`, `server/dashboard_icons.py` — responsive Tk UI (sidebar landscape / bottom-nav portrait), SVG-style icons, tabbed Overview · Data · Tools · Logs
+- **PRODUCT.md** — product design register (Impeccable skill)
+- **tests/unit/pwa/home-3d-visuals.test.mjs**, **tests/unit/server-requirements.test.mjs** — 3D wiring and Python stack contracts
+
+### Changed
+
+- **Home discovery:** horizontal scroll pills with shimmer, neural orb host, goals pill opens goals directly
+- **Goals block:** 7-day pillar 3D slots per metric row; weather enable button halo/spark animations
+- **Server:** `launch-server.ps1` syncs `pip install -r requirements.txt` before start; `create_server_dashboard` delegates to `dashboard_ui`
+- **requirements.txt:** pins `pydantic>=2.10,<3`, `websockets>=11,<16` with `supabase>=2.31.0` for resolver-safe installs
+- **ai-chat.js:** overlay `aria-hidden` / `inert` and scroll-lock release on close
+
+### Fixed
+
+- **Supabase startup:** `warn_if_supabase_url_unreachable()` DNS probe; connection errors log warnings instead of full tracebacks in database viewer
+- **requirements_check:** import probe catches pydantic-core version skew (`SystemError`), not only `ImportError`
+- **launch-server.ps1:** fixed broken `py -3 -m server` launcher branch
+
+### Tests
+
+- 746 unit tests passing; `doc-links --strict` OK
+
 ---
 
 ## [2.1.9] - 2026-07-06

@@ -49,7 +49,7 @@ Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgra
 
 | Surface | PWA | RN | Status | Phase |
 |---------|-----|-----|--------|-------|
-| Home dashboard | #homeTab | HomeScreen | upgrade | P3/P4 WebGL ambient |
+| Home dashboard | #homeTab | HomeScreen | upgrade | P3/P4 WebGL + Three.js goals/discovery/weather (tier-gated) |
 | Bottom/top nav | tab chrome | RootNavigator | upgrade | P3/P6 |
 | Charts | ApexCharts | custom SVG | upgrade | P3 |
 | Log wizard | inline | LogWizardScreen | keep | P3 |
