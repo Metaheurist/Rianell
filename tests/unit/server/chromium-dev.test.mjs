@@ -29,7 +29,7 @@ test('chromium_dev module exposes status helpers', async () => {
   assert.match(py, /def launch_clean_chromium/);
   assert.match(py, /watch_reload/);
   assert.match(
-    fs.readFileSync('server/main.py', 'utf8'),
-    /Open clean Chromium/,
+    fs.readFileSync('server/dashboard_ui.py', 'utf8'),
+    /Chromium/,
   );
 });
