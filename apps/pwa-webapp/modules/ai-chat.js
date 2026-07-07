@@ -15,6 +15,7 @@
   var _beforeUnloadHandler = null;
   var _sendInFlight = false;
   var _requestGen = 0;
+  var _claimedModalActive = false;
 
   function t(key, params) {
     if (typeof global.tUi === 'function') return global.tUi(key, params);
@@ -351,8 +352,11 @@
     var overlay = document.getElementById(OVERLAY_ID);
     if (overlay) {
       overlay.hidden = false;
+      overlay.removeAttribute('aria-hidden');
+      if ('inert' in overlay) overlay.inert = false;
       overlay.classList.add('ai-chat-overlay--open');
     }
+    _claimedModalActive = true;
     document.body.classList.add('modal-active', 'ai-chat-open');
     setInputEnabled(canSendTurn());
     renderMessages();
@@ -371,17 +375,29 @@
     if (panel && typeof panel.focus === 'function') panel.focus();
   }
 
+  function hideOverlayDom() {
+    var overlay = document.getElementById(OVERLAY_ID);
+    if (!overlay) return;
+    overlay.classList.remove('ai-chat-overlay--open');
+    overlay.hidden = true;
+    overlay.setAttribute('aria-hidden', 'true');
+    if ('inert' in overlay) overlay.inert = true;
+  }
+
+  function releaseBodyScrollLock() {
+    document.body.classList.remove('ai-chat-open');
+    if (_claimedModalActive) {
+      document.body.classList.remove('modal-active');
+      _claimedModalActive = false;
+    }
+  }
+
   function closeAiHealthChat() {
-    if (!_open) return;
     _open = false;
     _requestGen += 1;
     _sendInFlight = false;
-    var overlay = document.getElementById(OVERLAY_ID);
-    if (overlay) {
-      overlay.classList.remove('ai-chat-overlay--open');
-      overlay.hidden = true;
-    }
-    document.body.classList.remove('modal-active', 'ai-chat-open');
+    hideOverlayDom();
+    releaseBodyScrollLock();
     wipeState();
     unbindLifecycle();
   }

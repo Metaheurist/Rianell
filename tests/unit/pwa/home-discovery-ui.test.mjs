@@ -5,9 +5,10 @@ import { readFileSync } from 'node:fs';
 test('home discovery renders rich prompt cards', () => {
   const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.ok(/home-discovery-section/.test(js));
-  assert.ok(/home-discovery-card-title/.test(js));
-  assert.ok(/home-discovery-card-hint/.test(js));
+  assert.ok(/home-discovery-pill-title/.test(js));
+  assert.ok(/home-discovery-pill-hint/.test(js));
   assert.ok(/openAiHealthChat/.test(js));
+  assert.ok(/scheduleDiscoveryOrbEnhancement/.test(js));
 });
 
 test('home discovery shows for users with logs via data-aware cards', () => {
@@ -24,7 +25,8 @@ test('home ai suggestions folded into discovery chat', () => {
 
 test('discovery styles include AI presence and motion', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
-  assert.ok(/home-discovery-ai-glyph/.test(css));
+  assert.ok(/home-discovery-orb-host/.test(css));
+  assert.ok(/home-discovery-pill/.test(css));
   assert.ok(/homeDiscoveryShimmer/.test(css));
   assert.ok(/prefers-reduced-motion/.test(css));
   assert.ok(/ai-chat-panel/.test(css));
