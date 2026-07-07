@@ -11700,7 +11700,7 @@ function updateGoalsProgressBlock() {
   }
   if (rows.length === 0) { block.style.display = 'none'; return; }
   block.className = 'goals-progress-block';
-  block.innerHTML = '<div class="goals-progress-head"><p class="goals-progress-title">Last 7 days vs targets</p><p class="goals-progress-sub">Seven-day depth · hover a row to explore</p></div>' + rows.join('');
+  block.innerHTML = '<div class="goals-progress-head"><p class="goals-progress-title">' + escapeHTML(tUi('home.goals.lastSevenTitle')) + '</p><p class="goals-progress-sub">' + escapeHTML(tUi('home.goals.lastSevenSubtitle')) + '</p></div>' + rows.join('');
   block.style.display = 'block';
   animateGoalsBars(block);
   if (typeof initScrollReveal === 'function') initScrollReveal(block);
