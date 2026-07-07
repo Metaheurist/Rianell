@@ -11567,6 +11567,34 @@ function animateGoalsBars(block) {
   });
 }
 
+/** Builds ordered 7-day progress percentages (oldest → today) for 3D pillar charts. */
+function buildGoalsDailyPcts(getter, goal) {
+  var pcts = [];
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var logs = typeof window !== 'undefined' && window.logs ? window.logs : [];
+  for (var i = 6; i >= 0; i--) {
+    var d = new Date(today);
+    d.setDate(d.getDate() - i);
+    var yyyy = d.getFullYear();
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var dd = String(d.getDate()).padStart(2, '0');
+    var dateStr = yyyy + '-' + mm + '-' + dd;
+    var log = logs.find(function (l) { return l && l.date === dateStr; });
+    if (!log || !goal || goal <= 0) {
+      pcts.push(0);
+      continue;
+    }
+    var val = getter(log);
+    if (val == null || isNaN(val)) {
+      pcts.push(0);
+    } else {
+      pcts.push(Math.min(100, Math.round((val / goal) * 100)));
+    }
+  }
+  return pcts;
+}
+
 function updateGoalsProgressBlock() {
   var block = document.getElementById('goalsProgressBlock');
   if (!block) return;
@@ -11606,10 +11634,15 @@ function updateGoalsProgressBlock() {
     var stepsMet = stepsLogs.filter(function(l) { return parseInt(l.steps, 10) >= goals.steps; }).length;
     var stepsPct = goals.steps > 0 ? Math.min(100, Math.round((stepsAvg / goals.steps) * 100)) : 0;
     var si = insight(stepsMet, 7, goals.steps > 0 ? Math.round((stepsAvg / goals.steps) * 100) : 0);
-    rows.push('<div class="goals-metric-row">' +
+    var stepsDaily = buildGoalsDailyPcts(function (l) { return parseInt(l.steps, 10); }, goals.steps);
+    rows.push('<div class="goals-metric-row" data-metric="steps" data-daily-pcts="' + escapeAttr(JSON.stringify(stepsDaily)) + '">' +
+      '<div class="goals-metric-visual">' +
+      '<div class="goals-3d-slot" aria-hidden="true"></div>' +
+      '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">' + tUi('charts.metric.steps') + '</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + stepsPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
+      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
+      '</div></div></div>');
   }
   if (goals.hydration > 0) {
     var hydLogs = last7.filter(function(l) { var v = parseFloat(l.hydration); return v != null && !isNaN(v) && v >= 0; });
@@ -11618,10 +11651,15 @@ function updateGoalsProgressBlock() {
     var hydMet = hydLogs.filter(function(l) { return parseFloat(l.hydration) >= goals.hydration; }).length;
     var hydPct = goals.hydration > 0 ? Math.min(100, Math.round((parseFloat(hydAvg) / goals.hydration) * 100)) : 0;
     var si = insight(hydMet, 7, goals.hydration > 0 ? Math.round((parseFloat(hydAvg) / goals.hydration) * 100) : 0);
-    rows.push('<div class="goals-metric-row">' +
+    var hydDaily = buildGoalsDailyPcts(function (l) { return parseFloat(l.hydration); }, goals.hydration);
+    rows.push('<div class="goals-metric-row" data-metric="hydration" data-daily-pcts="' + escapeAttr(JSON.stringify(hydDaily)) + '">' +
+      '<div class="goals-metric-visual">' +
+      '<div class="goals-3d-slot" aria-hidden="true"></div>' +
+      '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">' + tUi('charts.metric.hydration') + '</span>' + buildHydrationGoalsNumsHtml(hydAvg, goals.hydration) + '</div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + hydPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met">' + daysDots(hydMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
+      '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met">' + daysDots(hydMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
+      '</div></div></div>');
   }
   if (goals.sleep > 0) {
     var sleepLogs = last7.filter(function(l) { var v = parseInt(l.sleep, 10); return !isNaN(v) && v >= 1 && v <= 10; });
@@ -11630,10 +11668,15 @@ function updateGoalsProgressBlock() {
     var sleepMet = sleepLogs.filter(function(l) { return parseInt(l.sleep, 10) >= goals.sleep; }).length;
     var sleepPct = goals.sleep > 0 ? Math.min(100, Math.round((parseFloat(sleepAvg) / goals.sleep) * 100)) : 0;
     var si = insight(sleepMet, 7, goals.sleep > 0 ? Math.round((parseFloat(sleepAvg) / goals.sleep) * 100) : 0);
-    rows.push('<div class="goals-metric-row">' +
+    var sleepDaily = buildGoalsDailyPcts(function (l) { return parseInt(l.sleep, 10); }, goals.sleep);
+    rows.push('<div class="goals-metric-row" data-metric="sleep" data-daily-pcts="' + escapeAttr(JSON.stringify(sleepDaily)) + '">' +
+      '<div class="goals-metric-visual">' +
+      '<div class="goals-3d-slot" aria-hidden="true"></div>' +
+      '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-moon"></i></span><span class="goals-metric-name">' + tUi('export.csv.sleep') + '</span><span class="goals-metric-nums">' + sleepAvg + ' / ' + goals.sleep + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + sleepPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + sleepMet + ' of 7 days met">' + daysDots(sleepMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
+      '<div class="goals-meta"><span class="goals-days" title="' + sleepMet + ' of 7 days met">' + daysDots(sleepMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
+      '</div></div></div>');
   }
   if (goals.goodDaysPerWeek > 0) {
     var goodThisWeek = getGoodDaysThisWeek();
@@ -11641,14 +11684,23 @@ function updateGoalsProgressBlock() {
     var goodCls = goodThisWeek >= goals.goodDaysPerWeek ? 'on-track' : 'below';
     var goodLabel = goodThisWeek >= goals.goodDaysPerWeek ? 'On track' : 'Below target';
     var goodPct = goals.goodDaysPerWeek > 0 ? Math.min(100, Math.round((goodThisWeek / goals.goodDaysPerWeek) * 100)) : 0;
-    rows.push('<div class="goals-metric-row">' +
+    var goodDaily = buildGoalsDailyPcts(function (l) {
+      var m = parseInt(l.mood, 10);
+      var s = parseInt(l.sleep, 10);
+      return (!isNaN(m) && m >= 6 && !isNaN(s) && s >= 6) ? 1 : 0;
+    }, 1);
+    rows.push('<div class="goals-metric-row" data-metric="goodDays" data-daily-pcts="' + escapeAttr(JSON.stringify(goodDaily)) + '">' +
+      '<div class="goals-metric-visual">' +
+      '<div class="goals-3d-slot" aria-hidden="true"></div>' +
+      '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-face-smile"></i></span><span class="goals-metric-name">' + tUi('common.good.days') + '</span><span class="goals-metric-nums">' + goodThisWeek + ' / ' + goals.goodDaysPerWeek + (streak > 0 ? ' · ' + streak + ' in a row' : '') + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + goodPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-status-pill ' + goodCls + '">' + goodLabel + '</span></div></div>');
+      '<div class="goals-meta"><span class="goals-status-pill ' + goodCls + '">' + goodLabel + '</span></div>' +
+      '</div></div></div>');
   }
   if (rows.length === 0) { block.style.display = 'none'; return; }
   block.className = 'goals-progress-block';
-  block.innerHTML = '<div class="goals-progress-title">Last 7 days vs targets</div>' + rows.join('');
+  block.innerHTML = '<div class="goals-progress-head"><p class="goals-progress-title">Last 7 days vs targets</p><p class="goals-progress-sub">Seven-day depth · hover a row to explore</p></div>' + rows.join('');
   block.style.display = 'block';
   animateGoalsBars(block);
   if (typeof initScrollReveal === 'function') initScrollReveal(block);
@@ -11660,6 +11712,7 @@ function updateGoalsProgressBlock() {
   if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.decorateGoalsProgress === 'function') {
     window.RianellGraphicsPortfolio.decorateGoalsProgress();
   }
+  scheduleGoalsProgress3DEnhancement(block);
 }
 
 function flushOfflineQueue() {
@@ -24102,6 +24155,117 @@ function renderHomeStreakCard(logArr, streakSnap, ctx) {
 }
 
 var _homeWeatherFetchInFlight = false;
+var _weatherOrb3DPromise = null;
+var _goalsProgress3DPromise = null;
+var _discoveryOrb3DPromise = null;
+
+/** Defers 3D work until idle so boot stays lean. */
+function scheduleHome3DEnhancement(run) {
+  var idle = typeof window.requestIdleCallback === 'function'
+    ? window.requestIdleCallback
+    : function (cb) { return setTimeout(cb, 350); };
+  idle(function () { run(); });
+}
+
+/** Lazy-loads the three.js weather orb chunk (same pattern as lazy-webgl). */
+function lazyLoadWeatherOrb3D() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.RianellWeatherOrb3D) return Promise.resolve(window.RianellWeatherOrb3D);
+  if (_weatherOrb3DPromise) return _weatherOrb3DPromise;
+  _weatherOrb3DPromise = new Promise(function (resolve) {
+    var existing = document.querySelector('script[data-rianell-weather-orb]');
+    if (existing) {
+      existing.addEventListener('load', function () { resolve(window.RianellWeatherOrb3D || null); }, { once: true });
+      existing.addEventListener('error', function () { resolve(null); }, { once: true });
+      if (window.RianellWeatherOrb3D) resolve(window.RianellWeatherOrb3D);
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'modules/weather-orb-3d.js';
+    s.defer = true;
+    s.setAttribute('data-rianell-weather-orb', '1');
+    s.onload = function () { resolve(window.RianellWeatherOrb3D || null); };
+    s.onerror = function () { resolve(null); };
+    document.head.appendChild(s);
+  });
+  return _weatherOrb3DPromise;
+}
+
+/** Defers 3D orb work until the browser is idle so boot stays lean. */
+function scheduleWeatherOrbEnhancement(run) {
+  scheduleHome3DEnhancement(function () {
+    lazyLoadWeatherOrb3D().then(function (orb) {
+      if (orb && orb.canUse3D()) run(orb);
+    });
+  });
+}
+
+/** Lazy-loads the three.js goals pillar chart chunk. */
+function lazyLoadGoalsProgress3D() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.RianellGoalsProgress3D) return Promise.resolve(window.RianellGoalsProgress3D);
+  if (_goalsProgress3DPromise) return _goalsProgress3DPromise;
+  _goalsProgress3DPromise = new Promise(function (resolve) {
+    var existing = document.querySelector('script[data-rianell-goals-3d]');
+    if (existing) {
+      existing.addEventListener('load', function () { resolve(window.RianellGoalsProgress3D || null); }, { once: true });
+      existing.addEventListener('error', function () { resolve(null); }, { once: true });
+      if (window.RianellGoalsProgress3D) resolve(window.RianellGoalsProgress3D);
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'modules/goals-progress-3d.js';
+    s.defer = true;
+    s.setAttribute('data-rianell-goals-3d', '1');
+    s.onload = function () { resolve(window.RianellGoalsProgress3D || null); };
+    s.onerror = function () { resolve(null); };
+    document.head.appendChild(s);
+  });
+  return _goalsProgress3DPromise;
+}
+
+function scheduleGoalsProgress3DEnhancement(block) {
+  if (!block) return;
+  scheduleHome3DEnhancement(function () {
+    lazyLoadGoalsProgress3D().then(function (mod) {
+      if (mod && mod.canUse3D() && block.isConnected) mod.enhanceBlock(block);
+    });
+  });
+}
+
+/** Lazy-loads the three.js Ask Rianell neural orb chunk. */
+function lazyLoadDiscoveryOrb3D() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.RianellDiscoveryOrb3D) return Promise.resolve(window.RianellDiscoveryOrb3D);
+  if (_discoveryOrb3DPromise) return _discoveryOrb3DPromise;
+  _discoveryOrb3DPromise = new Promise(function (resolve) {
+    var existing = document.querySelector('script[data-rianell-discovery-orb]');
+    if (existing) {
+      existing.addEventListener('load', function () { resolve(window.RianellDiscoveryOrb3D || null); }, { once: true });
+      existing.addEventListener('error', function () { resolve(null); }, { once: true });
+      if (window.RianellDiscoveryOrb3D) resolve(window.RianellDiscoveryOrb3D);
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'modules/discovery-orb-3d.js';
+    s.defer = true;
+    s.setAttribute('data-rianell-discovery-orb', '1');
+    s.onload = function () { resolve(window.RianellDiscoveryOrb3D || null); };
+    s.onerror = function () { resolve(null); };
+    document.head.appendChild(s);
+  });
+  return _discoveryOrb3DPromise;
+}
+
+function scheduleDiscoveryOrbEnhancement(section) {
+  if (!section) return;
+  scheduleHome3DEnhancement(function () {
+    lazyLoadDiscoveryOrb3D().then(function (mod) {
+      if (mod && mod.canUse3D() && section.isConnected) mod.enhanceSection(section);
+    });
+  });
+}
+
 
 function homeWeatherSummaryText(snap) {
   if (!snap) return '';
@@ -24131,7 +24295,9 @@ function renderHomeWeatherEnablePromptHtml() {
   var label = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable local weather';
   var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Optional weather';
   return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(label) + '" title="' + escapeAttr(hint) + '">' +
-    '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon') + '</span></button>';
+    '<span class="home-weather-enable-prompt__halo" aria-hidden="true"></span>' +
+    '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon') + '</span>' +
+    '<span class="home-weather-enable-prompt__spark" aria-hidden="true"></span></button>';
 }
 
 function renderHomeWeatherStripHtml(snap) {
@@ -24145,7 +24311,7 @@ function renderHomeWeatherStripHtml(snap) {
   }
   var html = '<div class="home-weather-strip__layout" role="img" aria-label="' + escapeAttr(summaryAria) + '">';
   if (display.conditionIcon && display.conditionIcon !== 'weather-unknown') {
-    html += '<span class="home-weather-strip__condition" aria-hidden="true">' + svgIcon(display.conditionIcon, homeWeatherIconClass(display.conditionIcon, 'home-weather-icon--condition')) + '</span>';
+    html += '<span class="home-weather-strip__condition" data-weather-condition="' + escapeAttr(display.conditionIcon) + '" aria-hidden="true">' + svgIcon(display.conditionIcon, homeWeatherIconClass(display.conditionIcon, 'home-weather-icon--condition')) + '</span>';
   }
   html += '<div class="home-weather-strip__metrics">';
   display.metrics.forEach(function (metric) {
@@ -24181,6 +24347,9 @@ function renderHomeWeatherStrip(ctx) {
     var enableBtn = strip.querySelector('.home-weather-enable-prompt');
     if (enableBtn) {
       enableBtn.onclick = function() { enableHomeWeatherStrip(); };
+      scheduleWeatherOrbEnhancement(function (orb) {
+        if (enableBtn.isConnected) orb.enhancePrompt(enableBtn);
+      });
     }
     if (typeof initRipple === 'function') initRipple(strip);
     return;
@@ -24188,6 +24357,13 @@ function renderHomeWeatherStrip(ctx) {
   var snap = appSettings.weatherCache;
   if (snap && (snap.tempC != null || snap.pressureHpa != null || snap.usAqi != null)) {
     strip.innerHTML = renderHomeWeatherStripHtml(snap);
+    var conditionEl = strip.querySelector('.home-weather-strip__condition');
+    if (conditionEl) {
+      var conditionId = conditionEl.getAttribute('data-weather-condition');
+      scheduleWeatherOrbEnhancement(function (orb) {
+        if (conditionEl.isConnected) orb.enhanceCondition(conditionEl, conditionId);
+      });
+    }
   } else {
     var loading = typeof tUi === 'function' ? tUi('home.weather.loading') : 'Loading…';
     strip.innerHTML = '<p class="home-weather-strip__summary">' + escapeHTML(loading) + '</p>';
@@ -24217,6 +24393,12 @@ function maybeRefreshHomeWeather() {
   });
 }
 
+function weatherOrbPromptState(state) {
+  if (typeof window !== 'undefined' && window.RianellWeatherOrb3D) {
+    window.RianellWeatherOrb3D.notifyPromptState(state);
+  }
+}
+
 function enableHomeWeatherStrip() {
   if (typeof navigator === 'undefined' || !navigator.geolocation) {
     if (typeof showToast === 'function') {
@@ -24225,11 +24407,13 @@ function enableHomeWeatherStrip() {
     return;
   }
   var S = getHomeSharedAi();
+  weatherOrbPromptState('loading');
   navigator.geolocation.getCurrentPosition(function(pos) {
     var rounded = S && typeof S.normalizeWeatherCoords === 'function'
       ? S.normalizeWeatherCoords(pos.coords.latitude, pos.coords.longitude)
       : null;
-    if (!rounded) return;
+    if (!rounded) { weatherOrbPromptState('error'); return; }
+    weatherOrbPromptState('success');
     appSettings.weatherStripEnabled = true;
     appSettings.weatherLat = rounded.lat;
     appSettings.weatherLon = rounded.lon;
@@ -24251,6 +24435,7 @@ function enableHomeWeatherStrip() {
       applyHomeCardLayout();
     }
   }, function() {
+    weatherOrbPromptState('error');
     if (typeof showToast === 'function') {
       showToast(typeof tUi === 'function' ? tUi('home.weather.locationDenied') : 'Location denied', { type: 'error' });
     }
@@ -24338,23 +24523,24 @@ function buildStaticDiscoveryCards() {
 function renderDiscoveryCardHtml(card, index) {
   var title = typeof tUi === 'function' ? tUi(card.titleKey, card.labelParams) : card.titleKey;
   var hint = typeof tUi === 'function' ? tUi(card.hintKey || '') : (card.hintKey || '');
-  var delay = Math.min(index, 5) * 0.08;
-  var html = '<article class="home-discovery-card" style="--discovery-stagger:' + delay + 's">';
-  html += '<button type="button" class="home-discovery-card-main" data-discovery-chip="' + escapeHTML(card.id) + '"';
+  var delay = Math.min(index, 5) * 0.06;
+  var goalsAction = card.action === 'goals'
+    ? ' data-discovery-action="goals-direct"'
+    : '';
+  var html = '<button type="button" class="home-discovery-pill" style="--discovery-stagger:' + delay + 's" data-discovery-chip="' + escapeHTML(card.id) + '"';
   if (card.seedKey) html += ' data-discovery-seed-key="' + escapeHTML(card.seedKey) + '"';
   if (card.labelKey) html += ' data-home-question-id="' + escapeHTML(card.id) + '"';
+  if (goalsAction) html += goalsAction;
   html += '>';
-  html += '<span class="home-discovery-card-icon" aria-hidden="true">' + discoveryCardIcon(card.icon || 'sparkle-ring') + '</span>';
-  html += '<span class="home-discovery-card-copy">';
-  html += '<span class="home-discovery-card-title">' + escapeHTML(title) + '</span>';
-  if (hint) html += '<span class="home-discovery-card-hint">' + escapeHTML(hint) + '</span>';
-  html += '</span></button>';
+  html += '<span class="home-discovery-pill-icon" aria-hidden="true">' + discoveryCardIcon(card.icon || 'sparkle-ring') + '</span>';
+  html += '<span class="home-discovery-pill-copy">';
+  html += '<span class="home-discovery-pill-title">' + escapeHTML(title) + '</span>';
+  if (hint) html += '<span class="home-discovery-pill-hint">' + escapeHTML(hint) + '</span>';
+  html += '</span>';
   if (card.action === 'goals') {
-    html += '<button type="button" class="home-discovery-card-secondary" data-discovery-action="goals-direct">';
-    html += escapeHTML(typeof tUi === 'function' ? tUi('home.discover.goals.direct') : 'Open goals');
-    html += '</button>';
+    html += '<span class="home-discovery-pill-chevron" aria-hidden="true">' + svgIcon('chevron-right', 'home-discovery-pill-chevron-svg') + '</span>';
   }
-  html += '</article>';
+  html += '</button>';
   return html;
 }
 
@@ -24439,24 +24625,29 @@ function renderHomeDiscoveryChips(logArr) {
   wrap.hidden = false;
   var html = '<section class="home-discovery-section" aria-label="' + escapeAttr(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '">';
   html += '<header class="home-discovery-header">';
-  html += '<span class="home-discovery-ai-glyph" aria-hidden="true">' + discoveryCardIcon('brain-wave') + '</span>';
+  html += '<span class="home-discovery-orb-host home-discovery-ai-glyph" aria-hidden="true">';
+  html += discoveryCardIcon('brain-wave');
+  html += '</span>';
   html += '<div class="home-discovery-header-copy">';
   html += '<p class="home-discovery-section-title">' + escapeHTML(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '</p>';
   html += '<p class="home-discovery-section-sub">' + escapeHTML(typeof tUi === 'function' ? tUi('home.discover.sectionSubtitle') : '') + '</p>';
   html += '</div></header>';
-  html += '<div class="home-discovery-grid">';
+  html += '<div class="home-discovery-scroll" role="list">';
   cards.forEach(function (card, i) { html += renderDiscoveryCardHtml(card, i); });
   html += '</div></section>';
   wrap.innerHTML = html;
-  wrap.querySelectorAll('.home-discovery-card-main').forEach(function (btn) {
+  var section = wrap.querySelector('.home-discovery-section');
+  wrap.querySelectorAll('.home-discovery-pill').forEach(function (btn) {
+    if (btn.getAttribute('data-discovery-action') === 'goals-direct') {
+      btn.onclick = function (e) {
+        e.stopPropagation();
+        if (typeof openGoalsModal === 'function') openGoalsModal(0);
+      };
+      return;
+    }
     btn.onclick = function () { openDiscoveryChatFromCard(btn, logArr); };
   });
-  wrap.querySelectorAll('[data-discovery-action="goals-direct"]').forEach(function (btn) {
-    btn.onclick = function (e) {
-      e.stopPropagation();
-      if (typeof openGoalsModal === 'function') openGoalsModal(0);
-    };
-  });
+  if (section) scheduleDiscoveryOrbEnhancement(section);
   if (typeof initRipple === 'function') initRipple(wrap);
 }
 
