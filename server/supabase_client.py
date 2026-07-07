@@ -17,26 +17,82 @@ supabase_service_client = None
 SUPABASE_AVAILABLE = False
 
 
-def check_supabase_availability():
-    """Check if Supabase is available (system/venv or local lib)."""
-    global SUPABASE_AVAILABLE
+def _supabase_hostname():
+    """Hostname from SUPABASE_URL (no secrets)."""
+    url = (config.SUPABASE_URL or '').strip()
+    if not url:
+        return None
+    return url.replace('https://', '').replace('http://', '').split('/')[0].strip() or None
+
+
+def warn_if_supabase_url_unreachable():
+    """
+    Log a clear warning when SUPABASE_URL is a placeholder or DNS cannot resolve the project host.
+    Does not block server startup — static PWA serving still works.
+    """
+    host = _supabase_hostname()
+    if not host:
+        config.logger.warning(
+            'SUPABASE_URL is empty. Set it in security/.env (Supabase → Project Settings → API).'
+        )
+        return
+    if 'YOUR_PROJECT' in host.upper() or host.endswith('.example'):
+        config.logger.warning(
+            'SUPABASE_URL still looks like a placeholder (%s). Replace with your project URL in security/.env.',
+            host,
+        )
+        return
     try:
+        import socket
+        socket.getaddrinfo(host, 443)
+    except OSError as e:
+        config.logger.warning(
+            'SUPABASE_URL host %s is not reachable (%s). '
+            'Check the project ref in security/.env — paused, deleted, or typo projects fail DNS. '
+            'The local app at http://localhost:%s still works without cloud sync.',
+            host,
+            e,
+            config.PORT,
+        )
+
+
+def check_supabase_availability():
+    """Check if Supabase is available (system/venv or local lib). Never raises — logs and returns False on any import failure."""
+    global SUPABASE_AVAILABLE
+
+    def _probe():
         __import__('supabase')
+
+    try:
+        _probe()
         config.logger.debug("Supabase found in system/venv Python")
         SUPABASE_AVAILABLE = True
         return True
     except ImportError:
         pass
+    except Exception as e:
+        config.logger.warning(
+            "Supabase import failed (%s). Run: pip install -r requirements.txt — static server will still start.",
+            e,
+        )
+        SUPABASE_AVAILABLE = False
+        return False
+
     if config.LOCAL_LIB_DIR.exists():
         try:
             if str(config.LOCAL_LIB_DIR) not in sys.path:
                 sys.path.insert(0, str(config.LOCAL_LIB_DIR))
-            __import__('supabase')
+            _probe()
             config.logger.debug("Supabase found in local lib")
             SUPABASE_AVAILABLE = True
             return True
         except ImportError:
             pass
+        except Exception as e:
+            config.logger.warning(
+                "Supabase import failed from local lib (%s). Run: pip install -r requirements.txt",
+                e,
+            )
     SUPABASE_AVAILABLE = False
     return False
 
@@ -204,7 +260,16 @@ def search_supabase_data(condition=None, limit=100):
                     except Exception as e:
                         config.logger.warning(f"Error decrypting record {record.get('id')}: {e}")
         return data
+    except OSError as e:
+        config.logger.warning(
+            'Supabase unreachable (check SUPABASE_URL in security/.env): %s', e
+        )
+        return None
     except Exception as e:
+        err_name = type(e).__name__
+        if err_name in ('ConnectError', 'ConnectTimeout', 'NetworkError'):
+            config.logger.warning('Supabase connection failed: %s', e)
+            return None
         config.logger.error(f"Error searching Supabase: {e}", exc_info=True)
         return None
 
