@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-06T23:19:34.322Z",
+  "generatedAt": "2026-07-07T23:38:07.619Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4966830,
-    "cssBytes": 779036,
-    "jsGzipBytes": 1176734,
-    "cssGzipBytes": 132516
+    "jsBytes": 5375015,
+    "cssBytes": 788911,
+    "jsGzipBytes": 1276471,
+    "cssGzipBytes": 134013
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1137697,
-      "gzipBytes": 247774
+      "bytes": 1146159,
+      "gzipBytes": 249499
     },
     {
-      "file": "ci-minified/site/app.e32490924123.min.js",
-      "bytes": 841218,
-      "gzipBytes": 195280
+      "file": "ci-minified/site/app.64f8485936f7.min.js",
+      "bytes": 847573,
+      "gzipBytes": 196488
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/styles.301024c280c3.css",
-      "bytes": 704009,
-      "gzipBytes": 117185
+      "file": "ci-minified/site/styles.2e22b11f73a3.css",
+      "bytes": 713884,
+      "gzipBytes": 118682
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -37,6 +37,11 @@
       "file": "ci-minified/site/vendor/rianell-shared.js",
       "bytes": 390890,
       "gzipBytes": 89042
+    },
+    {
+      "file": "ci-minified/site/vendor/three/three.module.min.js",
+      "bytes": 355116,
+      "gzipBytes": 84757
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -139,6 +144,11 @@
       "gzipBytes": 5151
     },
     {
+      "file": "ci-minified/site/modules/weather-orb-3d.js",
+      "bytes": 19808,
+      "gzipBytes": 5967
+    },
+    {
       "file": "ci-minified/site/modules/app-lock.js",
       "bytes": 17770,
       "gzipBytes": 4071
@@ -165,8 +175,8 @@
     },
     {
       "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 13569,
-      "gzipBytes": 3542
+      "bytes": 14045,
+      "gzipBytes": 3657
     },
     {
       "file": "ci-minified/site/security-utils.js",
@@ -189,9 +199,19 @@
       "gzipBytes": 2795
     },
     {
+      "file": "ci-minified/site/modules/goals-progress-3d.js",
+      "bytes": 9656,
+      "gzipBytes": 3214
+    },
+    {
       "file": "ci-minified/site/modules/goals-carousel.js",
       "bytes": 9514,
       "gzipBytes": 2516
+    },
+    {
+      "file": "ci-minified/site/modules/discovery-orb-3d.js",
+      "bytes": 8312,
+      "gzipBytes": 2751
     },
     {
       "file": "ci-minified/site/modules/webgl-scene.js",
