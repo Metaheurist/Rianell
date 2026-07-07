@@ -19,7 +19,7 @@ Rianell/
 │   ├── cloud-sync/     # AES-GCM encrypt/decrypt
 │   ├── llm/            # LLM interface (summaries, suggestions)
 │   └── tokens/         # Design tokens → CSS
-├── server/             # Python HTTP server + Tk dashboard
+├── server/             # Python HTTP server + Tk dashboard (`dashboard_ui.py`)
 ├── supabase/           # Schema, edge functions
 ├── scripts/            # Build, i18n, parity, model upload
 ├── docs/               # Maintainer documentation (incl. design-token-contract.md)

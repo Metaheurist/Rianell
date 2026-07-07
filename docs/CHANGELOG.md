@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.1.8** - Home AI discovery cards and ephemeral on-device health chat.
+**Latest: v2.2.0** - Home 3D visuals, modern server dashboard, Python dep hardening.
+
+### v2.2.0 - 2026-07-07 - Home 3D polish and server dashboard redesign
+
+- **PWA Home:** Three.js goals pillars, discovery neural orb, weather enable depth; discovery pills horizontal scroll layout.
+- **PWA ai-chat:** overlay `aria-hidden` / `inert` and reliable scroll-lock release.
+- **Server dashboard:** responsive Tk UI with sidebar/bottom-nav tabs, SVG-style icons, log level filter.
+- **Server Python:** pinned pydantic/websockets peers; Supabase DNS warning at startup; pip sync in `launch-server.ps1`.
+- **Tests:** `home-3d-visuals.test.mjs`, `server-requirements.test.mjs`.
 
 ### v2.1.8 - 2026-07-06 - Home AI chat and discovery upgrade
 

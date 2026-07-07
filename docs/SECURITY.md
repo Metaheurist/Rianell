@@ -51,8 +51,10 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 
 ### Tk "Server Tinker" dashboard notes
 
-- The Tk dashboard (`server/main.py`) is a **local operator UI** for development/admin actions. It does not add remote network endpoints by itself.
+- The Tk dashboard (`server/dashboard_ui.py`, launched from `server/main.py`) is a **local operator UI** for development/admin actions. It does not add remote network endpoints by itself.
+- **Layout:** sidebar navigation in landscape; bottom tab bar in portrait/narrow windows (Overview · Data · Tools · Logs).
 - The "Database Viewer" supports multi-row selection (`Treeview` extended mode). Selection is local UI state only; destructive actions still require explicit button actions and confirmation dialogs.
+- **Supabase DNS:** startup warns when `SUPABASE_URL` host does not resolve; connection test surfaces actionable text instead of a raw traceback.
 - Colored log rendering in the Tk pane is display-only (line/tag styling); it does not alter the underlying file log content or retention policy.
 
 ## Local secrets directory (`security/`)

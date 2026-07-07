@@ -1,6 +1,21 @@
 # Release Notes
 
-## Latest release (v2.1.9)
+## Latest release (v2.2.0)
+
+**Date:** 2026-07-07
+
+### Highlights
+
+- **Home 3D:** Tier-gated Three.js pillars on goals progress, neural orb in Ask Rianell, weather enable depth — respects reduced motion and device tier.
+- **Discovery UX:** Horizontal scroll pills with shimmer; goals pill opens goals directly.
+- **Server dashboard:** Modern responsive Tk UI — Overview / Data / Tools / Logs tabs; SVG-style icons; log level filter.
+- **Server reliability:** Python deps pinned for pydantic-core alignment; Supabase DNS warning at startup; `launch-server.ps1` auto-syncs pip.
+
+See **v2.1.9** below for the security hardening pass.
+
+---
+
+## Previous (v2.1.9)
 
 **Date:** 2026-07-06
 
