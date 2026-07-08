@@ -6,6 +6,40 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.1] - 2026-07-08
+
+PWA polish pass: Ask Rianell offline replies, mood day detail, boot benchmark reliability, and light-mode icon contrast.
+
+### Added
+
+- **Shared AI:** `buildHealthChatOfflineReply()` — topic-aware offline Ask Rianell replies (sleep, mood, patterns, fatigue, symptoms, stress) using trends and correlations
+- **PWA goals:** `goals-progress-svg.js` — animated seven-day pillar SVG charts (always-on fallback beside optional 3D overlay)
+- **PWA AI sprites:** `icon-overview-monitor` (scrolling mini-site), `icon-trends-vitals` (heart + EKG pulse), discovery stroke icons (`discover-mood`, `discover-goals`, `discover-ai`, `discover-orb`)
+- **PWA mood:** Day-detail modal from history ribbon cards — full log, check-ins, day average (`#moodDayModalOverlay`)
+
+### Changed
+
+- **Ask Rianell:** Chat computes analysis snapshot on open; passes user message + logs to fallback; close button shows `×`; header chrome hidden while chat is open
+- **AI Analysis:** Trends chapter uses `trends-vitals` icon (larger, animated EKG); Overview chapter uses animated monitor icon; light-mode AI trend metric tiles have stronger contrast
+- **Mood tab:** Uniform streak uses `mood.recent.uniformStreak` i18n; check-in period and action-tile icons enlarged for button footprint
+- **Nav AI icon:** Robot + stethoscope scope (replaces star motif)
+- **Home discovery:** Cards use high-contrast `discover-*` stroke icons
+- **Device benchmark:** `setTimeout` slice scheduling (no `requestAnimationFrame` during boot); per-test 6s timeout; `abortActiveSuite()`; boot watchdog aborts suite before force-reveal; forced abort skips GPU stage
+
+### Fixed
+
+- **First-start hang:** Benchmark could stall at “Array throughput” (3%) when `requestAnimationFrame` paused during initial paint
+- **BP dial:** Heart SVG uses proportional 64×80 viewBox with centered pulse transform
+- **Mobility widget:** Bounce duration/shadow/mat moved to CSS tiers — +/- no longer freezes animation mid-cycle
+- **Mood i18n:** Raw key `mood.recent.uniformStreak Good` replaced with parameterized locale string
+
+### Tests
+
+- 755 unit tests passing; `doc-links --strict` OK
+- New/updated: `chat-context`, `ai-chat-security`, `ai-trend-cards`, `animation-polish`, `home-3d-visuals`, `home-discovery-ui`, `log-metric-widgets`, `mood-tab-ui`, `perf-benchmark-modal`, `theme-accent-tokens`, `vitals-light-mode-contrast`
+
+---
+
 ## [2.2.0] - 2026-07-07
 
 Home dashboard 3D polish, modern server dashboard UI, and Python server dependency hardening.

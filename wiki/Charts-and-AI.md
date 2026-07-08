@@ -12,6 +12,8 @@ Rianell combines **interactive charts** with a **deterministic AI engine** and a
 
 Explore patterns visually before diving into the AI Analysis tab. On mobile, AI sections use horizontal slides with theme-aware navigation controls (v1.120.0).
 
+**Chapter icons (v2.2.1):** Overview uses an animated monitor sprite; **Trends & vitals** uses a heart + EKG diagram. Trend metric tiles have stronger icon contrast in light mode.
+
 ---
 
 ## AI Analysis tab
