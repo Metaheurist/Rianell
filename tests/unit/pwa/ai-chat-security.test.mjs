@@ -62,6 +62,14 @@ test('ai-chat uses approved inference entry points only', () => {
   assert.ok(!/api\.openai\.com/.test(src));
 });
 
+test('ai-chat close button renders visible dismiss glyph', () => {
+  const src = readFileSync('apps/pwa-webapp/modules/ai-chat.js', 'utf8');
+  assert.match(src, /class="ai-chat-close modal-close"[^>]*>&times;<\/button>/);
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /body\.ai-chat-open \.header-buttons-wrap/);
+  assert.match(css, /\.ai-chat-close[\s\S]*color: var\(--primary-color\)/);
+});
+
 test('weekChat system prompt enforces instruction hierarchy', () => {
   const pack = readFileSync('packages/shared/src/i18n/promptPackData.mjs', 'utf8');
   assert.ok(/weekChat\.system/.test(pack));
