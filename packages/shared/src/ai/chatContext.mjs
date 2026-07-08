@@ -3,7 +3,7 @@
  * Ephemeral chat only; callers must not persist assembled prompts.
  */
 
-import { HOME_SUGGESTIONS_RANGE_DAYS } from './homeSuggestions.mjs';
+import { HOME_SUGGESTIONS_RANGE_DAYS, buildHealthChatOfflineReply } from './homeSuggestions.mjs';
 
 export const MAX_HEALTH_CHAT_CONTEXT_CHARS = 1800;
 export const MAX_HEALTH_CHAT_TURNS = 5;
@@ -162,14 +162,6 @@ export function buildHealthChatUserPayload({ baseContext, history, userMessage }
   return parts.filter(Boolean).join('\n\n');
 }
 
-export function buildHealthChatFallback(analysis = {}) {
-  const total = analysis.totalLogs ?? 0;
-  if (total < 3) {
-    return 'Log a few more days and I can spot patterns in sleep, mood, and fatigue.';
-  }
-  const flare = analysis.flareDays ?? 0;
-  if (flare > 0) {
-    return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help.`;
-  }
-  return `You logged ${total} days recently. Keep noting what helps — patterns build with steady logging.`;
+export function buildHealthChatFallback(analysis = {}, userMessage = '', logs = []) {
+  return buildHealthChatOfflineReply(analysis, userMessage, logs);
 }
