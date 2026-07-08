@@ -2,6 +2,25 @@ import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+test('mood uniform streak uses i18n keys', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
+  assert.match(js, /mood\.recent\.uniformStreak/);
+  const enGb = readFileSync('i18n-packs/locale-packs/v1/en-GB.json', 'utf8');
+  assert.match(enGb, /"mood\.recent\.uniformStreak": "\{count\} readings in a row at \{score\}\/10\{qual\}"/);
+  assert.match(enGb, /"mood\.recent\.history": "Mood reading history"/);
+});
+
+test('mood history cards open day detail modal', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  assert.match(js, /openMoodDayDetailModal/);
+  assert.match(js, /buildMoodDayDetailHtml/);
+  assert.match(js, /openMoodDayDetailModal\(readings\[i\]\.date\)/);
+  assert.match(html, /id="moodDayModalOverlay"/);
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /\.mood-day-modal-body/);
+});
+
 test('mood-tab uses compact history ribbon without duplicating latest', () => {
   const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
   assert.match(js, /function renderMoodReadingCard/);
@@ -49,6 +68,14 @@ test('mood deck tile icons inherit stroke/fill token rules', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /\.mood-deck-tile-icon-svg \*,[\s\S]*stroke: currentColor/);
   assert.match(css, /\.mood-deck-tile-icon-svg \.icon-fill[\s\S]*fill: currentColor/);
+  assert.match(css, /\.mood-deck-tile-icon-svg[\s\S]*width: 1\.7rem/);
+});
+
+test('check-in slider icons scale up for button footprint', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /--checkin-stop-icon-size: 1\.65rem/);
+  assert.match(css, /--checkin-stop-icon-size-selected: 2\.25rem/);
+  assert.match(css, /\.mood-control-deck[\s\S]*--checkin-stop-icon-size-selected: 2\.4rem/);
 });
 
 test('chart-bars and brain-wave sprites use currentColor (not invisible/black fills)', () => {
