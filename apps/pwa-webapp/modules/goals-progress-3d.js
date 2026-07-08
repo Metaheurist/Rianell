@@ -66,6 +66,8 @@
   function createRowScene(host, metric, dailyPcts) {
     if (!host || !THREE || !canUse3D()) return null;
 
+    host.innerHTML = '';
+
     var canvas = document.createElement('canvas');
     canvas.className = 'goals-3d-canvas';
     canvas.setAttribute('aria-hidden', 'true');

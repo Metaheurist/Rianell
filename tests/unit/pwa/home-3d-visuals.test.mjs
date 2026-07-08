@@ -15,6 +15,7 @@ test('home 3D modules lazy-load three.js from vendor', () => {
 test('app.js wires goals and discovery 3D enhancement hooks', () => {
   const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.match(js, /lazyLoadGoalsProgress3D/);
+  assert.match(js, /lazyLoadGoalsProgressSvg/);
   assert.match(js, /lazyLoadDiscoveryOrb3D/);
   assert.match(js, /scheduleHome3DEnhancement/);
   assert.match(js, /buildGoalsDailyPcts/);
@@ -22,10 +23,21 @@ test('app.js wires goals and discovery 3D enhancement hooks', () => {
   assert.match(js, /data-daily-pcts/);
 });
 
+test('goals progress SVG module renders animated seven-day charts', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/goals-progress-svg.js', 'utf8');
+  assert.match(js, /RianellGoalsProgressSvg/);
+  assert.match(js, /goals-svg-chart/);
+  assert.match(js, /goals-svg-bar-wrap/);
+  assert.match(js, /enhanceBlock/);
+  assert.match(js, /data-daily-pcts/);
+});
+
 test('goals progress styles include 3D slot depth', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /\.goals-3d-slot/);
   assert.match(css, /\.goals-metric-visual/);
+  assert.match(css, /\.goals-svg-chart/);
+  assert.match(css, /@keyframes goalsSvgBarGrow/);
   assert.match(css, /\.home-weather-enable-prompt/);
   assert.match(css, /prefers-reduced-motion/);
 });
