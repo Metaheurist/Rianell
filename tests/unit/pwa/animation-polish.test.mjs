@@ -143,5 +143,17 @@ test('index.html nav symbols are polished multi-path icons', () => {
   assert.match(html, /id="rianell-nav-logs"[\s\S]*nav-icon-logs-board/);
   assert.match(html, /id="rianell-nav-charts"[\s\S]*nav-icon-charts-bar--1/);
   assert.match(html, /id="rianell-nav-mood"[\s\S]*nav-icon-mood-eye--L/);
-  assert.match(html, /id="rianell-nav-ai"[\s\S]*nav-icon-ai-star/);
+  assert.match(html, /id="rianell-nav-ai"[\s\S]*nav-icon-ai-head/);
+  assert.match(html, /nav-icon-ai-scope-diaphragm/);
+});
+
+test('index.html AI chapter sprites include overview monitor and trends vitals', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(html, /id="icon-overview-monitor"/);
+  assert.match(html, /overview-monitor-page/);
+  assert.match(html, /id="icon-trends-vitals"/);
+  assert.match(html, /trends-vitals-heart-pulse/);
+  assert.match(appJs, /wrapAIChapter\('overview', 'ai\.chapter\.overview', 'overview-monitor'/);
+  assert.match(appJs, /wrapAIChapter\('trends', 'ai\.chapter\.trends', 'trends-vitals'/);
 });
