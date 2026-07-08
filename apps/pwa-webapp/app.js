@@ -3374,11 +3374,11 @@ function svgIcon(name, className, title) {
     'accessibility', 'activity', 'android', 'apple', 'balance', 'bandage', 'brain', 'brain-wave', 'bundle',
     'calendar', 'calendar-heatmap', 'chart-bars', 'chart-down', 'chart-up', 'check', 'checkin-am', 'checkin-midday',
     'checkin-pm', 'chevron-left', 'chevron-right', 'close', 'backspace', 'cloud', 'cloud-up', 'code', 'cycle', 'cycle-follicular', 'cycle-luteal',
-    'cycle-menstrual', 'cycle-ovulation', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
+    'cycle-menstrual', 'cycle-ovulation', 'discover-ai', 'discover-goals', 'discover-mood', 'discover-orb', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
     'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal',
     'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-globe', 'onboard-heart',
     'onboard-helper', 'onboard-install', 'onboard-mascot', 'onboard-shield', 'onboard-sparkle', 'notice', 'reload',
-    'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring',
+    'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring', 'overview-monitor', 'trends-vitals',
     'star', 'stethoscope', 'stress', 'stressor-bolt', 'target', 'trash', 'user', 'zap',
     'weather-aqi-good', 'weather-aqi-moderate', 'weather-aqi-poor',
     'weather-clear', 'weather-cloudy', 'weather-fog', 'weather-partly-cloudy',
@@ -9772,7 +9772,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   });
   overviewInner += '</div>';
   overviewInner += buildAIAnalysisAtAGlance(analysis, logs, dayCount);
-  html += wrapAIChapter('overview', 'ai.chapter.overview', 'sparkle-ring', overviewInner, chapterDelay);
+  html += wrapAIChapter('overview', 'ai.chapter.overview', 'overview-monitor', overviewInner, chapterDelay);
   chapterDelay += chapterStep;
 
   // -- Chapter 2: Trends & Vitals --
@@ -9793,7 +9793,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     trendsInner += renderAIThingsToWatch(analysis.anomalies);
     trendsInner += '</div>';
   }
-  html += wrapAIChapter('trends', 'ai.chapter.trends', 'heart-pulse', trendsInner, chapterDelay);
+  html += wrapAIChapter('trends', 'ai.chapter.trends', 'trends-vitals', trendsInner, chapterDelay);
   chapterDelay += chapterStep;
 
   // -- Chapter 3: Lifestyle --
@@ -24157,6 +24157,7 @@ function renderHomeStreakCard(logArr, streakSnap, ctx) {
 var _homeWeatherFetchInFlight = false;
 var _weatherOrb3DPromise = null;
 var _goalsProgress3DPromise = null;
+var _goalsProgressSvgPromise = null;
 var _discoveryOrb3DPromise = null;
 
 /** Defers 3D work until idle so boot stays lean. */
@@ -24200,6 +24201,30 @@ function scheduleWeatherOrbEnhancement(run) {
   });
 }
 
+/** Lazy-loads the animated SVG goals chart chunk (always available). */
+function lazyLoadGoalsProgressSvg() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.RianellGoalsProgressSvg) return Promise.resolve(window.RianellGoalsProgressSvg);
+  if (_goalsProgressSvgPromise) return _goalsProgressSvgPromise;
+  _goalsProgressSvgPromise = new Promise(function (resolve) {
+    var existing = document.querySelector('script[data-rianell-goals-svg]');
+    if (existing) {
+      existing.addEventListener('load', function () { resolve(window.RianellGoalsProgressSvg || null); }, { once: true });
+      existing.addEventListener('error', function () { resolve(null); }, { once: true });
+      if (window.RianellGoalsProgressSvg) resolve(window.RianellGoalsProgressSvg);
+      return;
+    }
+    var s = document.createElement('script');
+    s.src = 'modules/goals-progress-svg.js';
+    s.defer = true;
+    s.setAttribute('data-rianell-goals-svg', '1');
+    s.onload = function () { resolve(window.RianellGoalsProgressSvg || null); };
+    s.onerror = function () { resolve(null); };
+    document.head.appendChild(s);
+  });
+  return _goalsProgressSvgPromise;
+}
+
 /** Lazy-loads the three.js goals pillar chart chunk. */
 function lazyLoadGoalsProgress3D() {
   if (typeof window === 'undefined') return Promise.resolve(null);
@@ -24227,8 +24252,11 @@ function lazyLoadGoalsProgress3D() {
 function scheduleGoalsProgress3DEnhancement(block) {
   if (!block) return;
   scheduleHome3DEnhancement(function () {
-    lazyLoadGoalsProgress3D().then(function (mod) {
-      if (mod && mod.canUse3D() && block.isConnected) mod.enhanceBlock(block);
+    lazyLoadGoalsProgressSvg().then(function (svgMod) {
+      if (svgMod && block.isConnected) svgMod.enhanceBlock(block);
+      lazyLoadGoalsProgress3D().then(function (mod) {
+        if (mod && mod.canUse3D() && block.isConnected) mod.enhanceBlock(block);
+      });
     });
   });
 }
@@ -24514,9 +24542,9 @@ function discoveryCardIcon(name) {
 
 function buildStaticDiscoveryCards() {
   return [
-    { id: 'mood', icon: 'chart-bars', titleKey: 'home.discover.mood', hintKey: 'home.discover.mood.hint', seedKey: 'home.discover.mood.seed' },
-    { id: 'goals', icon: 'target', titleKey: 'home.discover.goals', hintKey: 'home.discover.goals.hint', seedKey: 'home.discover.goals.seed', action: 'goals' },
-    { id: 'ai', icon: 'brain-wave', titleKey: 'home.discover.ai', hintKey: 'home.discover.ai.hint', seedKey: 'home.discover.ai.seed' },
+    { id: 'mood', icon: 'discover-mood', titleKey: 'home.discover.mood', hintKey: 'home.discover.mood.hint', seedKey: 'home.discover.mood.seed' },
+    { id: 'goals', icon: 'discover-goals', titleKey: 'home.discover.goals', hintKey: 'home.discover.goals.hint', seedKey: 'home.discover.goals.seed', action: 'goals' },
+    { id: 'ai', icon: 'discover-ai', titleKey: 'home.discover.ai', hintKey: 'home.discover.ai.hint', seedKey: 'home.discover.ai.seed' },
   ];
 }
 
@@ -24603,7 +24631,7 @@ function renderHomeDiscoveryChips(logArr) {
     (bundle.chips || []).forEach(function (chip) {
       cards.push({
         id: chip.id,
-        icon: 'brain-wave',
+        icon: 'discover-ai',
         titleKey: chip.labelKey,
         labelParams: chip.labelParams,
         hintKey: 'home.discover.askAnything.hint',
@@ -24611,7 +24639,7 @@ function renderHomeDiscoveryChips(logArr) {
     });
     cards.push({
       id: 'ask-anything',
-      icon: 'sparkle-ring',
+      icon: 'discover-orb',
       titleKey: 'home.discover.askAnything',
       hintKey: 'home.discover.askAnything.hint',
       seedKey: '',
@@ -24626,7 +24654,7 @@ function renderHomeDiscoveryChips(logArr) {
   var html = '<section class="home-discovery-section" aria-label="' + escapeAttr(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '">';
   html += '<header class="home-discovery-header">';
   html += '<span class="home-discovery-orb-host home-discovery-ai-glyph" aria-hidden="true">';
-  html += discoveryCardIcon('brain-wave');
+  html += discoveryCardIcon('discover-orb');
   html += '</span>';
   html += '<div class="home-discovery-header-copy">';
   html += '<p class="home-discovery-section-title">' + escapeHTML(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '</p>';
@@ -26474,6 +26502,10 @@ function runRianellBootAfterDomReady() {
     window.__rianellBootWatchdogId = setTimeout(function () {
       window.__rianellBootWatchdogId = null;
       if (document.body && document.body.classList.contains('loaded')) return;
+      var DB = (typeof window !== 'undefined' && window.DeviceBenchmark) ? window.DeviceBenchmark : null;
+      if (DB && typeof DB.abortActiveSuite === 'function') {
+        try { DB.abortActiveSuite(); } catch (e) { /* ignore */ }
+      }
       if (typeof window.__rianellForceRevealBootShell === 'function') {
         window.__rianellForceRevealBootShell();
       }
@@ -26993,6 +27025,10 @@ function runRianellBootAfterDomReady() {
   if (typeof window !== 'undefined') {
     window.__rianellForceRevealBootShell = function () {
       logBootState('bootWatchdog:forceReveal');
+      var DB = (typeof window !== 'undefined' && window.DeviceBenchmark) ? window.DeviceBenchmark : null;
+      if (DB && typeof DB.abortActiveSuite === 'function') {
+        try { DB.abortActiveSuite(); } catch (e) { /* ignore */ }
+      }
       if (typeof window.__rianellRunAppInit === 'function' && !window.__rianellAppInitStarted) {
         startAppAfterPrivacyGate();
       }

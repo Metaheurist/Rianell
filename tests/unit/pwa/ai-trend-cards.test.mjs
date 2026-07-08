@@ -7,6 +7,7 @@ test('app.js renders enriched AI trend metric cards', () => {
   assert.match(js, /function buildAITrendSparklineSvg/);
   assert.match(js, /function aiTrendMetricEntityId/);
   assert.match(js, /function renderAITrendCardHtml/);
+  assert.match(js, /wrapAIChapter\('trends', 'ai\.chapter\.trends', 'trends-vitals'/);
   assert.match(js, /ai-trend-card--metric/);
   assert.match(js, /ai-trend-chart/);
   assert.match(js, /ai-trend-stats-row/);
@@ -25,6 +26,10 @@ test('styles.css defines trend sparkline and status surfaces', () => {
   assert.match(css, /\.ai-trend-card--worsening/);
   assert.match(css, /\.ai-trend-card--stable/);
   assert.match(css, /\.ai-trend-metric-icon/);
+  assert.match(css, /body\.light-mode \.ai-trend-metric-icon/);
+  assert.match(css, /body\.light-mode \.ai-trend-card--stable/);
+  assert.match(css, /icon-trends-vitals|trends-vitals-heart-pulse/);
+  assert.match(css, /\.ai-chapter--trends \.ai-chapter-header \.ai-inline-icon/);
   assert.match(css, /\.ai-trend-stat__unit/);
   assert.doesNotMatch(css, /border-left: 4px solid #e91e63/);
 });

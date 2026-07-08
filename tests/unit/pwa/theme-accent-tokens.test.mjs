@@ -25,7 +25,9 @@ test('styles.css tokenises shell shade, toggles, and optional weather prompt', (
   assert.match(css, /\.toggle-switch\.active[\s\S]*var\(--toggle-active-shadow\)/);
   assert.match(css, /\.home-weather-enable-prompt[\s\S]*var\(--home-weather-prompt-border\)/);
   assert.match(css, /@keyframes homeWeatherPromptRadiate/);
+  assert.match(css, /@keyframes homeWeatherPromptBeacon/);
   assert.match(css, /\.home-weather-enable-prompt::before[\s\S]*homeWeatherPromptRadiate/);
+  assert.match(css, /\.home-weather-enable-prompt[\s\S]*aspect-ratio:\s*1/);
   assert.doesNotMatch(css, /\.home-weather-enable-prompt__label/);
   const shellShadeBlock = css.match(/body::before\s*\{[\s\S]*?\}/);
   assert.ok(shellShadeBlock, 'body::before block should exist');
