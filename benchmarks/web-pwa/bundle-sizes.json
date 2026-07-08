@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-07T23:38:07.619Z",
+  "generatedAt": "2026-07-08T21:45:54.207Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5375015,
-    "cssBytes": 788911,
-    "jsGzipBytes": 1276471,
-    "cssGzipBytes": 134013
+    "jsBytes": 5400168,
+    "cssBytes": 806668,
+    "jsGzipBytes": 1282402,
+    "cssGzipBytes": 136824
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1146159,
-      "gzipBytes": 249499
+      "bytes": 1148120,
+      "gzipBytes": 249717
     },
     {
-      "file": "ci-minified/site/app.64f8485936f7.min.js",
-      "bytes": 847573,
-      "gzipBytes": 196488
+      "file": "ci-minified/site/app.2cd433aa122f.min.js",
+      "bytes": 849014,
+      "gzipBytes": 196666
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/styles.2e22b11f73a3.css",
-      "bytes": 713884,
-      "gzipBytes": 118682
+      "file": "ci-minified/site/styles.b3f71cd92953.css",
+      "bytes": 731641,
+      "gzipBytes": 121493
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 390890,
-      "gzipBytes": 89042
+      "bytes": 396590,
+      "gzipBytes": 90327
     },
     {
       "file": "ci-minified/site/vendor/three/three.module.min.js",
@@ -75,8 +75,13 @@
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 46948,
-      "gzipBytes": 10099
+      "bytes": 48474,
+      "gzipBytes": 10441
+    },
+    {
+      "file": "ci-minified/site/modules/mood-tab.js",
+      "bytes": 43704,
+      "gzipBytes": 9361
     },
     {
       "file": "ci-minified/site/css/graphics-portfolio.css",
@@ -85,18 +90,13 @@
     },
     {
       "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 40666,
-      "gzipBytes": 8741
+      "bytes": 40149,
+      "gzipBytes": 8711
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
       "bytes": 37373,
       "gzipBytes": 8186
-    },
-    {
-      "file": "ci-minified/site/modules/mood-tab.js",
-      "bytes": 36482,
-      "gzipBytes": 7857
     },
     {
       "file": "ci-minified/site/guided-onboarding.js",
@@ -175,8 +175,8 @@
     },
     {
       "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 14045,
-      "gzipBytes": 3657
+      "bytes": 14437,
+      "gzipBytes": 3704
     },
     {
       "file": "ci-minified/site/security-utils.js",
@@ -200,8 +200,8 @@
     },
     {
       "file": "ci-minified/site/modules/goals-progress-3d.js",
-      "bytes": 9656,
-      "gzipBytes": 3214
+      "bytes": 9682,
+      "gzipBytes": 3230
     },
     {
       "file": "ci-minified/site/modules/goals-carousel.js",
@@ -222,6 +222,11 @@
       "file": "ci-minified/site/modules/vitals-suggest-ui.js",
       "bytes": 8059,
       "gzipBytes": 2131
+    },
+    {
+      "file": "ci-minified/site/modules/goals-progress-svg.js",
+      "bytes": 7402,
+      "gzipBytes": 2371
     },
     {
       "file": "ci-minified/site/device-module.js",
