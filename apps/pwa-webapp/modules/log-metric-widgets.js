@@ -321,23 +321,12 @@
   }
 
   function applyMobilityBounce(widget, r) {
-    var peakPx = (18 + r * 38).toFixed(1);
-    var dur = Math.max(0.52, 1.28 - r * 0.74).toFixed(2);
     var level = r < 0.28 ? 'low' : r < 0.62 ? 'mid' : 'high';
+    var peakPx = (14 + r * 42).toFixed(1);
     widget.setAttribute('data-mobility-level', level);
+    // Peak height may update every tick; duration/shadow/mat stay tier-stable in CSS so the loop
+    // does not restart on each +/- step (changing animation-duration was freezing the bounce).
     widget.style.setProperty('--mobility-bounce-peak', '-' + peakPx + 'px');
-    widget.style.setProperty('--mobility-bounce-dur', dur + 's');
-    widget.style.setProperty('--mobility-shadow-op', (0.16 + r * 0.48).toFixed(2));
-    widget.style.setProperty('--mobility-mat-sag', (1.35 + r * 0.45).toFixed(2));
-    var visual = widget.querySelector('.metric-widget__visual');
-    if (!visual) return;
-    var shadow = visual.querySelector('.metric-mobility-shadow');
-    if (shadow) shadow.setAttribute('rx', (14 + r * 8).toFixed(1));
-    var mat = visual.querySelector('.metric-mobility-mat');
-    if (mat) {
-      var sag = 2.8 + r * 1.2;
-      mat.setAttribute('d', 'M11 70.5 Q36 ' + (70.5 + sag).toFixed(1) + ' 61 70.5');
-    }
   }
 
   /** Balloon scales from the pin anchor (36, 72) — matches low / mid / high reference frames. */
