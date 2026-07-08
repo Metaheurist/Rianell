@@ -23,3 +23,9 @@ test('index.html skips loading overlay burst for headless Lighthouse probe', () 
   assert.match(html, /rianell-lhci-probe/);
   assert.match(html, /lhci=1/);
 });
+
+test('Playwright smoke config serializes workers on CI', () => {
+  const cfg = readFileSync('benchmarks/playwright.config.ts', 'utf8');
+  assert.match(cfg, /fullyParallel:\s*!process\.env\.CI/);
+  assert.match(cfg, /workers:\s*process\.env\.CI \? 1 : undefined/);
+});
