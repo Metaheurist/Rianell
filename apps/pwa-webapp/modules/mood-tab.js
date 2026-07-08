@@ -237,10 +237,12 @@
     var text = t('mood.recent.uniformStreak', {
       count: String(readings.length),
       score: String(score),
-    }, readings.length + ' readings at ' + score + '/10');
-    return '<p class="mood-reading-streak" role="status">' + escapeHTML(text) +
-      (qual ? ' <span class="mood-reading-streak__qual">' + escapeHTML(qual) + '</span>' : '') +
-      '</p>';
+      qual: qual ? ' — ' + qual : '',
+    });
+    if (text === 'mood.recent.uniformStreak') {
+      text = readings.length + ' readings in a row at ' + score + '/10' + (qual ? ' — ' + qual : '');
+    }
+    return '<p class="mood-reading-streak" role="status">' + escapeHTML(text) + '</p>';
   }
 
   function renderMoodReadingCard(r, i, opts) {
@@ -323,6 +325,163 @@
       (qual ? ' · ' + escapeHTML(qual) : '') + '</span></div>';
   }
 
+  function formatMoodFullDate(dateStr) {
+    if (!dateStr || dateStr.length < 10) return dateStr || '';
+    try {
+      var d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (_err) {
+      return dateStr;
+    }
+  }
+
+  function getLogForDate(dateStr) {
+    return getLogs().find(function (l) { return l && l.date === dateStr; }) || null;
+  }
+
+  function collectReadingsForDate(dateStr) {
+    if (S && typeof S.collectMoodReadings === 'function') {
+      return S.collectMoodReadings(getLogs(), 366, getTodayStr()).filter(function (r) {
+        return r.date === dateStr;
+      });
+    }
+    return [];
+  }
+
+  function clampScore(v) {
+    var n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function renderMoodDayMetricRow(labelKey, score) {
+    var n = clampScore(score);
+    if (n == null) return '';
+    var qk = S && typeof S.moodQualitativeKey === 'function' ? S.moodQualitativeKey(n) : '';
+    var qual = qk ? t(qk) : '';
+    var tone = moodToneFromScore(n);
+    return '<div class="mood-day-metric mood-day-metric--' + tone + '">' +
+      '<span class="mood-day-metric__label">' + escapeHTML(t(labelKey)) + '</span>' +
+      '<span class="mood-day-metric__value">' + escapeHTML(String(n)) + '<span class="mood-day-metric__suffix">/10</span></span>' +
+      (qual ? '<span class="mood-day-metric__qual">' + escapeHTML(qual) + '</span>' : '') +
+      '</div>';
+  }
+
+  function renderMoodDayCheckinCard(sub) {
+    if (!sub || typeof sub !== 'object') return '';
+    var period = typeof sub.period === 'string' ? sub.period : '';
+    var title = period ? periodLabel(period) : t('mood.source.checkin');
+    var metrics = renderMoodDayMetricRow('wizard.mood.1.10', sub.mood) +
+      renderMoodDayMetricRow('wizard.sleep.1.10', sub.sleep) +
+      renderMoodDayMetricRow('wizard.fatigue.1.10', sub.fatigue);
+    if (!metrics) return '';
+    return '<article class="mood-day-checkin">' +
+      '<header class="mood-day-checkin__head">' +
+      svgIcon(checkinPeriodIconName(period || 'midday'), 'mood-day-checkin__icon') +
+      '<h4 class="mood-day-checkin__title">' + escapeHTML(title) + '</h4>' +
+      '</header>' +
+      '<div class="mood-day-metrics">' + metrics + '</div>' +
+      '</article>';
+  }
+
+  function sortSubEntries(subs) {
+    var order = { AM: 0, midday: 1, PM: 2 };
+    return subs.slice().sort(function (a, b) {
+      var pa = order[a && a.period] != null ? order[a.period] : 9;
+      var pb = order[b && b.period] != null ? order[b.period] : 9;
+      return pa - pb;
+    });
+  }
+
+  function buildMoodDayDetailHtml(dateStr) {
+    var log = getLogForDate(dateStr);
+    var readings = collectReadingsForDate(dateStr);
+    var html = '<div class="mood-day-detail">';
+    html += '<p class="mood-day-detail__date">' + escapeHTML(formatMoodFullDate(dateStr)) + '</p>';
+
+    if (readings.length > 1) {
+      var avg = Math.round((readings.reduce(function (s, r) { return s + r.mood; }, 0) / readings.length) * 10) / 10;
+      html += '<p class="mood-day-detail__average">' + escapeHTML(t('mood.dayDetail.dayAverage', { score: String(avg) })) + '</p>';
+    }
+
+    var fullLogMetrics = '';
+    if (log) {
+      fullLogMetrics = renderMoodDayMetricRow('wizard.mood.1.10', log.mood) +
+        renderMoodDayMetricRow('wizard.sleep.1.10', log.sleep) +
+        renderMoodDayMetricRow('wizard.fatigue.1.10', log.fatigue);
+    }
+
+    if (fullLogMetrics) {
+      html += '<section class="mood-day-section"><h4 class="mood-day-section__title">' + escapeHTML(t('mood.dayDetail.fullLog')) + '</h4>';
+      html += '<div class="mood-day-metrics">' + fullLogMetrics + '</div></section>';
+    }
+
+    var subs = log && Array.isArray(log.subEntries) ? sortSubEntries(log.subEntries) : [];
+    var checkinHtml = subs.map(renderMoodDayCheckinCard).filter(Boolean).join('');
+    if (checkinHtml) {
+      html += '<section class="mood-day-section"><h4 class="mood-day-section__title">' + escapeHTML(t('mood.dayDetail.checkins')) + '</h4>';
+      html += '<div class="mood-day-checkins">' + checkinHtml + '</div></section>';
+    } else if (!fullLogMetrics) {
+      html += '<p class="mood-day-detail__empty">' + escapeHTML(t('mood.dayDetail.noData')) + '</p>';
+    } else {
+      html += '<p class="mood-day-detail__hint">' + escapeHTML(t('mood.dayDetail.noCheckins')) + '</p>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  var _moodDayModalEscape = null;
+
+  function closeMoodDayDetailModal() {
+    var overlay = document.getElementById('moodDayModalOverlay');
+    if (!overlay) return;
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+    if (_moodDayModalEscape) {
+      document.removeEventListener('keydown', _moodDayModalEscape);
+      _moodDayModalEscape = null;
+    }
+  }
+
+  function openMoodDayDetailModal(dateStr) {
+    if (!dateStr) return;
+    var overlay = document.getElementById('moodDayModalOverlay');
+    var bodyEl = document.getElementById('moodDayModalBody');
+    var titleEl = document.getElementById('moodDayModalTitle');
+    if (!overlay || !bodyEl) return;
+
+    if (titleEl) {
+      titleEl.textContent = t('mood.dayDetail.title');
+    }
+    bodyEl.innerHTML = buildMoodDayDetailHtml(dateStr);
+
+    overlay.style.display = 'flex';
+    overlay.style.visibility = 'visible';
+    overlay.style.opacity = '1';
+    document.body.classList.add('modal-active');
+    document.body.style.overflow = 'hidden';
+
+    if (!_moodDayModalEscape) {
+      _moodDayModalEscape = function (e) {
+        if (e.key === 'Escape') closeMoodDayDetailModal();
+      };
+      document.addEventListener('keydown', _moodDayModalEscape);
+    }
+
+    overlay.onclick = function (e) {
+      if (e.target === overlay) closeMoodDayDetailModal();
+    };
+
+    var closeBtn = document.getElementById('moodDayModalClose');
+    if (closeBtn) closeBtn.onclick = closeMoodDayDetailModal;
+
+    var panel = overlay.querySelector('.mood-day-modal-content');
+    if (panel && typeof panel.focus === 'function') panel.focus();
+  }
+
   function wireMoodReadingRibbon(root) {
     if (!root) return;
     var ribbon = root.querySelector('.mood-reading-ribbon');
@@ -332,13 +491,33 @@
     if (scrollEl) wireMoodTimelineScroll(scrollEl);
     var focusEl = ribbon.querySelector('.mood-reading-focus');
     var cards = ribbon.querySelectorAll('.mood-reading-card');
+    if (focusEl && focusEl.dataset.moodFocusBound !== '1') {
+      focusEl.dataset.moodFocusBound = '1';
+      focusEl.setAttribute('role', 'button');
+      focusEl.tabIndex = 0;
+      focusEl.setAttribute('aria-label', t('mood.dayDetail.title'));
+      var openLatestDay = function () {
+        var readings = ribbon._moodReadings;
+        if (readings && readings.length) openMoodDayDetailModal(readings[readings.length - 1].date);
+      };
+      focusEl.addEventListener('click', openLatestDay);
+      focusEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openLatestDay();
+        }
+      });
+    }
     cards.forEach(function (card) {
       card.addEventListener('click', function () {
         cards.forEach(function (c) { c.classList.remove('mood-reading-card--active'); });
         card.classList.add('mood-reading-card--active');
         var i = parseInt(card.getAttribute('data-reading-i') || '0', 10);
         var readings = ribbon._moodReadings;
-        if (readings && readings[i]) updateMoodReadingFocusEl(focusEl, readings[i]);
+        if (readings && readings[i]) {
+          updateMoodReadingFocusEl(focusEl, readings[i]);
+          openMoodDayDetailModal(readings[i].date);
+        }
       });
     });
   }
@@ -740,5 +919,9 @@
     bindMoodTabModule: bindMoodTabModule,
     setMoodDateRange: setMoodDateRange,
     resetCheckinSelection: resetCheckinSelection,
+    openMoodDayDetailModal: openMoodDayDetailModal,
+    closeMoodDayDetailModal: closeMoodDayDetailModal,
   };
+  global.openMoodDayDetailModal = openMoodDayDetailModal;
+  global.closeMoodDayDetailModal = closeMoodDayDetailModal;
 })(typeof window !== 'undefined' ? window : globalThis);
