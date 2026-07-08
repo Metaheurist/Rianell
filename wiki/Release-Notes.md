@@ -1,21 +1,22 @@
 # Release Notes
 
-## Latest release (v2.2.0)
+## Latest release (v2.2.1)
 
-**Date:** 2026-07-07
+**Date:** 2026-07-08
 
 ### Highlights
 
-- **Home 3D:** Tier-gated Three.js pillars on goals progress, neural orb in Ask Rianell, weather enable depth — respects reduced motion and device tier.
-- **Discovery UX:** Horizontal scroll pills with shimmer; goals pill opens goals directly.
-- **Server dashboard:** Modern responsive Tk UI — Overview / Data / Tools / Logs tabs; SVG-style icons; log level filter.
-- **Server reliability:** Python deps pinned for pydantic-core alignment; Supabase DNS warning at startup; `launch-server.ps1` auto-syncs pip.
+- **Ask Rianell:** Offline replies now match your question topic (sleep, mood, patterns, fatigue, stress) instead of one canned line; close button and header polish.
+- **Mood tab:** Tap a history card to open day detail (full log, check-ins, day average); check-in icons scaled up for readability.
+- **Boot reliability:** First-start performance benchmark no longer hangs at “Array throughput” — watchdog aborts and reveals the app if the suite stalls.
+- **AI Analysis:** New Overview monitor and Trends & vitals heart/EKG chapter icons; trend metric icons clearer in light mode.
+- **Vitals:** BP heart SVG proportion fix; mobility bounce animation no longer freezes on +/- taps.
 
-See **v2.1.9** below for the security hardening pass.
+See **v2.2.0** below for home 3D and server dashboard.
 
 ---
 
-## Previous (v2.1.9)
+## Previous (v2.2.0)
 
 **Date:** 2026-07-06
 

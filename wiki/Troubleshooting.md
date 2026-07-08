@@ -49,6 +49,19 @@ Fixed in recent releases — all tabs should refresh on locale change. If not:
 
 ---
 
+## Stuck on “Measuring performance…” at first start
+
+Fixed in **v2.2.1**. On older builds the boot CPU benchmark could pause at a low percentage (often **3% · Array throughput**) when the browser throttled animation frames during initial paint.
+
+1. **Wait up to ~20 seconds** — the boot watchdog should reveal the app automatically.
+2. **Hard refresh** after updating to the latest build.
+3. **Clear benchmark cache** (God mode → clear benchmark cache) only if the screen still never finishes after a refresh on v2.2.1+.
+4. **Console check:** `JSON.stringify(window.__rianellBootLog)` — include output when filing a bug.
+
+The benchmark result is cached in `localStorage` (`rianellPerfBenchmark`); once it completes or aborts, later loads skip the full suite.
+
+---
+
 ## Log cards won’t expand (web)
 
 Tap the day card header; expanded content uses CSS classes (not hidden inline). Update to latest web build from [[Downloads]].

@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.0** - Home 3D visuals, modern server dashboard, Python dep hardening.
+**Latest: v2.2.1** - Ask Rianell offline replies, mood day detail, boot benchmark fix, light-mode icon contrast.
+
+### v2.2.1 - 2026-07-08 - PWA polish and boot reliability
+
+- **Shared AI:** Topic-aware offline Ask Rianell replies via `buildHealthChatOfflineReply()`.
+- **PWA mood:** Day-detail modal from history cards; larger check-in icons; uniform-streak i18n fix.
+- **PWA AI:** Overview monitor + trends-vitals chapter icons; light-mode trend metric tile contrast.
+- **PWA Ask Rianell:** Close `×` visible; header hidden when chat open; context-aware fallback on open.
+- **Boot benchmark:** `setTimeout` scheduling + `abortActiveSuite()` — no more stall at “Array throughput”.
+- **Vitals:** BP heart proportional SVG; mobility widget tier CSS (animation freeze fix).
+- **Home:** Goals progress SVG charts; discovery `discover-*` icons; nav AI robot+scope icon.
+- **Tests:** 755 passing; expanded mood, benchmark, vitals, and AI UI contracts.
 
 ### v2.2.0 - 2026-07-07 - Home 3D polish and server dashboard redesign
 
