@@ -213,6 +213,7 @@ var RianellShared = (() => {
     buildGuidedOnboardingProgressSteps: () => buildGuidedOnboardingProgressSteps,
     buildGuidedQuestionnaire: () => buildGuidedQuestionnaire,
     buildHealthChatFallback: () => buildHealthChatFallback,
+    buildHealthChatOfflineReply: () => buildHealthChatOfflineReply,
     buildHealthChatUserPayload: () => buildHealthChatUserPayload,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
@@ -3410,6 +3411,105 @@ var RianellShared = (() => {
   function pickHomeAiSuggestions(logs, analysis, options = {}) {
     return pickHomeAiSuggestionBundle(logs, analysis, options).chips;
   }
+  function classifyHealthChatTopic(message) {
+    const msg = String(message || "").toLowerCase();
+    if (/\b(sleep|rest|insomnia|slept|bedtime|tired at night)\b/.test(msg)) return "sleep";
+    if (/\b(mood|feeling|feelings|emotion|anxious|anxiety|happy|sad|low|affect)\b/.test(msg)) return "mood";
+    if (/\b(pattern|trend|correlat|link|shift|notice|see)\b/.test(msg)) return "patterns";
+    if (/\b(fatigue|energy|tired|exhaust)\b/.test(msg)) return "fatigue";
+    if (/\b(symptom|pain|flare|hurt)\b/.test(msg)) return "symptom";
+    if (/\b(stress|stressor|pressure)\b/.test(msg)) return "stress";
+    return "general";
+  }
+  function formatMetricAvg(value) {
+    return value != null && typeof value === "number" ? value.toFixed(1) : null;
+  }
+  function trendPhrase(metric, trend) {
+    if (!trend) return "";
+    const label = METRIC_LABELS[metric] || metric;
+    if (metric === "sleep" || metric === "mood") {
+      return trend.direction === "up" ? ` ${label} has been trending up in the second half of this period.` : ` ${label} has dipped in the second half of this period \u2014 note what changed around those days.`;
+    }
+    return trend.direction === "up" ? ` ${label} has been climbing in the second half of this period.` : ` ${label} has eased in the second half of this period.`;
+  }
+  function buildHealthChatOfflineReply(analysis = {}, userMessage = "", logs = []) {
+    const total = analysis.totalLogs ?? 0;
+    if (total < 3) {
+      return "Log a few more days and I can spot patterns in sleep, mood, and fatigue.";
+    }
+    const workLogs = analysis._logs?.length ? analysis._logs : filterLogsForHomeSuggestions(logs);
+    const topic = classifyHealthChatTopic(userMessage);
+    const flare = analysis.flareDays ?? 0;
+    const avgSleep = analysis.avgSleep;
+    const avgMood = analysis.avgMood;
+    const avgFatigue = analysis.avgFatigue;
+    const topSymptom = analysis.topSymptoms?.[0] || topSymptomName(workLogs)?.name;
+    const topStressor = analysis.topStressors?.[0] || topStressorName(workLogs)?.name;
+    const corr = findCorrelationPair(workLogs);
+    if (topic === "sleep") {
+      const trend = metricTrend(workLogs, "sleep");
+      let line = avgSleep != null ? `Your recent sleep average is ${formatMetricAvg(avgSleep)}/10 across ${total} logged days.` : `You have ${total} logged days, but sleep scores are still sparse \u2014 add a sleep rating when you log.`;
+      line += trendPhrase("sleep", trend);
+      if (corr && (corr.a === "sleep" || corr.b === "sleep")) {
+        const other = METRIC_LABELS[corr.a === "sleep" ? corr.b : corr.a] || (corr.a === "sleep" ? corr.b : corr.a);
+        line += ` Sleep and ${other} tend to move together in your logs.`;
+      }
+      return line.trim();
+    }
+    if (topic === "mood") {
+      const trend = metricTrend(workLogs, "mood");
+      let line = avgMood != null ? `Your recent mood average is ${formatMetricAvg(avgMood)}/10 across ${total} logged days.` : `You have ${total} logged days, but mood scores are still sparse \u2014 rate mood when you log.`;
+      line += trendPhrase("mood", trend);
+      if (topStressor) line += ` ${topStressor} shows up often in your stress logs and may be worth tracking after tough days.`;
+      else if (topSymptom) line += ` ${topSymptom} is your most frequent symptom \u2014 note whether mood dips on high-symptom days.`;
+      else if (corr && (corr.a === "mood" || corr.b === "mood")) {
+        const other = METRIC_LABELS[corr.a === "mood" ? corr.b : corr.a] || (corr.a === "mood" ? corr.b : corr.a);
+        line += ` Mood and ${other} look linked in your recent entries.`;
+      }
+      return line.trim();
+    }
+    if (topic === "patterns") {
+      const parts = [];
+      if (avgSleep != null && avgMood != null && avgFatigue != null) {
+        parts.push(
+          `Across ${total} recent days, averages are sleep ${formatMetricAvg(avgSleep)}, mood ${formatMetricAvg(avgMood)}, fatigue ${formatMetricAvg(avgFatigue)} (1\u201310).`
+        );
+      } else {
+        parts.push(`You logged ${total} days in this window.`);
+      }
+      if (topSymptom) parts.push(`${topSymptom} is your most common symptom.`);
+      if (topStressor) parts.push(`${topStressor} appears often in stress logs.`);
+      if (corr) {
+        parts.push(
+          `${METRIC_LABELS[corr.a] || corr.a} and ${METRIC_LABELS[corr.b] || corr.b} move together in your data.`
+        );
+      }
+      if (flare > 0) parts.push(`You had ${flare} flare day(s) \u2014 compare sleep and stress around those dates.`);
+      if (parts.length > 1) return parts.join(" ");
+    }
+    if (topic === "fatigue") {
+      const trend = metricTrend(workLogs, "fatigue");
+      let line = avgFatigue != null ? `Your recent fatigue average is ${formatMetricAvg(avgFatigue)}/10 across ${total} logged days.` : `You have ${total} logged days, but fatigue scores are still sparse.`;
+      line += trendPhrase("fatigue", trend);
+      if (avgSleep != null && avgFatigue != null) {
+        line += ` Sleep averaged ${formatMetricAvg(avgSleep)}/10 in the same period.`;
+      }
+      return line.trim();
+    }
+    if (topic === "symptom" && topSymptom) {
+      return `${topSymptom} appears often in your recent logs. Track triggers, rest, and sleep on high-symptom days.`;
+    }
+    if (topic === "stress" && topStressor) {
+      return `${topStressor} shows up in your stress logs. Consider pacing and recovery after high-stress days.`;
+    }
+    if (flare > 0) {
+      return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help \u2014 note sleep and stress around flare days.`;
+    }
+    if (avgSleep != null && avgMood != null) {
+      return `Across ${total} logged days, sleep averages ${formatMetricAvg(avgSleep)}/10 and mood ${formatMetricAvg(avgMood)}/10. Keep noting what helps \u2014 patterns build with steady logging.`;
+    }
+    return `You logged ${total} days recently. Keep noting what helps \u2014 patterns build with steady logging.`;
+  }
   function buildHomeQuestionFallback(suggestion, analysis) {
     const snap = analysis || {};
     const id = suggestion?.id || "";
@@ -3928,16 +4028,8 @@ ${hist}`);
     parts.push(`User: ${redactUntrustedText(String(userMessage || "").trim())}`);
     return parts.filter(Boolean).join("\n\n");
   }
-  function buildHealthChatFallback(analysis = {}) {
-    const total = analysis.totalLogs ?? 0;
-    if (total < 3) {
-      return "Log a few more days and I can spot patterns in sleep, mood, and fatigue.";
-    }
-    const flare = analysis.flareDays ?? 0;
-    if (flare > 0) {
-      return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help.`;
-    }
-    return `You logged ${total} days recently. Keep noting what helps \u2014 patterns build with steady logging.`;
+  function buildHealthChatFallback(analysis = {}, userMessage = "", logs = []) {
+    return buildHealthChatOfflineReply(analysis, userMessage, logs);
   }
 
   // packages/shared/src/ai/llmOnDevicePolicy.mjs

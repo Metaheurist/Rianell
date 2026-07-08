@@ -11,6 +11,7 @@ export {
   computeHomeAnalysisSnapshot,
   analysisSnapshotFromSummary,
   buildHomeQuestionFallback,
+  buildHealthChatOfflineReply,
   filterLogsForHomeSuggestions,
   HOME_SUGGESTIONS_RANGE_DAYS,
   HOME_SUGGESTIONS_MIN_DAYS,
