@@ -86,10 +86,14 @@
     return '';
   }
 
-  function buildFallback() {
+  function buildFallback(userMessage) {
     var S = getShared();
+    var snap = _analysis;
+    if (!snap && S && typeof S.computeHomeAnalysisSnapshot === 'function') {
+      snap = S.computeHomeAnalysisSnapshot(getLogs());
+    }
     if (S && typeof S.buildHealthChatFallback === 'function') {
-      return S.buildHealthChatFallback(_analysis || {});
+      return S.buildHealthChatFallback(snap || {}, userMessage, getLogs());
     }
     return 'Keep logging daily — patterns become clearer with more entries.';
   }
@@ -109,7 +113,7 @@
       '      <span class="ai-chat-glyph" aria-hidden="true">' + svgIcon('brain-wave', 'ai-chat-glyph-svg') + '</span>' +
       '      <div><h2 id="aiChatTitle" class="ai-chat-title"></h2><p class="ai-chat-trust"></p></div>' +
       '    </div>' +
-      '    <button type="button" class="ai-chat-close modal-close" aria-label=""></button>' +
+      '    <button type="button" class="ai-chat-close modal-close" aria-label="">&times;</button>' +
       '  </header>' +
       '  <div class="ai-chat-messages" id="aiChatMessages" aria-live="polite"></div>' +
       '  <div class="ai-chat-followups" id="aiChatFollowups" hidden></div>' +
@@ -255,7 +259,7 @@
   }
 
   async function runInference(userMessage) {
-    var fallback = buildFallback();
+    var fallback = buildFallback(userMessage);
     var payload = assemblePayload(userMessage);
     var fn = global.generateHealthChatWithLLM || global.generateWeekChatWithLLM;
     if (typeof fn !== 'function') return fallback;
@@ -293,7 +297,7 @@
       _sendInFlight = false;
       return;
     }
-    if (_turns.length) _turns[_turns.length - 1].assistant = answer || buildFallback();
+    if (_turns.length) _turns[_turns.length - 1].assistant = answer || buildFallback(message);
     _sendInFlight = false;
     renderMessages();
     setInputEnabled(canSendTurn());
@@ -346,7 +350,11 @@
     ensureDom();
     bindLifecycle();
     _open = true;
+    var S = getShared();
     _analysis = options.analysis || null;
+    if (!_analysis && S && typeof S.computeHomeAnalysisSnapshot === 'function') {
+      _analysis = S.computeHomeAnalysisSnapshot(getLogs());
+    }
     _baseContext = buildContext();
     localizeChrome();
     var overlay = document.getElementById(OVERLAY_ID);
