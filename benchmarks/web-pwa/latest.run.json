@@ -4,45 +4,45 @@
   "kind": "web",
   "status": "ok",
   "meta": {
-    "timestamp_utc": "2026-07-08T21:17:37.621Z",
-    "git_sha": "a0abe91e9c31a8336183bb2ddaa67638cb85d1ee",
+    "timestamp_utc": "2026-07-08T21:52:19.497Z",
+    "git_sha": "c0d5c845e8e43ccb921d464175543d9fd1038db0",
     "runner": "linux",
     "node": "v24.14.1",
-    "github_run_id": "28974575590",
+    "github_run_id": "28978196267",
     "github_run_attempt": "1"
   },
   "lighthouse": {
-    "FCP_ms": null,
-    "LCP_ms": null,
-    "TBT_ms": null,
-    "CLS": null,
-    "SpeedIndex_ms": null,
-    "TTI_ms": null
+    "FCP_ms": 13748,
+    "LCP_ms": 21994,
+    "TBT_ms": 521,
+    "CLS": 0.0395,
+    "SpeedIndex_ms": 13748,
+    "TTI_ms": 27398
   },
   "nav": [
     {
       "step": "cold_dom_ready_to_main",
-      "ms": 832
+      "ms": 662
     },
     {
       "step": "click_nav-logs",
-      "ms": 174
+      "ms": 169
     },
     {
       "step": "click_nav-charts",
-      "ms": 155
+      "ms": 151
     },
     {
       "step": "click_nav-home",
-      "ms": 168
+      "ms": 167
     },
     {
       "step": "open_settings",
-      "ms": 157
+      "ms": 197
     },
     {
       "step": "warm_reload_to_main",
-      "ms": 398
+      "ms": 287
     }
   ]
 }
