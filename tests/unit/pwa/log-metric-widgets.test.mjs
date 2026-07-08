@@ -64,6 +64,8 @@ test('mobility widget uses trampoline stick-figure bounce tied to score', () => 
   assert.match(js, /function applyMobilityBounce/);
   assert.match(js, /--mobility-bounce-peak/);
   assert.match(js, /data-mobility-level/);
+  assert.doesNotMatch(js, /--mobility-bounce-dur/);
+  assert.doesNotMatch(js, /metric-mobility-mat.*setAttribute/);
   assert.doesNotMatch(js, /metric-mobility-walker/);
 });
 
@@ -74,6 +76,8 @@ test('mobility trampoline animation uses reference-frame bounce cycle', () => {
   assert.match(css, /metricMobilityAirShadow/);
   assert.match(css, /\.metric-mobility-jumper-anchor/);
   assert.match(css, /\.metric-widget--mobility \.metric-mobility-jumper/);
+  assert.match(css, /data-mobility-level="low"/);
+  assert.match(css, /--mobility-mat-compress/);
 });
 
 test('weather sensitivity widget fades cloud and reveals sun at high wellness', () => {
