@@ -37,8 +37,18 @@ test('CPU suite yields during boot and cannot stall at array step', () => {
   assert.match(src, /function cpuArithAsync/);
   assert.match(src, /function arrayThroughputAsync/);
   assert.match(src, /scheduleBenchmarkStep/);
+  assert.doesNotMatch(src, /requestAnimationFrame\(function \(\) \{ setTimeout\(fn, 0\)/);
+  assert.match(src, /slice watchdog/);
+  assert.match(src, /test timed out/);
+  assert.match(src, /abortActiveSuite/);
   assert.match(src, /suite stalled at step/);
   assert.match(src, /parts\.join\(''\)/);
+});
+
+test('boot watchdog aborts an in-flight benchmark before force reveal', () => {
+  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(appJs, /abortActiveSuite/);
+  assert.match(appJs, /bootWatchdog:forceReveal/);
 });
 
 test('in-app daily reminder respects first-run suppression', () => {

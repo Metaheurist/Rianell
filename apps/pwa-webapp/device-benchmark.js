@@ -13,9 +13,11 @@
   var BENCHMARK_VERSION = 5;
   var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 12000;
-  var SUITE_STALL_MS = 12000;
+  var SUITE_STALL_MS = 8000;
   var SUITE_HARD_CAP_MS = 45000;
   var BENCHMARK_SLICE_MS = 8;
+  var ASYNC_TEST_STEP_MAX_MS = 6000;
+  var _activeSuiteAbort = null;
 
   function nowMs() {
     return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -791,25 +793,34 @@
 
     function scheduleBenchmarkStep(fn) {
       if (suiteAborted) return;
-      if (typeof requestAnimationFrame === 'function' &&
-          typeof document !== 'undefined' &&
-          document.visibilityState !== 'hidden') {
-        requestAnimationFrame(function () { setTimeout(fn, 0); });
-      } else {
-        setTimeout(fn, (typeof document !== 'undefined' && document.visibilityState === 'hidden') ? 32 : 0);
-      }
+      // setTimeout only — requestAnimationFrame can pause indefinitely during first paint / boot.
+      var delay = (typeof document !== 'undefined' && document.visibilityState === 'hidden') ? 16 : 0;
+      setTimeout(fn, delay);
     }
 
     function runWorkInSlices(tickFn, isDone, done) {
       if (suiteAborted) return;
       var sliceStart = nowMs();
-      while (!isDone()) {
-        tickFn();
-        if (nowMs() - sliceStart >= BENCHMARK_SLICE_MS) {
-          touchStepWatchdog();
-          scheduleBenchmarkStep(function () { runWorkInSlices(tickFn, isDone, done); });
-          return;
+      var sliceGuard = setTimeout(function () {
+        if (suiteAborted || isDone()) return;
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('[Benchmark] slice watchdog — yielding long-running step');
         }
+        touchStepWatchdog();
+        scheduleBenchmarkStep(function () { runWorkInSlices(tickFn, isDone, done); });
+      }, Math.max(BENCHMARK_SLICE_MS * 4, 32));
+      try {
+        while (!isDone()) {
+          tickFn();
+          if (nowMs() - sliceStart >= BENCHMARK_SLICE_MS) {
+            clearTimeout(sliceGuard);
+            touchStepWatchdog();
+            scheduleBenchmarkStep(function () { runWorkInSlices(tickFn, isDone, done); });
+            return;
+          }
+        }
+      } finally {
+        clearTimeout(sliceGuard);
       }
       done();
     }
@@ -909,12 +920,23 @@
 
     function runTimedTestAsync(testId, label, runAsync, unit, metaFn, onResult) {
       var t0 = nowMs();
-      runAsync(function (out) {
-        if (suiteAborted) return;
+      var settled = false;
+      function settle(out, timedOut) {
+        if (settled || suiteAborted) return;
+        settled = true;
+        clearTimeout(stepTimer);
         var res = { id: testId, label: label, ms: nowMs() - t0, unit: unit, out: out };
+        if (timedOut) res.timedOut = true;
         if (metaFn) metaFn(res);
         onResult(res);
-      });
+      }
+      var stepTimer = setTimeout(function () {
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('[Benchmark] test timed out', label);
+        }
+        settle(0, true);
+      }, ASYNC_TEST_STEP_MAX_MS);
+      runAsync(function (out) { settle(out, false); });
     }
 
     function runRepeat(rep) {
@@ -997,10 +1019,19 @@
       });
     }
 
+    _activeSuiteAbort = function () {
+      if (finishCalled) return;
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[Benchmark] suite aborted externally');
+      }
+      finish(true);
+    };
+
     function finish(forced) {
       if (finishCalled) return;
       finishCalled = true;
       suiteAborted = true;
+      _activeSuiteAbort = null;
       if (stallTimer) clearTimeout(stallTimer);
       if (hardCapTimer) clearTimeout(hardCapTimer);
       if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] finish', 'steps', index + '/' + totalSteps, forced ? '(forced)' : '');
@@ -1079,6 +1110,11 @@
       };
       if (forced && cpuMsPer200kSamples.length === 0) {
         result.heuristic = true;
+      }
+      if (forced) {
+        result.gpu = { available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [], skipped: true };
+        onDone(result);
+        return;
       }
       runGpuBenchmarkAsync(function (gpu) {
         result.gpu = gpu;
@@ -1225,6 +1261,10 @@
     return out;
   }
 
+  function abortActiveSuite() {
+    if (typeof _activeSuiteAbort === 'function') _activeSuiteAbort();
+  }
+
   function clearBenchmarkCache() {
     try {
       if (typeof localStorage !== 'undefined' && localStorage.removeItem) {
@@ -1248,6 +1288,7 @@
       saveBenchmarkResult: saveBenchmarkResult,
       saveBenchmarkResultMinimal: saveBenchmarkResultMinimal,
       shouldUseHeuristicBoot: shouldUseHeuristicBoot,
+      abortActiveSuite: abortActiveSuite,
       clearBenchmarkCache: clearBenchmarkCache,
       getCachedResult: getCachedResult
     };
