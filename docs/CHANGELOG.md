@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.1** - Ask Rianell offline replies, mood day detail, boot benchmark fix, light-mode icon contrast.
+**Latest: v2.2.2** - CI Playwright smoke worker serialization and memory stress artifact hygiene.
+
+### v2.2.2 - 2026-07-13 - CI smoke reliability
+
+- **CI:** Playwright smoke config uses a single worker on CI so parallel boots against the local probe server no longer time out.
+- **Dev:** `scripts/dev/shutdown-pc.ps1` schedules a delayed Windows shutdown (cancel with `shutdown /a`).
+- **Benchmarks:** `benchmarks/memory/*.json` stress outputs gitignored; directory kept via `.gitkeep`.
+- **Tests:** 757 passing; `lighthouse-ci-probe` covers Playwright CI worker pin.
 
 ### v2.2.1 - 2026-07-08 - PWA polish and boot reliability
 
