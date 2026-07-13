@@ -23933,7 +23933,7 @@ function renderCheckinSliderHtml(periods, done, selectedPeriod, labelFn, ctaLabe
     var label = labelFn(checkinPeriodLabelKey(period), period);
     var isDone = done.has(period);
     var isSelected = period === selectedPeriod;
-    html += '<button type="button" class="checkin-slider-stop' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(label) + '">';
+    html += '<button type="button" class="checkin-slider-stop' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '" aria-pressed="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' data-checkin-done="true"' : '') + ' aria-label="' + escapeAttr(label) + '">';
     html += '<span class="checkin-slider-icon-slot" aria-hidden="true">';
     html += svgIcon(checkinPeriodIconName(period), 'checkin-slider-stop-icon');
     html += '</span>';
@@ -23950,31 +23950,40 @@ function _checkinSelectStop(container, period) {
   if (!container) return;
   container.querySelectorAll('.checkin-slider-stop').forEach(function(stop) {
     var p = stop.getAttribute('data-period');
-    stop.setAttribute('data-selected', p === period ? 'true' : 'false');
+    var selected = p === period;
+    stop.setAttribute('data-selected', selected ? 'true' : 'false');
+    stop.setAttribute('aria-pressed', selected ? 'true' : 'false');
   });
 }
 
 function wireCheckinSliderEvents(container, getSelected, setSelected) {
   if (!container) return;
+  container._checkinGetSelected = getSelected;
+  container._checkinSetSelected = setSelected;
+  if (container._checkinSliderWired) return;
+  container._checkinSliderWired = true;
 
-  container.querySelectorAll('.checkin-slider-stop:not(.is-done)').forEach(function(stop) {
-    stop.addEventListener('click', function() {
+  container.addEventListener('click', function(ev) {
+    var getSel = container._checkinGetSelected;
+    var setSel = container._checkinSetSelected;
+    var stop = ev.target && ev.target.closest ? ev.target.closest('.checkin-slider-stop') : null;
+    if (stop && container.contains(stop)) {
       var period = stop.getAttribute('data-period');
       if (!period) return;
+      ev.preventDefault();
       var wasSelected = stop.getAttribute('data-selected') === 'true';
       _checkinSelectStop(container, period);
-      if (typeof setSelected === 'function') setSelected(period);
+      if (typeof setSel === 'function') setSel(period);
       if (wasSelected) openMicroCheckinModal(period);
-    });
+      return;
+    }
+    var cta = ev.target && ev.target.closest ? ev.target.closest('[data-checkin-cta]') : null;
+    if (cta && container.contains(cta)) {
+      ev.preventDefault();
+      var selected = typeof getSel === 'function' ? getSel() : null;
+      openMicroCheckinModal(selected || defaultCheckinPeriod());
+    }
   });
-
-  var cta = container.querySelector('[data-checkin-cta]');
-  if (cta) {
-    cta.addEventListener('click', function() {
-      var period = typeof getSelected === 'function' ? getSelected() : null;
-      openMicroCheckinModal(period || defaultCheckinPeriod());
-    });
-  }
 }
 
 function checkinPeriodIconName(period) {

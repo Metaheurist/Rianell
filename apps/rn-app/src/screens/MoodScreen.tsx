@@ -685,7 +685,6 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                     <React.Fragment key={period}>
                       {idx > 0 ? <View style={[styles.checkinSliderLine, { backgroundColor: `${accent}33` }]} /> : null}
                       <Pressable
-                        disabled={done}
                         onPress={() => {
                           if (isSelected) {
                             openCheckinModal(period);
@@ -701,8 +700,10 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                             backgroundColor: `${accent}14`,
                             paddingTop: 8,
                           },
+                          done && { opacity: 0.55 },
                         ]}
                         accessibilityRole="button"
+                        accessibilityState={{ selected: isSelected }}
                         accessibilityLabel={
                           done
                             ? `${t(checkinPeriodLabelKey(period))}, ${t('home.checkin.done')}`
