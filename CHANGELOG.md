@@ -6,6 +6,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.8] - 2026-07-14
+
+### Fixed
+- **BP dial heart:** More classic heart silhouette (deeper top cleft, rounder lobes, sharper tip)
+- **Mobility trampoline:** Single bouncing mat under the stick figure (removed clipping double-rim)
+- **Themes:** Remaining mint `rgba(123,223,140)` / `#7bdf8c` chrome replaced with `--accent-*` tokens so Light + Red/Black/Mono/Rainbow stay on-brand (toggles, inputs, Skip, Save Entry, wizard lock CTA)
+
+### Changed
+- **Docs / wiki / MD:** Em dashes and en dashes replaced with hyphens across Markdown sources
+
+---
+
 ## [2.2.7] - 2026-07-13
 
 ### Changed
@@ -22,11 +34,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ### Fixed
 
 - **Companion avatar:** Generated characters no longer show a browser broken-image placeholder above the glyph. Paths are inlined (no nested `role="img"` / fragile `<use>`), and `--avatar-secondary` always falls back when `--secondary-color` is unset
-- **Copy:** User-facing em dashes (`—`) replaced with hyphens (`-`) across i18n packs, AI suggestions, and PWA fallbacks
+- **Copy:** User-facing em dashes (` - `) replaced with hyphens (`-`) across i18n packs, AI suggestions, and PWA fallbacks
 - **Goals progress visuals:** Seven-day SVG/3D pillars and day chips scale to each day's target % (and overall row progress); static decorative trail dots removed so chips are not stuck looking incomplete
 - **Ask Rianell:** Chat opens only when AI is enabled and the on-device model is ready; otherwise prompts to enable and download. Devices that cannot run on-device LLM get guided generic responses instead
 - **Nav / AI icons:** AI Analysis tab robot glyph and Overview chapter monitor are larger and heavier so they read clearly next to other tabs
-- **CI:** Bump `upload-artifact`/`download-artifact`/`configure-pages`/`nick-fields/retry` to Node 24–native majors; pin iOS job to `macos-15` ahead of `macos-latest` → macOS 26
+- **CI:** Bump `upload-artifact`/`download-artifact`/`configure-pages`/`nick-fields/retry` to Node 24-native majors; pin iOS job to `macos-15` ahead of `macos-latest` → macOS 26
 - **Dependabot:** Pip ecosystem `directory` corrected from `/server` to `/` (canonical `requirements.txt` is at repo root)
 - **CI:** MobSF scan action pin fixed from invalid `v0.3.8` to release tag `0.4.5`
 - **Dependabot:** Ignore Expo `>=56`, Babel `>=8`, and `@testing-library/react-native` `>=14` until coordinated SDK/toolchain upgrades
@@ -68,7 +80,7 @@ Boot device benchmark no longer freezes the loading overlay on “rAF latency”
 
 - **Boot benchmark:** “Measuring performance… · rAF latency” no longer depends on `requestAnimationFrame` (which can stall under the loading overlay and trip Chrome’s Page Unresponsive dialog). Samples use `setTimeout` yields with a 1.5s hard timeout and abort hook.
 - **Boot benchmark:** String and DOM sub-tests are sliced asynchronously (same yield model as CPU/array); workloads capped so sync bursts cannot freeze the main thread.
-- **Mood check-in:** Morning / Midday / Evening period buttons are selectable again — removed 3D `translateZ` hit-test traps on the control deck and stopped disabling completed periods so the current slot can be changed
+- **Mood check-in:** Morning / Midday / Evening period buttons are selectable again - removed 3D `translateZ` hit-test traps on the control deck and stopped disabling completed periods so the current slot can be changed
 - **Light theme teams:** Red/Black (and mono/rainbow) light mode now remaps page background, ink, chrome borders, and settings chrome away from mint greens so Settings / Customisation matches the selected team
 
 ### Tests
@@ -108,10 +120,10 @@ PWA polish pass: Ask Rianell offline replies, mood day detail, boot benchmark re
 
 ### Added
 
-- **Shared AI:** `buildHealthChatOfflineReply()` — topic-aware offline Ask Rianell replies (sleep, mood, patterns, fatigue, symptoms, stress) using trends and correlations
-- **PWA goals:** `goals-progress-svg.js` — animated seven-day pillar SVG charts (always-on fallback beside optional 3D overlay)
+- **Shared AI:** `buildHealthChatOfflineReply()` - topic-aware offline Ask Rianell replies (sleep, mood, patterns, fatigue, symptoms, stress) using trends and correlations
+- **PWA goals:** `goals-progress-svg.js` - animated seven-day pillar SVG charts (always-on fallback beside optional 3D overlay)
 - **PWA AI sprites:** `icon-overview-monitor` (scrolling mini-site), `icon-trends-vitals` (heart + EKG pulse), discovery stroke icons (`discover-mood`, `discover-goals`, `discover-ai`, `discover-orb`)
-- **PWA mood:** Day-detail modal from history ribbon cards — full log, check-ins, day average (`#moodDayModalOverlay`)
+- **PWA mood:** Day-detail modal from history ribbon cards - full log, check-ins, day average (`#moodDayModalOverlay`)
 
 ### Changed
 
@@ -126,7 +138,7 @@ PWA polish pass: Ask Rianell offline replies, mood day detail, boot benchmark re
 
 - **First-start hang:** Benchmark could stall at “Array throughput” (3%) when `requestAnimationFrame` paused during initial paint
 - **BP dial:** Heart SVG uses proportional 64×80 viewBox with centered pulse transform
-- **Mobility widget:** Bounce duration/shadow/mat moved to CSS tiers — +/- no longer freezes animation mid-cycle
+- **Mobility widget:** Bounce duration/shadow/mat moved to CSS tiers - +/- no longer freezes animation mid-cycle
 - **Mood i18n:** Raw key `mood.recent.uniformStreak Good` replaced with parameterized locale string
 
 ### Tests
@@ -142,11 +154,11 @@ Home dashboard 3D polish, modern server dashboard UI, and Python server dependen
 
 ### Added
 
-- **PWA Three.js modules:** `goals-progress-3d.js`, `discovery-orb-3d.js`, `weather-orb-3d.js` — tier-gated lazy 3D for goals pillars, Ask Rianell orb, and weather enable prompt
+- **PWA Three.js modules:** `goals-progress-3d.js`, `discovery-orb-3d.js`, `weather-orb-3d.js` - tier-gated lazy 3D for goals pillars, Ask Rianell orb, and weather enable prompt
 - **PWA vendor:** `vendor/three/three.module.min.js` + LICENSE for on-demand ES module import
-- **Server dashboard:** `server/dashboard_ui.py`, `server/dashboard_icons.py` — responsive Tk UI (sidebar landscape / bottom-nav portrait), SVG-style icons, tabbed Overview · Data · Tools · Logs
-- **PRODUCT.md** — product design register (Impeccable skill)
-- **tests/unit/pwa/home-3d-visuals.test.mjs**, **tests/unit/server-requirements.test.mjs** — 3D wiring and Python stack contracts
+- **Server dashboard:** `server/dashboard_ui.py`, `server/dashboard_icons.py` - responsive Tk UI (sidebar landscape / bottom-nav portrait), SVG-style icons, tabbed Overview · Data · Tools · Logs
+- **PRODUCT.md** - product design register (Impeccable skill)
+- **tests/unit/pwa/home-3d-visuals.test.mjs**, **tests/unit/server-requirements.test.mjs** - 3D wiring and Python stack contracts
 
 ### Changed
 
@@ -174,17 +186,17 @@ Security hardening, dead-code removal, and structure cleanup pass.
 
 ### Added
 
-- **scripts/verify/verify-no-unsafe-sinks.mjs** — CI guard against new `eval`, `new Function`, or unexpected `document.write` in PWA source
-- **modules/share-modal.js** — extracted share modal UI from `app.js` (proof-pattern module split)
-- **wiki/API-and-Integrations.md** and **wiki/Accessibility.md** — API surface and a11y entry points
-- **Scheduled live CSP drift job** — non-blocking checks in `security-audit-scheduled.yml`
+- **scripts/verify/verify-no-unsafe-sinks.mjs** - CI guard against new `eval`, `new Function`, or unexpected `document.write` in PWA source
+- **modules/share-modal.js** - extracted share modal UI from `app.js` (proof-pattern module split)
+- **wiki/API-and-Integrations.md** and **wiki/Accessibility.md** - API surface and a11y entry points
+- **Scheduled live CSP drift job** - non-blocking checks in `security-audit-scheduled.yml`
 
 ### Changed
 
-- **sw.js** — push notification click URLs validated same-origin via `resolveSameOriginPushUrl()`
+- **sw.js** - push notification click URLs validated same-origin via `resolveSameOriginPushUrl()`
 - **UI_OASIS_PLAN.md** moved to `docs/plans/UI_OASIS_PLAN.md`
-- **Community tips** — `renderCommunityTipsPane` awaited inside `updateHomeTodayPanel` (i18n race fix)
-- **Home discovery** — removed broken `closeHomeDiscoveryModal` noop; cards open AI chat directly
+- **Community tips** - `renderCommunityTipsPane` awaited inside `updateHomeTodayPanel` (i18n race fix)
+- **Home discovery** - removed broken `closeHomeDiscoveryModal` noop; cards open AI chat directly
 
 ### Fixed
 
@@ -206,13 +218,13 @@ Security hardening, dead-code removal, and structure cleanup pass.
 
 ## [2.1.8] - 2026-07-06
 
-Visual System Upgrade (agentic plan P0–P7): unified motion tokens, SVG sprite chrome, tier-gated WebGL ambient layer, and RN reduce-motion parity.
+Visual System Upgrade (agentic plan P0-P7): unified motion tokens, SVG sprite chrome, tier-gated WebGL ambient layer, and RN reduce-motion parity.
 
 ### Added
 
-- **docs/visual-inventory.md** — living registry of SVG, motion, and surface upgrade status
-- **audit-history/visual-baseline-manifest.json** — screenshot targets for before/after diffs
-- **apps/pwa-webapp/lazy-webgl.mjs** + **modules/webgl-scene.js** — lazy-loaded WebGL2 particle scenes (home ambient, mood orb, achievement burst)
+- **docs/visual-inventory.md** - living registry of SVG, motion, and surface upgrade status
+- **audit-history/visual-baseline-manifest.json** - screenshot targets for before/after diffs
+- **apps/pwa-webapp/lazy-webgl.mjs** + **modules/webgl-scene.js** - lazy-loaded WebGL2 particle scenes (home ambient, mood orb, achievement burst)
 - **Sprite icons:** `icon-chevron-left`, `icon-chevron-right`, `icon-close`, `icon-backspace`
 - **@rianell/tokens:** `--dur-slower` (700ms), `ACHIEVEMENT_TIER_COLORS`, `EXPORT_SVG_COLORS` in medTimeline
 
@@ -254,8 +266,8 @@ Dependency maintenance release: patch-updates group, lighthouse 13, and RN Scrol
 
 ### Tests
 
-- `tests/unit/rn-scroll-ref-contract.test.mjs` — ScrollView ref typing + dependabot ignore contracts
-- `tests/unit/lighthouse-ci-probe.test.mjs` — LHCI warm-up and CLS budget contracts
+- `tests/unit/rn-scroll-ref-contract.test.mjs` - ScrollView ref typing + dependabot ignore contracts
+- `tests/unit/lighthouse-ci-probe.test.mjs` - LHCI warm-up and CLS budget contracts
 
 ---
 
@@ -265,8 +277,8 @@ Six-guardrail technical audit remediation: canonical tokens, RN screen primitive
 
 ### Added
 
-- **Mood Control Deck (PWA Mood tab)** — unified 3D glass panel replacing separate check-in slider and quick-action buttons; daypart orbs with depth, aurora backdrop, parallax tilt, and 3D action tiles (`mood-tab.js`, scoped `.mood-control-deck` CSS). Home check-in card unchanged.
-- **`docs/design-token-contract.md`** — `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only (getdesign Airbnb crawl)
+- **Mood Control Deck (PWA Mood tab)** - unified 3D glass panel replacing separate check-in slider and quick-action buttons; daypart orbs with depth, aurora backdrop, parallax tilt, and 3D action tiles (`mood-tab.js`, scoped `.mood-control-deck` CSS). Home check-in card unchanged.
+- **`docs/design-token-contract.md`** - `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only (getdesign Airbnb crawl)
 - **`SPACING_TOKENS` / `SURFACE_TOKENS`** in `@rianell/tokens`; synced to PWA via `npm run sync:tokens`
 - **RN primitives:** `ScreenCard`, `ScreenContainer`, `RangeChip`, `themeHelpers.ts`
 - **`scripts/verify/verify-design-tokens.mjs`** + `npm run verify:design-tokens` (CI unit-tests job)
@@ -278,20 +290,20 @@ Six-guardrail technical audit remediation: canonical tokens, RN screen primitive
 - **PWA cycle tracking:** Unified 45-day timeline with period-start anchor and drag threshold on day beacons (`cycle-tracking-ui.js`); stale selection rings removed in `decorateCycleBeacon`.
 - **PWA goals carousel:** Refined target/medal dot SVG icons with fill animations and viewport height sync.
 - **PWA device benchmark:** Async sliced CPU suite, stall/hard-cap timeouts, and non-blocking string ops so boot benchmark cannot hang the main thread (`device-benchmark.js` v8).
-- **PWA progress bars** — `scaleX(var(--progress))` instead of animating `width` (wizard, goals, achievements, import, AI download, password strength)
-- **Tab nav indicator** — `translateX` + `scaleX` (no width transition)
-- **RN screens** — `resolveScreenBackground()` + `ScreenCard` on Home, Logs, AI, Charts, LogWizard; tab bar background via theme helper
-- **`AchievementsPane` / `OasisNeuralTrace`** — native-driver `scaleX` progress; opacity pulse trace (reduced-motion gated)
+- **PWA progress bars** - `scaleX(var(--progress))` instead of animating `width` (wizard, goals, achievements, import, AI download, password strength)
+- **Tab nav indicator** - `translateX` + `scaleX` (no width transition)
+- **RN screens** - `resolveScreenBackground()` + `ScreenCard` on Home, Logs, AI, Charts, LogWizard; tab bar background via theme helper
+- **`AchievementsPane` / `OasisNeuralTrace`** - native-driver `scaleX` progress; opacity pulse trace (reduced-motion gated)
 
 ### Tests
 
-- `tests/unit/tokens.test.mjs` — spacing/surface/`resolveScreenBackground`
-- `tests/unit/verify-design-tokens.test.mjs` — guard script + progress CSS contracts
-- `tests/unit/pwa/mood-tab-ui.test.mjs` — Mood Control Deck markup/CSS contracts
-- `tests/unit/pwa/log-metric-widgets.test.mjs` — swelling balloon, irritability, mobility, weather widgets
-- `tests/unit/pwa-goals-carousel.test.mjs` — goals dot SVG + cycle timeline contracts
-- `tests/unit/pwa/perf-benchmark-modal.test.mjs` — benchmark slice/timeout guards
-- `tests/unit/ai-engine-parity.test.mjs` — rolling date fixtures for 30-day filter
+- `tests/unit/tokens.test.mjs` - spacing/surface/`resolveScreenBackground`
+- `tests/unit/verify-design-tokens.test.mjs` - guard script + progress CSS contracts
+- `tests/unit/pwa/mood-tab-ui.test.mjs` - Mood Control Deck markup/CSS contracts
+- `tests/unit/pwa/log-metric-widgets.test.mjs` - swelling balloon, irritability, mobility, weather widgets
+- `tests/unit/pwa-goals-carousel.test.mjs` - goals dot SVG + cycle timeline contracts
+- `tests/unit/pwa/perf-benchmark-modal.test.mjs` - benchmark slice/timeout guards
+- `tests/unit/ai-engine-parity.test.mjs` - rolling date fixtures for 30-day filter
 
 ---
 
@@ -305,7 +317,7 @@ PWA UI/UX fixes batch: log metrics, onboarding, AI ambient, feature defaults, an
 - **Mobility trampoline:** Jumper/mat animation phases aligned (jumper at bottom when mat depressed)
 - **Where it hurts:** Stroke-only anatomical silhouette; neutral/mild/pain region colors; edit form matches main diagram
 - **Stool type (Bristol):** Removed green circular status icon overlay on slider card
-- **Mood metric:** Square shadow artifact fixed — circular icon wrap, drop-shadow on head only
+- **Mood metric:** Square shadow artifact fixed - circular icon wrap, drop-shadow on head only
 - **Onboarding avatar:** Loader removed; companion picker shown before instructional copy
 - **Profile companion:** Larger settings framing, seeded accessories (glasses, hats, etc.), per-render motion profiles
 
@@ -328,7 +340,7 @@ PWA visual polish: companion names, lock icon, metric animations, trend layout, 
 
 ### Fixed
 
-- **Companion names:** Onboarding “Meet your companion” shows generated names (e.g. Sun Warden) instead of raw seed timestamps — `graphics-portfolio.js` lazy-loads `RianellShared` after script order fix
+- **Companion names:** Onboarding “Meet your companion” shows generated names (e.g. Sun Warden) instead of raw seed timestamps - `graphics-portfolio.js` lazy-loads `RianellShared` after script order fix
 - **Security lock:** Padlock SVG renders as stroke outline, not solid grey blob (`icon-lock` / `icon-lock-open` symbols + illustration CSS)
 - **AI trend cards:** Typical / Latest / Outlook stat values split num/unit; wider grid prevents cramped labels and orphan cards
 
@@ -351,7 +363,7 @@ Log wizard clarity, picker polish, goals tab art, and full-panel AI ambient trac
 
 ### Added
 
-- **Severity scale:** `classifySeverityRaw` in `@rianell/shared` — stiffness, joint pain, fatigue, and related sliders show **Low / Moderate / High** with raw 1–10 readout (not inverted Good/Bad)
+- **Severity scale:** `classifySeverityRaw` in `@rianell/shared` - stiffness, joint pain, fatigue, and related sliders show **Low / Moderate / High** with raw 1-10 readout (not inverted Good/Bad)
 - **Log review:** Metric intensity bars, urgent vitals rows (glucose/SpO₂), raw severity values on review step
 - **Critical vitals:** Urgent styling for extreme glucose and SpO₂ (`data-vital-urgent`, pulsing border, warning badge)
 - **Symptom picker:** Per-icon motion classes, tile-picker i18n fallbacks (`data-i18n-placeholder-fallback`), ripple on tap
@@ -397,15 +409,15 @@ PWA dashboard polish, scrollable profile companions, animated achievement icons,
 
 ## [2.1.1] - 2026-06-29
 
-SVG graphics and animation portfolio — profile companions, ambient vibes, metric entities, and screen decorations across the PWA.
+SVG graphics and animation portfolio - profile companions, ambient vibes, metric entities, and screen decorations across the PWA.
 
 ### Added
 
-- **`VIBE_TOKENS` / `AVATAR_THEME_TOKENS`** in `@rianell/tokens` — five user vibes and per-team avatar CSS variables synced to `apps/pwa-webapp/css/tokens.css`
+- **`VIBE_TOKENS` / `AVATAR_THEME_TOKENS`** in `@rianell/tokens` - five user vibes and per-team avatar CSS variables synced to `apps/pwa-webapp/css/tokens.css`
 - **20 profile avatars** (`PROFILE_AVATAR_IDS`) with legacy icon mapping in `@rianell/shared`
 - **Onboarding cards:** `avatarPick` (carousel) and `vibe` (picker) after appearance
-- **`apps/pwa-webapp/modules/graphics-portfolio.js`** — `window.RianellGraphicsPortfolio` (runtime SVG sprites, vibe parallax scene, metric companions, badge composites, Set D body map, Phase 6 screen art)
-- **`apps/pwa-webapp/css/graphics-portfolio.css`** — carousel, companions, unlock sweep, connector flow dots, reduced-motion guards
+- **`apps/pwa-webapp/modules/graphics-portfolio.js`** - `window.RianellGraphicsPortfolio` (runtime SVG sprites, vibe parallax scene, metric companions, badge composites, Set D body map, Phase 6 screen art)
+- **`apps/pwa-webapp/css/graphics-portfolio.css`** - carousel, companions, unlock sweep, connector flow dots, reduced-motion guards
 - **i18n:** avatar names, vibe labels, onboarding copy; Tier A overrides in `scripts/lib/graphics-portfolio-tier-a-overrides.mjs`
 - **Tests:** `graphics-portfolio.test.mjs`, `avatars.test.mjs`; extended `guidedQuestionnaire.test.mjs` and `tokens.test.mjs`
 
@@ -419,13 +431,13 @@ SVG graphics and animation portfolio — profile companions, ambient vibes, metr
 
 ## [2.1.0-oasis] - 2026-06-29
 
-UI Oasis Overhaul — bioluminescent ambient canvas, living stats, AI neural traces, and celebration micro-interactions across PWA and React Native. Zero new npm dependencies.
+UI Oasis Overhaul - bioluminescent ambient canvas, living stats, AI neural traces, and celebration micro-interactions across PWA and React Native. Zero new npm dependencies.
 
 ### Added
 
-- **`OASIS_TOKENS`** in `@rianell/tokens` — per-team ambient palettes, oasis motion timings, status glow strings
-- **`apps/pwa-webapp/css/oasis.css`** — scoped `.oasis-*` stylesheet (blobs, grain, calm-glow, neural trace, particles)
-- **`apps/pwa-webapp/modules/oasis-canvas.js`** — `window.OasisCanvas` IIFE (blobs, magnetic CTAs, confetti, shimmer, stream dots)
+- **`OASIS_TOKENS`** in `@rianell/tokens` - per-team ambient palettes, oasis motion timings, status glow strings
+- **`apps/pwa-webapp/css/oasis.css`** - scoped `.oasis-*` stylesheet (blobs, grain, calm-glow, neural trace, particles)
+- **`apps/pwa-webapp/modules/oasis-canvas.js`** - `window.OasisCanvas` IIFE (blobs, magnetic CTAs, confetti, shimmer, stream dots)
 - **PWA:** Ambient blobs on all five tab panels; AI thinking-text morph; data-stream dots; milestone confetti; check-in shimmer
 - **RN:** `OasisNeuralTrace.tsx`; `BalanceRadarChart` ghost breath ring; `HomeWelcomeCard` ambient pulse ring; `BootLoadingScreen` bioluminescent rings; achievement particle burst
 - **Tests:** 8 assertions in `animation-polish.test.mjs`; `tests/unit/pwa/oasis-particles.test.mjs`; `tests/e2e/oasis-particles.mjs` static gate; `benchmarks/specs/oasis-particles.spec.ts` Playwright ceiling test
@@ -443,30 +455,30 @@ Session stability and memory leak fixes targeting the long-session freeze/crash 
 
 ### Added
 
-- **`scripts/audit/stress-test-memory.mjs`:** Playwright CDP automated stress test — seeds Tier 5 benchmark + 365-day demo data, runs 10 tab-switch cycles, reports heap growth vs 80 MB threshold. Run with `npm run stress:memory`.
+- **`scripts/audit/stress-test-memory.mjs`:** Playwright CDP automated stress test - seeds Tier 5 benchmark + 365-day demo data, runs 10 tab-switch cycles, reports heap growth vs 80 MB threshold. Run with `npm run stress:memory`.
 - **`scripts/verify/verify-no-cspro-none.mjs`:** CI check that asserts no `Content-Security-Policy-Report-Only` header with `connect-src 'none'` is served by the live site. Added to `verify:csp` chain.
 - **npm scripts:** `stress:memory`, `verify:cspro` registered in root `package.json`.
-- **Tests:** `tests/unit/pwa/session-stability.test.mjs` — 12 assertions covering all session-stability fixes (L1–L8).
+- **Tests:** `tests/unit/pwa/session-stability.test.mjs` - 12 assertions covering all session-stability fixes (L1-L8).
 
 ### Fixed
 
 - **L1 (performance-utils.js):** `_voiceInputObserver` (`MutationObserver` on `document.body`) now disconnected and nulled in the `beforeunload` cleanup block alongside `eventManager.cleanup()`. Was retained for the entire session, firing on every DOM mutation.
-- **L2 (app.js):** `window.__rianellBootLog` is now a ring-buffer capped at 100 entries. The privacy-gate 2 s interval was pushing an entry every 2 s during onboarding — confirmed 8+ entries per boot in live console capture.
+- **L2 (app.js):** `window.__rianellBootLog` is now a ring-buffer capped at 100 entries. The privacy-gate 2 s interval was pushing an entry every 2 s during onboarding - confirmed 8+ entries per boot in live console capture.
 - **L2b (privacy-region.js):** `global.__rianellBootLog` (used in Node/test contexts) receives the same ring-buffer cap.
 - **L4 (privacy-region.js):** Consent-enforcement `MutationObserver` and 2 s `setInterval` are now stored as module-scoped refs (`_privacyConsentObserver`, `_privacyConsentIntervalId`) and torn down inside `unlockAppChrome()` when consent is granted. Both were previously kept alive for the entire session.
-- **L5 (app.js):** Chart `maxPoints` applies a session-elapsed decay: 100% of device-tier points for the first 30 min, 60% from 30–60 min, 40% beyond 60 min. Tier 5 desktop can render 300–450 points with full animations; the decay prevents long-session GPU memory accumulation without affecting first-load performance.
+- **L5 (app.js):** Chart `maxPoints` applies a session-elapsed decay: 100% of device-tier points for the first 30 min, 60% from 30-60 min, 40% beyond 60 min. Tier 5 desktop can render 300-450 points with full animations; the decay prevents long-session GPU memory accumulation without affecting first-load performance.
 - **L6 (app.js):** Service worker update dismissal now tracks a `sessionStorage` counter (`rianellUpdateDismissCount`). After 3 "Later" clicks, `SKIP_WAITING` is sent automatically without showing the modal again. Users who kept dismissing were running a stale SW for hours, causing stale-asset network errors.
 - **L8 (summary-llm.js):** Added pre-flight heap pressure check (`usedJSHeapSize > 200 MB`) before `tryLoadWithPlans`. Under pressure, GPU/MLC paths are bypassed and the app goes directly to the WASM runtime, preventing the 421 MB triple-runtime spike (ONNX WebGPU + MLC + WASM) on top of an already-stressed session heap. Also nulls `cachedPipeline` in the GPU catch block before WASM allocates.
 
 ### Operator action required
 
-- **L7 (Cloudflare):** Remove or align the `Content-Security-Policy-Report-Only` header. Live console captured 200+ `connect-src 'none'` violations per page load from a CSPRO header at Cloudflare — each violation is a retained console.error string. See `security/cloudflare-headers-recommended.md` for steps. CI gate: `npm run verify:cspro`.
+- **L7 (Cloudflare):** Remove or align the `Content-Security-Policy-Report-Only` header. Live console captured 200+ `connect-src 'none'` violations per page load from a CSPRO header at Cloudflare - each violation is a retained console.error string. See `security/cloudflare-headers-recommended.md` for steps. CI gate: `npm run verify:cspro`.
 
 ---
 
 ## [2.0.9] - 2026-06-28
 
-Animation polish across React Native and PWA, wellness slider 1–10 range alignment, and boot benchmark modal UX fix.
+Animation polish across React Native and PWA, wellness slider 1-10 range alignment, and boot benchmark modal UX fix.
 
 ### Added
 
@@ -476,7 +488,7 @@ Animation polish across React Native and PWA, wellness slider 1–10 range align
 
 ### Changed
 
-- **Wellness sliders (shared + PWA):** Unified slider range is **1–10** (was 0–10); symptom invert uses `11 - value`; fill percent maps `(value - 1) / 9`.
+- **Wellness sliders (shared + PWA):** Unified slider range is **1-10** (was 0-10); symptom invert uses `11 - value`; fill percent maps `(value - 1) / 9`.
 - **Boot benchmark (PWA):** First-run boot no longer auto-opens the performance benchmark modal; god-mode **View benchmark** available on all viewports.
 - **npm version:** Workspace roots bumped to **2.0.9**.
 
@@ -492,7 +504,7 @@ Light-mode readability, system appearance boot sync, theme-tokenised metric anim
 
 ### Added
 
-- **Server dev Chromium launcher:** `server/chromium_dev.py` + `server/scripts/chromium-dev.mjs` — isolated Playwright Chromium profile, `/api/reload` stream watcher, and status helpers for local PWA debugging.
+- **Server dev Chromium launcher:** `server/chromium_dev.py` + `server/scripts/chromium-dev.mjs` - isolated Playwright Chromium profile, `/api/reload` stream watcher, and status helpers for local PWA debugging.
 - **PWA boot appearance sync:** Early `index.html` script reads stored appearance prefs and applies `rianell-appearance-*` / `light-mode` classes before the loading shell paints.
 - **Light-mode CSS tokens:** `--text-light-rgb`, `--neutral-card-rgb`, and flipped `--ui-icon-color` so text, icons, and card surfaces stay readable in light mode.
 - **Ocean metric tokens:** Irritability ocean animation uses `--ocean-*` tokens derived from `--primary-color` via `color-mix` (calm, moderate, storm states).
@@ -518,7 +530,7 @@ Guided onboarding questionnaire: one friendly multichoice modal (PWA + RN) drive
 
 ### Added
 
-- **Guided onboarding questionnaire (shared + PWA + RN):** `guidedQuestionnaire.mjs` — child-readable multichoice cards for coach tone, helper level, consents, reminders, and finish; custom mascot SVG + animations.
+- **Guided onboarding questionnaire (shared + PWA + RN):** `guidedQuestionnaire.mjs` - child-readable multichoice cards for coach tone, helper level, consents, reminders, and finish; custom mascot SVG + animations.
 - **`onboarding.questionnaire.*` i18n namespace** with Tier-A locale overrides (`v207-onboarding-tier-a-overrides.mjs`).
 - **PWA:** `#guidedOnboardingOverlay` + `guided-onboarding.js` replaces day-to-day first-run wizard chrome.
 - **RN:** Rebuilt `FirstRunWizard.tsx` + `onboardingIllustrations.tsx` rendering shared cards with `Animated` transitions.
@@ -550,13 +562,13 @@ Unified wellness sliders, onboarding polish, metric animation upgrades, and goal
 - **Metric animations (PWA):** Irritability ocean (calm → stormy); weather-sensitivity cloud lightning when score nears bad.
 - **Goals header prompt (PWA):** Target button glows and pulses when no goals are saved; `common.goals.setPrompt` i18n key.
 - **First-session home nag (shared):** `shouldSuppressFirstRunLoggingPrompt` hides “not logged today” until first entry and wizard complete.
-- **Unified onboarding counter (shared + PWA + RN):** Single step 1–14 flow across wizard screens and tutorial slides.
+- **Unified onboarding counter (shared + PWA + RN):** Single step 1-14 flow across wizard screens and tutorial slides.
 
 ### Changed
 
 - **Daily activities label:** Renamed to **Ability to do Daily activities** across i18n, CSV export/import, AI copy, and RN home summary.
 - **Onboarding tutorial (PWA + RN):** Side arrows + Finish on last slide only; redundant Next removed.
-- **Mood widget (PWA):** Face animation corrected — good scores smile, bad scores frown.
+- **Mood widget (PWA):** Face animation corrected - good scores smile, bad scores frown.
 
 ### Fixed
 
@@ -592,9 +604,9 @@ Log wizard animated metrics, lifestyle widget polish, cycle timeline fix, and ma
 
 ### Added
 
-- **Animated log metric widgets (PWA):** Ten symptom/energy/stress/lifestyle sliders upgraded to unique SVG widgets with zone badges and ± steppers (`modules/log-metric-widgets.js`) — stiffness gear, joint-pain pulses, mobility footsteps, swelling blob, fatigue battery, sleep moon/stars, mood sun/cloud, irritability steam gauge, weather rain, daily-function ring.
+- **Animated log metric widgets (PWA):** Ten symptom/energy/stress/lifestyle sliders upgraded to unique SVG widgets with zone badges and ± steppers (`modules/log-metric-widgets.js`) - stiffness gear, joint-pain pulses, mobility footsteps, swelling blob, fatigue battery, sleep moon/stars, mood sun/cloud, irritability steam gauge, weather rain, daily-function ring.
 - **Main-thread governor (PWA):** Defers LLM preload and inference while the log wizard is active or the user is interacting (`modules/main-thread-governor.js`); boot AI/charts work is serialized with background priority.
-- **God mode — achievements testing:** Preview unlock toasts, simulate unlock notifications, and reset achievement notification state from the test overlay.
+- **God mode - achievements testing:** Preview unlock toasts, simulate unlock notifications, and reset achievement notification state from the test overlay.
 
 ### Changed
 
@@ -603,24 +615,24 @@ Log wizard animated metrics, lifestyle widget polish, cycle timeline fix, and ma
 
 ### Fixed
 
-- **Cycle timeline (PWA):** Menstrual flow picker no longer shows corrupted text (“glasses” fragments) — flow buttons use `data-i18n-aria` only so i18n does not wipe droplet icons.
+- **Cycle timeline (PWA):** Menstrual flow picker no longer shows corrupted text (“glasses” fragments) - flow buttons use `data-i18n-aria` only so i18n does not wipe droplet icons.
 
 ---
 
-## [2.0.3] — 2026-06-27
+## [2.0.3] - 2026-06-27
 
 Mobile first-launch boot reliability for the PWA.
 
 ### Fixed
 
-- **Mobile first launch (PWA):** Installed mobile PWAs could look frozen until reload — the shell now reveals before AI model preload so onboarding and consent modals stay tappable.
+- **Mobile first launch (PWA):** Installed mobile PWAs could look frozen until reload - the shell now reveals before AI model preload so onboarding and consent modals stay tappable.
 - **Privacy interaction gate:** AI download, boot recovery, and alert overlays are whitelisted so the capture-phase consent blocker no longer swallows taps during boot.
 - **First-run wizard:** `modal-active` clears correctly when the wizard uses `display: flex` (not only `display: block`).
 - **Boot watchdog:** 12s mobile fallback force-reveals the shell and starts init if the boot chain stalls.
 
 ---
 
-## [2.0.2] — 2026-06-27
+## [2.0.2] - 2026-06-27
 
 PWA mobile UX polish: animated vitals inputs, weather icons, log wizard nav, mood tile, barcode desktop, and settings icon parity.
 
@@ -646,16 +658,16 @@ PWA mobile UX polish: animated vitals inputs, weather icons, log wizard nav, moo
 
 ---
 
-## [2.0.1] — 2026-06-27
+## [2.0.1] - 2026-06-27
 
-Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across PWA + RN.
+Post-2.0.0 polish: logging, security lock, accessibility, and UX fixes across PWA + RN.
 
 ### Added
 
 - **Barcode food logging (PWA):** Settings toggle with camera consent; scan icon beside food-modal search; Open Food Facts lookup populates food tile fields; consent dashboard row + wiki privacy section.
 - **Mood timeline (PWA + RN):** Horizontal daily-average ribbon replaces vertical recent-readings list.
 - **Cycle ribbon (PWA):** Merged menstrual day pills with integrated flow levels; removed duplicate Flow section.
-- **App lock PIN encryption:** `encryptExportWithPassphrase` accepts `minPassphraseLength: 4` for 4–8 digit PINs (export passphrases still require 12+).
+- **App lock PIN encryption:** `encryptExportWithPassphrase` accepts `minPassphraseLength: 4` for 4-8 digit PINs (export passphrases still require 12+).
 
 ### Changed
 
@@ -678,9 +690,9 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
 
 ---
 
-## [2.0.0] — 2026-06-27
+## [2.0.0] - 2026-06-27
 
-**Rianell 2.0** — production release. Open-beta branding removed; PWA uses production icons and copy.
+**Rianell 2.0** - production release. Open-beta branding removed; PWA uses production icons and copy.
 
 ### Added
 
@@ -706,11 +718,11 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
 
 ---
 
-## [1.135.0] — 2026-06-27
+## [1.135.0] - 2026-06-27
 
 ### Added
 
-- **Third-party connectors CN4–CN7 (Plan 19)**:
+- **Third-party connectors CN4-CN7 (Plan 19)**:
   - Live OAuth for Strava, Withings, and Google Sheets via Supabase Edge Functions (`connector-auth`, `connector-callback`, `connector-disconnect`, sync functions).
   - Encrypted token storage in `connector_tokens` (service-role only); client-safe status in `user_integrations`.
   - PWA Connectors pane: Connect, Sync now, Disconnect, Google Sheets configure/export modal, `connector-success.html` popup flow.
@@ -718,11 +730,11 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
   - RN `oauthConnect.ts` + `SettingsConnectorsPane` OAuth/sync parity with `rianell://` deep link.
   - Operator docs: `docs/connectors/SETUP.md` and provider guides.
 
-## [1.134.0] — 2026-06-26
+## [1.134.0] - 2026-06-26
 
 - **PWA AI Analysis tab overhaul (2026-06-26)**:
   - Five-chapter layout (Overview, Trends & vitals, Lifestyle, Mind & mood, Body & pain) with mobile pager slides.
-  - **Wellbeing score** ring (0–100), coaching **insight card**, quick-stat pills with sparklines and delta arrows.
+  - **Wellbeing score** ring (0-100), coaching **insight card**, quick-stat pills with sparklines and delta arrows.
   - Skeleton loading UI replacing brain-pulse spinner; semantic `--ai-status-*` tokens and per-chapter tints.
   - Ten custom SVG icons (`brain-wave`, `heart-pulse`, `shield-check`, `gut`, `pill-check`, `sparkle-ring`, `stressor-bolt`, `leaf`, `gauge`, `calendar-heatmap`).
   - New visualizations: flare arc gauge, macro sparklines, exercise timeline bars, medication adherence heatmap, stressor chips, gratitude tags, Bristol/gut trend.
@@ -730,14 +742,14 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
   - Coaching-style **summary note** (rule-based + LLM prompt update in `summary-llm.js`).
 
 - **Hosted share links** (`packages/shared/src/export/shareReadOnlyLink.mjs`):
-  - `generateShareCode()` — cryptographically random, ambiguous-char-free 16-char code.
-  - `buildShareSnapshot()` — filters logs by date range, strips sensitive free-text fields when `includeNotes` is off, optionally embeds condition name.
-  - `uploadShareLink()` — encrypts snapshot with 310 000 PBKDF2 iterations and inserts into Supabase `share_links` table.
-  - `SHARE_LINK_KDF_ITERATIONS` constant (310 000 — stronger than default export KDF).
+  - `generateShareCode()` - cryptographically random, ambiguous-char-free 16-char code.
+  - `buildShareSnapshot()` - filters logs by date range, strips sensitive free-text fields when `includeNotes` is off, optionally embeds condition name.
+  - `uploadShareLink()` - encrypts snapshot with 310 000 PBKDF2 iterations and inserts into Supabase `share_links` table.
+  - `SHARE_LINK_KDF_ITERATIONS` constant (310 000 - stronger than default export KDF).
 
 - **Password strength module** (`packages/shared/src/privacy/passwordStrength.mjs`):
-  - `checkPasswordStrength(pw)` — returns `{ score: 0–4, label, feedback[] }` for use in App Lock and export UI.
-  - `isWeakPin(pin)` — detects repeating digits, sequential runs, and non-digit PINs.
+  - `checkPasswordStrength(pw)` - returns `{ score: 0-4, label, feedback[] }` for use in App Lock and export UI.
+  - `isWeakPin(pin)` - detects repeating digits, sequential runs, and non-digit PINs.
   - Exported from `packages/shared/src/privacy/index.mjs`.
 
 - **Supabase migration** (`supabase/migrations/20260626180000_share_links.sql`):
@@ -747,7 +759,7 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
   - Redirects `/share/<code>` paths to `/#share/<code>` for Cloudflare Pages SPA hosting.
 
 - **PWA features** (`apps/pwa-webapp/`):
-  - App lock now supports both **passphrase mode** (12+ chars) and **PIN mode** (4–8 digits).
+  - App lock now supports both **passphrase mode** (12+ chars) and **PIN mode** (4-8 digits).
   - Share link generator: date-range picker, notes/condition toggles, password field, copy-to-clipboard.
   - Share link viewer: password prompt, decryption, read-only log display with `expires_at` banner.
   - PWA install guide: per-browser/OS instructions (iOS Safari, macOS Safari, Chrome, Firefox, Edge) with SVG illustrations.
@@ -757,11 +769,11 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
   - `detectPWAInstallPlatform()` detects user-agent for guided install.
 
 - **i18n additions** (all 15 locales, root + pwa-webapp + rn-app):
-  - `home.checkin.cta` — "Check in" call-to-action label.
-  - `settings.share.*` — 20 new share link UI strings.
-  - `settings.security.appLockModePass` / `settings.security.appLockModePin` — lock mode labels.
-  - `settings.security.pinSetupHint` — PIN setup guidance.
-  - `settings.privacy.appLock.pinLead` — PIN unlock prompt.
+  - `home.checkin.cta` - "Check in" call-to-action label.
+  - `settings.share.*` - 20 new share link UI strings.
+  - `settings.security.appLockModePass` / `settings.security.appLockModePin` - lock mode labels.
+  - `settings.security.pinSetupHint` - PIN setup guidance.
+  - `settings.privacy.appLock.pinLead` - PIN unlock prompt.
 
 - **Artifact manifests**: Android `downloadUrl` and iOS `installUrl` fields added to `latest.json` CI generation and committed manifests (version 284).
 
@@ -799,11 +811,11 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
 
 ---
 
-## [v1.133.1] — 2026-06-16
+## [v1.133.1] - 2026-06-16
 
 ### Added
 
-- Plans 15–26 full rollout: extended metrics, nutrition, REST API, connectors, FHIR self-host, security hardening, performance, community, docs automation, migration wizard, and accessibility UI.
+- Plans 15-26 full rollout: extended metrics, nutrition, REST API, connectors, FHIR self-host, security hardening, performance, community, docs automation, migration wizard, and accessibility UI.
 - PWA Plan 18/19/23/25 features wired end-to-end.
 - Security DAST workflow (ZAP, Gitleaks, OSV) with composite actions.
 - RN Plan 19 connector type-checked.
@@ -825,7 +837,7 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
 
 ---
 
-## [v1.97.0] — 2026-06-09
+## [v1.97.0] - 2026-06-09
 
 ### Added
 
@@ -835,16 +847,16 @@ Post–2.0.0 polish: logging, security lock, accessibility, and UX fixes across 
 
 ---
 
-## [v1.90.1] — 2026-06-16 (architecture milestone)
+## [v1.90.1] - 2026-06-16 (architecture milestone)
 
 ### Added
 
-- Phases 0–23 migration complete; monorepo canonical layout verified.
+- Phases 0-23 migration complete; monorepo canonical layout verified.
 - `artifacts/` replaces legacy `App build/` directory.
 - Cloudflare 301 redirect documented for legacy artifact URLs.
 - `@rianell/build-tools` workspace (Phase 10).
 - CI guards for nested `package-lock.json` (Phase 13).
-- `scripts/verify/doc-links.mjs` — broken link and forbidden path checker.
+- `scripts/verify/doc-links.mjs` - broken link and forbidden path checker.
 - `wiki/` GitHub Wiki source added to repo.
 
 ### Changed

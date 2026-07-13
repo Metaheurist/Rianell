@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.7** - Dependency floor bumps (npm + pip) with Dependabot ignores for unsafe majors.
+**Latest: v2.2.8** - BP heart, trampoline, theme token cleanup, MD dash hygiene.
+
+### v2.2.8 - 2026-07-14 - UI polish and token cleanup
+
+- **BP dial:** Classic heart path (deeper cleft, rounder lobes).
+- **Mobility:** One trampoline mat that squashes under the jumper (no double rim).
+- **Themes:** Light-mode controls use `--accent-*` / `--toggle-track-off` (no leftover mint chrome on non-mint teams).
+- **Docs:** Em/en dashes stripped from Markdown in favour of hyphens.
+
+**Previous: v2.2.7** - Dependency floor bumps (npm + pip) with Dependabot ignores for unsafe majors.
 
 ### v2.2.7 - 2026-07-13 - Dependency floors
 
@@ -16,7 +25,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v2.2.6 - 2026-07-13 - Companion avatar, goals, chat gate, CI
 
 - **Avatar:** Generated companions inline SVG paths (no nested `role="img"` / fragile `<use>`), and `--avatar-secondary` always falls back when `--secondary-color` is unset - removes the browser broken-image chrome above the character.
-- **Copy:** UI strings use hyphens instead of em dashes (`—` → `-`) in locale packs and hardcoded suggestions.
+- **Copy:** UI strings use hyphens instead of em dashes (` - ` → `-`) in locale packs and hardcoded suggestions.
 - **Goals:** Day chips / SVG+3D pillars scale to daily target %; decorative static trail dots removed.
 - **Ask Rianell:** Opens only when AI + model ready; otherwise enable/download prompts; unsupported devices get guided generic replies.
 - **Icons:** Larger AI Analysis tab glyph and Overview monitor.
@@ -29,7 +38,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v2.2.4 - 2026-07-13 - Theme token completeness
 
-- **Themes:** Light-mode chrome (tabs, metrics, check-in, mood orbs, charts) uses theme ink/primary tokens — no leftover mint hex on Red/Black or Mono.
+- **Themes:** Light-mode chrome (tabs, metrics, check-in, mood orbs, charts) uses theme ink/primary tokens - no leftover mint hex on Red/Black or Mono.
 - **Mono light:** Greyscale success/status/avatar tokens so black-and-white actually reads as B&W.
 - **Vibes / avatars:** Calm/energy/nature ambient washes and character fills follow `--primary-color` / `--avatar-*`.
 
@@ -53,7 +62,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **PWA mood:** Day-detail modal from history cards; larger check-in icons; uniform-streak i18n fix.
 - **PWA AI:** Overview monitor + trends-vitals chapter icons; light-mode trend metric tile contrast.
 - **PWA Ask Rianell:** Close `×` visible; header hidden when chat open; context-aware fallback on open.
-- **Boot benchmark:** `setTimeout` scheduling + `abortActiveSuite()` — no more stall at “Array throughput”.
+- **Boot benchmark:** `setTimeout` scheduling + `abortActiveSuite()` - no more stall at “Array throughput”.
 - **Vitals:** BP heart proportional SVG; mobility widget tier CSS (animation freeze fix).
 - **Home:** Goals progress SVG charts; discovery `discover-*` icons; nav AI robot+scope icon.
 - **Tests:** 755 passing; expanded mood, benchmark, vitals, and AI UI contracts.
@@ -69,8 +78,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v2.1.8 - 2026-07-06 - Home AI chat and discovery upgrade
 
 - **PWA Home:** Discovery chips redesigned as rich prompt cards with hints, AI presence cue, and data-aware prompts for users with logs.
-- **PWA:** New `modules/ai-chat.js` — ephemeral bottom-sheet / side-panel chat wired to on-device `generateHealthChatWithLLM`; supersedes static discovery modals and single-turn home Q&A.
-- **Shared:** `packages/shared/src/ai/chatContext.mjs` — screening exclusion, URL/script redaction, delimiter spoof neutralization, 1800-char context cap.
+- **PWA:** New `modules/ai-chat.js` - ephemeral bottom-sheet / side-panel chat wired to on-device `generateHealthChatWithLLM`; supersedes static discovery modals and single-turn home Q&A.
+- **Shared:** `packages/shared/src/ai/chatContext.mjs` - screening exclusion, URL/script redaction, delimiter spoof neutralization, 1800-char context cap.
 - **Security:** Extended `llm-security-contract.mjs`; instruction hierarchy in `weekChat.system`; adversarial prompt tests; updated `ai-security.md`, `threat-model.md`, DPIA.
 - **Audit:** Chat open/close cycle in `stress-test-memory.mjs`; real Playwright heap profiling in `memory-profile.mjs`.
 - **Tests:** `chat-context.test.mjs`, `pwa/ai-chat-security.test.mjs`, `pwa/home-discovery-ui.test.mjs`.
@@ -88,7 +97,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v2.1.6 - 2026-06-30 - Design token contract and motion guardrails
 
-- **Mood tab (PWA):** Mood Control Deck — unified 3D glass panel with daypart orbs, aurora backdrop, parallax tilt, and 3D quick-action tiles (Mood tab only; Home check-in unchanged).
+- **Mood tab (PWA):** Mood Control Deck - unified 3D glass panel with daypart orbs, aurora backdrop, parallax tilt, and 3D quick-action tiles (Mood tab only; Home check-in unchanged).
 - **Log metrics (PWA):** Swelling balloon pin anchor; irritability thought cloud; mobility trampoline bounce; weather sun/cloud crossfade.
 - **Cycle tracking (PWA):** Unified 45-day timeline with period-start anchor; cycle beacon decoration cleanup.
 - **Goals carousel (PWA):** Refined animated target/medal dot SVG icons.
@@ -125,7 +134,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v2.1.3 - 2026-06-29 - Log wizard clarity and picker polish
 
-- **Severity sliders (PWA):** Symptom metrics use Low/Moderate/High labels and raw 1–10 readout; positive metrics keep Good/Bad.
+- **Severity sliders (PWA):** Symptom metrics use Low/Moderate/High labels and raw 1-10 readout; positive metrics keep Good/Bad.
 - **Log review (PWA):** Intensity bars on metric rows; urgent styling for critical glucose/SpO₂.
 - **Vitals (PWA):** Critical glucose tiers and urgent SpO₂ with pulsing border and warning badge.
 - **Symptom picker (PWA):** Animated chip icons; filter placeholder i18n fallbacks.
@@ -163,7 +172,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **L4:** Privacy-gate `MutationObserver` + `setInterval` stored as module refs; torn down in `unlockAppChrome()`.
 - **L5:** Chart `maxPoints` decays with session age (60% at 30 min, 40% at 60 min) to cap GPU memory over long sessions.
 - **L6:** SW update dismissal counter (`rianellUpdateDismissCount`) auto-forces `SKIP_WAITING` after 3 "Later" clicks.
-- **L7:** New CI script `verify-no-cspro-none.mjs` asserts no `connect-src 'none'` in CSPRO header. Cloudflare operator action required — see `security/cloudflare-headers-recommended.md`.
+- **L7:** New CI script `verify-no-cspro-none.mjs` asserts no `connect-src 'none'` in CSPRO header. Cloudflare operator action required - see `security/cloudflare-headers-recommended.md`.
 - **L8:** Pre-flight heap guard (>200 MB) in `summary-llm.js` bypasses GPU/MLC paths, preventing triple-runtime OOM spike.
 - **New scripts:** `stress:memory` (Playwright memory stress test), `verify:cspro` (live CSPRO header CI check).
 - **Tests:** `tests/unit/pwa/session-stability.test.mjs` (12 assertions).
@@ -174,7 +183,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **RN animations:** Spring buttons, toast scale, empty-state icon pop, AI/mood/charts/wizard screen entrances, settings chapter spring expand.
 - **PWA animations:** Tab travel bump, AI stagger delays, shimmer ease-in-out, nav icon lift, boot skeleton stagger.
-- **Wellness sliders:** Shared + PWA align on **1–10** range with corrected symptom invert and fill percent.
+- **Wellness sliders:** Shared + PWA align on **1-10** range with corrected symptom invert and fill percent.
 - **Boot benchmark (PWA):** No auto-open on first launch; god-mode benchmark details on mobile.
 - **npm:** Workspace roots at **2.0.9**.
 - **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.9.
@@ -184,14 +193,14 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **PWA light mode:** Tokenised `--text-light-rgb`, `--neutral-card-rgb`, icon colors; fixed unreadable modals, empty states, and card surfaces.
 - **Boot appearance:** `index.html` syncs system/stored appearance before shell paint; alert/confirm modals use theme tokens.
 - **Ocean metric:** Irritability animation uses `--ocean-*` tokens from `--primary-color` (calm/moderate/storm).
-- **Server dev:** `chromium_dev.py` + `chromium-dev.mjs` — clean Chromium profile, reload watcher, status API.
+- **Server dev:** `chromium_dev.py` + `chromium-dev.mjs` - clean Chromium profile, reload watcher, status API.
 - **Onboarding:** Auth card polish; privacy gate whitelists recovery/CSS reload overlays.
 - **npm:** Workspace roots at **2.0.8**.
 - **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.8.
 
 ### v2.0.7 - 2026-06-28 - Guided onboarding questionnaire
 
-- **Onboarding (shared + PWA + RN):** `guidedQuestionnaire.mjs` — one modal, multichoice cards, mascot SVG; consents explicit and child-readable; tutorial opt-in.
+- **Onboarding (shared + PWA + RN):** `guidedQuestionnaire.mjs` - one modal, multichoice cards, mascot SVG; consents explicit and child-readable; tutorial opt-in.
 - **PWA:** `guided-onboarding.js` + `#guidedOnboardingOverlay`; replaces day-to-day first-run wizard chrome.
 - **RN:** Rebuilt `FirstRunWizard.tsx` + `onboardingIllustrations.tsx`.
 - **npm:** Workspace roots at **2.0.7**; `first-run-wizard.js` is a deprecation shim only.
@@ -201,11 +210,11 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v2.0.6 - 2026-06-28 - Wellness sliders, onboarding, and goals prompt
 
-- **Sliders (shared + PWA):** `sliderWellness.mjs` — 0 bad (left) / 10 good (right) on every health metric; symptom fields invert on save.
+- **Sliders (shared + PWA):** `sliderWellness.mjs` - 0 bad (left) / 10 good (right) on every health metric; symptom fields invert on save.
 - **Vitals drums (PWA):** Scroll + snap-to-integer for BP/BPM and advanced vitals (`drum-picker-scroll.js`).
 - **Metric widgets (PWA):** Irritability ocean animation; weather-sensitivity lightning; mood face direction fix.
 - **Goals (PWA):** Header target button glows when no goals saved (`hasActiveGoals`, `common.goals.setPrompt`).
-- **Onboarding (shared + PWA + RN):** Unified steps 1–14; tutorial arrow nav; suppress first-session “not logged today” nag.
+- **Onboarding (shared + PWA + RN):** Unified steps 1-14; tutorial arrow nav; suppress first-session “not logged today” nag.
 - **i18n:** “Ability to do Daily activities” rename across locales and CSV.
 - **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.6.
 
@@ -245,7 +254,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Settings (PWA + RN):** Unique carousel icon per pane; import wizard accent button styling.
 - **See:** [CHANGELOG.md](../CHANGELOG.md) v2.0.2.
 
-### v2.0.1 - 2026-06-27 - Post–2.0.0 polish
+### v2.0.1 - 2026-06-27 - Post-2.0.0 polish
 
 - **Barcode food logging (PWA):** Camera + Open Food Facts scan from food modal; consent dashboard + privacy wiki.
 - **App lock:** PIN save fixed (`minPassphraseLength: 4`); i18n fallbacks for setup hints; lock overlay on return.
@@ -270,52 +279,52 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Prompts:** Summary LLM system prompt updated to Oura-style coaching voice (lead finding → range → actionable suggestion).
 - **Privacy:** `share_links` table added to `docs/privacy/ropa.json` (PA-13).
 
-### v1.133.1 - 2026-06-26 - Plans 15–26 rollout hygiene
-- **i18n:** Tier A locale packs translated for Plan 15–26 keys; `verify:i18n` passes at 13% identical threshold.
+### v1.133.1 - 2026-06-26 - Plans 15-26 rollout hygiene
+- **i18n:** Tier A locale packs translated for Plan 15-26 keys; `verify:i18n` passes at 13% identical threshold.
 - **PWA:** Chart loading skeleton `data-i18n-aria` for blood pressure, glucose, SpO₂, and weight charts.
 - **Docs:** Removed duplicate plan stubs (`plan-16-metrics`, `plan-18-api`, `plan-20-selfhost`); MASTER progress **26/26**.
 
-### v1.133.0 - 2026-06-26 - Accessibility & UI Principles (Plan 26, A11Y1–A11Y14)
+### v1.133.0 - 2026-06-26 - Accessibility & UI Principles (Plan 26, A11Y1-A11Y14)
 - **Brain fog mode:** PWA `toggleBrainFogMode`, `.brain-fog-mode` CSS, larger wizard CTA.
 - **WCAG 2.2:** `forced-colors` focus outlines, scroll-margin on focus, warm-dark theme.
 - **Shared:** `@rianell/shared/a11y/wcagHelpers.mjs`.
 - **CI:** `verify:a11y` axe dry-run contract; `docs/ui-principles.md`.
 
-### v1.132.0 - 2026-06-26 - Data Migration Toolkit (Plan 25, DM1–DM9)
+### v1.132.0 - 2026-06-26 - Data Migration Toolkit (Plan 25, DM1-DM9)
 - **Adapters:** Cara Care, Oura, Daylio + `MigrationAdapter` interface.
 - **Import:** `parseMigrationFile`, conflict detection, PWA `openMigrationWizard`.
 
-### v1.131.0 - 2026-06-26 - Docs & Changelog Automation (Plan 24, DC1–DC5)
+### v1.131.0 - 2026-06-26 - Docs & Changelog Automation (Plan 24, DC1-DC5)
 - **Scripts:** `auto-changelog.mjs`, `sync-master-plans.mjs`, `verify-openapi.mjs`.
 - **Docs:** `CONTRIBUTING.md`, `docs/api/openapi.yaml`, GitHub issue/PR templates.
 
-### v1.130.0 - 2026-06-26 - Community & Cohort (Plan 23, CM1–CM4)
+### v1.130.0 - 2026-06-26 - Community & Cohort (Plan 23, CM1-CM4)
 - **Schema:** `community_tips`, `community_triggers`, `get_community_triggers` RPC.
-- **Shared:** `@rianell/shared/community/*` — tips, cohort cards, triggers (k≥5).
+- **Shared:** `@rianell/shared/community/*` - tips, cohort cards, triggers (k≥5).
 
-### v1.129.0 - 2026-06-26 - Performance Optimization (Plan 22, PF1–PF7)
+### v1.129.0 - 2026-06-26 - Performance Optimization (Plan 22, PF1-PF7)
 - **Lazy load:** `lazy-charts.mjs`, `lazyLoadCharts()`; `docs/performance-budgets.md`.
 - **CI:** CWV, Lighthouse, memory profile scripts; WebP/AVIF icon pipeline.
 
-### v1.128.0 - 2026-06-26 - Security Hardening & DAST CI (Plan 21, SEC1–SEC12)
+### v1.128.0 - 2026-06-26 - Security Hardening & DAST CI (Plan 21, SEC1-SEC12)
 - **CI:** `security-dast.yml` (ZAP + axe), Dependabot, MobSF schedule job.
 - **CSP:** `csp-report` edge function; `secureStorage.mjs`; SBOM generator.
 
-### v1.127.0 - 2026-06-26 - Self-Hosted & FHIR R4 (Plan 20, SH1–SH5)
+### v1.127.0 - 2026-06-26 - Self-Hosted & FHIR R4 (Plan 20, SH1-SH5)
 - **SH1:** `docker-compose.yml`, `docker/nginx.conf`, `.env.example`, `docs/self-hosted/README.md`.
 - **SH2/SH3:** `supabase/functions/fhir-r4`, Python `server/routes/fhir.py` (`GET /fhir/r4/*`, `POST $import`).
-- **SH4:** `packages/shared/src/fhir/hl7Parser.mjs` — `parseORU`, `mapLabResultsToLogFields`.
+- **SH4:** `packages/shared/src/fhir/hl7Parser.mjs` - `parseORU`, `mapLabResultsToLogFields`.
 - **SH5:** `docs/connectors/fasten-health.md` compatibility guide.
 - **Tests:** `plan20-selfhost.test.mjs`.
 
-### v1.126.0 - 2026-06-26 - OAuth2 & Third-Party Connectors (Plan 19, CN1–CN7)
+### v1.126.0 - 2026-06-26 - OAuth2 & Third-Party Connectors (Plan 19, CN1-CN7)
 - **CN1:** `oauth2-authorize` / `oauth2-token` edge functions; `oauth2_clients` + `oauth2_auth_codes` schema.
 - **CN2:** `packages/n8n-nodes-rianell` community node stub.
 - **CN3:** Zapier/Make webhook templates in `docs/connectors/`.
-- **CN4–CN7:** Connector edge functions (Google Sheets, Withings, Strava); RN `HealthConnectSync.ts`, `SettingsConnectorsPane`.
+- **CN4-CN7:** Connector edge functions (Google Sheets, Withings, Strava); RN `HealthConnectSync.ts`, `SettingsConnectorsPane`.
 - **Tests:** `plan19-connectors.test.mjs`.
 
-### v1.125.0 - 2026-06-26 - REST API & Webhook Engine (Plan 18, API1–API6)
+### v1.125.0 - 2026-06-26 - REST API & Webhook Engine (Plan 18, API1-API6)
 - **API1:** `api_keys`, `user_webhooks`, `webhook_deliveries` tables + RLS.
 - **API2:** `supabase/functions/api-v1` REST router (logs, metrics, goals, me).
 - **API3:** `docs/api/openapi.yaml` + `verify:api-spec`.
@@ -323,20 +332,20 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **API5:** `deliver-webhook` with HMAC signatures + retries; PWA/RN fire-and-forget on sync.
 - **Tests:** `plan18-api.test.mjs`.
 
-### v1.123.0 - 2026-06-26 - Extended Vital Signs & Metrics (Plan 16, VM1–VM11)
-- **VM1–VM5:** Blood pressure, blood glucose (mmol/L storage + unit toggle), SpO₂, HRV, body weight/BMI in PWA + RN wizards and chart series.
-- **VM6–VM7:** Supplement library (distinct from meds) and Bristol stool scale (digestion module setting).
-- **VM8–VM9:** `painLocations` array from body-map; gratitude journal field (private, not in research pool).
+### v1.123.0 - 2026-06-26 - Extended Vital Signs & Metrics (Plan 16, VM1-VM11)
+- **VM1-VM5:** Blood pressure, blood glucose (mmol/L storage + unit toggle), SpO₂, HRV, body weight/BMI in PWA + RN wizards and chart series.
+- **VM6-VM7:** Supplement library (distinct from meds) and Bristol stool scale (digestion module setting).
+- **VM8-VM9:** `painLocations` array from body-map; gratitude journal field (private, not in research pool).
 - **VM10:** Basal body temperature with °C/°F unit pref on cycle step.
 - **VM11:** Photo attachments via private `health-photos` Supabase bucket; PWA upload when signed in.
 - **Shared:** `normalizeVitalMetrics`, `painBodyStateToLocations`, FHIR-lite codes for new vitals.
 - **Tests:** `plan16-metrics.test.mjs`; docs `data-model.md`, `platform-parity.json`, `plan-16-extended-metrics/`.
 
-### v1.124.0 - 2026-06-26 - Nutrition Deep-Dive (Plan 17, NU1–NU5)
+### v1.124.0 - 2026-06-26 - Nutrition Deep-Dive (Plan 17, NU1-NU5)
 - **NU1:** `searchFood` in `barcodeFood.mjs`; PWA food search UI + RN `FoodSearchInput`.
-- **NU2:** `packages/shared/src/nutrition/fodmap.mjs` — FODMAP badges and digest correlation.
+- **NU2:** `packages/shared/src/nutrition/fodmap.mjs` - FODMAP badges and digest correlation.
 - **NU3:** `detectFoodSensitivities` in `@rianell/ai-engine`.
-- **NU4:** `macroBreakdown.mjs` — per-serving macros and daily aggregation.
+- **NU4:** `macroBreakdown.mjs` - per-serving macros and daily aggregation.
 - **NU5:** Meal photo capture in food wizard (PWA/RN); `mealPhoto.mjs` helpers.
 - **Tests:** `plan17-nutrition.test.mjs`.
 
@@ -352,19 +361,19 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Tests:** `keyManagement`, `notificationParity`, `plan15-foundation` (+423 total unit tests).
 
 ### v1.97.0 - 2026-06-24 - Achievements overhaul + Engagement & UX
-- **Catalog:** `ALL_ACHIEVEMENTS` expands from 3 → 11 ids — logging (3), milestones (5), engagement (3); `tier` field for bronze/silver/gold/platinum UI accents.
+- **Catalog:** `ALL_ACHIEVEMENTS` expands from 3 → 11 ids - logging (3), milestones (5), engagement (3); `tier` field for bronze/silver/gold/platinum UI accents.
 - **Progress UI:** Per-card animated progress bars + `{unlocked} / {total}` completion counter on RN `AchievementsPane` and PWA `renderAchievementsPane`.
 - **In-app toast:** RN `AchievementUnlockToast` (spring slide, glow, haptics, queue); PWA `#achievementToast` with CSS glow animation; shared `achievementToastQueue.mjs`.
 - **Icons:** Redesigned crosshair target + ribbon medal nav tab icons (RN `goalsModalIcons.tsx`, PWA SVG sprites); new `icon-sleep`, `icon-cycle`, `icon-star` sprites.
 - **Security:** Achievement id allowlist on `markAchievementNotified`/`markAchievementSeen`; SVG icon name allowlists; `localStorage` quota guard on achievement writes.
 - **Engagement UX (empty states):** Empathetic `EmptyState` variants (logs, charts, AI, mood, weekly review); `ChartsEmptyPreview` / `AiInsightEmptyPreview` ghost previews; PWA parity HTML/CSS with `prefers-reduced-motion` guards.
-- **Home onboarding:** Dismissible `HomeWelcomeCard` (days 1–7 or until 3 logs); `HomeDiscoveryChips` when logs = 0; FAB pulse ring; hero **Log now** CTA; weekly-review completion banner.
+- **Home onboarding:** Dismissible `HomeWelcomeCard` (days 1-7 or until 3 logs); `HomeDiscoveryChips` when logs = 0; FAB pulse ring; hero **Log now** CTA; weekly-review completion banner.
 - **Settings:** Three `SettingsChapter` accordions (Getting started / Customise / Advanced); quick-setup progress strip; inline `(?)` hints on AI, model tier, and anonymized-data toggles.
 - **Gamification (tasteful):** Log-count milestone toasts (1/5/10/25/50); daily goal micro-celebration; streak grace day copy; in-wizard unlock banners (food/exercise/meds); RN home goals progress bars; personal-best card; tab discovery badges (Charts @ 1 log, AI @ 7); unseen-achievement dot on Goals header; `markAchievementSeen` wired on achievements pane.
 - **Goals modal polish:** First-visit orientation card; per-field `goals.field.*` hints (steps, hydration, sleep, good days); achievement progress bars expose `accessibilityRole="progressbar"`.
 - **Shared:** `personalBests.mjs`, `isLoggingStreakGrace()`, extended `homeDashboardPrefs` (`homeWelcomeCardDismissed`, `goalsModalSeenCount`, `firstOpenDate`, `weeklyReviewCompletedAt`, `personalBestDismissedAt`).
 - **i18n:** 60+ empathetic copy keys in all en-* locale packs (root + PWA + RN mirrors); Tier A pl-PL/pt-PT engagement overrides; `scripts/dev/add-engagement-i18n.mjs`.
-- **Tests:** **408** root unit tests; **132** RN Jest tests — new `EmptyState`, `SettingsChapter`, `HomeWelcomeCard`, `HomeDiscoveryChips`, `MoodScreen` tests; updated screen tests.
+- **Tests:** **408** root unit tests; **132** RN Jest tests - new `EmptyState`, `SettingsChapter`, `HomeWelcomeCard`, `HomeDiscoveryChips`, `MoodScreen` tests; updated screen tests.
 - **Docs:** `CHANGELOG.md`, `project-reference.md`, `data-model.md`, `platform-parity.md`, `ux-audit.md`.
 
 ### v1.96.2 - 2026-06-24 - First-run wizard consent interaction fix
@@ -375,24 +384,24 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Docs:** CHANGELOG, project-reference, wiki Release Notes.
 
 ### v1.96.1 - 2026-06-24 - CI Android APK + live probe fixes
-- **Android APK:** Root `overrides` pin `expo-modules-core@55.0.25` — lockfile had nested **56.0.17** under `apps/rn-app`, breaking Kotlin `Promise` bridge vs RN 0.83. CI Gradle sets `RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM=1` so release Metro bundle uses HF stubs (matches Expo export gate).
+- **Android APK:** Root `overrides` pin `expo-modules-core@55.0.25` - lockfile had nested **56.0.17** under `apps/rn-app`, breaking Kotlin `Promise` bridge vs RN 0.83. CI Gradle sets `RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM=1` so release Metro bundle uses HF stubs (matches Expo export gate).
 - **Live LLM job:** `deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and longer timeouts for `https://rianell.com/` (Cloudflare `load` event often never fires from GitHub runners).
 - **Docs:** CHANGELOG, wiki Build-Test-and-CI.
 
-### v1.96.0 - 2026-06-23 - Post-launch operator setup (Stages 2–4)
+### v1.96.0 - 2026-06-23 - Post-launch operator setup (Stages 2-4)
 - **Supabase schema:** `private.*_impl` + public `SECURITY INVOKER` wrappers (clears Security Advisor **0029** on pool RPCs and `delete_all_user_data`); `Schema-fresh-install.sql` for empty DB wipe; patch `supabase/patches/fix-lint-0029-security-definer.sql`; `consent_audit_log` + GDPR erasure RPC retained.
-- **Edge Function:** `delete-user-data` deployed on project `gitnxgfbbpykwqvogmqq` — RPC wipe + `auth.admin.deleteUser`; PWA/RN `deleteAllUserDataFromCloud` invokes function with table-delete fallback on 404; `npm run supabase:deploy:delete-user-data`.
+- **Edge Function:** `delete-user-data` deployed on project `gitnxgfbbpykwqvogmqq` - RPC wipe + `auth.admin.deleteUser`; PWA/RN `deleteAllUserDataFromCloud` invokes function with table-delete fallback on 404; `npm run supabase:deploy:delete-user-data`.
 - **Pages deploy:** CI + `launch-server.ps1` copy `apps/pwa-webapp/.well-known/` and `.nojekyll` (Jekyll skips dot paths without it); build guards for both.
-- **Cloudflare (operator):** HTTP headers trimmed to `frame-ancestors 'self'` + companion headers; full CSP remains in PWA meta tag — see [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md).
+- **Cloudflare (operator):** HTTP headers trimmed to `frame-ancestors 'self'` + companion headers; full CSP remains in PWA meta tag - see [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md).
 - **Docs:** `APPLY.md`, `SECURITY.md`, launch checklist, wiki Release Notes / Cloud Sync / Build-Test-and-CI.
 - **Tests:** **398** unit tests pass.
 
-### v1.95.0 - 2026-06-23 - Launch audit Phases 4–9
+### v1.95.0 - 2026-06-23 - Launch audit Phases 4-9
 - **Compliance (Phase 4):** EU AI Act self-assessment, DSA notes, app-store declarations, Play `data-safety.xml`; Smartlook Art. 6 legal basis; pg_cron retention SQL comments in `Schema.sql`.
 - **Performance (Phase 5):** Preconnect for Supabase, jsDelivr, Open-Meteo; `docs/performance-budget.md`; Cloudflare cache rules in edge docs; Transformers lazy-load documented in `performance-utils.js`.
 - **Accessibility (Phase 6):** Skip link first in body; settings toggle `role="switch"`; app-lock focus trap; `verify-a11y-tokens.mjs` + CI gate; `docs/accessibility.md`.
 - **RN (Phase 7):** AES-GCM encrypted health logs (`logsAesGcm.ts`); `android-hardening.md` (pinning, ProGuard); minimized Android `blockedPermissions`.
-- **Docs (Phase 8):** `launch-checklist.md`; threat-model and incident-response launch refs; wiki CI job note; CHANGELOG phases 3–8.
+- **Docs (Phase 8):** `launch-checklist.md`; threat-model and incident-response launch refs; wiki CI job note; CHANGELOG phases 3-8.
 - **UX (Phase 9):** Boot skeleton, settings overlay CSS classes, offline banner fix, demo mode badge, RN Home haptics, `ErrorBoundary`, `docs/ux-audit.md`.
 
 ### v1.94.0 - 2026-06-23 - Launch audit Phase 1 (CSP / headers / SRI)
@@ -403,7 +412,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Docs:** `SECURITY.md` CSP nonce roadmap + SRI table.
 
 ### v1.121.0 - 2026-06-22 - Cycle period-start anchor
-- **Cycle tracking (PWA + RN):** **Period started today** sets `cycle.periodStart` and day 1; cycle day auto-computed from last period start via `findLatestPeriodStart` + `computeCycleDayFromPeriodStart`. Day selector defaults to **1–35** (ACOG-cited normal range); **Longer or irregular cycle** expands **36–45**. Late-cycle readout when day > 35.
+- **Cycle tracking (PWA + RN):** **Period started today** sets `cycle.periodStart` and day 1; cycle day auto-computed from last period start via `findLatestPeriodStart` + `computeCycleDayFromPeriodStart`. Day selector defaults to **1-35** (ACOG-cited normal range); **Longer or irregular cycle** expands **36-45**. Late-cycle readout when day > 35.
 - **Shared:** `CYCLE_DAY_NORMAL_MAX` (35), `CYCLE_DAY_SELECTOR_MAX` (35), `periodStart` on cycle object, `isCycleDayLate`, `daysSincePeriodStart`; `suggestCycleForDate` prefers period-start anchor with legacy `findLatestCycleAnchor` fallback.
 - **i18n:** `wizard.cycle.periodStartedToday`, `showLongCycle`, `daysSincePeriod`, `lateHint`, `autoFromPeriodStart`; Plan 04 Tier-A overrides; 14 locale packs synced.
 - **Goals modal (PWA):** Carousel meta line and dot aria-labels use `RianellI18n.t` (fixes raw keys like `common.goals.targets`); dot icons use `ui-svg-icon` for theme-aware stroke; locale refresh when modal open.
@@ -414,7 +423,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Theme tokenization (PWA):** Replaced hundreds of hardcoded mint greens (`#4caf50`, `rgba(76, 175, 80, …)`) with **`--accent-*`** derivatives of `--primary-color` in `styles.css` and `styles-charts.css`. Affects modals (Food/Exercise log), AI Analysis (At a glance, range buttons, carousel arrows, copy note), Mood tab scores/check-ins, chart prediction dividers, progress bars, and save-button icons.
 - **Runtime theme helpers:** `getThemePrimaryColor()`, `getThemeAccentSoft()`, `themePrimaryRgba()`, `colorToRgba()` read from **`document.body`** (not `:root`) so non-mint themes apply to ApexCharts, AI inline colours, and sliders. `setGlobalTheme()` refreshes charts and re-renders AI summary when results are visible.
 - **Themed body overrides:** `body.theme-*` sets `--ui-icon-color` and `--home-checkin-icon-color` so SVG icons follow the active global theme.
-- **Unified onboarding counter (PWA + RN):** `packages/shared/src/onboarding/unifiedOnboardingProgress.mjs` — one continuous **step X of Y** across first-run wizard + per-slide tutorial (9 slides with AI on, 5 with AI off). PWA `first-run-wizard.js` and RN `FirstRunWizard.tsx` use shared resolver; tutorial slide titles keyed by slide id (fixes wrong title mapping).
+- **Unified onboarding counter (PWA + RN):** `packages/shared/src/onboarding/unifiedOnboardingProgress.mjs` - one continuous **step X of Y** across first-run wizard + per-slide tutorial (9 slides with AI on, 5 with AI off). PWA `first-run-wizard.js` and RN `FirstRunWizard.tsx` use shared resolver; tutorial slide titles keyed by slide id (fixes wrong title mapping).
 - **i18n:** `tutorial.slide1.title` … `tutorial.slide8.title` in en-GB canonical pack; Tier-A overrides in `plan03-tier-a-overrides.mjs`; synced 14 locale packs.
 - **Tests:** `unifiedOnboardingProgress.test.mjs`, `theme-accent-tokens.test.mjs`; **368** unit tests total.
 - **Docs:** CHANGELOG, project-reference, app-and-features, styling.md, platform-parity, wiki Release-Notes/Features/Settings/Getting-Started/Charts-and-AI.
@@ -422,7 +431,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.119.0 - 2026-06-21 - Cycle tracking, Home UX, logging module trim
 - **Cycle tracking (PWA + RN):** Theme-token **SVG phase icons** (no emoji); i18n labels refresh after catalog load; horizontal day row scrolls via wheel/drag/swipe with **hidden scrollbar**; **suggest cycle day + phase** from last log entry and selected date; tutorial **slide 8** explains and toggles `cycleModuleEnabled`.
 - **Shared:** `suggestCycleForDate`, `findLatestCycleAnchor`, `daysBetweenIsoDates` in `cycleTracking.mjs`; `CYCLE_DAY_MAX` **45** (typical phase hints use ~28-day pattern; extended range supports long/irregular cycles).
-- **Logging modules:** **Barcode food** and **guided voice extraction** toggles **removed from Settings** (no scanner / extraction UI shipped); prefs forced off on load — cycle module remains.
+- **Logging modules:** **Barcode food** and **guided voice extraction** toggles **removed from Settings** (no scanner / extraction UI shipped); prefs forced off on load - cycle module remains.
 - **Home (PWA + RN):** **Recent patterns** card gets icon + white body text; **Weekly Health Review** shows **Enable AI** (opens on-device model download) when LLM not ready; **Start review** when model loaded.
 - **Mood tab (PWA):** Trend sparkline constrained to card width on mobile (responsive SVG, 2-column metric grid).
 - **i18n:** `tutorial.slide8.*`, `wizard.cycle.suggestedFromLast`, `weeklyReview.card.enableAi`; synced 14 locale packs.
@@ -431,9 +440,9 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.118.0 - 2026-06-21 - Onboarding UX & Smartlook default-on
 - **First-run wizard (PWA + RN):** Tracking profile step deferred to Settings (defaults applied on wizard complete); fixed nested tutorial/install modals and skip controls; medical condition configured in Settings like other users.
-- **Smartlook:** Session recording **on by default** after onboarding disclosure — new first-run step after cookies with toggle (default on); `shouldActivateSessionRecording()` gates SDK until `sessionRecordingDisclosureAt` or explicit Settings enable; existing opt-outs preserved; Settings toggle skips consent modal when already disclosed.
+- **Smartlook:** Session recording **on by default** after onboarding disclosure - new first-run step after cookies with toggle (default on); `shouldActivateSessionRecording()` gates SDK until `sessionRecordingDisclosureAt` or explicit Settings enable; existing opt-outs preserved; Settings toggle skips consent modal when already disclosed.
 - **Settings (PWA):** Consent dashboard moved to **Privacy & region** pane (tick icon on carousel dot); privacy fields use stacked layout; inactive carousel panes no longer bleed adjacent content.
-- **Goals modal (PWA):** Carousel navigation fixed — `goals-carousel.js` rewritten as IIFE (was ES module in plain script tag); flex arrow layout, hidden inactive panes, scrollbar fixes on targets/achievements panes.
+- **Goals modal (PWA):** Carousel navigation fixed - `goals-carousel.js` rewritten as IIFE (was ES module in plain script tag); flex arrow layout, hidden inactive panes, scrollbar fixes on targets/achievements panes.
 - **Icons:** Morning check-in sun tokenized (`currentColor`), sized to match midday; horizon semicircle + upper rays.
 - **Shared:** `packages/shared/src/analytics/sessionRecordingPrefs.mjs`; first-run step `sessionRecording` in `firstRunSteps.mjs`.
 - **i18n:** `onboarding.step.sessionRecording`, `onboarding.sessionRecording.*`; settings hint updated to “on by default after onboarding”; policy bodies sync; 14 locale packs.
@@ -441,14 +450,14 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Docs:** smartlook-session-recording.md, project-reference, app-and-features, platform-parity, wiki Privacy/Getting-Started/Release-Notes/Features/Settings.
 
 ### v1.117.1 - 2026-06-21 - Supabase pool RPC security hardening
-- **Schema:** `supabase/Schema.sql` §4 — explicit `REVOKE EXECUTE … FROM anon` on `get_k_anon_pool_insights` and `count_pool_contribution_days` (Plan 13 RE1). Clears Security Advisor **0028** (`anon_security_definer_function_executable`); **0029** for `authenticated` remains accepted (signed-in-only RPC by design).
+- **Schema:** `supabase/Schema.sql` §4 - explicit `REVOKE EXECUTE … FROM anon` on `get_k_anon_pool_insights` and `count_pool_contribution_days` (Plan 13 RE1). Clears Security Advisor **0028** (`anon_security_definer_function_executable`); **0029** for `authenticated` remains accepted (signed-in-only RPC by design).
 - **Docs:** SECURITY.md pool RPC section; APPLY.md Security Advisor note.
-- **RN:** Fix `typecheck:mobile` — `useT()` destructuring, GoalsModal carousel ref, dynamic `expo-notifications` import, `HomeScreen` bug-report attachment import.
+- **RN:** Fix `typecheck:mobile` - `useT()` destructuring, GoalsModal carousel ref, dynamic `expo-notifications` import, `HomeScreen` bug-report attachment import.
 - **Tests:** Schema RLS test asserts anon revoke on both pool RPCs; **353** unit tests total.
 
 ### v1.117.0 - 2026-06-21 - Achievements & progressive logging unlock
-- **Achievements:** Food (day 7), exercise (day 14), and medication (day 21) logging unlocks derived from `progressiveTracking.mjs` — unlock state computed from `trackingProfile.configuredAt`, not client-trusted flags.
-- **Goals modal:** PWA + RN **2-pane carousel** — Goals targets + Achievements grid with theme-tokenized icons; wizard lock CTAs open Achievements pane.
+- **Achievements:** Food (day 7), exercise (day 14), and medication (day 21) logging unlocks derived from `progressiveTracking.mjs` - unlock state computed from `trackingProfile.configuredAt`, not client-trusted flags.
+- **Goals modal:** PWA + RN **2-pane carousel** - Goals targets + Achievements grid with theme-tokenized icons; wizard lock CTAs open Achievements pane.
 - **Notifications:** One-shot unlock toasts when notifications enabled; `notifiedAt` dedup in local + cloud state.
 - **Shared:** `packages/shared/src/achievements/achievements.mjs`, `achievementUnlockNotification.mjs`; PWA vendor rebuild.
 - **Cloud:** Supabase **`user_achievements`** table (jsonb `achievements`, owner RLS); PWA `achievements-sync.js`; RN `achievementsSync.ts`; included in unified cloud deletion.
@@ -459,26 +468,26 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Docs:** data-model, SECURITY, APPLY.md (6 tables), platform-parity, project-reference sync.
 
 ### v1.116.0 - 2026-06-21 - Stepped PHQ-9/GAD-7 screening follow-up
-- **Screening (X14.5):** Quick mood check (PHQ-2) and Quick anxiety check (GAD-2) now offer **stepped follow-up** when initial score ≥ 3 — PHQ-9 items 3–9 (7 questions) or GAD-7 items 3–7 (5 questions). Low scores still show `/6` result without follow-up; full instruments score `/27` or `/21` with severity bands.
+- **Screening (X14.5):** Quick mood check (PHQ-2) and Quick anxiety check (GAD-2) now offer **stepped follow-up** when initial score ≥ 3 - PHQ-9 items 3-9 (7 questions) or GAD-7 items 3-7 (5 questions). Low scores still show `/6` result without follow-up; full instruments score `/27` or `/21` with severity bands.
 - **Crisis protocol:** PHQ-9 item 9 (self-harm thoughts) ≥ 1 shows prominent crisis alert before result; regional HTTPS crisis links unchanged.
 - **Data:** Screening answers remain **ephemeral** (in-memory until modal close; no cloud sync).
-- **Shared:** `packages/shared/src/crossCutting/mentalHealthScreening.mjs` — `PHQ9_QUESTIONS`, `GAD7_QUESTIONS`, follow-up gates, merge/score helpers, `interpretPhq9Score` / `interpretGad7Score`, `isPhq9SuicideItemPositive`.
+- **Shared:** `packages/shared/src/crossCutting/mentalHealthScreening.mjs` - `PHQ9_QUESTIONS`, `GAD7_QUESTIONS`, follow-up gates, merge/score helpers, `interpretPhq9Score` / `interpretGad7Score`, `isPhq9SuicideItemPositive`.
 - **PWA:** Multi-phase state machine in `weekly-review.js` (`initial` → `followup` → `result`); styles for follow-up intro and item-9 crisis block.
-- **RN:** Parity in `MoodScreen.tsx` — same phased flow, dynamic score max, item-9 crisis UI.
+- **RN:** Parity in `MoodScreen.tsx` - same phased flow, dynamic score max, item-9 crisis UI.
 - **i18n:** 24+ new `mentalHealth.phq9.*` / `mentalHealth.gad7.*` keys (en-GB canonical + Tier-A overrides for 8 locales); synced 14 locale packs.
 - **Tests:** 5 new plan14-cross-cutting tests (follow-up gates, full scoring, severity bands, item-9 detection, i18n coverage); **341** unit tests total.
 - **Docs:** plan-14 security-performance note; app-and-features, platform-parity, project-reference sync sections.
 
 ### v1.115.0 - 2026-06-20 - PWA boot shell fix, Smartlook session recording
-- **PWA boot (black screen):** `#appShell` was nested inside `#settingsOverlay` due to a missing `</div>` in `index.html` — shell reported `shellVis: visible` but `shellW/H: 0` and painted nothing. Fixed DOM structure; added `ensureAppShellDomPlacement()` runtime reparent for cached HTML; expanded `[Rianell boot]` diagnostics (`shellParentId`, `shellMisplaced`, `mainW/H`, open modals).
+- **PWA boot (black screen):** `#appShell` was nested inside `#settingsOverlay` due to a missing `</div>` in `index.html` - shell reported `shellVis: visible` but `shellW/H: 0` and painted nothing. Fixed DOM structure; added `ensureAppShellDomPlacement()` runtime reparent for cached HTML; expanded `[Rianell boot]` diagnostics (`shellParentId`, `shellMisplaced`, `mainW/H`, open modals).
 - **Boot probes:** `npm run audit:probe-shell`, `audit:probe-shell:screenshot`, `scripts/audit/probe-shell-layout-debug.mjs`, `scripts/audit/check-dom-nesting.mjs`; `tests/unit/pwa-boot-shell.test.mjs`.
-- **Smartlook (opt-in):** EU session recording on PWA + RN — off by default; Settings → Privacy & region → Session recording; Consent dashboard revoke; blocked in local-only mode. PWA `smartlook.js`; RN `sessionRecording.ts` + `react-native-smartlook-analytics`; CSP `connect-src` for `*.smartlook.com` / `*.smartlook.cloud`.
+- **Smartlook (opt-in):** EU session recording on PWA + RN - off by default; Settings → Privacy & region → Session recording; Consent dashboard revoke; blocked in local-only mode. PWA `smartlook.js`; RN `sessionRecording.ts` + `react-native-smartlook-analytics`; CSP `connect-src` for `*.smartlook.com` / `*.smartlook.cloud`.
 - **Privacy docs:** [smartlook-session-recording.md](privacy/smartlook-session-recording.md), subprocessors, RoPA **PA-10**, policy pack `sessionRecording` consent, FREE-TIER-POLICY.
 - **i18n:** `settings.privacy.sessionRecording.*` keys (en-GB + policy pack sync).
 - **Tests:** `smartlook-session-recording.test.mjs`; consent dashboard **6 rows**; **326** unit tests total.
 
 ### v1.114.0 - 2026-06-18 - Security lock tab, Home/Charts UX, screening sliders
-- **Settings:** Tenth carousel pane **Security lock** (PWA + RN) — app passcode setup with hidden PIN + confirm fields; locked/unlocked icons on tab dot; **caregiver / proxy logging** moved from Privacy pane; app lock removed from tab 1.
+- **Settings:** Tenth carousel pane **Security lock** (PWA + RN) - app passcode setup with hidden PIN + confirm fields; locked/unlocked icons on tab dot; **caregiver / proxy logging** moved from Privacy pane; app lock removed from tab 1.
 - **Home:** Merged streak-nudge copy into hero status card; removed separate nudge card and **energy budget / pacing** Home card (`homeCardRegistry`).
 - **Charts:** Removed insights panel (metric correlations, forecast bands, compare periods, spoon/pacing strip) on PWA and RN.
 - **Screening:** PHQ-2 and GAD-2 use range sliders (not vertical button stacks); friendlier titles; centered submit; PWA `weekly-review.js` + RN `MoodScreen`.
@@ -486,16 +495,16 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Shared:** `weatherIcons.mjs` + RN `weatherIcons.ts`; home weather strip uses shared icon mapping; `home-weather-icons` unit test.
 - **RN settings:** `SettingsSecurityLockPane`, `SettingsPerformanceLearnPane` (moat + milestones accordion); removed `SettingsCrossCuttingPane`.
 - **Security ops:** `verify-csp-connect-src-live.mjs`; Cloudflare header notes for Open-Meteo `connect-src`.
-- **Logging modules:** Toggles still gate **log wizard** only — cycle on step 1; barcode + guided voice fully wired on **RN** food/notes steps; **PWA barcode/voice UI not yet wired** (documented in project-reference).
+- **Logging modules:** Toggles still gate **log wizard** only - cycle on step 1; barcode + guided voice fully wired on **RN** food/notes steps; **PWA barcode/voice UI not yet wired** (documented in project-reference).
 - **Tests:** **314** unit tests total.
 
 ### v1.113.0 - 2026-06-18 - Mood tab, Home UX, i18n & CSP fixes
-- **Mood tab:** New primary nav tab (PWA + RN) between Charts and AI — mood metrics from log answers, recent-feeling sparkline, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, Charts mood link; `apps/pwa-webapp/modules/mood-tab.js`, RN `MoodScreen.tsx`.
-- **Shared:** `packages/shared/src/mood/moodMetrics.mjs` — `collectMoodReadings`, `summarizeMoodMetrics`, `moodQualitativeKey`; PWA vendor rebuild (`rianell-shared.js`, `rianell-ai-engine.js`).
+- **Mood tab:** New primary nav tab (PWA + RN) between Charts and AI - mood metrics from log answers, recent-feeling sparkline, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, Charts mood link; `apps/pwa-webapp/modules/mood-tab.js`, RN `MoodScreen.tsx`.
+- **Shared:** `packages/shared/src/mood/moodMetrics.mjs` - `collectMoodReadings`, `summarizeMoodMetrics`, `moodQualitativeKey`; PWA vendor rebuild (`rianell-shared.js`, `rianell-ai-engine.js`).
 - **Home UX:** Opt-in weather inline in welcome/date header (standalone weather card removed); micro-check-in removed from Home (lives on Mood tab); Upcoming visit / appointment Home card removed (`homeCardRegistry`); CL1 appointment PDF prep unchanged in clinician flows.
 - **i18n:** Settings cross-cutting sections refresh via `applyDocumentI18n()`; PHQ/GAD screening + weekly review modals wait for catalogs (`withCatalogsReady`, `refreshOpenModalI18n` on locale change); `nav.mood` and `mood.*` keys across 14 locale packs.
-- **Copy:** Replaced em dashes (—) with en dashes or commas in UI strings (locale + prompt packs, PWA/RN/shared/ai-engine).
-- **PWA:** Data-management settings tiles — one button per grid cell; CSP `connect-src` allows Open-Meteo (`api.open-meteo.com`, `air-quality-api.open-meteo.com`); `verify-csp-connect-src` gate updated.
+- **Copy:** Replaced em dashes ( - ) with en dashes or commas in UI strings (locale + prompt packs, PWA/RN/shared/ai-engine).
+- **PWA:** Data-management settings tiles - one button per grid cell; CSP `connect-src` allows Open-Meteo (`api.open-meteo.com`, `air-quality-api.open-meteo.com`); `verify-csp-connect-src` gate updated.
 - **Tests:** `mood-metrics.test.mjs` (3); plan14 mental-health i18n keys; plan10/plan04 adjustments; **308** unit tests total.
 - **Security:** `npm audit` clean; CVE review notes in SECURITY.md (Supabase Auth operator floor, dev-only Metro CVE-2025-11953).
 
@@ -504,50 +513,50 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Supabase:** Single idempotent **`supabase/Schema.sql`** (tables, RLS, grants, RE1 RPCs, §5 verification); removed `pool-insights-rpc.sql` and `harden-graphql-exposure.sql`; added **`supabase/APPLY.md`**.
 - **Docs:** AGENTS.md, architecture-standard, project-reference, SECURITY, testing-and-configuration updated; `verify-rls-baseline` reads Schema.sql.
 
-### v1.111.0 - 2026-06-19 - Plan 14 Cross-cutting concepts (X14.1–X14.5)
-- **X14.1:** Weekly Health Review ritual — Home card + 5-step flow (correlations → digest → visit brief → PDF); PWA modal + RN `WeeklyReviewScreen`.
-- **X14.2:** On-device AI moat copy in Settings (PWA + RN) — local inference default, pool opt-in, local-only alignment.
+### v1.111.0 - 2026-06-19 - Plan 14 Cross-cutting concepts (X14.1-X14.5)
+- **X14.1:** Weekly Health Review ritual - Home card + 5-step flow (correlations → digest → visit brief → PDF); PWA modal + RN `WeeklyReviewScreen`.
+- **X14.2:** On-device AI moat copy in Settings (PWA + RN) - local inference default, pool opt-in, local-only alignment.
 - **X14.3:** Progressive disclosure milestones in Settings + tracking wizard lead (day 1 → week 2 → month 2 → pool).
-- **X14.4:** Charts telehealth presentation mode — 7-day lock, large fonts, minimal chrome (PWA toggle + RN switch).
+- **X14.4:** Charts telehealth presentation mode - 7-day lock, large fonts, minimal chrome (PWA toggle + RN switch).
 - **X14.5:** PHQ-2/GAD-2 wellness screeners + regional crisis links; disclaimers (not diagnostic).
 - **Shared:** `packages/shared/src/crossCutting/*`; home card `weeklyReview`; prefs `chartsPresentationMode`, `weeklyReviewDismissedWeek`.
 - **Tests:** 7 plan14-cross-cutting tests (302 total).
 
 ### v1.110.0 - 2026-06-19 - Plan 13 Research & anonymized pool (RE1, RE4)
-- **RE4:** Export own anonymized contribution rows — decrypt locally, `rianell-contribution-export-v1` JSON; Settings export (PWA + RN).
+- **RE4:** Export own anonymized contribution rows - decrypt locally, `rianell-contribution-export-v1` JSON; Settings export (PWA + RN).
 - **RE1:** K-anonymous pool insights via `get_k_anon_pool_insights` RPC (k≥5); sleep≥7h vs flare cohort insight; 90-day + opt-in gates; AI tab panel (PWA + RN).
 - **Sync:** `research_facets` on insert, `user_id` on PWA anon upload, RN dedup + `contributeAnonData`/`demoMode` gates; shared `anonPoolPayload.mjs`.
 - **Schema:** `research_facets jsonb` on `anonymized_data`; `supabase/pool-insights-rpc.sql`.
 - **Tests:** 8 plan13-research-pool tests (295 total).
 
 ### v1.109.0 - 2026-06-19 - Plan 12 Clinician & sharing (CL1, CL2, CL4, CL5)
-- **CL1:** Appointment prep PDF — chart summary, meds, flare calendar, optional N2 brief + CL5 questions; H6 prep CTA opens PDF (PWA print + RN expo-print/share).
+- **CL1:** Appointment prep PDF - chart summary, meds, flare calendar, optional N2 brief + CL5 questions; H6 prep CTA opens PDF (PWA print + RN expo-print/share).
 - **CL2:** Ephemeral encrypted QR handoff (P4 crypto, 60 min TTL, bounded payload); PWA QR modal + RN share token from Settings.
 - **CL4:** Medication timeline rows in appointment PDF; `treatmentStarts` pref + infer-from-logs fallback.
-- **CL5:** New `doctorQuestions` LLM intent — 3 wellness-framed questions (PWA + RN AI tab).
+- **CL5:** New `doctorQuestions` LLM intent - 3 wellness-framed questions (PWA + RN AI tab).
 - **Shared:** `clinician/*`, `doctorQuestionsContext.mjs`; golden prompt audit 9 intents.
 - **Tests:** 7 plan12-phase-a tests (287 total).
 
 ### v1.108.0 - 2026-06-19 - Plan 11 Notifications phase D (R6)
-- **R6:** Optional streak reminder paired with H3 — calm-day streak context replaces generic missed-log nudge when streak ≥ 2; respects H3 card dismiss; user-disable toggle; no achievements.
+- **R6:** Optional streak reminder paired with H3 - calm-day streak context replaces generic missed-log nudge when streak ≥ 2; respects H3 card dismiss; user-disable toggle; no achievements.
 - **Shared:** `streakReminderNudge.mjs`; prefs `streakReminderNudgeDate`, `streakReminderNudgesEnabled`.
 - **Tests:** 6 plan11-phase-d tests (280 total).
 
 ### v1.107.0 - 2026-06-19 - Plan 11 Notifications phase C (R4, R5)
-- **R4:** Production PWA Web Push — `push-config.js` VAPID inject at Pages deploy; consent/region gates via `canOfferWebPush`; enable/disable UI; `RIANELL_PUSH_CLICK` routing; SW icon path fix.
-- **R5:** Gentle 7-day re-engagement — single nudge per idle period; user-disable toggle (RN + PWA); `lastActiveAt` activity tracking.
+- **R4:** Production PWA Web Push - `push-config.js` VAPID inject at Pages deploy; consent/region gates via `canOfferWebPush`; enable/disable UI; `RIANELL_PUSH_CLICK` routing; SW icon path fix.
+- **R5:** Gentle 7-day re-engagement - single nudge per idle period; user-disable toggle (RN + PWA); `lastActiveAt` activity tracking.
 - **Shared:** `webPushConsent.mjs`, `reEngagementNudge.mjs`.
 - **Tests:** 5 plan11-phase-c tests (274 total).
 
 ### v1.106.0 - 2026-06-19 - Plan 11 Notifications phase B (R2, R3)
-- **R2:** L3 medication dose local reminders — schedule at dose times; taken opens log wizard, snooze +15 min (RN + PWA).
-- **R3:** Flare-risk nudge when A5-aligned fatigue anomaly detected — max one per ISO week (RN + PWA).
+- **R2:** L3 medication dose local reminders - schedule at dose times; taken opens log wizard, snooze +15 min (RN + PWA).
+- **R3:** Flare-risk nudge when A5-aligned fatigue anomaly detected - max one per ISO week (RN + PWA).
 - **Shared:** `medDoseReminders.mjs`, `flareRiskNudge.mjs`; prefs `medDoseReminderNotifiedAt`, `flareRiskNudgeWeek`.
 - **Tests:** 6 plan11-phase-b tests (269 total).
 
 ### v1.105.0 - 2026-06-19 - Plan 11 Notifications phase A (R1)
 - **R1:** Learn median log time from 14 days of `savedAt` stamps; schedule daily reminder at learned time (fallback to user setting).
-- **R1:** Missed-log nudge at median + 30 min — one-shot local notification (RN) or web notification (PWA) when still unlogged.
+- **R1:** Missed-log nudge at median + 30 min - one-shot local notification (RN) or web notification (PWA) when still unlogged.
 - **Shared:** `smartReminder.mjs` (`resolveSmartReminderTime`, `shouldFireMissedLogNudge`, `stampLogSavedAtForSave`); top-level `savedAt` on log entries.
 - **PWA + RN:** Smart scheduling in notifications/settings; stamp `savedAt` on wizard saves.
 - **Tests:** 6 plan11-phase-a tests (263 total).
@@ -559,31 +568,31 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Tests:** 7 plan10-phase-d tests (257 total).
 
 ### v1.103.0 - 2026-06-19 - Plan 10 Home phase C (H3, H5, H6)
-- **H3:** Good-day streak + flare-free counter on Home — dismissible, non-gamified (`computeHomeStreakSnapshot`).
+- **H3:** Good-day streak + flare-free counter on Home - dismissible, non-gamified (`computeHomeStreakSnapshot`).
 - **H5:** Opt-in weather/air strip via Open-Meteo (pressure, temp, US AQI) with CC BY attribution (PWA + RN).
 - **H6:** Appointment countdown card (14-day window) with visit-prep CTA to AI Analysis (PWA + RN).
 - **Tests:** 7 plan10-phase-c tests (250 total).
 
 ### v1.102.0 - 2026-06-19 - Plan 10 Home phase B (H2, H4)
-- **H2:** Energy budget / pacing widget on Home — `buildTodayPacingBudget` with flare-adjusted planned spoons; links to Charts (PWA + RN).
-- **H4:** AM/midday/PM micro-check-ins — `applyMicroCheckin` partial sub-entries from Home modal (PWA + RN).
+- **H2:** Energy budget / pacing widget on Home - `buildTodayPacingBudget` with flare-adjusted planned spoons; links to Charts (PWA + RN).
+- **H4:** AM/midday/PM micro-check-ins - `applyMicroCheckin` partial sub-entries from Home modal (PWA + RN).
 - **Tests:** 5 plan10-phase-b tests (243 total).
 
 ### v1.101.0 - 2026-06-19 - Plan 10 Home phase A (H1)
-- **H1:** Adaptive home card registry — reorder hero/goals/nudge by context (`resolveHomeCardOrder`); PWA DOM layout + RN ScrollView.
+- **H1:** Adaptive home card registry - reorder hero/goals/nudge by context (`resolveHomeCardOrder`); PWA DOM layout + RN ScrollView.
 - **H1:** Gentle streak-broken nudge when logged yesterday but not today; simple mode hides AI question chips.
 - **Tests:** 4 plan10-phase-a tests (238 total).
 
 ### v1.100.0 - 2026-06-19 - Plan 09 Charts phase D (C3, C6, C8)
 - **C3:** RN balance radar/spider chart via `BalanceRadarChart` + `buildBalanceRadarData` (PWA Apex parity).
-- **C6:** One-click chart PDF export — PWA share modal adds Save PDF (jsPDF); RN uses `expo-print` + share sheet.
+- **C6:** One-click chart PDF export - PWA share modal adds Save PDF (jsPDF); RN uses `expo-print` + share sheet.
 - **C8:** User-defined custom metrics schema (`customMetrics.mjs`), log normalization, balance chart picker integration.
 - **Tests:** 4 plan09-phase-d tests (234 total).
 
 ### v1.99.0 - 2026-06-19 - Plan 09 Charts phase C (C4, C5, C9)
 - **C4:** Menstrual cycle phase bands on mood/pain charts (Apex xaxis regions + insights legend when L7 enabled).
 - **C5:** Month-over-month period compare with A4 treatment window markers via `compareChartPeriods`.
-- **C9:** Spoon/pacing chart — planned capacity vs actual exercise vs fatigue (`buildPacingChartSeries`).
+- **C9:** Spoon/pacing chart - planned capacity vs actual exercise vs fatigue (`buildPacingChartSeries`).
 - **Tests:** 4 plan09-phase-c tests (230 total).
 
 ### v1.98.0 - 2026-06-19 - Plan 09 Charts phase A+B (C10, C1, C2, C7)
@@ -594,25 +603,25 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Tests:** 4 plan09-phase-b tests (226 total).
 
 ### v1.97.0 - 2026-06-19 - Plan 08 LLM phase C (N9, N10, N11)
-- **N9:** Golden prompt regression — per-locale × 8-intent audit via `llmGoldenPrompts.mjs`; CI gate in unit tests + `llm-golden-prompts.mjs`.
-- **N10:** GGUF Path 3 adapter completed — allowlist, status probe, `runChatInference` gguf branch; WASM vendor hook at `vendor/llama-cpp/llama.js`.
-- **N11:** PWA on-device-only policy — `isPwaOnDeviceLlmOnly`, local-only mode blocks model download; no commercial LLM endpoints.
+- **N9:** Golden prompt regression - per-locale × 8-intent audit via `llmGoldenPrompts.mjs`; CI gate in unit tests + `llm-golden-prompts.mjs`.
+- **N10:** GGUF Path 3 adapter completed - allowlist, status probe, `runChatInference` gguf branch; WASM vendor hook at `vendor/llama-cpp/llama.js`.
+- **N11:** PWA on-device-only policy - `isPwaOnDeviceLlmOnly`, local-only mode blocks model download; no commercial LLM endpoints.
 - **Tests:** 7 llm-plan08-phase-c tests (222 total).
 
 ### v1.96.0 - 2026-06-18 - Plan 08 LLM phase B (N1, N6, N7)
-- **N1:** Bounded "Ask about my week" chat — max 5 turns, scoped log context, RN AI tab UI + PWA `generateWeekChatWithLLM`.
-- **N6:** Diary coach personas — encouraging/clinical/minimal tone presets in settings → prompt pack suffixes (RN + PWA).
-- **N7:** Instant model tier — MOTD and suggest note route to SmolLM/tier1 via `resolveLlmModelSizeForFeature`.
+- **N1:** Bounded "Ask about my week" chat - max 5 turns, scoped log context, RN AI tab UI + PWA `generateWeekChatWithLLM`.
+- **N6:** Diary coach personas - encouraging/clinical/minimal tone presets in settings → prompt pack suffixes (RN + PWA).
+- **N7:** Instant model tier - MOTD and suggest note route to SmolLM/tier1 via `resolveLlmModelSizeForFeature`.
 - **Tests:** 9 llm-plan08-phase-b tests (215 total).
 
-### v1.95.0 - 2026-06-18 - Plan 08 LLM phase A (N2–N5)
-- **N2:** Clinician visit prep brief — shared context + prompt pack; RN AI tab + PWA `generateClinicianBriefWithLLM`.
-- **N3:** Explain this chart — chart context builder; RN Charts tab + PWA `generateExplainChartWithLLM`.
-- **N4:** Multilingual LLM enforcement — `isLlmInferenceAllowed` blocks inference for ar/he/ga ui-only locales.
-- **N5:** Structured JSON output — `parseStructuredLlmOutput` schema validation; RN structured insights + PWA helper.
+### v1.95.0 - 2026-06-18 - Plan 08 LLM phase A (N2-N5)
+- **N2:** Clinician visit prep brief - shared context + prompt pack; RN AI tab + PWA `generateClinicianBriefWithLLM`.
+- **N3:** Explain this chart - chart context builder; RN Charts tab + PWA `generateExplainChartWithLLM`.
+- **N4:** Multilingual LLM enforcement - `isLlmInferenceAllowed` blocks inference for ar/he/ga ui-only locales.
+- **N5:** Structured JSON output - `parseStructuredLlmOutput` schema validation; RN structured insights + PWA helper.
 - **Tests:** 8 llm-plan08 tests (206 total); golden prompts expanded for new intents.
 
-### v1.94.0 - 2026-06-18 - Plan 07 AI engine (A1–A8)
+### v1.94.0 - 2026-06-18 - Plan 07 AI engine (A1-A8)
 - **A1:** Consolidated RN analysis into `@rianell/ai-engine`; PWA `layerInterpretation` delegates to shared `rankNeuralAnalysisInsights`.
 - **A2:** Tap-to-expand insight “why” with contributing dates on RN AI tab.
 - **A3:** Trigger hypothesis engine (flare lift ranking).
@@ -621,8 +630,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **A4/A7/A8:** Treatment window compare, condition packs, research JSON export APIs + RN UI hooks.
 - **Tests:** 8 ai-engine parity tests (198 total).
 
-### v1.93.1 - 2026-06-18 - Plans 05–06 feature completion (P6, D4–D7)
-- **P6:** Caregiver / proxy logging — toggle + dependent name (RN + PWA); `stampLogEntryForCaregiver` on save.
+### v1.93.1 - 2026-06-18 - Plans 05-06 feature completion (P6, D4-D7)
+- **P6:** Caregiver / proxy logging - toggle + dependent name (RN + PWA); `stampLogEntryForCaregiver` on save.
 - **D4:** FHIR R4-lite Observation bundle export (`fhirLite.mjs`).
 - **D5:** Bearable / Flaredown CSV migration import (`migrationAssistants.mjs`).
 - **D6:** Time-limited encrypted read-only share envelope (`shareReadOnlyLink.mjs`).
@@ -630,24 +639,24 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Tests:** caregiver-mode, fhir-lite, migration-assistants (+192 unit tests).
 - **Vendor:** PWA `rianell-shared.js` rebuild.
 
-### v1.93.0 - 2026-06-18 - Plan 06 cloud sync & portability (D1–D3)
+### v1.93.0 - 2026-06-18 - Plan 06 cloud sync & portability (D1-D3)
 - **D1:** RN CSV export/import parity with PWA (`logCsv.mjs`, Settings data management).
 - **D2:** Auto-sync on app open preference (RN `AppState` + PWA `visibilitychange`).
 - **D3:** Sync conflict resolution UI when same-date logs diverge (RN alert + PWA modal).
 - **Plan 05 parity:** PWA local-only feature matrix, encrypted export modal, app-lock cold start, export activity logging, `loadFromCloud` local-only gate, `remoteLlm` gate.
 - **Shared:** `logSyncConflicts.mjs`; vendor bundle rebuild; Tier A i18n overrides.
 
-### v1.92.9 - 2026-06-18 - Plan 05 privacy & compliance (P1–P5, P7)
+### v1.92.9 - 2026-06-18 - Plan 05 privacy & compliance (P1-P5, P7)
 - **P1:** Full in-app policy viewer with extended body paragraphs (RN modal + PWA privacy-region).
 - **P2:** Append-only local processing activity log (sync, model download, export events).
 - **P3:** Local-only mode gates cloud sync, anon pool, model download, and bug reports.
 - **P4:** PBKDF2 + AES-GCM password-protected export for clinician handoff prep.
 - **P5:** Anonymised pool field checklist before enabling contribution.
-- **P7:** App lock — RN biometrics (`expo-local-authentication`); PWA passcode overlay on background.
+- **P7:** App lock - RN biometrics (`expo-local-authentication`); PWA passcode overlay on background.
 - **P6:** Teen/caregiver mode deferred pending legal review (documented in MASTER).
 - **Shared:** `@rianell/shared` privacy modules; parity inventory; Tier A i18n overrides.
 
-### v1.92.8 - 2026-06-18 - Plan 04 logging & data capture (L1–L11)
+### v1.92.8 - 2026-06-18 - Plan 04 logging & data capture (L1-L11)
 - **L1:** Progressive wizard category unlock from `trackingProfile` (food / exercise / meds schedule).
 - **L2:** Log favourites (meals, exercises) in preferences + one-tap chips in RN/PWA wizard.
 - **L3:** Medication schedule model, per-dose taken/skipped/missed in wizard; settings editor on RN.
@@ -659,7 +668,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **L11:** Deterministic guided voice field extraction (feature-flagged).
 - **Shared:** `normalizeLogEntry` extensions, `docs/data-model.md`, parity inventory, Tier A i18n overrides.
 
-### v1.92.7 - 2026-06-18 - Plan 03 settings & onboarding (S1–S8)
+### v1.92.7 - 2026-06-18 - Plan 03 settings & onboarding (S1-S8)
 - **S1:** RN tutorial modal + replay from Settings; PWA “Show tutorial again”.
 - **S2:** Tracking profile wizard (condition + minimal field set) in RN; `trackingProfile` in shared prefs.
 - **S3:** Locale-derived defaults (`weightUnit`, `dateFormat`, `firstDayOfWeek`) via `@rianell/shared`.
@@ -670,7 +679,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **S8:** Portable settings + goals JSON export (`rianell-settings-profile`).
 - **Fix:** Advanced settings no longer force-open during AI model download.
 
-### v1.92.6 - 2026-06-18 - Plan 02 accessibility & i18n (I1–I5)
+### v1.92.6 - 2026-06-18 - Plan 02 accessibility & i18n (I1-I5)
 - **I1 (i18n gaps):** Localize health consent body, colorblind option labels, read-mode hint, and new settings keys across PWA + RN; Tier A overrides for Plan 02 keys.
 - **I2 (Plain language):** B1 summary toggle in PWA/RN settings; `plainLanguageEnabled` in shared accessibility prefs; `summary.system.plain` prompt when enabled.
 - **I3 (Haptics):** Medium haptic on flare “Yes” in RN log wizard.
@@ -683,30 +692,30 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **DevEx:** Post-plan gate server wait extended to 600s for CI-parity compile on slow hosts.
 
 ### v1.92.4 - 2026-06-14 - GitHub Actions Node 24 migration
-- **Action runtimes:** Upgrade first-party pins to Node 24-native majors — `actions/cache@v5` (11 sites), `upload-pages-artifact@v5` + `deploy-pages@v5`, `actions/setup-java@v5`, `actions/github-script@v8`, `softprops/action-gh-release@v3`.
+- **Action runtimes:** Upgrade first-party pins to Node 24-native majors - `actions/cache@v5` (11 sites), `upload-pages-artifact@v5` + `deploy-pages@v5`, `actions/setup-java@v5`, `actions/github-script@v8`, `softprops/action-gh-release@v3`.
 - **Manual LLM workflows:** `llm-webgpu-manual.yml` and `llm-rn-gpu-manual.yml` use `checkout@v5` + `setup-node-ci` (dedupe `npm ci` / Playwright install).
 - **FORCE flag removed:** Drop `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` from `ci.yml` and `audit-llm-live.yml`; header comment documents job Node vs action runtime.
 - **Verify guard:** `scripts/verify/verify-github-actions-node24.mjs` + `npm run verify:github-actions`; wired into CI unit-tests job.
 
 ### v1.92.3 - 2026-06-14 - UI hyphens, console hygiene, LLM timeouts
-- **Typography:** Replace em dashes (`—`) with hyphens (`-`) across all user-facing UI copy — locale/MOTD/policy i18n packs, tier-A translation overrides, home AI suggestions, policy titles, PWA/RN screens.
-- **AI & Goals (PWA):** Fix stray left-edge box in Settings carousel — `overflow-x: hidden`, stronger hidden-pane rules, simplified hint rows in `index.html`.
+- **Typography:** Replace em dashes (` - `) with hyphens (`-`) across all user-facing UI copy - locale/MOTD/policy i18n packs, tier-A translation overrides, home AI suggestions, policy titles, PWA/RN screens.
+- **AI & Goals (PWA):** Fix stray left-edge box in Settings carousel - `overflow-x: hidden`, stronger hidden-pane rules, simplified hint rows in `index.html`.
 - **Console hygiene:** Early `__rianellIsBenignConsoleNoise` filter (CSP Report-Only subframe noise, WebGPU/WASM fallback, HF cache warnings); `patchConsoleLevel('log')` parity with warn/error.
 - **Summary LLM:** Split model load timeout (180s) vs inference timeout (45s); `awaitPipelineForInference()` + `raceChatInference()` for chat/suggest flows.
 - **CSP verify:** `verify-csp-report-only-live.mjs` wired into `verify:csp`; Cloudflare runbook + securityheaders audit note for Report-Only alignment.
 
 ### v1.92.2 - 2026-06-14 - Settings Performance Advanced, suggest note
 - **Settings Performance (PWA):** Collapse manual AI controls (tier, engine, storage, clear/redownload, force-large WASM) behind a collapsed-by-default **Advanced** `<details>` section; model status and download progress stay visible; auto-expands when non-default prefs or active download.
-- **Suggest note:** Fix silent failure when AI engine not ready — rule-based fallback, lazy-load `summary-llm.js`, user feedback when empty; relax readiness/context thresholds in `summary-llm.js` / `AIEngine.js`.
+- **Suggest note:** Fix silent failure when AI engine not ready - rule-based fallback, lazy-load `summary-llm.js`, user feedback when empty; relax readiness/context thresholds in `summary-llm.js` / `AIEngine.js`.
 - **Settings UX:** Hide scrollbars in settings carousel/content panes; medical-condition gate opens Settings → Personal instead of alert with literal `\n\n`.
 - **i18n:** `settings.performance.advanced` + hint; shorten force-large label (no redundant “advanced” suffix).
 
 ### v1.92.1 - 2026-06-17 - GPU Path 2 fixes, UX polish
-- **PWA MLC (Path 2):** Fix WebLLM worker setup — progress callback on main thread only (avoids `postMessage` clone error); correct `WebWorkerMLCEngine` + `reload(modelId)` API.
-- **PWA WASM fallback:** Always cap tier 3–5 to SmolLM on GPU/MLC failure (even when ONNX WebGPU is skipped via session cache); disable HF browser cache on WASM retry when Cache API `put` fails.
+- **PWA MLC (Path 2):** Fix WebLLM worker setup - progress callback on main thread only (avoids `postMessage` clone error); correct `WebWorkerMLCEngine` + `reload(modelId)` API.
+- **PWA WASM fallback:** Always cap tier 3-5 to SmolLM on GPU/MLC failure (even when ONNX WebGPU is skipped via session cache); disable HF browser cache on WASM retry when Cache API `put` fails.
 - **CSP:** Add `https://raw.githubusercontent.com` for MLC WASM libs (`mlc-ai/binary-mlc-llm-libs`); update `verify:csp-connect-src` and Cloudflare runbook.
 - **Settings UX:** Replace technical engine labels (ONNX/MLC/WASM/GGUF) with plain language (“How summaries run”, “Automatic (recommended)”, “Fast mode (uses graphics)”, etc.); friendly backend/status labels; FR/IT/NL translations.
-- **Nav:** Fix desktop tab underline (`#tabNavIndicator`) — remove double padding offset; `updateTabNavIndicator()` + resize handler.
+- **Nav:** Fix desktop tab underline (`#tabNavIndicator`) - remove double padding offset; `updateTabNavIndicator()` + resize handler.
 
 ### v1.92.0 - 2026-06-17 - GPU LLM V1
 - **PWA Path 1:** GPU error taxonomy (`557856688`), WebNN ladder slots, ORT WebGPU tuning, pipeline-fail session cache.
@@ -718,7 +727,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Docs:** `docs/research/gpu-llama-v1-baseline.md`, `docs/runbooks/llm-rollout.md`, v4 migration notes.
 
 ### v1.91.0 - 2026-06-17 - PWA LLM load fix (full scope)
-- **Load path:** Removed invalid Transformers `webgl` device; WebGPU adapter probe with session cache; WASM-only auto-cap tier 3–5 → SmolLM (`resolveWasmOnlyCap`).
+- **Load path:** Removed invalid Transformers `webgl` device; WebGPU adapter probe with session cache; WASM-only auto-cap tier 3-5 → SmolLM (`resolveWasmOnlyCap`).
 - **Stability:** Single-flight `ensurePipelineLoaded`; MOTD gated on `ready` + `inMemory`; Retry clears cache via `clearAndRedownloadAiModel`.
 - **UX:** Generic “Downloading AI model” progress label (no HF filenames in UI).
 - **Self-host:** `npm run vendor:transformers` copies Transformers.js 3.3.2 + ORT wasm to `apps/pwa-webapp/vendor/transformers/`; CDN rollback via `localStorage.rianellTransformersCdn=1`.
@@ -734,7 +743,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Verify:** `npm run verify:root-hygiene` + CI unit-tests gate; `doc-links` forbidden patterns for root clutter paths.
 
 ### v1.90.0 - 2026-06-16 - Architecture standard and layout refactor
-- **Standard:** [`docs/architecture-standard.md`](architecture-standard.md) and [`AGENTS.md`](../AGENTS.md) — canonical directory map, workspace graph, artifact policy, migration log.
+- **Standard:** [`docs/architecture-standard.md`](architecture-standard.md) and [`AGENTS.md`](../AGENTS.md) - canonical directory map, workspace graph, artifact policy, migration log.
 - **Scripts:** All root automation nested under `scripts/{build,i18n,verify,ci,audit,wiki,models,dev}/`; flat `scripts/*.mjs` shims removed.
 - **Artifacts:** legacy artifact directory renamed to **`artifacts/`**; CI, PWA, RN, server, and docs updated; Cloudflare 301 runbook for legacy URLs.
 - **Workspaces:** `@rianell/pwa-webapp` added; `@rianell/build-tools` package from former `scripts/lib/` helpers.
@@ -746,17 +755,17 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **`.gitignore`:** root-only `/build/` ignore so `scripts/build/` orchestrators are tracked in git.
 
 ### v1.89.2 - 2026-06-15 - CI caching, post-deploy audit, workflow efficiency
-- **CI caching:** Reusable actions `setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`; npm (`package-lock.json`), pip (`requirements.txt` + `.github/ci-pip-extras.txt`), Playwright browsers, Gradle (Android APK), Gitleaks/OSV binaries — cache invalidates only when lockfiles or pinned tool versions change.
+- **CI caching:** Reusable actions `setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`; npm (`package-lock.json`), pip (`requirements.txt` + `.github/ci-pip-extras.txt`), Playwright browsers, Gradle (Android APK), Gitleaks/OSV binaries - cache invalidates only when lockfiles or pinned tool versions change.
 - **CI caching (extended):** `node_modules` restore (skip `npm ci` on hit), Expo/Metro (`cache-expo`), Android SDK (`cache-android-sdk`), PyInstaller cache on Windows, pip-audit via `ci-pip-audit-tools.txt`, npx cache for CycloneDX.
 - **Post-deploy audit:** `deploy-pages` uploads **`pages-site-probe`** (exact prepared `site/` tree sent to GitHub Pages); **`audit-boot-post-deploy`** downloads it on a separate runner, serves via `python -m server`, runs baseline boot audit locally (Cloudflare returns **403** to GHA on `rianell.com`).
-- **`prepare-pages-site`:** Shared composite action — copy minified prebuild → verify fingerprint → inject Supabase (deploy and audit parity).
+- **`prepare-pages-site`:** Shared composite action - copy minified prebuild → verify fingerprint → inject Supabase (deploy and audit parity).
 - **Cancel on failure:** Gate jobs call `cancel-workflow-on-failure` so Android/server/release jobs stop when unit tests, deploy, or boot audit fail (benchmark jobs still run).
 - **Boot audit:** Fix false **`DEPLOY_HTML_MISSING`** when `app.*.min.js` appears after `waitForSelector` timeout; mobile Jest **`lodash`** + **`expo-modules-core`** direct deps for workspace preset resolution.
 
 ### v1.89.1 - 2026-06-15 - Boot i18n, CI security, deploy reliability
-- **PWA boot (Phase 2b):** Privacy gate uses lightweight `refreshGateLocaleUI()` / `hydrateGate()` only — no full `refreshLocaleUI()` before `__rianellAppInitStarted` (fixes guest cold hang and raw `gate.hint` on rianell.com).
+- **PWA boot (Phase 2b):** Privacy gate uses lightweight `refreshGateLocaleUI()` / `hydrateGate()` only - no full `refreshLocaleUI()` before `__rianellAppInitStarted` (fixes guest cold hang and raw `gate.hint` on rianell.com).
 - **`i18n-pwa.js`:** `applyDataI18nAttributes()` gated on `__rianellAppInitStarted`; gate strings hydrated in `hydrateGate()`.
-- **`app.js`:** `revealAppShellWithLocale()` — `ensureCatalogs()` then `refreshLocaleUI()` before shell reveal (fixes raw keys like `home.greeting.evening` after Phase 2b).
+- **`app.js`:** `revealAppShellWithLocale()` - `ensureCatalogs()` then `refreshLocaleUI()` before shell reveal (fixes raw keys like `home.greeting.evening` after Phase 2b).
 - **`privacy-region.js`:** Settings pane uses `refreshSettingsPaneLocaleUI()`; `refreshAllTabsForLocaleChange()` no-ops until app init.
 - **CI:** `prepare-minified-assets` retries artifact upload once on transient `ECONNRESET`; post-deploy boot audit installs Playwright Chromium (`audit:boot:prepare`).
 - **Supply chain:** Override `@rianell/benchmark-runner → lighthouse → @sentry/node` to **10.58.0** (`@opentelemetry/core` **2.8.0**, OSV GHSA-8988-4f7v-96qf); **`cryptography>=48.0.1`** in `requirements.txt` (OSV GHSA-537c-gmf6-5ccf).
@@ -764,8 +773,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.89.0 - 2026-06-15 - Incremental boot patch (production)
 - **PWA boot:** `DOMContentLoaded` entry (`runRianellBootAfterDomReady`); MOTD fetch parallel (non-blocking); inline heuristic tier; privacy gate `initGateUI()` on first show.
-- **`device-benchmark.js`:** Web cold boot uses `getTierFromHeuristic()` only — no sync CPU suite, no 1.4M retry, minimal `rianellPerfBenchmark` cache schema (v5).
-- **`build-site.mjs`:** `minifyIdentifiers: false` — identifier mangling froze minified `app.js` in Chromium.
+- **`device-benchmark.js`:** Web cold boot uses `getTierFromHeuristic()` only - no sync CPU suite, no 1.4M retry, minimal `rianellPerfBenchmark` cache schema (v5).
+- **`build-site.mjs`:** `minifyIdentifiers: false` - identifier mangling froze minified `app.js` in Chromium.
 - **`summary-llm.js`:** `waitForSupabaseConfigReady()` before model host resolution.
 - **Scripts:** `audit:boot:baseline` / `audit:boot:strict` Playwright gate (`scripts/audit/audit-boot-full.mjs`).
 - **Wiki:** Version-controlled `wiki/` source, `npm run wiki:sync` / `wiki:verify`.
@@ -798,9 +807,9 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **`package.json`:** `benchmark:ai-verify -- --strict` passthrough via npm workspace `--`.
 
 ### v1.83.0 - 2026-06-14 - README and PWA copy polish
-- **README:** Documentation icons regenerated (`docs/icons/*.svg`) — coloured tinted tiles, 32×32 display; **Next phase development plan** row and “Here’s what we plan next” section removed (changelog only for release notes).
+- **README:** Documentation icons regenerated (`docs/icons/*.svg`) - coloured tinted tiles, 32×32 display; **Next phase development plan** row and “Here’s what we plan next” section removed (changelog only for release notes).
 - **PWA:** Removed AI “At a glance” accessibility footnote; dropped unused `.ai-at-a-glance-footnote` styles.
-- **Docs:** `about-and-support.md` pointers updated; `project-reference.md` v1.78–v1.83 sync blocks.
+- **Docs:** `about-and-support.md` pointers updated; `project-reference.md` v1.78-v1.83 sync blocks.
 
 ### v1.82.0 - 2026-06-14 - AI engine benchmark CI
 - **CI:** Four parallel jobs after `benchmarks-expo`: `benchmarks-ai-package`, `benchmarks-ai-layers`, `benchmarks-ai-algos`, `benchmarks-ai-rn`; merged into `commit-benchmarks`.
@@ -827,13 +836,13 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **`run-user-journey.mjs`:** nav tabs + nine settings panes smoke.
 
 ### v1.78.0 - 2026-06-14 - Tier-matrix performance suite
-- **`run-tier-matrix.mjs`:** 10 cells (tier 1–5 × desktop/mobile); `export-tier-profiles.mjs` from `device-benchmark.js`.
-- **Tier 1–2:** Playwright route block for `summary-llm.js` / HF; AIEngine-only probes.
+- **`run-tier-matrix.mjs`:** 10 cells (tier 1-5 × desktop/mobile); `export-tier-profiles.mjs` from `device-benchmark.js`.
+- **Tier 1-2:** Playwright route block for `summary-llm.js` / HF; AIEngine-only probes.
 - **PWA:** `__rianellTestHooks` on `?benchmark_test=1`; `injectPerformanceTier` seeds `rianellPerfBenchmark`.
 
 ### v1.77.0 - 2026-06-14 - LC-20 CI closure and documentation
 
-- **`verify:i18n`:** Full pipeline — `build-content-catalog-keys`, `auto-translate-ui-strings`, `translate-motd-packs`, `verify-motd-translation-coverage`, `verify-mixed-language-strings`; coverage `--strict --max-pct=13` (post LC-20 key expansion).
+- **`verify:i18n`:** Full pipeline - `build-content-catalog-keys`, `auto-translate-ui-strings`, `translate-motd-packs`, `verify-motd-translation-coverage`, `verify-mixed-language-strings`; coverage `--strict --max-pct=13` (post LC-20 key expansion).
 - **`package.json`:** Version **1.77.0**; documents segmented LC-20 delivery.
 - **Docs:** [i18n-gap-closeout-plan.md](i18n-gap-closeout-plan.md), README, project-reference, testing-and-configuration updated.
 - **Packs:** Synced locale/MOTD/prompt JSON across `i18n-packs/`, PWA, RN, and `packages/shared`.
@@ -845,8 +854,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.75.0 - 2026-06-14 - LC-20e MOTD coverage
 
-- **`translate-motd-packs.mjs`:** ar/he headline API MT; optional `--all` for messages 31–101.
-- **`verify-motd-translation-coverage.mjs`:** CI gate — Tier A + ga require translated headlines; ar/he ≥30.
+- **`translate-motd-packs.mjs`:** ar/he headline API MT; optional `--all` for messages 31-101.
+- **`verify-motd-translation-coverage.mjs`:** CI gate - Tier A + ga require translated headlines; ar/he ≥30.
 - **MOTD packs:** ar/he first 30 machine-translated; Tier A retains hand-curated top 30.
 
 ### v1.74.1 - 2026-06-14 - LC-20h benchmark test labels
@@ -898,12 +907,12 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **PWA:** Log entry share control is a **32×32px circular** green gradient button (matches delete/edit action bar).
 - **Icons:** Added `icon-share` to the SVG sprite; log share uses `svgIcon()` instead of Font Awesome.
-- **CSS:** `align-items: center` on expanded log action bar — fixes flex stretch that made share appear oval.
+- **CSS:** `align-items: center` on expanded log action bar - fixes flex stretch that made share appear oval.
 
 ### v1.70.2 - 2026-06-14 - Summary LLM model host probing
 
 - **PWA `summary-llm.js`:** Probe Supabase/origin with **GET** `manifest.json` (not HEAD) before falling back to Hugging Face.
-- **Chunk loader:** Run `ensureChunkedModelArtifacts` only for `supabase` / `app-origin` hosts — avoids CORS failures on `huggingface.co/models/manifest.json`.
+- **Chunk loader:** Run `ensureChunkedModelArtifacts` only for `supabase` / `app-origin` hosts - avoids CORS failures on `huggingface.co/models/manifest.json`.
 - **Deploy:** Console warns when `SUPABASE_CONFIG` still has placeholder `YOUR_PROJECT` URL.
 
 ### v1.70.1 - 2026-06-14 - Log entry detail expand
@@ -920,7 +929,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.69.1 - 2026-06-14 - CI translation coverage order
 
 - **CI:** `generate-locale-overrides.mjs` runs before `verify-translation-coverage.mjs --strict` in unit-tests job.
-- **`verify:i18n`:** Same order — generate → sync → verify (no stale en-GB copies in strict check).
+- **`verify:i18n`:** Same order - generate → sync → verify (no stale en-GB copies in strict check).
 
 ### v1.69.0 - 2026-06-14 - Reproducible Tier A locale packs
 
@@ -930,7 +939,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.68.1 - 2026-06-14 - Gitleaks i18n allowlist
 
-- **`.gitleaks.toml`:** Allowlist `tier-a-exact-overrides.mjs` and `i18n-packs/` trees — UI strings like “mot de passe” no longer trip `generic-api-key`.
+- **`.gitleaks.toml`:** Allowlist `tier-a-exact-overrides.mjs` and `i18n-packs/` trees - UI strings like “mot de passe” no longer trip `generic-api-key`.
 
 ### v1.68.0 - 2026-06-14 - i18n release gates (LC-19)
 
@@ -946,7 +955,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.66.0 - 2026-06-14 - Prompt & MOTD translations (LC-17)
 
-- **Scripts:** `translate-prompt-packs.mjs`, `translate-motd-packs.mjs` — Tier A LLM prompts and top-30 MOTD quotes.
+- **Scripts:** `translate-prompt-packs.mjs`, `translate-motd-packs.mjs` - Tier A LLM prompts and top-30 MOTD quotes.
 - **Packs:** All 13 locales have prompt packs with translated `homeQuestion.system`, `summary.system`, etc.; MOTD ≥30 messages per locale.
 - **Verify:** `verify-prompt-packs.mjs` + `verify-motd-packs.mjs` in `verify:i18n`.
 
@@ -962,10 +971,10 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **PWA:** Rebuilt `vendor/rianell-shared.js` (`?v=4`).
 - **RN:** `llm.ts` typecheck for `buildHomeQuestionContext`; `LogWizardScreen.test` uses i18n label `Energy and mental clarity`.
 
-### v1.63.0 - 2026-06-13 - i18n wiring & audit gates (LC-11–LC-15)
+### v1.63.0 - 2026-06-13 - i18n wiring & audit gates (LC-11-LC-15)
 
 - **LC-11:** `i18n-allowlist.json`, `i18n-audit-shared.mjs`, `--require-wiring` audit mode.
-- **LC-12–14:** PWA `app.js` + `ui-feedback.js` + RN screens wired to `tUi()` / `useT()` (**0** audit candidates).
+- **LC-12-14:** PWA `app.js` + `ui-feedback.js` + RN screens wired to `tUi()` / `useT()` (**0** audit candidates).
 - **LC-15:** CI runs `verify-no-hardcoded-ui.mjs --strict` + `--baseline`; `hardcoded-ui-baseline.json` (max 0).
 - **MOTD scaffold:** en-US, en-AU, Tier A locale files created (30 quotes each); `verify-motd-packs.mjs`.
 - **RTL (partial):** PWA `[dir=rtl]` CSS for modals, wizard chrome, settings carousel.
@@ -973,7 +982,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.62.0 - 2026-06-13 - Home contextual AI question chips
 
 - **Shared:** `homeSuggestions.mjs`, `homeQuestionContext.mjs`, `pickHomeAiSuggestions`, `homeQuestion` prompt feature.
-- **PWA:** Removed redundant Log/Charts/AI quick actions; 0–3 question chips + answer modal; `generateHomeQuestionWithLLM`.
+- **PWA:** Removed redundant Log/Charts/AI quick actions; 0-3 question chips + answer modal; `generateHomeQuestionWithLLM`.
 - **RN:** `HomeScreen` suggestion chips + modal; `answerHomeQuestion()` in `llm.ts`.
 - **i18n:** `home.questions.*` keys (13 locales); `homeQuestion.system` prompt pack.
 - **Tests:** `tests/unit/home-suggestions.test.mjs`; `HomeScreen.test.tsx` chip/modal coverage.
@@ -986,12 +995,12 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.60.0 - 2026-06-13 - Full UI localization (docs release)
 
-Documentation and parity release for the v1.54–v1.59 feature segments below. **`npm run verify:i18n`** runs sync + locale/prompt/HTML/audit checks before CI.
+Documentation and parity release for the v1.54-v1.59 feature segments below. **`npm run verify:i18n`** runs sync + locale/prompt/HTML/audit checks before CI.
 
 ### v1.59.0 - 2026-06-13 - UGC policy & CI i18n gates (P9 + P7)
 
 - **UGC (B1):** Log symptoms/notes/meds never translated; export localizes headers only (`export-utils.js`); LLM notes wrapped in `---USER_NOTE---` delimiters.
-- **CI:** `.github/workflows/ci.yml` — `verify:i18n`, `audit-hardcoded-strings.mjs --check`, `verify-no-hardcoded-ui.mjs` (warn mode).
+- **CI:** `.github/workflows/ci.yml` - `verify:i18n`, `audit-hardcoded-strings.mjs --check`, `verify-no-hardcoded-ui.mjs` (warn mode).
 - **Tests:** `tests/unit/i18n-ugc.test.mjs`, `i18n-llm-request.test.mjs`.
 - **`docs/platform-parity.json`:** `ui_string_catalog_full` → supported (~850 en-GB keys).
 
@@ -1010,7 +1019,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 ### v1.56.0 - 2026-06-13 - LLM prompt packs & client locale (P5)
 
 - **`packages/shared/src/i18n/promptPack.mjs`** + generated **`promptPackData.mjs`**; **`summary-llm.js`** loads per-locale system prompts.
-- **`apps/rn-app/src/ai/llm.ts`:** POST includes validated **`locale`** (B2 — no server-side language detection).
+- **`apps/rn-app/src/ai/llm.ts`:** POST includes validated **`locale`** (B2 - no server-side language detection).
 - **Docs:** `docs/server-api.md`, `docs/ai-architecture.md` updated.
 
 ### v1.55.0 - 2026-06-13 - React Native screens & engine templates (P3 + P4)
@@ -1022,13 +1031,13 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 #### Pack layout & sync
 
-- **Canonical tree:** `i18n-packs/` — `locale-packs/v1/`, `prompt-packs/v1/`, `motd-packs/v1/`, `policy-packs/v1.json` (replaces repo-root `locale-packs/`).
+- **Canonical tree:** `i18n-packs/` - `locale-packs/v1/`, `prompt-packs/v1/`, `motd-packs/v1/`, `policy-packs/v1.json` (replaces repo-root `locale-packs/`).
 - **Sync:** `scripts/i18n/sync-i18n-assets.mjs` → `apps/pwa-webapp/i18n-packs/`, `apps/rn-app/i18n-packs/`, `packages/shared/i18n-packs/`.
 - **`packPaths.mjs`:** single source for canonical paths in Node scripts and tests.
 
 #### Catalog & audit (P1)
 
-- **`scripts/verify/audit-hardcoded-strings.mjs`**, **`merge-audit-into-catalog.mjs`**, **`apply-html-i18n.mjs`** — en-GB expanded to **~850** plain-text keys; **`--check`** for CI.
+- **`scripts/verify/audit-hardcoded-strings.mjs`**, **`merge-audit-into-catalog.mjs`**, **`apply-html-i18n.mjs`** - en-GB expanded to **~850** plain-text keys; **`--check`** for CI.
 - **Shared:** `format.mjs`, `rtl.mjs`, `promptPack.mjs`; verify scripts for HTML-free locale JSON and prompt parity.
 
 #### PWA tokenization (P2)
@@ -1063,14 +1072,14 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 ### v1.53.1 - 2026-06-13 - Privacy/settings UI fixes and CI
 
-#### PWA — settings carousel & privacy modals
+#### PWA - settings carousel & privacy modals
 
 - **Settings carousel (9 panes):** Privacy & region pane added **`--settings-pane-count: 9`**; dot strip uses horizontal scroll when needed; dots rebuild when pane count changes; carousel re-inits when settings opens and on locale change.
 - **Policy viewer:** **`showAlertModal(..., { html: true })`** renders policy HTML in the alert modal (was plain text); styles for **`.alert-modal-message--html`**.
 - **Confirm modals:** Fixed **`showConfirmModal(message, title, onConfirm, onCancel)`** argument order for region-change and policy-drift prompts (title no longer shown as message body).
 - **Benchmark fix:** **`resolveSettingsPaneTitle`** uses **`window.RianellI18n`** instead of Node-only **`global`** (fixes Playwright **`ReferenceError: global is not defined`** in web benchmarks).
 
-#### React Native — typecheck / download gate
+#### React Native - typecheck / download gate
 
 - **`sync.ts`:** Removed incorrect re-export of **`mergeHealthLogs`** from **`privacyProfile`** (import remains from **`@rianell/shared`**).
 - **`AiModelDownloadGate.tsx`:** **`prefs.accessibility.colorblindMode`** for tokens; removed duplicate **`fileLabel`** state.
@@ -1084,14 +1093,14 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 ### v1.53.0 - 2026-06-13 - Supabase LLM hosting, download gates, region & i18n
 
-#### On-device LLM — Supabase Storage (chunked)
+#### On-device LLM - Supabase Storage (chunked)
 
 - **Hosting:** ONNX weights served from public Supabase bucket **`llm-models`** (~3.5 GB total). Free-tier **50 MB/object** limit handled by **47 MB `.partNNN` chunks**; clients reassemble into on-device cache.
 - **Upload:** Deprecated (HF-only runtime; Supabase model hosting removed).
 - **Manifest v2:** `apps/pwa-webapp/models/manifest.json` lists logical paths + chunk metadata; **weights gitignored** (only manifest + README committed).
 - **PWA:** `model-chunk-loader.js` downloads chunks, merges to Cache API, hooks Transformers.js `env.fetch`; host priority **Supabase → same-origin → Hugging Face**.
 - **RN:** `llmNative.ts` downloads chunks via `expo-file-system` `File.write({ append })` into `documentDirectory/rianell-models/`.
-- **Schema:** `supabase/Schema.sql` — public bucket `llm-models`, no list policy (direct URLs only).
+- **Schema:** `supabase/Schema.sql` - public bucket `llm-models`, no list policy (direct URLs only).
 - **Scripts/tests:** `download-llm-models.mjs`, `verify-llm-models.mjs` (local or remote verify), `packages/llm/src/chunks.mjs`, `tests/unit/llm-*.test.mjs`.
 
 #### AI model download UX (PWA + RN)
@@ -1099,13 +1108,13 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 - **PWA desktop:** Non-blocking download banner **bottom-right under + FAB**.
 - **PWA mobile installed:** **Blocking** progress modal until download completes (no skip).
 - **PWA mobile web:** Same modal with **Not now** (skippable).
-- **RN:** `AiModelDownloadGate.tsx` wraps app — blocking consent + download modal on Android/iOS installed builds.
+- **RN:** `AiModelDownloadGate.tsx` wraps app - blocking consent + download modal on Android/iOS installed builds.
 - **Hooks:** `ui-feedback.js`, `summary-llm.js` (`cancelAiModelDownload`), `app.js` startup gating.
 
 #### Privacy region, policy engine & UI i18n (v1.52 carry-forward)
 
 - **Single Supabase project** for all users; multi-residency routing removed.
-- **Policy engine:** `policy-packs/v1.json`, `@rianell/shared/privacy` — region labels, feature gating, policy documents.
+- **Policy engine:** `policy-packs/v1.json`, `@rianell/shared/privacy` - region labels, feature gating, policy documents.
 - **Region gate (web · android · ios):** Blocks until privacy region confirmed; read-only policy viewer.
 - **UI i18n:** `locale-packs/v1/` (en-GB default, en-US, en-AU, pt-BR, EU locales); PWA `RianellI18n` + RN `I18nProvider`; `ui_locale` synced via `user_privacy_profile`.
 - **Settings:** Privacy & region pane (PWA carousel + RN Settings).
@@ -1127,7 +1136,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 **Latest: v1.51.0** - Privacy region gate, policy engine, Supabase profile sync (web + RN).
 
-- **Shared policy engine:** `policy-packs/v1.json`, `@rianell/shared/privacy` — region labels, feature gating, policy documents, drift check, residency registry.
+- **Shared policy engine:** `policy-packs/v1.json`, `@rianell/shared/privacy` - region labels, feature gating, policy documents, drift check, residency registry.
 - **Region gate (web · android · ios):** Blocks app until user confirms privacy region; locale/timezone suggestion only; read-only policy viewer on gate.
 - **Settings:** Privacy & region pane with policy viewer, residency label, GDPR consent link (PWA carousel + RN Settings).
 - **Supabase:** `user_privacy_profile` table + RLS; login fetch **overwrites local**; erasure includes profile row.
@@ -1138,21 +1147,21 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 ### v1.50.0 - 2026-06-13 - Security hardening and privacy program
 
-- **P0 XSS:** **`import-utils.js`** — import preview uses **`escapeImportPreviewHtml`** for user-derived strings before DOM insertion.
+- **P0 XSS:** **`import-utils.js`** - import preview uses **`escapeImportPreviewHtml`** for user-derived strings before DOM insertion.
 - **RN cloud sync:** Anonymised uploads and deletion target **`anonymized_data`** (schema-aligned; fixes legacy table name).
 - **Unified cloud erasure:** **`deleteAllUserDataFromCloud`** deletes **`health_data`**, **`user_keys`**, **`anonymized_data`**, **`bug_reports`** for the signed-in user (PWA + RN).
 - **RN auth:** Supabase session tokens in **`expo-secure-store`**; Android **`allowBackup: false`**.
 - **Health data consent (GDPR Art. 9):** PWA consent modal; RN **`healthDataConsent`** / **`healthDataConsentAt`** preference fields.
 - **Privacy program docs:** **`docs/privacy/*`**, **`docs/threat-model.md`**, **`docs/ai-security.md`**, **`docs/incident-response.md`**, **`docs/crypto-roadmap.md`**, **`security/rotation-runbook.md`**, **`docs/security-inventory.md`** (generated).
 - **CI security:** OSV SARIF upload, **`verify-privacy-docs`**, security inventory PR check, CycloneDX SBOM artifact, scheduled Gitleaks history scan, expanded verify scripts.
-- **Tests:** **`tests/unit/security/`** — XSS import preview, cloud deletion table coverage, verify-script smoke.
+- **Tests:** **`tests/unit/security/`** - XSS import preview, cloud deletion table coverage, verify-script smoke.
 
 **Latest: v1.49.1** - Platform parity follow-up: docs, token sync in build, shared CJS exports.
 
 ### v1.49.1 - 2026-06-13 - Platform parity follow-up
 
 - **Build:** `build:web` / `build:web:apk` run **`sync-tokens-to-pwa.mjs`** before vendor + site build (tokens stay aligned in CI).
-- **Docs:** **`setup-and-usage.md`**, **`SECURITY.md`**, **`react-native-setup.md`** — Capacitor paths removed; RN-only mobile guidance.
+- **Docs:** **`setup-and-usage.md`**, **`SECURITY.md`**, **`react-native-setup.md`** - Capacitor paths removed; RN-only mobile guidance.
 - **Shared:** **`@rianell/shared` `index.cjs`** exports storage keys, **`mergeHealthLogs`**, **`normalizeGoals`** (CJS parity with ESM).
 - **Hygiene:** **`.firecrawl/`** gitignored; stale **`apps/capacitor-app`** entry removed from **`package-lock.json`**.
 
@@ -1171,7 +1180,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 ### v1.48.2 - 2026-06-13 - Supabase GraphQL schema exposure hardening
 
-- **Supabase (`supabase/harden-graphql-exposure.sql`):** New idempotent SQL script for live projects — drops unused **`pg_graphql`**, revokes **`anon`** grants on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, re-applies least-privilege grants, and revokes default **`anon`** SELECT on future public tables. Clears Security Advisor **`pg_graphql_anon_table_exposed`** / **`pg_graphql_authenticated_table_exposed`** warnings.
+- **Supabase (`supabase/harden-graphql-exposure.sql`):** New idempotent SQL script for live projects - drops unused **`pg_graphql`**, revokes **`anon`** grants on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, re-applies least-privilege grants, and revokes default **`anon`** SELECT on future public tables. Clears Security Advisor **`pg_graphql_anon_table_exposed`** / **`pg_graphql_authenticated_table_exposed`** warnings.
 - **Supabase (`supabase/Schema.sql`, `docs/supabase-rls-recommended.sql`):** Same **`REVOKE`** / **`DROP EXTENSION`** baseline for fresh test resets and incremental RLS apply.
 - **Docs ([SECURITY.md](SECURITY.md), [app-and-features.md](app-and-features.md), [project-reference.md](project-reference.md), [testing-and-configuration.md](testing-and-configuration.md)):** Document GraphQL introspection risk, remediation script, and operator apply steps.
 
@@ -1183,7 +1192,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 ### v1.48.0 - 2026-06-12 - On-device LLM upgrade (Llama 3.2 1B)
 
-- **PWA (`summary-llm.js`):** Replace Flan-T5 with **`onnx-community/Llama-3.2-1B-Instruct`** (tier 3–5, ~670 MB q4) and **`SmolLM2-360M-Instruct`** (tier 1–2, ~200 MB). **`text-generation`** chat pipeline with system/user messages; **q4f16** WebGPU / **q4** WASM dtypes; raised timeouts; warmup after preload.
+- **PWA (`summary-llm.js`):** Replace Flan-T5 with **`onnx-community/Llama-3.2-1B-Instruct`** (tier 3-5, ~670 MB q4) and **`SmolLM2-360M-Instruct`** (tier 1-2, ~200 MB). **`text-generation`** chat pipeline with system/user messages; **q4f16** WebGPU / **q4** WASM dtypes; raised timeouts; warmup after preload.
 - **Download UX:** First-run **consent modal** (`aiModelDownloadConsent`); **`progress_callback`** progress banner + Settings hint; **`navigator.storage.persist()`** after download; **Remove downloaded AI model** in Settings.
 - **MOTD:** **`motd.json`** refreshed with **simple healthy-lifestyle quotes**; LLM persona/themes and **`isUsableMotdText`** gate retuned for lifestyle vocabulary.
 - **AIEngine:** Feature-matrix **memoization** for `layerInput`; GPU correlation only when **≥20** log days.
@@ -1193,7 +1202,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 ### v1.47.1 - 2026-06-12 - MOTD LLM guardrails
 
-- **PWA (`summary-llm.js`):** The on-device MOTD generator could emit off-topic trivia (e.g. *"a user has to be at least 65 years old to set an alarm on their devices"*) — small Flan-T5 models drift when sampled hot. Now: **temperature 0.92 → 0.7**, **top_p 0.93 → 0.9**, and new **`isUsableMotdText`** relevance gate (rejects digits, tech/trivia vocabulary like *user/device/alarm/login*, and lines without motivational wording) before replacing the curated quote.
+- **PWA (`summary-llm.js`):** The on-device MOTD generator could emit off-topic trivia (e.g. *"a user has to be at least 65 years old to set an alarm on their devices"*) - small Flan-T5 models drift when sampled hot. Now: **temperature 0.92 → 0.7**, **top_p 0.93 → 0.9**, and new **`isUsableMotdText`** relevance gate (rejects digits, tech/trivia vocabulary like *user/device/alarm/login*, and lines without motivational wording) before replacing the curated quote.
 - **PWA (`app.js`):** Curated **`motd.json`** quotes are now the **primary** dashboard MOTD; the LLM only attempts a replacement on **~30% of page loads** (one stable roll per session via **`__rianellMotdLlmRoll`**).
 - **Cache:** **`app.js?v=32`**; **`sw.js`** **`CACHE_NAME`** → **`v2026-06-12-motd-guardrails`** (refreshes unversioned **`summary-llm.js`**).
 
@@ -1222,23 +1231,23 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 ### v1.46.33 - 2026-06-12 - PWA build fix; test Schema auth wipe
 
-- **Web / PWA (`apps/pwa-webapp/app.js`):** Restore two missing `}` braces dropped during the v1.46.32 perf refactor — close the individual-chart **`updateOptions`** fast-path block and **`runAppInit()`** after idle-defer boot. Fixes **`npm run build:web:apk`** / esbuild **`Unexpected ")"`** / **`Unexpected end of input`** on CI.
-- **Supabase (`supabase/Schema.sql`):** Test-reset script now deletes **`auth.users`** (and sessions, identities, refresh tokens) after table drops; header warns **TEST RESET only** — do not run on production.
+- **Web / PWA (`apps/pwa-webapp/app.js`):** Restore two missing `}` braces dropped during the v1.46.32 perf refactor - close the individual-chart **`updateOptions`** fast-path block and **`runAppInit()`** after idle-defer boot. Fixes **`npm run build:web:apk`** / esbuild **`Unexpected ")"`** / **`Unexpected end of input`** on CI.
+- **Supabase (`supabase/Schema.sql`):** Test-reset script now deletes **`auth.users`** (and sessions, identities, refresh tokens) after table drops; header warns **TEST RESET only** - do not run on production.
 
 ### v1.46.32 - 2026-06-12 - Audit remediation (security, performance, UX, docs)
 
 Shipped as one release commit with four staged bodies (security → performance → UX → docs). Apply **`supabase/Schema.sql`** to the live Supabase project manually to enable RLS in production.
 
-**Stage 1 — Security**
+**Stage 1 - Security**
 - RLS policies ship in **`supabase/Schema.sql`**; **`anonymized_log`** column drift fixed; fail-closed encryption (no plaintext cloud fallback); LAN secret required when sensitive APIs on LAN; bug reports via Supabase (PWA + RN); SRI on static CDN script; [SECURITY.md](SECURITY.md) updated.
 
-**Stage 2 — Performance**
+**Stage 2 - Performance**
 - Decouple **`body.loaded`** from AI/chart preload (`requestIdleCallback`); defer non-critical scripts; lazy-load Supabase UMD; **`saveSettings`** via **`StorageBatcher`**; individual chart **`updateSeries`** fast-path; CI **`bundle-sizes.mjs`** snapshot.
 
-**Stage 3 — UX**
+**Stage 3 - UX**
 - Quick minimal log; hide bottom nav during log wizard; modal focus trap helper + tutorial a11y; letter tab icons; chart loading skeletons; GDPR contact **`jan.andersson@rianell.com`**.
 
-**Stage 4 — React Native & docs**
+**Stage 4 - React Native & docs**
 - **`HomeMotdHeartbeat`** wired; charts default **7d** range + skeleton loading; log wizard quick save + **`expo-haptics`**; export button uses Ionicons.
 - [data-model.md](data-model.md), [server-api.md](server-api.md), [react-native-setup.md](react-native-setup.md); stale Capacitor/web paths fixed; broken anchors and placeholder email fixed.
 - **`sw.js`** **`CACHE_NAME`** bumped for PWA cache reset after deploy.
@@ -1257,7 +1266,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 ### v1.46.29 - 2026-06-12 - Supply chain audit clean; PWA iOS standalone launch debug
 
-- **Web / PWA (`apps/pwa-webapp/`):** Early **launch error overlay** in **`index.html`** captures JS errors, unhandled rejections, failed resource loads, and **`console.error`** from first paint—shown on-screen when **`rianellDebug`** is on (default **on** while diagnosing installed iOS home-screen launches; opt out with **`localStorage.rianellDebug = 'false'`** or **`?debug=0`**). Includes **Copy report** (standalone vs browser tab, URL, UA, SW state). **`app.js`** debug init aligned with the same default-on logic. **`sw.js`** **`CACHE_NAME`** bumped so installed PWAs drop stale caches after deploy.
+- **Web / PWA (`apps/pwa-webapp/`):** Early **launch error overlay** in **`index.html`** captures JS errors, unhandled rejections, failed resource loads, and **`console.error`** from first paint - shown on-screen when **`rianellDebug`** is on (default **on** while diagnosing installed iOS home-screen launches; opt out with **`localStorage.rianellDebug = 'false'`** or **`?debug=0`**). Includes **Copy report** (standalone vs browser tab, URL, UA, SW state). **`app.js`** debug init aligned with the same default-on logic. **`sw.js`** **`CACHE_NAME`** bumped so installed PWAs drop stale caches after deploy.
 - **npm (root):** **`overrides`** expanded and **`package-lock.json`** resynced so **`npm audit --audit-level=high --omit=dev`** and full **`npm audit`** report **0** vulnerabilities. Patched transitive pins include **`@xmldom/xmldom@0.9.10`**, **`shell-quote@^1.8.4`**, **`brace-expansion@^5.0.6`**, **`postcss@^8.5.10`**, **`ws@^8.21.0`**, **`uuid@^11.1.1`**, plus dev-tree **`basic-ftp`**, **`ip-address`**, **`tmp`**. **[dependencies.md](dependencies.md)** regenerated via **`npm run docs:dependencies`**.
 - **Python (`requirements.txt`):** **`python-dotenv`** floor raised to **`>=1.2.2`** ([OSV: GHSA-mf9w-mj56-hr94](https://osv.dev/GHSA-mf9w-mj56-hr94)) so **OSV-Scanner** / **`pip-audit`** stay clean.
 - **Docs:** [SECURITY.md](SECURITY.md) override wording (**`@xmldom/xmldom@0.9.10`**); [project-reference.md](project-reference.md) (**Troubleshooting** → iOS standalone PWA debug panel, **`python-dotenv`** floor); [app-and-features.md](app-and-features.md) (launch debug overlay note).
@@ -1288,7 +1297,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **GitHub Actions:** [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) runs only as **`workflow_call`** / **`workflow_dispatch`** (no duplicate **`push`** / **`pull_request`** alongside **`ci.yml`**). **`commit-dependencies-doc`** job may refresh **[dependencies.md](dependencies.md)** on **`main`** / **`master`** after merges.
 - **Dependencies / CI:** Root **`overrides`** pin **`@capacitor/assets`** to **`@capacitor/cli@7.6.1`** (drops nested **CLI 5.x** and **`tar@6.2.1`**); **`@trapezedev/project`** and **`mergexml`** pin **`@xmldom/xmldom@0.8.12`**. **`package-lock.json`** regenerated so **OSV-Scanner** no longer flags dev-only **`tar`** / **`@xmldom/xmldom`** advisories from those chains. `npm ls` may still report **`invalid`** for **`@xmldom/xmldom`** where upstream manifests request **`^0.7.x`**; the installed **0.8.12** is intentional.
 - **Docs automation:** [`scripts/ci/generate-dependencies-doc.mjs`](../scripts/ci/generate-dependencies-doc.mjs) + **`npm run docs:dependencies`** regenerate **[dependencies.md](dependencies.md)**. **CI** verifies the file on **pull requests** and may commit updates on pushes to **main** / **master** (see **`commit-dependencies-doc`** in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
-- **Web / PWA (`apps/pwa-webapp/`):** Bug report modal — close control, scroll wrapper, optional fields under **More detail**, bug icon asset, **`styles.css?v=84`** cache bust; console log note clarified for dev/local server.
+- **Web / PWA (`apps/pwa-webapp/`):** Bug report modal - close control, scroll wrapper, optional fields under **More detail**, bug icon asset, **`styles.css?v=84`** cache bust; console log note clarified for dev/local server.
 - **React Native (`apps/rn-app/`):** **`installBugReportConsoleCapture`** ([`src/utils/bugReportLogs.ts`](../apps/rn-app/src/utils/bugReportLogs.ts)) attaches recent **`console`** output for bug reports on launch.
 - **Python server (`server/main.py`):** Bug report ingest accepts **`page_url`** from either **`url`** or **`page_url`** in the JSON payload (client naming parity).
 
@@ -1337,16 +1346,16 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.46.16 - 2026-03-29 - Web MOTD 3D spin + docs: security header run history
 
 - **Web / PWA (`apps/pwa-webapp/app.js`):** MOTD **`.motd-spin-host`** spin no longer uses a **±1.2 rad** angle clamp (which capped visible tilt ~70°). **Pointer** taps get **rapid-tap boost** like keyboard; angular velocity can carry **well past 360°** before friction; return-to-neutral **spring** applies only when **|ω|** is very low. Heartbeat coupling uses **|ω|** only. **`index.html`** `app.js?v=` **28**; **`app.min.js`** rebuilt.
-- **Docs:** **`docs/infrastructure-and-security-edge.md`** — new **Automated header reports (CI)** with links to **`security/securityheaders-runs/run-*.md`** and **`security/README.md`**. **`docs/styling.md`** — MOTD tap spin behaviour.
+- **Docs:** **`docs/infrastructure-and-security-edge.md`** - new **Automated header reports (CI)** with links to **`security/securityheaders-runs/run-*.md`** and **`security/README.md`**. **`docs/styling.md`** - MOTD tap spin behaviour.
 
 ### v1.46.15 - 2026-03-29 - Security Headers CI: relay scan page, browser-like live fetch
 
 - **Problem:** **securityheaders.com** and sometimes the **live site** return **403** from GitHub Actions (bot / Cloudflare). Browser-only proxy sites (e.g. Proxyium) are **not** usable from CI (no stable API).
-- **Fix (`scripts/audit/fetch-securityheaders-report.mjs`):** After a failed **direct** scan fetch, try **HTML relays** in order: **AllOrigins**, **corsproxy.io**, **Codetabs** — then parse the SecurityHeaders scan page when any relay returns usable HTML. **Live header** fallback tries **`SECURITY_HEADERS_LIVE_URLS`** (CI: `https://rianell.com` then `https://www.rianell.com`) with a **Chrome-like** User-Agent. YAML may include **`securityheaders_scan_relay`**. **`security/README.md`** explains relays vs interactive proxies.
+- **Fix (`scripts/audit/fetch-securityheaders-report.mjs`):** After a failed **direct** scan fetch, try **HTML relays** in order: **AllOrigins**, **corsproxy.io**, **Codetabs** - then parse the SecurityHeaders scan page when any relay returns usable HTML. **Live header** fallback tries **`SECURITY_HEADERS_LIVE_URLS`** (CI: `https://rianell.com` then `https://www.rianell.com`) with a **Chrome-like** User-Agent. YAML may include **`securityheaders_scan_relay`**. **`security/README.md`** explains relays vs interactive proxies.
 
 ### v1.46.14 - 2026-03-29 - Docs: benchmark paths and repo tree
 
-- **Changelog:** Older release notes (v1.46.4–v1.46.11) that referenced **`Benchmarks/`** or **`benchmark-runner/`** now point at **`benchmarks/`** so historical bullets match the post–v1.46.13 layout.
+- **Changelog:** Older release notes (v1.46.4-v1.46.11) that referenced **`Benchmarks/`** or **`benchmark-runner/`** now point at **`benchmarks/`** so historical bullets match the post-v1.46.13 layout.
 - **Project reference:** Repository tree includes **`benchmarks/`** (npm workspace **`@rianell/benchmark-runner`**: CI/local performance reports, scripts, reporters).
 - **Setup guide:** **`docs/setup-and-usage.md`** describes **`benchmarks/`** and **`npm run benchmark`** under Installation.
 
@@ -1364,7 +1373,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 - **README / CI:** **`rn-build-version`** job is **restored**. **Alpha RN Android / RN iOS** rows read **`version`** from the sequential counter (same as **`App build/RNCLI-Android/latest.json`** / iOS zips), **not** **`GITHUB_RUN_NUMBER`**. **Server** and **Web / PWA** rows still use the workflow run number. This keeps RN build counts meaningful (how many mobile artifact runs) while Server/Web stay aligned with overall CI runs.
 - **Large-file fallback** (from v1.46.10) remains: small **`latest.json`** files still commit with README when binaries fail to push, so the sequential RN counter can advance.
-- **Docs:** **`docs/next-phase-development-plan.md`** replaced with a short status note — **no active roadmap items**; pointers to CHANGELOG and feature docs. **`docs/project-reference.md`**, **`scripts/ci/update-readme-build-info.mjs`**, **`benchmarks/README.md`**, **`docs/app-and-features.md`** updated for RN vs workflow numbering.
+- **Docs:** **`docs/next-phase-development-plan.md`** replaced with a short status note - **no active roadmap items**; pointers to CHANGELOG and feature docs. **`docs/project-reference.md`**, **`scripts/ci/update-readme-build-info.mjs`**, **`benchmarks/README.md`**, **`docs/app-and-features.md`** updated for RN vs workflow numbering.
 - **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** expects **`rn-build-version`** + **`needs.rn-build-version.outputs.rn_build`**.
 
 ### v1.46.10 - 2026-03-29 - CI: RN Alpha build numbers + commit fallback
@@ -1372,9 +1381,9 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **Root cause:** React Native CLI **`latest.json`** used a **sequential counter** read from the repo (`App build/RNCLI-Android/latest.json`). When **`commit-app-build`** hit GitHub **large-file** limits, the workflow only pushed **README.md**, so **`latest.json` never advanced** and the counter stayed at **1** while Server/Web followed **`GITHUB_RUN_NUMBER`** (e.g. 200+).
 - **Fix (`.github/workflows/ci.yml`):**
   - Removed **`rn-build-version`**; **`rncli-android-apk`** and **`rncli-ios-zip`** set **`version`** (and iOS zip basename `<N>`) from **`github.run_number`**, matching **Server** `latest.json` and the **Web / PWA** row in the README build table for the same workflow run.
-  - **Large-file fallback:** after a size/quota rejection, the fallback commit now stages **small metadata** — **`App build/RNCLI-Android/latest.json`**, **`App build/iOS/latest.json`**, and **`App build/Server/latest*.json`** — together with **`README.md`**, so GitHub Pages and the README badge stay consistent even when APK/zip binaries cannot be pushed to git.
+  - **Large-file fallback:** after a size/quota rejection, the fallback commit now stages **small metadata** - **`App build/RNCLI-Android/latest.json`**, **`App build/iOS/latest.json`**, and **`App build/Server/latest*.json`** - together with **`README.md`**, so GitHub Pages and the README badge stay consistent even when APK/zip binaries cannot be pushed to git.
 - **Docs:** **`scripts/ci/update-readme-build-info.mjs`** header comment; **`docs/next-phase-development-plan.md`** §2, §3.2, §6; **`benchmarks/README.md`** (CI build numbering note); **`docs/app-and-features.md`** release-channel table footnote; **`docs/project-reference.md`** checkpoint.
-- **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** — assert **`github.run_number`** stamping and fallback paths; **`rn-build-version`** assertions removed.
+- **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** - assert **`github.run_number`** stamping and fallback paths; **`rn-build-version`** assertions removed.
 
 ### v1.46.9 - 2026-03-29 - Benchmark history, comparison Markdown, CI merge
 
@@ -1826,11 +1835,11 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **Renames:** `web/` → **`apps/pwa-webapp/`** (static PWA, GitHub Pages parity reference); `apps/mobile/` → **`apps/rn-app/`** (React Native / Expo); `react-app/` → **`apps/capacitor-app/`** (legacy Vite + Capacitor).
 - **Workspaces:** root **`package.json`** now lists **`apps/*`** and **`packages/*`** only (no top-level `react-app` entry).
 - **Build & tooling:** `build-site.mjs`, `copy-webapp.js`, `prepare-android-assets.mjs`, icon scripts, **`smoke-function-trace`**, **`check-platform-parity`**, Python **`server/`** default **`WEB_DIR`**, **`launch-server.ps1`**, **`.gitignore`**, **`.github/workflows`**, and **`tests/unit`** paths updated.
-- **Docs:** **`docs/next-phase-development-plan.md`** §1–2, §6; **`README`**, **`docs/app-and-features.md`**, **`docs/setup-and-usage.md`**, **`docs/project-reference.md`**, **`docs/platform-parity.md`**.
+- **Docs:** **`docs/next-phase-development-plan.md`** §1-2, §6; **`README`**, **`docs/app-and-features.md`**, **`docs/setup-and-usage.md`**, **`docs/project-reference.md`**, **`docs/platform-parity.md`**.
 
 ### v1.45.26 - 2026-03-27 - React Native Home: top chrome buttons (web / Capacitor parity)
 
-- **Web reference:** `web/index.html` **`.header-buttons-wrap`** — **Goals & targets** (bullseye), **Report a bug** (`?`), **Settings** (cog).
+- **Web reference:** `web/index.html` **`.header-buttons-wrap`** - **Goals & targets** (bullseye), **Report a bug** (`?`), **Settings** (cog).
 - **Mobile (`HomeScreen`):** top-right row of three **44×44** chrome buttons (accent border + glow shadow): **Targets** → **`Charts`** tab with **`{ initialView: 'balance' }`**; **?** → **`Linking.openURL`** to repo **`docs/SECURITY.md`** (in-app bug modal deferred to Phase E); **Settings** → **Settings** tab.
 - **Navigation:** **`MainTabParamList`** exported from **`RootNavigator`**; **`Charts`** accepts optional **`initialView`** (`ChartViewMode`); **`ChartsScreen`** syncs view from **`route.params`**.
 - **Tests:** `HomeScreen.test.tsx` (header actions + FAB); **`ChartsScreen.test.tsx`** mocks **`useRoute`** for Jest without a navigator.
@@ -1843,7 +1852,7 @@ Shipped as one release commit with four staged bodies (security → performance 
   - **Single `package-lock.json`:** removed nested **`react-app/package-lock.json`** and **`apps/mobile/package-lock.json`** (workspaces use root lock only; reduces duplicate Dependabot noise).
   - **`npm audit --omit=dev`:** **0** vulnerabilities on the production tree (CI gate). Full `npm audit` may still list **moderate** dev-only paths (Jest / RN tooling) until upstream bumps.
 - **CI / workflows:**
-  - **`.github/workflows/security-audit.yml`:** one step — **`npm ci --omit=dev && npm audit --audit-level=high --omit=dev`**; `setup-node` cache path **`package-lock.json`** at repo root.
+  - **`.github/workflows/security-audit.yml`:** one step - **`npm ci --omit=dev && npm audit --audit-level=high --omit=dev`**; `setup-node` cache path **`package-lock.json`** at repo root.
   - **`.github/workflows/ci.yml`:** removed redundant **`npm ci`** under **`react-app`** (root **`npm ci`** installs all workspaces).
 - **Mobile (`apps/mobile`):**
   - **Explicit deps** for hoisted installs: **`jest`**, **`@react-navigation/core`**, **`babel-preset-expo`**, **`stacktrace-js`**, **`@ungap/structured-clone`**, **`react-freeze`**, **`warn-once`**.
@@ -1901,7 +1910,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.45.18 - 2026-03-27 - Mobile Charts (Phase B) metric colors
 
 - **Mobile / Charts**:
-  - **`CHART_METRIC_HEX`** in `summarizeCharts.ts` (mood/sleep/fatigue/steps/hydration — same hex as web combined charts).
+  - **`CHART_METRIC_HEX`** in `summarizeCharts.ts` (mood/sleep/fatigue/steps/hydration - same hex as web combined charts).
   - **Mini spark bars** use per-metric colors; **trend rows** get a **3px left border** in the same color.
   - Unit test for `CHART_METRIC_HEX` keys.
 - **Docs**:
@@ -1935,21 +1944,21 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.45.14 - 2026-03-27 - Documentation sync
 
 - **Docs**:
-  - **`docs/app-and-features.md`**: New **React Native — Log today wizard** paragraph (steps, pain diagram / web outline, energy tiles, Charts/AI, test commands); **Project structure** expanded for `apps/mobile/`.
+  - **`docs/app-and-features.md`**: New **React Native - Log today wizard** paragraph (steps, pain diagram / web outline, energy tiles, Charts/AI, test commands); **Project structure** expanded for `apps/mobile/`.
   - **`docs/about-and-support.md`**: Replaced stale version-stamped block with **documentation pointers** (next-phase plan, app-and-features, mobile issue hints).
   - **`docs/next-phase-development-plan.md`**: Last-updated line.
 - **README.md**: “Latest changes” line aligned with this release.
 
 ### v1.45.13 - 2026-03-27 - Log wizard pain diagram (Step 3) visual parity
 
-- **Mobile / Log wizard (Phase A — Step 3)**:
+- **Mobile / Log wizard (Phase A - Step 3)**:
   - Pain diagram uses the **same outline path** as web (`web/index.html`), **viewBox 0 0 140 280**, and **vertical scale** on interactive regions so the figure fills the canvas; **accessibilityHint** on the diagram container.
 - **Docs**:
   - **`docs/next-phase-development-plan.md`**: Step 3 checklist + Phase A work item updated.
 
 ### v1.45.12 - 2026-03-27 - Energy step parity polish + AI refresh test
 
-- **Mobile / Log wizard (Phase A — Step 4)**:
+- **Mobile / Log wizard (Phase A - Step 4)**:
   - **Energy & mental clarity**: short helper line under the title; **accessibility labels** on fatigue, sleep, and mood fields; **thicker group-colored border** when an energy tile is selected.
 - **Mobile / AI Analysis (Phase C)**:
   - Range chips: **`accessibilityLabel`** + **`accessibilityState.selected`**.
@@ -1957,10 +1966,10 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **Docs**:
   - **`docs/next-phase-development-plan.md`**: Steps **4.1 / 4.2** and Phase A Step 4 work item updated.
 
-### v1.45.11 - 2026-03-27 - Plan sync (wizard 6–9) + Charts test
+### v1.45.11 - 2026-03-27 - Plan sync (wizard 6-9) + Charts test
 
 - **Docs**:
-  - **`docs/next-phase-development-plan.md`**: Section **4.2** marks Log wizard **steps 6–9** complete (lifestyle clamp-on-save, food/exercise/meds clear-all + count badges; covered by `LogWizardScreen.test.tsx`). Section **4.1** Charts line clarifies what is implemented vs Apex/visual parity. Phase A work items updated for steps 6–9.
+  - **`docs/next-phase-development-plan.md`**: Section **4.2** marks Log wizard **steps 6-9** complete (lifestyle clamp-on-save, food/exercise/meds clear-all + count badges; covered by `LogWizardScreen.test.tsx`). Section **4.1** Charts line clarifies what is implemented vs Apex/visual parity. Phase A work items updated for steps 6-9.
 - **Mobile / Charts (Phase B)**:
   - **`ChartsScreen.test.tsx`**: Asserts **pull-to-refresh** triggers a second `loadLogs` call.
 
@@ -2010,7 +2019,7 @@ Shipped as one release commit with four staged bodies (security → performance 
   - **Stress & triggers**: grouped picker + search + collapsible section + selected/clear parity.
   - **Symptoms & pain**: introduced a tap-to-cycle body diagram, aligned semantics to **good / discomfort / pain**, and added “Use diagram text”.
   - **Energy & mental clarity**: added collapsible tile picker and icon tiles, plus group-colored tile borders.
-  - **Steps 6–9 UX**: added clear-all controls (food/exercise/meds), count-badge clear affordance shown at **1+**, and tests to lock these behaviours in.
+  - **Steps 6-9 UX**: added clear-all controls (food/exercise/meds), count-badge clear affordance shown at **1+**, and tests to lock these behaviours in.
 - **Docs**:
   - Updated `docs/next-phase-development-plan.md` with Phase A progress notes.
 
@@ -2245,7 +2254,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 ### v1.28.2 - 2026-03-22 - Server dashboard log emoji
 
-- **Server**: Tkinter **Server Logs** pane uses a Segoe UI–family font (`Segoe UI`, `Segoe UI Emoji`, or `Segoe UI Symbol` when installed) so level emojis render; monospace **Consolas** does not show emoji in Tk `Text` on Windows (`server/main.py`).
+- **Server**: Tkinter **Server Logs** pane uses a Segoe UI-family font (`Segoe UI`, `Segoe UI Emoji`, or `Segoe UI Symbol` when installed) so level emojis render; monospace **Consolas** does not show emoji in Tk `Text` on Windows (`server/main.py`).
 - **Server**: `EmojiLogFormatter` inserts **two spaces** after the emoji for a clear gap before the timestamp (`server/config.py`).
 
 
@@ -2337,7 +2346,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 ### v1.22.0 - 2026-02-24 - Tier 5 maxed, GPU detection & acceleration, accelerated UI
 
-- **Tier 5 maxed**: Desktop and mobile tier 5 profiles now use maximum resources-highest chart point limits (400/450 desktop, 280/300 mobile), fastest preload and stagger delays (300 ms chart, 400 ms AI, 15–18 ms lazy stagger), and full animations. Overrides (e.g. tablet) no longer reduce chart capacity below tier 5 when the effective tier is 5.
+- **Tier 5 maxed**: Desktop and mobile tier 5 profiles now use maximum resources-highest chart point limits (400/450 desktop, 280/300 mobile), fastest preload and stagger delays (300 ms chart, 400 ms AI, 15-18 ms lazy stagger), and full animations. Overrides (e.g. tablet) no longer reduce chart capacity below tier 5 when the effective tier is 5.
 - **GPU detection and benchmark**: After the CPU benchmark, a quick GPU check runs (WebGPU adapter request or WebGL clear loop). Result is cached with the benchmark (cache version bumped to 4). Profile exposes `gpuBackend` ('webgpu' | 'webgl' | 'none') and `gpuGood`; tier 4 devices with a good GPU are treated as effective tier 5 for charts and AI.
 - **GPU-accelerated AI**: Summary/suggest LLM (Transformers.js) loads with `device: 'webgpu'` or `device: 'webgl'` when the benchmark reports GPU available; on failure the app falls back to CPU (WASM). Same model IDs and in-memory cache behaviour; no cache migration.
 - **Transformers.js upgrade**: Upgraded from @huggingface/transformers@3.2.0 to **@3.3.2** for stable WebGPU/WebGL device support; 3.4.x is avoided due to a known ONNX Runtime Web issue (`n.env is not a function`).
@@ -2349,8 +2358,8 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.21.0 - 2026-02-24 - Escape toggles Settings on desktop, benchmark progress bar, device hardware detection
 
 - **Escape key on desktop**: Escape now **opens** Settings when it is closed and no other modal is open; it still **closes** Settings when open. On mobile, Escape continues to close Settings only. Desktop is detected via `DeviceModule.platform.platform === 'desktop'` or non-mobile User-Agent.
-- **Benchmark progress indicator**: While the performance benchmark runs on first load, the loading overlay shows a **progress bar** (0–100%) and the existing text ("Measuring performance… X% · &lt;current test&gt;"). The bar is visible only during the benchmark phase and completes to 100% before the overlay is removed.
-- **Device hardware detection**: Optional UAParser.js v1.x for OS, device type/vendor/model, and CPU architecture; **estimated memory bucket** when `navigator.deviceMemory` is missing (e.g. iOS). Benchmark modal and env snapshot show OS, device, CPU, and "estimated: low/medium/high" RAM. Tier heuristic and profile memory overrides use the estimated bucket so iOS and other no–deviceMemory environments get better default tiers.
+- **Benchmark progress indicator**: While the performance benchmark runs on first load, the loading overlay shows a **progress bar** (0-100%) and the existing text ("Measuring performance… X% · &lt;current test&gt;"). The bar is visible only during the benchmark phase and completes to 100% before the overlay is removed.
+- **Device hardware detection**: Optional UAParser.js v1.x for OS, device type/vendor/model, and CPU architecture; **estimated memory bucket** when `navigator.deviceMemory` is missing (e.g. iOS). Benchmark modal and env snapshot show OS, device, CPU, and "estimated: low/medium/high" RAM. Tier heuristic and profile memory overrides use the estimated bucket so iOS and other no-deviceMemory environments get better default tiers.
 - **README**: Settings & UI now document Escape key behaviour; Device performance section updated with progress bar and tier range; changelog v1.21.0 added.
 
 
@@ -2365,7 +2374,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 ### v1.19.0 - 2026-02-23 - Benchmark-driven device classifier and expansive settings
 
-- **Device benchmark module** (`web/device-benchmark.js`): Classifies platform as **mobile** or **desktop** (including Capacitor native app), runs a short CPU benchmark to determine a performance **tier (1–4)**, and caches the result in localStorage. Exposes `DeviceBenchmark.runBenchmarkIfNeeded`, `isBenchmarkReady`, `getPerformanceTier`, `getFullProfile`, `getLegacyDeviceClass`, `clearBenchmarkCache`, etc.
+- **Device benchmark module** (`web/device-benchmark.js`): Classifies platform as **mobile** or **desktop** (including Capacitor native app), runs a short CPU benchmark to determine a performance **tier (1-4)**, and caches the result in localStorage. Exposes `DeviceBenchmark.runBenchmarkIfNeeded`, `isBenchmarkReady`, `getPerformanceTier`, `getFullProfile`, `getLegacyDeviceClass`, `clearBenchmarkCache`, etc.
 - **Expansive profiles**: Separate **MOBILE_PROFILES** and **DESKTOP_PROFILES** tables (4 tiers each) drive chart points, AI preload, DOM batching, demo data days, load timeout, LLM model size, and related options. When the benchmark is ready, `performance-utils.js` uses these profiles via `getOptimizationProfile()` and `getDeviceOpts()` and syncs `platform.deviceClass` from the benchmark tier.
 - **Load gating**: App load handler runs the benchmark first (when `DeviceBenchmark` is present). Loading text shows “Measuring performance…” during the run. If the result was **not** cached (first run), a modal shows the detected device class (platform + tier + class) for user acknowledgment; on OK the result is saved and the app continues. If cached, the app proceeds without the modal.
 - **Developer**: (Moved to God mode in v1.23.0.) Clearing “Clear performance benchmark cache” forces the benchmark and device-class modal to run again on next reload.
@@ -2462,7 +2471,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 ### v1.13.3 - 2026-02-23 - Summary note and Suggest note LLM improvements
 
-- **Summary note**: Improved LLM prompt and context for a clearer, patient-friendly 2–3 sentence summary; optional line from top stressor in context; strip trailing incomplete sentences from output.
+- **Summary note**: Improved LLM prompt and context for a clearer, patient-friendly 2-3 sentence summary; optional line from top stressor in context; strip trailing incomplete sentences from output.
 - **Suggest note (log entry)**: "Suggest note" now uses the in-browser LLM (same model as Summary note) when available, with rule-based fallback; short timeout and token limit for snappy response; "Generating…" on button during LLM call.
 - **Optimisation**: Shared LLM pipeline for both Summary and Suggest note; no duplicate model load.
 
@@ -2480,11 +2489,11 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 ### v1.13.0 - 2026-02-23 - AI optional, summary LLM, notifications
 
-- **AI optional**: Settings toggle "Enable AI features & Goals" – when off, hides AI Analysis tab, chart predictions, and Goals (targets button and progress). Stored in settings and synced to cloud.
+- **AI optional**: Settings toggle "Enable AI features & Goals" - when off, hides AI Analysis tab, chart predictions, and Goals (targets button and progress). Stored in settings and synced to cloud.
 - **Tutorial**: First card "Enable AI & Goals?" (Enable / Skip for now). If skipped, all AI-related tutorial slides are omitted (View & AI, Settings & data, Data options, Goals).
-- **Summary LLM**: In-browser small LLM (Transformers.js, flan-t5-small) for the AI summary note; data-rich context (trends, flares, insights) for short, insightful 2–3 sentence summary. Fallback to rule-based note on error or timeout.
+- **Summary LLM**: In-browser small LLM (Transformers.js, flan-t5-small) for the AI summary note; data-rich context (trends, flares, insights) for short, insightful 2-3 sentence summary. Fallback to rule-based note on error or timeout.
 - **Goals & cloud**: Goals and targets saved to cloud (Supabase app_settings) with localStorage; sync on save and on load when signed in.
-- **Notifications**: "Enable sound notifications" now respected – notifications use `silent: false` when sound is on (including on mobile). Heartbeat-monitor style sound (Web Audio, lub-dub) plays when reminder fires and app is in foreground, and when enabling sound in Settings. AudioContext unlocked on permission request for mobile.
+- **Notifications**: "Enable sound notifications" now respected - notifications use `silent: false` when sound is on (including on mobile). Heartbeat-monitor style sound (Web Audio, lub-dub) plays when reminder fires and app is in foreground, and when enabling sound in Settings. AudioContext unlocked on permission request for mobile.
 - **Server**: No server files in repo root; run with `python -m server` (see v1.12.0).
 
 
@@ -2493,9 +2502,9 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **Security**: Remove exposed Supabase URL/keys and default encryption key from repo; rewrite git history to redact secrets; document connecting your own API and encryption keys.
 - **GitHub Pages**: Deploy workflow injects Supabase config from repository secrets so production site works without committing credentials.
 - **Server**: Move server logic into `server/` package; root entry point removed (run with `python -m server`).
-- **Install modal**: Post-tutorial install modal (shown once) with web/Android/iOS install options; added to God mode – test all UI.
+- **Install modal**: Post-tutorial install modal (shown once) with web/Android/iOS install options; added to God mode - test all UI.
 - **UK English**: User-facing copy and docs use UK spelling (anonymised, optimisation, centre, etc.); schema/code identifiers unchanged.
-- **CI**: Android/iOS workflows use pull–rebase before push and stash to avoid unstaged-changes errors; Android compileSdk set to 36.
+- **CI**: Android/iOS workflows use pull-rebase before push and stash to avoid unstaged-changes errors; Android compileSdk set to 36.
 - **Builds**: Android APK and iOS (Xcode project zip, simulator) output to `App build/Android/` and `App build/iOS/` with `latest.json`; Settings modal uses newest build.
 - **README**: Changelog in collapsible sections; God mode and post-tutorial install modal documented.
 
@@ -2523,7 +2532,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 - **Sharing**: Sharing UI and AI PDF export.
 - **Consent**: Cookie consent banner; GDPR/cookie policy.
-- **Testing**: God mode – test all UI (backtick ` key) to trigger tabs, modals, charts, AI range, form sections.
+- **Testing**: God mode - test all UI (backtick ` key) to trigger tabs, modals, charts, AI range, form sections.
 - **AI**: Enhanced AI analysis and flare detection; UI improvements.
 
 

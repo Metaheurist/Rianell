@@ -2,8 +2,8 @@
 
 Rianell ships two active client surfaces:
 
-- **Web / PWA** — `apps/pwa-webapp/`
-- **React Native (Expo SDK 55)** — `apps/rn-app/`
+- **Web / PWA** - `apps/pwa-webapp/`
+- **React Native (Expo SDK 55)** - `apps/rn-app/`
 
 Legacy **Capacitor** was removed in v1.49. CI enforces parity on every PR.
 
@@ -24,13 +24,13 @@ Machine-readable contract: `docs/platform-parity.json` (v2).
 
 ### v2.0.9 note
 
-- **RN motion parity increment:** Spring press on `PrimaryButton`; staggered AI/Charts/Mood entrances; log wizard step slide; mood ring SVG draw — all respect OS reduced motion.
+- **RN motion parity increment:** Spring press on `PrimaryButton`; staggered AI/Charts/Mood entrances; log wizard step slide; mood ring SVG draw - all respect OS reduced motion.
 - **PWA motion:** Tab travel, AI stagger, shimmer timing aligned with `@rianell/tokens` motion scale.
-- **Wellness sliders:** Shared 1–10 range (`sliderWellness.mjs`); PWA + RN use same invert rules.
+- **Wellness sliders:** Shared 1-10 range (`sliderWellness.mjs`); PWA + RN use same invert rules.
 
 ### v1.121.0 note
 
-- **Cycle period-start anchor:** PWA + RN — `cycle.periodStart`, day selector 1–35 with irregular expand to 45, shared `findLatestPeriodStart` / `computeCycleDayFromPeriodStart`.
+- **Cycle period-start anchor:** PWA + RN - `cycle.periodStart`, day selector 1-35 with irregular expand to 45, shared `findLatestPeriodStart` / `computeCycleDayFromPeriodStart`.
 - **Goals modal (PWA):** Carousel meta line i18n + themed dot icons.
 
 ### v1.120.0 note
@@ -66,10 +66,10 @@ Minor UX differences (e.g. install vs GitHub release links) are intentional per 
 
 Both platforms import:
 
-- `@rianell/shared` — schema, i18n, merge
-- `@rianell/ai-engine` — analysis (bundled on web)
-- `@rianell/cloud-sync` — encryption
-- `@rianell/llm` — summaries
+- `@rianell/shared` - schema, i18n, merge
+- `@rianell/ai-engine` - analysis (bundled on web)
+- `@rianell/cloud-sync` - encryption
+- `@rianell/llm` - summaries
 
 This avoids duplicating business rules in PWA vs RN.
 

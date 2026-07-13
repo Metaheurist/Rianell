@@ -5,7 +5,7 @@ This document describes how the legacy web app’s visual layer is organised: **
 ## v1.60.0 RTL layout (ar / he)
 
 - **Direction:** `apps/pwa-webapp/i18n-pwa.js` sets **`document.documentElement.dir`** to `rtl` for Arabic and Hebrew via `@rianell/shared` **`textDirection()`**.
-- **CSS:** Base overrides in **`styles.css`** under **`[dir="rtl"]`** — bottom nav, settings carousel dots, wizard progress, tab bar (`flex-direction: row-reverse` where needed). Prefer **logical properties** (`margin-inline-start`, `padding-inline-end`) in new rules.
+- **CSS:** Base overrides in **`styles.css`** under **`[dir="rtl"]`** - bottom nav, settings carousel dots, wizard progress, tab bar (`flex-direction: row-reverse` where needed). Prefer **logical properties** (`margin-inline-start`, `padding-inline-end`) in new rules.
 - **Charts:** Do **not** mirror time-series axes; wrap embedded LTR user content (notes, numbers) in **bidi isolates** when displayed inside RTL chrome.
 - **RN:** `I18nManager.allowRTL(true)` and **`forceRTL(isRtlLocale(locale))`** on locale change in `App.tsx`.
 
@@ -56,7 +56,7 @@ Dark mode defaults use a **neutral shell** (`--shell-bg`, `--background-dark`) w
 - **Surfaces:** `--surface-main`, `--surface-border`, `--surface-outer-glow`
 - **Button chrome:** `--btn-chrome-bg`, `--btn-chrome-border`, `--btn-chrome-shadow`, etc.
 - **Accents:** `--neon-lime`, `--primary-color`, `--modal-surface`, `--modal-backdrop`
-- **Theme-aware accents (v1.120.0):** `--accent-primary`, `--accent-soft`, `--accent-subtle-bg`, `--accent-fill-*`, `--accent-border*`, `--accent-glow-*`, `--accent-active-gradient`, `--accent-progress-gradient` — use these instead of hardcoded `#4caf50` / `rgba(76, 175, 80, …)` in new CSS.
+- **Theme-aware accents (v1.120.0 / v2.2.8):** `--accent-primary`, `--accent-soft`, `--accent-subtle-bg`, `--accent-fill-*`, `--accent-border*`, `--accent-glow-*`, `--accent-active-gradient`, `--accent-progress-gradient`, plus light-mode `--toggle-track-off` - use these instead of hardcoded mint greens (`#4caf50`, `rgba(76, 175, 80, …)`, `rgba(123, 223, 140, …)`).
 - **Layout:** `--radius-*`, `--section-gap`, `--card-content-padding-x`
 
 **`body.light-mode`** overrides these for the light theme (higher contrast text, softer green borders).
@@ -113,10 +113,10 @@ Theme-specific overrides for loading ring/body/sun are applied for `theme-red-bl
 ## v1.120.0 theme accent pass (PWA)
 
 - **CSS:** Bulk replacement of Material green literals with `--accent-*` tokens in `styles.css` / `styles-charts.css`. Themed `body` blocks set `--ui-icon-color` and `--home-checkin-icon-color`.
-- **JS (`app.js`):** `getThemePrimaryColor()`, `getThemeAccentSoft()`, `themePrimaryRgba()`, `colorToRgba()` — read tokens from **`document.body`** so non-mint themes apply to ApexCharts options, AI trend inline colours, and edit sliders. `setGlobalTheme()` calls `refreshCharts()` and re-runs `generateAISummary()` when AI results are on screen.
+- **JS (`app.js`):** `getThemePrimaryColor()`, `getThemeAccentSoft()`, `themePrimaryRgba()`, `colorToRgba()` - read tokens from **`document.body`** so non-mint themes apply to ApexCharts options, AI trend inline colours, and edit sliders. `setGlobalTheme()` calls `refreshCharts()` and re-runs `generateAISummary()` when AI results are on screen.
 - **Modal save icons:** `.modal-save-btn .ui-svg-icon { color: inherit }` so icons match gradient button text.
 - **Cache bust:** Bump `styles.css?v=` in `index.html` after CSS changes.
-- **Still mint (low traffic):** GDPR modal inline styles, print/export recovery buttons — not part of main app chrome.
+- **Still mint (low traffic):** GDPR modal inline styles, print/export recovery buttons - not part of main app chrome.
 
 ## App icon / beta badge styling
 
@@ -147,4 +147,4 @@ The **Export / Import / Install web app** tiles and the **Clear all data** actio
 
 ## Build
 
-CSS-only edits do not require **`npm run build:web`**. Changes to **`apps/pwa-webapp/app.js`** that ship a production minified bundle should run **`npm run build:web`** (or **`npm run build:web:apk`** for the APK / **`.android-dist`** tree) before release; output filenames are content-hashed (**`app.<hash>.min.js`**, **`asset-manifest.json`** — see **[setup-and-usage.md](setup-and-usage.md)**).
+CSS-only edits do not require **`npm run build:web`**. Changes to **`apps/pwa-webapp/app.js`** that ship a production minified bundle should run **`npm run build:web`** (or **`npm run build:web:apk`** for the APK / **`.android-dist`** tree) before release; output filenames are content-hashed (**`app.<hash>.min.js`**, **`asset-manifest.json`** - see **[setup-and-usage.md](setup-and-usage.md)**).

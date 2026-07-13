@@ -1,6 +1,21 @@
 # Release Notes
 
-## Latest release (v2.2.7)
+## Latest release (v2.2.8)
+
+**Date:** 2026-07-14
+
+### Highlights
+
+- **Blood pressure dial:** The heart icon is a clearer classic heart shape.
+- **Mobility slider art:** One trampoline mat bounces under the stick figure (no double/clipped rim).
+- **Themes:** Light-mode toggles, inputs, Skip, and Save Entry follow the active theme colour (no leftover mint edges on Red/Black and other teams).
+- **Docs:** Markdown uses hyphens instead of em/en dashes.
+
+See **v2.2.7** below for dependency floors.
+
+---
+
+## Previous (v2.2.7)
 
 **Date:** 2026-07-13
 
@@ -25,7 +40,7 @@ See **v2.2.6** below for avatar, goals, Ask Rianell gate, and CI/security fixes.
 - **Ask Rianell:** Chat opens only when AI is enabled and the on-device model is ready; otherwise you are prompted to enable and download. Devices that cannot run on-device LLM get guided generic replies.
 - **Nav icons:** AI Analysis and Overview chapter icons are larger so they read clearly beside other tabs.
 - **Copy:** User-facing em dashes replaced with hyphens across locales and AI suggestions.
-- **CI / supply chain:** Node 24–native GitHub Actions artifacts; MobSF action pin fixed; Dependabot ignores unsafe Expo/Babel/RTL majors; OpenTelemetry CVE-2026-54285 cleared via `@opentelemetry/core@2.9.0`; Transformers.js Vault false-positive neutralized.
+- **CI / supply chain:** Node 24-native GitHub Actions artifacts; MobSF action pin fixed; Dependabot ignores unsafe Expo/Babel/RTL majors; OpenTelemetry CVE-2026-54285 cleared via `@opentelemetry/core@2.9.0`; Transformers.js Vault false-positive neutralized.
 
 See **v2.2.5** for settings button contrast and **v2.2.4** for theme mint-leak fixes.
 
@@ -65,7 +80,7 @@ See **v2.2.1** below for Ask Rianell offline replies and boot benchmark fixes.
 
 - **Ask Rianell:** Offline replies now match your question topic (sleep, mood, patterns, fatigue, stress) instead of one canned line; close button and header polish.
 - **Mood tab:** Tap a history card to open day detail (full log, check-ins, day average); check-in icons scaled up for readability.
-- **Boot reliability:** First-start performance benchmark no longer hangs at “Array throughput” — watchdog aborts and reveals the app if the suite stalls.
+- **Boot reliability:** First-start performance benchmark no longer hangs at “Array throughput” - watchdog aborts and reveals the app if the suite stalls.
 - **AI Analysis:** New Overview monitor and Trends & vitals heart/EKG chapter icons; trend metric icons clearer in light mode.
 - **Vitals:** BP heart SVG proportion fix; mobility bounce animation no longer freezes on +/- taps.
 
@@ -124,7 +139,7 @@ See **v2.1.6** below for design token contract and Mood Control Deck.
 ### Highlights
 
 - **Design token contract:** `@rianell/tokens` is the single runtime authority; spacing/surface/radius synced to PWA CSS.
-- **Mood Control Deck:** Unified 3D glass panel on the Mood tab — daypart orbs, aurora backdrop, parallax tilt, and quick-action tiles (Home check-in unchanged).
+- **Mood Control Deck:** Unified 3D glass panel on the Mood tab - daypart orbs, aurora backdrop, parallax tilt, and quick-action tiles (Home check-in unchanged).
 - **Log metric polish:** Swelling balloon, irritability thought cloud, mobility trampoline, weather sun/cloud widgets.
 - **Cycle timeline:** 45-day unified cycle view with period-start anchor.
 - **Benchmark reliability:** Async sliced CPU suite with stall/hard-cap timeouts so boot benchmark cannot hang.
@@ -173,7 +188,7 @@ See **v2.1.3** below for log wizard severity and picker polish.
 
 ### Highlights
 
-- **Severity scale:** Low / Moderate / High labels on symptom sliders with raw 1–10 readout.
+- **Severity scale:** Low / Moderate / High labels on symptom sliders with raw 1-10 readout.
 - **Log review:** Metric intensity bars and urgent vitals highlighting.
 - **Symptom picker:** Animated chip icons and i18n fallbacks.
 - **Goals modal:** Redesigned target/medal tab art.
@@ -234,7 +249,7 @@ See also **v2.1.0** (session stability) below.
 
 - **Freeze/crash fix (desktop):** Resolved long-session tab crash on high-end PCs (Tier 5). Root causes included a 421 MB AI heap spike, unbounded boot log growth, un-teardown `MutationObserver` instances, and 200+ CSP-Report-Only violations per page load.
 - **Smarter AI loading:** On-device AI runtime now checks available heap before attempting GPU/MLC paths; falls back to WASM directly if the session is already under memory pressure.
-- **Chart memory decay:** Chart `maxPoints` decreases with session age (–40% at 30 min, –60% at 60 min) to keep GPU memory in check across long sessions.
+- **Chart memory decay:** Chart `maxPoints` decreases with session age (-40% at 30 min, -60% at 60 min) to keep GPU memory in check across long sessions.
 - **Service worker reliability:** Stale SW now auto-applies after 3 "Later" dismissals, preventing outdated asset caching issues.
 - **CI gate:** New `verify:cspro` script checks for dangerous Cloudflare CSPRO headers in CI.
 
@@ -247,7 +262,7 @@ See also **v2.1.0** (session stability) below.
 ### Highlights
 
 - **Smoother animations:** Spring button presses, staggered AI insights, mood ring draw, and log wizard step slides on mobile; tab and AI card animations refined on web.
-- **Wellness sliders:** All health metric sliders now use a **1–10** range (1 = bad, 10 = good) with corrected save/load for symptom fields.
+- **Wellness sliders:** All health metric sliders now use a **1-10** range (1 = bad, 10 = good) with corrected save/load for symptom fields.
 - **Boot experience:** Performance benchmark modal no longer pops up automatically on first launch.
 
 ---
@@ -297,8 +312,8 @@ See also **v2.1.0** (session stability) below.
 
 ### Highlights
 
-- **Hosted share links:** Create a time-limited, password-encrypted link to share a read-only view of your logs with a clinician or carer. Choose date range, whether to include free-text notes, and a password. Data is encrypted client-side (PBKDF2 310 000 iterations + AES-GCM) before upload — Rianell never sees unencrypted health data.
-- **App lock PIN mode:** App lock now supports both a **passphrase** (12+ characters) and a **PIN** (4–8 digits). Weak PINs (repeating digits, sequential runs) are blocked.
+- **Hosted share links:** Create a time-limited, password-encrypted link to share a read-only view of your logs with a clinician or carer. Choose date range, whether to include free-text notes, and a password. Data is encrypted client-side (PBKDF2 310 000 iterations + AES-GCM) before upload - Rianell never sees unencrypted health data.
+- **App lock PIN mode:** App lock now supports both a **passphrase** (12+ characters) and a **PIN** (4-8 digits). Weak PINs (repeating digits, sequential runs) are blocked.
 - **Password strength:** Encrypted exports, QR handoffs, and share links now require a minimum **12-character** passphrase (raised from 8). A strength estimator provides live feedback.
 - **PWA install guide:** Platform-specific install instructions (iOS Safari, macOS Safari, Chrome, Firefox, Edge) with step-by-step guidance and illustrations.
 - **Log range slider:** Log date range now uses a smooth slider instead of discrete buttons.
