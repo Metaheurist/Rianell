@@ -304,7 +304,7 @@ Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live
 
 - **PWA boot:** Phase 2b privacy-gate light i18n; `revealAppShellWithLocale()` restores full locale hydration after catalogs load.
 - **CI:** Minified artifact upload retry; Playwright install for post-deploy `audit:boot:strict`.
-- **Supply chain:** `@sentry/node` override via benchmark `lighthouse`; `cryptography>=48.0.1`.
+- **Supply chain:** Root `@sentry/node@10.58.0` + `@opentelemetry/core@2.9.0` (CVE-2026-54285); `cryptography>=48.0.1`.
 - **See:** [testing-and-configuration.md](testing-and-configuration.md) § PWA boot locale hydration; [SECURITY.md](SECURITY.md) dependency floors.
 
 ### v1.87.0 documentation sync (locale refresh all tabs)

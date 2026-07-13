@@ -2,16 +2,16 @@
   "version": "3.3.2",
   "files": {
     "transformers.min.js": {
-      "sha256": "c73cd971f2a75c81dbfa6634754fd6e0cc86772cdfe1b041127833b533902955",
-      "bytes": 818481
+      "sha256": "c8cb9d5372a4e237a078690547114acf5f5827a57515ff02b73c909a029bd1fe",
+      "bytes": 818493
     },
     "transformers.min.js.map": {
       "sha256": "770ed61b39ce64f7a20e04da808cd96527e52efd96a2376b0da8bb25cf5f8279",
       "bytes": 2498652
     },
     "transformers.min.mjs": {
-      "sha256": "73267918a4f6755530a01ce25ca005d0f1bf54052e9868ec3c2516b2f8d6995f",
-      "bytes": 430204
+      "sha256": "f58fd4b0c690ba25fbe08ec32ba63b32a1f8cf9c1cc476b91c4a9116d3898b61",
+      "bytes": 430264
     },
     "transformers.min.mjs.map": {
       "sha256": "580e389be80c7e0670c7f6e43331a0007919c2888ae297496375b3d1974bde2f",

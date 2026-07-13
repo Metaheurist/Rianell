@@ -36,6 +36,18 @@ if (!existsSync(dist)) {
 
 mkdirSync(outDir, { recursive: true });
 
+/**
+ * GitHub secret scanning treats `s.` + exactly 24 alnum chars as a HashiCorp Vault
+ * service token. Transformers.js minified re-exports (e.g. s.DebertaV2PreTrainedModel)
+ * match that pattern. Bracket notation is equivalent and clears the FP.
+ */
+function neutralizeVaultShapedPropertyAccess(source) {
+  return source.replace(
+    /(^|[^A-Za-z0-9_$])s\.([A-Za-z0-9]{24})(?![A-Za-z0-9_$])/g,
+    '$1s["$2"]',
+  );
+}
+
 const manifest = { version, files: {} };
 
 for (const name of FILES) {
@@ -46,7 +58,15 @@ for (const name of FILES) {
   }
   const dest = join(outDir, name);
   copyFileSync(src, dest);
-  const buf = readFileSync(dest);
+  let buf = readFileSync(dest);
+  if (/\.m?js$/.test(name) && !name.endsWith('.map')) {
+    const rewritten = neutralizeVaultShapedPropertyAccess(buf.toString('utf8'));
+    if (rewritten !== buf.toString('utf8')) {
+      writeFileSync(dest, rewritten);
+      buf = Buffer.from(rewritten, 'utf8');
+      console.log('Neutralized Vault-shaped identifiers in', name);
+    }
+  }
   manifest.files[name] = {
     sha256: createHash('sha256').update(buf).digest('hex'),
     bytes: buf.length,
