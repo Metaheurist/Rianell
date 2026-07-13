@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.5** - Light-mode settings primary buttons use readable dark ink.
+**Latest: v2.2.6** - Avatar, goals progress, Ask Rianell gate, CI/supply-chain hardening.
+
+### v2.2.6 - 2026-07-13 - Companion avatar, goals, chat gate, CI
+
+- **Avatar:** Generated companions inline SVG paths (no nested `role="img"` / fragile `<use>`), and `--avatar-secondary` always falls back when `--secondary-color` is unset - removes the browser broken-image chrome above the character.
+- **Copy:** UI strings use hyphens instead of em dashes (`—` → `-`) in locale packs and hardcoded suggestions.
+- **Goals:** Day chips / SVG+3D pillars scale to daily target %; decorative static trail dots removed.
+- **Ask Rianell:** Opens only when AI + model ready; otherwise enable/download prompts; unsupported devices get guided generic replies.
+- **Icons:** Larger AI Analysis tab glyph and Overview monitor.
+- **CI:** Artifact actions Node 24 majors; iOS `macos-15`; MobSF `0.4.5`; Dependabot pip `/` + Expo/Babel/RTL major ignores.
+- **Security:** Transformers.js Vault FP neutralized + `secret_scanning.yml` path ignore; `@opentelemetry/core@2.9.0` / `@sentry/node@10.58.0` clear CVE-2026-54285.
 
 ### v2.2.5 - 2026-07-13 - Settings button contrast
 

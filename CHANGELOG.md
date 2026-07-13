@@ -6,6 +6,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.6] - 2026-07-13
+
+### Fixed
+
+- **Companion avatar:** Generated characters no longer show a browser broken-image placeholder above the glyph. Paths are inlined (no nested `role="img"` / fragile `<use>`), and `--avatar-secondary` always falls back when `--secondary-color` is unset
+- **Copy:** User-facing em dashes (`—`) replaced with hyphens (`-`) across i18n packs, AI suggestions, and PWA fallbacks
+- **Goals progress visuals:** Seven-day SVG/3D pillars and day chips scale to each day's target % (and overall row progress); static decorative trail dots removed so chips are not stuck looking incomplete
+- **Ask Rianell:** Chat opens only when AI is enabled and the on-device model is ready; otherwise prompts to enable and download. Devices that cannot run on-device LLM get guided generic responses instead
+- **Nav / AI icons:** AI Analysis tab robot glyph and Overview chapter monitor are larger and heavier so they read clearly next to other tabs
+- **CI:** Bump `upload-artifact`/`download-artifact`/`configure-pages`/`nick-fields/retry` to Node 24–native majors; pin iOS job to `macos-15` ahead of `macos-latest` → macOS 26
+- **Dependabot:** Pip ecosystem `directory` corrected from `/server` to `/` (canonical `requirements.txt` is at repo root)
+- **CI:** MobSF scan action pin fixed from invalid `v0.3.8` to release tag `0.4.5`
+- **Dependabot:** Ignore Expo `>=56`, Babel `>=8`, and `@testing-library/react-native` `>=14` until coordinated SDK/toolchain upgrades
+- **Secret scanning:** Dismissed HashiCorp Vault FP on Transformers.js (`s.DebertaV2PreTrainedModel`); vendor script rewrites Vault-shaped `s.Ident` to bracket form; `.github/secret_scanning.yml` ignores `vendor/transformers/**`
+- **Supply chain (CVE-2026-54285 / GHSA-8988-4f7v-96qf):** Root pins `@sentry/node@10.58.0` and `@opentelemetry/core@2.9.0` (overrides with `$` refs) so Lighthouse no longer resolves vulnerable `@opentelemetry/core@1.30.1`
+
+---
+
 ## [2.2.5] - 2026-07-13
 
 ### Fixed
