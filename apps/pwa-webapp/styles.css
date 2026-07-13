@@ -700,21 +700,22 @@ body.light-mode {
   color: var(--text-dark);
   --text-primary: var(--text-dark);
   /* Flip the "light" text token (and its rgba channels) to dark so the ~200 surfaces that
-     hardcoded near-white body/muted text become readable on light backgrounds. */
+     hardcoded near-white body/muted text become readable on light backgrounds.
+     Ink RGB defaults to mint; team overrides set --text-light / --text-light-rgb below. */
   --text-light: #163a23;
   --text-light-rgb: 22, 58, 35;
   /* Recovery overlay keeps a fixed dark background, so its text must stay light. */
   --recovery-overlay-text: #e8eeec;
   --neutral-card-rgb: 255, 255, 255;
-  /* Icon polish: mint-on-white is too pale and the dark-mode glow looks muddy on light. */
-  --ui-icon-color: color-mix(in srgb, var(--primary-color) 48%, #0a3d18);
-  --ui-icon-muted: color-mix(in srgb, var(--primary-color) 42%, #0a3d18);
+  /* Icon polish: mix primary with theme ink (team blocks override ink). */
+  --ui-icon-color: color-mix(in srgb, var(--primary-color) 48%, var(--light-ink-deep, #0a3d18));
+  --ui-icon-muted: color-mix(in srgb, var(--primary-color) 42%, var(--light-ink-deep, #0a3d18));
   --ui-icon-glow: none;
   --modal-backdrop: rgba(15, 40, 24, 0.44);
   --border-subtle: rgba(0, 0, 0, 0.08);
   --btn-chrome-bg: rgba(255, 255, 255, 0.92);
   --btn-chrome-bg-hover: rgba(255, 255, 255, 0.99);
-  --btn-chrome-border: rgba(46, 125, 80, 0.35);
+  --btn-chrome-border: color-mix(in srgb, var(--primary-color) 35%, transparent);
   --btn-chrome-shadow: 0 3px 0 rgba(0, 0, 0, 0.06), 0 8px 18px rgba(0, 0, 0, 0.08), 0 6px 16px var(--accent-fill-10);
   --btn-chrome-shadow-hover: 0 4px 0 rgba(0, 0, 0, 0.05), 0 10px 24px rgba(0, 0, 0, 0.1), 0 8px 20px var(--accent-fill-14);
   --btn-chrome-text: var(--text-dark);
@@ -740,6 +741,90 @@ body.light-mode {
   --tutorial-cta-demo-border-hover: color-mix(in srgb, var(--tutorial-hue-demo) 48%, transparent);
   --tutorial-cta-neutral-bg: color-mix(in srgb, var(--text-dark) 6%, #fff);
   --tutorial-cta-neutral-border: color-mix(in srgb, var(--text-dark) 14%, transparent);
+  /* Team-ink tokens (mint defaults; overridden per .theme-* below) */
+  --light-ink: #163a23;
+  --light-ink-deep: #0a3d18;
+  --surface-header-tint: rgba(248, 253, 248, 0.96);
+}
+
+/* Light mode must follow the global theme team — do not leave mint greens when Red/Black (or others) is active. */
+body.light-mode.theme-mint,
+body.light-mode:not(.theme-red-black):not(.theme-mono):not(.theme-rainbow) {
+  --background-light: linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%);
+  --text-dark: #1b5e20;
+  --text-light: #163a23;
+  --text-light-rgb: 22, 58, 35;
+  --light-ink: #163a23;
+  --light-ink-deep: #0a3d18;
+  --ui-icon-color: color-mix(in srgb, var(--primary-color) 48%, var(--light-ink-deep));
+  --ui-icon-muted: color-mix(in srgb, var(--primary-color) 42%, var(--light-ink-deep));
+  --btn-chrome-border: rgba(46, 125, 80, 0.35);
+  --modal-backdrop: rgba(15, 40, 24, 0.44);
+  --surface-header-tint: rgba(248, 253, 248, 0.96);
+}
+
+body.light-mode.theme-red-black {
+  --primary-color: #c62828;
+  --primary-gradient: linear-gradient(135deg, #9d0f18 0%, #c62828 45%, #ff6b76 100%);
+  --primary-glow: 0 0 18px rgba(198, 40, 40, 0.18);
+  --background-light: linear-gradient(135deg, #ffe7ea 0%, #ffd0d6 30%, #fff5f6 100%);
+  --text-dark: #3a0a0f;
+  --text-light: #3a0a0f;
+  --text-light-rgb: 58, 10, 15;
+  --text-secondary: color-mix(in srgb, var(--primary-color) 62%, #1a0508 38%);
+  --light-ink: #3a0a0f;
+  --light-ink-deep: #5c0a12;
+  --ui-icon-color: color-mix(in srgb, var(--primary-color) 52%, var(--light-ink-deep));
+  --ui-icon-muted: color-mix(in srgb, var(--primary-color) 40%, var(--light-ink-deep));
+  --ui-icon-success: var(--primary-color);
+  --home-checkin-icon-color: var(--primary-color);
+  --btn-chrome-border: color-mix(in srgb, var(--primary-color) 38%, transparent);
+  --modal-backdrop: rgba(58, 10, 15, 0.42);
+  --surface-header-tint: rgba(255, 245, 246, 0.97);
+  --surface-border: color-mix(in srgb, var(--primary-color) 22%, transparent);
+  --neon-lime: #c62828;
+  --neon-lime-soft: #ff8590;
+  --neon-lime-deep: #9d0f18;
+  --neon-lime-glow: rgba(198, 40, 40, 0.28);
+  --title-neon-gradient: linear-gradient(135deg, #ff9ca6 0%, #c62828 50%, #9d0f18 100%);
+  --title-flat-tone: #9d0f18;
+  --accent-soft: color-mix(in srgb, var(--primary-color) 72%, white 28%);
+}
+
+body.light-mode.theme-mono {
+  --primary-color: #212121;
+  --primary-gradient: linear-gradient(135deg, #151515 0%, #424242 50%, #9e9e9e 100%);
+  --background-light: linear-gradient(135deg, #ffffff 0%, #f3f3f3 50%, #e9e9e9 100%);
+  --text-dark: #151515;
+  --text-light: #151515;
+  --text-light-rgb: 21, 21, 21;
+  --text-secondary: #424242;
+  --light-ink: #151515;
+  --light-ink-deep: #000000;
+  --ui-icon-color: #212121;
+  --ui-icon-muted: #616161;
+  --btn-chrome-border: rgba(21, 21, 21, 0.28);
+  --modal-backdrop: rgba(0, 0, 0, 0.4);
+  --surface-header-tint: rgba(245, 245, 245, 0.97);
+  --neon-lime: #424242;
+  --neon-lime-soft: #9e9e9e;
+  --neon-lime-deep: #212121;
+}
+
+body.light-mode.theme-rainbow {
+  --primary-color: #c2185b;
+  --primary-gradient: linear-gradient(135deg, #ff375f 0%, #ff8f1f 20%, #41e36d 45%, #25d8ff 70%, #b54cff 100%);
+  --background-light: linear-gradient(135deg, #fff0f6 0%, #fff8e7 28%, #eefcff 62%, #f4eefe 100%);
+  --text-dark: #4a148c;
+  --text-light: #4a148c;
+  --text-light-rgb: 74, 20, 140;
+  --light-ink: #4a148c;
+  --light-ink-deep: #880e4f;
+  --ui-icon-color: color-mix(in srgb, var(--primary-color) 50%, var(--light-ink-deep));
+  --ui-icon-muted: color-mix(in srgb, var(--primary-color) 40%, var(--light-ink-deep));
+  --btn-chrome-border: color-mix(in srgb, var(--primary-color) 40%, transparent);
+  --modal-backdrop: rgba(74, 20, 140, 0.35);
+  --surface-header-tint: rgba(255, 248, 252, 0.97);
 }
 
 body.light-mode .container {
@@ -912,7 +997,7 @@ body.light-mode .settings-close {
 body.light-mode .settings-close:hover {
   color: var(--primary-color);
   background: var(--btn-chrome-bg-hover);
-  border-color: rgba(46, 125, 80, 0.45);
+  border-color: color-mix(in srgb, var(--primary-color) 45%, transparent);
 }
 
 body.light-mode .settings-section h4 {
@@ -921,11 +1006,11 @@ body.light-mode .settings-section h4 {
 
 body.light-mode .settings-header {
   border-bottom-color: var(--accent-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 253, 248, 0.96) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, var(--surface-header-tint) 100%);
 }
 
 body.light-mode .modal-header {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 253, 248, 0.96) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, var(--surface-header-tint) 100%);
   border-bottom-color: var(--accent-border);
 }
 
@@ -935,7 +1020,7 @@ body.light-mode .modal-header h3 {
 }
 
 body.light-mode .modal-footer {
-  background: linear-gradient(180deg, rgba(248, 253, 248, 0.96) 0%, rgba(255, 255, 255, 0.98) 100%);
+  background: linear-gradient(180deg, var(--surface-header-tint) 0%, rgba(255, 255, 255, 0.98) 100%);
   border-top-color: var(--accent-glow-30);
 }
 
@@ -1006,7 +1091,7 @@ body.light-mode .metric-selector-title {
 }
 
 body.light-mode .metric-selector-container .metric-group {
-  background: rgba(248, 253, 248, 0.96);
+  background: var(--surface-header-tint);
   border-color: var(--accent-glow-30);
 }
 
@@ -12141,7 +12226,7 @@ body.light-mode .range-slider-group input[type="range"].range-slider:focus-visib
 }
 
 body.light-mode .range-slider-group.rs-accent .range-slider-label.active {
-  color: color-mix(in srgb, var(--primary-color) 78%, #0a3d18);
+  color: color-mix(in srgb, var(--primary-color) 78%, var(--light-ink-deep, #0a0a0a));
 }
 
 body.light-mode .range-slider-group.rs-prediction .range-slider-label.active {
@@ -28406,8 +28491,8 @@ body.ai-chat-open {
 }
 
 body.light-mode .connector-status-msg {
-  background: rgba(46, 125, 80, 0.07);
-  border-color: rgba(46, 125, 80, 0.18);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 22%, transparent);
 }
 
 /* --- Developer pane ? API keys + webhooks (Plan 18) --- */

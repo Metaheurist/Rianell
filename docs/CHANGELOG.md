@@ -8,6 +8,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **PWA boot:** Device benchmark samples frame pacing with `setTimeout` only (no boot-time `requestAnimationFrame`); string/DOM steps are async-sliced; stalled steps abort cleanly.
 - **Mood tab:** Morning/Midday/Evening period pickers are clickable again (flat transforms + selectable completed periods).
+- **Themes:** Light mode Red/Black uses red ink/chrome/background tokens instead of leftover mint greens.
 - **Wiki:** Troubleshooting updated for “16% · rAF latency” / Page Unresponsive.
 
 ### v2.2.2 - 2026-07-13 - CI smoke reliability
