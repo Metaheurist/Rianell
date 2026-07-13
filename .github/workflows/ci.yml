@@ -1101,6 +1101,8 @@ jobs:
           PROBE_GPU_AVAILABLE: "0"
           PROBE_ATTEMPTS: "3"
           PROBE_ATTEMPT_DELAY_MS: "120000"
+          # Soft-pass when Hugging Face 403s GHA IPs on large ONNX files (metadata path still verified).
+          PROBE_SOFT_HF_FORBIDDEN: "1"
         run: node scripts/ci/probe-llm-download-live.mjs
 
   # ═══════════════════════════════════════════════════════════════════════════
