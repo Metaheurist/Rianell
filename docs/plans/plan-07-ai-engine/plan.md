@@ -10,7 +10,7 @@ depends_on: [plan-04-logging-data-capture/plan.md, plan-06-cloud-sync/plan.md]
 blocks: [plan-08-llm-nlp/plan.md, plan-09-charts-analytics/plan.md, plan-11-notifications/plan.md, plan-13-research-community/plan.md]
 ---
 
-# Plan 07 — Section 4: AI engine & deterministic analysis
+# Plan 07 - Section 4: AI engine & deterministic analysis
 
 ## Objective
 
@@ -20,14 +20,14 @@ Unify PWA/RN deterministic analysis in `@rianell/ai-engine`, surface explainable
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| A1 | **Unify neural pipeline in `@rianell/ai-engine`** — RN same insight ranking as PWA | M, ★ | Parity fix cluster |
-| A2 | **Insight confidence & "why" expansion** — tap insight → contributing dates/metrics | M | |
-| A3 | **Trigger hypothesis engine** — rank factors by lift on flare probability | M, ★ | Feeds C1 |
-| A4 | **Treatment A/B timeline** — mark med start dates; compare windows | M | Pairs with CL4 |
-| A5 | **Anomaly detection alerts** — unusual fatigue vs baseline (local only) | M | Feeds R3 |
-| A6 | **Weekly digest (deterministic)** — top 3 improvements/concerns + goals | Q | Feeds plan 14 §14.1 |
-| A7 | **Condition-specific analysis packs** — migraine, IBS, etc. | L | |
-| A8 | **Export analysis JSON for research** — opt-in anonymized pool bundle | M | Feeds RE1 |
+| A1 | **Unify neural pipeline in `@rianell/ai-engine`** - RN same insight ranking as PWA | M, ★ | Parity fix cluster |
+| A2 | **Insight confidence & "why" expansion** - tap insight → contributing dates/metrics | M | |
+| A3 | **Trigger hypothesis engine** - rank factors by lift on flare probability | M, ★ | Feeds C1 |
+| A4 | **Treatment A/B timeline** - mark med start dates; compare windows | M | Pairs with CL4 |
+| A5 | **Anomaly detection alerts** - unusual fatigue vs baseline (local only) | M | Feeds R3 |
+| A6 | **Weekly digest (deterministic)** - top 3 improvements/concerns + goals | Q | Feeds plan 14 §14.1 |
+| A7 | **Condition-specific analysis packs** - migraine, IBS, etc. | L | |
+| A8 | **Export analysis JSON for research** - opt-in anonymized pool bundle | M | Feeds RE1 |
 
 
 ## Plan folder docs
@@ -40,8 +40,8 @@ Unify PWA/RN deterministic analysis in `@rianell/ai-engine`, surface explainable
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
 - **External setup** � See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 ## Prerequisites
 
@@ -69,7 +69,7 @@ Unify PWA/RN deterministic analysis in `@rianell/ai-engine`, surface explainable
 ## Completion gates
 
 - [ ] A1: RN insight list matches PWA ranking for fixture logs (or documented delta)
-- [ ] A2–A8 implemented or deferred
+- [ ] A2-A8 implemented or deferred
 - [ ] Deterministic outputs stable (same input → same ranked insights)
 - [ ] GDPR Art. 22 informational-only disclaimers preserved
 
@@ -81,14 +81,14 @@ Unify PWA/RN deterministic analysis in `@rianell/ai-engine`, surface explainable
 
 ## Agent execution
 
-### Phase A — A1 parity (priority)
+### Phase A - A1 parity (priority)
 
 - [ ] Read `docs/NEURAL_NETWORK_PLAN.md` and compare PWA `AIEngine.js` vs `packages/ai-engine/src/index.mjs`
 - [ ] Migrate `NeuralAnalysisNetwork` ranking layers into `@rianell/ai-engine` incrementally
 - [ ] Update RN `apps/rn-app/src/ai/analyzeLogs.ts` to use shared package only
 - [ ] Fixture test: same log JSON → same top-3 insight IDs PWA vs RN
 
-### Phase B — Explainability & hypotheses (A2, A3, A5)
+### Phase B - Explainability & hypotheses (A2, A3, A5)
 
 | ID | Tasks |
 |----|-------|
@@ -96,16 +96,16 @@ Unify PWA/RN deterministic analysis in `@rianell/ai-engine`, surface explainable
 | **A3** | Trigger hypothesis: rank lifestyle factors by flare lift; min overlap thresholds per NEURAL_NETWORK_PLAN |
 | **A5** | Baseline fatigue/mood; flag anomalies locally; expose score for R3 |
 
-### Phase C — Timelines & digests (A4, A6, A7, A8)
+### Phase C - Timelines & digests (A4, A6, A7, A8)
 
 | ID | Tasks |
 |----|-------|
 | **A4** | User marks treatment start dates; compare pre/post windows in AI tab |
-| **A6** | Deterministic weekly digest: top 3 improvements, concerns, goal status — feeds X14.1 |
+| **A6** | Deterministic weekly digest: top 3 improvements, concerns, goal status - feeds X14.1 |
 | **A7** | Optional condition packs (migraine, IBS) as plugin rule sets in ai-engine |
 | **A8** | Opt-in analysis JSON export for anonymized pool; pairs with RE1 |
 
-### Phase D — Disclaimers
+### Phase D - Disclaimers
 
 - [ ] Preserve GDPR Art. 22 informational-only copy on all AI outputs
 
@@ -131,7 +131,7 @@ npm run test:unit
 
 ## Master sync
 
-MASTER §4 rows A1–A8; §Section rollup exec 07.
+MASTER §4 rows A1-A8; §Section rollup exec 07.
 
 ## Post-plan rollout gate
 

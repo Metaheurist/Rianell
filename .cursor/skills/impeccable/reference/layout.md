@@ -90,7 +90,7 @@ Create a systematic plan:
 ### Strengthen Visual Hierarchy
 
 - Use the fewest dimensions needed for clear hierarchy. Space alone can be enough; generous whitespace around an element draws the eye. Some of the most polished designs achieve rhythm with just space and weight. Add color or size contrast only when simpler means aren't sufficient.
-- The best hierarchy combines 2–3 dimensions at once. A heading that's larger, bolder, AND has more space above it reads as primary without trying:
+- The best hierarchy combines 2-3 dimensions at once. A heading that's larger, bolder, AND has more space above it reads as primary without trying:
 
 | Tool | Strong Hierarchy | Weak Hierarchy |
 |------|------------------|----------------|

@@ -2,7 +2,7 @@
 
 **Product:** Rianell Android (`apps/rn-app/`)  
 **Last updated:** 2026-06-23  
-**Status:** Launch audit Phase 7 — operator checklist.  
+**Status:** Launch audit Phase 7 - operator checklist.  
 **Related:** [hipaa-encryption-chain.md](hipaa-encryption-chain.md) · [SECURITY.md](../SECURITY.md) · [threat-model.md](../threat-model.md)
 
 ---
@@ -19,9 +19,9 @@
 
 ## 2. Certificate pinning (recommended for production)
 
-**Status:** Not enabled in open-source tree by default — document for release builds.
+**Status:** Not enabled in open-source tree by default - document for release builds.
 
-### Option A — Network Security Config (native)
+### Option A - Network Security Config (native)
 
 1. After `expo prebuild`, edit `android/app/src/main/res/xml/network_security_config.xml`:
 
@@ -43,7 +43,7 @@
 
 3. **Rotation:** maintain backup pin; update before `expiration`.
 
-### Option B — Expo config plugin
+### Option B - Expo config plugin
 
 Use a custom config plugin in `apps/rn-app/plugins/` to inject pins at prebuild time (keeps managed workflow reproducible).
 
@@ -88,13 +88,13 @@ Expo / RN release builds enable R8 by default. Operator checklist:
 }
 ```
 
-Review after each Expo SDK upgrade — plugins may add defaults.
+Review after each Expo SDK upgrade - plugins may add defaults.
 
 ---
 
 ## 5. Backup and extraction
 
-- `android.allowBackup: false` in `app.json` — prevents adb backup of app data.
+- `android.allowBackup: false` in `app.json` - prevents adb backup of app data.
 - Encrypted logs reduce impact of rooted device extraction.
 
 ---

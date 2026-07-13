@@ -4,7 +4,7 @@ Based on UI audit (de-DE, pl-PL, en-GB screenshots, Jun 2026). Goal: every shipp
 
 ## Current shipped locales (14)
 
-`en-GB`, `en-US`, `en-AU`, `pt-BR`, `fr-FR`, `de-DE`, `es-ES`, `it-IT`, `nl-NL`, `pl-PL`, `pt-PT`, `ar`, `he`, **`ga` (Gaeilge — new)**
+`en-GB`, `en-US`, `en-AU`, `pt-BR`, `fr-FR`, `de-DE`, `es-ES`, `it-IT`, `nl-NL`, `pl-PL`, `pt-PT`, `ar`, `he`, **`ga` (Gaeilge - new)**
 
 ## Gap categories (from audit)
 
@@ -26,9 +26,9 @@ Based on UI audit (de-DE, pl-PL, en-GB screenshots, Jun 2026). Goal: every shipp
 
 | Raw key seen | Likely cause | Fix |
 |--------------|--------------|-----|
-| `common.none` | Key exists in de-DE — may be stale cache or wrong key path | Confirm `applyDocumentI18n` runs after wizard open; grep for typos |
-| `logs.form.noExercise` | Exists in de-DE | Same — ensure catalog loaded before `renderLogs` / wizard |
-| `common.no.medications…` | Long key — verify present in all locale JSON | `verify-locale-packs.mjs` |
+| `common.none` | Key exists in de-DE - may be stale cache or wrong key path | Confirm `applyDocumentI18n` runs after wizard open; grep for typos |
+| `logs.form.noExercise` | Exists in de-DE | Same - ensure catalog loaded before `renderLogs` / wizard |
+| `common.no.medications…` | Long key - verify present in all locale JSON | `verify-locale-packs.mjs` |
 
 ### C. Partial MT (Tier A “Frankenstein” strings)
 
@@ -38,8 +38,8 @@ de-DE / pl-PL examples: `Protokoll:Exercise`, `Speichern Entry`, `Hinzufügen no
 
 **Fix pipeline:**
 
-1. `node scripts/verify/verify-translation-coverage.mjs --strict` — list identical-to-en-GB keys
-2. `node scripts/verify/audit-hardcoded-strings.mjs --check` — find remaining source hits
+1. `node scripts/verify/verify-translation-coverage.mjs --strict` - list identical-to-en-GB keys
+2. `node scripts/verify/audit-hardcoded-strings.mjs --check` - find remaining source hits
 3. Expand `scripts/lib/tier-a-exact-overrides.mjs` per locale for wizard, logs, settings, modals
 4. Re-run `node scripts/i18n/generate-locale-overrides.mjs` → `sync-i18n-assets.mjs`
 5. Human review: search packs for `\b(the|and|Entry|Log|Save)\b` inside non-en locales
@@ -48,7 +48,7 @@ de-DE / pl-PL examples: `Protokoll:Exercise`, `Speichern Entry`, `Hinzufügen no
 
 ### D. Content catalogs (not in locale packs)
 
-Food tiles, exercise tiles, meal categories, metric labels in log review — **hardcoded English arrays** in `app.js`.
+Food tiles, exercise tiles, meal categories, metric labels in log review - **hardcoded English arrays** in `app.js`.
 
 **Fix (LC-20d):**
 
@@ -60,12 +60,12 @@ Food tiles, exercise tiles, meal categories, metric labels in log review — **h
 
 All locales have ≥30 messages (`verify-motd-packs.mjs`).
 
-**Remaining issue:** de-DE (and others) messages **31–107** still English in MOTD JSON.
+**Remaining issue:** de-DE (and others) messages **31-107** still English in MOTD JSON.
 
 **Fix:**
 
 1. Extend `scripts/i18n/translate-motd-packs.mjs` to cover **all** messages (not only top 30)
-2. Add `scripts/verify/verify-motd-translation-coverage.mjs` — fail if message[i] === en-GB[i] for Tier A / ga
+2. Add `scripts/verify/verify-motd-translation-coverage.mjs` - fail if message[i] === en-GB[i] for Tier A / ga
 3. CI: add to `verify:i18n`
 
 ### F. Prompt packs
@@ -77,8 +77,8 @@ Tier A + ar/he have translated LLM system strings. **ga** ships `llmCapability: 
 | Step | Status |
 |------|--------|
 | Add `ga` to `SHIPPED_LOCALES` | Done |
-| Locale pack scaffold (`generate-locale-overrides.mjs`) | Done — core nav/wizard strings in Irish |
-| MOTD pack (30 Irish + en tail) | Done — extend to full 107 in LC-20e |
+| Locale pack scaffold (`generate-locale-overrides.mjs`) | Done - core nav/wizard strings in Irish |
+| MOTD pack (30 Irish + en tail) | Done - extend to full 107 in LC-20e |
 | Prompt pack (`ui-only`) | Done |
 | `sync-i18n-assets.mjs` | Done |
 | Full UI MT | Run `USE_MYMEMORY_MT=1 node scripts/i18n/auto-translate-ui-strings.mjs --translate` (or DeepL `GA`) |
@@ -105,7 +105,7 @@ Tier A + ar/he have translated LLM system strings. **ga** ships `llmCapability: 
 npm run verify:i18n
 # Manual QA matrix:
 # - Settings → Language → {locale}
-# - Log wizard steps 1–10 + food/exercise modals
+# - Log wizard steps 1-10 + food/exercise modals
 # - Logs expand + share/edit/delete
 # - Cookie banner + policy modal
 # - God mode (`) all sections
@@ -114,8 +114,8 @@ npm run verify:i18n
 
 ## Priority order
 
-1. **Wiring** (A) — fixes raw keys and English chrome immediately  
-2. **Tier A MT quality** (C) — fixes mixed de-DE/pl-PL screenshots  
-3. **MOTD full set** (E) — user-facing daily quotes  
-4. **Content catalogs** (D) — food/exercise tiles  
-5. **Policy bodies** (F) — legal text (may stay en-GB authoritative + machine-translated notice)
+1. **Wiring** (A) - fixes raw keys and English chrome immediately  
+2. **Tier A MT quality** (C) - fixes mixed de-DE/pl-PL screenshots  
+3. **MOTD full set** (E) - user-facing daily quotes  
+4. **Content catalogs** (D) - food/exercise tiles  
+5. **Policy bodies** (F) - legal text (may stay en-GB authoritative + machine-translated notice)

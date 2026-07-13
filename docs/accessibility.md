@@ -1,4 +1,4 @@
-# Accessibility — Rianell
+# Accessibility - Rianell
 
 **Last updated:** 2026-06-23  
 **Status:** Launch audit Phase 6.  
@@ -50,7 +50,7 @@ Checks text/background and accent pairs from `@rianell/tokens` for **≥ 4.5:1**
 ## 5. Known gaps
 
 - Chart tooltips: partial keyboard access (ApexCharts).
-- ONNX model download gate: long progress announcements — improve `aria-live` politeness.
+- ONNX model download gate: long progress announcements - improve `aria-live` politeness.
 - RN Charts parity: accessibility labels on some sparklines pending.
 
 ---

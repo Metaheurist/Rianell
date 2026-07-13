@@ -7,7 +7,7 @@
 From `node_modules/@huggingface/transformers/src/backends/onnx.js` (browser):
 
 - Supported: **`webgpu`**, **`wasm`** (+ WebNN variants when available)
-- **Not supported:** `webgl` — throws `Unsupported device: "webgl". Should be one of: webgpu, wasm.`
+- **Not supported:** `webgl` - throws `Unsupported device: "webgl". Should be one of: webgpu, wasm.`
 
 ## Official docs (v3.8.1 API, same device model)
 

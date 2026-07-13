@@ -1,4 +1,4 @@
-# Plan 12 — Security & performance review
+# Plan 12 - Security & performance review
 
 **Section 11:** Clinician & sharing · **IDs:** CL1, CL2, CL4, CL5
 
@@ -21,7 +21,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 - PDF generation off main thread where possible (RN expo-print async).
 - CL4 timeline: virtualize long med histories.
 
-**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit — no console `pageerror` regressions.
+**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit - no console `pageerror` regressions.
 
 ---
 

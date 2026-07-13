@@ -36,10 +36,10 @@ Project-level MCP config is also in `.cursor/mcp.json` under the `21st-magic` se
 
 These paths are **tracked in git** for shared onboarding:
 
-- `.cursor/rules/` — layout and brand guardrail matrices
-- `.cursor/skills/` — Impeccable, Taste, SkillUI, UI UX Pro Max, and project skills
-- `.cursor/hooks.json` — Impeccable pre-edit detector hook
-- `.cursor/MCP-AND-CLI-GUIDE.md` — this file
+- `.cursor/rules/` - layout and brand guardrail matrices
+- `.cursor/skills/` - Impeccable, Taste, SkillUI, UI UX Pro Max, and project skills
+- `.cursor/hooks.json` - Impeccable pre-edit detector hook
+- `.cursor/MCP-AND-CLI-GUIDE.md` - this file
 
 Local-only caches (firecrawl, mcp.json secrets) remain gitignored.
 
@@ -56,7 +56,7 @@ Local-only caches (firecrawl, mcp.json secrets) remain gitignored.
 
 ## 5. First-time developer checklist
 
-1. Pull latest — rules and skills arrive via git.
+1. Pull latest - rules and skills arrive via git.
 2. Run `npx impeccable skills install` if hooks are missing locally.
 3. Restart Cursor after MCP or skill installs.
 4. Read `DESIGN.md` before UI work; customize for Rianell brand over time.

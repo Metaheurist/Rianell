@@ -1,4 +1,4 @@
-# Execution plans — agent workspace
+# Execution plans - agent workspace
 
 Dependency-ordered rollout of 87 required features across 14 plans (**all shipped**, v1.111.0). Each plan lives in its **own folder** under `docs/plans/`.
 
@@ -7,12 +7,12 @@ Dependency-ordered rollout of 87 required features across 14 plans (**all shippe
 | File | Purpose |
 |------|---------|
 | [MASTER.md](./MASTER.md) | Features, progress, section status |
-| [00-execution-index.md](./00-execution-index.md) | Exec order 01–14, dependency graph |
+| [00-execution-index.md](./00-execution-index.md) | Exec order 01-14, dependency graph |
 | [ROLLOUT-GATE.md](./ROLLOUT-GATE.md) | Local gate + commit + CI watch loop |
 | [SECURITY-PERFORMANCE-INDEX.md](./SECURITY-PERFORMANCE-INDEX.md) | CVE/perf rollup for all plans |
-| [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) | **Mandatory** — free providers only, no paid APIs |
+| [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) | **Mandatory** - free providers only, no paid APIs |
 | [UI-UX-STANDARDS.md](./UI-UX-STANDARDS.md) | Mobile + desktop parity, a11y, perf UX |
-| [EXTERNAL-SETUP.md](./EXTERNAL-SETUP.md) | Supabase SQL, VAPID, env vars — step-by-step |
+| [EXTERNAL-SETUP.md](./EXTERNAL-SETUP.md) | Supabase SQL, VAPID, env vars - step-by-step |
 | [FINAL-EXECUTION-CHECK.md](./FINAL-EXECUTION-CHECK.md) | Final audit (2026-06-18) + Firecrawl verification |
 
 ## Plan folders

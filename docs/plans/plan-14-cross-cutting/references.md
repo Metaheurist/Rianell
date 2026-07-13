@@ -1,4 +1,4 @@
-# Plan 14 — References
+# Plan 14 - References
 
 ## Internal
 

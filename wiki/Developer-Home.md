@@ -1,6 +1,6 @@
 # Developer Home
 
-Welcome to the **Rianell** monorepo — a personal health dashboard with a vanilla JS PWA, React Native (Expo) mobile apps, shared npm packages, and a Python dev server.
+Welcome to the **Rianell** monorepo - a personal health dashboard with a vanilla JS PWA, React Native (Expo) mobile apps, shared npm packages, and a Python dev server.
 
 **Repository:** [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
@@ -36,7 +36,7 @@ Rianell/
 |------|---------|
 | **Node.js** | ≥ 24.14.1 (see `.nvmrc`) |
 | **Python** | 3.8+ (server) |
-| **Supabase** | Optional — cloud sync and LLM model hosting |
+| **Supabase** | Optional - cloud sync and LLM model hosting |
 
 ---
 
@@ -64,19 +64,19 @@ From repository root after `npm ci`:
 
 Business logic lives in `packages/*` so web and mobile stay aligned:
 
-- **`@rianell/shared`** — `normalizeLogEntry`, locale resolution, merge helpers
-- **`@rianell/ai-engine`** — 10-layer analysis pipeline (bundled into PWA `AIEngine.js`)
-- **`@rianell/cloud-sync`** — encrypted backup format
-- **`@rianell/llm`** — prompt/summary interfaces
+- **`@rianell/shared`** - `normalizeLogEntry`, locale resolution, merge helpers
+- **`@rianell/ai-engine`** - 10-layer analysis pipeline (bundled into PWA `AIEngine.js`)
+- **`@rianell/cloud-sync`** - encrypted backup format
+- **`@rianell/llm`** - prompt/summary interfaces
 
 ---
 
 ## Next steps
 
-1. [[Developer-Setup]] — clone, env files, Supabase keys
-2. [[Architecture-Overview]] — data flow and AI paths
-3. [[Build-Test-and-CI]] — tests, benchmarks, GitHub Actions
-4. [[Contributing]] — PR checklist and wiki workflow
+1. [[Developer-Setup]] - clone, env files, Supabase keys
+2. [[Architecture-Overview]] - data flow and AI paths
+3. [[Build-Test-and-CI]] - tests, benchmarks, GitHub Actions
+4. [[Contributing]] - PR checklist and wiki workflow
 
 ---
 

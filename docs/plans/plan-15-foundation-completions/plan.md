@@ -12,7 +12,7 @@ blocks:
   - plan-16-extended-metrics/plan.md
 ---
 
-# Plan 15 — Foundation completions (FC1–FC9)
+# Plan 15 - Foundation completions (FC1-FC9)
 
 ## Objective
 

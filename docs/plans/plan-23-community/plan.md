@@ -12,7 +12,7 @@ blocks:
   - plan-24-docs-automation/plan.md
 ---
 
-# Plan 23 — Community & cohort (CM1–CM4)
+# Plan 23 - Community & cohort (CM1-CM4)
 
 ## Objective
 

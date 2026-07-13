@@ -1,6 +1,6 @@
-# Plan 10 — Scope & scripts
+# Plan 10 - Scope & scripts
 
-**Section 1:** Home & dashboard · **IDs:** H1–H7
+**Section 1:** Home & dashboard · **IDs:** H1-H7
 
 ## In scope
 

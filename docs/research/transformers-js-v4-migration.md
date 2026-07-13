@@ -14,10 +14,10 @@
 
 ## Known v4 considerations (verify at bump time)
 
-- Pipeline API and dtype names may change — re-run `buildPwaLoadAttempts` unit tests.  
+- Pipeline API and dtype names may change - re-run `buildPwaLoadAttempts` unit tests.  
 - WebGPU remains `device: 'webgpu'` via ORT inside bundled dist.  
-- WebNN devices (`webnn-gpu`, etc.) — confirm in v4 `supportedDevices` before enabling in ladder.  
-- ORT WASM file names may differ — update `vendor-transformers.mjs` FILES list.  
+- WebNN devices (`webnn-gpu`, etc.) - confirm in v4 `supportedDevices` before enabling in ladder.  
+- ORT WASM file names may differ - update `vendor-transformers.mjs` FILES list.  
 - Do **not** bump mid-V1 WebLLM spike; v4 is Stage 8 after PWA core GPU ship.
 
 ## Rollback

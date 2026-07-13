@@ -1,8 +1,8 @@
-# Rianell execution plans — MASTER
+# Rianell execution plans - MASTER
 
 Single source of truth for required features, execution plans, and progress. **Agents: update `Status` and `Plan status` when starting or finishing work.**
 
-**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Last updated:** 2026-06-26 (Plans 01–26 complete; v1.133.0)
+**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Last updated:** 2026-06-26 (Plans 01-26 complete; v1.133.0)
 
 ---
 
@@ -38,18 +38,18 @@ Single source of truth for required features, execution plans, and progress. **A
 | 12 | 11 | Clinician & sharing | [plan-12](plan-12-clinician-sharing/plan.md) | done | 4/4 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27841255831) |
 | 13 | 12 | Research & anonymized pool | [plan-13](plan-13-research-community/plan.md) | done | 2/2 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27842548791) |
 | 14 | 14 | Cross-cutting concepts | [plan-14](plan-14-cross-cutting/plan.md) | done | 5/5 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27845245487) |
-| 15 | 15 | Foundation completions | [plan-15](plan-15-foundation-completions/plan.md) | done | 9/9 | — |
-| 16 | 16 | Extended vital signs | [plan-16](plan-16-extended-metrics/plan.md) | done | 11/11 | — |
-| 17 | 17 | Nutrition deep-dive | [plan-17-nutrition](plan-17-nutrition/plan.md) | done | 5/5 | — |
-| 18 | 18 | REST API & webhooks | [plan-18-rest-api](plan-18-rest-api/plan.md) | done | 6/6 | — |
-| 19 | 19 | OAuth2 & connectors | [plan-19-connectors](plan-19-connectors/plan.md) | done | 7/7 | — |
-| 20 | 20 | Self-hosted & FHIR R4 | [plan-20-selfhost-fhir](plan-20-selfhost-fhir/plan.md) | done | 5/5 | — |
-| 21 | 21 | Security hardening & DAST | [plan-21-security](plan-21-security/plan.md) | done | 12/12 | — |
-| 22 | 22 | Performance optimization | [plan-22-performance](plan-22-performance/plan.md) | done | 7/7 | — |
-| 23 | 23 | Community & cohort | [plan-23-community](plan-23-community/plan.md) | done | 4/4 | — |
-| 24 | 24 | Docs & changelog automation | [plan-24-docs-automation](plan-24-docs-automation/plan.md) | done | 5/5 | — |
-| 25 | 25 | Data migration toolkit | [plan-25-migration](plan-25-migration/plan.md) | done | 9/9 | — |
-| 26 | 26 | Accessibility & UI principles | [plan-26-accessibility-ui](plan-26-accessibility-ui/plan.md) | done | 14/14 | — |
+| 15 | 15 | Foundation completions | [plan-15](plan-15-foundation-completions/plan.md) | done | 9/9 | - |
+| 16 | 16 | Extended vital signs | [plan-16](plan-16-extended-metrics/plan.md) | done | 11/11 | - |
+| 17 | 17 | Nutrition deep-dive | [plan-17-nutrition](plan-17-nutrition/plan.md) | done | 5/5 | - |
+| 18 | 18 | REST API & webhooks | [plan-18-rest-api](plan-18-rest-api/plan.md) | done | 6/6 | - |
+| 19 | 19 | OAuth2 & connectors | [plan-19-connectors](plan-19-connectors/plan.md) | done | 7/7 | - |
+| 20 | 20 | Self-hosted & FHIR R4 | [plan-20-selfhost-fhir](plan-20-selfhost-fhir/plan.md) | done | 5/5 | - |
+| 21 | 21 | Security hardening & DAST | [plan-21-security](plan-21-security/plan.md) | done | 12/12 | - |
+| 22 | 22 | Performance optimization | [plan-22-performance](plan-22-performance/plan.md) | done | 7/7 | - |
+| 23 | 23 | Community & cohort | [plan-23-community](plan-23-community/plan.md) | done | 4/4 | - |
+| 24 | 24 | Docs & changelog automation | [plan-24-docs-automation](plan-24-docs-automation/plan.md) | done | 5/5 | - |
+| 25 | 25 | Data migration toolkit | [plan-25-migration](plan-25-migration/plan.md) | done | 9/9 | - |
+| 26 | 26 | Accessibility & UI principles | [plan-26-accessibility-ui](plan-26-accessibility-ui/plan.md) | done | 14/14 | - |
 
 ---
 
@@ -69,13 +69,13 @@ Single source of truth for required features, execution plans, and progress. **A
 
 | ID | Status | Feature | Tags | Notes |
 |----|--------|---------|------|-------|
-| H1 | done | **Adaptive home layout** — reorder cards by usage | M, ★ | v1.101.0 card registry |
-| H2 | done | **Energy budget / pacing widget** — daily spoons from fatigue + flare history | M, ★ | v1.102.0 Home widget |
+| H1 | done | **Adaptive home layout** - reorder cards by usage | M, ★ | v1.101.0 card registry |
+| H2 | done | **Energy budget / pacing widget** - daily spoons from fatigue + flare history | M, ★ | v1.102.0 Home widget |
 | H3 | done | **Good day streak & flare-free counter** | Q | v1.103.0 dismissible card |
-| H4 | done | **Micro-check-ins** — partial logs from Mood tab | M | v1.113.0 Mood tab; was Home v1.102.0 |
-| H5 | done | **Weather & environment strip** — barometric/AQI opt-in | M | v1.113.0 inline header; was card v1.103.0 |
+| H4 | done | **Micro-check-ins** - partial logs from Mood tab | M | v1.113.0 Mood tab; was Home v1.102.0 |
+| H5 | done | **Weather & environment strip** - barometric/AQI opt-in | M | v1.113.0 inline header; was card v1.103.0 |
 | H6 | done | **Appointment countdown card** | Q | v1.113.0 removed from Home; CL1 PDF prep v1.109.0 |
-| H7 | done | **Contextual home questions** — LLM from yesterday's gaps | M, ★ | v1.104.0 gap detection |
+| H7 | done | **Contextual home questions** - LLM from yesterday's gaps | M, ★ | v1.104.0 gap detection |
 
 ---
 
@@ -305,7 +305,7 @@ Single source of truth for required features, execution plans, and progress. **A
 |----|--------|---------|------|-------|
 | VM1 | done | **Blood pressure** (systolic/diastolic) | M | PWA + RN vitals step; chart series |
 | VM2 | done | **Blood glucose** | M | mmol/L storage; glucose unit setting |
-| VM3 | done | **SpO₂** | M | 70–100 % validation |
+| VM3 | done | **SpO₂** | M | 70-100 % validation |
 | VM4 | done | **HRV manual entry** | Q | RMSSD ms; wearables Plan 19 |
 | VM5 | done | **Body weight / BMI** | M | kg storage; height cm setting |
 | VM6 | done | **Supplement library** | M | Distinct from medications |
@@ -347,7 +347,7 @@ Single source of truth for required features, execution plans, and progress. **A
 | PF1 | done | **esbuild chunk splitting** | v1.129.0 lazy-load markers |
 | PF2 | done | **ApexCharts lazy import** | v1.129.0 `lazy-charts.mjs` |
 | PF3 | done | **IndexedDB compound indexes** | logs-idb contract |
-| PF4 | done | **Workbox SW migration** | deferred — hand-written SW retained |
+| PF4 | done | **Workbox SW migration** | deferred - hand-written SW retained |
 | PF5 | done | **Core Web Vitals CI gate** | v1.129.0 `run-cwv-audit.mjs` |
 | PF6 | done | **WebP/AVIF icons** | v1.129.0 `generate-icons.mjs` |
 | PF7 | done | **Memory profiling CI** | v1.129.0 `memory-profile.mjs` |
@@ -411,9 +411,9 @@ Single source of truth for required features, execution plans, and progress. **A
 | A11Y4 | done | **Accessible authentication** | passcode paste allowed |
 | A11Y5 | done | **Brain fog mode** | v1.133.0 PWA toggle |
 | A11Y6 | done | **Error message quality** | i18n pattern |
-| A11Y7 | done | **Dyslexia font option** | deferred — self-host font |
-| A11Y8 | done | **Pain body-map PWA** | deferred — RN parity exists |
-| A11Y9 | done | **PWA live regions** | partial — toast status |
+| A11Y7 | done | **Dyslexia font option** | deferred - self-host font |
+| A11Y8 | done | **Pain body-map PWA** | deferred - RN parity exists |
+| A11Y9 | done | **PWA live regions** | partial - toast status |
 | A11Y10 | done | **RN screen reader audit** | documented |
 | A11Y11 | done | **Keyboard navigation audit** | verify contract |
 | A11Y12 | done | **Axe CI gate** | v1.133.0 `verify:a11y` |
@@ -424,9 +424,9 @@ Single source of truth for required features, execution plans, and progress. **A
 
 ## Excluded (NR)
 
-H8, L4, L10, L12, I6, N8, CL3, RE2, RE3, T3, T4, T5, T6 — not scheduled; do not implement without MASTER amendment.
+H8, L4, L10, L12, I6, N8, CL3, RE2, RE3, T3, T4, T5, T6 - not scheduled; do not implement without MASTER amendment.
 
-**L10 / N8 rationale:** Wearables (HealthKit, Health Connect, Fitbit) require Xcode, paid Apple Developer account, and platform-specific external setup — excluded per free-tier / no-paid-external-setup policy.
+**L10 / N8 rationale:** Wearables (HealthKit, Health Connect, Fitbit) require Xcode, paid Apple Developer account, and platform-specific external setup - excluded per free-tier / no-paid-external-setup policy.
 
 ---
 

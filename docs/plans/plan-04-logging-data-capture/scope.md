@@ -1,6 +1,6 @@
-# Plan 04 — Scope & scripts
+# Plan 04 - Scope & scripts
 
-**Section 2:** Logging & data capture · **IDs:** L1–L11 (excl L4, L10, L12 NR)
+**Section 2:** Logging & data capture · **IDs:** L1-L11 (excl L4, L10, L12 NR)
 
 ## In scope
 
@@ -9,7 +9,7 @@
 
 ## Out of scope (NR)
 
-See [../MASTER.md §Excluded(../MASTER.md#excluded-nr). **L10** (HealthKit, Health Connect, Fitbit) excluded — requires Xcode and paid Apple Developer account.
+See [../MASTER.md §Excluded(../MASTER.md#excluded-nr). **L10** (HealthKit, Health Connect, Fitbit) excluded - requires Xcode and paid Apple Developer account.
 
 ## Folder layout
 

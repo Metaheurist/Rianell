@@ -1,4 +1,4 @@
-# Plan 10 — References
+# Plan 10 - References
 
 ## Internal
 
@@ -6,7 +6,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/owasp-health-mobile.json — minimize PHI on screen`
+- `.firecrawl/projects/owasp-health-mobile.json - minimize PHI on screen`
 
 ## External (verify online)
 

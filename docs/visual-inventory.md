@@ -1,6 +1,6 @@
 # Rianell Visual Inventory
 
-Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgrade` | `retire`. Target phase: P0–P7.
+Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgrade` | `retire`. Target phase: P0-P7.
 
 ## SVG sprite (PWA `index.html` + runtime inject)
 
@@ -8,17 +8,17 @@ Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgra
 |----------|----------|--------|-------|-------|
 | icon-target | sprite | unify | P2 | Canonical; remove inline copies in goals-carousel |
 | icon-medal | sprite | unify | P2 | Canonical |
-| icon-check | sprite | keep | — | Pin keypad confirm |
-| icon-trash | sprite | keep | — | Backspace alias via icon-backspace (P2) |
+| icon-check | sprite | keep | - | Pin keypad confirm |
+| icon-trash | sprite | keep | - | Backspace alias via icon-backspace (P2) |
 | icon-chevron-left/right | sprite | upgrade | P2 | New; replaces ‹ › text |
 | icon-close | sprite | upgrade | P2 | New; replaces × text |
 | icon-backspace | sprite | upgrade | P2 | New; replaces ⌫ |
 | rianell-nav-* (5) | sprite | upgrade | P3 | Nav micro-bounce token alignment |
 | onboard-* (11) | sprite | keep | P2 | Canonical onboarding art |
-| weather-* (17) | sprite | keep | — | RN maps to Ionicons (P6) |
+| weather-* (17) | sprite | keep | - | RN maps to Ionicons (P6) |
 | AI 2026 set (10) | sprite | keep | P3 | stroke-draw on AI tab |
 | metric/avatar/badge (49) | graphics-portfolio.js | keep | P3 | Runtime inject |
-| docs/icons/*.svg (16) | docs/ | retire | — | README only; not app |
+| docs/icons/*.svg (16) | docs/ | retire | - | README only; not app |
 
 ## Inline / duplicate SVG
 
@@ -63,8 +63,8 @@ Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgra
 
 | Asset | Path | Status | Phase |
 |-------|------|--------|-------|
-| PWA icons | Icons/ (generated) | keep | — |
-| RN assets | rn-app/assets/ | keep | — |
+| PWA icons | Icons/ (generated) | keep | - |
+| RN assets | rn-app/assets/ | keep | - |
 | sw.js push icon | Icons/beta/Icon-192.png | unify | P0 ✓ |
 
 ## Baseline capture manifest

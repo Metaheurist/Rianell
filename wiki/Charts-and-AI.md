@@ -6,7 +6,7 @@ Rianell combines **interactive charts** with a **deterministic AI engine** and a
 
 ## Charts tab
 
-- Built with **ApexCharts** — trends for vitals, scales, and activity over time.
+- Built with **ApexCharts** - trends for vitals, scales, and activity over time.
 - Optional **predictions** on supported metrics; prediction start marker and info box follow the **active global theme** on web (v1.120.0).
 - Chart time axes stay **left-to-right** even in RTL languages (Arabic, Hebrew).
 
@@ -54,7 +54,7 @@ Arabic and Hebrew UI locales use **rule-based + MOTD fallback only** for LLM out
 
 ## Home AI suggestions
 
-When AI is enabled and you have enough recent logs, Home may show **0–3 suggestion chips**. Tapping opens a short answer modal with a medical disclaimer.
+When AI is enabled and you have enough recent logs, Home may show **0-3 suggestion chips**. Tapping opens a short answer modal with a medical disclaimer.
 
 ---
 

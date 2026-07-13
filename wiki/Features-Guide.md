@@ -1,6 +1,6 @@
 # Features Guide
 
-Rianell helps you log daily health metrics, spot trends, and optionally run AI-assisted analysis — all from a simple tabbed interface.
+Rianell helps you log daily health metrics, spot trends, and optionally run AI-assisted analysis - all from a simple tabbed interface.
 
 ---
 
@@ -34,11 +34,11 @@ flowchart LR
 
 Step through date, vitals, symptoms, food, exercise, medications, and notes. You can **quick-save** after date + flare only; missing numeric scores get sensible defaults so charts still work.
 
-When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes **Period started today**, cycle day (1–35, expandable to 45), phase, and optional flow — with suggested values from your last period start.
+When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes **Period started today**, cycle day (1-35, expandable to 45), phase, and optional flow - with suggested values from your last period start.
 
 **First-run:** A guided questionnaire modal asks one friendly multichoice question at a time (appearance, **profile companion**, region, coach tone, helper level, consents, optional AI download). Progress dots and a step counter match on web and native. Tutorial is opt-in from the finish card or Settings replay; tutorial slides use side arrows with **Finish** on the last slide only.
 
-**Sliders:** Every symptom and wellness metric uses the same scale — **Bad (0)** on the left, **Good (10)** on the right. Symptom scores (fatigue, pain, etc.) are stored in their original semantics but displayed on the unified scale.
+**Sliders:** Every symptom and wellness metric uses the same scale - **Bad (0)** on the left, **Good (10)** on the right. Symptom scores (fatigue, pain, etc.) are stored in their original semantics but displayed on the unified scale.
 
 Detailed field reference: [[Logging-Data]].
 
@@ -48,8 +48,8 @@ Detailed field reference: [[Logging-Data]].
 
 Open **Goals & targets** from Home or Settings. The modal has two panes:
 
-- **Targets** — steps, hydration, sleep quality, good-days per week
-- **Achievements** — badges for progressive logging unlocks (food day 7, exercise day 14, medications day 21)
+- **Targets** - steps, hydration, sleep quality, good-days per week
+- **Achievements** - badges for progressive logging unlocks (food day 7, exercise day 14, medications day 21)
 
 On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings).
 
@@ -69,12 +69,12 @@ Your companion appears in the **header** and **log wizard**. Achievement badges 
 
 Open the gear icon for a scrollable settings carousel:
 
-- **Display** — theme, colour-blind mode, notifications
-- **Data options** — demo mode, export/import, clear data, **cycle tracking module**
-- **Performance** — on-device AI model download and benchmarks
-- **Privacy & region** — language, region gate, policy documents, consent
-- **Cloud** — sign-in, sync, delete cloud data
-- **Integrations** — Strava, Withings, Google Sheets connectors; migration import wizard
+- **Display** - theme, colour-blind mode, notifications
+- **Data options** - demo mode, export/import, clear data, **cycle tracking module**
+- **Performance** - on-device AI model download and benchmarks
+- **Privacy & region** - language, region gate, policy documents, consent
+- **Cloud** - sign-in, sync, delete cloud data
+- **Integrations** - Strava, Withings, Google Sheets connectors; migration import wizard
 
 Full list: [[Settings-and-Languages]].
 
@@ -86,7 +86,7 @@ Settings → **Integrations** pane (requires cloud sign-in; blocked in local-onl
 
 1. **Connect** opens provider OAuth (Strava activities, Withings vitals, Google Sheets).
 2. **Sync now** imports into daily logs using date-aware merge (existing fields are preserved).
-3. **Google Sheets** — configure spreadsheet URL plus import/export ranges; export appends recent logs.
+3. **Google Sheets** - configure spreadsheet URL plus import/export ranges; export appends recent logs.
 4. **Disconnect** revokes integration metadata and server-side tokens.
 
 Developer/operators: [docs/connectors/SETUP.md](https://github.com/Metaheurist/Rianell/blob/main/docs/connectors/SETUP.md).
@@ -96,9 +96,9 @@ Developer/operators: [docs/connectors/SETUP.md](https://github.com/Metaheurist/R
 ## Export, print, and share
 
 - **Export** health logs as JSON (portable across web and mobile).
-- **Password-protected export** — encrypt your export file with a passphrase (minimum 12 characters); the file cannot be opened without it.
-- **QR handoff** — generate a short-lived encrypted QR code to share a view-only log summary with a clinician in-office (passphrase required, min 12 characters).
-- **Hosted share links** (cloud) — create a time-limited encrypted link you can send to a clinician or carer. Choose a date range, whether to include free-text notes and condition name, and set a password. The link is encrypted before upload; Rianell cannot read your data.
+- **Password-protected export** - encrypt your export file with a passphrase (minimum 12 characters); the file cannot be opened without it.
+- **QR handoff** - generate a short-lived encrypted QR code to share a view-only log summary with a clinician in-office (passphrase required, min 12 characters).
+- **Hosted share links** (cloud) - create a time-limited encrypted link you can send to a clinician or carer. Choose a date range, whether to include free-text notes and condition name, and set a password. The link is encrypted before upload; Rianell cannot read your data.
 - **Print** summary views where supported (web/PWA).
 
 Import preview sanitises user content before display.
@@ -112,7 +112,7 @@ Protect Rianell with a local passcode. Two modes:
 | Mode | Requirement |
 |------|-------------|
 | **Passphrase** | 12+ characters, mixed case + number + special recommended |
-| **PIN** | 4–8 digits; simple sequences (1234, 0000) are blocked |
+| **PIN** | 4-8 digits; simple sequences (1234, 0000) are blocked |
 
 Settings → Security lock. The passcode is stored only on your device.
 
@@ -120,11 +120,11 @@ Settings → Security lock. The passcode is stored only on your device.
 
 ## Ambient UI (Oasis)
 
-Rianell uses gentle, GPU-friendly motion to make logging feel calmer — especially for chronic-illness users who may use **brain fog** or **reduced motion** modes.
+Rianell uses gentle, GPU-friendly motion to make logging feel calmer - especially for chronic-illness users who may use **brain fog** or **reduced motion** modes.
 
 | Effect | Where | Respects reduced motion? |
 |--------|-------|--------------------------|
-| Ambient blobs | Home, Logs, Charts, Mood, AI tabs (web) | Yes — hidden on low-tier devices and when reduced motion is on |
+| Ambient blobs | Home, Logs, Charts, Mood, AI tabs (web) | Yes - hidden on low-tier devices and when reduced motion is on |
 | Mood Control Deck | Mood tab check-in + quick actions (web) | Parallax/aurora disabled when reduced motion is on |
 | Mood day detail | Tap a compact history card on Mood tab | Modal shows that day’s log, check-ins, and average |
 | Ask Rianell (Home) | Bottom-sheet chat from discovery pills / + AI | Opens only when AI is enabled and the on-device model is ready (otherwise enable/download prompts). Topic-aware offline / generic replies when the LLM cannot run |

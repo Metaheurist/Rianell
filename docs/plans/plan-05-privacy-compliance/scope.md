@@ -1,6 +1,6 @@
-# Plan 05 — Scope & scripts
+# Plan 05 - Scope & scripts
 
-**Section 7:** Privacy & compliance · **IDs:** P1–P7
+**Section 7:** Privacy & compliance · **IDs:** P1-P7
 
 ## In scope
 

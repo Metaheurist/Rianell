@@ -1,4 +1,4 @@
-# Plan 05 — References
+# Plan 05 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/owasp-health-mobile.json — MFA, access controls`
+- `.firecrawl/projects/owasp-health-mobile.json - MFA, access controls`
 
 ## External (verify online)
 

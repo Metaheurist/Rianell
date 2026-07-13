@@ -1,15 +1,15 @@
 ---
 name: skillui
 description: >-
-  Visual Production Crawler — reverse-engineer design systems from live URLs,
+  Visual Production Crawler - reverse-engineer design systems from live URLs,
   git repos, or local project directories. Use when crawling reference interfaces,
   extracting layout tokens, or producing DESIGN.md + skill packages for brand
   alignment. Pure static analysis; no API keys required.
 ---
 
-# SkillUI — Visual Production Crawler
+# SkillUI - Visual Production Crawler
 
-Reverse-engineer design systems from any project. Pure static analysis — no AI, no API keys.
+Reverse-engineer design systems from any project. Pure static analysis - no AI, no API keys.
 
 ## When to use
 
@@ -59,7 +59,7 @@ Store team crawl artifacts under `.cursor/skills/skillui/scans/<project-name>/`.
 1. Confirm target URL or directory with the user when ambiguous.
 2. Run SkillUI with `--mode ultra` for multi-page live crawls (max `--screens` pages).
 3. Diff extracted tokens against root `DESIGN.md` and existing CSS custom properties.
-4. Propose merges — preserve Rianell health-brand overrides; do not blindly overwrite.
+4. Propose merges - preserve Rianell health-brand overrides; do not blindly overwrite.
 5. Reference scan output in PR descriptions when brand tokens change.
 
 ## Integration matrix

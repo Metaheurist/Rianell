@@ -12,7 +12,7 @@ blocks:
   - plan-22-performance/plan.md
 ---
 
-# Plan 21 — Security hardening & DAST (SEC1–SEC12)
+# Plan 21 - Security hardening & DAST (SEC1-SEC12)
 
 ## Objective
 

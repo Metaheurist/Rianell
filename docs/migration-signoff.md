@@ -1,6 +1,6 @@
 # Architecture migration sign-off
 
-Generated snapshot for Phases 0–22 of the codebase architecture standard refactor.
+Generated snapshot for Phases 0-22 of the codebase architecture standard refactor.
 
 ## Verification commands
 
@@ -35,7 +35,7 @@ Generated snapshot for Phases 0–22 of the codebase architecture standard refac
 
 `tests/unit/migration/` removed; durable checks promoted to:
 
-- `tests/unit/workflows-ci-rncli.test.mjs` — `artifacts/` paths, no legacy artifact directory name
-- `tests/unit/workspaces-packages.test.mjs` — PWA + build-tools workspace
-- `tests/unit/security/verify-scripts.test.mjs` — verify script smoke
+- `tests/unit/workflows-ci-rncli.test.mjs` - `artifacts/` paths, no legacy artifact directory name
+- `tests/unit/workspaces-packages.test.mjs` - PWA + build-tools workspace
+- `tests/unit/security/verify-scripts.test.mjs` - verify script smoke
 - CI `doc-links --strict` step

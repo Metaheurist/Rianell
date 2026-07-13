@@ -4,28 +4,28 @@
 
 Active roadmap for **platform parity, Capacitor sunset, and shared-package refactor**. Machine-readable status: [`platform-parity.json`](platform-parity.json). Human contract: [`platform-parity.md`](platform-parity.md).
 
-## Phase 0 — Parity contract (complete when inventory is green)
+## Phase 0 - Parity contract (complete when inventory is green)
 
 - Expanded [`platform-parity.json`](platform-parity.json) (v2) with product-area features.
 - [`scripts/verify/parity-inventory.mjs`](../scripts/verify/parity-inventory.mjs) diffs PWA vs RN settings and cloud exports.
 - CI runs inventory with `--check` on every PR.
 
-## Phase 1 — Capacitor sunset + CI realignment
+## Phase 1 - Capacitor sunset + CI realignment
 
 - Remove `apps/capacitor-app/`; RN CLI + Expo are the only mobile paths.
 - Simplify [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): PWA-only minified prep, no legacy release assets.
 - Rewrite [`scripts/verify/check-platform-parity.mjs`](../scripts/verify/check-platform-parity.mjs) for `web | android | ios` (RN-native, not Capacitor manifest).
-- Update [`scripts/ci/update-readme-build-info.mjs`](../scripts/ci/update-readme-build-info.mjs) — drop Legacy Capacitor build table.
+- Update [`scripts/ci/update-readme-build-info.mjs`](../scripts/ci/update-readme-build-info.mjs) - drop Legacy Capacitor build table.
 
-## Phase 2 — Shared packages
+## Phase 2 - Shared packages
 
-- [`packages/shared`](../packages/shared) — schema, `mergeHealthLogs`, preferences/goals normalization.
-- [`packages/ai-engine`](../packages/ai-engine) — deterministic analysis + predictions.
-- [`packages/cloud-sync`](../packages/cloud-sync) — merge + crypto helpers; platform adapters in PWA/RN.
-- [`packages/llm`](../packages/llm) — summary, suggest, MOTD interface (web Transformers.js + RN remote/native).
-- [`scripts/build/sync-tokens-to-pwa.mjs`](../scripts/build/sync-tokens-to-pwa.mjs) — `@rianell/tokens` → `css/tokens.css`.
+- [`packages/shared`](../packages/shared) - schema, `mergeHealthLogs`, preferences/goals normalization.
+- [`packages/ai-engine`](../packages/ai-engine) - deterministic analysis + predictions.
+- [`packages/cloud-sync`](../packages/cloud-sync) - merge + crypto helpers; platform adapters in PWA/RN.
+- [`packages/llm`](../packages/llm) - summary, suggest, MOTD interface (web Transformers.js + RN remote/native).
+- [`scripts/build/sync-tokens-to-pwa.mjs`](../scripts/build/sync-tokens-to-pwa.mjs) - `@rianell/tokens` → `css/tokens.css`.
 
-## Phase 3 — React Native full parity
+## Phase 3 - React Native full parity
 
 - Settings: personal profile, anon contribution, full goals store, tutorial.
 - Cloud: encrypted backup, anonymized sync, merge/delete (via `@rianell/cloud-sync` RN adapter).
@@ -33,7 +33,7 @@ Active roadmap for **platform parity, Capacitor sunset, and shared-package refac
 - On-device LLM: consent, progress, cache (`@rianell/llm` native path where supported).
 - Storage: compression, backup, offline queue; logs custom date range; print export.
 
-## Phase 4 — Enforcement
+## Phase 4 - Enforcement
 
 - Unit tests: `workflows-ci-parity.test.mjs`, shared package tests, RN cloud/AI tests.
 - Release: `platform-parity.json` in Meta assets; CHANGELOG v1.49.0+ milestones.

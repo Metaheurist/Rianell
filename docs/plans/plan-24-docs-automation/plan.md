@@ -12,7 +12,7 @@ blocks:
   - plan-25-migration/plan.md
 ---
 
-# Plan 24 — Docs & changelog automation (DC1–DC5)
+# Plan 24 - Docs & changelog automation (DC1-DC5)
 
 ## Objective
 

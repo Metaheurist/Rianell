@@ -51,7 +51,7 @@ Two families minimum is the rule *only* when the voice needs it. A single well-c
 
 Modular scale, fluid `clamp()` for headings, ≥1.25 ratio between steps. Flat scales (1.1× apart) read as uncommitted.
 
-Light text on dark backgrounds: add 0.05–0.1 to line-height. Light type reads as lighter weight and needs more breathing room.
+Light text on dark backgrounds: add 0.05-0.1 to line-height. Light type reads as lighter weight and needs more breathing room.
 
 ## Color
 

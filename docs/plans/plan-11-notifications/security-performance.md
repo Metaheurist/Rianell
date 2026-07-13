@@ -1,6 +1,6 @@
-# Plan 11 — Security & performance review
+# Plan 11 - Security & performance review
 
-**Section 9:** Notifications & engagement · **IDs:** R1–R6
+**Section 9:** Notifications & engagement · **IDs:** R1-R6
 
 Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
 
@@ -9,7 +9,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 ## CVE & exploit surface
 
 - R4 Web Push: VAPID private key server-side only; subscribe endpoint auth; encrypt payload per RFC 8291.
-- Notification body must not contain PHI snippets — generic copy only.
+- Notification body must not contain PHI snippets - generic copy only.
 
 **CI baseline:** `npm audit --omit=dev`, OSV-Scanner, Gitleaks in [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml). High/critical production deps must be fixed or accepted-risk documented before plan rollout commit.
 
@@ -20,7 +20,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 - R1 learned timing: persist median in preferences, update weekly not per save.
 - Batch local notifications (L3 doses) with OS limits in mind.
 
-**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit — no console `pageerror` regressions.
+**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit - no console `pageerror` regressions.
 
 ---
 

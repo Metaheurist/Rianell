@@ -1,4 +1,4 @@
-# Plan 16 — Security & performance
+# Plan 16 - Security & performance
 
 ## Security
 

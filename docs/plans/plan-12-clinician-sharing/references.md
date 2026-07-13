@@ -1,4 +1,4 @@
-# Plan 12 — References
+# Plan 12 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/owasp-health-mobile.json — secure sharing / BAAs`
+- `.firecrawl/projects/owasp-health-mobile.json - secure sharing / BAAs`
 
 ## External (verify online)
 

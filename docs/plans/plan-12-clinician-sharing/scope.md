@@ -1,4 +1,4 @@
-# Plan 12 — Scope & scripts
+# Plan 12 - Scope & scripts
 
 **Section 11:** Clinician & sharing · **IDs:** CL1, CL2, CL4, CL5
 

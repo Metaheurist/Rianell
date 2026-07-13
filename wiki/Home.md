@@ -1,6 +1,6 @@
 # Rianell Wiki
 
-**Rianell** is a personal health dashboard — track daily vitals, view trends, and get optional AI-assisted insights. Data stays on your device by default; cloud backup is optional.
+**Rianell** is a personal health dashboard - track daily vitals, view trends, and get optional AI-assisted insights. Data stays on your device by default; cloud backup is optional.
 
 **Live app:** [rianell.com](https://rianell.com) · **Repository:** [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 

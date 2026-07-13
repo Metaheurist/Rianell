@@ -2,11 +2,11 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](CHANGELOG.md)** (current **v2.0.0** — production release: OAuth connectors, unified cycle timeline, vitals suggestions, log-wizard UX, desktop full benchmark, beta branding removed).
+**Latest changes:** **[CHANGELOG.md](CHANGELOG.md)** (current **v2.0.0** - production release: OAuth connectors, unified cycle timeline, vitals suggestions, log-wizard UX, desktop full benchmark, beta branding removed).
 
 ### Here's what we plan next
 
-**[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)** — active roadmap for platform parity (Capacitor sunset complete; RN + PWA share `@rianell/*` packages). Shipped work is in the **[changelog](docs/CHANGELOG.md)** and **[app overview](docs/app-and-features.md)**.
+**[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)** - active roadmap for platform parity (Capacitor sunset complete; RN + PWA share `@rianell/*` packages). Shipped work is in the **[changelog](docs/CHANGELOG.md)** and **[app overview](docs/app-and-features.md)**.
 
 ### Tech stack
 
@@ -106,7 +106,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | <img src="docs/icons/brain.svg" width="32" height="32" alt="" aria-hidden="true"> | **[AI architecture](docs/ai-architecture.md)** |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Architecture standard](docs/architecture-standard.md)** - repo layout, workspaces, scripts, artifacts policy, migration log |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
-| <img src="docs/icons/paperclip.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) — npm workspaces, Python, CDN/runtime, CI tooling |
+| <img src="docs/icons/paperclip.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) - npm workspaces, Python, CDN/runtime, CI tooling |
 | <img src="docs/icons/palette.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
 | <img src="docs/icons/smartphone.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Platform parity](docs/platform-parity.md)** - web/android/iOS feature contract and CI parity gates |
 | <img src="docs/icons/user.svg" width="32" height="32" alt="" aria-hidden="true"> | **[About & support](docs/about-and-support.md)** |

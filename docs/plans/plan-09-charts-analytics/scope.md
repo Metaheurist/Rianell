@@ -1,6 +1,6 @@
-# Plan 09 — Scope & scripts
+# Plan 09 - Scope & scripts
 
-**Section 3:** Charts & analytics · **IDs:** C1–C10
+**Section 3:** Charts & analytics · **IDs:** C1-C10
 
 ## In scope
 

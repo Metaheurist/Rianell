@@ -10,7 +10,7 @@ depends_on: [plan-04-logging-data-capture/plan.md, plan-15-foundation-completion
 blocks: [plan-17-nutrition-deep-dive/plan.md, plan-19-wearables/plan.md]
 ---
 
-# Plan 16 — Section 16: Extended Vital Signs & Metrics
+# Plan 16 - Section 16: Extended Vital Signs & Metrics
 
 ## Objective
 
@@ -20,17 +20,17 @@ Add health metrics for ME/CFS, PoTS, diabetes, and general wellness communities:
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| VM1 | **Blood pressure** — systolic/diastolic mmHg | M | Chart series |
-| VM2 | **Blood glucose** — mmol/L storage, display unit pref | M | Settings glucose unit |
-| VM3 | **SpO₂** — oxygen saturation % | M | 70–100 validation |
-| VM4 | **HRV manual entry** — RMSSD ms | Q | Wearables auto-import Plan 19 |
-| VM5 | **Body weight / BMI** — kg storage, height from profile | M | Chart series |
-| VM6 | **Supplement library** — distinct from medications | M | Favorites reuse L2 |
-| VM7 | **Bristol stool scale** — 1–7 | M | `digestiveModuleEnabled` gate |
-| VM8 | **Pain body-map** — `painLocations[]` | M | PWA SVG; RN existing diagram |
-| VM9 | **Gratitude journal** — private free text | Q | Excluded from anon pool |
-| VM10 | **Basal body temperature** — cycle module | M | °C/°F unit pref |
-| VM11 | **Photo attachments** — `health-photos` bucket | L | Owner-only RLS |
+| VM1 | **Blood pressure** - systolic/diastolic mmHg | M | Chart series |
+| VM2 | **Blood glucose** - mmol/L storage, display unit pref | M | Settings glucose unit |
+| VM3 | **SpO₂** - oxygen saturation % | M | 70-100 validation |
+| VM4 | **HRV manual entry** - RMSSD ms | Q | Wearables auto-import Plan 19 |
+| VM5 | **Body weight / BMI** - kg storage, height from profile | M | Chart series |
+| VM6 | **Supplement library** - distinct from medications | M | Favorites reuse L2 |
+| VM7 | **Bristol stool scale** - 1-7 | M | `digestiveModuleEnabled` gate |
+| VM8 | **Pain body-map** - `painLocations[]` | M | PWA SVG; RN existing diagram |
+| VM9 | **Gratitude journal** - private free text | Q | Excluded from anon pool |
+| VM10 | **Basal body temperature** - cycle module | M | °C/°F unit pref |
+| VM11 | **Photo attachments** - `health-photos` bucket | L | Owner-only RLS |
 
 ## Plan folder docs
 
@@ -42,9 +42,9 @@ Add health metrics for ME/CFS, PoTS, diabetes, and general wellness communities:
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
-- **Store canonical units** — glucose mmol/L, weight kg, BBT °C; display per user prefs.
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Store canonical units** - glucose mmol/L, weight kg, BBT °C; display per user prefs.
 
 ## Prerequisites
 
@@ -72,7 +72,7 @@ Add health metrics for ME/CFS, PoTS, diabetes, and general wellness communities:
 
 ## Completion gates
 
-- [x] All VM1–VM11 implemented (RN photo picker partial — count display only)
+- [x] All VM1-VM11 implemented (RN photo picker partial - count display only)
 - [x] Schema backward-compatible with existing JSON export
 - [x] PWA + RN wizard parity for new fields
 - [x] Unit tests in `tests/unit/plan16-metrics.test.mjs`
@@ -85,14 +85,14 @@ Add health metrics for ME/CFS, PoTS, diabetes, and general wellness communities:
 
 ## Agent execution
 
-### Phase A — Schema & shared types
+### Phase A - Schema & shared types
 
 - [x] Extend `logSchema.mjs` with VM fields + `normalizeVitalMetrics`
 - [x] Wire `normalizeLogEntry` in `index.mjs`
 - [x] Unit tests for clamping, conversions, Bristol, pain locations
 - [x] Update `docs/data-model.md`
 
-### Phase B — Feature implementation (VM1–VM11)
+### Phase B - Feature implementation (VM1-VM11)
 
 | ID | Implementation |
 |----|----------------|
@@ -108,7 +108,7 @@ Add health metrics for ME/CFS, PoTS, diabetes, and general wellness communities:
 | **VM10** | BBT on cycle step; temperature unit pref |
 | **VM11** | PWA file upload to `health-photos`; RN attachment count |
 
-### Phase C — Platform parity & charts
+### Phase C - Platform parity & charts
 
 - [x] Chart series BP, glucose, SpO₂, weight (PWA Charts tab)
 - [x] FHIR-lite Observation codes for vitals
@@ -139,7 +139,7 @@ node docs/plans/plan-16-extended-metrics/scripts/verify-plan.mjs
 
 ## Master sync
 
-MASTER §16 rows VM1–VM11; §Section rollup exec 16 · **v1.123.0**
+MASTER §16 rows VM1-VM11; §Section rollup exec 16 · **v1.123.0**
 
 ## Post-plan rollout gate
 

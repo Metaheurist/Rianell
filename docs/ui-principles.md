@@ -1,4 +1,4 @@
-# UI principles — chronic illness design (Plan 26 A11Y13)
+# UI principles - chronic illness design (Plan 26 A11Y13)
 
 ## Cognitive load
 
@@ -8,13 +8,13 @@
 
 ## Emotional design
 
-- No shame language — "Welcome back" not "You haven't logged".
+- No shame language - "Welcome back" not "You haven't logged".
 - Celebrate consistency, not perfection. Partial logs count.
 - Companion tone, not clinical device copy.
 
 ## Visual design
 
-- Color never sole severity indicator — pair with icon + text.
+- Color never sole severity indicator - pair with icon + text.
 - Body text ≥ 16px; minimum 14px for labels.
 - Dark theme: off-white on dark grey (`#E8E8E8` on `#121212`), not pure white on black.
 - Warm dark (`rianell-appearance-warm-dark`) for light-sensitive users.

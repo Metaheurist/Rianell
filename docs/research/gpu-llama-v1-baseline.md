@@ -24,24 +24,24 @@ Adapter probe (`probeWebGpuAdapterAsync`) is necessary but **not sufficient**. P
 
 ### WASM fallback tier cap
 
-After GPU failure, tier 3–5 must not load full Llama on WASM CPU (`resolveWasmFallbackModelId` in `summary-llm.js`). Use SmolLM unless user opts into `preferredLlmForceLargeOnWasm` with ≥8 GB RAM.
+After GPU failure, tier 3-5 must not load full Llama on WASM CPU (`resolveWasmFallbackModelId` in `summary-llm.js`). Use SmolLM unless user opts into `preferredLlmForceLargeOnWasm` with ≥8 GB RAM.
 
 ## CSP (Cloudflare report-only)
 
-- Live site may log **report-only** CSP violations for Hugging Face / jsDelivr — not blocking today.
+- Live site may log **report-only** CSP violations for Hugging Face / jsDelivr - not blocking today.
 - Enforcing narrow `'self'` connect-src would break model downloads. See [`security/cloudflare-headers-recommended.md`](../../security/cloudflare-headers-recommended.md).
 
 ## Vendor bundle (Transformers 3.3.2)
 
 - Self-hosted: `apps/pwa-webapp/vendor/transformers/` via `npm run vendor:transformers`
 - WebGPU EP is bundled inside `transformers.min.js` (jsep WASM); no separate `ort.webgpu` vendor file.
-- ORT WASM paths pinned via `configureSelfHostedOrtWasm()` — required for CI/GHA (no jsDelivr fetch).
+- ORT WASM paths pinned via `configureSelfHostedOrtWasm()` - required for CI/GHA (no jsDelivr fetch).
 
 ## WebNN (Stage 9)
 
 - Transformers 3.3.2 supports `device: 'webnn-gpu'`, `webnn-npu`, `webnn-cpu` via pipeline API.
 - Probe `navigator.ml` before attempting; skip silently when absent.
-- Raw ORT WebNN may need `onnxruntime-web/all` — verify through Transformers bundle first.
+- Raw ORT WebNN may need `onnxruntime-web/all` - verify through Transformers bundle first.
 
 ## Verification commands
 

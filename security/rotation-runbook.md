@@ -41,7 +41,7 @@
 2. Under **Project API keys**, create or roll **anon/public** key (Supabase may label this **publishable**).
 3. Update secrets:
    - GitHub → Repository → **Settings** → **Secrets and variables** → **Actions**:
-     - `SUPABASE_URL` (if changed — rare)
+     - `SUPABASE_URL` (if changed - rare)
      - `SUPABASE_ANON_KEY` or `SUPABASE_PUBLISHABLE_KEY` (match workflow names in `.github/workflows/`)
    - Local: `security/.env` → `SUPABASE_PUBLISHABLE_KEY=`
    - RN local: `apps/rn-app/.env` → `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
@@ -60,7 +60,7 @@ Rianell uses **one** Supabase project for all users. See [single-project-residen
 4. Verify schema parity: `node scripts/verify/verify-supabase-schema-parity.mjs`.
 5. Revoke the previous anon key after traffic confirms the new deploy.
 
-**Legacy (deprecated):** Dual EU/US projects and residency config were removed in v1.52 — archived copy at [docs/archive/residency-config.json](../docs/archive/residency-config.json); see [multi-residency.md](../docs/privacy/multi-residency.md).
+**Legacy (deprecated):** Dual EU/US projects and residency config were removed in v1.52 - archived copy at [docs/archive/residency-config.json](../docs/archive/residency-config.json); see [multi-residency.md](../docs/privacy/multi-residency.md).
 
 ### 3.3 Service role (secret) key
 
@@ -142,7 +142,7 @@ Used for **anonymized contribution** encryption when Python server participates.
 4. Re-upload or migrate ciphertext if retention required.
 5. Document in execution log.
 
-For **per-user cloud backup keys** (`user_keys`), see [crypto-roadmap.md](../docs/crypto-roadmap.md) — rotation is user-driven today (new random key on re-registration).
+For **per-user cloud backup keys** (`user_keys`), see [crypto-roadmap.md](../docs/crypto-roadmap.md) - rotation is user-driven today (new random key on re-registration).
 
 ---
 

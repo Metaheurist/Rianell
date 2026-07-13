@@ -20,7 +20,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 
 ---
 
-## 2. Platform parity close — v1.50 track
+## 2. Platform parity close - v1.50 track
 
 | ID | Milestone | Target | Status | Evidence | Notes |
 |----|-----------|--------|--------|----------|-------|
@@ -29,12 +29,12 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | P50-03 | Notifications delivery semantics parity sign-off | 2026-07-04 | planned | [platform-parity.md](platform-parity.md) | Phase E close |
 | P50-04 | Charts prediction-overlay parity | 2026-07-11 | planned | RN Charts screen | Phase B |
 | P50-05 | View Logs virtualization final strategy | 2026-07-18 | planned | `LogsScreen.tsx` | Large-list perf |
-| P50-06 | **Parity close gate** — all P50-01…05 `done` or waived | 2026-07-25 | planned | CI parity jobs | Tag **v1.50.0** candidate |
+| P50-06 | **Parity close gate** - all P50-01…05 `done` or waived | 2026-07-25 | planned | CI parity jobs | Tag **v1.50.0** candidate |
 | P50-07 | Release v1.50.0 + CHANGELOG | 2026-07-31 | planned | [CHANGELOG.md](CHANGELOG.md) | Platform parity milestone |
 
 ---
 
-## 3. Security hardening — v1.50 track
+## 3. Security hardening - v1.50 track
 
 | ID | Milestone | Target | Status | Evidence | Notes |
 |----|-----------|--------|--------|----------|-------|
@@ -47,7 +47,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | SH-07 | Supabase Security Advisor clean (GraphQL lints) | 2026-07-14 | planned | [Schema.sql](../supabase/Schema.sql) | Run in SQL Editor |
 | SH-08 | Quarterly secret rotation drill | 2026-07-21 | planned | [rotation-runbook.md](../security/rotation-runbook.md) | Tabletop + anon key roll in staging |
 | SH-09 | `security.txt` on production host | 2026-08-01 | planned | `/.well-known/security.txt` | [infrastructure-and-security-edge.md](infrastructure-and-security-edge.md) |
-| SH-10 | **v1.50 security gate** — SH-05…09 triaged | 2026-07-31 | planned | This log | Accept deferrals with risk note |
+| SH-10 | **v1.50 security gate** - SH-05…09 triaged | 2026-07-31 | planned | This log | Accept deferrals with risk note |
 
 ---
 
@@ -62,7 +62,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 
 ---
 
-## 8. Privacy & region policy — v1.51 track
+## 8. Privacy & region policy - v1.51 track
 
 | ID | Milestone | Target | Status | Evidence | Notes |
 |----|-----------|--------|--------|----------|-------|
@@ -82,7 +82,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | `npm run test:mobile` | pass |
 | `npm run parity:inventory:check` | pass |
 
-**Legal trigger:** New privacy region gate and RoPA PA-09 — review on next RoPA cycle (2026-12-01).
+**Legal trigger:** New privacy region gate and RoPA PA-09 - review on next RoPA cycle (2026-12-01).
 
 ---
 
@@ -90,9 +90,9 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 
 | Date | ID | Summary |
 |------|-----|---------|
-| 2026-06-01 | — | v1.49.0 Capacitor sunset; shared `@rianell/*` packages |
+| 2026-06-01 | - | v1.49.0 Capacitor sunset; shared `@rianell/*` packages |
 | 2026-06-13 | SH-01…04 | Security/privacy documentation pack created |
-| 2026-06-13 | — | v1.49.1 parity follow-up per CHANGELOG |
+| 2026-06-13 | - | v1.49.1 parity follow-up per CHANGELOG |
 | 2026-06-13 | RP-GATE-1…4 | v1.51 privacy region policy engine shipped |
 | 2026-07-06 | SH-11 | Safe hardening pass: SW push URL same-origin guard, `verify-no-unsafe-sinks.mjs` in CI, live CSP drift job on `security-audit-scheduled.yml`, XSS sink invariants documented in `app.js` |
 
@@ -100,11 +100,11 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 
 | Change | Evidence |
 |--------|----------|
-| Service worker rejects cross-origin push notification URLs | `apps/pwa-webapp/sw.js` — `resolveSameOriginPushUrl()` |
+| Service worker rejects cross-origin push notification URLs | `apps/pwa-webapp/sw.js` - `resolveSameOriginPushUrl()` |
 | New CI guard for `eval` / `new Function` / unexpected `document.write` | `scripts/verify/verify-no-unsafe-sinks.mjs`, `npm run verify:unsafe-sinks` |
-| Live production CSP drift checks (scheduled, non-blocking) | `.github/workflows/security-audit-scheduled.yml` — `live-csp-drift` job |
+| Live production CSP drift checks (scheduled, non-blocking) | `.github/workflows/security-audit-scheduled.yml` - `live-csp-drift` job |
 | `showAlertModal` / `openShareModal` innerHTML invariants documented | `apps/pwa-webapp/app.js` |
-| **Deferred:** remove `'unsafe-inline'` / `'unsafe-eval'` from meta CSP | Requires refactoring inline `onclick` handlers — tracked under SH-06 |
+| **Deferred:** remove `'unsafe-inline'` / `'unsafe-eval'` from meta CSP | Requires refactoring inline `onclick` handlers - tracked under SH-06 |
 | **By design:** Python `server/` exposes `/api/encryption-key` on loopback/LAN secret only | Dev/LAN tool, not production edge |
 
 ---
@@ -121,4 +121,4 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 
 ## 7. Next log review
 
-**Scheduled:** 2026-06-20 — update P50-01 and SH-05 status after parity inventory and crypto spike.
+**Scheduled:** 2026-06-20 - update P50-01 and SH-05 status after parity inventory and crypto spike.

@@ -8,10 +8,10 @@
 
 ## 1. Purpose
 
-This plan defines how the Rianell project detects, classifies, contains, investigates, and notifies stakeholders after a security or personal-data incident. It aligns with GDPR Articles 33–34, UK GDPR, and the Australian Notifiable Data Breaches (NDB) scheme where applicable.
+This plan defines how the Rianell project detects, classifies, contains, investigates, and notifies stakeholders after a security or personal-data incident. It aligns with GDPR Articles 33-34, UK GDPR, and the Australian Notifiable Data Breaches (NDB) scheme where applicable.
 
 **Incident commander (default):** Project maintainer.  
-**Contact:** Private channel per [SECURITY.md](SECURITY.md) — do not disclose active incidents in public GitHub issues.
+**Contact:** Private channel per [SECURITY.md](SECURITY.md) - do not disclose active incidents in public GitHub issues.
 
 ---
 
@@ -60,7 +60,7 @@ Sources: user report, Gitleaks/OSV CI failure, Supabase Security Advisor, Cloudf
 
 ### 4.2 Triage
 
-1. Assign P0–P3.
+1. Assign P0-P3.
 2. Record UTC timestamp, reporter, initial hypothesis.
 3. Determine if **personal data** or **special-category health data** involved.
 
@@ -68,7 +68,7 @@ Sources: user report, Gitleaks/OSV CI failure, Supabase Security Advisor, Cloudf
 
 | Asset | Containment action |
 |-------|-------------------|
-| Supabase service role | Rotate immediately — [rotation-runbook.md](../security/rotation-runbook.md) |
+| Supabase service role | Rotate immediately - [rotation-runbook.md](../security/rotation-runbook.md) |
 | Supabase anon key | Rotate; redeploy PWA/RN with new publishable key |
 | Compromised user session | Force password reset via Supabase Auth admin |
 | Malicious release | Revert GitHub Pages deploy; invalidate Cloudflare cache |
@@ -78,7 +78,7 @@ Sources: user report, Gitleaks/OSV CI failure, Supabase Security Advisor, Cloudf
 
 Preserve evidence before destructive recovery:
 
-- Supabase **Logs** (API, Auth) — export JSON for incident window
+- Supabase **Logs** (API, Auth) - export JSON for incident window
 - GitHub Actions run logs for suspect deploy
 - Cloudflare firewall events
 - Local `logs/` from dev server (redact before sharing)
@@ -108,15 +108,15 @@ Within **14 days**: root cause, timeline, what worked, backlog items for [threat
 
 Notify the **supervisory authority** within **72 hours** of becoming aware, unless the breach is **unlikely to result in a risk** to rights and freedoms.
 
-**Special-category data** (`health_data`, health-derived AI) generally **increases likelihood of risk** — assume notification threshold is low.
+**Special-category data** (`health_data`, health-derived AI) generally **increases likelihood of risk** - assume notification threshold is low.
 
-### 5.2 Art. 33 — supervisory authority template
+### 5.2 Art. 33 - supervisory authority template
 
 Copy and complete within 72 hours of awareness. Send to the lead authority for your establishment (EU: typically where main establishment is; sole maintainer without EU establishment: document analysis and consult legal counsel for lead authority).
 
 ---
 
-**GDPR Article 33 — personal data breach notification to supervisory authority**
+**GDPR Article 33 - personal data breach notification to supervisory authority**
 
 | Field | Content |
 |-------|---------|
@@ -136,11 +136,11 @@ Copy and complete within 72 hours of awareness. Send to the lead authority for y
 
 ---
 
-### 5.3 Art. 34 — communication to data subjects
+### 5.3 Art. 34 - communication to data subjects
 
 Required when breach is **likely to result in a high risk** to rights and freedoms **unless**:
 
-- Appropriate technical/organisational protection (e.g. encryption) rendered data unintelligible to attacker — **note:** `user_keys` plaintext storage may weaken this argument for cloud backups; assess per incident.
+- Appropriate technical/organisational protection (e.g. encryption) rendered data unintelligible to attacker - **note:** `user_keys` plaintext storage may weaken this argument for cloud backups; assess per incident.
 - Subsequent measures eliminated high risk.
 - Disproportionate effort → public communication or equivalent measure.
 
@@ -156,7 +156,7 @@ We are writing to inform you of a security incident that may have affected your 
 [Plain-language description, e.g. on [date], we identified unauthorised access to our cloud database backup service.]
 
 **What information was involved:**  
-[Health logs, settings, email address, etc. — be specific to incident.]
+[Health logs, settings, email address, etc. - be specific to incident.]
 
 **What we are doing:**  
 [Rotated credentials, patched access controls, engaged forensic review.]
@@ -174,12 +174,12 @@ Rianell Team
 
 ---
 
-## 6. Australia — Notifiable Data Breaches (NDB)
+## 6. Australia - Notifiable Data Breaches (NDB)
 
 Under the **Privacy Act 1988** (Cth), eligible data breaches must be assessed under the **NDB scheme**. If serious harm is likely:
 
 1. **Notify affected individuals** as soon as practicable.
-2. **Notify the OAIC** using the **NDB form** — https://www.oaic.gov.au/privacy/notifiable-data-breaches
+2. **Notify the OAIC** using the **NDB form** - https://www.oaic.gov.au/privacy/notifiable-data-breaches
 
 **30-day assessment guideline:** OAIC expects assessment within **30 days** (reasonable period). Document:
 
@@ -198,7 +198,7 @@ Use the same forensic packet as GDPR; map fields to OAIC form sections (identity
 
 | Region | Trigger | Authority / users | Doc |
 |--------|---------|-------------------|-----|
-| UK | UK GDPR Art. 33–34 | ICO within 72h | [other-jurisdictions.md](privacy/other-jurisdictions.md) |
+| UK | UK GDPR Art. 33-34 | ICO within 72h | [other-jurisdictions.md](privacy/other-jurisdictions.md) |
 | US state | Varies (e.g. CA 72h) | State AG + users | [other-jurisdictions.md](privacy/other-jurisdictions.md) |
 | Brazil LGPD | Risk to subjects | ANPD + users | [other-jurisdictions.md](privacy/other-jurisdictions.md) |
 
@@ -225,7 +225,7 @@ Use the same forensic packet as GDPR; map fields to OAIC form sections (identity
 | Regulator | Official portal / email | ≤72h (GDPR/UK) |
 | Users (high risk) | In-app banner + email if available | Without undue delay after assessment |
 | Public | GitHub security advisory **after** private fix | Coordinated disclosure |
-| Press | No comment unless commander approves | — |
+| Press | No comment unless commander approves | - |
 
 ---
 
@@ -244,7 +244,7 @@ Log exercise date in [security-hardening-execution-log.md](security-hardening-ex
 
 ---
 
-## 11. Launch audit alignment (Phases 3–8)
+## 11. Launch audit alignment (Phases 3-8)
 
 Use [compliance/launch-checklist.md](compliance/launch-checklist.md) before public beta. Incident playbooks must cover:
 
@@ -252,5 +252,5 @@ Use [compliance/launch-checklist.md](compliance/launch-checklist.md) before publ
 |----------------|---------------|
 | Cloudflare WAF on `bug_reports` | P2 spam → rate-limit rule in [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md) |
 | Smartlook opt-in | P3 misconfiguration → revoke SDK init; Art. 6 consent basis in [smartlook-session-recording.md](privacy/smartlook-session-recording.md) |
-| pg_cron retention | Data minimization evidence for erasure audits — `Schema.sql` §6 |
-| RN encrypted logs | Stolen-device scenario — [android-hardening.md](compliance/android-hardening.md) |
+| pg_cron retention | Data minimization evidence for erasure audits - `Schema.sql` §6 |
+| RN encrypted logs | Stolen-device scenario - [android-hardening.md](compliance/android-hardening.md) |

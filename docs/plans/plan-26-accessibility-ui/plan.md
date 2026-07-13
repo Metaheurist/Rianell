@@ -11,7 +11,7 @@ depends_on:
 blocks: []
 ---
 
-# Plan 26 — Accessibility & UI principles (A11Y1–A11Y14)
+# Plan 26 - Accessibility & UI principles (A11Y1-A11Y14)
 
 ## Objective
 

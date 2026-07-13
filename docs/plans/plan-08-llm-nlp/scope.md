@@ -1,6 +1,6 @@
-# Plan 08 — Scope & scripts
+# Plan 08 - Scope & scripts
 
-**Section 5:** On-device LLM & NLP · **IDs:** N1–N11 (excl N8 NR)
+**Section 5:** On-device LLM & NLP · **IDs:** N1-N11 (excl N8 NR)
 
 ## In scope
 

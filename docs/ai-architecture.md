@@ -4,8 +4,8 @@
 
 ### v1.92.1 documentation sync (GPU LLM V1 rollout + UX)
 
-- **PWA load ladder (tier 3–5):** Path 1 Transformers.js ONNX (WebGPU → WebNN → WASM) → Path 2 WebLLM MLC (`@mlc-ai/web-llm@0.2.84`, worker + `setInitProgressCallback`) → Path 3 GGUF spike (flag) → WASM SmolLM cap. ORT WebGPU pipeline failure (`557856688`) invalidates adapter cache and skips to Path 2.
-- **Settings UX:** “How summaries run” selector with plain-language options (Automatic, Compatible mode, Fast mode, Experimental); status shows friendly backend labels—not ONNX/MLC/WASM jargon.
+- **PWA load ladder (tier 3-5):** Path 1 Transformers.js ONNX (WebGPU → WebNN → WASM) → Path 2 WebLLM MLC (`@mlc-ai/web-llm@0.2.84`, worker + `setInitProgressCallback`) → Path 3 GGUF spike (flag) → WASM SmolLM cap. ORT WebGPU pipeline failure (`557856688`) invalidates adapter cache and skips to Path 2.
+- **Settings UX:** “How summaries run” selector with plain-language options (Automatic, Compatible mode, Fast mode, Experimental); status shows friendly backend labels - not ONNX/MLC/WASM jargon.
 - **CSP:** `connect-src` includes `https://raw.githubusercontent.com` for MLC WASM libs. See `docs/runbooks/llm-rollout.md` and `docs/research/gpu-llama-v1-baseline.md`.
 
 ### v1.70.2 documentation sync (summary LLM model host)
@@ -38,8 +38,8 @@ The AI analysis engine runs as a **neural-style pipeline**: each layer applies e
 
 - **Richer input**: One pass over all logs to build metricsData, rolling 7d/30d baselines, day-of-week, days-since-flare, fill-rate, and a **precomputed correlation matrix** so downstream layers avoid redundant work.
 - **Optimisation**: Correlation matrix computed once in the input layer; correlation layers **reuse** it. Cross-section layer **skips** food/exercise analysis when no food or exercise entries exist.
-- **Interpretation**: A dedicated layer **ranks and deduplicates** anomalies, risk factors, correlations, and patterns into **prioritisedInsights** (top 5–7 items) so “what matters most” is clear.
-- **Summary**: A **summary** layer produces a short 2–3 sentence plain-language headline from trends, risk, and advice.
+- **Interpretation**: A dedicated layer **ranks and deduplicates** anomalies, risk factors, correlations, and patterns into **prioritisedInsights** (top 5-7 items) so “what matters most” is clear.
+- **Summary**: A **summary** layer produces a short 2-3 sentence plain-language headline from trends, risk, and advice.
 - **Activations**: Trend significance is normalised (e.g. sigmoid(r²)) for consistent scoring; activations (sigmoid, tanh, relu, softmax) are available for bounding and ranking.
 
 ### Analysis pipeline (forward pass)
@@ -138,14 +138,14 @@ flowchart TB
 |-------|------|-----------|---------------------|
 | 1 Input | Feature space in one pass | All training + recent logs | metricsData (with rollingMean7/30, fillRate), fullNumericMatrix, correlationMatrix, dates, flareFlags, dayOfWeek, daysSinceLastFlare |
 | 2 Trend | Per-metric trends and predictions | Full training series per metric | Linear/polynomial regression, ARIMA, predictFutureValues, normalizedSignificance (sigmoid) |
-| 3a–3b | Pairwise + multi-metric correlation | Precomputed matrix or training logs | detectCorrelations, detectMultiMetricCorrelations (uses precomputed when available) |
+| 3a-3b | Pairwise + multi-metric correlation | Precomputed matrix or training logs | detectCorrelations, detectMultiMetricCorrelations (uses precomputed when available) |
 | 4 Pattern | Anomalies and patterns | Recent logs | detectAnomalies, detectPatterns, detectTrendAcceleration |
 | 5 Risk | Risk factors and flare prediction | Training logs | assessRiskFactors, predictFlareUps |
 | 6 Cross-section | Food, exercise, stressors, symptoms | Larger of training/recent; **skip** food/exercise if none logged | analyzeFoodExerciseImpact (guarded), analyzeStressorsImpact, analyzeSymptomsAndPainLocation, analyzeCrossSectionCorrelations |
-| 7a–7c | Clustering, time series, outliers | Training logs | performClustering, performTimeSeriesAnalysis, detectOutliers, detectSeasonality |
+| 7a-7c | Clustering, time series, outliers | Training logs | performClustering, performTimeSeriesAnalysis, detectOutliers, detectSeasonality |
 | 8 Output | Advice | Recent logs + trends | generateActionableAdvice |
 | 9 Interpretation | Prioritise and dedupe | analysis.anomalies, riskFactors, correlations, patterns | Score, dedupe, set prioritisedInsights (top 7) |
-| 10 Summary | Plain-language headline | trends, risk, patterns, advice | Set analysis.summary (2–3 sentences) |
+| 10 Summary | Plain-language headline | trends, risk, patterns, advice | Set analysis.summary (2-3 sentences) |
 
 ### How we use your data for meaningful insights
 

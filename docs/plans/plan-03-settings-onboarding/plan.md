@@ -10,7 +10,7 @@ depends_on: [plan-01-platform-architecture/plan.md, plan-02-accessibility-i18n/p
 blocks: [plan-04-logging-data-capture/plan.md, plan-05-privacy-compliance/plan.md]
 ---
 
-# Plan 03 — Section 6: Settings, personalization & onboarding
+# Plan 03 - Section 6: Settings, personalization & onboarding
 
 ## Objective
 
@@ -20,14 +20,14 @@ Deliver settings parity, onboarding wizard, and consent UX foundation. **S2** pa
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| S1 | **RN tutorial parity** — reuse PWA tutorial slides as RN modal flow | M | i18n keys exist |
-| S2 | **Tracking profile wizard in onboarding** — choose condition + minimal field set | M | Pairs with L1 |
-| S3 | **Smart defaults from region/locale** — metric units, date format, first-day-of-week | Q | |
-| S4 | **Settings search** — filter 9 panes by keyword | Q | |
-| S5 | **"Simple mode" toggle** — hides AI tab, advanced performance, anonymized pool | Q | Used by plan 14 §14.3 |
-| S6 | **Profile avatars / display name themes** — lightweight identity without social | Q | |
-| S7 | **Consent dashboard** — single pane for all consents with revoke | M, ★ | Pairs with P2, P3 (plan 05) |
-| S8 | **Export all settings + goals as portable profile** — separate from log export | Q | |
+| S1 | **RN tutorial parity** - reuse PWA tutorial slides as RN modal flow | M | i18n keys exist |
+| S2 | **Tracking profile wizard in onboarding** - choose condition + minimal field set | M | Pairs with L1 |
+| S3 | **Smart defaults from region/locale** - metric units, date format, first-day-of-week | Q | |
+| S4 | **Settings search** - filter 9 panes by keyword | Q | |
+| S5 | **"Simple mode" toggle** - hides AI tab, advanced performance, anonymized pool | Q | Used by plan 14 §14.3 |
+| S6 | **Profile avatars / display name themes** - lightweight identity without social | Q | |
+| S7 | **Consent dashboard** - single pane for all consents with revoke | M, ★ | Pairs with P2, P3 (plan 05) |
+| S8 | **Export all settings + goals as portable profile** - separate from log export | Q | |
 
 
 ## Plan folder docs
@@ -40,12 +40,12 @@ Deliver settings parity, onboarding wizard, and consent UX foundation. **S2** pa
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
 - **External setup** � See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 ## Prerequisites
 
-- Plans 01–02 (i18n baseline, optional settings module extraction)
+- Plans 01-02 (i18n baseline, optional settings module extraction)
 - PWA: `#settingsOverlay` carousel in `index.html`
 - RN: `SettingsScreen.tsx`, `apps/rn-app/src/settings/*`
 
@@ -68,7 +68,7 @@ Deliver settings parity, onboarding wizard, and consent UX foundation. **S2** pa
 
 ## Completion gates
 
-- [ ] All S1–S8 implemented or deferred with reason
+- [ ] All S1-S8 implemented or deferred with reason
 - [ ] RN tutorial parity (S1) or documented blocker
 - [ ] Settings parity inventory green for touched fields
 - [ ] New strings in locale packs (plan 02)
@@ -76,12 +76,12 @@ Deliver settings parity, onboarding wizard, and consent UX foundation. **S2** pa
 ## Cross-plan notes
 
 - **S2 + L1** = onboarding cluster (MASTER dependency table)
-- **S7** integrates with plan 05 Privacy (P1–P7)
+- **S7** integrates with plan 05 Privacy (P1-P7)
 - **S5** referenced by plan 14 progressive disclosure
 
 ## Agent execution
 
-### Phase A — Onboarding cluster (S1, S2) — priority for plan 04
+### Phase A - Onboarding cluster (S1, S2) - priority for plan 04
 
 #### S1 RN tutorial parity
 
@@ -95,13 +95,13 @@ Deliver settings parity, onboarding wizard, and consent UX foundation. **S2** pa
 - [ ] Persist `trackingProfile` in preferences (`preferences.ts` / PWA `rianellSettings`)
 - [ ] Export profile shape documented for plan 04 L1 unlock rules
 
-### Phase B — Consent & privacy UX (S7)
+### Phase B - Consent & privacy UX (S7)
 
 - [ ] New settings pane or sub-pane: list all consents (cookies, health data, AI model, push, anon pool)
 - [ ] Each row: status, last updated, Revoke action with confirmation
 - [ ] Link to policy viewer (plan 05 P1); integrate P2 activity log slot when plan 05 lands
 
-### Phase C — Settings enhancements (S3–S6, S8)
+### Phase C - Settings enhancements (S3-S6, S8)
 
 | ID | Tasks |
 |----|-------|
@@ -111,7 +111,7 @@ Deliver settings parity, onboarding wizard, and consent UX foundation. **S2** pa
 | S6 | Avatar picker (preset icons) + display name theme color |
 | S8 | Export/import JSON blob of settings + goals separate from log export |
 
-### Phase D — Parity pass
+### Phase D - Parity pass
 
 - [ ] Run `npm run parity:inventory:check`; fix any new settings field mismatches
 - [ ] 9-pane carousel order/titles match PWA ↔ RN
@@ -139,7 +139,7 @@ npm run verify:i18n
 
 ## Master sync
 
-MASTER §6 rows S1–S8; §Section rollup exec 03.
+MASTER §6 rows S1-S8; §Section rollup exec 03.
 
 ## Post-plan rollout gate
 
@@ -154,4 +154,4 @@ Then: CHANGELOG → MASTER §6 → commit/push → `npm run projects:ci-watch` u
 
 ## Agent do-nots
 
-- Do not implement L1 unlock logic here — only store profile; plan 04 wires wizard fields
+- Do not implement L1 unlock logic here - only store profile; plan 04 wires wizard fields

@@ -1,4 +1,4 @@
-# Region, policy & UI localization — execution plan (v2.0)
+# Region, policy & UI localization - execution plan (v2.0)
 
 **Product:** Rianell · **Version track:** v1.52+ · **Last updated:** 2026-06-13
 
@@ -24,16 +24,16 @@ See [`single-project-residency.md`](single-project-residency.md) for operator no
 
 | Phase | ID | Status |
 |-------|-----|--------|
-| A — Docs pivot | PLAN-A | done |
-| B — Single-project simplification | SP-01–05 | done |
-| C — i18n foundation | LC-00–05 | done |
-| D — Locale rollout | LC-06–08 | done |
-| E — UI tokenization | LC-09–14 | done (gate, settings, nav, cloud; incremental for remaining screens) |
-| F — Parity | PARITY-i18n | done |
+| A - Docs pivot | PLAN-A | done |
+| B - Single-project simplification | SP-01-05 | done |
+| C - i18n foundation | LC-00-05 | done |
+| D - Locale rollout | LC-06-08 | done |
+| E - UI tokenization | LC-09-14 | done (gate, settings, nav, cloud; incremental for remaining screens) |
+| F - Parity | PARITY-i18n | done |
 
-## Cancelled (RP-39–66)
+## Cancelled (RP-39-66)
 
-Multi-project residency, migration wizard, storage chooser, dual CI secrets — superseded by single-project model.
+Multi-project residency, migration wizard, storage chooser, dual CI secrets - superseded by single-project model.
 
 ## Verification
 

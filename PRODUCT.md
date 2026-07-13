@@ -6,7 +6,7 @@ product
 
 ## Users
 
-People managing a chronic condition (fatigue, flares, joint pain, mood) who log daily health signals — steps, hydration, sleep, mood, symptoms — often on a phone, sometimes during low-energy or brain-fog days. They are in a quick check-in workflow: glance at today, log an entry, spot a pattern, get out.
+People managing a chronic condition (fatigue, flares, joint pain, mood) who log daily health signals - steps, hydration, sleep, mood, symptoms - often on a phone, sometimes during low-energy or brain-fog days. They are in a quick check-in workflow: glance at today, log an entry, spot a pattern, get out.
 
 ## Product Purpose
 
@@ -14,7 +14,7 @@ Rianell is a privacy-first health tracking PWA (+ React Native app) with on-devi
 
 ## Brand Personality
 
-Calm, alive, trustworthy. "Whimsical but never clinical" — health stats should feel like a living companion, not a spreadsheet. Soft green bioluminescent palette, generous rounding, gentle motion. Reassuring in tone; never alarmist about health data.
+Calm, alive, trustworthy. "Whimsical but never clinical" - health stats should feel like a living companion, not a spreadsheet. Soft green bioluminescent palette, generous rounding, gentle motion. Reassuring in tone; never alarmist about health data.
 
 ## Anti-references
 
@@ -25,11 +25,11 @@ Calm, alive, trustworthy. "Whimsical but never clinical" — health stats should
 
 ## Design Principles
 
-1. **Low-energy first** — every flow must be completable on a bad day: large targets, few steps, brain-fog mode respected.
-2. **Motion conveys state** — animation signals progress, success, or attention; decoration is tier-gated (device benchmark, reduced-motion, clinical vibe) and never blocks the task.
-3. **Private by visible default** — on-device processing is a feature; surfaces say so plainly ("On-device · private").
-4. **One accent, semantic states** — the theme primary carries selection and action; amber/red are reserved for genuine below-target / danger semantics.
-5. **Depth without weight** — layered surfaces, glow, and 3D moments must stay within CWV budget (lazy-loaded, tier-gated).
+1. **Low-energy first** - every flow must be completable on a bad day: large targets, few steps, brain-fog mode respected.
+2. **Motion conveys state** - animation signals progress, success, or attention; decoration is tier-gated (device benchmark, reduced-motion, clinical vibe) and never blocks the task.
+3. **Private by visible default** - on-device processing is a feature; surfaces say so plainly ("On-device · private").
+4. **One accent, semantic states** - the theme primary carries selection and action; amber/red are reserved for genuine below-target / danger semantics.
+5. **Depth without weight** - layered surfaces, glow, and 3D moments must stay within CWV budget (lazy-loaded, tier-gated).
 
 ## Accessibility & Inclusion
 

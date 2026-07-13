@@ -4,13 +4,13 @@
 
 - **`supabase-config.js`** in git uses **placeholders only**; GitHub Actions injects `SUPABASE_URL` / `SUPABASE_ANON_KEY` on Pages deploy.
 - **`verify-no-service-role-in-clients.mjs`** fails CI if tracked client files contain `sb_secret_*`, Postgres URLs with passwords, or hardcoded publishable keys.
-- **LLM upload** uses **`SUPABASE_SERVICE_KEY`** from **`security/.env`** only — never commit service role or ONNX weight files. **`verify-no-model-weights-in-git`** CI gate allows only **`manifest.json`** + **`README.md`** under **`apps/pwa-webapp/models/`**; weights live on Supabase Storage (chunked).
+- **LLM upload** uses **`SUPABASE_SERVICE_KEY`** from **`security/.env`** only - never commit service role or ONNX weight files. **`verify-no-model-weights-in-git`** CI gate allows only **`manifest.json`** + **`README.md`** under **`apps/pwa-webapp/models/`**; weights live on Supabase Storage (chunked).
 
 This document describes how **Rianell** (this health app) handles health-related data across surfaces, operational defaults, and where to configure controls. It complements OWASP-style practice (see [OWASP Top 10:2025](https://owasp.org/Top10/2025/)).
 
 ## v1.134.0 DNS hygiene and AI crawler blocking
 
-- **Dangling A records (Moderate):** External security scan (2026-06-22) found 4 DNS A records for `rianell.com` pointing to IPs that no longer respond to the hostname — subdomain takeover risk. Action: audit DNS A records in Cloudflare and remove any pointing to released IPs. See [cloudflare-headers-recommended.md → Dangling A records](../security/cloudflare-headers-recommended.md).
+- **Dangling A records (Moderate):** External security scan (2026-06-22) found 4 DNS A records for `rianell.com` pointing to IPs that no longer respond to the hostname - subdomain takeover risk. Action: audit DNS A records in Cloudflare and remove any pointing to released IPs. See [cloudflare-headers-recommended.md → Dangling A records](../security/cloudflare-headers-recommended.md).
 - **DMARC missing (Low):** No valid DMARC record at `_dmarc.rianell.com`. Add `v=DMARC1; p=quarantine; rua=mailto:security@rianell.com` TXT record. See [cloudflare-headers-recommended.md → DMARC](../security/cloudflare-headers-recommended.md).
 - **AI crawler blocking:** Added `apps/pwa-webapp/robots.txt` declaring `Disallow: /` for 25+ AI training bots (GPTBot, Google-Extended, ClaudeBot, CCBot, Bytespider, etc.). Enable Cloudflare **Block AI bots** toggle for edge enforcement. See [cloudflare-headers-recommended.md → AI crawler blocking](../security/cloudflare-headers-recommended.md).
 
@@ -32,17 +32,17 @@ This document describes how **Rianell** (this health app) handles health-related
 
 | Topic | Location |
 |-------|----------|
-| **Privacy program index** | [privacy/global-baseline.md](privacy/global-baseline.md) — [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), [ropa.json](privacy/ropa.json), [region-policy-execution-plan.md](privacy/region-policy-execution-plan.md) |
+| **Privacy program index** | [privacy/global-baseline.md](privacy/global-baseline.md) - [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), [ropa.json](privacy/ropa.json), [region-policy-execution-plan.md](privacy/region-policy-execution-plan.md) |
 | Threat model | [threat-model.md](threat-model.md) |
 | AI security | [ai-security.md](ai-security.md) |
 | Incident response | [incident-response.md](incident-response.md) |
 | Crypto roadmap | [crypto-roadmap.md](crypto-roadmap.md) |
 | Key rotation (operators) | [../security/rotation-runbook.md](../security/rotation-runbook.md) |
-| Security inventory (generated) | [security-inventory.md](security-inventory.md) — `npm run docs:security-inventory` |
+| Security inventory (generated) | [security-inventory.md](security-inventory.md) - `npm run docs:security-inventory` |
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase schema (SQL) | [../supabase/Schema.sql](../supabase/Schema.sql) |
 | Android network / cleartext (RN native builds) | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
-| Automated audits (CI) | Reusable [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) — **Security & supply-chain checks** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml). See [CI security matrix](#dependency-and-ci-scanning) below. Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
+| Automated audits (CI) | Reusable [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) - **Security & supply-chain checks** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml). See [CI security matrix](#dependency-and-ci-scanning) below. Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
 | Web CSP (meta tag) | [../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [edge header note](../security/cloudflare-headers-recommended.md) |
 
 ## Server logs
@@ -85,7 +85,7 @@ These routes are intended for **local development** with the browser on the same
 
 **Rules:**
 
-1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment. **When LAN mode is on, `HEALTH_APP_SENSITIVE_APIS_LAN_SECRET` is required** — the server refuses to start without it, and non-loopback clients must send header **`X-Rianell-LAN-Secret`** matching that value. **`POST /api/bug-report`** follows the same loopback/LAN+secret rules.
+1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment. **When LAN mode is on, `HEALTH_APP_SENSITIVE_APIS_LAN_SECRET` is required** - the server refuses to start without it, and non-loopback clients must send header **`X-Rianell-LAN-Secret`** matching that value. **`POST /api/bug-report`** follows the same loopback/LAN+secret rules.
 2. Use **`ENCRYPTION_KEY`** in **`security/.env`** or a **`.encryption_key`** file under **`security/`** for a stable, operator-controlled key; otherwise the server may **create** `security/.encryption_key` automatically on first use (see [security/.env.example](../security/.env.example)).
 3. If **`security/.env`** is missing but a **legacy `.env`** at the repository root exists, the server loads it and logs a **warning** to prefer **`security/.env`**.
 
@@ -98,13 +98,13 @@ These routes are intended for **local development** with the browser on the same
 
 ## Cloud backup keys (`user_keys` table)
 
-Authenticated cloud sync stores a per-user AES key in Supabase **`user_keys.encryption_key`** as **plaintext hex** (client-generated). Blobs in **`health_data`** are encrypted with that key, but anyone with DB read access or overly permissive RLS can decrypt backups. **Future hardening:** client-derived keys (passphrase + KDF) or Supabase Vault — not yet implemented. RLS policies in [../supabase/Schema.sql](../supabase/Schema.sql) restrict rows to **`auth.uid() = user_id`**.
+Authenticated cloud sync stores a per-user AES key in Supabase **`user_keys.encryption_key`** as **plaintext hex** (client-generated). Blobs in **`health_data`** are encrypted with that key, but anyone with DB read access or overly permissive RLS can decrypt backups. **Future hardening:** client-derived keys (passphrase + KDF) or Supabase Vault - not yet implemented. RLS policies in [../supabase/Schema.sql](../supabase/Schema.sql) restrict rows to **`auth.uid() = user_id`**.
 
 ## Bug reports
 
 - **PWA (static host):** inserts into **`bug_reports`** via Supabase anon/authenticated client when configured (`submitBugReportToSupabase` in [../apps/pwa-webapp/cloud-sync.js](../apps/pwa-webapp/cloud-sync.js)).
 - **PWA (dev server):** `POST /api/bug-report` on loopback (or LAN+secret) uses the service role.
-- **React Native:** [../apps/rn-app/src/utils/submitBugReport.ts](../apps/rn-app/src/utils/submitBugReport.ts) — same Supabase insert; requires `EXPO_PUBLIC_SUPABASE_*` at build time.
+- **React Native:** [../apps/rn-app/src/utils/submitBugReport.ts](../apps/rn-app/src/utils/submitBugReport.ts) - same Supabase insert; requires `EXPO_PUBLIC_SUPABASE_*` at build time.
 - RLS: **insert-only** for `anon`/`authenticated`; no public SELECT on reports.
 
 ## Supabase and Row Level Security (RLS)
@@ -125,8 +125,8 @@ Plan 13 k-anonymous pool insights use two **`SECURITY DEFINER`** functions in `p
 |---------|----------------|
 | **Why SECURITY DEFINER** | Cross-user cohort aggregation; per-user RLS would block reads under `SECURITY INVOKER`. |
 | **`search_path`** | `SET search_path = public` on both functions. |
-| **`anon`** | `REVOKE EXECUTE` — pool RPCs are **not** callable without sign-in (clears lint **0028**). |
-| **`authenticated`** | `GRANT EXECUTE` on **`public.*` INVOKER wrappers** only — PostgREST calls the same RPC names; elevated work runs in **`private.*_impl`** (DEFINER, not exposed to REST). Clears lint **0029** on `public`. |
+| **`anon`** | `REVOKE EXECUTE` - pool RPCs are **not** callable without sign-in (clears lint **0028**). |
+| **`authenticated`** | `GRANT EXECUTE` on **`public.*` INVOKER wrappers** only - PostgREST calls the same RPC names; elevated work runs in **`private.*_impl`** (DEFINER, not exposed to REST). Clears lint **0029** on `public`. |
 | **Client gates** | Research pool opt-in, medical condition set, 90-day contribution gate before RPC. |
 
 Re-apply [../supabase/Schema.sql](../supabase/Schema.sql) §4 after schema changes; see [../supabase/APPLY.md](../supabase/APPLY.md).
@@ -153,13 +153,13 @@ Since v1.50.0, **`apps/rn-app/src/cloud/secureStorageAdapter.ts`** persists Supa
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
 - **Nonce migration roadmap (v1.94+):** Phase 1 ships SRI on all pinned jsDelivr assets and `/.well-known/security.txt`. A future release will add CSP **nonces** for inline boot scripts, deploy **report-only** CSP at Cloudflare to collect violations, then remove `'unsafe-inline'` from `script-src` once violation rate is zero. Do not enforce nonce-only CSP until ML bootstrap paths are bundled or nonce-injected at build time.
-- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct. **Operators:** do not set a **narrower** HTTP CSP than the meta tag; remove the duplicate header or align it fully — see [../security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md). Set **`frame-ancestors 'self'`** via HTTP only (not meta).
+- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct. **Operators:** do not set a **narrower** HTTP CSP than the meta tag; remove the duplicate header or align it fully - see [../security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md). Set **`frame-ancestors 'self'`** via HTTP only (not meta).
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
 - Client code uses **`escapeHTML()`** / **`sanitizeHTML()`** for many user-derived strings (e.g. log entries, AI anomaly lines). New UI that builds HTML from user input should use the same helpers-avoid raw **`innerHTML`** with unescaped strings.
 
 ### `connect-src` and third-party hosts
 
-The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), **Open-Meteo** (`api.open-meteo.com`, `air-quality-api.open-meteo.com` for opt-in home weather), **Open Food Facts** (`world.openfoodfacts.org` for barcode food lookup), **Smartlook** (`web-sdk.smartlook.com`, `*.smartlook.com`, `*.smartlook.cloud` for opt-in session recording — also required in **`script-src`**), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed.
+The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), **Open-Meteo** (`api.open-meteo.com`, `air-quality-api.open-meteo.com` for opt-in home weather), **Open Food Facts** (`world.openfoodfacts.org` for barcode food lookup), **Smartlook** (`web-sdk.smartlook.com`, `*.smartlook.com`, `*.smartlook.cloud` for opt-in session recording - also required in **`script-src`**), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed.
 
 ### Subresource Integrity (SRI)
 
@@ -171,7 +171,7 @@ Pinned CDN assets use SRI + `crossorigin="anonymous"`:
 | **Font Awesome CSS** | `index.html` deferred `<link>` loader |
 | **@supabase/supabase-js UMD** | `performance-utils.js` `ensureSupabaseLoaded()` |
 
-Manifest: [`apps/pwa-webapp/cdn-manifest.json`](../apps/pwa-webapp/cdn-manifest.json). CI gate: `node scripts/verify/verify-sri-integrity.mjs` (unit-tests job). Dynamic imports (Transformers.js, ONNX weights) cannot use SRI — pin versions and monitor supply chain. When upgrading CDN packages, recompute hashes (`openssl dgst -sha384 -binary <file> | openssl base64 -A` prefixed with `sha384-`) and update manifest + loaders.
+Manifest: [`apps/pwa-webapp/cdn-manifest.json`](../apps/pwa-webapp/cdn-manifest.json). CI gate: `node scripts/verify/verify-sri-integrity.mjs` (unit-tests job). Dynamic imports (Transformers.js, ONNX weights) cannot use SRI - pin versions and monitor supply chain. When upgrading CDN packages, recompute hashes (`openssl dgst -sha384 -binary <file> | openssl base64 -A` prefixed with `sha384-`) and update manifest + loaders.
 
 Responsible disclosure: [`apps/pwa-webapp/.well-known/security.txt`](../apps/pwa-webapp/.well-known/security.txt) ships with the PWA.
 
@@ -237,9 +237,9 @@ On each **release** build (or before tagging):
 
 Local equivalents: `npm run verify:privacy-docs`, `npm run verify:csp`, `npm run docs:security-inventory`. Security unit tests: `tests/unit/security/`.
 
-- **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`shell-quote`**, **`postcss`**, **`ws`**, **`uuid`**, **`basic-ftp`**, **`ip-address`**, **`tmp`**, **`@xmldom/xmldom@0.8.13`** on **`@expo/plist`**, **`plist`**, **`@trapezedev/project`**, **`mergexml`** (LTS line — **0.9.x** breaks Expo **`prebuild`** because **`@expo/plist`** omits **`mimeType`** on **`parseFromString`**). **`http-proxy-agent@5.0.0`** is overridden to **`7.0.2`** so **`jest-environment-jsdom`** → **`jsdom@20`** no longer pulls **`@tootallnate/once@2`** via the old v5 agent (Dependabot low-severity **GHSA-vpq2-c234-7xj6**). **`@tootallnate/once`** is also pinned to **`^3.0.1`**. Root pins **`@sentry/node`** (^10.65) and **`@opentelemetry/core@2.9.0`** via overrides (dollar-ref from root devDependencies) so Lighthouse resolves OpenTelemetry 2.9.x, clearing OSV **CVE-2026-54285** / **GHSA-8988-4f7v-96qf**. `npm ls` may show **`invalid`** for **`@sentry/node`** under Lighthouse (manifest asks **`^9.28.1`**); that pin is intentional. `npm ls` may show **`invalid`** next to **`http-proxy-agent`** under **`jsdom`** because **`jsdom`** still declares **`^5.0.0`** in its manifest; the installed v7 agent is API-compatible for Jest’s test environment and **`npm run test:mobile`** is the regression check. **`npm audit --omit=dev`** and a **full** **`npm audit`** are expected to report **no** vulnerabilities with the current lockfile—re-run after lockfile changes and triage any new **Dependabot** alerts. **Python:** **`requirements.txt`** floors include **`cryptography>=49.0.0`** (OSV **GHSA-537c-gmf6-5ccf**) and **`python-dotenv>=1.2.2`** for **OSV-Scanner** / **`pip-audit`**.
+- **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`shell-quote`**, **`postcss`**, **`ws`**, **`uuid`**, **`basic-ftp`**, **`ip-address`**, **`tmp`**, **`@xmldom/xmldom@0.8.13`** on **`@expo/plist`**, **`plist`**, **`@trapezedev/project`**, **`mergexml`** (LTS line - **0.9.x** breaks Expo **`prebuild`** because **`@expo/plist`** omits **`mimeType`** on **`parseFromString`**). **`http-proxy-agent@5.0.0`** is overridden to **`7.0.2`** so **`jest-environment-jsdom`** → **`jsdom@20`** no longer pulls **`@tootallnate/once@2`** via the old v5 agent (Dependabot low-severity **GHSA-vpq2-c234-7xj6**). **`@tootallnate/once`** is also pinned to **`^3.0.1`**. Root pins **`@sentry/node`** (^10.65) and **`@opentelemetry/core@2.9.0`** via overrides (dollar-ref from root devDependencies) so Lighthouse resolves OpenTelemetry 2.9.x, clearing OSV **CVE-2026-54285** / **GHSA-8988-4f7v-96qf**. `npm ls` may show **`invalid`** for **`@sentry/node`** under Lighthouse (manifest asks **`^9.28.1`**); that pin is intentional. `npm ls` may show **`invalid`** next to **`http-proxy-agent`** under **`jsdom`** because **`jsdom`** still declares **`^5.0.0`** in its manifest; the installed v7 agent is API-compatible for Jest’s test environment and **`npm run test:mobile`** is the regression check. **`npm audit --omit=dev`** and a **full** **`npm audit`** are expected to report **no** vulnerabilities with the current lockfile - re-run after lockfile changes and triage any new **Dependabot** alerts. **Python:** **`requirements.txt`** floors include **`cryptography>=49.0.0`** (OSV **GHSA-537c-gmf6-5ccf**) and **`python-dotenv>=1.2.2`** for **OSV-Scanner** / **`pip-audit`**.
 - **CI reference:** The **`security-audit`** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml) gates downstream mobile bundle jobs. Failures should be triaged like Dependabot alerts. Branch protection should require the **CI** workflow (or the **`Security & supply-chain checks`** job), not a separate duplicate workflow name.
-- **CI caching (v1.89.2):** npm, pip, Playwright, and security-tool binaries are restored from GitHub Actions cache when lockfiles are unchanged — see [testing-and-configuration.md](testing-and-configuration.md) § CI dependency caching.
+- **CI caching (v1.89.2):** npm, pip, Playwright, and security-tool binaries are restored from GitHub Actions cache when lockfiles are unchanged - see [testing-and-configuration.md](testing-and-configuration.md) § CI dependency caching.
 
 ## Client-side storage and privacy
 

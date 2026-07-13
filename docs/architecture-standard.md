@@ -7,7 +7,7 @@ Canonical layout contract for the Rianell monorepo. Changelog-style history live
 - **`apps/`** = deployable surfaces (PWA, React Native)
 - **`packages/`** = shared libraries consumed via `@rianell/*`
 - **Root `package.json`** orchestrates npm workspaces and automation scripts
-- **Incremental moves** — one phase per concern; verify gates between phases
+- **Incremental moves** - one phase per concern; verify gates between phases
 - **Python `server/`** stays top-level (not a JS workspace)
 - **`i18n-packs/`** remains canonical locale source at repo root (not moved into `packages/`)
 
@@ -17,8 +17,8 @@ References: [Turbo structuring](https://turbo.build/repo/docs/crafting-your-repo
 
 ```
 apps/
-  pwa-webapp/          @rianell/pwa-webapp — vanilla JS PWA + esbuild
-  rn-app/              @rianell/rn-app — Expo / React Native
+  pwa-webapp/          @rianell/pwa-webapp - vanilla JS PWA + esbuild
+  rn-app/              @rianell/rn-app - Expo / React Native
 packages/
   shared/              @rianell/shared
   ai-engine/           @rianell/ai-engine
@@ -41,7 +41,7 @@ scripts/
 audit-history/         boot audit JSON (baseline + phase archives tracked)
 artifacts/             CI binaries + latest.json (was App build/)
 docs/                  developer documentation (authoritative for devs)
-  plans/               execution plans 01–14, MASTER, external setup, rollout gates
+  plans/               execution plans 01-14, MASTER, external setup, rollout gates
   archive/             deprecated config snapshots (e.g. residency-config.json)
 wiki/                  GitHub Wiki source (user-facing)
 server/                Python HTTP + launch-server.ps1
@@ -58,7 +58,7 @@ tests/                 Node unit tests (tests/unit/)
 |------|------|
 | `.server-dist/` | Local server bundle from launch-server.ps1 |
 | `ci-minified/` | CI minified site staging |
-| `apps/pwa-webapp/app.*.min.js` | esbuild output — rebuild after app.js changes |
+| `apps/pwa-webapp/app.*.min.js` | esbuild output - rebuild after app.js changes |
 
 ## Workspace graph
 
@@ -110,7 +110,7 @@ Root workspaces: `apps/rn-app`, `apps/pwa-webapp` (Phase 3+), `packages/*`, `ben
 
 ## Artifact and release policy (Phase 14+)
 
-- Git tracks **`artifacts/**/latest.json`** and small metadata only — **not** APK/EXE/zips
+- Git tracks **`artifacts/**/latest.json`** and small metadata only - **not** APK/EXE/zips
 - CI job **`commit-app-build`** commits README + manifest JSON; binaries ship via **GitHub Releases** (`publish-release` job)
 - Same-origin download links in the PWA resolve via manifest `file` fields pointing at release assets or historical paths
 - Legacy Capacitor paths under `artifacts/Legacy/` retained for historical links (see legacy audit below)
@@ -124,12 +124,12 @@ Root workspaces: `apps/rn-app`, `apps/pwa-webapp` (Phase 3+), `packages/*`, `ben
 | `artifacts/Expo/dist-expo-prod/` | **Not in git** | CI artifact only; manifests optional |
 | Stale `run-*.md` under `security/securityheaders-runs/` | **Prune** | Keep last 10 (Phase 9) |
 
-No binary blobs removed in Phase 15 — repo already manifest-only under `artifacts/RNCLI-Android/`, `artifacts/iOS/`, `artifacts/Server/`.
+No binary blobs removed in Phase 15 - repo already manifest-only under `artifacts/RNCLI-Android/`, `artifacts/iOS/`, `artifacts/Server/`.
 
 ## Retention policies (Phase 9+)
 
-- **`security/securityheaders-runs/`** — keep `securityheaders-rianell.com.md` + last 10 per-run files
-- **`docs/migration-deploy-observe.log`** — archived in migration signoff after Phase 22
+- **`security/securityheaders-runs/`** - keep `securityheaders-rianell.com.md` + last 10 per-run files
+- **`docs/migration-deploy-observe.log`** - archived in migration signoff after Phase 22
 
 ## Cloudflare redirect (Phase 4)
 
@@ -146,7 +146,7 @@ Tool: `scripts/verify/doc-links.mjs`
 **Checks:**
 - Relative links in `docs/**/*.md`, `wiki/**/*.md`, `README.md`, `security/**/*.md`
 - Forbidden stale paths in `package.json`, `.github/**/*.yml`, `scripts/**/*.mjs`, `apps/**/*.{js,ts,tsx}`, `server/*.ps1`
-- Forbidden: `App build/` (except CHANGELOG history), flat `scripts/*.mjs` post–Phase 7, root `tools/`, root `audit-report*.json`, root `residency-config.json` (Phase 23)
+- Forbidden: `App build/` (except CHANGELOG history), flat `scripts/*.mjs` post-Phase 7, root `tools/`, root `audit-report*.json`, root `residency-config.json` (Phase 23)
 - Broken `#anchor` cross-refs in architecture-standard
 
 **Usage:** `node scripts/verify/doc-links.mjs --strict` (exit 0 required)
@@ -164,13 +164,13 @@ Tool: `scripts/verify/doc-links.mjs`
 | 6 | Docs/wiki realignment | verified | 2026-06-16 |
 | 7 | Shim removal | verified | 2026-06-16 |
 | 18 | Foundation verify | verified | 2026-06-16 |
-| 8–13 | Optimize (orchestrators, build-tools, i18n-all, dev:web, CI guards) | verified | 2026-06-16 |
+| 8-13 | Optimize (orchestrators, build-tools, i18n-all, dev:web, CI guards) | verified | 2026-06-16 |
 | 14 | Manifest-only releases | verified | 2026-06-16 |
 | 19 | Release verify | verified | 2026-06-16 |
-| 15–17 | Scale (legacy, server, PWA/turbo) | verified | 2026-06-16 |
+| 15-17 | Scale (legacy, server, PWA/turbo) | verified | 2026-06-16 |
 | 20 | Final sign-off | verified | 2026-06-16 |
 | 21 | Temp tests teardown | verified | 2026-06-16 |
 | 22 | Deploy-observe loop | verified (local stages) | 2026-06-16 |
 | 23 | Root directory hygiene | verified | 2026-06-14 |
 
-**Epic status:** v1.90.1 on `main` — apply Cloudflare 301 for legacy artifact URLs after Pages deploy (see [migration-signoff.md](migration-signoff.md)).
+**Epic status:** v1.90.1 on `main` - apply Cloudflare 301 for legacy artifact URLs after Pages deploy (see [migration-signoff.md](migration-signoff.md)).

@@ -12,7 +12,7 @@ blocks:
   - plan-26-accessibility-ui/plan.md
 ---
 
-# Plan 25 — Data migration toolkit (DM1–DM9)
+# Plan 25 - Data migration toolkit (DM1-DM9)
 
 ## Objective
 

@@ -10,20 +10,20 @@ depends_on: [plan-08-llm-nlp/plan.md, plan-09-charts-analytics/plan.md, plan-07-
 blocks: [plan-14-cross-cutting/plan.md]
 ---
 
-# Plan 12 — Section 11: Clinician & sharing workflows
+# Plan 12 - Section 11: Clinician & sharing workflows
 
 ## Objective
 
-Doctor-visit prep and secure sharing: appointment PDF, QR handoff, medication timeline, and LLM-suggested questions. Integrates N2, C6, A6, H6. **CL3 NR** — omit heatmap.
+Doctor-visit prep and secure sharing: appointment PDF, QR handoff, medication timeline, and LLM-suggested questions. Integrates N2, C6, A6, H6. **CL3 NR** - omit heatmap.
 
 ## Required features (checklist)
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| CL1 | **Appointment mode** — 2-page PDF: charts + AI summary + meds + flare calendar | M, ★ | N2, C6, A6 |
-| CL2 | **QR code handoff** — ephemeral encrypted QR for in-office transfer | M | P4 encrypted export |
-| CL4 | **Medication timeline** — Gantt-style med changes vs outcomes | M | A4 |
-| CL5 | **"Questions for my doctor"** — LLM suggests 3 questions | M, ★ | New LLM intent |
+| CL1 | **Appointment mode** - 2-page PDF: charts + AI summary + meds + flare calendar | M, ★ | N2, C6, A6 |
+| CL2 | **QR code handoff** - ephemeral encrypted QR for in-office transfer | M | P4 encrypted export |
+| CL4 | **Medication timeline** - Gantt-style med changes vs outcomes | M | A4 |
+| CL5 | **"Questions for my doctor"** - LLM suggests 3 questions | M, ★ | New LLM intent |
 
 
 ## Plan folder docs
@@ -36,8 +36,8 @@ Doctor-visit prep and secure sharing: appointment PDF, QR handoff, medication ti
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
 - **External setup** � See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 ## Prerequisites
 
@@ -64,7 +64,7 @@ Doctor-visit prep and secure sharing: appointment PDF, QR handoff, medication ti
 ## Completion gates
 
 - [x] CL1, CL2, CL4, CL5 implemented or deferred
-- [x] CL3 NR — not implemented
+- [x] CL3 NR - not implemented
 - [x] Disclaimers on all clinician-facing outputs
 - [x] Works with local-only mode where applicable (export-only)
 
@@ -75,20 +75,20 @@ Doctor-visit prep and secure sharing: appointment PDF, QR handoff, medication ti
 
 ## Agent execution
 
-### Phase A — Appointment PDF (CL1)
+### Phase A - Appointment PDF (CL1)
 
 - [x] Orchestrate 2-page PDF: chart snapshots (C6) + N2 clinician brief + med list + flare calendar
 - [x] PWA: `appointment-pdf.js`; RN: `expo-print` + `expo-sharing`
 - [x] Entry from H6 countdown and dedicated "Appointment mode" action
 - [x] Wellness disclaimers on every page footer
 
-### Phase B — Secure handoff (CL2)
+### Phase B - Secure handoff (CL2)
 
 - [x] Ephemeral encrypted QR payload using P4 export crypto
 - [x] Time-limited token; no long-lived public URLs
 - [x] Receiver flow documented (scan → decrypt → import view-only)
 
-### Phase C — Timeline & questions (CL4, CL5)
+### Phase C - Timeline & questions (CL4, CL5)
 
 | ID | Tasks |
 |----|-------|
@@ -110,7 +110,7 @@ PDF opens on iOS/Android; QR round-trip smoke; no PHI in application logs.
 
 ## Master sync
 
-MASTER §11 rows CL1–CL5; §Section rollup exec 12.
+MASTER §11 rows CL1-CL5; §Section rollup exec 12.
 
 ## Post-plan rollout gate
 
@@ -125,4 +125,4 @@ Then: CHANGELOG → MASTER §11 → commit/push → `npm run projects:ci-watch` 
 ## Agent do-nots
 
 - **CL3 heatmap is NR**
-- Not medical advice — disclaimers required
+- Not medical advice - disclaimers required

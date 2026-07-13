@@ -39,8 +39,8 @@ Enhance the today dashboard with adaptive layout, pacing widget, streaks, micro-
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
 - **External setup** ? See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 ## Prerequisites
 
@@ -79,7 +79,7 @@ Enhance the today dashboard with adaptive layout, pacing widget, streaks, micro-
 
 ## Agent execution
 
-### Phase A — Card registry & adaptive layout (H1) ✓
+### Phase A - Card registry & adaptive layout (H1) ✓
 
 - [x] Define home card registry: id, priority, visibility rules, component
 - [x] **H1** Reorder by context: logged today → goals prominent; streak broken → gentle nudge card

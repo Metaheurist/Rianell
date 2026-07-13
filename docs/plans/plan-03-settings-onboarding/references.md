@@ -1,4 +1,4 @@
-# Plan 03 — References
+# Plan 03 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/owasp-masvs.md — MASVS-STORAGE, AUTH`
+- `.firecrawl/projects/owasp-masvs.md - MASVS-STORAGE, AUTH`
 
 ## External (verify online)
 

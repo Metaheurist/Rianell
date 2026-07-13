@@ -1,4 +1,4 @@
-# Plan 01 — Scope & scripts
+# Plan 01 - Scope & scripts
 
 **Section 13:** Platform & architecture · **IDs:** T1, T2
 

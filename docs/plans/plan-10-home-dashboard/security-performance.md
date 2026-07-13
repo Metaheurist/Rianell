@@ -1,6 +1,6 @@
-# Plan 10 — Security & performance review
+# Plan 10 - Security & performance review
 
-**Section 1:** Home & dashboard · **IDs:** H1–H7
+**Section 1:** Home & dashboard · **IDs:** H1-H7
 
 Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
 
@@ -8,7 +8,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 
 ## CVE & exploit surface
 
-- H5 weather: [Open-Meteo](https://open-meteo.com/) — no API key; opt-in geolocation only; round coords; client rate-limit 1/hr; no precise geolocation stored without consent.
+- H5 weather: [Open-Meteo](https://open-meteo.com/) - no API key; opt-in geolocation only; round coords; client rate-limit 1/hr; no precise geolocation stored without consent.
 - H7 LLM question: same injection rules as homeQuestion intent.
 
 **CI baseline:** `npm audit --omit=dev`, OSV-Scanner, Gitleaks in [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml). High/critical production deps must be fixed or accepted-risk documented before plan rollout commit.
@@ -20,7 +20,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 - H1 adaptive layout: compute card order once per session/day, not every render.
 - H2 spoon widget: derive from cached aggregates, not full log scan.
 
-**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit — no console `pageerror` regressions.
+**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit - no console `pageerror` regressions.
 
 ---
 

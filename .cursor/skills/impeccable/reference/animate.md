@@ -8,7 +8,7 @@ Add motion that conveys state, gives feedback, and clarifies hierarchy. Cut moti
 
 Brand: motion is part of the voice; one well-rehearsed entrance beats scattered micro-interactions. The saturated AI default is fade-and-rise reveals on every scrolled section; that's a tell, not a choreography. Reserve scroll-triggered motion for moments that earn it.
 
-Product: 150–250 ms on most transitions. Motion conveys state: feedback, reveal, loading, transitions between views. No page-load choreography; users are in a task and won't wait for it.
+Product: 150-250 ms on most transitions. Motion conveys state: feedback, reveal, loading, transitions between views. No page-load choreography; users are in a task and won't wait for it.
 
 ---
 
@@ -102,10 +102,10 @@ Use appropriate techniques for each animation:
 
 | Duration | Use Case | Examples |
 |----------|----------|----------|
-| **100–150ms** | Instant feedback | Button press, toggle, color change |
-| **200–300ms** | State changes | Menu open, tooltip, hover state |
-| **300–500ms** | Layout changes | Accordion, modal, drawer |
-| **500–800ms** | Entrance animations | Page load, hero reveal |
+| **100-150ms** | Instant feedback | Button press, toggle, color change |
+| **200-300ms** | State changes | Menu open, tooltip, hover state |
+| **300-500ms** | Layout changes | Accordion, modal, drawer |
+| **500-800ms** | Entrance animations | Page load, hero reveal |
 
 **Easing curves (use these, not CSS defaults):**
 ```css

@@ -1,4 +1,4 @@
-# UX audit — Rianell launch
+# UX audit - Rianell launch
 
 **Last updated:** 2026-06-24  
 **Status:** Launch audit Phase 9 + v1.97.0 Engagement & UX overhaul.  

@@ -1,4 +1,4 @@
-# Final execution check — UI/UX, security, optimization
+# Final execution check - UI/UX, security, optimization
 
 **Date:** 2026-06-19 (final sign-off)  
 **Scope:** All 14 plans in `docs/plans/`  
@@ -10,10 +10,10 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Plans 01–14 execution | **Complete** | 85/85 feature IDs + 5/5 cross-cutting themes (`MASTER.md`) |
+| Plans 01-14 execution | **Complete** | 85/85 feature IDs + 5/5 cross-cutting themes (`MASTER.md`) |
 | Free-tier policy | **Fixed** | [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) created; H5 → Open-Meteo; N11 commercial endpoints blocked |
-| External setup | **Documented** | [EXTERNAL-SETUP.md](./EXTERNAL-SETUP.md) — Supabase SQL, VAPID, weather |
-| Mobile/desktop UX | **Documented** | [UI-UX-STANDARDS.md](./UI-UX-STANDARDS.md) — parity matrix + verification checklist |
+| External setup | **Documented** | [EXTERNAL-SETUP.md](./EXTERNAL-SETUP.md) - Supabase SQL, VAPID, weather |
+| Mobile/desktop UX | **Documented** | [UI-UX-STANDARDS.md](./UI-UX-STANDARDS.md) - parity matrix + verification checklist |
 | Security (CVE/exploit) | **Reviewed** | Per-plan `security-performance.md`; index updated |
 | Performance | **Reviewed** | Lazy-load, worker, cache patterns documented per plan |
 | Online doc alignment | **Verified** | See Firecrawl cache table below |
@@ -35,7 +35,7 @@
 | Weather (no key) | [open-meteo.com](https://open-meteo.com/) | Free JSON API, no authentication | 10 H5 |
 | Web Push | MDN Push API | VAPID server-held private key; user consent | 11, 14 |
 | Open Food Facts | world.openfoodfacts.org | Free product API | 04 L5 |
-| OWASP MASVS | owasp.org mobile app security | Storage, auth, network baseline | 01–14 |
+| OWASP MASVS | owasp.org mobile app security | Storage, auth, network baseline | 01-14 |
 | Transformers.js | Hugging Face | Browser/on-device inference; pin CVE version | 08 |
 
 Cache: `.firecrawl/projects/*.json|md` (gitignored)
@@ -104,8 +104,8 @@ Cache: `.firecrawl/projects/*.json|md` (gitignored)
 |------|------|--------|
 | D7 Google Drive / iCloud | 06 | Free OAuth quotas unclear; WebDAV MVP |
 | P6 teen/caregiver | 05 | **Shipped** v1.93.1 proxy metadata |
-| RE1 production copy | 13 | Legal review — **shipped** v1.110.0; deploy RPC SQL for prod |
-| L10 / N8 wearables | 04, 08 | **Excluded (NR)** — Xcode + paid Apple Developer; see MASTER §Excluded |
+| RE1 production copy | 13 | Legal review - **shipped** v1.110.0; deploy RPC SQL for prod |
+| L10 / N8 wearables | 04, 08 | **Excluded (NR)** - Xcode + paid Apple Developer; see MASTER §Excluded |
 
 ---
 
@@ -121,24 +121,24 @@ Before starting plan 01:
 
 ---
 
-## Plans 01–14 verification rollup (2026-06-19)
+## Plans 01-14 verification rollup (2026-06-19)
 
 | Exec | Plan | Features | MASTER status | Release | CI |
 |------|------|----------|---------------|---------|-----|
-| 01 | Platform & architecture | T1–T2 (2) | done | v1.92.x | green |
-| 02 | Accessibility & i18n | I1–I5 (5) | done | v1.92.6 | green |
-| 03 | Settings & onboarding | S1–S8 (8) | done | v1.92.7 | green |
-| 04 | Logging & data capture | L1–L3,L5–L9,L11 (9) | done | v1.93.x | green |
-| 05 | Privacy & compliance | P1–P7 (7) | done | v1.93.1 | green |
-| 06 | Cloud sync & portability | D1–D7 (7) | done | v1.93.1 | green |
-| 07 | AI engine | A1–A8 (8) | done | v1.94.0 | green |
-| 08 | On-device LLM & NLP | N1–N7,N9–N11 (10) | done | v1.97.0 | green |
-| 09 | Charts & analytics | C1–C10 (10) | done | v1.100.0 | green |
-| 10 | Home & dashboard | H1–H7 (7) | done | v1.104.0 | green |
-| 11 | Notifications | R1–R6 (6) | done | v1.108.0 | green |
+| 01 | Platform & architecture | T1-T2 (2) | done | v1.92.x | green |
+| 02 | Accessibility & i18n | I1-I5 (5) | done | v1.92.6 | green |
+| 03 | Settings & onboarding | S1-S8 (8) | done | v1.92.7 | green |
+| 04 | Logging & data capture | L1-L3,L5-L9,L11 (9) | done | v1.93.x | green |
+| 05 | Privacy & compliance | P1-P7 (7) | done | v1.93.1 | green |
+| 06 | Cloud sync & portability | D1-D7 (7) | done | v1.93.1 | green |
+| 07 | AI engine | A1-A8 (8) | done | v1.94.0 | green |
+| 08 | On-device LLM & NLP | N1-N7,N9-N11 (10) | done | v1.97.0 | green |
+| 09 | Charts & analytics | C1-C10 (10) | done | v1.100.0 | green |
+| 10 | Home & dashboard | H1-H7 (7) | done | v1.104.0 | green |
+| 11 | Notifications | R1-R6 (6) | done | v1.108.0 | green |
 | 12 | Clinician & sharing | CL1,CL2,CL4,CL5 (4) | done | v1.109.0 | green |
 | 13 | Research & pool | RE1,RE4 (2) | done | v1.110.0 | green |
-| 14 | Cross-cutting | X14.1–X14.5 (5) | done | v1.111.0 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27845245487) |
+| 14 | Cross-cutting | X14.1-X14.5 (5) | done | v1.111.0 | [green](https://github.com/Metaheurist/Rianell/actions/runs/27845245487) |
 
 **Totals:** 85 feature IDs + 5 integration themes. No `deferred` rows in MASTER (NR items excluded by design).
 
@@ -148,7 +148,7 @@ Before starting plan 01:
 
 ## Cross-plan dependency warnings
 
-1. **H2 ↔ C9 ↔ L8 ↔ H4** — pacing cluster across plans 04, 09, 10; integrate in plan 14 X14.1.
-2. **N3 vs plan 09** — chart narration can ship with stub until C1–C3 exist.
-3. **I5 palettes** — implemented plan 02; visual QA plan 09.
-4. **Exec order ≠ MASTER § numbers** — use `00-execution-index.md` for sequence.
+1. **H2 ↔ C9 ↔ L8 ↔ H4** - pacing cluster across plans 04, 09, 10; integrate in plan 14 X14.1.
+2. **N3 vs plan 09** - chart narration can ship with stub until C1-C3 exist.
+3. **I5 palettes** - implemented plan 02; visual QA plan 09.
+4. **Exec order ≠ MASTER § numbers** - use `00-execution-index.md` for sequence.

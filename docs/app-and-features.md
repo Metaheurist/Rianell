@@ -34,7 +34,7 @@ flowchart LR
 
 ### v1.115.0 PWA boot shell (DOM placement)
 
-- **`#appShell`** is a direct child of `<body>`, sibling of `#settingsOverlay` — never nested inside the settings overlay (hidden overlay collapses shell to 0×0).
+- **`#appShell`** is a direct child of `<body>`, sibling of `#settingsOverlay` - never nested inside the settings overlay (hidden overlay collapses shell to 0×0).
 - **Runtime:** `ensureAppShellDomPlacement()` in `app.js`; boot logs via `logBootState()` / `window.__rianellBootLog`.
 - **Verify:** `npm run audit:probe-shell:layout`; `tests/unit/pwa-boot-shell.test.mjs`.
 
@@ -42,7 +42,7 @@ flowchart LR
 
 - **Primary action:** **Period started today** sets day 1 and `cycle.periodStart` on the log date.
 - **Auto day:** `suggestCycleForDate` counts from the latest period start (explicit flag or backward-compat day 1 + menstrual/bleeding).
-- **UI:** Day pills **1–35** by default; **Longer or irregular cycle** reveals **36–45**. Readout shows days since period start and a late hint above day 35.
+- **UI:** Day pills **1-35** by default; **Longer or irregular cycle** reveals **36-45**. Readout shows days since period start and a late hint above day 35.
 - **Phase hints:** Unchanged simplified ~28-day template; not fertility prediction or medical advice.
 
 ### v1.120.0+ Theme accent tokenization (PWA)
@@ -55,9 +55,9 @@ flowchart LR
 ### v1.119.0+ Cycle tracking (log wizard step 1)
 
 - **Enable:** Settings → Data options → Cycle tracking module, or first-run tutorial slide **Cycle tracking**.
-- **UI:** **Period started today** button; cycle day scroll row (days 1–35, expandable to 45), phase tiles with theme SVG icons, optional flow level; labels from i18n (not raw keys).
+- **UI:** **Period started today** button; cycle day scroll row (days 1-35, expandable to 45), phase tiles with theme SVG icons, optional flow level; labels from i18n (not raw keys).
 - **Suggest:** When fields are empty, day + phase pre-fill from last **period start** (or legacy cycle anchor) and the wizard date.
-- **Day 45 cap:** Irregular storage ceiling; typical range messaging uses 21–35 days (ACOG-cited); phase hints use a simplified ~28-day pattern (not medical diagnosis).
+- **Day 45 cap:** Irregular storage ceiling; typical range messaging uses 21-35 days (ACOG-cited); phase hints use a simplified ~28-day pattern (not medical diagnosis).
 
 ### v1.119.0+ Home card polish
 
@@ -66,8 +66,8 @@ flowchart LR
 
 ### v1.118.0+ Smartlook session recording (default-on after disclosure)
 
-- **Purpose:** Optional EU session analytics (Smartlook) — **on by default after onboarding disclosure**; opt out during first-run or in Settings anytime.
-- **Gate:** `shouldActivateSessionRecording()` — pref alone does not start SDK until disclosure or Settings enable timestamp.
+- **Purpose:** Optional EU session analytics (Smartlook) - **on by default after onboarding disclosure**; opt out during first-run or in Settings anytime.
+- **Gate:** `shouldActivateSessionRecording()` - pref alone does not start SDK until disclosure or Settings enable timestamp.
 - **First-run:** Shared `sessionRecording` step after cookies (PWA + RN); toggle default on.
 - **Controls:** Settings → Privacy & region → **Session recording**; **Consent dashboard** (Privacy pane) to revoke; blocked in **local-only mode**.
 - **Platforms:** PWA (`smartlook.js`); RN (`sessionRecording.ts` + `react-native-smartlook-analytics`).
@@ -79,9 +79,9 @@ flowchart LR
 
 ### v1.60.0 UI localization (13 locales)
 
-- **Languages:** en-GB (default), en-US, en-AU, pt-BR, fr-FR, de-DE, es-ES, it-IT, pl-PL, nl-NL, pt-PT, **Arabic (ar)**, **Hebrew (he)** — picker in Settings → Privacy & region.
+- **Languages:** en-GB (default), en-US, en-AU, pt-BR, fr-FR, de-DE, es-ES, it-IT, pl-PL, nl-NL, pt-PT, **Arabic (ar)**, **Hebrew (he)** - picker in Settings → Privacy & region.
 - **RTL:** Arabic and Hebrew set `dir=rtl` (PWA) and `I18nManager.forceRTL` (RN); chart time axes stay LTR.
-- **UGC policy (B1):** Log notes, symptoms, and meds stay exactly as typed — never auto-translated. Export localizes column headers only; LLM prompts wrap user notes in `---USER_NOTE---` delimiters.
+- **UGC policy (B1):** Log notes, symptoms, and meds stay exactly as typed - never auto-translated. Export localizes column headers only; LLM prompts wrap user notes in `---USER_NOTE---` delimiters.
 - **LLM locale (B2):** On-device and proxy LLM requests include explicit client `locale`; output language follows UI locale (ar/he use rule-based + motd fallback only).
 - **Policy (B3):** Machine-translated `policy.*` strings ship with disclaimer banner; en-GB remains authoritative.
 
@@ -102,7 +102,7 @@ flowchart LR
 
 - **Settings (v1.70.0):** Gear opens without main-thread freeze; locale refresh no longer recurses through `applyDocumentI18n` + `notifyLocaleChange`.
 - **Locale refresh (v1.87.0):** Changing UI language re-renders all tabs (Home, Logs, Charts, AI, Settings) without reload; home date uses `formatUiDate()`.
-- **On-device model (v1.85.0):** Settings → Performance — always-visible **Clear and redownload model** wipes caches and restarts download.
+- **On-device model (v1.85.0):** Settings → Performance - always-visible **Clear and redownload model** wipes caches and restarts download.
 - **View logs (v1.70.1):** Tapping a day card expands vitals, symptoms, food, exercise, and notes (action bar + detail body).
 - **Share (v1.70.3):** Per-entry share is a circular green action button matching delete/edit; uses `icon-share` SVG sprite.
 
@@ -115,7 +115,7 @@ flowchart LR
 ### v1.49.0 platform parity (Capacitor sunset)
 
 - **Two platforms only:** PWA (`apps/pwa-webapp/`) + React Native (`apps/rn-app/`). Legacy Capacitor WebView shell and CI release artifacts removed.
-- **Shared packages:** `@rianell/shared`, `@rianell/ai-engine`, `@rianell/cloud-sync`, `@rianell/llm` — PWA vendor bundles + RN imports share merge/analysis logic.
+- **Shared packages:** `@rianell/shared`, `@rianell/ai-engine`, `@rianell/cloud-sync`, `@rianell/llm` - PWA vendor bundles + RN imports share merge/analysis logic.
 - **RN parity:** Cloud sync UI, expanded settings/goals, chart predictions, print export, offline queue flush, native LLM consent path.
 - **CI gates:** `parity:web`, `parity:android`, `parity:ios`, `parity:inventory:check` on every PR.
 
@@ -127,7 +127,7 @@ flowchart LR
 
 - **RN Settings carousel (8 panes):** Matches the web settings carousel section titles. Notifications and demo mode are split into **Display** and **Data options** respectively; **Performance** holds the on-device AI model and benchmark actions.
 - **RN Data management / App installation:** Native builds show version, build number, and links to GitHub releases (and Android APK for non-Android devices) instead of PWA install buttons, which do not apply inside the native shell.
-- **RN Log wizard — Suggest note:** Available on the medications/notes step when AI features are enabled; appends a suggested line to notes (500 character cap) using the shared LLM/rule-based pipeline.
+- **RN Log wizard - Suggest note:** Available on the medications/notes step when AI features are enabled; appends a suggested line to notes (500 character cap) using the shared LLM/rule-based pipeline.
 - **See also:** `docs/CHANGELOG.md` v1.46.3 for file-level pointers and validation notes.
 
 ### v1.46.2 documentation sync
@@ -405,12 +405,12 @@ flowchart LR
 
 ### v1.113.0 documentation sync
 
-- **Mood tab:** Fifth primary tab (between Charts and AI) on PWA and RN — mood metrics from log answers, recent feelings, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, link to Charts mood series.
+- **Mood tab:** Fifth primary tab (between Charts and AI) on PWA and RN - mood metrics from log answers, recent feelings, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, link to Charts mood series.
 - **Home:** Opt-in weather inline in the welcome/date header (standalone weather card removed); micro-check-in and Upcoming visit cards removed from Home (check-in lives on Mood tab; CL1 appointment PDF prep remains in clinician flows).
 - **i18n:** Settings cross-cutting sections and PHQ/GAD screening modals resolve locale keys after catalogs load; em-dash cleanup in UI copy.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.113.0; [platform-parity.md](platform-parity.md) v1.113.0 note.
 
-- **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Goals modal** pane 0), **Report a bug** (**?** — now in-app RN bug modal + submit flow), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
+- **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Goals modal** pane 0), **Report a bug** (**?** - now in-app RN bug modal + submit flow), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
 
 ### v1.45.29 documentation sync
 
@@ -449,13 +449,13 @@ flowchart LR
 
 ### App shell and log experience (web UI)
 
-- **Home / Today**: Default tab with greeting, locale-aware date, optional **inline weather** (opt-in geolocation + Open-Meteo), logging status, and goals snippet when enabled. When you have logged today and at least three recent days of data with AI enabled, Home shows up to **three contextual AI question chips** (symptoms, flares, trends, etc.); tapping a chip opens a focused answer modal powered by the **`homeQuestion`** LLM feature. With no log today or insufficient history, Home shows only the status hint and the **+** FAB — no duplicate Log/Charts/AI navigation buttons. **Micro-check-in** (AM/midday/PM) and mood metrics live on the **Mood** tab, not Home. Use the floating **+** button (with **Beta** badge) to open the log entry wizard from any main tab (Home, Logs, Charts, Mood, AI). The cluster is **fixed** bottom-right with **safe-area** padding and extra **inset from the screen edge** on mobile for comfort.
+- **Home / Today**: Default tab with greeting, locale-aware date, optional **inline weather** (opt-in geolocation + Open-Meteo), logging status, and goals snippet when enabled. When you have logged today and at least three recent days of data with AI enabled, Home shows up to **three contextual AI question chips** (symptoms, flares, trends, etc.); tapping a chip opens a focused answer modal powered by the **`homeQuestion`** LLM feature. With no log today or insufficient history, Home shows only the status hint and the **+** FAB - no duplicate Log/Charts/AI navigation buttons. **Micro-check-in** (AM/midday/PM) and mood metrics live on the **Mood** tab, not Home. Use the floating **+** button (with **Beta** badge) to open the log entry wizard from any main tab (Home, Logs, Charts, Mood, AI). The cluster is **fixed** bottom-right with **safe-area** padding and extra **inset from the screen edge** on mobile for comfort.
 - **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, **Save minimal log** (date + flare only), and **Save entry** on the last step. The bottom nav row keeps three equal slots (hidden steps use invisibility, not `display:none`) so **Next** does not stretch full width on early steps. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the log flow. The **+** is hidden while the wizard is active; on mobile the **bottom tab bar** is hidden during the wizard.
 - **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (**Home**, **Logs**, **Charts**, **Mood**, **AI** - no separate Log tab). On phones, **`html`/`body` do not scroll**; **`.app-shell`** fills the viewport and **`.container.app-main-scroll`** is the only vertical scroll area so every tab behaves the same. The **+** button is **`position: fixed`**, overlays the main content, and sits just above the tab bar (not in the scroll flow). The tab bar lives in **`.app-mobile-bottom-chrome`** as a flex footer below the scroll region. Only one nav chrome shows per breakpoint.
 - **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review-so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). **Add** actions for symptom / energy / stressor use **compact pill** triggers (not full-width bars). **Selected** tiles show a **checkmark** in the corner. Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row). **Selected items** (stressors, symptoms, edit-entry lists) use a **glass** sticky strip on mobile and **row chips** (`.item-tag`) that match the card surfaces-not a flat black panel. **Settings** uses a horizontal **carousel** of sections with shared **modal surface** styling (see **[styling.md](styling.md)**).
 - **Icon style**: PWA UI icons in settings, chart controls, log filters/cards, AI analysis cards, empty states, and modal buttons use the shared inline SVG sprite plus **`--ui-icon-*`** theme tokens (via `svgIcon()` for generated markup), replacing colored emoji glyphs so icons follow the selected global theme.
 
-- **View logs**: Date range shortcuts (Today / 7 / 30 / 90 days) or custom dates, **Filter** and **Oldest** / **Newest** sort; **Your entries** lists per-day cards — tap a card header to expand **vitals, symptoms, wellbeing, food, exercise, and notes**; expanded cards show a circular **delete / edit / share** action bar.
+- **View logs**: Date range shortcuts (Today / 7 / 30 / 90 days) or custom dates, **Filter** and **Oldest** / **Newest** sort; **Your entries** lists per-day cards - tap a card header to expand **vitals, symptoms, wellbeing, food, exercise, and notes**; expanded cards show a circular **delete / edit / share** action bar.
 
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
@@ -474,10 +474,10 @@ flowchart LR
 - **Charts**: In-place **ApexCharts** updates when view/data signatures match (combined, balance, individual); chart-specific styles load on demand from **`styles-charts.css`** when opening the Charts tab (or when the chart section is shown on load).
 - **AI**: In-flight **deduplication** of `analyzeHealthMetrics`; guarded AI preload and chart **precompute** (idle / debounced; slower when the tab is hidden).
 - **View logs**: For very large histories, **IntersectionObserver** loads additional entries as you scroll (windowed append).
-- **Scripts**: **`summary-llm.js`** loads with `requestIdleCallback` on non–low devices (no `document.write`); Font Awesome remains deferred.
+- **Scripts**: **`summary-llm.js`** loads with `requestIdleCallback` on non-low devices (no `document.write`); Font Awesome remains deferred.
 - **Build**: Root **`npm run build:web`** runs **`apps/pwa-webapp/build-site.mjs`**: AST instrumentation (function trace hooks) for first-party scripts into **`apps/pwa-webapp/.trace-build/`**, then esbuild minifies **`app.js`** and renames the output to **`app.<hash>.min.js`** with **`asset-manifest.json`** (both gitignored). **`npm run build:web:apk`** (**`--skip-trace`**) also builds **`apps/pwa-webapp/.android-dist/`** with hashed **`styles.<hash>.css`**. **GitHub Pages** uses **`build-site.mjs --site`** on the copied **`site/`** tree so **`index.html`** references the hashed bundle and stylesheet (see [GitHub Pages](setup-and-usage.md#github-pages-app-at-repo-root)).
 - **Web Workers**: `apps/pwa-webapp/workers/io-worker.js` - large JSON **parse** / **stringify** when the optimisation profile has **`useWorkers`** (import / export paths).
-- **Service worker**: **On** for **rianell.com**, **www.rianell.com**, and **\*.github.io** (PWA updates and offline-friendly caching via `apps/pwa-webapp/sw.js`). Other origins: opt-in with `localStorage.setItem('rianellEnableStaticSW','1')` or **`?sw=1`**. A full **page reload** after a deploy happens only when you confirm **Update** in the app’s modal—not from the Python dev server’s SSE reload (that path is **loopback-only**).
+- **Service worker**: **On** for **rianell.com**, **www.rianell.com**, and **\*.github.io** (PWA updates and offline-friendly caching via `apps/pwa-webapp/sw.js`). Other origins: opt-in with `localStorage.setItem('rianellEnableStaticSW','1')` or **`?sw=1`**. A full **page reload** after a deploy happens only when you confirm **Update** in the app’s modal - not from the Python dev server’s SSE reload (that path is **loopback-only**).
 - **Python server**: **gzip** for compressible static files when the client sends `Accept-Encoding: gzip`; **Cache-Control** tuned for common static extensions (`server/main.py`).
 - **Observability**: Optional **Long Task** logging via `localStorage.setItem('rianellPerfLongTasks','1')` or debug mode; `performance.mark('rianell-init')` during init.
 
@@ -496,16 +496,16 @@ flowchart LR
 - **Loading**: Skeleton shimmer cards per chapter replace the legacy brain-pulse spinner while analysis runs.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and extended inputs (medication adherence, Bristol, subEntry intraday patterns, gratitude word frequency, wellbeing score).
 - **Plain language & accessibility**: An **At a glance** strip summarises key points in simple terms; short **intros** precede dense blocks. **Trend** cards use text labels (**Typical / Latest / Outlook**) and **named status chips** (e.g. Getting better) so direction is not conveyed by colour alone. **Correlations** use real **buttons** (keyboard and screen-reader friendly) to expand charts. The **pain-by-body-part** table has a screen-reader **caption** and column **`scope`**. On **wide desktop** viewports, a **vertical timeline** with coloured segments and dots lets you jump between sections; the main scroll can **snap** between sections (disabled when the user prefers reduced motion).
-- **Summary note**: In-browser LLM (Transformers.js chat models: **Llama-3.2-1B-Instruct** tier 3–5, **SmolLM2-360M-Instruct** tier 1–2) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
+- **Summary note**: In-browser LLM (Transformers.js chat models: **Llama-3.2-1B-Instruct** tier 3-5, **SmolLM2-360M-Instruct** tier 1-2) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
 - **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). Preset lines are loaded from **`apps/pwa-webapp/motd.json`** at startup (**simple healthy-lifestyle quotes**); **one line is chosen at random on each full page load** (stable for that session until the LLM may replace it). Curated quotes are the **primary** source: when AI is enabled, the on-device LLM attempts a replacement on **~30% of page loads**, with **`isUsableMotdText`** lifestyle relevance gate. LLM persona targets plain healthy-living wording (sleep, water, movement, rest). Browser tab title stays **Rianell**. Edit **`motd.json`** to change copy without editing **`app.js`**. On Home (dark theme), the title strip supports **tap / drag spin** (see **`docs/styling.md`**).
 - **GPU-accelerated LLM**: When the benchmark detects WebGPU/WebGL, the chat pipeline loads with **q4f16** GPU weights; WASM/CPU uses **q4**. Falls back automatically on failure. Transformers.js 3.3.2.
-- **On-device AI model selection**: Settings → Performance → **On-device AI model** (tier 1–5). Tier 1–2 → SmolLM2 (~200 MB); tier 3–5 → Llama 3.2 1B (~670 MB). **Download consent** modal on first use; **progress banner** during shard download; models cached in browser **Cache API**; **Remove downloaded AI model** clears cache. **`navigator.storage.persist()`** requested after successful download.
+- **On-device AI model selection**: Settings → Performance → **On-device AI model** (tier 1-5). Tier 1-2 → SmolLM2 (~200 MB); tier 3-5 → Llama 3.2 1B (~670 MB). **Download consent** modal on first use; **progress banner** during shard download; models cached in browser **Cache API**; **Remove downloaded AI model** clears cache. **`navigator.storage.persist()`** requested after successful download.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button. Transformers.js pipeline load and inference are **serialized** through a single queue (v1.46.31+) so overlapping ONNX sessions do not collide.
 - **Chart predictions**: Combined (and balance) chart can show predicted series from the analysis pipeline; "Calculating predictions…" overlay when computing; cache by date range and log count.
 - **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analysing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
 
 ### Goals and targets
-- **Goals modal (v1.117.0):** PWA and RN open a **2-pane carousel** from Home **Goals & targets** — pane 0 sets steps, hydration, sleep quality, and good-days/week targets; pane 1 shows **Achievements** for progressive logging unlocks.
+- **Goals modal (v1.117.0):** PWA and RN open a **2-pane carousel** from Home **Goals & targets** - pane 0 sets steps, hydration, sleep quality, and good-days/week targets; pane 1 shows **Achievements** for progressive logging unlocks.
 - **Achievements:** Food (day 7), exercise (day 14), and medication (day 21) badges derived from `trackingProfile.configuredAt`; theme-tokenized icons; one-shot unlock notification when notifications are enabled; wizard lock steps link to Achievements pane.
 - **Goals**: Targets stored in settings (`rianellGoals` / RN preferences) and synced to cloud when signed in.
 - **Medications**: Optional medications list in settings (stored locally and in cloud with settings).
@@ -518,9 +518,9 @@ flowchart LR
 
 **React Native app (`apps/rn-app`)**: Settings includes **Data management** with **JSON export** (system share sheet) and **JSON import** (paste modal): **Merge** appends only entries for dates that are not already stored; **Replace all** overwrites local logs after confirmation. Entries are normalized with `@rianell/shared` so the format matches web portability.
 
-**React Native — Log today wizard (web parity):** Ten-step flow (date → vitals → symptoms & pain → energy & mental clarity → stress → lifestyle → food → exercise → meds → review). **Symptoms & pain** includes a tap-to-cycle **body diagram** with the same SVG **silhouette path** as `apps/pwa-webapp/index.html`, optional text field + chips for all regions, and merge into stored `painLocation`. **Energy & mental clarity** uses grouped icon tiles (positive / neutral / negative), search, collapsible picker, and accessibility labels on fatigue/sleep/mood.
+**React Native - Log today wizard (web parity):** Ten-step flow (date → vitals → symptoms & pain → energy & mental clarity → stress → lifestyle → food → exercise → meds → review). **Symptoms & pain** includes a tap-to-cycle **body diagram** with the same SVG **silhouette path** as `apps/pwa-webapp/index.html`, optional text field + chips for all regions, and merge into stored `painLocation`. **Energy & mental clarity** uses grouped icon tiles (positive / neutral / negative), search, collapsible picker, and accessibility labels on fatigue/sleep/mood.
 
-**React Native — Charts & AI (Phase B/C):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab now includes range-based deterministic sections plus a generated **Summary note** through the RN LLM wrapper and AIEngine fallback path. See **`docs/platform-parity.md`** and **[CHANGELOG.md](CHANGELOG.md)** for ongoing refinements. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
+**React Native - Charts & AI (Phase B/C):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab now includes range-based deterministic sections plus a generated **Summary note** through the RN LLM wrapper and AIEngine fallback path. See **`docs/platform-parity.md`** and **[CHANGELOG.md](CHANGELOG.md)** for ongoing refinements. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
 
 ### Cloud sync (Supabase)
 - **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; inserts into **`anonymized_data`**; medical condition used for server-side aggregation only.
@@ -529,7 +529,7 @@ flowchart LR
 - **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
 - **Settings sync**: Goals and app settings synced to Supabase when signed in (e.g. app_settings table).
 - **Deploy**: On GitHub Pages, Supabase URL and anon key are injected at deploy time from repository secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`); no credentials in the repo.
-- **Database hardening**: The app uses PostgREST (supabase-js) only, not GraphQL. Run [../supabase/Schema.sql](../supabase/Schema.sql) to apply RLS and clear Security Advisor **`pg_graphql_*_table_exposed`** warnings — see [SECURITY.md](SECURITY.md).
+- **Database hardening**: The app uses PostgREST (supabase-js) only, not GraphQL. Run [../supabase/Schema.sql](../supabase/Schema.sql) to apply RLS and clear Security Advisor **`pg_graphql_*_table_exposed`** warnings - see [SECURITY.md](SECURITY.md).
 
 ### Notifications and reminders
 - **Daily reminder**: Configurable time; system notification when the app is in the background.
@@ -565,7 +565,7 @@ The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refresh
 - **Theme**: Dark mode by default; light mode optional. Global themes (Mint, Red/Black, Mono, Rainbow) apply across modals, AI Analysis, Mood tab accents, and chart prediction chrome (**v1.120.0** PWA pass); per-metric chart line colours and food tile group hues stay semantic.
 - **Bug report modal**: Top-right **`?`** button opens a bug report form. Reports include summary/details fields plus a recent console snapshot and are posted to the server endpoint for Supabase storage.
 - **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
-- **Device performance (benchmark)**: On first load a short CPU benchmark classifies the device as mobile or desktop and assigns a performance tier (1–5). A **GPU detection and benchmark** (WebGPU/WebGL) runs after the CPU suite with stability samples (5 runs) for a **GPU stability graph**; the result is cached and used to accelerate the on-device AI (Transformers.js) when a GPU is available, with fallback to CPU. **Tier 5** is maxed for resources: highest chart point limits, fastest preload delays, and full UI/chart animation; devices with a good GPU and tier 4 are treated as effective tier 5 for charts and AI. The result is cached in localStorage and drives expansive optimisation profiles (chart points, AI preload, DOM batching, demo data size, **recommended on-device AI model**, etc.). **During the benchmark**, the loading overlay shows a **progress bar** and percentage (e.g. "Measuring performance… 45% · CPU arithmetic"). When the benchmark runs (first run or after cache clear), a **Performance & AI benchmark** modal shows a **brief** result (device, tier, class, recommended AI model, **GPU status**) with an optional **"See detailed benchmark results"** section (test bars, Stability (CPU) and Stability (GPU) sparklines with stats, OS/device/CPU/memory, full profile JSON). Settings → Performance includes **On-device AI model** (Use recommended / Small / Base) with a recommendation hint from the benchmark. God mode (` key) Developer tools: “Clear performance benchmark cache” and "View last benchmark details" let you re-run or inspect the last result. **Note:** Browsers do not expose CPU frequency or turbo boost; the app uses tier + GPU (high-performance preference where supported) to maximise performance and optionally the Scheduler API for critical-path prioritisation.
+- **Device performance (benchmark)**: On first load a short CPU benchmark classifies the device as mobile or desktop and assigns a performance tier (1-5). A **GPU detection and benchmark** (WebGPU/WebGL) runs after the CPU suite with stability samples (5 runs) for a **GPU stability graph**; the result is cached and used to accelerate the on-device AI (Transformers.js) when a GPU is available, with fallback to CPU. **Tier 5** is maxed for resources: highest chart point limits, fastest preload delays, and full UI/chart animation; devices with a good GPU and tier 4 are treated as effective tier 5 for charts and AI. The result is cached in localStorage and drives expansive optimisation profiles (chart points, AI preload, DOM batching, demo data size, **recommended on-device AI model**, etc.). **During the benchmark**, the loading overlay shows a **progress bar** and percentage (e.g. "Measuring performance… 45% · CPU arithmetic"). When the benchmark runs (first run or after cache clear), a **Performance & AI benchmark** modal shows a **brief** result (device, tier, class, recommended AI model, **GPU status**) with an optional **"See detailed benchmark results"** section (test bars, Stability (CPU) and Stability (GPU) sparklines with stats, OS/device/CPU/memory, full profile JSON). Settings → Performance includes **On-device AI model** (Use recommended / Small / Base) with a recommendation hint from the benchmark. God mode (` key) Developer tools: “Clear performance benchmark cache” and "View last benchmark details" let you re-run or inspect the last result. **Note:** Browsers do not expose CPU frequency or turbo boost; the app uses tier + GPU (high-performance preference where supported) to maximise performance and optionally the Scheduler API for critical-path prioritisation.
 
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves **`apps/pwa-webapp/`** at root; optional file watching and auto-reload.
@@ -578,8 +578,8 @@ The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refresh
 
 ## 📁 Project structure
 
-- **`apps/pwa-webapp/`** – Static PWA: HTML, CSS, JavaScript, icons, and assets (parity reference for the web UI). The server serves this directory at the root URL.
-- **`apps/rn-app/`** – React Native (Expo) app: native shell, tabs, **Log today** wizard (pain diagram aligned with web outline, energy tiles, etc.), Charts / AI Analysis, Settings (JSON data management + install links). See `npm run typecheck:mobile` and `npm run test:mobile` from the repo root.
-- **`apps/rn-app/`** – React Native (Expo) primary mobile app; root script **`npm run dev`** starts Expo.
-- **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
+- **`apps/pwa-webapp/`** - Static PWA: HTML, CSS, JavaScript, icons, and assets (parity reference for the web UI). The server serves this directory at the root URL.
+- **`apps/rn-app/`** - React Native (Expo) app: native shell, tabs, **Log today** wizard (pain diagram aligned with web outline, energy tiles, etc.), Charts / AI Analysis, Settings (JSON data management + install links). See `npm run typecheck:mobile` and `npm run test:mobile` from the repo root.
+- **`apps/rn-app/`** - React Native (Expo) primary mobile app; root script **`npm run dev`** starts Expo.
+- **`server/`** - Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
 

@@ -93,7 +93,7 @@ Python package in `server/` serves the PWA, optional Tk dashboard, and dev APIs.
 
 ## Read more (technical)
 
-- [Design token contract](https://github.com/Metaheurist/Rianell/blob/main/docs/design-token-contract.md) — `@rianell/tokens` runtime authority (v2.1.6+)
+- [Design token contract](https://github.com/Metaheurist/Rianell/blob/main/docs/design-token-contract.md) - `@rianell/tokens` runtime authority (v2.1.6+)
 - [AI architecture](https://github.com/Metaheurist/Rianell/blob/main/docs/ai-architecture.md)
 - [Data model](https://github.com/Metaheurist/Rianell/blob/main/docs/data-model.md)
 - [Server API](https://github.com/Metaheurist/Rianell/blob/main/docs/server-api.md)

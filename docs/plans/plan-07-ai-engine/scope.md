@@ -1,6 +1,6 @@
-# Plan 07 — Scope & scripts
+# Plan 07 - Scope & scripts
 
-**Section 4:** AI engine (deterministic) · **IDs:** A1–A8
+**Section 4:** AI engine (deterministic) · **IDs:** A1-A8
 
 ## In scope
 

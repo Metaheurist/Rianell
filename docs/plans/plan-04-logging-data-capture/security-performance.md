@@ -1,6 +1,6 @@
-# Plan 04 — Security & performance review
+# Plan 04 - Security & performance review
 
-**Section 2:** Logging & data capture · **IDs:** L1–L11 (excl L4, L10, L12 NR)
+**Section 2:** Logging & data capture · **IDs:** L1-L11 (excl L4, L10, L12 NR)
 
 Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
 
@@ -8,8 +8,8 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 
 ## CVE & exploit surface
 
-- L5 barcode/OFF API: SSRF if URL user-controlled — allowlist openfoodfacts.org only.
-- L11 voice→LLM: prompt injection in STT output — delimiter + schema validation (AI-02).
+- L5 barcode/OFF API: SSRF if URL user-controlled - allowlist openfoodfacts.org only.
+- L11 voice→LLM: prompt injection in STT output - delimiter + schema validation (AI-02).
 
 **CI baseline:** `npm audit --omit=dev`, OSV-Scanner, Gitleaks in [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml). High/critical production deps must be fixed or accepted-risk documented before plan rollout commit.
 
@@ -19,7 +19,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 
 - L8 sub-entries: index by date key; avoid O(n) full log scan on every home render.
 
-**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit — no console `pageerror` regressions.
+**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit - no console `pageerror` regressions.
 
 ---
 
