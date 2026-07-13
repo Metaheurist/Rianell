@@ -14,7 +14,7 @@ pydantic>=2.10,<3
 websockets>=11,<16
 
 # File watching for auto-reload (optional but recommended)
-watchdog>=3.0.0
+watchdog>=6.0.0
 
 # Environment variable management (required for .env file support)
 # Floor >=1.2.2: OSV clean (GHSA-mf9w-mj56-hr94 fixed in 1.2.2).
