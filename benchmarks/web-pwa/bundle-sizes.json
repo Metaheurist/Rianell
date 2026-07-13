@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-13T23:02:03.299Z",
+  "generatedAt": "2026-07-13T23:57:14.337Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5421464,
-    "cssBytes": 817455,
-    "jsGzipBytes": 1287075,
-    "cssGzipBytes": 138436
+    "jsBytes": 5421360,
+    "cssBytes": 818255,
+    "jsGzipBytes": 1287060,
+    "cssGzipBytes": 138420
   },
   "files": [
     {
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.d3990b479f89.css",
-      "bytes": 742312,
-      "gzipBytes": 123145
+      "file": "ci-minified/site/styles.1c04bdd1d827.css",
+      "bytes": 743140,
+      "gzipBytes": 123136
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -85,13 +85,13 @@
     },
     {
       "file": "ci-minified/site/css/graphics-portfolio.css",
-      "bytes": 41637,
-      "gzipBytes": 7455
+      "bytes": 41624,
+      "gzipBytes": 7452
     },
     {
       "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 40149,
-      "gzipBytes": 8711
+      "bytes": 40045,
+      "gzipBytes": 8696
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
@@ -175,8 +175,8 @@
     },
     {
       "file": "ci-minified/site/css/oasis.css",
-      "bytes": 14665,
-      "gzipBytes": 3633
+      "bytes": 14650,
+      "gzipBytes": 3629
     },
     {
       "file": "ci-minified/site/security-utils.js",
