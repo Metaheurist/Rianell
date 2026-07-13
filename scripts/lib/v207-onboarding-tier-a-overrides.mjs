@@ -1,4 +1,4 @@
-/** v2.0.7 guided onboarding questionnaire — Tier A overrides. */
+/** v2.0.7 guided onboarding questionnaire - Tier A overrides. */
 const SHARED_KEYS = {
   'onboarding.questionnaire.settingsHint': {
     'pt-BR': 'Você pode mudar isso a qualquer momento em Configurações.',

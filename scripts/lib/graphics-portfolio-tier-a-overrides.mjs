@@ -1,4 +1,4 @@
-/** SVG graphics portfolio — avatar / vibe Tier A overrides. */
+/** SVG graphics portfolio - avatar / vibe Tier A overrides. */
 const SHARED_KEYS = {
   'onboarding.questionnaire.avatarPick.title': {
     'pt-BR': 'Escolha seu companheiro',
