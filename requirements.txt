@@ -25,5 +25,5 @@ python-dotenv>=1.2.2
 cryptography>=49.0.0
 
 # PostgreSQL drivers for direct SQL when DATABASE_URL is set (optional; at least one needed for exec_sql)
-psycopg[binary]>=3.0.0
+psycopg[binary]>=3.3.4
 psycopg2-binary>=2.9.12
