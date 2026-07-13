@@ -20,7 +20,8 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run benchmark` | Performance benchmarks workspace |
 | `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
 | `npm run audit:boot:strict` | Playwright strict boot gate (local / CI parity) |
-| `npm run stress:memory` | Playwright memory stress test — Tier 5 + 365-day data, 10 tab-switch cycles, heap growth < 80 MB threshold |
+| `npm run stress:memory` | Playwright memory stress test — Tier 5 + 365-day data, 10 tab-switch cycles, heap growth < 80 MB threshold; writes `benchmarks/memory/stress-latest.json` (gitignored) |
+| `scripts/dev/shutdown-pc.ps1` | Schedule delayed Windows shutdown (default 10 min); cancel with `shutdown /a` |
 | `npm run verify:cspro` | CI check: live site must not serve `CSPRO: connect-src 'none'` |
 | `npm run supabase:deploy:delete-user-data` | Deploy GDPR Edge Function to Supabase project |
 | `npm run wiki:verify` / `wiki:sync` | Validate and push `wiki/` to GitHub Wiki |
@@ -63,6 +64,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 ### Phase 3 — Downstream
 
 - **benchmarks-expo** — Hermes bundle stats (non-blocking)
+- **playwright-e2e** — PWA smoke + oasis particle specs against local probe (`workers: 1` on CI — see `benchmarks/playwright.config.ts`)
 - **rncli-android-apk** / **rncli-ios-zip** — native artifacts (parallel)
 - **audit-boot-post-deploy** — boot audit on exact Pages `site/` (see below)
 

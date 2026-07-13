@@ -6,6 +6,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.2] - 2026-07-13
+
+CI reliability patch: Playwright smoke tests no longer race on the local probe server.
+
+### Fixed
+
+- **CI Playwright smoke:** `benchmarks/playwright.config.ts` forces `workers: 1` on CI so parallel boot waits no longer time out waiting for `body.loaded`
+
+### Added
+
+- **`scripts/dev/shutdown-pc.ps1`:** Windows helper to schedule delayed shutdown (e.g. after long local benchmark runs); cancel with `shutdown /a`
+
+### Changed
+
+- **`.gitignore`:** Generated `benchmarks/memory/*.json` stress reports are no longer tracked
+
+### Tests
+
+- 757 unit tests passing; `doc-links --strict` OK
+- New: `lighthouse-ci-probe` asserts Playwright CI worker serialization
+
+---
+
 ## [2.2.1] - 2026-07-08
 
 PWA polish pass: Ask Rianell offline replies, mood day detail, boot benchmark reliability, and light-mode icon contrast.

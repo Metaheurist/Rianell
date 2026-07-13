@@ -1,6 +1,19 @@
 # Release Notes
 
-## Latest release (v2.2.1)
+## Latest release (v2.2.2)
+
+**Date:** 2026-07-13
+
+### Highlights
+
+- **CI reliability:** Playwright smoke tests run one worker on CI so boot smoke no longer flakes when two specs hit the local probe server in parallel.
+- **Dev tooling:** `scripts/dev/shutdown-pc.ps1` schedules a delayed Windows shutdown for unattended long runs.
+
+See **v2.2.1** below for Ask Rianell offline replies and boot benchmark fixes.
+
+---
+
+## Previous (v2.2.1)
 
 **Date:** 2026-07-08
 
