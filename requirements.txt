@@ -8,7 +8,7 @@
 supabase>=2.31.0
 
 # Pydantic stack — keeps pydantic-core in sync with postgrest/supabase-auth (avoids SystemError on import)
-pydantic>=2.10,<3
+pydantic>=2.13.4,<3
 
 # Supabase realtime peer dependency (realtime 2.31.x requires websockets<16)
 websockets>=11,<16
