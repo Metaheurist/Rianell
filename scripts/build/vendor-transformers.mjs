@@ -38,8 +38,8 @@ mkdirSync(outDir, { recursive: true });
 
 /**
  * GitHub secret scanning treats `s.` + exactly 24 alnum chars as a HashiCorp Vault
- * service token. Transformers.js minified re-exports (e.g. s.DebertaV2PreTrainedModel)
- * match that pattern. Bracket notation is equivalent and clears the FP.
+ * service token. Transformers.js minified Deberta-style re-exports match that pattern.
+ * Bracket notation is equivalent and clears the FP.
  */
 function neutralizeVaultShapedPropertyAccess(source) {
   return source.replace(

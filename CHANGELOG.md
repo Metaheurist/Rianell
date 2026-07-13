@@ -19,7 +19,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **Dependabot:** Pip ecosystem `directory` corrected from `/server` to `/` (canonical `requirements.txt` is at repo root)
 - **CI:** MobSF scan action pin fixed from invalid `v0.3.8` to release tag `0.4.5`
 - **Dependabot:** Ignore Expo `>=56`, Babel `>=8`, and `@testing-library/react-native` `>=14` until coordinated SDK/toolchain upgrades
-- **Secret scanning:** Dismissed HashiCorp Vault FP on Transformers.js (`s.DebertaV2PreTrainedModel`); vendor script rewrites Vault-shaped `s.Ident` to bracket form; `.github/secret_scanning.yml` ignores `vendor/transformers/**`
+- **Secret scanning:** Dismissed HashiCorp Vault FP on Transformers.js Deberta export identifiers; vendor script rewrites Vault-shaped `s.`+24 property access to bracket form; `.github/secret_scanning.yml` ignores `vendor/transformers/**`
 - **Supply chain (CVE-2026-54285 / GHSA-8988-4f7v-96qf):** Root pins `@sentry/node@10.58.0` and `@opentelemetry/core@2.9.0` (overrides with `$` refs) so Lighthouse no longer resolves vulnerable `@opentelemetry/core@1.30.1`
 
 ---
