@@ -102,6 +102,9 @@ apps/pwa-webapp/styles.*.css
 
 backup/
 
+# Memory stress test outputs (stress-test-memory.mjs)
+benchmarks/memory/*.json
+
 # Boot audit outputs (Phase 23)
 audit-history/latest-boot-audit.json
 audit-history/latest-boot-audit-previous.json
