@@ -1,6 +1,19 @@
 # Release Notes
 
-## Latest release (v2.2.2)
+## Latest release (v2.2.3)
+
+**Date:** 2026-07-13
+
+### Highlights
+
+- **Boot reliability:** First-start “Measuring performance…” no longer freezes on **rAF latency** (or trip Chrome’s Page Unresponsive dialog). The suite still runs behind the loading overlay before content appears, using timer yields only.
+- **CI reliability:** Playwright smoke tests run one worker on CI; web benchmarks bound Lighthouse waits and measure PWA/Pages once.
+
+See **v2.2.2** below for CI smoke worker serialization and **v2.2.1** for Ask Rianell offline replies.
+
+---
+
+## Previous (v2.2.2)
 
 **Date:** 2026-07-13
 

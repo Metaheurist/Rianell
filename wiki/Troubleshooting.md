@@ -51,11 +51,13 @@ Fixed in recent releases — all tabs should refresh on locale change. If not:
 
 ## Stuck on “Measuring performance…” at first start
 
-Fixed in **v2.2.1**. On older builds the boot CPU benchmark could pause at a low percentage (often **3% · Array throughput**) when the browser throttled animation frames during initial paint.
+Boot runs a short device benchmark **behind the loading overlay** (before content is shown). Older builds could freeze there when the suite used `requestAnimationFrame` during first paint — often stuck around **16% · rAF latency** (Chrome may show **Page Unresponsive**) or **3% · Array throughput**.
+
+**v2.2.3+:** the suite yields with `setTimeout` only (no boot-time `requestAnimationFrame`), slices string/DOM work, and aborts a stalled rAF-latency step within ~1.5s.
 
 1. **Wait up to ~20 seconds** — the boot watchdog should reveal the app automatically.
 2. **Hard refresh** after updating to the latest build.
-3. **Clear benchmark cache** (God mode → clear benchmark cache) only if the screen still never finishes after a refresh on v2.2.1+.
+3. **Clear benchmark cache** (God mode → clear benchmark cache) only if the screen still never finishes after a refresh on v2.2.3+.
 4. **Console check:** `JSON.stringify(window.__rianellBootLog)` — include output when filing a bug.
 
 The benchmark result is cached in `localStorage` (`rianellPerfBenchmark`); once it completes or aborts, later loads skip the full suite.

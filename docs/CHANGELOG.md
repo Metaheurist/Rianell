@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.2** - CI Playwright smoke worker serialization and memory stress artifact hygiene.
+**Latest: v2.2.3** - Boot benchmark no longer freezes on rAF latency behind the loading overlay.
+
+### v2.2.3 - 2026-07-13 - Boot rAF latency hang
+
+- **PWA boot:** Device benchmark samples frame pacing with `setTimeout` only (no boot-time `requestAnimationFrame`); string/DOM steps are async-sliced; stalled steps abort cleanly.
+- **Wiki:** Troubleshooting updated for “16% · rAF latency” / Page Unresponsive.
 
 ### v2.2.2 - 2026-07-13 - CI smoke reliability
 
