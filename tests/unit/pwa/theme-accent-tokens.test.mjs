@@ -57,6 +57,19 @@ test('styles.css tokenises light-mode text and card surfaces', () => {
   assert.match(css, /rgba\(var\(--text-light-rgb\)/);
 });
 
+test('light mode Red/Black remaps ink, chrome, and page background away from mint', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /body\.light-mode\.theme-red-black/);
+  const redLight = css.match(/body\.light-mode\.theme-red-black\s*\{[\s\S]*?\n\}/);
+  assert.ok(redLight, 'red-black light block');
+  assert.match(redLight[0], /--background-light:\s*linear-gradient\([\s\S]*#ffe7ea/);
+  assert.match(redLight[0], /--text-light-rgb:\s*58,\s*10,\s*15/);
+  assert.match(redLight[0], /--primary-color:\s*#c62828/);
+  assert.match(redLight[0], /--btn-chrome-border:\s*color-mix/);
+  assert.doesNotMatch(redLight[0], /#163a23|#0a3d18|#a8e6cf|#1b5e20/);
+  assert.match(css, /body\.light-mode \.settings-header[\s\S]*var\(--surface-header-tint\)/);
+});
+
 test('styles.css tokenises tutorial footer CTA buttons', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /--tutorial-cta-finish-bg:/);
