@@ -17,7 +17,9 @@
   var SUITE_HARD_CAP_MS = 45000;
   var BENCHMARK_SLICE_MS = 8;
   var ASYNC_TEST_STEP_MAX_MS = 6000;
+  var RAF_LATENCY_TIMEOUT_MS = 1500;
   var _activeSuiteAbort = null;
+  var _rafLatencyCancel = null;
 
   function nowMs() {
     return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -268,28 +270,37 @@
     return nodeCount;
   }
 
+  /**
+   * Event-loop / frame pacing sample for boot.
+   * Uses setTimeout only — requestAnimationFrame can stall indefinitely while the
+   * loading overlay holds first paint, which freezes “Measuring… · rAF latency”
+   * and can trip Chrome’s “Page Unresponsive” dialog.
+   */
   function rafLatency(frames, done) {
-    if (typeof requestAnimationFrame !== 'function') {
-      done({ avgMs: 0, samples: [] });
-      return;
-    }
     var samples = [];
     var last = nowMs();
     var remaining = Math.max(2, frames || 6);
     var settled = false;
+    var stepTimer = null;
     function finish(result) {
       if (settled) return;
       settled = true;
+      _rafLatencyCancel = null;
       clearTimeout(fallbackTimer);
+      if (stepTimer != null) clearTimeout(stepTimer);
       done(result);
     }
     var fallbackTimer = setTimeout(function () {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('[Benchmark] rAF latency timed out — using fallback sample');
       }
-      finish({ avgMs: samples.length ? mean(samples) : 16, samples: samples, timedOut: true });
-    }, 2500);
+      finish({ avgMs: samples.length ? mean(samples) : 16.7, samples: samples, timedOut: true });
+    }, RAF_LATENCY_TIMEOUT_MS);
+    _rafLatencyCancel = function () {
+      finish({ avgMs: samples.length ? mean(samples) : 16.7, samples: samples, aborted: true });
+    };
     function step() {
+      stepTimer = null;
       var t = nowMs();
       samples.push(t - last);
       last = t;
@@ -298,9 +309,9 @@
         finish({ avgMs: mean(samples), samples: samples });
         return;
       }
-      requestAnimationFrame(step);
+      stepTimer = setTimeout(step, 0);
     }
-    requestAnimationFrame(step);
+    stepTimer = setTimeout(step, 0);
   }
 
   function msPer200kFromRun(iterations, ms) {
@@ -750,9 +761,10 @@
       cpuIterations: clampInt(200000 * scale, 120000, 1600000),
       arraySize: clampInt(45000 * scale, 20000, 220000),
       jsonSize: clampInt(180 * scale, 80, 900),
-      stringSize: clampInt(20000 * scale, 12000, 140000),
-      domNodes: clampInt(130 * scale, 80, 650),
-      rafFrames: 7
+      // Cap string/DOM work — large sync builds freeze the loading overlay / main thread.
+      stringSize: clampInt(20000 * scale, 12000, 48000),
+      domNodes: clampInt(130 * scale, 80, 320),
+      rafFrames: 5
     };
   }
 
@@ -828,7 +840,7 @@
     function cpuArithAsync(iterations, done) {
       var total = 0;
       var i = 0;
-      var batch = 50000;
+      var batch = 8000;
       runWorkInSlices(
         function () {
           var limit = Math.min(i + batch, iterations);
@@ -847,7 +859,7 @@
       var j = 0;
       var phase = 'fill';
       var s = 0;
-      var batch = 50000;
+      var batch = 8000;
       runWorkInSlices(
         function () {
           if (phase === 'fill') {
@@ -864,6 +876,67 @@
         },
         function () { return phase === 'scan' && j >= size; },
         function () { done(s); }
+      );
+    }
+
+    function stringOpsAsync(size, done) {
+      var parts = new Array(size);
+      var i = 0;
+      var batch = 4000;
+      var s = '';
+      var phase = 'fill';
+      runWorkInSlices(
+        function () {
+          if (phase === 'fill') {
+            var fillLimit = Math.min(i + batch, size);
+            for (; i < fillLimit; i++) parts[i] = String.fromCharCode(97 + (i % 26));
+            if (i >= size) {
+              s = parts.join('');
+              phase = 'scan';
+            }
+          } else {
+            phase = 'done';
+          }
+        },
+        function () { return phase === 'done'; },
+        function () {
+          var m = s.match(/abc/g);
+          done((m && m.length) ? m.length : 0);
+        }
+      );
+    }
+
+    function domFragmentBuildAsync(nodeCount, done) {
+      if (typeof document === 'undefined') {
+        done(0);
+        return;
+      }
+      var host = document.getElementById('perfBenchHost');
+      if (!host) {
+        host = document.createElement('div');
+        host.id = 'perfBenchHost';
+        host.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;';
+        document.body.appendChild(host);
+      }
+      var frag = document.createDocumentFragment();
+      var i = 0;
+      var batch = 40;
+      runWorkInSlices(
+        function () {
+          var limit = Math.min(i + batch, nodeCount);
+          for (; i < limit; i++) {
+            var div = document.createElement('div');
+            div.className = 'perf-bench-node';
+            div.textContent = 'x' + i;
+            frag.appendChild(div);
+          }
+        },
+        function () { return i >= nodeCount; },
+        function () {
+          host.appendChild(frag);
+          host.textContent = '';
+          done(nodeCount);
+        }
       );
     }
 
@@ -984,32 +1057,45 @@
 
               scheduleBenchmarkStep(function () {
                 progress('running', 'string', 'String ops');
-                var strRes = runTestSync('string', resolveBenchmarkLabel('string', 'String ops'), function () { return stringOps(workloads.stringSize); }, 'chars', function () {});
-                strRes.size = workloads.stringSize;
-                subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
-                index++;
-                touchStepWatchdog();
-                if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strRes.ms);
-
-                scheduleBenchmarkStep(function () {
-                  progress('running', 'dom', 'DOM fragment build');
-                  var domRes = runTestSync('dom', resolveBenchmarkLabel('dom', 'DOM fragment build'), function () { return domFragmentBuild(workloads.domNodes); }, 'nodes', function () {});
-                  domRes.count = workloads.domNodes;
-                  subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
+                runTimedTestAsync('string', resolveBenchmarkLabel('string', 'String ops'), function (done) {
+                  stringOpsAsync(workloads.stringSize, done);
+                }, 'chars', function (res) {
+                  res.size = workloads.stringSize;
+                }, function (strRes) {
+                  if (suiteAborted) return;
+                  subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
                   index++;
                   touchStepWatchdog();
-                  if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domRes.ms);
+                  if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strRes.ms);
 
-                  progress('running', 'raf', 'rAF latency');
-                  rafLatency(workloads.rafFrames, function (rafRes) {
-                    if (suiteAborted) return;
-                    if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
-                    subtests.push({ repeat: rep, id: 'raf', label: resolveBenchmarkLabel('raf', 'rAF latency'), ms: rafRes.avgMs, samples: rafRes.samples });
-                    index++;
-                    touchStepWatchdog();
-                    progress('done', null, '');
-                    if (rep + 1 >= repeats) finish(false);
-                    else scheduleBenchmarkStep(function () { runRepeat(rep + 1); });
+                  scheduleBenchmarkStep(function () {
+                    progress('running', 'dom', 'DOM fragment build');
+                    runTimedTestAsync('dom', resolveBenchmarkLabel('dom', 'DOM fragment build'), function (done) {
+                      domFragmentBuildAsync(workloads.domNodes, done);
+                    }, 'nodes', function (res) {
+                      res.count = workloads.domNodes;
+                    }, function (domRes) {
+                      if (suiteAborted) return;
+                      subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
+                      index++;
+                      touchStepWatchdog();
+                      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domRes.ms);
+
+                      // Yield once so “rAF latency” can paint on the overlay before sampling.
+                      scheduleBenchmarkStep(function () {
+                        progress('running', 'raf', 'rAF latency');
+                        rafLatency(workloads.rafFrames, function (rafRes) {
+                          if (suiteAborted) return;
+                          if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
+                          subtests.push({ repeat: rep, id: 'raf', label: resolveBenchmarkLabel('raf', 'rAF latency'), ms: rafRes.avgMs, samples: rafRes.samples });
+                          index++;
+                          touchStepWatchdog();
+                          progress('done', null, '');
+                          if (rep + 1 >= repeats) finish(false);
+                          else scheduleBenchmarkStep(function () { runRepeat(rep + 1); });
+                        });
+                      });
+                    });
                   });
                 });
               });
@@ -1262,6 +1348,9 @@
   }
 
   function abortActiveSuite() {
+    if (typeof _rafLatencyCancel === 'function') {
+      try { _rafLatencyCancel(); } catch (e) { /* ignore */ }
+    }
     if (typeof _activeSuiteAbort === 'function') _activeSuiteAbort();
   }
 
