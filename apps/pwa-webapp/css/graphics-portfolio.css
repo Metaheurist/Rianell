@@ -470,7 +470,7 @@ body.light-mode .avatar-carousel-nav {
 }
 
 .vibe-picker__swatch--calm { background: radial-gradient(circle, rgba(125, 223, 140, 0.5), transparent 70%); }
-.vibe-picker__swatch--energy { background: radial-gradient(circle, rgba(123, 223, 140, 0.65), transparent 65%); }
+.vibe-picker__swatch--energy { background: radial-gradient(circle, var(--accent-glow-45), transparent 65%); }
 .vibe-picker__swatch--nature { background: radial-gradient(circle, rgba(154, 232, 164, 0.55), transparent 68%); }
 .vibe-picker__swatch--clinical { background: linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 100%); }
 .vibe-picker__swatch--dark { background: radial-gradient(circle, rgba(255, 79, 160, 0.45), rgba(61, 31, 107, 0.6)); }
@@ -501,7 +501,7 @@ body.light-mode .avatar-carousel-nav {
 }
 
 .metric-entity-stage--zone-good .metric-entity {
-  color: var(--color-success, #4caf50);
+  color: var(--color-success);
 }
 
 .metric-entity-stage--zone-bad .metric-entity {

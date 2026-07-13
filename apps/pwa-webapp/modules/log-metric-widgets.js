@@ -122,13 +122,12 @@
           '</defs>' +
           '<ellipse class="metric-mobility-shadow" cx="36" cy="84.5" rx="20" ry="3.5" fill="currentColor" opacity="0.2"/>' +
           '<g class="metric-mobility-trampoline" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
-          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="13" y1="73" x2="7" y2="86" stroke-width="2.6"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="59" y1="73" x2="65" y2="86" stroke-width="2.6"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--L2" x1="21" y1="73" x2="17" y2="86" stroke-width="2.2" opacity="0.85"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--R2" x1="51" y1="73" x2="55" y2="86" stroke-width="2.2" opacity="0.85"/>' +
-          '<line class="metric-mobility-rim" x1="9" y1="73" x2="63" y2="73" stroke-width="3.4"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="13" y1="71" x2="7" y2="86" stroke-width="2.6"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="59" y1="71" x2="65" y2="86" stroke-width="2.6"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--L2" x1="21" y1="71" x2="17" y2="86" stroke-width="2.2" opacity="0.85"/>' +
+          '<line class="metric-mobility-frame metric-mobility-frame--R2" x1="51" y1="71" x2="55" y2="86" stroke-width="2.2" opacity="0.85"/>' +
           '<g class="metric-mobility-mat-wrap">' +
-          '<path class="metric-mobility-mat" d="M11 70.5 Q36 73.5 61 70.5" stroke-width="3.2"/>' +
+          '<path class="metric-mobility-mat" d="M10 71 Q36 74.8 62 71" stroke-width="3.6"/>' +
           '</g>' +
           '</g>' +
           '<ellipse class="metric-mobility-air-shadow" cx="36" cy="69" rx="9" ry="2.8" fill="currentColor" filter="url(#metricMobilityGlow)" opacity="0"/>' +

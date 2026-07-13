@@ -14,6 +14,17 @@ test('styles.css avoids hardcoded Material green literals in component rules', (
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.doesNotMatch(css, /#4caf50/i);
   assert.doesNotMatch(css, /rgba\(76,\s*175,\s*80/);
+  // Neon mint rgba must not remain outside palette/swatches
+  assert.doesNotMatch(css, /rgba\(\s*123\s*,\s*223\s*,\s*140/);
+  assert.doesNotMatch(css, /var\(--primary-color,\s*#7bdf8c\)/i);
+});
+
+test('light-mode control chrome uses toggle-track-off and theme borders', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /body\.light-mode[\s\S]*--toggle-track-off:\s*color-mix/);
+  assert.match(css, /body\.light-mode \.toggle-switch[\s\S]*background:\s*var\(--toggle-track-off\)/);
+  assert.match(css, /body\.light-mode \.log-wizard-nav-btn--skip[\s\S]*border:\s*1\.5px dashed var\(--accent-border-strong\)/);
+  assert.match(css, /body\.light-mode input[\s\S]*border:\s*1\.5px solid var\(--accent-border\)/);
 });
 
 test('styles.css tokenises shell shade, toggles, and optional weather prompt', () => {

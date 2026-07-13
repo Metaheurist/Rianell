@@ -64,6 +64,9 @@ test('mobility widget uses trampoline stick-figure bounce tied to score', () => 
   assert.match(js, /function applyMobilityBounce/);
   assert.match(js, /--mobility-bounce-peak/);
   assert.match(js, /data-mobility-level/);
+  assert.doesNotMatch(js, /metric-mobility-rim/);
+  assert.match(js, /metric-mobility-mat-wrap/);
+  assert.match(js, /metric-mobility-mat/);
   assert.doesNotMatch(js, /--mobility-bounce-dur/);
   assert.doesNotMatch(js, /metric-mobility-mat.*setAttribute/);
   assert.doesNotMatch(js, /metric-mobility-walker/);

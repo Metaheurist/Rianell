@@ -203,8 +203,8 @@
   }
 
   @keyframes oasisVeinPulse {
-    0%, 100% { opacity: 0.14; filter: drop-shadow(0 0 0 rgba(123, 223, 140, 0)); }
-    50% { opacity: 0.26; filter: drop-shadow(0 0 6px rgba(123, 223, 140, 0.16)); }
+    0%, 100% { opacity: 0.14; filter: drop-shadow(0 0 0 transparent); }
+    50% { opacity: 0.26; filter: drop-shadow(0 0 6px var(--accent-fill-14)); }
   }
 
   .oasis-neural-vein {
