@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.3] - 2026-07-13
+
+Boot device benchmark no longer freezes the loading overlay on “rAF latency”.
+
+### Fixed
+
+- **Boot benchmark:** “Measuring performance… · rAF latency” no longer depends on `requestAnimationFrame` (which can stall under the loading overlay and trip Chrome’s Page Unresponsive dialog). Samples use `setTimeout` yields with a 1.5s hard timeout and abort hook.
+- **Boot benchmark:** String and DOM sub-tests are sliced asynchronously (same yield model as CPU/array); workloads capped so sync bursts cannot freeze the main thread.
+
+### Tests
+
+- `perf-benchmark-modal` asserts setTimeout-only rAF latency sampling and async string/DOM helpers
+- 759 unit tests passing; `doc-links --strict` OK
+
+---
+
 ## [2.2.2] - 2026-07-13
 
 CI reliability patch: Playwright smoke tests no longer race on the local probe server.
