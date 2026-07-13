@@ -97,6 +97,8 @@ test('CI includes benchmark jobs (web + expo) and merge commit on main', () => {
   assert.match(ciYml, /node benchmarks\/scripts\/run-web-benchmarks\.mjs/);
   assert.match(ciYml, /node benchmarks\/scripts\/expo-bundle-stats\.mjs/);
   assert.match(ciYml, /node benchmarks\/scripts\/merge-benchmark-ci\.mjs/);
+  assert.match(ciYml, /benchmarks-web:[\s\S]*?timeout-minutes:\s*25/m);
+  assert.match(ciYml, /BENCHMARK_LH_RUNS:\s*"2"/);
 });
 
 test('CI regenerates dependencies.md and verifies on PRs', () => {
