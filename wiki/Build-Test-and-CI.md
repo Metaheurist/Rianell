@@ -146,7 +146,7 @@ Reports committed on `main` via CI when changed.
 | Bundle `--enforce-budget` | 3/5 | `app.*.min.js` gzip ≤ 2 MB, vendor ≤ 15 MB |
 | `verify-boot-warm-budget` | 3/5 | Progressive warm boot gate (`BOOT_WARM_CI_MAX_MS`) |
 
-Dependabot: `.github/dependabot.yml` (npm + github-actions weekly).
+Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo root). Ignores Expo `>=56`, Babel `>=8`, and `@testing-library/react-native` `>=14` until coordinated upgrades. Secret scanning path ignores for vendored Transformers.js: `.github/secret_scanning.yml`.
 
 ---
 

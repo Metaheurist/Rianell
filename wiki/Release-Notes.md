@@ -1,19 +1,23 @@
 # Release Notes
 
-## Latest release (v2.2.4)
+## Latest release (v2.2.6)
 
 **Date:** 2026-07-13
 
 ### Highlights
 
-- **Themes:** Red/Black and Mono light mode no longer leave mint greens on nav, headers, check-in, mood orbs, vibes, or character/achievement icons — surfaces follow theme ink and primary tokens.
-- **Mono light:** Black-and-white actually greyscales semantic success/status fills instead of keeping olive ink.
+- **Companion avatar:** Meet-your-companion / Settings character no longer shows a browser broken-image placeholder above the glyph. Generated avatars render inline with hardened paint tokens.
+- **Goals progress:** Seven-day pillars and day chips scale to each day’s target %, so incomplete days no longer look “stuck” incomplete.
+- **Ask Rianell:** Chat opens only when AI is enabled and the on-device model is ready; otherwise you are prompted to enable and download. Devices that cannot run on-device LLM get guided generic replies.
+- **Nav icons:** AI Analysis and Overview chapter icons are larger so they read clearly beside other tabs.
+- **Copy:** User-facing em dashes replaced with hyphens across locales and AI suggestions.
+- **CI / supply chain:** Node 24–native GitHub Actions artifacts; MobSF action pin fixed; Dependabot ignores unsafe Expo/Babel/RTL majors; OpenTelemetry CVE-2026-54285 cleared via `@opentelemetry/core@2.9.0`; Transformers.js Vault false-positive neutralized.
 
-See **v2.2.3** below for boot rAF latency hang fix.
+See **v2.2.5** for settings button contrast and **v2.2.4** for theme mint-leak fixes.
 
 ---
 
-## Previous (v2.2.3)
+## Previous (v2.2.4)
 
 **Date:** 2026-07-13
 
