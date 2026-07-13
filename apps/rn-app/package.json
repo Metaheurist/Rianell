@@ -24,7 +24,7 @@
     "@rianell/llm": "file:../../packages/llm",
     "@rianell/shared": "file:../../packages/shared",
     "@rianell/tokens": "file:../../packages/tokens",
-    "@supabase/supabase-js": "^2.100.1",
+    "@supabase/supabase-js": "^2.110.3",
     "@ungap/structured-clone": "^1.3.3",
     "expo": "~55.0.27",
     "expo-av": "^16.0.8",
