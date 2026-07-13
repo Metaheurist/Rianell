@@ -23,6 +23,11 @@ updates:
         versions: [">=56.0.0"]
       - dependency-name: "expo-*"
         versions: [">=56.0.0"]
+      - dependency-name: "babel-preset-expo"
+        versions: [">=56.0.0"]
+      # react-native-screens 4.26 needs RN >=0.84; stay pinned on 4.25.2 with RN 0.83.
+      - dependency-name: "react-native-screens"
+        versions: [">=4.26.0"]
       # Babel 8 is a separate toolchain upgrade (with RN/Metro).
       - dependency-name: "@babel/core"
         versions: [">=8.0.0"]

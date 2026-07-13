@@ -10,10 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ### Changed
 
-- **Deps (npm):** `@sentry/node` ^10.65.0, `sharp` ^0.35.3; Expo SDK 55 patch group (`expo` ~55.0.27 and related modules); pin `react-native-screens` 4.25.2 (RN 0.83-compatible; blocks 4.26 peer requiring RN >=0.84)
-- **Deps (pip):** Raise floors for `pydantic` (>=2.13.4), `cryptography` (>=49), `watchdog` (>=6), `psycopg2-binary` (>=2.9.12). Keep `websockets<16` for supabase realtime peer
-- **Dependabot:** Ignore `typescript` >=6, `jest-expo` >=56, and `websockets` >=16 until coordinated upgrades
-- **CI:** Live LLM HF probe soft-passes when Hugging Face returns Forbidden on ONNX weights from GitHub Actions IPs (vendor + HF metadata path still verified)
+- **Deps (npm):** `@sentry/node` ^10.65.0, `sharp` ^0.35.3, `turbo` ^2.10.5, `@supabase/supabase-js` ^2.110.3, `jest-expo` ~55.0.19; Expo SDK 55 patch group; pin `react-native-screens` 4.25.2 (RN 0.83-compatible; blocks 4.26 peer requiring RN >=0.84)
+- **Deps (pip):** Raise floors for `pydantic` (>=2.13.4), `cryptography` (>=49), `watchdog` (>=6), `psycopg2-binary` (>=2.9.12), `psycopg[binary]` (>=3.3.4), `websockets` (>=15.0.1,<16 for supabase realtime peer)
+- **Dependabot:** Ignore `typescript` >=6, `jest-expo`/`babel-preset-expo` >=56, `react-native-screens` >=4.26, and `websockets` >=16 until coordinated upgrades
+- **CI:** Live LLM HF probe soft-passes when Hugging Face returns Forbidden on ONNX weights from GitHub Actions IPs; regenerate `docs/security-inventory.md` for root package 2.2.6
 
 ---
 
