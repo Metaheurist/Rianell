@@ -9,6 +9,7 @@ updates:
       patch-updates:
         update-types: ["patch"]
     ignore:
+      # Keep transformers / RN tooling on the pinned matrix.
       - dependency-name: "@huggingface/transformers"
         versions: [">=3.3.3"]
       - dependency-name: "jest"
@@ -17,7 +18,23 @@ updates:
         versions: [">=0.84.0"]
       - dependency-name: "expo-modules-core"
         versions: [">=56.0.0"]
+      # Stay on Expo SDK 55 until an intentional SDK upgrade.
+      - dependency-name: "expo"
+        versions: [">=56.0.0"]
+      - dependency-name: "expo-*"
+        versions: [">=56.0.0"]
+      # Babel 8 is a separate toolchain upgrade (with RN/Metro).
+      - dependency-name: "@babel/core"
+        versions: [">=8.0.0"]
+      - dependency-name: "@babel/traverse"
+        versions: [">=8.0.0"]
+      - dependency-name: "@babel/*"
+        versions: [">=8.0.0"]
+      # RTL 14 needs a coordinated RN test-stack bump.
+      - dependency-name: "@testing-library/react-native"
+        versions: [">=14.0.0"]
   - package-ecosystem: pip
-    directory: "/server"
+    # Python server deps live at repo root (requirements.txt), not under server/
+    directory: "/"
     schedule:
       interval: weekly

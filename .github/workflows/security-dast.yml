@@ -32,7 +32,7 @@ jobs:
           allow_issue_writing: false
       - name: Upload ZAP report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: zap-report
           path: report_html.html
@@ -56,11 +56,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Run MobSF static scan
-        uses: MobSF/mobsfscan@v0.3.8
+        uses: MobSF/mobsfscan@0.4.5
         with:
           args: '. --json -o mobsf-report.json'
       - name: Upload MobSF report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: mobsf-report
           path: mobsf-report.json

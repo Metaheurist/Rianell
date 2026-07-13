@@ -116,7 +116,7 @@ jobs:
         continue-on-error: true
         run: |
           npx --yes @cyclonedx/cyclonedx-npm@1.19.0 --output-file sbom.cdx.json --omit dev || true
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always() && hashFiles('sbom.cdx.json') != ''
         with:
           name: sbom-cyclonedx

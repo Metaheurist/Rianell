@@ -229,7 +229,7 @@ jobs:
       - name: Upload minified temp artifact
         id: upload_minified
         continue-on-error: true
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: minified-prebuild
           path: ci-minified/
@@ -238,7 +238,7 @@ jobs:
       - name: Retry upload minified temp artifact (transient ECONNRESET)
         id: upload_minified_retry
         if: steps.upload_minified.outcome == 'failure'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: minified-prebuild
           path: ci-minified/
@@ -279,7 +279,7 @@ jobs:
       - uses: ./.github/actions/setup-node-ci
 
       - name: Download minified prebuild
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: minified-prebuild
           path: ci-minified
@@ -300,7 +300,7 @@ jobs:
         run: node benchmarks/scripts/bundle-sizes.mjs "${{ github.workspace }}/ci-minified/site" --enforce-budget
 
       - name: Upload benchmark reports (web)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: benchmarks-web
           path: |
@@ -328,10 +328,10 @@ jobs:
           lfs: true
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Download minified temp artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: minified-prebuild
           path: ci-minified
@@ -345,7 +345,7 @@ jobs:
           SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
 
       - name: Upload prepared site for post-deploy audit
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: pages-site-probe
           path: site
@@ -406,7 +406,7 @@ jobs:
         run: test -f apps/rn-app/dist-expo-prod/_expo/static/js/ios/*.hbc
 
       - name: Upload Expo bundle artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: expo-bundles
           path: apps/rn-app/dist-expo-prod/
@@ -521,7 +521,7 @@ jobs:
           }
 
       - name: Upload server EXE artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: server-exe-${{ matrix.arch }}
           path: artifacts/Server/
@@ -642,7 +642,7 @@ jobs:
       - uses: ./.github/actions/setup-node-ci
 
       - name: Download Expo bundle output
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: expo-bundles
           path: apps/rn-app/dist-expo-prod
@@ -655,7 +655,7 @@ jobs:
         run: node benchmarks/scripts/expo-bundle-stats.mjs
 
       - name: Upload benchmark reports (expo)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: benchmarks-expo
           path: benchmarks/expo-rn
@@ -769,7 +769,7 @@ jobs:
           echo "{\"version\":${RN_BUILD},\"file\":\"app-debug-beta.apk\",\"downloadUrl\":\"https://github.com/Metaheurist/Rianell/releases/latest/download/app-debug-beta.apk\"}" > rncli-android-dist/latest.json
 
       - name: Upload Android dist
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: rncli-android-dist
           path: rncli-android-dist/
@@ -781,7 +781,7 @@ jobs:
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v5
 
@@ -814,7 +814,7 @@ jobs:
           echo "{\"version\":${run},\"file\":\"Health-Tracker-ios-alpha-build-${run}.zip\",\"simulatorFile\":\"Health-Tracker-simulator-alpha-${run}.zip\",\"installUrl\":\"https://rianell.com/artifacts/iOS/Health-Tracker-ios-alpha-latest.zip\"}" > rncli-ios-dist/latest.json
 
       - name: Upload iOS dist
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: rncli-ios-dist
           path: rncli-ios-dist/
@@ -832,7 +832,7 @@ jobs:
       - uses: ./.github/actions/install-playwright-chromium
       - uses: ./.github/actions/setup-python-ci
       - name: Download deployed Pages site
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pages-site-probe
           path: site
@@ -868,7 +868,7 @@ jobs:
       - uses: ./.github/actions/install-playwright-chromium
       - uses: ./.github/actions/setup-python-ci
       - name: Download deployed Pages site
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pages-site-probe
           path: site
@@ -922,7 +922,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: ZAP full scan (retry on cold cache)
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 25
           max_attempts: 2
@@ -957,7 +957,7 @@ jobs:
       - uses: ./.github/actions/setup-python-ci
 
       - name: Download deployed Pages site (same files as GitHub Pages)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pages-site-probe
           path: site
@@ -1055,7 +1055,7 @@ jobs:
         run: node scripts/ci/deploy-probe-loop.mjs
 
       - name: Download deployed Pages site (LLM probe — bypass Cloudflare bot CSP)
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pages-site-probe
           path: site
@@ -1127,13 +1127,13 @@ jobs:
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
 
       - name: Download benchmark artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: benchmarks-web
           path: bw
 
       - name: Download Expo benchmark artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: benchmarks-expo
           path: be
@@ -1173,19 +1173,19 @@ jobs:
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
 
       - name: Download RN CLI Android APK
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: rncli-android-dist
           path: artifacts/RNCLI-Android/
 
       - name: Download RN CLI iOS Xcode project zip
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: rncli-ios-dist
           path: artifacts/iOS/
 
       - name: Download Server EXE artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: server-exe-*
           path: gh-server
@@ -1254,13 +1254,13 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Download RN CLI Android APK artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: rncli-android-dist
           path: gh-release/RNCLI-Android/
 
       - name: Download Server EXE binaries
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: server-exe-*
           path: gh-release/Server
