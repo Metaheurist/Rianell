@@ -1,32 +1,32 @@
 {
-  "generatedAt": "2026-07-13T20:35:07.410Z",
+  "generatedAt": "2026-07-13T21:30:05.505Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5405649,
-    "cssBytes": 814584,
-    "jsGzipBytes": 1283440,
-    "cssGzipBytes": 137952
+    "jsBytes": 5421464,
+    "cssBytes": 817455,
+    "jsGzipBytes": 1287075,
+    "cssGzipBytes": 138436
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1149255,
-      "gzipBytes": 249877
+      "bytes": 1156980,
+      "gzipBytes": 251448
     },
     {
-      "file": "ci-minified/site/app.82effe08e565.min.js",
-      "bytes": 849838,
-      "gzipBytes": 196812
+      "file": "ci-minified/site/app.dc76bef363da.min.js",
+      "bytes": 855519,
+      "gzipBytes": 198062
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
-      "bytes": 818481,
-      "gzipBytes": 207722
+      "bytes": 818493,
+      "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.aa3d7dee4d8d.css",
-      "bytes": 739341,
-      "gzipBytes": 122640
+      "file": "ci-minified/site/styles.d3990b479f89.css",
+      "bytes": 742312,
+      "gzipBytes": 123145
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 396590,
-      "gzipBytes": 90327
+      "bytes": 396545,
+      "gzipBytes": 90319
     },
     {
       "file": "ci-minified/site/vendor/three/three.module.min.js",
@@ -55,8 +55,8 @@
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
-      "bytes": 80967,
-      "gzipBytes": 17175
+      "bytes": 81201,
+      "gzipBytes": 17379
     },
     {
       "file": "ci-minified/site/summary-llm.js",
@@ -65,13 +65,13 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 60916,
-      "gzipBytes": 14797
+      "bytes": 60911,
+      "gzipBytes": 14795
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 51625,
-      "gzipBytes": 11044
+      "bytes": 51615,
+      "gzipBytes": 11037
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -80,13 +80,13 @@
     },
     {
       "file": "ci-minified/site/modules/mood-tab.js",
-      "bytes": 44075,
-      "gzipBytes": 9490
+      "bytes": 44069,
+      "gzipBytes": 9479
     },
     {
       "file": "ci-minified/site/css/graphics-portfolio.css",
-      "bytes": 41737,
-      "gzipBytes": 7476
+      "bytes": 41637,
+      "gzipBytes": 7455
     },
     {
       "file": "ci-minified/site/modules/log-metric-widgets.js",
@@ -164,19 +164,19 @@
       "gzipBytes": 3258
     },
     {
+      "file": "ci-minified/site/modules/ai-chat.js",
+      "bytes": 15230,
+      "gzipBytes": 3891
+    },
+    {
       "file": "ci-minified/site/modules/oasis-canvas.js",
-      "bytes": 14957,
-      "gzipBytes": 4499
+      "bytes": 14951,
+      "gzipBytes": 4495
     },
     {
       "file": "ci-minified/site/css/oasis.css",
       "bytes": 14665,
       "gzipBytes": 3633
-    },
-    {
-      "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 14437,
-      "gzipBytes": 3704
     },
     {
       "file": "ci-minified/site/security-utils.js",
@@ -200,13 +200,18 @@
     },
     {
       "file": "ci-minified/site/modules/goals-progress-3d.js",
-      "bytes": 9682,
-      "gzipBytes": 3230
+      "bytes": 10012,
+      "gzipBytes": 3336
     },
     {
       "file": "ci-minified/site/modules/goals-carousel.js",
       "bytes": 9514,
       "gzipBytes": 2516
+    },
+    {
+      "file": "ci-minified/site/modules/goals-progress-svg.js",
+      "bytes": 8514,
+      "gzipBytes": 2709
     },
     {
       "file": "ci-minified/site/modules/discovery-orb-3d.js",
@@ -222,11 +227,6 @@
       "file": "ci-minified/site/modules/vitals-suggest-ui.js",
       "bytes": 8059,
       "gzipBytes": 2131
-    },
-    {
-      "file": "ci-minified/site/modules/goals-progress-svg.js",
-      "bytes": 7402,
-      "gzipBytes": 2371
     },
     {
       "file": "ci-minified/site/device-module.js",
