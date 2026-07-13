@@ -66,8 +66,39 @@ test('light mode Red/Black remaps ink, chrome, and page background away from min
   assert.match(redLight[0], /--text-light-rgb:\s*58,\s*10,\s*15/);
   assert.match(redLight[0], /--primary-color:\s*#c62828/);
   assert.match(redLight[0], /--btn-chrome-border:\s*color-mix/);
+  assert.match(redLight[0], /--shell-bg:\s*#fff5f6/);
+  assert.match(redLight[0], /--avatar-primary:\s*var\(--primary-color\)/);
   assert.doesNotMatch(redLight[0], /#163a23|#0a3d18|#a8e6cf|#1b5e20/);
   assert.match(css, /body\.light-mode \.settings-header[\s\S]*var\(--surface-header-tint\)/);
+});
+
+test('light mode Mono remaps chrome and semantic greens to greyscale', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  const monoLight = css.match(/body\.light-mode\.theme-mono\s*\{[\s\S]*?\n\}/);
+  assert.ok(monoLight, 'mono light block');
+  assert.match(monoLight[0], /--background-light:\s*linear-gradient\([\s\S]*#ffffff/);
+  assert.match(monoLight[0], /--text-dark:\s*#151515/);
+  assert.match(monoLight[0], /--primary-color:\s*#212121/);
+  assert.match(monoLight[0], /--ai-status-optimal:\s*#616161/);
+  assert.match(monoLight[0], /--color-success:\s*#424242/);
+  assert.match(monoLight[0], /--avatar-primary:\s*var\(--primary-color\)/);
+  assert.doesNotMatch(monoLight[0], /#1b5e20|#7bdf8c|#a8e6cf|#163a23/);
+});
+
+test('light mode chrome hardcodes use theme ink tokens instead of mint hex', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /body\.light-mode \.tab-btn\.active[\s\S]*?color:\s*var\(--text-dark\)/);
+  assert.match(css, /body\.light-mode \.log-metrics-grid \.metric-value[\s\S]*?color:\s*var\(--text-dark\)/);
+  assert.match(css, /body\.light-mode \{\s*--text-muted:\s*rgba\(var\(--text-light-rgb\)/);
+  assert.match(css, /body\.light-mode \.checkin-slider-stop-label[\s\S]*?var\(--light-ink-deep\)/);
+  assert.doesNotMatch(css, /body\.light-mode \.tab-btn\.active[\s\S]*?color:\s*#1b5e20/);
+});
+
+test('app.js chart theme helpers read theme ink tokens', () => {
+  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(appJs, /function getThemeInkColor/);
+  assert.match(appJs, /getThemeInkColor\('#151515'\)/);
+  assert.doesNotMatch(appJs, /text: light \? '#1b5e20'/);
 });
 
 test('styles.css tokenises tutorial footer CTA buttons', () => {

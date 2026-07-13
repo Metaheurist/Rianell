@@ -597,7 +597,7 @@ body.light-mode .apexcharts-menu {
 }
 
 body.light-mode .apexcharts-menu-item {
-  color: #1b5e20 !important;
+  color: var(--text-dark) !important;
 }
 
 body.light-mode .apexcharts-menu-item:hover {
@@ -612,7 +612,7 @@ body.light-mode .apexcharts-zoom-in-icon,
 body.light-mode .apexcharts-zoom-out-icon,
 body.light-mode .apexcharts-pan-icon,
 body.light-mode .apexcharts-reset-icon {
-  fill: color-mix(in srgb, var(--primary-color) 72%, #1b5e20 28%) !important;
+  fill: color-mix(in srgb, var(--primary-color) 72%, var(--text-dark) 28%) !important;
 }
 
 body.light-mode .apexcharts-toolbar svg:hover,

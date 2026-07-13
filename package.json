@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
