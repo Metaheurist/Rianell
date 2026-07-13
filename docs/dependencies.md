@@ -32,11 +32,13 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/parser` | ^7.26.7 |
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
+| `@opentelemetry/core` | ^2.9.0 |
+| `@sentry/node` | ^10.58.0 |
 | `esbuild` | 0.28.1 |
 | `sharp` | ^0.33.5 |
 | `turbo` | ^2.9.18 |
 
-**`overrides`** — 31 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@rianell/benchmark-runner → lighthouse → @sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `expo-modules-core`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `react-native-transformers → @huggingface/transformers`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — 33 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `expo-modules-core`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `react-native-transformers → @huggingface/transformers`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
