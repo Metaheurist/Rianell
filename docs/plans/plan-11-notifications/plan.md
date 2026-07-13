@@ -10,7 +10,7 @@ depends_on: [plan-04-logging-data-capture/plan.md, plan-07-ai-engine/plan.md, pl
 blocks: [plan-14-cross-cutting/plan.md]
 ---
 
-# Plan 11 — Section 9: Notifications & engagement
+# Plan 11 - Section 9: Notifications & engagement
 
 ## Objective
 
@@ -20,12 +20,12 @@ Smart reminders, medication dose alerts, flare-risk nudges, production Web Push,
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| R1 | **Smart reminder timing** — learn usual log time; nudge if missed | M | |
-| R2 | **Medication dose reminders** — tied to L3 scheduler | M | **Requires L3** |
-| R3 | **Flare risk nudge** — high fatigue week prompt | M, ★ | Requires A5 |
-| R4 | **Web Push on PWA (production)** — complete push pipeline | M | See web-push research doc |
-| R5 | **Gentle re-engagement** — 7-day inactive, single notification | Q | |
-| R6 | **Achievement-free streaks** — optional, dismissible | Q | Pairs with H3 |
+| R1 | **Smart reminder timing** - learn usual log time; nudge if missed | M | |
+| R2 | **Medication dose reminders** - tied to L3 scheduler | M | **Requires L3** |
+| R3 | **Flare risk nudge** - high fatigue week prompt | M, ★ | Requires A5 |
+| R4 | **Web Push on PWA (production)** - complete push pipeline | M | See web-push research doc |
+| R5 | **Gentle re-engagement** - 7-day inactive, single notification | Q | |
+| R6 | **Achievement-free streaks** - optional, dismissible | Q | Pairs with H3 |
 
 
 ## Plan folder docs
@@ -38,8 +38,8 @@ Smart reminders, medication dose alerts, flare-risk nudges, production Web Push,
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
 - **External setup** � See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 ## Prerequisites
 
@@ -65,7 +65,7 @@ Smart reminders, medication dose alerts, flare-risk nudges, production Web Push,
 
 ## Completion gates
 
-- [ ] R1–R6 implemented or deferred
+- [ ] R1-R6 implemented or deferred
 - [ ] R2 not shipped without L3
 - [ ] R3 not shipped without A5
 - [ ] iOS delivery variance documented (platform-parity partial)
@@ -77,26 +77,26 @@ Smart reminders, medication dose alerts, flare-risk nudges, production Web Push,
 
 ## Agent execution
 
-### Phase A — Smart timing (R1)
+### Phase A - Smart timing (R1)
 
 - [x] Learn median log time from last 14 days of saves
 - [x] If no log by median + 30 min, schedule local notification (respect quiet hours pref if exists)
 
-### Phase B — Med & flare (R2, R3) — gated
+### Phase B - Med & flare (R2, R3) - gated
 
 | ID | Tasks | Gate |
 |----|-------|------|
 | **R2** | Local notifications per L3 dose schedule; taken/snooze actions | **L3 required** |
 | **R3** | Nudge when A5 anomaly score high: "Patterns suggest high fatigue week" | **A5 required** |
 
-### Phase C — Web push & re-engagement (R4, R5)
+### Phase C - Web push & re-engagement (R4, R5)
 
 | ID | Tasks |
 |----|-------|
 | **R4** | Complete PWA production push: VAPID, `push-subscribe.js`, `sw.js` handlers; consent + region gates | done |
 | **R5** | Single notification after 7 days inactive; user can disable | done |
 
-### Phase D — Streaks (R6)
+### Phase D - Streaks (R6)
 
 - [x] Optional streak reminder paired with H3; dismissible; no achievement marketplace
 
@@ -119,7 +119,7 @@ Document iOS delivery variance in parity notes.
 
 ## Master sync
 
-MASTER §9 rows R1–R6; §Section rollup exec 11.
+MASTER §9 rows R1-R6; §Section rollup exec 11.
 
 ## Post-plan rollout gate
 
@@ -134,4 +134,4 @@ Then: CHANGELOG → MASTER §9 → commit/push → `npm run projects:ci-watch` u
 ## Agent do-nots
 
 - Do not ship R2 without L3 or R3 without A5
-- No notification spam — max one re-engagement per idle period
+- No notification spam - max one re-engagement per idle period

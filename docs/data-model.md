@@ -17,10 +17,10 @@ All entries require a **`date`** (`YYYY-MM-DD`). Other fields are optional; empt
 | :--- | :--- | :--- |
 | `date` | string | Required; defaults to today if invalid |
 | `flare` | `'Yes'` \| `'No'` | Default `No` |
-| `bpm` | number | 30–120 |
+| `bpm` | number | 30-120 |
 | `weight` | string | kg as decimal string (web convention) |
-| `fatigue`, `stiffness`, `sleep`, `jointPain`, `mobility`, `dailyFunction`, `swelling`, `mood`, `irritability` | number | 0–10 |
-| `weatherSensitivity` | number | 1–10 |
+| `fatigue`, `stiffness`, `sleep`, `jointPain`, `mobility`, `dailyFunction`, `swelling`, `mood`, `irritability` | number | 0-10 |
+| `weatherSensitivity` | number | 1-10 |
 | `steps` | number | Integer |
 | `hydration` | number | Glasses / units |
 | `notes` | string | Max 500 chars |
@@ -31,18 +31,18 @@ All entries require a **`date`** (`YYYY-MM-DD`). Other fields are optional; empt
 | `exercise` | array | `{ name, duration? }` |
 | `medications` | array | Per-entry medication log |
 | `subEntries` | array | L8 AM/PM partial saves: `{ id, period: 'AM'\|'PM'\|'partial', mood?, fatigue?, sleep?, jointPain?, notes?, savedAt }` |
-| `cycle` | object | L7 `{ cycleDay?, periodStart?, phase?, flow?, pmsSymptoms?[] }` when cycle module enabled. `cycleDay` 1–45 (`CYCLE_DAY_MAX`); UI selector defaults 1–35 (`CYCLE_DAY_SELECTOR_MAX`); `periodStart: true` marks period begin on that log date; phase hints use simplified ~28-day map (not medical advice) |
+| `cycle` | object | L7 `{ cycleDay?, periodStart?, phase?, flow?, pmsSymptoms?[] }` when cycle module enabled. `cycleDay` 1-45 (`CYCLE_DAY_MAX`); UI selector defaults 1-35 (`CYCLE_DAY_SELECTOR_MAX`); `periodStart: true` marks period begin on that log date; phase hints use simplified ~28-day map (not medical advice) |
 | `medicationDoses` | array | L3 per-dose log: `{ drug, status: 'taken'\|'skipped'\|'missed', scheduledAt? }` |
-| `bloodPressureSystolic` | number | 60–250 mmHg (Plan 16 VM1) |
-| `bloodPressureDiastolic` | number | 40–150 mmHg (Plan 16 VM1) |
+| `bloodPressureSystolic` | number | 60-250 mmHg (Plan 16 VM1) |
+| `bloodPressureDiastolic` | number | 40-150 mmHg (Plan 16 VM1) |
 | `bloodGlucose` | number | Stored as mmol/L; `bloodGlucoseUnit` records display pref (VM2) |
-| `spO2` | number | 70–100 % (VM3) |
-| `hrv` | number | RMSSD ms, 0–300 (VM4 manual entry) |
+| `spO2` | number | 70-100 % (VM3) |
+| `hrv` | number | RMSSD ms, 0-300 (VM4 manual entry) |
 | `bodyWeight` | number | Stored as kg; `bodyWeightUnit` records display pref (VM5) |
-| `bristol` | 1–7 | Bristol stool scale (VM7) |
-| `painLocations` | array | `{ region, intensity: 0–10 }[]` body-map regions (VM8) |
+| `bristol` | 1-7 | Bristol stool scale (VM7) |
+| `painLocations` | array | `{ region, intensity: 0-10 }[]` body-map regions (VM8) |
 | `gratitude` | string | Max 500 chars; excluded from anonymized pool (VM9) |
-| `bbt` | number | Basal body temp °C, 35.0–38.5 (VM10) |
+| `bbt` | number | Basal body temp °C, 35.0-38.5 (VM10) |
 | `photoAttachments` | array | `{ url, caption? }[]` private storage paths (VM11) |
 | `supplements` | array | `{ name, dose?, unit?, brand? }[]` distinct from meds (VM6) |
 
@@ -61,15 +61,15 @@ Stored in app settings / RN `Preferences` (not in each log entry):
 | `temperatureUnit` | `'celsius'` \| `'fahrenheit'` | BBT display preference (VM10) |
 | `heightCm` | number | User height for BMI on log card (VM5) |
 | `bodyWeightUnit` | `'kg'` \| `'lbs'` | Body weight display preference (VM5) |
-| `barcodeFoodLoggingEnabled` | boolean | Optional — camera barcode scan + Open Food Facts lookup |
+| `barcodeFoodLoggingEnabled` | boolean | Optional - camera barcode scan + Open Food Facts lookup |
 
 `trackingProfile` (Plan 03) gates progressive wizard categories (L1): food, exercise, medications unlock on a day schedule.
 
 ## Achievements (v1.117.0+, expanded v1.97.0)
 
-Unlock badges are **derived** from `trackingProfile.configuredAt` and category unlock state via shared `computeAchievementSnapshots` — not stored as trusted client flags.
+Unlock badges are **derived** from `trackingProfile.configuredAt` and category unlock state via shared `computeAchievementSnapshots` - not stored as trusted client flags.
 
-**Catalog (`ALL_ACHIEVEMENTS` — 11 ids):**
+**Catalog (`ALL_ACHIEVEMENTS` - 11 ids):**
 
 | Group | IDs | Unlock rule |
 | :--- | :--- | :--- |
@@ -123,9 +123,9 @@ Encrypted backups use AES-GCM. The encryption key for cloud sync is stored in Su
 
 ## Cloud deletion semantics (v1.50.0+)
 
-Unified **Delete cloud data** (PWA `deleteAllUserDataFromCloud`, RN `deleteAllUserDataFromCloud`) deletes all rows where **`user_id`** matches the signed-in user across **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`**. Narrower actions: delete encrypted backup only (`health_data` + `user_keys`) or anonymised contribution only (`anonymized_data`). Does not delete the Supabase **`auth.users`** record — sign out or contact operator for full account removal. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+Unified **Delete cloud data** (PWA `deleteAllUserDataFromCloud`, RN `deleteAllUserDataFromCloud`) deletes all rows where **`user_id`** matches the signed-in user across **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`**. Narrower actions: delete encrypted backup only (`health_data` + `user_keys`) or anonymised contribution only (`anonymized_data`). Does not delete the Supabase **`auth.users`** record - sign out or contact operator for full account removal. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
 
 ## Related
 
-- [SECURITY.md](SECURITY.md) — RLS, encryption, fail-closed sync
-- [app-and-features.md](app-and-features.md) — UX for logging and export/import
+- [SECURITY.md](SECURITY.md) - RLS, encryption, fail-closed sync
+- [app-and-features.md](app-and-features.md) - UX for logging and export/import

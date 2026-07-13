@@ -26,4 +26,4 @@ DELETE FROM community_tips WHERE id = '<uuid>';
 SELECT * FROM community_triggers WHERE approved = false ORDER BY created_at;
 ```
 
-k≥5 is enforced in `get_community_triggers` RPC — triggers with `contributor_count < 5` are not returned to clients.
+k≥5 is enforced in `get_community_triggers` RPC - triggers with `contributor_count < 5` are not returned to clients.

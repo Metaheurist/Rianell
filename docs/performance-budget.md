@@ -1,7 +1,7 @@
-# Performance budget — Rianell PWA
+# Performance budget - Rianell PWA
 
 **Last updated:** 2026-06-23  
-**Status:** Launch audit Phase 5 — targets for CI boot audit and manual Lighthouse runs.  
+**Status:** Launch audit Phase 5 - targets for CI boot audit and manual Lighthouse runs.  
 **Related:** [infrastructure-and-security-edge.md](infrastructure-and-security-edge.md) · `audit-history/` boot JSON
 
 ---
@@ -60,4 +60,4 @@
 - Preconnect: Supabase, jsDelivr, Open-Meteo (`index.html`)
 - Lazy loaders: `performance-utils.js` (`ensureSupabaseLoaded`, `ensureApexChartsLoaded`, `ensureAIEngineLoaded`)
 - Transformers: dynamic import in `summary-llm.js` only
-- Cloudflare cache rules — [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md)
+- Cloudflare cache rules - [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md)

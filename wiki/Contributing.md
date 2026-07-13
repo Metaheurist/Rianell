@@ -21,7 +21,7 @@ Use [GitHub Issues](https://github.com/Metaheurist/Rianell/issues) or the in-app
 ## Pull requests
 
 1. Fork and branch from `main`.
-2. Keep diffs focused — match existing code style and naming.
+2. Keep diffs focused - match existing code style and naming.
 3. Run relevant gates locally:
    ```bash
    npm run test:unit
@@ -40,7 +40,7 @@ Use [GitHub Issues](https://github.com/Metaheurist/Rianell/issues) or the in-app
 
 ## Code conventions
 
-- Reuse `@rianell/shared` and existing helpers — don’t duplicate merge/analysis logic.
+- Reuse `@rianell/shared` and existing helpers - don’t duplicate merge/analysis logic.
 - i18n: add keys to `i18n-packs/locale-packs/v1/en-GB.json`, run sync scripts.
 - User notes/symptoms: never auto-translate (UGC policy).
 - Client Supabase: publishable key only.
@@ -49,7 +49,7 @@ Use [GitHub Issues](https://github.com/Metaheurist/Rianell/issues) or the in-app
 
 ## Updating the wiki
 
-The GitHub Wiki is synced from **`wiki/`** in this repo. **Do not edit the GitHub Wiki UI directly** — changes will be overwritten on the next sync.
+The GitHub Wiki is synced from **`wiki/`** in this repo. **Do not edit the GitHub Wiki UI directly** - changes will be overwritten on the next sync.
 
 1. Edit files under `wiki/` in the main repo.
 2. Run `npm run wiki:verify`.

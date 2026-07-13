@@ -89,8 +89,8 @@ python3 skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persi
 ```
 
 This creates:
-- `design-system/MASTER.md` — Global Source of Truth with all design rules
-- `design-system/pages/` — Folder for page-specific overrides
+- `design-system/MASTER.md` - Global Source of Truth with all design rules
+- `design-system/pages/` - Folder for page-specific overrides
 
 **With page-specific override:**
 ```bash
@@ -98,7 +98,7 @@ python3 skills/ui-ux-pro-max/scripts/search.py "<query>" --design-system --persi
 ```
 
 This also creates:
-- `design-system/pages/dashboard.md` — Page-specific deviations from Master
+- `design-system/pages/dashboard.md` - Page-specific deviations from Master
 
 **How hierarchical retrieval works:**
 1. When building a specific page (e.g., "Checkout"), first check `design-system/pages/checkout.md`
@@ -236,7 +236,7 @@ python3 skills/ui-ux-pro-max/scripts/search.py "fintech crypto" --design-system 
 
 ### Query Strategy
 
-- Use **multi-dimensional keywords** — combine product + industry + tone + density: `"entertainment social vibrant content-dense"` not just `"app"`
+- Use **multi-dimensional keywords** - combine product + industry + tone + density: `"entertainment social vibrant content-dense"` not just `"app"`
 - Try different keywords for the same need: `"playful neon"` → `"vibrant dark"` → `"content-first minimal"`
 - Use `--design-system` first for full recommendations, then `--domain` to deep-dive any dimension you're unsure about
 - Add `--stack <stack>` for implementation-specific guidance when the target stack is known
@@ -256,7 +256,7 @@ python3 skills/ui-ux-pro-max/scripts/search.py "fintech crypto" --design-system 
 ### Pre-Delivery Checklist
 
 - Run `--domain ux "animation accessibility z-index loading"` as a UX validation pass before implementation
-- Run through Quick Reference **§1–§3** (CRITICAL + HIGH) as a final review
+- Run through Quick Reference **§1-§3** (CRITICAL + HIGH) as a final review
 - Test on 375px (small phone) and landscape orientation
 - Verify behavior with **reduced-motion** enabled and **Dynamic Type** at largest size
 - Check dark mode contrast independently (don't assume light mode values work)

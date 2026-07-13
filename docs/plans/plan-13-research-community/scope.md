@@ -1,4 +1,4 @@
-# Plan 13 — Scope & scripts
+# Plan 13 - Scope & scripts
 
 **Section 12:** Research & anonymized pool · **IDs:** RE1, RE4
 

@@ -1,6 +1,6 @@
-# Execution plans — post-plan rollout gate
+# Execution plans - post-plan rollout gate
 
-**Required after every plan (01–14)** before marking the plan `done` in [`MASTER.md`](./MASTER.md).
+**Required after every plan (01-14)** before marking the plan `done` in [`MASTER.md`](./MASTER.md).
 
 Roll out work **by MASTER section** (one plan = one section). Within a plan, land features in phase order (A → B → C); optional smoke after each feature ID, **mandatory full gate before commit**.
 
@@ -28,7 +28,7 @@ flowchart TD
 
 ---
 
-## Step 1 — Local gate (must pass with zero boot errors)
+## Step 1 - Local gate (must pass with zero boot errors)
 
 From repo root (Windows):
 
@@ -46,7 +46,7 @@ npm run projects:gate
 
 1. `npm run test:unit`
 2. Plan-specific verify (set `PROJECTS_EXTRA_VERIFY`, e.g. `verify:i18n` for plan 02)
-3. `server/launch-server.ps1` — **CI-parity compiled** `.server-dist` (use `-NoCompile` only for fast inner loops)
+3. `server/launch-server.ps1` - **CI-parity compiled** `.server-dist` (use `-NoCompile` only for fast inner loops)
 4. `PROBE_URL=http://127.0.0.1:8080/ npm run audit:boot:strict`
 5. Stops the server; prints `POST_PLAN_GATE_OK` on success
 
@@ -60,7 +60,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\projects\post-plan-gate.ps1 -
 
 ---
 
-## Step 2 — Changelog + MASTER
+## Step 2 - Changelog + MASTER
 
 Only after `POST_PLAN_GATE_OK`:
 
@@ -71,13 +71,13 @@ Only after `POST_PLAN_GATE_OK`:
 
 ---
 
-## Step 3 — Commit + push
+## Step 3 - Commit + push
 
 One commit per completed plan (unless user asks to split):
 
 ```bash
 git add -A
-git commit -m "feat(projects): plan NN — <section title> (<feature IDs>)"
+git commit -m "feat(projects): plan NN - <section title> (<feature IDs>)"
 git push origin HEAD
 ```
 
@@ -85,7 +85,7 @@ Use a body referencing MASTER § and plan file. Do not skip hooks.
 
 ---
 
-## Step 4 — CI monitor (stop on failure, fix, loop)
+## Step 4 - CI monitor (stop on failure, fix, loop)
 
 After push:
 

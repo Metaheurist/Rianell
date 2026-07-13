@@ -2,13 +2,13 @@
 
 The PWA ships a full **Content Security Policy** in **`apps/pwa-webapp/index.html`** (meta tag). If **Cloudflare** (or another edge) also sends **`Content-Security-Policy`** on HTML responses, browsers **combine** policies: a resource must satisfy **every** CSP. A **narrow HTTP CSP** (for example only `script-src 'self' 'unsafe-inline' https://*.supabase.co`) blocks scripts and styles that the meta tag allows, which produces console errors such as:
 
-- `Loading the script … violates … script-src` (often **`cdn.jsdelivr.net`** — Supabase UMD, Hugging Face Transformers, helpers)
+- `Loading the script … violates … script-src` (often **`cdn.jsdelivr.net`** - Supabase UMD, Hugging Face Transformers, helpers)
 - `Loading the stylesheet … violates … style-src` (**`fonts.googleapis.com`**, **`cdn.jsdelivr.net`** Font Awesome)
 - `Supabase library not loaded` / dynamic import failures for **`@huggingface/transformers`**
 
-## Open-Meteo weather (H5) — common production break
+## Open-Meteo weather (H5) - common production break
 
-Home weather uses **[Open-Meteo](https://open-meteo.com/)** — **free, public, no API key or subscription**. Endpoints:
+Home weather uses **[Open-Meteo](https://open-meteo.com/)** - **free, public, no API key or subscription**. Endpoints:
 
 | Host | Purpose |
 |------|---------|
@@ -29,11 +29,11 @@ If the console shows `Fetch API cannot load https://api.open-meteo.com/... viola
 6. **Save** and **Purge cache** (Caching → Purge Everything) for HTML if needed.
 7. Hard-refresh the site (Ctrl+Shift+R) and confirm weather loads without CSP errors.
 
-**Permissions-Policy:** Weather opt-in needs geolocation. Keep `geolocation=(self)` in the edge header (do not use `geolocation=()`). Do **not** set `notifications=(self)` — use `notifications=()` or omit `notifications` entirely (see [Permissions-Policy](#permissions-policy-notifications) below).
+**Permissions-Policy:** Weather opt-in needs geolocation. Keep `geolocation=(self)` in the edge header (do not use `geolocation=()`). Do **not** set `notifications=(self)` - use `notifications=()` or omit `notifications` entirely (see [Permissions-Policy](#permissions-policy-notifications) below).
 
 ## HTTP security headers (edge Transform Rule)
 
-When you set **non-CSP** headers at Cloudflare, use this bundle (adjust host names if needed). **Do not** add deprecated **`Expect-CT`** — Chrome removed it in v106.
+When you set **non-CSP** headers at Cloudflare, use this bundle (adjust host names if needed). **Do not** add deprecated **`Expect-CT`** - Chrome removed it in v106.
 
 ### Step-by-step: add `frame-ancestors` and companion headers
 
@@ -54,7 +54,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 ```
 
 5. **Save** and purge HTML cache if headers do not appear immediately.
-6. Verify with [securityheaders.com](https://securityheaders.com/?q=rianell.com) — grade should not be capped by missing `frame-ancestors`.
+6. Verify with [securityheaders.com](https://securityheaders.com/?q=rianell.com) - grade should not be capped by missing `frame-ancestors`.
 
 **Note:** If you also set a full HTTP `Content-Security-Policy` (section B below), merge `frame-ancestors 'self'` into that single CSP value instead of a duplicate CSP header.
 
@@ -62,7 +62,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 
 Ship **`/.well-known/security.txt`** from the PWA build (`apps/pwa-webapp/.well-known/security.txt`). CI verifies presence via `verify-sri-integrity.mjs`.
 
-## Barcode food lookup (Plan 04) — required `connect-src`
+## Barcode food lookup (Plan 04) - required `connect-src`
 
 Barcode logging fetches **[Open Food Facts](https://world.openfoodfacts.org/)** (`GET https://world.openfoodfacts.org/api/v2/product/{barcode}`). No API key.
 
@@ -72,7 +72,7 @@ Barcode logging fetches **[Open Food Facts](https://world.openfoodfacts.org/)** 
 
 If missing from **HTTP** CSP, lookups fail with `violates Content Security Policy` even when the meta tag allows the host.
 
-## Smartlook session recording — required `script-src` + `connect-src`
+## Smartlook session recording - required `script-src` + `connect-src`
 
 Opt-in session recording loads the Smartlook Web SDK and sends analytics to EU hosts. Required in **both** directives when edge CSP is set:
 
@@ -96,7 +96,7 @@ If the console shows many lines like:
 
 `Loading the script … violates … script-src 'unsafe-inline' 'unsafe-eval'` **and** `The policy is report-only, so the violation has been logged but no further action has been taken`
 
-that is **not blocking** the page today — it is Cloudflare (or a security product) **logging** what *would* be blocked under a stricter policy. Typical sources:
+that is **not blocking** the page today - it is Cloudflare (or a security product) **logging** what *would* be blocked under a stricter policy. Typical sources:
 
 - **Challenge platform** scripts under `/cdn-cgi/challenge-platform/`
 - A **Content-Security-Policy-Report-Only** header missing `'self'`, `worker-src`, and Hugging Face / Supabase hosts
@@ -137,23 +137,23 @@ The **`notifications`** token is not consistently recognised as a Permissions-Po
 Permissions-Policy: microphone=(self), geolocation=(self), camera=(), interest-cohort=(), notifications=()
 ```
 
-Do **not** use `notifications=(self)` — Chromium may reject the token. Web Notifications still work via the browser permission prompt.
+Do **not** use `notifications=(self)` - Chromium may reject the token. Web Notifications still work via the browser permission prompt.
 
 Tune **`microphone`**, **`geolocation`**, and **`camera`** to match product needs.
 
-### Deprecated headers — remove from Cloudflare
+### Deprecated headers - remove from Cloudflare
 
 | Header | Action |
 |--------|--------|
-| `Expect-CT` | **Remove** — deprecated since Chrome 106 |
-| `Feature-Policy` | **Remove** — replaced by `Permissions-Policy` |
-| Duplicate narrow HTTP `Content-Security-Policy` | **Remove or align** — see section A/B above |
+| `Expect-CT` | **Remove** - deprecated since Chrome 106 |
+| `Feature-Policy` | **Remove** - replaced by `Permissions-Policy` |
+| Duplicate narrow HTTP `Content-Security-Policy` | **Remove or align** - see section A/B above |
 ## Console noise that is not the site
 
-- **`lockdown-install.js`**, **`SES Removing unpermitted intrinsics`** — often **browser extensions** (wallet / security tools), not Rianell.
-- **`tabs:outgoing.message.ready`**, **`vendor.js`** — typically **extension** messaging, not app code.
-- **`rokt.com`** preload — third-party / ads; often extensions or injected scripts.
-- **`beforeinstallpromptevent.preventDefault()`** — PWA install UX; informational.
+- **`lockdown-install.js`**, **`SES Removing unpermitted intrinsics`** - often **browser extensions** (wallet / security tools), not Rianell.
+- **`tabs:outgoing.message.ready`**, **`vendor.js`** - typically **extension** messaging, not app code.
+- **`rokt.com`** preload - third-party / ads; often extensions or injected scripts.
+- **`beforeinstallpromptevent.preventDefault()`** - PWA install UX; informational.
 
 See also **[docs/infrastructure-and-security-edge.md](../docs/infrastructure-and-security-edge.md)** and **[SECURITY.md](../docs/SECURITY.md)** (CSP section).
 
@@ -169,7 +169,7 @@ See also **[docs/infrastructure-and-security-edge.md](../docs/infrastructure-and
 
 Document in incident response if abuse is detected.
 
-## Artifact path redirect (post–architecture migration)
+## Artifact path redirect (post-architecture migration)
 
 After renaming **`artifacts/`** → **`artifacts/`** on GitHub Pages, apply a **Bulk Redirect** or **Redirect Rule** in Cloudflare:
 
@@ -188,25 +188,25 @@ Use **Cache Rules** (or legacy Page Rules) on zone **rianell.com** to balance fr
 | **HTML no-store** | `(http.request.uri.path eq "/" or http.request.uri.path.extension eq "html")` | Bypass cache **or** TTL 0 with revalidate | 0 | `max-age=0, must-revalidate` |
 | **Hashed static assets** | `(http.request.uri.path contains ".min.") or (http.request.uri.path.extension in {"js" "css" "woff2" "png" "webp" "svg" "json"})` | Eligible | 1 year | 1 year (`immutable` if fingerprinted) |
 | **i18n / locale packs** | `(http.request.uri.path contains "/i18n-packs/")` | Eligible | 7 days | 1 day |
-| **API / Supabase** | `(http.host contains "supabase.co")` | **Bypass** — not on rianell.com zone; document for cross-origin fetches | — | — |
+| **API / Supabase** | `(http.host contains "supabase.co")` | **Bypass** - not on rianell.com zone; document for cross-origin fetches | - | - |
 
 **Notes:**
 
-- Do **not** long-cache `index.html` or `sw.js` — users must receive new CSP/SRI hashes after deploy.
+- Do **not** long-cache `index.html` or `sw.js` - users must receive new CSP/SRI hashes after deploy.
 - After deploy, **Purge Everything** or purge `/` + `/sw.js` if HTML appears stale.
 - `connect-src` fetches (Open-Meteo, Hugging Face) are **browser** caches; edge rules apply only to same-origin static assets.
 - Align with [performance-budget.md](../docs/performance-budget.md) boot targets.
 
-## DNS hygiene — dangling A records and DMARC
+## DNS hygiene - dangling A records and DMARC
 
-### Dangling A records (Moderate — subdomain takeover risk)
+### Dangling A records (Moderate - subdomain takeover risk)
 
 A **dangling A record** is a DNS A record whose IP address is no longer under your control (the resource at that IP was released, expired, or reassigned). An attacker who claims that IP can then serve content under your subdomain.
 
 **How to audit:**
 
 1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) → zone **rianell.com**.
-2. **DNS** → **Records** — review all **A** and **AAAA** records.
+2. **DNS** → **Records** - review all **A** and **AAAA** records.
 3. For each A record, verify the target IP still serves rianell.com content by running:
    ```bash
    curl -I -H "Host: rianell.com" https://<IP>
@@ -215,7 +215,7 @@ A **dangling A record** is a DNS A record whose IP address is no longer under yo
 
 **Common sources of dangling A records:**
 
-- Old GitHub Pages IPs (pre-custom-domain migration) — `185.199.108.153` through `185.199.111.153`
+- Old GitHub Pages IPs (pre-custom-domain migration) - `185.199.108.153` through `185.199.111.153`
 - Cloudflare Tunnel or Argo IPs left over after tunnel deletion
 - Heroku/Render/Railway ephemeral IPs
 - Cloud VM IPs released when instance was deleted
@@ -224,7 +224,7 @@ A **dangling A record** is a DNS A record whose IP address is no longer under yo
 
 ---
 
-### DMARC missing / misconfigured (Low — email spoofing risk)
+### DMARC missing / misconfigured (Low - email spoofing risk)
 
 Without a valid DMARC record, anyone can send email claiming to be from `rianell.com`. Add the following DNS TXT record:
 
@@ -237,18 +237,18 @@ Without a valid DMARC record, anyone can send email claiming to be from `rianell
 
 **Policy explanation:**
 
-- `p=quarantine` — suspicious mail goes to spam (use `p=reject` once confirmed no legitimate mail is lost)
-- `rua` — aggregate reports sent to your security inbox
-- `ruf` — forensic reports for individual failures
-- `adkim=s` / `aspf=s` — strict alignment with DKIM and SPF
+- `p=quarantine` - suspicious mail goes to spam (use `p=reject` once confirmed no legitimate mail is lost)
+- `rua` - aggregate reports sent to your security inbox
+- `ruf` - forensic reports for individual failures
+- `adkim=s` / `aspf=s` - strict alignment with DKIM and SPF
 
 **Prerequisites:** Ensure you also have valid **SPF** and **DKIM** records:
 
 ```dns
-; SPF — authorize only your mail service(s)
+; SPF - authorize only your mail service(s)
 rianell.com   TXT  "v=spf1 include:_spf.google.com ~all"
 
-; DKIM — check your email provider's dashboard for the public key
+; DKIM - check your email provider's dashboard for the public key
 mail._domainkey.rianell.com  TXT  "v=DKIM1; k=rsa; p=<public-key>"
 ```
 
@@ -307,6 +307,6 @@ Hosted encrypted share links use GitHub Pages `404.html` to redirect `/share/{CO
 
 **Notes:**
 
-- No `wrangler.toml` or Page Rule redirect is required — GitHub Pages serves `apps/pwa-webapp/404.html` for unmatched `/share/*` paths; Cloudflare forwards the request normally.
+- No `wrangler.toml` or Page Rule redirect is required - GitHub Pages serves `apps/pwa-webapp/404.html` for unmatched `/share/*` paths; Cloudflare forwards the request normally.
 - The SPA decrypts share payloads client-side after fetching ciphertext from Supabase; edge cache bypass avoids serving stale HTML for share entry URLs.
 - Document in incident response if share-link abuse (enumeration, brute-force passwords) is detected.

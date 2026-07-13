@@ -2,7 +2,7 @@
 
 **Authority:** `@rianell/tokens` (`packages/tokens/src/index.mjs`) is the single source of truth for shipped UI tokens. PWA CSS custom properties in `apps/pwa-webapp/styles.css` and generated `apps/pwa-webapp/css/tokens.css` mirror this package via `npm run sync:tokens`.
 
-**Reference only:** Root `DESIGN.md` (Airbnb baseline from getdesign) is a crawl/reference artifact for guardrail tooling — not the runtime palette for Rianell health surfaces.
+**Reference only:** Root `DESIGN.md` (Airbnb baseline from getdesign) is a crawl/reference artifact for guardrail tooling - not the runtime palette for Rianell health surfaces.
 
 ## Token layers
 
@@ -38,7 +38,7 @@
 
 ## Surface tokens
 
-Dark and light `surface.card`, `surface.cardSolid`, `surface.glass`, `surface.borderMuted`, `surface.modalBackdrop` — use `themeHelpers` on RN; CSS vars `--surface-*` on PWA.
+Dark and light `surface.card`, `surface.cardSolid`, `surface.glass`, `surface.borderMuted`, `surface.modalBackdrop` - use `themeHelpers` on RN; CSS vars `--surface-*` on PWA.
 
 ## Motion contract
 

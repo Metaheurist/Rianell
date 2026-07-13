@@ -1,8 +1,8 @@
-# External setup — step-by-step instructions
+# External setup - step-by-step instructions
 
 **Purpose:** All steps that happen **outside the repo** (Supabase SQL, env vars, keys, OAuth consoles). Update this file when a plan adds new external dependencies.
 
-**Policy:** [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) — free providers only.
+**Policy:** [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) - free providers only.
 
 **Last verified:** 2026-06-18 (Firecrawl + Supabase docs)
 
@@ -30,13 +30,13 @@
 
 ---
 
-## § Global — one-time project setup
+## § Global - one-time project setup
 
 ### 1. Supabase (plans 05, 06, 13)
 
 **Status:** GitHub secrets `SUPABASE_URL` + `SUPABASE_ANON_KEY` set; rianell.com deploy injects credentials. **Apply SQL once** if not done:
 
-1. Follow **[supabase/APPLY.md](../../supabase/APPLY.md)** — paste entire `supabase/Schema.sql` in SQL Editor (§0 test reset **commented out**).
+1. Follow **[supabase/APPLY.md](../../supabase/APPLY.md)** - paste entire `supabase/Schema.sql` in SQL Editor (§0 test reset **commented out**).
 2. Run §5 verification queries; check Security Advisor for cleared GraphQL lints.
 3. Ensure **Authentication → Email** provider is enabled if users sign in.
 4. Local dev only (gitignored `security/.env`):
@@ -52,7 +52,7 @@
 
 ---
 
-### 2. VAPID keys — Web Push (plans 11, 14 optional)
+### 2. VAPID keys - Web Push (plans 11, 14 optional)
 
 **When:** Before plan 11 R4 production push.
 
@@ -72,7 +72,7 @@
 
 ---
 
-### 3. WebAuthn app lock — PWA (plan 05 P7)
+### 3. WebAuthn app lock - PWA (plan 05 P7)
 
 **When:** Before shipping P7 on production domain.
 
@@ -82,9 +82,9 @@
 
 ---
 
-## § Plan 04 — Logging & data capture
+## § Plan 04 - Logging & data capture
 
-### L5 — Open Food Facts (barcode)
+### L5 - Open Food Facts (barcode)
 
 - **No API key.** HTTP GET to `https://world.openfoodfacts.org/api/v2/product/{barcode}`.
 - SSRF allowlist: `openfoodfacts.org` only.
@@ -92,49 +92,49 @@
 
 ---
 
-## § Plan 05 — Privacy & compliance
+## § Plan 05 - Privacy & compliance
 
-### P1 — Policy viewer
+### P1 - Policy viewer
 
 - Source markdown: `docs/privacy/*.md` (in repo; no external host required).
 - If hosted separately later, use same static files on free static host (Cloudflare Pages free tier).
 
-### P3 — Local-only gates
+### P3 - Local-only gates
 
-No external setup — toggles block Supabase sync, HF download, remote endpoints at network layer.
+No external setup - toggles block Supabase sync, HF download, remote endpoints at network layer.
 
 ---
 
-## § Plan 06 — Cloud sync
+## § Plan 06 - Cloud sync
 
-### D6 — Clinician read-only share link
+### D6 - Clinician read-only share link
 
 1. Supabase **Edge Function** or signed URL pattern (free tier).
 2. RLS: read-only policy for token-scoped rows; **no PHI in query strings**.
 3. Time-limited tokens; security review before ship.
 
-### D7 — User-owned cloud backup (deferrable)
+### D7 - User-owned cloud backup (deferrable)
 
 - **MVP:** WebDAV URL + credentials (user-provided, free self-host).
 - Google Drive / iCloud OAuth: **deferred** per [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md).
 
 ---
 
-## § Plan 08 — On-device LLM
+## § Plan 08 - On-device LLM
 
 ### Model files (no paid HF API)
 
 - Download public GGUF/ONNX models to app cache or bundle tier manifests.
 - No `HF_TOKEN` required for public model weights.
-- **N11:** On-device parity only — **do not** expose user-configurable commercial LLM URL (free-tier policy).
+- **N11:** On-device parity only - **do not** expose user-configurable commercial LLM URL (free-tier policy).
 
 ---
 
-## § Plan 10 — Home dashboard
+## § Plan 10 - Home dashboard
 
-### H5 — Weather & environment strip
+### H5 - Weather & environment strip
 
-**Provider:** [Open-Meteo](https://open-meteo.com/) — no API key.
+**Provider:** [Open-Meteo](https://open-meteo.com/) - no API key.
 
 Example forecast (lat/lon from opt-in geolocation, rounded to 2 decimals):
 
@@ -154,33 +154,33 @@ GET https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitu
 
 ---
 
-## § Plan 11 — Notifications
+## § Plan 11 - Notifications
 
 See **§ Global VAPID** above.
 
-RN: `expo-notifications` — request permissions in Settings; document iOS delivery variance.
+RN: `expo-notifications` - request permissions in Settings; document iOS delivery variance.
 
 ---
 
-## § Plan 13 — Research pool
+## § Plan 13 - Research pool
 
-1. Run `supabase/Schema.sql` in SQL Editor (tables, `research_facets`, RLS, grants, RE1 RPCs — one file).
+1. Run `supabase/Schema.sql` in SQL Editor (tables, `research_facets`, RLS, grants, RE1 RPCs - one file).
 2. Enable Email auth in Supabase Dashboard if users must sign in before contributing.
 4. k-anonymized aggregation runs client-side via RPC (`get_k_anon_pool_insights`, k≥5); no separate cron required for MVP.
 5. Legal/privacy review before production copy (not a technical token step).
 
 ---
 
-## § Plan 14 — Cross-cutting
+## § Plan 14 - Cross-cutting
 
-### X14.5 — Crisis resources
+### X14.5 - Crisis resources
 
 - Maintain HTTPS crisis URLs in `privacy-region.js` / locale policy packs.
-- No external API — static URLs only.
+- No external API - static URLs only.
 
 ---
 
-## § Plan 19 — Third-party connectors (CN4–CN7)
+## § Plan 19 - Third-party connectors (CN4-CN7)
 
 Operator guide: [docs/connectors/SETUP.md](../connectors/SETUP.md)
 

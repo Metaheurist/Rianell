@@ -1,4 +1,4 @@
-# Privacy — other jurisdictions
+# Privacy - other jurisdictions
 
 **Product:** Rianell  
 **Last updated:** 2026-06-13  
@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-Supplements EU/UK GDPR coverage with high-level obligations for users in other markets. **Not legal advice** — engage qualified counsel before regulated health deployments.
+Supplements EU/UK GDPR coverage with high-level obligations for users in other markets. **Not legal advice** - engage qualified counsel before regulated health deployments.
 
 ---
 
@@ -30,9 +30,9 @@ Supplements EU/UK GDPR coverage with high-level obligations for users in other m
 
 | Question | Rianell position |
 |----------|------------------|
-| Is Rianell a covered entity or business associate? | **No** — consumer wellness app; operator is not a healthcare provider, health plan, or clearinghouse. |
+| Is Rianell a covered entity or business associate? | **No** - consumer wellness app; operator is not a healthcare provider, health plan, or clearinghouse. |
 | Can users store PHI? | Users may enter health information; operator does not provide HIPAA-compliant BAA by default. |
-| Enterprise HIPAA need | Evaluate **Supabase HIPAA Projects** — [crypto-roadmap.md](../crypto-roadmap.md) |
+| Enterprise HIPAA need | Evaluate **Supabase HIPAA Projects** - [crypto-roadmap.md](../crypto-roadmap.md) |
 
 **User notice:** "Rianell is not HIPAA-compliant. Do not use as a substitute for professional medical records systems unless your organisation has executed appropriate agreements."
 
@@ -42,7 +42,7 @@ Supplements EU/UK GDPR coverage with high-level obligations for users in other m
 |---------|----------------|
 | Categories collected | Health metrics, identifiers, internet activity (IP via CDN) |
 | Sale / share | **No sale**; no cross-context behavioral advertising |
-| Sensitive personal information | Health data — limit use to providing app features |
+| Sensitive personal information | Health data - limit use to providing app features |
 | Rights | Know, delete, correct, opt-out of sale (N/A), limit SPI use |
 | Notice at collection | Privacy policy + in-app disclosures |
 | **DSAR** | [data-subject-rights.md](data-subject-rights.md) |
@@ -53,12 +53,12 @@ Applies to **PHR vendors** and related entities not covered by HIPAA.
 
 | Factor | Assessment |
 |--------|------------|
-| Is Rianell a PHR vendor? | **Likely not** at current scale/product definition — monitor FTC guidance if positioning changes to "personal health record" with provider integrations. |
+| Is Rianell a PHR vendor? | **Likely not** at current scale/product definition - monitor FTC guidance if positioning changes to "personal health record" with provider integrations. |
 | If HBNR applies | Notify FTC + users **without unreasonable delay** (60 days historically cited; verify current rule). |
 
 ### 3.4 Other US states
 
-Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Texas, Oregon, etc. — align with GDPR-style rights where applicable; maintain unified DSAR process.
+Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Texas, Oregon, etc. - align with GDPR-style rights where applicable; maintain unified DSAR process.
 
 ---
 
@@ -67,9 +67,9 @@ Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Texas, Oregon, etc. — a
 | Topic | Notes |
 |-------|-------|
 | **PIPEDA** | Consent, limiting collection, safeguards, openness |
-| **Alberta HIA / BC FIPPA** | Extra health-specific rules for custodians — Rianell is not a custodian |
+| **Alberta HIA / BC FIPPA** | Extra health-specific rules for custodians - Rianell is not a custodian |
 | **Breach** | Report to OPC if real risk of significant harm |
-| **Cross-border** | Subprocessors in US — disclose in privacy notice |
+| **Cross-border** | Subprocessors in US - disclose in privacy notice |
 
 ---
 
@@ -80,7 +80,7 @@ Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Texas, Oregon, etc. — a
 | Legal bases | Consent for health (sensitive); contract for account |
 | ANPD | Monitor registration guidance for small controllers |
 | Rights | Confirmation, access, correction, anonymization, portability, deletion |
-| DPO | Not mandatory for all controllers — assess |
+| DPO | Not mandatory for all controllers - assess |
 | International transfer | SCC-style mechanisms via subprocessors |
 
 ---
@@ -90,8 +90,8 @@ Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Texas, Oregon, etc. — a
 | Framework | Requirement |
 |-----------|-------------|
 | **Privacy Act 1988 + APPs** | Open/transparent; collection notice; security; access/correction |
-| **Notifiable Data Breaches** | 30-day assessment; notify OAIC + individuals if serious harm likely — [incident-response.md](../incident-response.md) §6 |
-| **My Health Records Act** | N/A — Rianell does not integrate with My Health Record |
+| **Notifiable Data Breaches** | 30-day assessment; notify OAIC + individuals if serious harm likely - [incident-response.md](../incident-response.md) §6 |
+| **My Health Records Act** | N/A - Rianell does not integrate with My Health Record |
 | **TGA** | Wellness positioning; not a medical device unless therapeutic claims added |
 
 ---
@@ -102,7 +102,7 @@ Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Texas, Oregon, etc. — a
 |---------|-------|
 | Significant data fiduciary | Unlikely at current scale |
 | Consent | Free, specific, informed; health is sensitive personal data |
-| Cross-border | Government notification rules may evolve — monitor |
+| Cross-border | Government notification rules may evolve - monitor |
 | Rights | Access, correction, erasure |
 | Children's data | Verifiable parental consent under 18 |
 
@@ -115,7 +115,7 @@ Virginia (VCDPA), Colorado (CPA), Connecticut (CTDPA), Texas, Oregon, etc. — a
 | EU/EEA | Lead SA | 72h | [incident-response.md](../incident-response.md) Art. 33 |
 | UK | ICO | 72h | Same template |
 | Australia | OAIC | ASASP after assessment (≤30d) | incident-response §6 |
-| US (state) | AG (varies) | 30–72h typical | State AG portals |
+| US (state) | AG (varies) | 30-72h typical | State AG portals |
 | Canada | OPC / provincial | ASASP | OPC breach form |
 | Brazil | ANPD | Reasonable time | ANPD guidance |
 

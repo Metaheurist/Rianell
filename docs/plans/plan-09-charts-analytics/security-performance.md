@@ -1,6 +1,6 @@
-# Plan 09 — Security & performance review
+# Plan 09 - Security & performance review
 
-**Section 3:** Charts & analytics · **IDs:** C1–C10
+**Section 3:** Charts & analytics · **IDs:** C1-C10
 
 Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
 
@@ -21,7 +21,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 - Lazy-load ApexCharts; destroy charts on tab hide to free WebGL/canvas memory.
 - C1 correlation cards: compute from cached A3 results, not re-run engine per render.
 
-**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit — no console `pageerror` regressions.
+**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit - no console `pageerror` regressions.
 
 ---
 

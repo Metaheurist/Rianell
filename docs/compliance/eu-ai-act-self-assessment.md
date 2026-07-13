@@ -1,8 +1,8 @@
-# EU AI Act — provider self-assessment (Rianell)
+# EU AI Act - provider self-assessment (Rianell)
 
 **Product:** Rianell personal health dashboard  
 **Last updated:** 2026-06-23  
-**Status:** Launch audit Phase 4 — operator checklist. Not legal advice.  
+**Status:** Launch audit Phase 4 - operator checklist. Not legal advice.  
 **Related:** [ropa.json](../privacy/ropa.json) · [ai-security.md](../ai-security.md) · [global-baseline.md](../privacy/global-baseline.md)
 
 ---
@@ -11,7 +11,7 @@
 
 | Question | Assessment |
 |----------|------------|
-| Is Rianell a **high-risk AI system** under Annex III (health)? | **No** — on-device summaries and pattern hints are **wellness support**, not diagnostic or treatment decisions. Users retain control; outputs are not clinical directives. |
+| Is Rianell a **high-risk AI system** under Annex III (health)? | **No** - on-device summaries and pattern hints are **wellness support**, not diagnostic or treatment decisions. Users retain control; outputs are not clinical directives. |
 | Provider vs deployer | **Provider** for the shipped PWA/RN app; users are **deployers** of their own data on device. |
 | GPAI / foundation models | Rianell downloads **open-weight** models (Hugging Face) for **local inference**; no fine-tuning of third-party GPAI for product training today. |
 

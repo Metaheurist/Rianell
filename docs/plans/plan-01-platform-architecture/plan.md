@@ -10,7 +10,7 @@ depends_on: []
 blocks: [plan-02-accessibility-i18n/plan.md, plan-03-settings-onboarding/plan.md]
 ---
 
-# Plan 01 — Section 13: Platform & architecture
+# Plan 01 - Section 13: Platform & architecture
 
 ## Objective
 
@@ -20,8 +20,8 @@ Establish maintainable PWA structure and a documented design system before featu
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| T1 | **Component extraction (PWA)** — split settings, wizard, charts into ES modules | L | Incremental only; no big-bang refactor |
-| T2 | **Design system Storybook / catalog** — tokens + components documented | M | `@rianell/tokens` already synced to PWA |
+| T1 | **Component extraction (PWA)** - split settings, wizard, charts into ES modules | L | Incremental only; no big-bang refactor |
+| T2 | **Design system Storybook / catalog** - tokens + components documented | M | `@rianell/tokens` already synced to PWA |
 
 
 ## Plan folder docs
@@ -34,9 +34,9 @@ Establish maintainable PWA structure and a documented design system before featu
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
-- **External setup** — See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **External setup** - See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 
 ## Prerequisites
 
@@ -69,18 +69,18 @@ Establish maintainable PWA structure and a documented design system before featu
 
 ## Cross-plan notes
 
-- **T1** unblocks faster delivery in plans 03–10 (Settings, Logging UI, Charts, Home)
+- **T1** unblocks faster delivery in plans 03-10 (Settings, Logging UI, Charts, Home)
 - **T2** supports plan 02 (I5 chart palettes) and all new UI strings/components
 
 ## Agent execution
 
-### Phase A — Inventory (before any extraction)
+### Phase A - Inventory (before any extraction)
 
-- [ ] Grep `apps/pwa-webapp/app.js` for `toggleSettings`, `LOG_WIZARD`, `switchTab('charts')` — note line ranges and shared state (`appSettings`, `logs`, `chartState`)
+- [ ] Grep `apps/pwa-webapp/app.js` for `toggleSettings`, `LOG_WIZARD`, `switchTab('charts')` - note line ranges and shared state (`appSettings`, `logs`, `chartState`)
 - [ ] Confirm PWA build entry: `apps/pwa-webapp/build-site.mjs` and how `app.js` is bundled
-- [ ] List RN screens that mirror extracted PWA modules (Settings, Log wizard, Charts) for parity notes only — no RN refactor in this plan unless shared package extracted
+- [ ] List RN screens that mirror extracted PWA modules (Settings, Log wizard, Charts) for parity notes only - no RN refactor in this plan unless shared package extracted
 
-### Phase B — T1: PWA component extraction (incremental)
+### Phase B - T1: PWA component extraction (incremental)
 
 **Order:** settings → wizard → charts (one vertical slice per PR/session)
 
@@ -105,7 +105,7 @@ Establish maintainable PWA structure and a documented design system before featu
 
 **T1 acceptance:** At least one of settings, wizard, or charts in dedicated ES modules; `npm run build:web` passes; no behavior regression in manual smoke.
 
-### Phase C — T2: Design system catalog
+### Phase C - T2: Design system catalog
 
 - [ ] Add Storybook under `apps/storybook/` OR static catalog page under `apps/pwa-webapp/design-catalog/` (pick one; document choice in plan notes)
 - [ ] Wire `@rianell/tokens` CSS variables; document primary components: buttons, cards, sliders, settings panes
@@ -147,4 +147,4 @@ Then: CHANGELOG → MASTER §13 → commit/push → `npm run projects:ci-watch` 
 ## Agent do-nots
 
 - No big-bang `app.js` rewrite in one pass
-- Do not change log schema or settings field names (plans 03–04 depend on stability)
+- Do not change log schema or settings field names (plans 03-04 depend on stability)

@@ -2,7 +2,7 @@
 
 **Product:** Rianell  
 **Last updated:** 2026-06-23  
-**Status:** Launch audit Phase 4 — copy-paste reference for store consoles.  
+**Status:** Launch audit Phase 4 - copy-paste reference for store consoles.  
 **Related:** [data-safety.xml](../../apps/rn-app/data-safety.xml) · [dsa-compliance.md](dsa-compliance.md) · [global-baseline.md](../privacy/global-baseline.md)
 
 ---
@@ -19,7 +19,7 @@
 
 ---
 
-## 2. Google Play — Data safety
+## 2. Google Play - Data safety
 
 Use `apps/rn-app/data-safety.xml` as the canonical field mapping. Highlights:
 
@@ -29,7 +29,7 @@ Use `apps/rn-app/data-safety.xml` as the canonical field mapping. Highlights:
 
 ---
 
-## 3. Apple App Store — Privacy Nutrition Labels
+## 3. Apple App Store - Privacy Nutrition Labels
 
 | Data type | Linked to user | Used for tracking |
 |-----------|----------------|-------------------|

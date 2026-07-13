@@ -1,4 +1,4 @@
-# Plan 11 — References
+# Plan 11 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/web-push-security.json — VAPID + encryption`
+- `.firecrawl/projects/web-push-security.json - VAPID + encryption`
 
 ## External (verify online)
 

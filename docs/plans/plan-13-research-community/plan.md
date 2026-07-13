@@ -10,7 +10,7 @@ depends_on: [plan-07-ai-engine/plan.md, plan-06-cloud-sync/plan.md, plan-05-priv
 blocks: [plan-14-cross-cutting/plan.md]
 ---
 
-# Plan 13 — Section 12: Research & anonymized pool
+# Plan 13 - Section 12: Research & anonymized pool
 
 ## Objective
 
@@ -20,8 +20,8 @@ Close the loop for anonymized contributors: k-anonymized aggregate insights back
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| RE1 | **Aggregate insights back to contributors** — k-anonymized cohort comparisons | L, ★ | e.g. sleep > 7h → fewer flares |
-| RE4 | **Export for personal research** — download own contribution history | Q | Transparency |
+| RE1 | **Aggregate insights back to contributors** - k-anonymized cohort comparisons | L, ★ | e.g. sleep > 7h → fewer flares |
+| RE4 | **Export for personal research** - download own contribution history | Q | Transparency |
 
 
 ## Plan folder docs
@@ -34,8 +34,8 @@ Close the loop for anonymized contributors: k-anonymized aggregate insights back
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
 - **External setup** � See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 ## Prerequisites
 
@@ -64,7 +64,7 @@ Close the loop for anonymized contributors: k-anonymized aggregate insights back
 ## Completion gates
 
 - [ ] RE1 and RE4 implemented or deferred
-- [ ] RE2, RE3 NR — not implemented
+- [ ] RE2, RE3 NR - not implemented
 - [ ] k-anonymity minimum documented
 - [ ] Opt-out revokes future uploads; existing rows policy documented
 
@@ -76,20 +76,20 @@ Close the loop for anonymized contributors: k-anonymized aggregate insights back
 
 ## Agent execution
 
-### Phase A — Transparency export (RE4)
+### Phase A - Transparency export (RE4)
 
 - [ ] User-facing download of own anonymized contribution rows
 - [ ] Decrypt locally if stored encrypted; JSON or CSV format
 - [ ] Settings entry under anonymized pool pane
 
-### Phase B — Aggregate insights (RE1)
+### Phase B - Aggregate insights (RE1)
 
 - [ ] Server/edge aggregation with k-anonymity threshold (document minimum k in UI)
-- [ ] Example insight: "Contributors sleeping >7h report fewer flares" — never expose individuals
+- [ ] Example insight: "Contributors sleeping >7h report fewer flares" - never expose individuals
 - [ ] Enforce gates: `contributeAnonData`, region, 90+ days, medical condition consent
 - [ ] Opt-out stops future uploads; document retention policy
 
-### Phase C — Privacy integration
+### Phase C - Privacy integration
 
 - [ ] Wire P5 DPIA helper copy into pool consent flow
 - [ ] Use A8 analysis export shape for payload validation
@@ -124,4 +124,4 @@ Then: CHANGELOG → MASTER §12 → commit/push → `npm run projects:ci-watch` 
 
 ## Agent do-nots
 
-- **RE2, RE3 are NR** — no Flaredown-style communities or opt-in tiers
+- **RE2, RE3 are NR** - no Flaredown-style communities or opt-in tiers

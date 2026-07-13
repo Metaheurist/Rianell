@@ -1,4 +1,4 @@
-# Plan 13 — References
+# Plan 13 - References
 
 ## Internal
 

@@ -12,7 +12,7 @@ blocks:
   - plan-21-security/plan.md
 ---
 
-# Plan 20 — Self-hosted & FHIR R4 (SH1–SH5)
+# Plan 20 - Self-hosted & FHIR R4 (SH1-SH5)
 
 ## Objective
 

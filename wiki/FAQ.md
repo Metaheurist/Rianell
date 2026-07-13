@@ -77,7 +77,7 @@ After first visit and install, cached assets work offline; sync and model downlo
 ## Developers
 
 **Where is the source code?**  
-[github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell) — start at [[Developer-Home]].
+[github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell) - start at [[Developer-Home]].
 
 **How do I update this wiki?**  
 Edit `wiki/` in the repo, run `npm run wiki:verify` and `npm run wiki:sync`. See [[Contributing]].

@@ -1,6 +1,6 @@
-# Plan 16 — Scope & scripts
+# Plan 16 - Scope & scripts
 
-**Section 15:** Extended Vital Signs & Metrics · **IDs:** VM1–VM11
+**Section 15:** Extended Vital Signs & Metrics · **IDs:** VM1-VM11
 
 ## In scope
 
@@ -12,7 +12,7 @@
 ## Out of scope
 
 - Wearable auto-import for HRV/SpO₂ (Plan 19)
-- Full RN camera upload (expo-image-picker) — PWA upload path when signed in; RN shows attachment count
+- Full RN camera upload (expo-image-picker) - PWA upload path when signed in; RN shows attachment count
 
 ## Agent scripts
 

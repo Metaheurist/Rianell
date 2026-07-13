@@ -1,6 +1,6 @@
-# Plan 11 — Scope & scripts
+# Plan 11 - Scope & scripts
 
-**Section 9:** Notifications & engagement · **IDs:** R1–R6
+**Section 9:** Notifications & engagement · **IDs:** R1-R6
 
 ## In scope
 

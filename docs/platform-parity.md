@@ -3,32 +3,32 @@
 This document defines the expected behaviour contract across:
 
 - **Web / PWA** (`apps/pwa-webapp/`)
-- **React Native (Expo)** (`apps/rn-app/`) — primary mobile app
+- **React Native (Expo)** (`apps/rn-app/`) - primary mobile app
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
 ### v1.97.0 parity note (Engagement & UX overhaul)
 
-- **Empty states:** Logs, Charts, AI, Mood, Weekly Review — warm copy + visual previews on PWA and RN (`EmptyState`, `EmptyPreview`, PWA ghost cards/bars).
-- **Home:** Welcome card, discovery chips, FAB pulse (no logs today), goals animated progress bars, streak grace messaging, personal-best card, weekly-review completion banner — both platforms.
+- **Empty states:** Logs, Charts, AI, Mood, Weekly Review - warm copy + visual previews on PWA and RN (`EmptyState`, `EmptyPreview`, PWA ghost cards/bars).
+- **Home:** Welcome card, discovery chips, FAB pulse (no logs today), goals animated progress bars, streak grace messaging, personal-best card, weekly-review completion banner - both platforms.
 - **Settings:** Three collapsible chapters + setup strip + inline hints (PWA `settings.js` / RN `SettingsChapter`).
-- **Gamification:** Log milestones, goal celebration, wizard unlock banners, tab discovery badges, unseen achievement dot — shared logic in `@rianell/shared` + `engagementGamification.ts` / PWA `app.js`.
+- **Gamification:** Log milestones, goal celebration, wizard unlock banners, tab discovery badges, unseen achievement dot - shared logic in `@rianell/shared` + `engagementGamification.ts` / PWA `app.js`.
 - **Goals modal:** First-visit orientation card; achievements pane marks `seenAt`.
 
 ### v1.120.0 parity note (Theme tokens & unified onboarding)
 
 - **Theme (PWA):** Global theme (Mint, Red/Black, Mono, Rainbow) now drives modal borders, AI carousel controls, mood metric accents, and chart prediction annotations via CSS `--accent-*` tokens + runtime helpers. RN global theme tokens unchanged in this release (PWA-focused pass).
-- **Onboarding counter:** PWA first-run wizard and RN `FirstRunWizard` share `resolveUnifiedOnboardingProgress()` — one **step N of M** across wizard panes and individual tutorial slides.
+- **Onboarding counter:** PWA first-run wizard and RN `FirstRunWizard` share `resolveUnifiedOnboardingProgress()` - one **step N of M** across wizard panes and individual tutorial slides.
 
 ### Home AI suggestions (PWA + RN)
 
-- **Shared engine:** `packages/shared/src/ai/homeSuggestions.mjs` — rule-based chip selection (0–3 chips).
+- **Shared engine:** `packages/shared/src/ai/homeSuggestions.mjs` - rule-based chip selection (0-3 chips).
 - **Gating:** AI enabled, logged today, ≥3 days in the last 14-day window.
 - **Answer modal:** `homeQuestion` prompt feature in `summary-llm.js` (PWA) and `llm.ts` (RN); medical disclaimer on both platforms.
 
 ### v1.70.3 parity note (PWA bugfix release)
 
-- **PWA-only fixes (v1.70.0–v1.70.3):** Settings freeze, log card expand, summary LLM host probe, log share button styling — no RN parity flag changes.
+- **PWA-only fixes (v1.70.0-v1.70.3):** Settings freeze, log card expand, summary LLM host probe, log share button styling - no RN parity flag changes.
 - **Logs expand:** PWA per-day cards again show full detail body when expanded; RN `LogsScreen` modal detail unchanged.
 
 ### v1.69.1 parity note (CI generate-before-coverage)
@@ -67,7 +67,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Pipeline:** `batch-mt-tier-a.mjs`, `tier-a-exact-overrides.mjs`, `verify-translation-coverage.mjs --strict`.
 - **Quality:** Tier A locales ≤5% en-GB identity (glossary-excluded).
 
-### v1.63.0 parity note (LC-11–LC-15 wiring)
+### v1.63.0 parity note (LC-11-LC-15 wiring)
 
 - **Wiring complete:** 861 en-GB catalog keys; **0** hardcoded UI audit candidates; `audit-hardcoded-strings.mjs --require-wiring` + `verify-no-hardcoded-ui.mjs --strict` in CI.
 - **Audit infra:** `scripts/.audit/i18n-allowlist.json`, `hardcoded-ui-baseline.json`, shared `i18n-audit-shared.mjs`.
@@ -98,7 +98,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 ### v1.49.0 parity note (Capacitor sunset + shared packages)
 
 - **Capacitor removed:** Legacy **`apps/capacitor-app/`** WebView shell and CI release artifacts are gone; **PWA + React Native (Expo)** are the only app surfaces.
-- **Shared packages:** **`@rianell/shared`**, **`@rianell/ai-engine`**, **`@rianell/cloud-sync`**, **`@rianell/llm`** — PWA loads vendor bundles; RN imports the same packages.
+- **Shared packages:** **`@rianell/shared`**, **`@rianell/ai-engine`**, **`@rianell/cloud-sync`**, **`@rianell/llm`** - PWA loads vendor bundles; RN imports the same packages.
 - **RN parity:** Cloud sync UI (`SettingsCloudPane`), expanded settings/goals, chart predictions, print export, offline queue flush, native LLM consent path (`llmNative.ts` placeholder until ONNX ships).
 - **Parity gates:** `check-platform-parity.mjs` modes **`web | android | ios`**; `parity-inventory.mjs` diffs settings keys and cloud exports.
 
@@ -115,7 +115,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 
 ### v1.48.0 parity note (Llama on-device LLM upgrade)
 
-- **PWA:** **`summary-llm.js`** — **`onnx-community/Llama-3.2-1B-Instruct-ONNX`** (tier 3–5) / **`SmolLM2-360M-Instruct-ONNX`** (tier 1–2); **`text-generation`** chat pipeline; download consent modal; progress banner; **`motd.json`** healthy-lifestyle quotes.
+- **PWA:** **`summary-llm.js`** - **`onnx-community/Llama-3.2-1B-Instruct-ONNX`** (tier 3-5) / **`SmolLM2-360M-Instruct-ONNX`** (tier 1-2); **`text-generation`** chat pipeline; download consent modal; progress banner; **`motd.json`** healthy-lifestyle quotes.
 - **React Native:** **`llm.ts`** remote endpoint when configured; **`llmNative.ts`** consent + MOTD fallback aligned with **`@rianell/llm`** model IDs.
 - **Parity checks:** **`check-platform-parity.mjs`** validates new model ids, **`progress_callback`**, and consent hook.
 
@@ -127,8 +127,8 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 
 ### v1.46.3 parity note (RN settings carousel + app installation + log wizard suggest note)
 
-- **React Native — Settings:** Eight titled carousel panes match the web settings overlay pane titles (`apps/pwa-webapp/index.html`). Daily reminders live under **Display**; demo mode under **Data options**; LLM tier + benchmark under **Performance**; export, import, native **App installation** info, and **Clear all data** under **Data management** (`SettingsAppInstallSection.tsx`).
-- **React Native — Log wizard:** **Suggest note** uses the same `suggestLogNote` pipeline as the PWA (remote LLM when configured, otherwise `AIEngine.suggestLogNote`), with preferences and benchmark available to the screen.
+- **React Native - Settings:** Eight titled carousel panes match the web settings overlay pane titles (`apps/pwa-webapp/index.html`). Daily reminders live under **Display**; demo mode under **Data options**; LLM tier + benchmark under **Performance**; export, import, native **App installation** info, and **Clear all data** under **Data management** (`SettingsAppInstallSection.tsx`).
+- **React Native - Log wizard:** **Suggest note** uses the same `suggestLogNote` pipeline as the PWA (remote LLM when configured, otherwise `AIEngine.suggestLogNote`), with preferences and benchmark available to the screen.
 - **Web unchanged:** PWA settings layout and `refreshAppInstallSection` behaviour remain the source of truth for browser/WebView install tiles; native RN shows the replacement block described in `docs/CHANGELOG.md` v1.46.3.
 
 ### v1.46.2 parity note (legacy release labeling + CI metadata fallback)
@@ -433,31 +433,31 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 
 ### v1.121.0 parity note (Cycle period-start anchor)
 
-- **Cycle tracking:** PWA + RN — **Period started today** (`cycle.periodStart`), day selector 1–35 with irregular expand to 45, `findLatestPeriodStart` / `computeCycleDayFromPeriodStart` in `@rianell/shared`; late-cycle readout above day 35.
+- **Cycle tracking:** PWA + RN - **Period started today** (`cycle.periodStart`), day selector 1-35 with irregular expand to 45, `findLatestPeriodStart` / `computeCycleDayFromPeriodStart` in `@rianell/shared`; late-cycle readout above day 35.
 
 ### v1.119.0 parity note (Cycle tracking UX & Home cards)
 
-- **Cycle tracking:** PWA + RN log wizard step 1 — SVG phase icons, hidden-scrollbar day row, `suggestCycleForDate` from shared package; tutorial slide 8 (cycle enable) on both platforms.
+- **Cycle tracking:** PWA + RN log wizard step 1 - SVG phase icons, hidden-scrollbar day row, `suggestCycleForDate` from shared package; tutorial slide 8 (cycle enable) on both platforms.
 - **Home:** Recent patterns icon + white text; Weekly review **Enable AI** vs **Start review** based on LLM ready state.
 - **Mood tab (PWA):** Responsive sparkline in metrics grid (mobile overflow fix).
 - **Logging modules:** Settings UI shows cycle toggle only; barcode/voice hidden until feature ships.
 
 ### v1.118.0 parity note (Onboarding UX & Smartlook default-on)
 
-- **First-run wizard:** PWA + RN share `buildFirstRunPlan` — session recording disclosure step after cookies; tracking profile deferred to Settings.
+- **First-run wizard:** PWA + RN share `buildFirstRunPlan` - session recording disclosure step after cookies; tracking profile deferred to Settings.
 - **Smartlook:** Default-on preference with disclosure gate (`shouldActivateSessionRecording`); PWA `guided-onboarding.js` + RN `FirstRunWizard.tsx`; Settings revoke unchanged.
 - **Settings PWA:** Consent dashboard on Privacy pane; Goals carousel script load fix (IIFE).
 - **Icons:** AM check-in sun uses theme tokens; sized to midday check-in.
 
 ### v1.117.1 parity note (Supabase pool RPC grants)
 
-- **No app parity change** — PWA/RN still call pool RPCs only when signed in with research opt-in.
+- **No app parity change** - PWA/RN still call pool RPCs only when signed in with research opt-in.
 - **Operator:** Re-run `Schema.sql` §4 so `anon` cannot execute RE1 RPCs (Security Advisor 0028).
 
 ### v1.117.0 parity note (Achievements & Goals carousel)
 
-- **Goals modal:** PWA + RN two-pane carousel — **Goals** (steps, hydration, sleep, good-days targets) and **Achievements** (logging unlock badges).
-- **Unlock schedule:** Shared `LOGGING_ACHIEVEMENTS` / `computeAchievementSnapshots` — food day 7, exercise day 14, medications day 21 from `trackingProfile.configuredAt`.
+- **Goals modal:** PWA + RN two-pane carousel - **Goals** (steps, hydration, sleep, good-days targets) and **Achievements** (logging unlock badges).
+- **Unlock schedule:** Shared `LOGGING_ACHIEVEMENTS` / `computeAchievementSnapshots` - food day 7, exercise day 14, medications day 21 from `trackingProfile.configuredAt`.
 - **Wizard locks:** Locked food/exercise/meds steps show **View achievements** CTA → Achievements pane.
 - **Notifications:** Unlock toast once per achievement when notifications enabled; streak reminders (R6) remain achievement-free.
 - **Cloud:** `user_achievements` sync on sign-in; merged with local `notifiedAt`/`seenAt`; deleted with unified cloud erasure.
@@ -467,7 +467,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Screening:** PHQ-2/GAD-2 initial phase unchanged; score ≥ 3 unlocks PHQ-9 (7 follow-up items) or GAD-7 (5 follow-up items) on PWA + RN.
 - **Results:** Low path shows `/6`; full instrument shows severity band + `/27` or `/21`.
 - **Crisis:** PHQ-9 item 9 positive → alert before result; regional crisis links on all result paths.
-- **Data:** Ephemeral only — cleared on modal close; no logs/cloud export.
+- **Data:** Ephemeral only - cleared on modal close; no logs/cloud export.
 
 ### v1.114.0 parity note (Security lock tab and UX trim)
 

@@ -55,13 +55,13 @@ When you enable **Barcode food logging** in Settings → Data options, Rianell c
 
 ## Optional session recording (Smartlook)
 
-Rianell uses optional session analytics to improve usability. During onboarding you choose **yes** or **no** on a friendly card — nothing is pre-ticked for EEA/UK users.
+Rianell uses optional session analytics to improve usability. During onboarding you choose **yes** or **no** on a friendly card - nothing is pre-ticked for EEA/UK users.
 
 | | |
 |---|---|
 | **When it runs** | After you complete the first-run **Session recording** step (default on), or when you explicitly enable it in Settings |
-| **What it may capture** | Anonymised heatmaps and error data — screens you visit may be included, but recordings are not reviewed individually for health content |
-| **Where data goes** | Smartlook Analytics (EU region) — see [subprocessor register](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/subprocessors.md) |
+| **What it may capture** | Anonymised heatmaps and error data - screens you visit may be included, but recordings are not reviewed individually for health content |
+| **Where data goes** | Smartlook Analytics (EU region) - see [subprocessor register](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/subprocessors.md) |
 | **How to stop** | Turn the toggle off during onboarding, in Settings → Privacy & region, or **Consent dashboard → Revoke** |
 | **Local-only mode** | Blocks session recording along with other network features |
 
@@ -80,7 +80,7 @@ Technical details: [Smartlook session recording](https://github.com/Metaheurist/
 
 ## Security highlights
 
-- Supabase **Row Level Security** — users see only their rows
+- Supabase **Row Level Security** - users see only their rows
 - CSP and security headers on the web app (see CI security reports)
 - Client uses **publishable** Supabase key only
 
@@ -90,7 +90,7 @@ Technical details: [Smartlook session recording](https://github.com/Metaheurist/
 
 Rianell stores a small **`rianellPerfBenchmark`** entry in your browser’s local storage so the app can tune charts and AI preload for your device. It contains only:
 
-- Performance tier (1–5), desktop/mobile flag, timestamp, and optional GPU backend hint
+- Performance tier (1-5), desktop/mobile flag, timestamp, and optional GPU backend hint
 - No health logs, no network upload, no vendor/model fingerprint in the minimal schema
 
 This is **strictly necessary** for on-device performance tuning (not tracking). You can clear it via God mode → clear benchmark cache, or by clearing site data for rianell.com.
@@ -99,7 +99,7 @@ This is **strictly necessary** for on-device performance tuning (not tracking). 
 
 ## Read more (technical)
 
-- [Privacy program — global baseline](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/global-baseline.md)
+- [Privacy program - global baseline](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/global-baseline.md)
 - [Smartlook session recording (technical)](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/smartlook-session-recording.md)
 - [Data subject rights UX mapping](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/data-subject-rights.md)
 - [SECURITY.md](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)

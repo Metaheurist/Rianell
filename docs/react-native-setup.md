@@ -41,14 +41,14 @@ APK output: **`apps/rn-app/android/app/build/outputs/apk/debug/`**
 ## Configuration
 
 - **Supabase**: set env / config used by cloud sync and bug reports (see [SECURITY.md](SECURITY.md)).
-- **Auth storage (v1.50.0):** Supabase session tokens use **`expo-secure-store`** (`secureStorageAdapter.ts` / `supabaseAuthStorage`) — not AsyncStorage. Requires the **`expo-secure-store`** plugin in `app.json`.
+- **Auth storage (v1.50.0):** Supabase session tokens use **`expo-secure-store`** (`secureStorageAdapter.ts` / `supabaseAuthStorage`) - not AsyncStorage. Requires the **`expo-secure-store`** plugin in `app.json`.
 - **Android backup:** **`allowBackup: false`** in `app.json` so OS backup does not export auth tokens or app data unintentionally.
-- **Shared schema**: logs normalized via `@rianell/shared` — see [data-model.md](data-model.md).
+- **Shared schema**: logs normalized via `@rianell/shared` - see [data-model.md](data-model.md).
 - **Parity**: feature contract in [platform-parity.md](platform-parity.md).
 
 > **v1.49.0:** Legacy **`apps/capacitor-app/`** was removed. Mobile development targets **`apps/rn-app`** only (Expo / RN CLI).
 
 ## Related
 
-- [setup-and-usage.md](setup-and-usage.md) — install links and CI artifacts
-- [CHANGELOG.md](CHANGELOG.md) — release notes
+- [setup-and-usage.md](setup-and-usage.md) - install links and CI artifacts
+- [CHANGELOG.md](CHANGELOG.md) - release notes

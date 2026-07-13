@@ -1,6 +1,6 @@
-# Plan 02 — Scope & scripts
+# Plan 02 - Scope & scripts
 
-**Section 10:** Accessibility & i18n · **IDs:** I1–I5
+**Section 10:** Accessibility & i18n · **IDs:** I1-I5
 
 ## In scope
 

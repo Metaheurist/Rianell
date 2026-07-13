@@ -17,11 +17,11 @@ Official builds are produced by GitHub Actions and published with each release. 
 
 ## Where to download
 
-1. **Releases page** — [github.com/Metaheurist/Rianell/releases](https://github.com/Metaheurist/Rianell/releases) (attached assets).
+1. **Releases page** - [github.com/Metaheurist/Rianell/releases](https://github.com/Metaheurist/Rianell/releases) (attached assets).
 2. **artifacts folder** in the repo (CI-updated `latest.json` pointers):
-   - Android: `artifacts/RNCLI-Android/` — see `latest.json` for current APK filename
-   - iOS: `artifacts/iOS/` — see `latest.json` for current zip
-   - Server: `artifacts/Server/` — `rianell-server-x64.exe`, `rianell-server-x86.exe`
+   - Android: `artifacts/RNCLI-Android/` - see `latest.json` for current APK filename
+   - iOS: `artifacts/iOS/` - see `latest.json` for current zip
+   - Server: `artifacts/Server/` - `rianell-server-x64.exe`, `rianell-server-x86.exe`
 
 Check the root [README](https://github.com/Metaheurist/Rianell/blob/main/README.md) CI build table for the latest build numbers.
 
@@ -29,7 +29,7 @@ Check the root [README](https://github.com/Metaheurist/Rianell/blob/main/README.
 
 ## Web / PWA
 
-No download required — use **[rianell.com](https://rianell.com)**. Install to your home screen for an app-like experience (service worker + manifest).
+No download required - use **[rianell.com](https://rianell.com)**. Install to your home screen for an app-like experience (service worker + manifest).
 
 ---
 
@@ -51,8 +51,8 @@ Alpha iOS builds ship as a **zip** containing an Xcode project. You need Xcode a
 
 The Python server packaged with PyInstaller for local hosting:
 
-- **x64** — most modern PCs
-- **x86** — older 32-bit Windows
+- **x64** - most modern PCs
+- **x86** - older 32-bit Windows
 
 Run the EXE to serve the PWA locally with a Tk dashboard. For development, `python -m server` from a git clone is equivalent. See [[Developer-Setup]].
 

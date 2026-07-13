@@ -1,4 +1,4 @@
-# Free-tier policy — all plans
+# Free-tier policy - all plans
 
 **Mandatory for every execution plan.** No paid third-party APIs, commercial API keys, or metered SaaS tokens in product code or default configuration.
 
@@ -8,11 +8,11 @@
 
 ## Rules
 
-1. **On-device first** — LLM, STT, TTS, chart rendering, and deterministic AI run locally unless the user explicitly opts into a feature that requires network (and that feature must still use a free provider).
-2. **No paid API keys in repo** — Gitleaks + CI must stay clean. Secrets for self-hosted infra (VAPID private key, Supabase publishable key) are env-only, never committed.
-3. **Supabase free tier** — single dev/staging project for sync, share links, and anonymized pool. Stay within [Supabase free limits](https://supabase.com/pricing): 500 MB DB, 50k MAU, Edge Functions quota. Batch aggregation (RE1) daily, not per-request.
-4. **Approved external providers** — use only providers in the table below. Adding a new provider requires updating this file + `EXTERNAL-SETUP.md`.
-5. **Defer or stub** — if no free provider exists, defer the feature or ship a local-only stub (document in plan `scope.md`).
+1. **On-device first** - LLM, STT, TTS, chart rendering, and deterministic AI run locally unless the user explicitly opts into a feature that requires network (and that feature must still use a free provider).
+2. **No paid API keys in repo** - Gitleaks + CI must stay clean. Secrets for self-hosted infra (VAPID private key, Supabase publishable key) are env-only, never committed.
+3. **Supabase free tier** - single dev/staging project for sync, share links, and anonymized pool. Stay within [Supabase free limits](https://supabase.com/pricing): 500 MB DB, 50k MAU, Edge Functions quota. Batch aggregation (RE1) daily, not per-request.
+4. **Approved external providers** - use only providers in the table below. Adding a new provider requires updating this file + `EXTERNAL-SETUP.md`.
+5. **Defer or stub** - if no free provider exists, defer the feature or ship a local-only stub (document in plan `scope.md`).
 
 ---
 
@@ -40,7 +40,7 @@
 |------|--------|------|------------|
 | Commercial LLM APIs (OpenAI, Anthropic, etc.) | Paid per token | 08 (N11) | **N11 restricted to on-device parity only**; no user-supplied paid endpoint in UI |
 | Paid weather APIs (OpenWeather paid tier, etc.) | Cost + API key | 10 (H5) | Use Open-Meteo |
-| Wearables / HealthKit / Fitbit | Xcode + Apple Developer; platform OAuth | 04 (L10), 08 (N8) | **Excluded (NR)** — not in scope |
+| Wearables / HealthKit / Fitbit | Xcode + Apple Developer; platform OAuth | 04 (L10), 08 (N8) | **Excluded (NR)** - not in scope |
 | `service_role` Supabase key in client | Full DB bypass | 05, 06 | `verify-no-service-role-in-clients` |
 | Third-party analytics / crash SDKs with paid tiers | Cost + PHI risk | All | Smartlook free tier allowed **only** with explicit opt-in + local-only block; no default tracking |
 

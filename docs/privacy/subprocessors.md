@@ -26,15 +26,15 @@ This register lists third parties that process personal data on behalf of Rianel
 
 | Subprocessor | Role | Data categories | Location / transfer | DPA status | Notes |
 |--------------|------|-----------------|---------------------|------------|-------|
-| **Supabase, Inc.** | Auth, Postgres hosting, PostgREST API | Email, auth identifiers, encrypted health backups, encryption key material (`user_keys`), anonymized research blobs, bug reports | Region selected at project creation (e.g. EU/US); SCCs for non-EEA | **Standard terms** — [Supabase DPA](https://supabase.com/legal/dpa) | RLS enforced in app schema; not HIPAA BAA by default |
-| **GitHub, Inc. (Microsoft)** | Source repo, GitHub Pages static hosting, Actions CI | Deploy secrets metadata; no user health in repo; committer identity | US / global | **Standard terms** — [GitHub DPA](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement) | Production bundle contains only publishable Supabase key |
-| **Cloudflare, Inc.** | DNS, reverse proxy, TLS, caching, bot mitigation | IP address, HTTP headers, request paths | Global edge | **Standard terms** — [Cloudflare DPA](https://www.cloudflare.com/cloudflare-customer-dpa/) | See [cloudflare-headers-recommended.md](../../security/cloudflare-headers-recommended.md) |
-| **Hugging Face, Inc.** | Model weight and tokenizer CDN for on-device LLM | IP, download URLs; no direct health payload in API calls | US / EU infra | **Standard terms** — review [Privacy Policy](https://huggingface.co/privacy) | User device fetches weights; prompts stay local |
-| **PayPal Holdings, Inc.** | Optional donation checkout (if enabled on site) | Payment identifiers, email if user provides | Global | **Standard terms** — PayPal DPA for merchants | Health data not sent to PayPal |
+| **Supabase, Inc.** | Auth, Postgres hosting, PostgREST API | Email, auth identifiers, encrypted health backups, encryption key material (`user_keys`), anonymized research blobs, bug reports | Region selected at project creation (e.g. EU/US); SCCs for non-EEA | **Standard terms** - [Supabase DPA](https://supabase.com/legal/dpa) | RLS enforced in app schema; not HIPAA BAA by default |
+| **GitHub, Inc. (Microsoft)** | Source repo, GitHub Pages static hosting, Actions CI | Deploy secrets metadata; no user health in repo; committer identity | US / global | **Standard terms** - [GitHub DPA](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement) | Production bundle contains only publishable Supabase key |
+| **Cloudflare, Inc.** | DNS, reverse proxy, TLS, caching, bot mitigation | IP address, HTTP headers, request paths | Global edge | **Standard terms** - [Cloudflare DPA](https://www.cloudflare.com/cloudflare-customer-dpa/) | See [cloudflare-headers-recommended.md](../../security/cloudflare-headers-recommended.md) |
+| **Hugging Face, Inc.** | Model weight and tokenizer CDN for on-device LLM | IP, download URLs; no direct health payload in API calls | US / EU infra | **Standard terms** - review [Privacy Policy](https://huggingface.co/privacy) | User device fetches weights; prompts stay local |
+| **PayPal Holdings, Inc.** | Optional donation checkout (if enabled on site) | Payment identifiers, email if user provides | Global | **Standard terms** - PayPal DPA for merchants | Health data not sent to PayPal |
 | **jsDelivr / Prospect One** | CDN for JavaScript libraries (e.g. Transformers.js, pinned Supabase UMD) | IP, referer | Global CDN | **Standard terms** | Subresource Integrity on fixed scripts where applicable |
 | **Google Fonts / Font CDN providers** | Web fonts (if loaded from CDN) | IP, referer | Global | **Standard terms** | Consider self-hosting to reduce disclosure |
 | **Font Awesome** | Icon webfont/CSS CDN | IP | Global | **Standard terms** | Loaded per CSP in PWA |
-| **Smartlook Analytics s.r.o.** | Optional session recording (web + mobile SDK) when user opts in | Screen interactions, device metadata, IP; may include health UI the user views | EU (`region: eu`) | **Standard terms** — [Smartlook DPA](https://www.smartlook.com/help/privacy-statement/) | Off by default; gated by `sessionRecording` consent + local-only mode |
+| **Smartlook Analytics s.r.o.** | Optional session recording (web + mobile SDK) when user opts in | Screen interactions, device metadata, IP; may include health UI the user views | EU (`region: eu`) | **Standard terms** - [Smartlook DPA](https://www.smartlook.com/help/privacy-statement/) | Off by default; gated by `sessionRecording` consent + local-only mode |
 | **Expo / EAS (if used)** | RN build and OTA updates when enabled | Developer account data; minimal end-user PII in default self-build flow | US | **Standard terms** | End-user data stays in app + Supabase path |
 | **Apple / Google** | App store distribution (if published) | Store account metadata | Per store policy | **Platform terms** | App does not use store IAP for health features today |
 
@@ -46,11 +46,11 @@ This register lists third parties that process personal data on behalf of Rianel
 flowchart TB
   User[Data subject]
   User --> CF[Cloudflare]
-  CF --> GHP[GitHub Pages — static PWA]
-  User --> SB[Supabase — auth + DB]
-  User --> HF[Hugging Face — model files]
-  User --> PP[PayPal — donations only]
-  User --> SL[Smartlook — session recording opt-in]
+  CF --> GHP[GitHub Pages - static PWA]
+  User --> SB[Supabase - auth + DB]
+  User --> HF[Hugging Face - model files]
+  User --> PP[PayPal - donations only]
+  User --> SL[Smartlook - session recording opt-in]
   GHP --> CDN[jsDelivr / font CDNs]
 ```
 
@@ -61,8 +61,8 @@ flowchart TB
 When subprocessors process data outside the EEA/UK:
 
 1. Rely on provider **Standard Contractual Clauses (SCCs)** or UK IDTA where offered.
-2. Document transfer mechanism in [eu-gdpr.md](eu-gdpr.md) Art. 44–49.
-3. **Supabase region:** select EU region at project creation when primary audience is EEA. Rianell uses **one Supabase project** for all users — see [single-project-residency.md](single-project-residency.md).
+2. Document transfer mechanism in [eu-gdpr.md](eu-gdpr.md) Art. 44-49.
+3. **Supabase region:** select EU region at project creation when primary audience is EEA. Rianell uses **one Supabase project** for all users - see [single-project-residency.md](single-project-residency.md).
 
 ---
 

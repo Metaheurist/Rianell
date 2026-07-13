@@ -1,4 +1,4 @@
-# Delete user data (GDPR Art. 17) — Edge Function
+# Delete user data (GDPR Art. 17) - Edge Function
 
 Hard erasure: `delete_all_user_data` RPC + `auth.admin.deleteUser`.
 
@@ -12,9 +12,9 @@ supabase link --project-ref gitnxgfbbpykwqvogmqq
 supabase functions deploy delete-user-data
 ```
 
-Hosted functions receive `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` automatically — no manual secrets required for those.
+Hosted functions receive `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` automatically - no manual secrets required for those.
 
-## Invoke — signed-in user (self-delete)
+## Invoke - signed-in user (self-delete)
 
 ```http
 POST https://<project-ref>.supabase.co/functions/v1/delete-user-data
@@ -25,7 +25,7 @@ Content-Type: application/json
 { "shouldSoftDelete": false }
 ```
 
-## Invoke — operator (service role)
+## Invoke - operator (service role)
 
 ```http
 POST https://<project-ref>.supabase.co/functions/v1/delete-user-data

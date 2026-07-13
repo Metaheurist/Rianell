@@ -1,4 +1,4 @@
-# STRIDE threat model — Rianell PWA / React Native / Supabase
+# STRIDE threat model - Rianell PWA / React Native / Supabase
 
 **Product:** Rianell personal health dashboard  
 **Version baseline:** v1.49.x  
@@ -12,11 +12,11 @@
 
 This document applies STRIDE (Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege) to Rianell across:
 
-- **PWA** (`apps/pwa-webapp/`) — static assets on GitHub Pages behind Cloudflare
-- **React Native** (`apps/rn-app/`) — Expo / RN CLI builds for Android and iOS
-- **Supabase** — Auth, Postgres (RLS), PostgREST API
-- **Optional Python dev server** (`server/`) — local operator tooling only
-- **Third-party edges** — Hugging Face (model weights), jsDelivr/CDNs, PayPal (donations)
+- **PWA** (`apps/pwa-webapp/`) - static assets on GitHub Pages behind Cloudflare
+- **React Native** (`apps/rn-app/`) - Expo / RN CLI builds for Android and iOS
+- **Supabase** - Auth, Postgres (RLS), PostgREST API
+- **Optional Python dev server** (`server/`) - local operator tooling only
+- **Third-party edges** - Hugging Face (model weights), jsDelivr/CDNs, PayPal (donations)
 
 Out of scope: clinical regulated deployments (HIPAA BAA not in place today), enterprise MDM policies, and end-user device compromise beyond documented mitigations.
 
@@ -26,7 +26,7 @@ Out of scope: clinical regulated deployments (HIPAA BAA not in place today), ent
 
 ```mermaid
 flowchart TB
-  subgraph user_device [User device — trust boundary TB1]
+  subgraph user_device [User device - trust boundary TB1]
     PWA[PWA browser]
     RN[RN app]
     LocalStore[(localStorage / AsyncStorage / IDB)]
@@ -37,15 +37,15 @@ flowchart TB
     RN --> OnDeviceAI
   end
 
-  subgraph edge [Cloudflare — trust boundary TB2]
+  subgraph edge [Cloudflare - trust boundary TB2]
     CF[DNS / TLS / cache / WAF]
   end
 
-  subgraph origin [GitHub Pages — trust boundary TB3]
+  subgraph origin [GitHub Pages - trust boundary TB3]
     Static[Static PWA bundle]
   end
 
-  subgraph supabase [Supabase — trust boundary TB4]
+  subgraph supabase [Supabase - trust boundary TB4]
     Auth[GoTrue Auth]
     PG[(Postgres + RLS)]
     Tables[health_data · user_keys · anonymized_data · bug_reports]
@@ -53,13 +53,13 @@ flowchart TB
     PG --> Tables
   end
 
-  subgraph third_party [Third parties — trust boundary TB5]
+  subgraph third_party [Third parties - trust boundary TB5]
     HF[Hugging Face Hub]
     CDN[jsDelivr / font CDNs]
     PayPal[PayPal SDK]
   end
 
-  subgraph dev_only [Dev only — trust boundary TB6]
+  subgraph dev_only [Dev only - trust boundary TB6]
     PyServer[Python HTTP server]
   end
 
@@ -124,9 +124,9 @@ sequenceDiagram
   C->>S: Email/password or OAuth
   S-->>C: JWT session
   C->>C: Generate or load AES key (hex)
-  C->>DB: UPSERT user_keys (plaintext hex) — RLS owner only
+  C->>DB: UPSERT user_keys (plaintext hex) - RLS owner only
   C->>C: AES-GCM encrypt logs + settings + ai_state
-  C->>DB: UPSERT health_data (ciphertext) — RLS owner only
+  C->>DB: UPSERT health_data (ciphertext) - RLS owner only
   Note over C,DB: See crypto-roadmap.md for passphrase-derived key hardening
 ```
 
@@ -153,7 +153,7 @@ flowchart LR
   Prompt --> LLM[Transformers.js pipeline]
   HF[Hugging Face weights] --> LLM
   LLM --> Output[Summary / suggest note / MOTD / health chat]
-  Output --> UI[Rendered as text — escapeHTML]
+  Output --> UI[Rendered as text - escapeHTML]
 ```
 
 ### 5.4 Ephemeral health chat (PWA Home)
@@ -171,7 +171,7 @@ sequenceDiagram
   C->>L: generateHealthChatWithLLM (max 5 turns)
   L-->>C: Assistant reply (memory only)
   U->>C: Close panel
-  C->>C: wipeState — no storage writes
+  C->>C: wipeState - no storage writes
 ```
 
 ---
@@ -251,7 +251,7 @@ sequenceDiagram
 |----|------|----------|--------|------|
 | M-01 | Passphrase-derived keys; stop plaintext `user_keys` | P0 | Planned | [crypto-roadmap.md](crypto-roadmap.md) |
 | M-02 | Local at-rest encryption (keystore / passphrase) | P1 | Planned | [SECURITY.md](SECURITY.md#future-hardening-not-implemented) |
-| M-03 | Tighten CSP — remove `unsafe-eval` where possible | P1 | In progress | [security-hardening-execution-log.md](security-hardening-execution-log.md) |
+| M-03 | Tighten CSP - remove `unsafe-eval` where possible | P1 | In progress | [security-hardening-execution-log.md](security-hardening-execution-log.md) |
 | M-04 | Supabase MFA for operator accounts | P1 | Open | [rotation-runbook.md](../security/rotation-runbook.md) |
 | M-05 | Rate limiting on `bug_reports` (edge or RPC) | P2 | Open | This doc §6.5 D1 |
 | M-06 | SRI / pinning for all static third-party scripts | P2 | Partial | [SECURITY.md](SECURITY.md) |
@@ -270,21 +270,21 @@ sequenceDiagram
 
 ---
 
-## 9.1 Launch audit cross-reference (Phases 3–8)
+## 9.1 Launch audit cross-reference (Phases 3-8)
 
 | Phase | Threat focus | Mitigation doc |
 |-------|--------------|----------------|
-| 3 — SRI/CSP | Tampering, disclosure via compromised CDN | `verify-sri-integrity.mjs`, `security.txt` |
-| 4 — Compliance | Regulatory misrepresentation | `docs/compliance/*` |
-| 5 — Performance | DoS via heavy boot | `docs/performance-budget.md` |
-| 6 — Accessibility | Exclusion, focus escape | `verify-a11y-tokens.mjs`, app lock trap |
-| 7 — RN hardening | Device extraction | `logsAesGcm.ts`, [android-hardening.md](compliance/android-hardening.md) |
-| 8 — Ops docs | Incident handling gaps | [launch-checklist.md](compliance/launch-checklist.md) |
+| 3 - SRI/CSP | Tampering, disclosure via compromised CDN | `verify-sri-integrity.mjs`, `security.txt` |
+| 4 - Compliance | Regulatory misrepresentation | `docs/compliance/*` |
+| 5 - Performance | DoS via heavy boot | `docs/performance-budget.md` |
+| 6 - Accessibility | Exclusion, focus escape | `verify-a11y-tokens.mjs`, app lock trap |
+| 7 - RN hardening | Device extraction | `logsAesGcm.ts`, [android-hardening.md](compliance/android-hardening.md) |
+| 8 - Ops docs | Incident handling gaps | [launch-checklist.md](compliance/launch-checklist.md) |
 
 ---
 
 ## 10. References
 
-- OWASP Top 10:2025 — https://owasp.org/Top10/2025/
-- Microsoft STRIDE — https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats
-- Rianell schema — [supabase/Schema.sql](../supabase/Schema.sql)
+- OWASP Top 10:2025 - https://owasp.org/Top10/2025/
+- Microsoft STRIDE - https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats
+- Rianell schema - [supabase/Schema.sql](../supabase/Schema.sql)

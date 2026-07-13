@@ -6,7 +6,7 @@ Each day you can record vitals, symptoms, lifestyle, and free-text notes. All en
 
 ## Required field
 
-- **Date** (`YYYY-MM-DD`) — every entry must have a date. Invalid dates default to today.
+- **Date** (`YYYY-MM-DD`) - every entry must have a date. Invalid dates default to today.
 
 ## Quick save
 
@@ -19,10 +19,10 @@ Save after **date + flare** only. Missing numeric scores are filled with mid-sca
 | Field | Type | Notes |
 |-------|------|-------|
 | **Flare** | Yes / No | Default No |
-| **BPM** | number | Heart rate; typical range 30–120 |
+| **BPM** | number | Heart rate; typical range 30-120 |
 | **Weight** | text | kg as decimal string |
-| **Fatigue, stiffness, sleep, joint pain, mobility, daily function, swelling, mood, irritability** | 0–10 | Subjective scales |
-| **Weather sensitivity** | 1–10 | |
+| **Fatigue, stiffness, sleep, joint pain, mobility, daily function, swelling, mood, irritability** | 0-10 | Subjective scales |
+| **Weather sensitivity** | 1-10 | |
 | **Steps** | integer | |
 | **Hydration** | number | Glasses / units |
 | **Notes** | text | Max 500 characters; **never auto-translated** |
@@ -42,26 +42,26 @@ Enable in **Settings → Data options** or during first-run tutorial.
 | Field | Notes |
 |-------|-------|
 | **Period start** | Tap **Period started today** on the log date to set day 1 and anchor future auto-suggestions |
-| **Cycle day** | 1–35 in the default selector; expand to 45 for longer/irregular cycles |
-| **Phase** | Menstrual, follicular, ovulation, luteal — theme icons, not emoji |
+| **Cycle day** | 1-35 in the default selector; expand to 45 for longer/irregular cycles |
+| **Phase** | Menstrual, follicular, ovulation, luteal - theme icons, not emoji |
 | **Flow** | Optional light / medium / heavy |
 | **PMS symptoms** | Optional list |
 
-When you pick a date, cycle day and phase may be **suggested** from your last logged **period start** (or legacy cycle entries). Days above 35 show a late-cycle hint. Phase hints use a simplified ~28-day pattern — not medical advice.
+When you pick a date, cycle day and phase may be **suggested** from your last logged **period start** (or legacy cycle entries). Days above 35 show a late-cycle hint. Phase hints use a simplified ~28-day pattern - not medical advice.
 
 ---
 
 ## Viewing and editing
 
-- **View logs** tab — tap a day card to expand full detail.
+- **View logs** tab - tap a day card to expand full detail.
 - **Edit** or **delete** from the action bar on each entry.
-- **Share** (web) — circular green share button per entry.
+- **Share** (web) - circular green share button per entry.
 
 ---
 
 ## Import and export
 
-- **Export** produces JSON aligned with `@rianell/shared` normalization — use for backup or moving between devices.
+- **Export** produces JSON aligned with `@rianell/shared` normalization - use for backup or moving between devices.
 - **Import** previews data before merge; user-derived HTML is escaped in the preview.
 - Export **column headers** can be localised; **your note text stays exactly as typed**.
 
@@ -81,4 +81,4 @@ Optional encrypted cloud copy: [[Cloud-Sync-and-Backup]].
 ## Read more (technical)
 
 - [Data model](https://github.com/Metaheurist/Rianell/blob/main/docs/data-model.md)
-- [App features — log wizard](https://github.com/Metaheurist/Rianell/blob/main/docs/app-and-features.md)
+- [App features - log wizard](https://github.com/Metaheurist/Rianell/blob/main/docs/app-and-features.md)

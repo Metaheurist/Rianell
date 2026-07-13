@@ -12,7 +12,7 @@ blocks:
   - plan-19-connectors/plan.md
 ---
 
-# Plan 18 — REST API & webhooks (API1–API6)
+# Plan 18 - REST API & webhooks (API1-API6)
 
 ## Objective
 

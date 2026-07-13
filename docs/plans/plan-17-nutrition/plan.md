@@ -12,7 +12,7 @@ blocks:
   - plan-18-rest-api/plan.md
 ---
 
-# Plan 17 — Nutrition deep-dive (NU1–NU5)
+# Plan 17 - Nutrition deep-dive (NU1-NU5)
 
 ## Objective
 

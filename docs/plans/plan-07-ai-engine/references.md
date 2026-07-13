@@ -1,4 +1,4 @@
-# Plan 07 — References
+# Plan 07 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `OWASP AI Exchange — local inference reduces server-side LLM CVE class`
+- `OWASP AI Exchange - local inference reduces server-side LLM CVE class`
 
 ## External (verify online)
 

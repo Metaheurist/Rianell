@@ -1,12 +1,12 @@
-# Security & performance index — all plans
+# Security & performance index - all plans
 
 Rollup of CVE/exploit surfaces and performance constraints per execution plan. Detail lives in each folder's [security-performance.md](./plan-01-platform-architecture/security-performance.md).
 
 **Sources:** [docs/SECURITY.md](../SECURITY.md) · [docs/ai-security.md](../ai-security.md) · Firecrawl `.firecrawl/projects/` · OWASP MASVS · [FINAL-EXECUTION-CHECK.md](./FINAL-EXECUTION-CHECK.md)
 
-**Policy:** [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) — no paid third-party APIs in default path.
+**Policy:** [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) - no paid third-party APIs in default path.
 
-**CI CVE baseline:** `npm audit --omit=dev`, OSV-Scanner, Gitleaks — [security-audit.yml](../../.github/workflows/security-audit.yml)
+**CI CVE baseline:** `npm audit --omit=dev`, OSV-Scanner, Gitleaks - [security-audit.yml](../../.github/workflows/security-audit.yml)
 
 ---
 
@@ -51,7 +51,7 @@ Rollup of CVE/exploit surfaces and performance constraints per execution plan. D
 | `.firecrawl/projects/open-meteo-weather.json` | 10 |
 | `.firecrawl/projects/web-push-mdn.md` | 11, 14 |
 | `.firecrawl/projects/openfoodfacts.json` | 04 |
-| `.firecrawl/projects/owasp-masvs-health.json` | 01–14 |
+| `.firecrawl/projects/owasp-masvs-health.json` | 01-14 |
 | `.firecrawl/projects/transformers-js-local.json` | 08 |
 
 Refresh before dependency major bumps:

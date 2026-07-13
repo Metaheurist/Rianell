@@ -10,7 +10,7 @@ depends_on: [plan-04-logging-data-capture/plan.md]
 blocks: [plan-06-cloud-sync/plan.md, plan-12-clinician-sharing/plan.md]
 ---
 
-# Plan 05 — Section 7: Privacy, compliance & trust
+# Plan 05 - Section 7: Privacy, compliance & trust
 
 ## Objective
 
@@ -20,13 +20,13 @@ Strengthen trust layer: full policies, transparency log, local-only mode, encryp
 
 | ID | Feature | Tags | Notes |
 |----|---------|------|-------|
-| P1 | **Full policy document viewer** — render markdown/HTML policies in-app | M | |
-| P2 | **Data processing activity log** — sync/model download timestamps | M, ★ | Pairs with S7 |
-| P3 | **Local-only mode** — disable all network with explicit feature list | M, ★ | |
-| P4 | **E2E encrypted export** — password-protected export for clinician sharing | M | Used by plan 12 |
-| P5 | **DPIA helper for contributors** — visual field list for anonymized pool | Q | |
-| P6 | **Teen / caregiver mode** — proxy logging for dependent | L | Heavy compliance |
-| P7 | **Biometric app lock** — Face/Touch ID RN; WebAuthn PWA | M | |
+| P1 | **Full policy document viewer** - render markdown/HTML policies in-app | M | |
+| P2 | **Data processing activity log** - sync/model download timestamps | M, ★ | Pairs with S7 |
+| P3 | **Local-only mode** - disable all network with explicit feature list | M, ★ | |
+| P4 | **E2E encrypted export** - password-protected export for clinician sharing | M | Used by plan 12 |
+| P5 | **DPIA helper for contributors** - visual field list for anonymized pool | Q | |
+| P6 | **Teen / caregiver mode** - proxy logging for dependent | L | Heavy compliance |
+| P7 | **Biometric app lock** - Face/Touch ID RN; WebAuthn PWA | M | |
 
 
 ## Plan folder docs
@@ -39,8 +39,8 @@ Strengthen trust layer: full policies, transparency log, local-only mode, encryp
 
 ## Global constraints
 
-- **Free tier only** — no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
-- **Mobile + desktop** — PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
+- **Free tier only** - no paid APIs. See [FREE-TIER-POLICY.md](../FREE-TIER-POLICY.md).
+- **Mobile + desktop** - PWA + RN parity, responsive, max font scale. See [UI-UX-STANDARDS.md](../UI-UX-STANDARDS.md).
 - **External setup** � See [EXTERNAL-SETUP.md](../EXTERNAL-SETUP.md) (plan-specific section).
 ## Prerequisites
 
@@ -68,7 +68,7 @@ Strengthen trust layer: full policies, transparency log, local-only mode, encryp
 
 ## Completion gates
 
-- [ ] P1–P7 implemented or deferred (P6 may defer with compliance note)
+- [ ] P1-P7 implemented or deferred (P6 may defer with compliance note)
 - [ ] Local-only mode tested: no accidental network when enabled
 - [ ] Region gates still enforced (`getFeatureAvailability`)
 - [ ] No service_role in clients (`verify-no-service-role-in-clients`)
@@ -81,7 +81,7 @@ Strengthen trust layer: full policies, transparency log, local-only mode, encryp
 
 ## Agent execution
 
-### Phase A — Transparency (P1, P2, P5)
+### Phase A - Transparency (P1, P2, P5)
 
 | ID | Tasks |
 |----|-------|
@@ -89,21 +89,21 @@ Strengthen trust layer: full policies, transparency log, local-only mode, encryp
 | **P2** | Append-only local log: sync timestamps, model download events, export events; surface in S7 pane |
 | **P5** | Visual checklist of fields sent to anonymized pool; pairs with RE1 consent |
 
-### Phase B — User control (P3, P7)
+### Phase B - User control (P3, P7)
 
 | ID | Tasks |
 |----|-------|
 | **P3** | `localOnlyMode` preference gates: HF model fetch, Supabase sync, bug report, remote LLM; show disabled-feature matrix |
 | **P7** | RN: `expo-local-authentication` app lock; PWA: WebAuthn or PIN fallback; lock on background |
 
-### Phase C — Export & advanced (P4, P6)
+### Phase C - Export & advanced (P4, P6)
 
 | ID | Tasks |
 |----|-------|
 | **P4** | Password-protected export (AES); key derivation documented in UI; used by CL2 |
-| **P6** | Caregiver/proxy mode — **defer unless legal sign-off**; document deferral in MASTER if skipped |
+| **P6** | Caregiver/proxy mode - **defer unless legal sign-off**; document deferral in MASTER if skipped |
 
-### Phase D — Compliance verification
+### Phase D - Compliance verification
 
 - [ ] `npm run verify:privacy-docs`
 - [ ] `node scripts/verify/verify-no-service-role-in-clients.mjs`
@@ -118,7 +118,7 @@ Strengthen trust layer: full policies, transparency log, local-only mode, encryp
 | P3 | done | |
 | P4 | done | |
 | P5 | done | |
-| P6 | deferred | Legal review — see MASTER |
+| P6 | deferred | Legal review - see MASTER |
 | P7 | done | |
 
 ## Verification
@@ -130,7 +130,7 @@ npm run test:unit
 
 ## Master sync
 
-MASTER §7 rows P1–P7; §Section rollup exec 05.
+MASTER §7 rows P1-P7; §Section rollup exec 05.
 
 ## Post-plan rollout gate
 

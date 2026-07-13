@@ -1,14 +1,14 @@
-# Agent guide — Rianell monorepo
+# Agent guide - Rianell monorepo
 
 Read these docs **in order** before making structural changes:
 
-1. **[docs/architecture-standard.md](docs/architecture-standard.md)** — canonical layout, dependency rules, migration log
-2. **[docs/project-reference.md](docs/project-reference.md)** — features, versions, operational detail
-3. **[docs/plans/MASTER.md](docs/plans/MASTER.md)** — feature rollout tracker (plans 01–26 complete, 179/179 features, v1.133.0)
+1. **[docs/architecture-standard.md](docs/architecture-standard.md)** - canonical layout, dependency rules, migration log
+2. **[docs/project-reference.md](docs/project-reference.md)** - features, versions, operational detail
+3. **[docs/plans/MASTER.md](docs/plans/MASTER.md)** - feature rollout tracker (plans 01-26 complete, 179/179 features, v1.133.0)
 
 ## Execution order (architecture migration)
 
-Phases **0–7** (foundation) → **18** (verify) → **8–13** (optimize) → **14** → **19** (verify) → **15–17** → **20** → **21** → **22** (deploy loop) → **23** (root hygiene).
+Phases **0-7** (foundation) → **18** (verify) → **8-13** (optimize) → **14** → **19** (verify) → **15-17** → **20** → **21** → **22** (deploy loop) → **23** (root hygiene).
 
 Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cursor/plans/`.
 
@@ -26,10 +26,10 @@ Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cur
 
 ## Conventions
 
-- **`apps/`** — deployables (`@rianell/pwa-webapp`, `@rianell/rn-app`)
-- **`packages/`** — shared `@rianell/*` libraries
-- **`scripts/`** — nested by concern (`build/`, `i18n/`, `verify/`, `ci/`, `audit/`, `wiki/`, `models/`, `dev/`, `migration/legacy/`)
-- **`artifacts/`** — CI binaries + `latest.json` (renamed from legacy `App build/`)
-- **`audit-history/`** — boot audit JSON (`baseline.json` tracked; `latest-boot-audit.json` gitignored)
-- **`server/`** — Python HTTP (not an npm workspace)
-- **`i18n-packs/`** — canonical locale source at repo root
+- **`apps/`** - deployables (`@rianell/pwa-webapp`, `@rianell/rn-app`)
+- **`packages/`** - shared `@rianell/*` libraries
+- **`scripts/`** - nested by concern (`build/`, `i18n/`, `verify/`, `ci/`, `audit/`, `wiki/`, `models/`, `dev/`, `migration/legacy/`)
+- **`artifacts/`** - CI binaries + `latest.json` (renamed from legacy `App build/`)
+- **`audit-history/`** - boot audit JSON (`baseline.json` tracked; `latest-boot-audit.json` gitignored)
+- **`server/`** - Python HTTP (not an npm workspace)
+- **`i18n-packs/`** - canonical locale source at repo root

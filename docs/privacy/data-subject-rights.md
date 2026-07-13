@@ -1,4 +1,4 @@
-# Data subject rights — UX mapping (PWA and React Native)
+# Data subject rights - UX mapping (PWA and React Native)
 
 **Product:** Rianell  
 **Last updated:** 2026-06-23  
@@ -20,11 +20,11 @@ This document maps GDPR / UK GDPR / global privacy rights to **in-app user journ
 |-------|------|----------|---------|-------------------|
 | **Access** | Art. 15 | Settings → Data management → Export / backup | Settings → export flows | Supabase service-role export (logged) |
 | **Portability** | Art. 20 | JSON export (shared schema) | Same export format | Email JSON bundle |
-| **Rectification** | Art. 16 | View logs → Edit entry | Logs screen → Edit modal | — |
+| **Rectification** | Art. 16 | View logs → Edit entry | Logs screen → Edit modal | - |
 | **Erasure** | Art. 17 | Delete cloud data (Edge Function removes Auth user when deployed); clear local | Settings cloud delete + clear storage | `delete-user-data` Edge Function or service-role |
 | **Restrict processing** | Art. 18 | Disable cloud sync; disable AI/LLM | Settings toggles | Flag account |
-| **Object** | Art. 21 | Disable anonymized contribution | Settings → contribution off | — |
-| **Withdraw consent** | Art. 7(3) | GDPR modal decline; revoke in settings | Same parity settings | — |
+| **Object** | Art. 21 | Disable anonymized contribution | Settings → contribution off | - |
+| **Withdraw consent** | Art. 7(3) | GDPR modal decline; revoke in settings | Same parity settings | - |
 | **Automated decision info** | Art. 22 | AI settings disclosure | Performance / AI pane | [ai-security.md](../ai-security.md) |
 
 ---
@@ -42,7 +42,7 @@ This document maps GDPR / UK GDPR / global privacy rights to **in-app user journ
 
 1. Open **Settings** (gear / header).
 2. Navigate **Data management** carousel pane.
-3. Use **Export** / backup download — produces JSON aligned with `@rianell/shared` normalization.
+3. Use **Export** / backup download - produces JSON aligned with `@rianell/shared` normalization.
 4. If cloud sync enabled: ensure latest merge via sync, then export includes merged local state.
 
 **Code areas:** `app.js` export handlers, `cloud-sync.js` download path.
@@ -50,14 +50,14 @@ This document maps GDPR / UK GDPR / global privacy rights to **in-app user journ
 ### 3.3 React Native
 
 1. Open **Settings** tab.
-2. **Data management** section — export/share actions (parity with web).
+2. **Data management** section - export/share actions (parity with web).
 3. Share sheet or save to files per platform.
 
 **Code areas:** `apps/rn-app/src/screens/SettingsScreen.tsx`, storage helpers.
 
 ### 3.4 Gaps
 
-- No single PDF "access report" — JSON is machine-readable portability format.
+- No single PDF "access report" - JSON is machine-readable portability format.
 - Server-side bug reports about the user: available on request to operator.
 
 ---
@@ -71,7 +71,7 @@ This document maps GDPR / UK GDPR / global privacy rights to **in-app user journ
 | Single log entry | View logs → Delete | Logs → Delete | Re-sync uploads new ciphertext without entry |
 | All local data | Settings → clear / reset | Clear storage actions | Local only until sync |
 | Cloud backup | Settings → delete cloud data | Settings cloud pane | Deletes `health_data` + `user_keys` per app flow |
-| Anonymized contribution | Disable + request operator | Settings toggle off | `anonymized_data` may retain rows — see §4.3 |
+| Anonymized contribution | Disable + request operator | Settings toggle off | `anonymized_data` may retain rows - see §4.3 |
 | Account | Sign out; contact for full auth delete | Same | Requires operator Supabase Auth delete |
 
 ### 4.2 PWA cloud delete behaviour
@@ -82,7 +82,7 @@ Users wishing **full** erasure including anonymized rows should contact operator
 
 ### 4.3 Anonymized data
 
-If `user_id` is still linked, row is **personal data** — delete on erasure request. If truly anonymized (no re-link), Art. 17 may not apply — case-by-case review per [dpia-health-sync.md](dpia-health-sync.md).
+If `user_id` is still linked, row is **personal data** - delete on erasure request. If truly anonymized (no re-link), Art. 17 may not apply - case-by-case review per [dpia-health-sync.md](dpia-health-sync.md).
 
 ---
 

@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-Optional **session recording** helps improve Rianell usability. It is **on by default after onboarding disclosure** — users are notified during first-run setup and can turn it off immediately or later in Settings. Recordings may include screens the user visits, including health data visible on screen.
+Optional **session recording** helps improve Rianell usability. It is **on by default after onboarding disclosure** - users are notified during first-run setup and can turn it off immediately or later in Settings. Recordings may include screens the user visits, including health data visible on screen.
 
 **Provider:** [Smartlook Analytics s.r.o.](https://www.smartlook.com/)  
 **Data region:** EU (`region: eu`)
@@ -19,7 +19,7 @@ Optional **session recording** helps improve Rianell usability. It is **on by de
 
 | Control | Location |
 |---------|----------|
-| First-run disclosure | First-run wizard step **Session recording** (after cookies) — toggle default **on** |
+| First-run disclosure | First-run wizard step **Session recording** (after cookies) - toggle default **on** |
 | Opt out | Same toggle during onboarding, or Settings → **Privacy & region** → **Session recording** |
 | Opt out (revoke) | **Consent dashboard** on Privacy pane → Revoke |
 | Blocked in local-only mode | Listed under local-only blocked features |
@@ -36,7 +36,7 @@ Users who previously opted out (`sessionRecording: false` in saved settings) rem
 |------------|-------------|-------|
 | Session recording (analytics) | **Art. 6(1)(a) consent** | Explicit opt-in after onboarding disclosure; revocable in Settings and consent dashboard |
 | Special-category data visible on screen | **Art. 9(2)(a) explicit consent** | Gated by health data consent + `sessionRecording` toggle; not activated in local-only mode |
-| Legitimate interest | **Not relied upon** | Product does not use Art. 6(1)(f) for Smartlook — consent is the sole basis |
+| Legitimate interest | **Not relied upon** | Product does not use Art. 6(1)(f) for Smartlook - consent is the sole basis |
 
 **Records:** consent timestamps `sessionRecordingAt`, `sessionRecordingDisclosureAt`; RoPA activity **PA-10** in [ropa.json](ropa.json).
 
@@ -57,12 +57,12 @@ Shared helper: `shouldActivateSessionRecording()` in `packages/shared/src/analyt
 
 | Platform | SDK / module | Init |
 |----------|--------------|------|
-| **PWA (web)** | Smartlook Web SDK (`https://web-sdk.smartlook.com/recorder.js`) | `apps/pwa-webapp/smartlook.js` — gated by `shouldActivateSessionRecording` |
-| **React Native** | `react-native-smartlook-analytics` | `apps/rn-app/src/analytics/sessionRecording.ts` — requires dev build / prebuild (not Expo Go) |
+| **PWA (web)** | Smartlook Web SDK (`https://web-sdk.smartlook.com/recorder.js`) | `apps/pwa-webapp/smartlook.js` - gated by `shouldActivateSessionRecording` |
+| **React Native** | `react-native-smartlook-analytics` | `apps/rn-app/src/analytics/sessionRecording.ts` - requires dev build / prebuild (not Expo Go) |
 
 **Shared consent model:** `sessionRecording`, `sessionRecordingAt`, `sessionRecordingDisclosureAt`; policy feature key `sessionRecording`; consent dashboard row `sessionRecording`.
 
-**First-run step:** `sessionRecording` in `packages/shared/src/onboarding/firstRunSteps.mjs` — skipped when already disclosed or feature disabled for region.
+**First-run step:** `sessionRecording` in `packages/shared/src/onboarding/firstRunSteps.mjs` - skipped when already disclosed or feature disabled for region.
 
 ---
 
@@ -75,7 +75,7 @@ CSP in `apps/pwa-webapp/index.html` allows:
 
 Verified by `scripts/verify/verify-csp-connect-src.mjs`.
 
-If Cloudflare adds a narrower HTTP CSP, mirror these hosts in edge headers — see [infrastructure-and-security-edge.md](../infrastructure-and-security-edge.md).
+If Cloudflare adds a narrower HTTP CSP, mirror these hosts in edge headers - see [infrastructure-and-security-edge.md](../infrastructure-and-security-edge.md).
 
 ---
 

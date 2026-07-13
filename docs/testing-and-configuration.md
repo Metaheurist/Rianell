@@ -117,21 +117,21 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 
 1. Create a Supabase project at [supabase.com](https://supabase.com)
 2. Get your project URL, **Publishable** key, and (for server sample generation) the **service_role** secret under **Secret keys** from Settings → API
-3. Run [../supabase/Schema.sql](../supabase/Schema.sql) in the SQL Editor (idempotent on staging/production). Uncomment the §0 test-reset block only for a dev/staging wipe — see [SECURITY.md](SECURITY.md)
+3. Run [../supabase/Schema.sql](../supabase/Schema.sql) in the SQL Editor (idempotent on staging/production). Uncomment the §0 test-reset block only for a dev/staging wipe - see [SECURITY.md](SECURITY.md)
 4. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
 
 ### v1.53.1 CI fixes
 
 - **Web benchmarks:** Playwright navigation timings open Settings without **`ReferenceError: global is not defined`** (`resolveSettingsPaneTitle` uses **`window.RianellI18n`**).
-- **Mobile typecheck:** **`npm run typecheck:mobile`** — see [CHANGELOG.md](CHANGELOG.md) v1.53.1.
+- **Mobile typecheck:** **`npm run typecheck:mobile`** - see [CHANGELOG.md](CHANGELOG.md) v1.53.1.
 
-### Performance tier benchmark toolkit (v1.78–v1.81)
+### Performance tier benchmark toolkit (v1.78-v1.81)
 
-Agent-executable suite under `benchmarks/toolkit/` — runs Playwright probes across **device performance tiers 1–5** × desktop/mobile.
+Agent-executable suite under `benchmarks/toolkit/` - runs Playwright probes across **device performance tiers 1-5** × desktop/mobile.
 
 | Command | Purpose |
 |---------|---------|
-| `npm run benchmark:tier-matrix` | 10-cell matrix; tier 1–2 block LLM (AIEngine-only) |
+| `npm run benchmark:tier-matrix` | 10-cell matrix; tier 1-2 block LLM (AIEngine-only) |
 | `npm run benchmark:settings-matrix` | Tier-3 settings variants (animations, lazy, save-data) |
 | `npm run benchmark:god-mode` | God mode autotest (`-- --tier=3`) |
 | `npm run benchmark:full-suite` | Orchestrator + regression verify |
@@ -147,7 +147,7 @@ Agent-executable suite under `benchmarks/toolkit/` — runs Playwright probes ac
 
 ### AI engine benchmark suite (v1.82)
 
-Rule-based AI microbench (no LLM/ONNX) — four parallel CI jobs after `benchmarks-expo`.
+Rule-based AI microbench (no LLM/ONNX) - four parallel CI jobs after `benchmarks-expo`.
 
 | npm (root) | Output slug | Runtime |
 |------------|-------------|---------|
@@ -172,7 +172,7 @@ Changing language in **Settings → Privacy & region → Language** runs `Rianel
 
 1. `data-i18n` / `data-i18n-placeholder` / aria attributes on static HTML
 2. Bottom nav labels (`applyNavI18n`)
-3. `refreshAllTabsForLocaleChange()` — Home, Log wizard, View logs, Charts, AI (cached), Settings carousel
+3. `refreshAllTabsForLocaleChange()` - Home, Log wizard, View logs, Charts, AI (cached), Settings carousel
 
 No full page reload required.
 
@@ -180,9 +180,9 @@ No full page reload required.
 
 **Cold boot** defers heavy i18n until the app shell is ready:
 
-1. **Privacy gate** — `refreshGateLocaleUI()` / `hydrateGate()` only (no `refreshAllTabsForLocaleChange()`).
-2. **`__rianellAppInitStarted`** — set at `runAppInit()`; unlocks `applyDataI18nAttributes()` in `i18n-pwa.js`.
-3. **Shell reveal** — `revealAppShellWithLocale()` runs `ensureCatalogs()` → `refreshLocaleUI()` → `revealAppShell()` so Home and `data-i18n` nodes show translated text, not raw keys.
+1. **Privacy gate** - `refreshGateLocaleUI()` / `hydrateGate()` only (no `refreshAllTabsForLocaleChange()`).
+2. **`__rianellAppInitStarted`** - set at `runAppInit()`; unlocks `applyDataI18nAttributes()` in `i18n-pwa.js`.
+3. **Shell reveal** - `revealAppShellWithLocale()` runs `ensureCatalogs()` → `refreshLocaleUI()` → `revealAppShell()` so Home and `data-i18n` nodes show translated text, not raw keys.
 
 ### PWA shell boot probes (v1.115.0)
 
@@ -194,14 +194,14 @@ No full page reload required.
 
 | Command | Purpose |
 |---------|---------|
-| `npm run audit:probe-shell` | Guest flow — shell visible + greeting after onboarding |
+| `npm run audit:probe-shell` | Guest flow - shell visible + greeting after onboarding |
 | `npm run audit:probe-shell:screenshot` | DOM rects + screenshot to `audit-history/probe-shell-screenshot.png` |
 | `npm run audit:probe-shell:layout` | Deep layout diagnostic (parent chain, blockers, boot log tail) |
 | `node scripts/audit/check-dom-nesting.mjs` | Verify `#appShell` is not nested under `#settingsOverlay` in `index.html` |
 
 **Local CI-parity gate:** `powershell -File server/launch-server.ps1` (compiled `.server-dist`), then `npm run audit:boot:prepare` and `PROBE_URL=http://127.0.0.1:8080/ npm run audit:boot:strict`.
 
-**Post-deploy (CI, v1.89.2):** After **`deploy-pages`**, job **`audit-boot-post-deploy`** downloads artifact **`pages-site-probe`** (the same prepared `site/` uploaded to GitHub Pages), serves it with **`python -m server`** on the audit runner, and runs **`audit:boot:baseline`** and **`verify-deploy-html.mjs`** against `http://127.0.0.1:9876/` only — no live **`rianell.com`** / **github.io** requests from GHA (Cloudflare **403**). Strict production audit remains the local **`launch-server.ps1`** gate before push.
+**Post-deploy (CI, v1.89.2):** After **`deploy-pages`**, job **`audit-boot-post-deploy`** downloads artifact **`pages-site-probe`** (the same prepared `site/` uploaded to GitHub Pages), serves it with **`python -m server`** on the audit runner, and runs **`audit:boot:baseline`** and **`verify-deploy-html.mjs`** against `http://127.0.0.1:9876/` only - no live **`rianell.com`** / **github.io** requests from GHA (Cloudflare **403**). Strict production audit remains the local **`launch-server.ps1`** gate before push.
 
 ### CI dependency caching (v1.89.2)
 
@@ -243,9 +243,9 @@ Run from repo root (also enforced in CI **`security-audit`** job):
 | Script | npm alias | Purpose |
 |--------|-----------|---------|
 | `scripts/verify/verify-privacy-docs.mjs` | `npm run verify:privacy-docs` | Required privacy/security docs + valid `ropa.json` |
-| `scripts/verify/verify-rls-baseline.mjs` | — | RLS baseline SQL doc intact |
+| `scripts/verify/verify-rls-baseline.mjs` | - | RLS baseline SQL doc intact |
 | `scripts/verify/verify-csp-connect-src.mjs` | `npm run verify:csp` | CSP `connect-src` coverage |
-| `scripts/verify/verify-no-service-role-in-clients.mjs` | — | No service_role / sb_secret / hardcoded keys in **tracked** client sources |
+| `scripts/verify/verify-no-service-role-in-clients.mjs` | - | No service_role / sb_secret / hardcoded keys in **tracked** client sources |
 | `scripts/ci/generate-security-inventory.mjs` | `npm run docs:security-inventory` | Regenerate [security-inventory.md](security-inventory.md) |
 
 **Security unit tests:** `tests/unit/security/` (XSS import preview, cloud deletion tables, verify-script smoke). Included in `npm run test:unit`.

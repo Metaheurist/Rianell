@@ -6,12 +6,12 @@
 
 Canonical layout: **[architecture-standard.md](architecture-standard.md)** and **[AGENTS.md](../AGENTS.md)**.
 
-- **Build (PWA):** `npm run build:web` or `npm run build:web:apk` — orchestrated by `scripts/build/run-web.mjs` (sync i18n → vendor → esbuild).
-- **Build (RN export):** `npm run bundle:mobile:prod` — `scripts/build/run-mobile-export.mjs`.
+- **Build (PWA):** `npm run build:web` or `npm run build:web:apk` - orchestrated by `scripts/build/run-web.mjs` (sync i18n → vendor → esbuild).
+- **Build (RN export):** `npm run bundle:mobile:prod` - `scripts/build/run-mobile-export.mjs`.
 - **Local web dev:** `npm run dev:web` (cross-platform; Windows runs `launch-server.ps1`, Unix runs minify + `python -m server`).
 - **CI artifacts:** binaries and manifests under **`artifacts/`** (renamed from the legacy spaced artifact directory). Git tracks **`latest.json`** only; APK/EXE/zips ship via GitHub Releases.
 - **Verify gates:** `npm run verify:migration:foundation` (after layout changes), `npm run verify:migration` (full sign-off), `node scripts/verify/doc-links.mjs --strict`.
-- **Scripts:** nested under `scripts/{build,i18n,verify,ci,audit,wiki,models,dev}/` — not flat `scripts/*.mjs`.
+- **Scripts:** nested under `scripts/{build,i18n,verify,ci,audit,wiki,models,dev}/` - not flat `scripts/*.mjs`.
 
 ### v1.60.0 i18n asset sync (Metro / esbuild)
 
@@ -170,7 +170,7 @@ The app lives in **`apps/pwa-webapp/`**, so GitHub Pages will not see `index.htm
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
 3. The unified workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys a prepared **`site/`** folder as the site root (copy of **`apps/pwa-webapp/`** plus `artifacts/` if present), so `index.html` is served correctly. The **`prepare-minified-assets`** job runs **`node apps/pwa-webapp/build-site.mjs --site ci-minified/site`**: instrument first-party JS (optional function trace hooks), esbuild minify, then **content-hash** the main bundle to **`app.<hash>.min.js`**, fingerprint **`styles.css`** → **`styles.<hash>.css`**, write **`asset-manifest.json`**, and patch **`index.html`** (preload, links, script). This replaces stable **`app.min.js`** / query-string-only cache busting for production deploys.
 
-**Custom domain (`rianell.com`):** In **Settings → Pages**, set the custom domain and keep **Enforce HTTPS** on. At your DNS provider, use GitHub’s documented records (apex: four **A** records to `185.199.108.153`–`185.199.111.153`; **www**: **CNAME** to `<user>.github.io`). This repo includes **`apps/pwa-webapp/CNAME`** (contents: `rianell.com`) so each deploy publishes the domain hint at the site root, alongside the GitHub UI setting.
+**Custom domain (`rianell.com`):** In **Settings → Pages**, set the custom domain and keep **Enforce HTTPS** on. At your DNS provider, use GitHub’s documented records (apex: four **A** records to `185.199.108.153`-`185.199.111.153`; **www**: **CNAME** to `<user>.github.io`). This repo includes **`apps/pwa-webapp/CNAME`** (contents: `rianell.com`) so each deploy publishes the domain hint at the site root, alongside the GitHub UI setting.
 
 If the site works elsewhere but your PC shows **`ERR_CONNECTION_REFUSED`**, DNS is often fine globally while your machine still has a stale cache, a bad **AAAA**, or a firewall/VPN path. Run **`powershell -ExecutionPolicy Bypass -File .\scripts\check-rianell-dns.ps1`** from the repo to verify **A**/**AAAA**/**www**, then try **`ipconfig /flushdns`**, another network (e.g. phone on cellular), or remove incorrect **AAAA** records for the apex.
 
@@ -238,12 +238,12 @@ The Tkinter dashboard (`server/dashboard_ui.py`) provides a **responsive** layou
 - **Landscape:** left sidebar navigation (Home · Data · Tools · Logs)
 - **Portrait / narrow:** bottom tab bar with the same four sections
 
-**Overview tab** — status cards for local server URL, Supabase connection, live reload, and Clean Chromium; quick actions to search data or open logs.
+**Overview tab** - status cards for local server URL, Supabase connection, live reload, and Clean Chromium; quick actions to search data or open logs.
 
-**Data tab** — connection refresh, condition search, record count badge, export / wipe / sample-data actions, and a database viewer (last 100 rows, multi-select).
+**Data tab** - connection refresh, condition search, record count badge, export / wipe / sample-data actions, and a database viewer (last 100 rows, multi-select).
 
-**Tools tab** — live reload pause/start, push reload to browsers, Chromium download, pip `requirements.txt` install.
+**Tools tab** - live reload pause/start, push reload to browsers, Chromium download, pip `requirements.txt` install.
 
-**Logs tab** — colour-coded stream with level filter (All / Info+ / Warning+ / Errors only), clear, and auto-scroll toggle. Lines use **`[LEVEL]`** brackets (file/console logs still use emoji — see [Logging](project-reference.md#logging)).
+**Logs tab** - colour-coded stream with level filter (All / Info+ / Warning+ / Errors only), clear, and auto-scroll toggle. Lines use **`[LEVEL]`** brackets (file/console logs still use emoji - see [Logging](project-reference.md#logging)).
 
 **Supabase DNS errors:** if the dashboard shows “DNS failed” or “host unreachable”, update `SUPABASE_URL` in `security/.env` with your live project URL from the Supabase dashboard.

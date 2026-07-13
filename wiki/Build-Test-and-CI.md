@@ -20,7 +20,7 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run benchmark` | Performance benchmarks workspace |
 | `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
 | `npm run audit:boot:strict` | Playwright strict boot gate (local / CI parity) |
-| `npm run stress:memory` | Playwright memory stress test — Tier 5 + 365-day data, 10 tab-switch cycles, heap growth < 80 MB threshold; writes `benchmarks/memory/stress-latest.json` (gitignored) |
+| `npm run stress:memory` | Playwright memory stress test - Tier 5 + 365-day data, 10 tab-switch cycles, heap growth < 80 MB threshold; writes `benchmarks/memory/stress-latest.json` (gitignored) |
 | `scripts/dev/shutdown-pc.ps1` | Schedule delayed Windows shutdown (default 10 min); cancel with `shutdown /a` |
 | `npm run verify:cspro` | CI check: live site must not serve `CSPRO: connect-src 'none'` |
 | `npm run supabase:deploy:delete-user-data` | Deploy GDPR Edge Function to Supabase project |
@@ -34,7 +34,7 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 2. `generate-locale-overrides.mjs`
 3. `sync-i18n-assets.mjs`
 4. `build-pwa-vendor.mjs` (shared packages)
-5. `apps/pwa-webapp/build-site.mjs` — esbuild, fingerprint JS/CSS, patch `index.html`
+5. `apps/pwa-webapp/build-site.mjs` - esbuild, fingerprint JS/CSS, patch `index.html`
 
 ---
 
@@ -42,39 +42,39 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 
 Jobs are grouped into **phases** (see workflow header). File order matches the DAG.
 
-### Phase 0 — Gate
+### Phase 0 - Gate
 
-- **paths-filter** — On push, sets `mobile_release` (skip mobile/release when only `artifacts/` changed).
+- **paths-filter** - On push, sets `mobile_release` (skip mobile/release when only `artifacts/` changed).
 
-### Phase 1 — Foundation (max 3 parallel)
+### Phase 1 - Foundation (max 3 parallel)
 
-- **unit-tests** — `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, parity, `verify:i18n`
-- **prepare-minified-assets** — minified PWA + Capacitor dist → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
-- **security-audit** — Gitleaks, OSV, npm/pip audit (reusable workflow)
+- **unit-tests** - `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, parity, `verify:i18n`
+- **prepare-minified-assets** - minified PWA + Capacitor dist → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
+- **security-audit** - Gitleaks, OSV, npm/pip audit (reusable workflow)
 
-### Phase 2 — Build lanes (max 7 parallel)
+### Phase 2 - Build lanes (max 7 parallel)
 
-- **benchmarks-web** — starts when minify finishes (does not wait for unit tests)
-- **deploy-pages** — GitHub Pages → [rianell.com](https://rianell.com) (push only; gated on Phase 1)
-- **expo-bundle-prod** — Hermes production bundles (gate)
-- **server-exe** — Windows x64/x86 (starts after unit tests + audit, not minify)
-- **rn-build-version** — sequential RN build number (parallel with Expo export on mobile pushes)
-- **commit-dependencies-doc** / **sync-wiki-to-github** — main push bots (after unit tests)
+- **benchmarks-web** - starts when minify finishes (does not wait for unit tests)
+- **deploy-pages** - GitHub Pages → [rianell.com](https://rianell.com) (push only; gated on Phase 1)
+- **expo-bundle-prod** - Hermes production bundles (gate)
+- **server-exe** - Windows x64/x86 (starts after unit tests + audit, not minify)
+- **rn-build-version** - sequential RN build number (parallel with Expo export on mobile pushes)
+- **commit-dependencies-doc** / **sync-wiki-to-github** - main push bots (after unit tests)
 
-### Phase 3 — Downstream
+### Phase 3 - Downstream
 
-- **benchmarks-expo** — Hermes bundle stats (non-blocking)
-- **playwright-e2e** — PWA smoke + oasis particle specs against local probe (`workers: 1` on CI — see `benchmarks/playwright.config.ts`)
-- **benchmarks-web** — Lighthouse + nav timings on minified PWA (`timeout-minutes: 25`; shared measure for `web-pwa` / `github-pages`; `BENCHMARK_LH_RUNS=2`)
-- **rncli-android-apk** / **rncli-ios-zip** — native artifacts (parallel)
-- **audit-boot-post-deploy** — boot audit on exact Pages `site/` (see below)
+- **benchmarks-expo** - Hermes bundle stats (non-blocking)
+- **playwright-e2e** - PWA smoke + oasis particle specs against local probe (`workers: 1` on CI - see `benchmarks/playwright.config.ts`)
+- **benchmarks-web** - Lighthouse + nav timings on minified PWA (`timeout-minutes: 25`; shared measure for `web-pwa` / `github-pages`; `BENCHMARK_LH_RUNS=2`)
+- **rncli-android-apk** / **rncli-ios-zip** - native artifacts (parallel)
+- **audit-boot-post-deploy** - boot audit on exact Pages `site/` (see below)
 
-### Phase 4 — Bots and release
+### Phase 4 - Bots and release
 
-- **commit-benchmarks** — merge benchmark Markdown on main
-- **commit-app-build** / **publish-release** — mobile push only (parallel; release uses artifacts API)
-- **readme-build-info** — **web-only** main pushes (`mobile_release` false); mobile README updated in `commit-app-build`
-- **security-headers-report** — securityheaders.com → `security/*.md` (after post-deploy audit)
+- **commit-benchmarks** - merge benchmark Markdown on main
+- **commit-app-build** / **publish-release** - mobile push only (parallel; release uses artifacts API)
+- **readme-build-info** - **web-only** main pushes (`mobile_release` false); mobile README updated in `commit-app-build`
+- **security-headers-report** - securityheaders.com → `security/*.md` (after post-deploy audit)
 
 ### Bot push queue
 
@@ -82,11 +82,11 @@ Jobs that `git push` share concurrency group `ci-bot-push-${{ github.ref }}` so 
 
 ### Cancel on gate failure
 
-When a **gate** job fails (unit tests, minified assets, Expo bundle, deploy, post-deploy audit), the workflow is **cancelled** so Android APK, server EXE, and release jobs do not keep running. **Benchmark** jobs are not cancelled — they can finish independently.
+When a **gate** job fails (unit tests, minified assets, Expo bundle, deploy, post-deploy audit), the workflow is **cancelled** so Android APK, server EXE, and release jobs do not keep running. **Benchmark** jobs are not cancelled - they can finish independently.
 
 ### Post-deploy boot audit (v1.89.2)
 
-1. **deploy-pages** runs **`prepare-pages-site`** (minified copy + Supabase inject) and uploads artifact **`pages-site-probe`** — the same bytes sent to GitHub Pages.
+1. **deploy-pages** runs **`prepare-pages-site`** (minified copy + Supabase inject) and uploads artifact **`pages-site-probe`** - the same bytes sent to GitHub Pages.
 2. **audit-boot-post-deploy** downloads **`pages-site-probe`**, serves `site/` with **`python -m server`** on its own runner, runs **`audit:boot:baseline`** against `http://127.0.0.1:9876/`.
 3. Live **`rianell.com`** HTML check is **non-blocking** (Cloudflare often returns **403** to GitHub Actions).
 
@@ -107,7 +107,7 @@ Caches miss only when lockfiles or pinned tool versions change:
 
 **Android native build (v1.96.1):** Root `package.json` `overrides` pin `expo-modules-core@55.0.25` so `apps/rn-app` does not resolve SDK 56 Kotlin Promise stubs against RN 0.83. The Android APK job sets `RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM=1` for Gradle Metro bundling (same as `run-mobile-export.mjs`).
 
-**Live Cloudflare probe (v1.96.1):** `scripts/ci/deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and `PROBE_GOTO_TIMEOUT_MS` / `PROBE_PASS_MS` env vars — `waitUntil: load` often times out on `rianell.com` from GitHub Actions.
+**Live Cloudflare probe (v1.96.1):** `scripts/ci/deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and `PROBE_GOTO_TIMEOUT_MS` / `PROBE_PASS_MS` env vars - `waitUntil: load` often times out on `rianell.com` from GitHub Actions.
 | PyInstaller (Windows) | Python requirements / pip extras change |
 | UPX (Chocolatey) | server-exe matrix (cached install path) |
 | Gitleaks / OSV binaries | workflow pin version bumped |
@@ -166,4 +166,4 @@ Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo r
 - [Testing & configuration](https://github.com/Metaheurist/Rianell/blob/main/docs/testing-and-configuration.md)
 - [Benchmarks README](https://github.com/Metaheurist/Rianell/blob/main/benchmarks/README.md)
 - [Dependencies inventory](https://github.com/Metaheurist/Rianell/blob/main/docs/dependencies.md)
-- [SECURITY.md — CI scanning](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)
+- [SECURITY.md - CI scanning](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)

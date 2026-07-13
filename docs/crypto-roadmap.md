@@ -14,7 +14,7 @@
 |-----------|----------------|------|
 | Payload encryption | AES-GCM via Web Crypto (`@rianell/cloud-sync`) | Strong at rest **if** key is secret |
 | IV | Random 12 bytes per encryption | Good |
-| Key storage | Random hex in `user_keys.encryption_key` — **plaintext in Postgres** | **Critical** — DB admin or service-role breach decrypts all backups |
+| Key storage | Random hex in `user_keys.encryption_key` - **plaintext in Postgres** | **Critical** - DB admin or service-role breach decrypts all backups |
 | Key generation | Client-generated on first sync | No user entropy |
 
 Reference schema:
@@ -48,14 +48,14 @@ DPIA R-DPIA-01 tracks this as **high** residual risk ([dpia-health-sync.md](priv
 
 ---
 
-## 3. Target architecture — passphrase-derived keys
+## 3. Target architecture - passphrase-derived keys
 
 ### 3.1 Goals
 
-1. **User-held secret** — passphrase or biometric-gated secret never stored server-side.
-2. **Zero plaintext key in DB** — remove `user_keys.encryption_key` column or store only public metadata (salt id, KDF params, optional wrapped key).
-3. **Cross-device** — same passphrase derives same key on PWA and RN.
-4. **Recovery honesty** — lost passphrase = lost cloud backup (document clearly).
+1. **User-held secret** - passphrase or biometric-gated secret never stored server-side.
+2. **Zero plaintext key in DB** - remove `user_keys.encryption_key` column or store only public metadata (salt id, KDF params, optional wrapped key).
+3. **Cross-device** - same passphrase derives same key on PWA and RN.
+4. **Recovery honesty** - lost passphrase = lost cloud backup (document clearly).
 
 ### 3.2 Proposed KDF chain
 
@@ -140,10 +140,10 @@ Depends on cloud passphrase UX learnings from spike.
 
 ## 7. Open questions
 
-1. **Argon2id in browser** — wasm library size vs PBKDF2 native in Web Crypto?
-2. **Passphrase reset** — only via destructive cloud delete + re-upload?
-3. **Anonymized pool** — derive separate key for contribution to limit backup key reuse?
-4. **Biometric unlock** — RN Face/Touch ID wraps CEK in secure enclave?
+1. **Argon2id in browser** - wasm library size vs PBKDF2 native in Web Crypto?
+2. **Passphrase reset** - only via destructive cloud delete + re-upload?
+3. **Anonymized pool** - derive separate key for contribution to limit backup key reuse?
+4. **Biometric unlock** - RN Face/Touch ID wraps CEK in secure enclave?
 
 Document decisions in this file when spike completes (target **2026-06-30**).
 
@@ -163,7 +163,7 @@ Document decisions in this file when spike completes (target **2026-06-30**).
 
 ## 9. References
 
-- OWASP Password Storage Cheat Sheet — https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
-- NIST SP 800-132 (PBKDF) — https://csrc.nist.gov/publications/detail/sp/800-132/final
-- Supabase HIPAA — https://supabase.com/docs/guides/platform/hipaa-projects
-- Rianell cloud-sync crypto — `packages/cloud-sync/src/index.mjs`
+- OWASP Password Storage Cheat Sheet - https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+- NIST SP 800-132 (PBKDF) - https://csrc.nist.gov/publications/detail/sp/800-132/final
+- Supabase HIPAA - https://supabase.com/docs/guides/platform/hipaa-projects
+- Rianell cloud-sync crypto - `packages/cloud-sync/src/index.mjs`

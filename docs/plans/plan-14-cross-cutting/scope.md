@@ -1,11 +1,11 @@
-# Plan 14 — Scope & scripts
+# Plan 14 - Scope & scripts
 
-**Section 14:** Cross-cutting concepts · **IDs:** X14.1–X14.5
+**Section 14:** Cross-cutting concepts · **IDs:** X14.1-X14.5
 
 ## In scope
 
 - Features listed in [plan.md](./plan.md) and [../MASTER.md(../MASTER.md) §14
-- Capstone — no new IDs; integrates prior plans.
+- Capstone - no new IDs; integrates prior plans.
 
 ## Out of scope (NR)
 

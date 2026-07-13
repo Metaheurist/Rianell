@@ -12,7 +12,7 @@ blocks:
   - plan-20-selfhost-fhir/plan.md
 ---
 
-# Plan 19 — OAuth2 & connectors (CN1–CN7)
+# Plan 19 - OAuth2 & connectors (CN1-CN7)
 
 ## Objective
 

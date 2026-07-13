@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
 ## 2. Environment variables
 
-Create your local secrets file from [`security/.env.example`](https://github.com/Metaheurist/Rianell/blob/main/security/.env.example) following [SECURITY.md — local secrets](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md#local-secrets-directory-security).
+Create your local secrets file from [`security/.env.example`](https://github.com/Metaheurist/Rianell/blob/main/security/.env.example) following [SECURITY.md - local secrets](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md#local-secrets-directory-security).
 
 Edit your **local secrets file** in the `security/` folder (never commit it):
 
@@ -110,4 +110,4 @@ Requires git push access to `Metaheurist/Rianell.wiki.git`.
 
 - [Setup & usage](https://github.com/Metaheurist/Rianell/blob/main/docs/setup-and-usage.md)
 - [React Native setup](https://github.com/Metaheurist/Rianell/blob/main/docs/react-native-setup.md)
-- [SECURITY.md — local secrets](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)
+- [SECURITY.md - local secrets](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)

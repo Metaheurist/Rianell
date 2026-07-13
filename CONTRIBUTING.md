@@ -4,7 +4,7 @@ Thank you for helping improve Rianell. This guide covers the essentials for cont
 
 ## Code of conduct
 
-Be respectful and patient — many users live with chronic illness and brain fog. Review our community standards in project docs.
+Be respectful and patient - many users live with chronic illness and brain fog. Review our community standards in project docs.
 
 ## Developer Certificate of Origin
 
@@ -12,10 +12,10 @@ Sign commits with `git commit -s` (DCO sign-off).
 
 ## Branch naming
 
-- `feat/` — new features
-- `fix/` — bug fixes
-- `security/` — security hardening
-- `docs/` — documentation only
+- `feat/` - new features
+- `fix/` - bug fixes
+- `security/` - security hardening
+- `docs/` - documentation only
 
 ## Commit messages
 

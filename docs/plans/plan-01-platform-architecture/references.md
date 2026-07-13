@@ -1,4 +1,4 @@
-# Plan 01 — References
+# Plan 01 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/owasp-masvs.md — OWASP MASVS / MASTG baseline`
+- `.firecrawl/projects/owasp-masvs.md - OWASP MASVS / MASTG baseline`
 
 ## External (verify online)
 

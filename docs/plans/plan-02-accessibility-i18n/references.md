@@ -1,4 +1,4 @@
-# Plan 02 — References
+# Plan 02 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/owasp-health-mobile.json — HIPAA mobile encryption at rest`
+- `.firecrawl/projects/owasp-health-mobile.json - HIPAA mobile encryption at rest`
 
 ## External (verify online)
 

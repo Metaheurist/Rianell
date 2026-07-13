@@ -1,15 +1,15 @@
 # HIPAA encryption chain (stub)
 
-**Status:** Phase 2 launch audit — operator checklist. Not legal advice.
+**Status:** Phase 2 launch audit - operator checklist. Not legal advice.
 
 ## Data flow
 
 | Layer | Health logs | Auth tokens | Anonymized pool |
 |-------|-------------|-------------|-----------------|
-| Device (PWA) | `localStorage` / IndexedDB — **plaintext** | Supabase session in browser storage | AES-GCM via shared anon key |
-| Device (RN) | AsyncStorage — **plaintext** (Phase 7 encrypts) | `expo-secure-store` | AES-GCM |
+| Device (PWA) | `localStorage` / IndexedDB - **plaintext** | Supabase session in browser storage | AES-GCM via shared anon key |
+| Device (RN) | AsyncStorage - **plaintext** (Phase 7 encrypts) | `expo-secure-store` | AES-GCM |
 | Transit | TLS 1.2+ (Supabase, Cloudflare) | TLS | TLS |
-| Supabase `health_data` | Text column — **server-side at rest** per Supabase AES-256 | N/A | `anonymized_log` encrypted blob |
+| Supabase `health_data` | Text column - **server-side at rest** per Supabase AES-256 | N/A | `anonymized_log` encrypted blob |
 | Supabase `user_keys` | N/A | **GAP-01:** plaintext hex in column | N/A |
 
 ## BAA and subprocessors

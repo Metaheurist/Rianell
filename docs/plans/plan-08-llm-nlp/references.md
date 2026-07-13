@@ -1,4 +1,4 @@
-# Plan 08 — References
+# Plan 08 - References
 
 ## Internal
 

@@ -1,11 +1,11 @@
-# Plan 03 — Scope & scripts
+# Plan 03 - Scope & scripts
 
-**Section 6:** Settings & onboarding · **IDs:** S1–S8
+**Section 6:** Settings & onboarding · **IDs:** S1-S8
 
 ## In scope
 
 - Features listed in [plan.md](./plan.md) and [../MASTER.md(../MASTER.md) §6
-- S5 simple mode hides AI/pool — test with plan 14 X14.3.
+- S5 simple mode hides AI/pool - test with plan 14 X14.3.
 
 ## Out of scope (NR)
 

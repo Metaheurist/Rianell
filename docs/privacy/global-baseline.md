@@ -20,7 +20,7 @@ Rianell is a **personal wellness** application, not a regulated medical device o
 | Framework | Alignment | Rianell implementation |
 |-----------|-------------|------------------------|
 | **OECD Privacy Guidelines (2013)** | Collection limitation, purpose specification, security safeguards | Opt-in cloud sync; minimal fields in bug reports; RLS + encryption |
-| **NIST Privacy Framework** | Identify – Govern – Control – Communicate – Protect | RoPA (`ropa.json`), [threat-model.md](../threat-model.md), consent modals |
+| **NIST Privacy Framework** | Identify - Govern - Control - Communicate - Protect | RoPA (`ropa.json`), [threat-model.md](../threat-model.md), consent modals |
 | **ISO/IEC 27701** (informative) | PIMS extension to ISO 27001 | Not certified; practices mapped voluntarily |
 | **GDPR / UK GDPR** | Primary EU/UK schedule | [eu-gdpr.md](eu-gdpr.md) |
 | **APPs (Australia)** | Transparency, access, correction | Settings + cloud export paths |
@@ -61,7 +61,7 @@ Full machine-readable register: [ropa.json](ropa.json).
 | Processing (PA-ID) | Art. 6 basis | Art. 9 condition (health data) | Notes |
 |--------------------|--------------|--------------------------------|-------|
 | PA-01 Local logging | **Consent** (6(1)(a)) | **Explicit consent** (9(2)(a)) | Health consent modal blocks logging without agreement |
-| PA-02 Cloud backup | **Contract** (6(1)(b)) — service user requests | **Explicit consent** (9(2)(a)) | Sign-in + sync toggle |
+| PA-02 Cloud backup | **Contract** (6(1)(b)) - service user requests | **Explicit consent** (9(2)(a)) | Sign-in + sync toggle |
 | PA-03 Anonymized pool | **Consent** (6(1)(a)) | **Explicit consent** (9(2)(a)) | Separate settings toggle |
 | PA-04 Authentication | **Contract** (6(1)(b)) | N/A (identity only) | Email/password |
 | PA-05 On-device AI | **Consent** (6(1)(a)) | **Explicit consent** (9(2)(a)) | LLM consent + health consent |
@@ -71,7 +71,7 @@ Full machine-readable register: [ropa.json](ropa.json).
 
 **UK GDPR:** Same articles; post-Brexit UK schedule in [other-jurisdictions.md](other-jurisdictions.md).
 
-**Withdrawal of consent:** Users disable sync, revoke contribution, or delete account — see [data-subject-rights.md](data-subject-rights.md).
+**Withdrawal of consent:** Users disable sync, revoke contribution, or delete account - see [data-subject-rights.md](data-subject-rights.md).
 
 ---
 
@@ -82,7 +82,7 @@ Full machine-readable register: [ropa.json](ropa.json).
 | Local logs | User-controlled | Clear data / uninstall |
 | Cloud `health_data` | Until delete | Settings → delete cloud backup |
 | `user_keys` | Until delete | Deleted with cloud backup |
-| `anonymized_data` | Until erasure request | May retain if truly anonymized — legal review per row |
+| `anonymized_data` | Until erasure request | May retain if truly anonymized - legal review per row |
 | Auth account | Until deletion | Supabase user delete (operator-assisted if no self-serve) |
 | Bug reports | 24 months | Operator purge job |
 

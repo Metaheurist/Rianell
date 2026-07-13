@@ -1,6 +1,6 @@
-# Plan 06 — Scope & scripts
+# Plan 06 - Scope & scripts
 
-**Section 6:** Cloud sync & portability · **IDs:** D1–D7
+**Section 6:** Cloud sync & portability · **IDs:** D1-D7
 
 ## In scope
 

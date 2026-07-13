@@ -1,4 +1,4 @@
-# Make.com — Rianell webhook trigger
+# Make.com - Rianell webhook trigger
 
 1. Create a **Custom webhook** module in Make.com.
 2. Copy the webhook URL into Rianell **Settings → Developer → Webhooks**.

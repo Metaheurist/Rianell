@@ -1,8 +1,8 @@
-# UI/UX standards — mobile & desktop (all plans)
+# UI/UX standards - mobile & desktop (all plans)
 
 **Priority:** Every feature ships usable on **phone (PWA + RN)**, **tablet**, and **desktop browser** before plan completion.
 
-**Cross-ref:** Plan 02 (I1–I5 accessibility), Plan 01 (T2 design tokens), Plan 03 (S5 simple mode)
+**Cross-ref:** Plan 02 (I1-I5 accessibility), Plan 01 (T2 design tokens), Plan 03 (S5 simple mode)
 
 ---
 
@@ -13,9 +13,9 @@
 | **Touch targets** | Min 44×44 px (WCAG 2.5.5); adequate spacing on RN and PWA |
 | **Breakpoints** | PWA: single-column default &lt;768px; side-by-side settings/charts ≥768px where applicable |
 | **Safe areas** | RN: respect notch/home indicator; PWA: `env(safe-area-inset-*)` on fixed FAB/nav |
-| **Max font scale** | Manual smoke at 200% system font — no clipped text, overlapping cards, or horizontal scroll on Home/Settings |
+| **Max font scale** | Manual smoke at 200% system font - no clipped text, overlapping cards, or horizontal scroll on Home/Settings |
 | **RTL** | ar, he: `applyDocumentDirection`; mirror carousel and chart legends (Plan 02) |
-| **Simple mode (S5)** | Hide AI cards, advanced charts, anon pool CTAs — test on Home (Plan 10) |
+| **Simple mode (S5)** | Hide AI cards, advanced charts, anon pool CTAs - test on Home (Plan 10) |
 
 ---
 
@@ -23,7 +23,7 @@
 
 | Pattern | Plans | Rule |
 |---------|-------|------|
-| Lazy load heavy modules | 01, 09, 08 | Charts, LLM, Storybook dev-only — not on critical path to first paint |
+| Lazy load heavy modules | 01, 09, 08 | Charts, LLM, Storybook dev-only - not on critical path to first paint |
 | Skeleton / placeholder | 10, 09 | Home cards and charts show structure before data ready |
 | Debounce / cache | 03, 10 | Settings search index once; H1 card order once per session/day |
 | Off main thread | 07, 12 | Large-log analysis in worker; PDF generation async |
@@ -54,7 +54,7 @@ Known acceptable gaps (documented NR/defer):
 
 - I3/I4 haptics/TTS: RN only
 - N10 GGUF WASM: PWA experimental tier
-- **L10 / N8 wearables:** excluded — requires Xcode, paid Apple Developer account, and platform health APIs
+- **L10 / N8 wearables:** excluded - requires Xcode, paid Apple Developer account, and platform health APIs
 
 ---
 

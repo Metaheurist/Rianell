@@ -12,7 +12,7 @@ blocks:
   - plan-23-community/plan.md
 ---
 
-# Plan 22 — Performance optimization (PF1–PF7)
+# Plan 22 - Performance optimization (PF1-PF7)
 
 ## Objective
 

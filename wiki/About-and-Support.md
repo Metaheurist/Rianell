@@ -14,7 +14,7 @@
 
 ## Author
 
-**Metaheurist** — sole developer and maintainer
+**Metaheurist** - sole developer and maintainer
 
 - GitHub: [@Metaheurist](https://github.com/Metaheurist)
 
@@ -34,7 +34,7 @@ When reporting issues, see the checklist in [[Contributing]].
 
 ## Licence
 
-Open source — see the repository for licence details.
+Open source - see the repository for licence details.
 
 ---
 

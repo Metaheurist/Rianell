@@ -1,4 +1,4 @@
-# Plan 06 — References
+# Plan 06 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/supabase-health-sync.json — RLS + client keys`
+- `.firecrawl/projects/supabase-health-sync.json - RLS + client keys`
 
 ## External (verify online)
 

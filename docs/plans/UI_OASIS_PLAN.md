@@ -1,4 +1,4 @@
-# UI_OASIS_PLAN.md — Hyper-Detailed Engineering Blueprint
+# UI_OASIS_PLAN.md - Hyper-Detailed Engineering Blueprint
 > Rianell "UI Oasis Overhaul" · Lesser-model-ready deterministic spec · v2.1.0-oasis
 > Author: Senior Principal Enterprise Systems Architect pass · Last compiled: 2026-06-29
 
@@ -8,7 +8,7 @@
 
 ```
 apps/
-  pwa-webapp/               @rianell/pwa-webapp v2.0.9  —  vanilla JS SPA
+  pwa-webapp/               @rianell/pwa-webapp v2.0.9 - vanilla JS SPA
     index.html              5 000-line HTML shell · tab panels · inline SVG sprite
     app.js                  26 000-line ES module · ALL feature logic
     styles.css              25 000-line master stylesheet · 100+ @keyframes
@@ -23,7 +23,7 @@ apps/
       weekly-review.js          Weekly review modal
     ui-feedback.js          Toast · ripple · scroll-reveal · haptics · theme crossfade
     performance-utils.js    Device tier · getOptimizationProfile() · getDeviceOpts()
-  rn-app/                   @rianell/rn-app  —  Expo 55 / React Native 0.83
+  rn-app/                   @rianell/rn-app - Expo 55 / React Native 0.83
     src/
       screens/              HomeScreen · LogsScreen · ChartsScreen · MoodScreen
                             AiScreen · SettingsScreen · LogWizardScreen · WeeklyReviewScreen
@@ -34,7 +34,7 @@ apps/
       theme/                ThemeProvider.tsx
       hooks/                useReduceMotionFlag.ts
 packages/
-  tokens/src/index.mjs      SOURCE OF TRUTH — colors · motion · radius · 4 team themes
+  tokens/src/index.mjs      SOURCE OF TRUTH - colors · motion · radius · 4 team themes
 ```
 
 ### Active MCP servers (from `.cursor/mcp.json`)
@@ -44,44 +44,44 @@ packages/
 | `chrome-live-review` | `npx chrome-devtools-mcp` | Live CWV measurement · FCP · LCP · TBT |
 | `magic-ui-motion` | `npx @magicuidesign/mcp@latest` | NumberTicker · MorphingText reference patterns |
 | `playwright-ui-tester` | `npx @playwright/mcp` | Automated 1 500 ms animation ceiling smoke tests |
-| `postgres` | MCP postgres (localhost) | DEV-ONLY — verify no schema pollution |
+| `postgres` | MCP postgres (localhost) | DEV-ONLY - verify no schema pollution |
 
 ### Active guardrails (`.cursor/rules/ui-motion.mdc`)
-1. Animate only `transform`, `opacity`, `filter` — GPU-composited only.
+1. Animate only `transform`, `opacity`, `filter` - GPU-composited only.
 2. Never animate `width`, `height`, `top`, `left`, or `padding`.
 3. Gate every animation: `@media (prefers-reduced-motion: reduce)` + `reducedMotion` pref.
-4. AI loading state: skeletons with `bioluminescent-shimmer` — never a bare spinner.
+4. AI loading state: skeletons with `bioluminescent-shimmer` - never a bare spinner.
 5. Reveal after load: staggered `ai-animate-in` sequence.
 
 ---
 
-## CRITICAL — File Protection Protocol (read before editing anything)
+## CRITICAL - File Protection Protocol (read before editing anything)
 
 ### Why `app.js` and `styles.css` must NOT be bulk-appended
 
 `app.js` is 26 000 lines. Any lesser model attempting to re-write, append large blocks, or
 pattern-match across the whole file WILL hallucinate, truncate, or corrupt it.
 
-**Rule 1 — New JS code goes in `apps/pwa-webapp/modules/oasis-canvas.js` (new file).**
-- `app.js` gets at most **3 small surgical insertions** — each is shown below with exact
+**Rule 1 - New JS code goes in `apps/pwa-webapp/modules/oasis-canvas.js` (new file).**
+- `app.js` gets at most **3 small surgical insertions** - each is shown below with exact
   surrounding context (5 lines before, 5 lines after) so a model can use StrReplace safely.
 - Never open `app.js` in write mode for anything other than those 3 insertions.
 
-**Rule 2 — New CSS goes in `apps/pwa-webapp/css/oasis.css` (new file), `<link>`-injected.**
+**Rule 2 - New CSS goes in `apps/pwa-webapp/css/oasis.css` (new file), `<link>`-injected.**
 - `styles.css` gets **zero new keyframes** added to it directly.
 - `oasis.css` is loaded after `styles.css` so its specificity layer is additive.
-- All `.oasis-*` classes use the `oasis-` prefix exclusively — zero collision risk.
+- All `.oasis-*` classes use the `oasis-` prefix exclusively - zero collision risk.
 
-**Rule 3 — Token additions to `packages/tokens/src/index.mjs` use append-only surgery.**
+**Rule 3 - Token additions to `packages/tokens/src/index.mjs` use append-only surgery.**
 - Insert the `OASIS_TOKENS` export after the closing brace of `RECOVERY_TOKENS` (line 28).
 - Never touch `TEAM_TOKENS`, `withSemanticColors`, or `getTokens`.
 
-**Rule 4 — RN files: read the full file first, then use StrReplace with 6+ lines of context.**
-- All RN component edits use targeted StrReplace — never full rewrites.
+**Rule 4 - RN files: read the full file first, then use StrReplace with 6+ lines of context.**
+- All RN component edits use targeted StrReplace - never full rewrites.
 
 ---
 
-## PHASE A — Token & Foundation Layer
+## PHASE A - Token & Foundation Layer
 
 ### A.1 Target file
 `packages/tokens/src/index.mjs`
@@ -91,51 +91,51 @@ Insert the following block **after line 28** (after the closing `};` of `RECOVER
 before the blank line that precedes `const TEAM_TOKENS = {`.
 
 ```js
-// ─── OASIS TOKENS — UI Oasis Overhaul v2.1.0 ──────────────────────────────
+// ─── OASIS TOKENS - UI Oasis Overhaul v2.1.0 ──────────────────────────────
 // search: @rianell/oasis-tokens
 export const OASIS_TOKENS = {
   motion: {
-    // easeOasis: smooth sinusoidal breathe — no overshoot, deeply calming
+    // easeOasis: smooth sinusoidal breathe - no overshoot, deeply calming
     easeOasis: 'cubic-bezier(0.45, 0, 0.55, 1)',
-    breathDurationMs: 6000,   // ambient blob breath cycle — 6 s feels biological
-    glowDurationMs: 3200,     // calm-glow pulse — 3.2 s matches resting heart-beat feel
-    neuralTraceDurationMs: 2400, // neural path draw — completes before LLM p95 latency
-    particleDurationMs: 900,  // confetti burst — hard ceiling 900 ms (< 1 500 ms gate)
+    breathDurationMs: 6000,   // ambient blob breath cycle - 6 s feels biological
+    glowDurationMs: 3200,     // calm-glow pulse - 3.2 s matches resting heart-beat feel
+    neuralTraceDurationMs: 2400, // neural path draw - completes before LLM p95 latency
+    particleDurationMs: 900,  // confetti burst - hard ceiling 900 ms (< 1 500 ms gate)
     magnetSnapDurationMs: 180, // pointer-leave spring snap (matches --dur-fast token)
   },
-  // Per-team ambient blob colours — dark mode only (light mode uses reduced opacity)
+  // Per-team ambient blob colours - dark mode only (light mode uses reduced opacity)
   // Colour derivation: team accent hue rotated -30° and desaturated 20% for comfort.
   ambient: {
     mint: {
-      blob1: '#1a5c3a',   // HSL(150, 55%, 23%) — deep forest teal
-      blob2: '#0d3d2e',   // HSL(160, 65%, 15%) — bioluminescent shadow
-      blob3: '#2e7a5a',   // HSL(155, 45%, 32%) — mid-water jade
-      glow: '#7bdf8c',    // Team accent — calm-glow ring
+      blob1: '#1a5c3a',   // HSL(150, 55%, 23%) - deep forest teal
+      blob2: '#0d3d2e',   // HSL(160, 65%, 15%) - bioluminescent shadow
+      blob3: '#2e7a5a',   // HSL(155, 45%, 32%) - mid-water jade
+      glow: '#7bdf8c',    // Team accent - calm-glow ring
     },
     'red-black': {
-      blob1: '#6b1a2e',   // HSL(345, 60%, 26%) — deep rose ember
-      blob2: '#3d0d1a',   // HSL(345, 65%, 15%) — dark arterial
-      blob3: '#a0294a',   // HSL(344, 56%, 40%) — warm coral pulse
-      glow: '#ff8d98',    // Team loader.mid — soft celebration pink
+      blob1: '#6b1a2e',   // HSL(345, 60%, 26%) - deep rose ember
+      blob2: '#3d0d1a',   // HSL(345, 65%, 15%) - dark arterial
+      blob3: '#a0294a',   // HSL(344, 56%, 40%) - warm coral pulse
+      glow: '#ff8d98',    // Team loader.mid - soft celebration pink
     },
     mono: {
-      blob1: '#1e1e1e',   // HSL(0, 0%, 12%) — near-black fog
-      blob2: '#2d2d2d',   // HSL(0, 0%, 18%) — charcoal breath
-      blob3: '#3a3a3a',   // HSL(0, 0%, 23%) — silver mist
-      glow: '#d0d0d0',    // Team loader.mid — cool platinum
+      blob1: '#1e1e1e',   // HSL(0, 0%, 12%) - near-black fog
+      blob2: '#2d2d2d',   // HSL(0, 0%, 18%) - charcoal breath
+      blob3: '#3a3a3a',   // HSL(0, 0%, 23%) - silver mist
+      glow: '#d0d0d0',    // Team loader.mid - cool platinum
     },
     rainbow: {
-      blob1: '#1a1550',   // HSL(244, 55%, 20%) — deep cosmic indigo
-      blob2: '#2a0d40',   // HSL(275, 65%, 15%) — nebula shadow
-      blob3: '#3d1f6b',   // HSL(270, 54%, 27%) — aurora violet
-      glow: '#ff4fa0',    // Team accent — aurora pink
+      blob1: '#1a1550',   // HSL(244, 55%, 20%) - deep cosmic indigo
+      blob2: '#2a0d40',   // HSL(275, 65%, 15%) - nebula shadow
+      blob3: '#3d1f6b',   // HSL(270, 54%, 27%) - aurora violet
+      glow: '#ff4fa0',    // Team accent - aurora pink
     },
   },
   // Semantic glow values for metric health states
   statusGlow: {
     improving: 'drop-shadow(0 0 8px #4caf50)',   // matches SEMANTIC_COLORS.statusImproving
     stable:    'drop-shadow(0 0 6px #2196f3)',   // matches SEMANTIC_COLORS.statusStable
-    declining: 'none',                            // no glow on declining — never shame
+    declining: 'none',                            // no glow on declining - never shame
   },
 };
 // ─── END OASIS TOKENS ───────────────────────────────────────────────────────
@@ -146,10 +146,10 @@ export const OASIS_TOKENS = {
 npm run sync:tokens
 ```
 This regenerates `apps/pwa-webapp/css/tokens.css`. Verify by grepping for `--oasis` in the
-output file — it will NOT appear because the sync script only maps `motion`, `radius`, and
+output file - it will NOT appear because the sync script only maps `motion`, `radius`, and
 `color` from `withSemanticColors`. The new oasis CSS variables are written manually in
 `css/oasis.css` (Phase B) referencing the JS constants by copying their hex values.
-There is NO schema pollution — the `postgres` MCP server can confirm no migration is triggered.
+There is NO schema pollution - the `postgres` MCP server can confirm no migration is triggered.
 
 ### A.4 Pass condition
 - `npm run sync:tokens` exits 0
@@ -157,7 +157,7 @@ There is NO schema pollution — the `postgres` MCP server can confirm no migrat
 
 ---
 
-## PHASE B — Comforting Canvas
+## PHASE B - Comforting Canvas
 
 ### B.1 New file: `apps/pwa-webapp/css/oasis.css`
 
@@ -165,7 +165,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
 
 ```css
 /*
- * oasis.css — UI Oasis Overhaul v2.1.0
+ * oasis.css - UI Oasis Overhaul v2.1.0
  * All selectors scoped to .oasis-* or [data-oasis] to avoid collisions.
  * Animate ONLY: transform, opacity, filter (ui-motion.mdc rule).
  * Every @keyframes block is wrapped in @media (not (prefers-reduced-motion: reduce)).
@@ -184,7 +184,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
   --oasis-blob-opacity:   0.55;
 }
 
-/* Per-team overrides — piggyback on existing .rianell-theme-* classes */
+/* Per-team overrides - piggyback on existing .rianell-theme-* classes */
 .rianell-theme-mint          { --oasis-blob1: #1a5c3a; --oasis-blob2: #0d3d2e; --oasis-blob3: #2e7a5a; --oasis-glow: #7bdf8c; }
 .rianell-theme-red-black     { --oasis-blob1: #6b1a2e; --oasis-blob2: #3d0d1a; --oasis-blob3: #a0294a; --oasis-glow: #ff8d98; }
 .rianell-theme-mono          { --oasis-blob1: #1e1e1e; --oasis-blob2: #2d2d2d; --oasis-blob3: #3a3a3a; --oasis-glow: #d0d0d0; }
@@ -203,10 +203,10 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 0;             /* behind all content — content must be z-index: 1+ */
+  z-index: 0;             /* behind all content - content must be z-index: 1+ */
   will-change: transform, opacity;
   opacity: var(--oasis-blob-opacity);
-  /* filter: blur() is GPU-composited — safe per ui-motion.mdc */
+  /* filter: blur() is GPU-composited - safe per ui-motion.mdc */
   filter: blur(var(--oasis-blur-radius));
 }
 
@@ -241,7 +241,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
 
 /* ── 4. SVG grain texture overlay ───────────────────────────────────────────── */
 /* Grain is a ::before on each tab-content. The SVG feTurbulence is inlined as
-   data URI — zero HTTP requests. GPU-composited via will-change: transform.    */
+   data URI - zero HTTP requests. GPU-composited via will-change: transform.    */
 .tab-content::before,
 .settings-overlay::before {
   content: '';
@@ -261,7 +261,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
 /* ── 5. Calm-glow ring for healthy metrics ───────────────────────────────────── */
 [data-metric-status="improving"] .metric-widget__ring,
 [data-metric-status="improving"] .metric-card {
-  /* filter is GPU-composited — safe */
+  /* filter is GPU-composited - safe */
   filter: drop-shadow(0 0 8px var(--oasis-glow));
 }
 
@@ -275,7 +275,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
   }
 }
 
-/* Status 'declining' — remove glow, never shame with harsh colour */
+/* Status 'declining' - remove glow, never shame with harsh colour */
 [data-metric-status="declining"] .metric-widget__ring { filter: none; }
 
 /* ── 6. Positive-trend shimmer on vitals cards ──────────────────────────────── */
@@ -296,7 +296,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
 @media (not (prefers-reduced-motion: reduce)) {
   [data-metric-status="improving"] .vitals-card::after {
     animation: shimmerSweep 2800ms var(--ease-out-expo) infinite;
-    /* shimmerSweep is defined in styles.css — reuse, do not redefine */
+    /* shimmerSweep is defined in styles.css - reuse, do not redefine */
   }
 }
 
@@ -335,7 +335,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
     100% { stroke-dashoffset: -600; opacity: 0.1; }
   }
   .oasis-neural-path {
-    stroke-dasharray: 12 8;    /* dash 12px, gap 8px — biological spacing */
+    stroke-dasharray: 12 8;    /* dash 12px, gap 8px - biological spacing */
     stroke-dashoffset: 600;
     animation: oasisNeuralDraw 2400ms linear infinite;
   }
@@ -380,7 +380,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
 }
 
 /* ── 11. Magnetic CTA reset spring ──────────────────────────────────────────── */
-/* Applied via JS — this class is the rest-state after mouseleave */
+/* Applied via JS - this class is the rest-state after mouseleave */
 .oasis-magnet-reset {
   transition: transform var(--dur-fast) var(--ease-spring) !important;
   transform: translate(0px, 0px) !important;
@@ -441,7 +441,7 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
 
 ### B.2 Inject `<link>` into `index.html`
 
-**Exact insertion point** — search for the string `<link rel="stylesheet" href="styles.css` in
+**Exact insertion point** - search for the string `<link rel="stylesheet" href="styles.css` in
 `index.html`. It appears once. Add the oasis link on the immediately following line:
 
 ```html
@@ -453,12 +453,12 @@ Create this file from scratch. It is `<link>`-injected into `index.html` after `
 
 ### B.3 New module: `apps/pwa-webapp/modules/oasis-canvas.js`
 
-This is the ONLY new JS file for Phase B–E. All JavaScript for the Oasis Overhaul lives here.
-Do NOT add functions to `app.js` directly — instead add 3 surgical calls into `app.js` (B.4).
+This is the ONLY new JS file for Phase B-E. All JavaScript for the Oasis Overhaul lives here.
+Do NOT add functions to `app.js` directly - instead add 3 surgical calls into `app.js` (B.4).
 
 ```js
 /**
- * oasis-canvas.js — UI Oasis Overhaul v2.1.0
+ * oasis-canvas.js - UI Oasis Overhaul v2.1.0
  * Ambient blobs, magnetic CTAs, confetti, check-in shimmer, data-stream dots.
  * Namespace: window.OasisCanvas
  * Depends: PerformanceUtils (performance-utils.js must be loaded first)
@@ -469,7 +469,7 @@ Do NOT add functions to `app.js` directly — instead add 3 surgical calls into 
   // ── Guard: do not run if PerformanceUtils not ready ──────────────────────
   var PU = global.PerformanceUtils;
   if (!PU) {
-    if (typeof console !== 'undefined') console.warn('[OasisCanvas] PerformanceUtils not found — skipping.');
+    if (typeof console !== 'undefined') console.warn('[OasisCanvas] PerformanceUtils not found - skipping.');
     return;
   }
 
@@ -522,7 +522,7 @@ Do NOT add functions to `app.js` directly — instead add 3 surgical calls into 
       var blob = document.createElement('div');
       blob.className = 'oasis-blob oasis-blob--' + n;
       blob.setAttribute('aria-hidden', 'true');
-      panelEl.insertBefore(blob, panelEl.firstChild); // prepend — z-index:0 sits behind
+      panelEl.insertBefore(blob, panelEl.firstChild); // prepend - z-index:0 sits behind
     });
   }
 
@@ -610,7 +610,7 @@ Do NOT add functions to `app.js` directly — instead add 3 surgical calls into 
 
   // ── D.4 Data-stream dots ──────────────────────────────────────────────
   // Fires N dots from sourceEl centroid toward destEl centroid.
-  // Uses CSS custom properties --dot-x0/y0 (0,0 — relative to dot spawn point)
+  // Uses CSS custom properties --dot-x0/y0 (0,0 - relative to dot spawn point)
   // and --dot-x1/y1 (delta vector to destination).
   var STREAM_DOT_COLOURS = ['var(--oasis-glow)', 'rgba(255,255,255,0.6)', 'var(--oasis-glow)'];
 
@@ -772,7 +772,7 @@ Do NOT add functions to `app.js` directly — instead add 3 surgical calls into 
 
 > Use StrReplace with the exact 5-line context windows below. Do NOT open app.js in full.
 
-**Insertion 1 — Load oasis-canvas.js after ui-feedback.js**
+**Insertion 1 - Load oasis-canvas.js after ui-feedback.js**
 
 Search `index.html` for `<script src="ui-feedback.js"` (or similar). Add the module load
 immediately after it (app.js is already type="module" so use a regular script for oasis-canvas
@@ -783,13 +783,13 @@ since it uses an IIFE and sets `window.OasisCanvas`):
 <script src="modules/oasis-canvas.js" defer></script>
 ```
 
-**Insertion 2 — Call `OasisCanvas.init()` after first tab is shown**
+**Insertion 2 - Call `OasisCanvas.init()` after first tab is shown**
 
 In `app.js`, search for the string `initFirstTabDisplay` or the equivalent tab-init call.
-Find the pattern that looks like this (exact search string — adjust if needed):
+Find the pattern that looks like this (exact search string - adjust if needed):
 
 ```js
-// In app.js — look for the function that runs on DOMContentLoaded / first render
+// In app.js - look for the function that runs on DOMContentLoaded / first render
 // Somewhere near: showTab('home') or activateDefaultTab()
 ```
 
@@ -799,7 +799,7 @@ Add one line after the tab init call:
 if (window.OasisCanvas) window.OasisCanvas.init();
 ```
 
-**Insertion 3 — Call `OasisCanvas.onTabActivated(id)` on every tab switch**
+**Insertion 3 - Call `OasisCanvas.onTabActivated(id)` on every tab switch**
 
 In `app.js`, find the `showTab` function (or `switchToTab`). It contains a line that
 toggles the active tab class. Add one call after the panel is made visible:
@@ -823,19 +823,19 @@ The gate logic in `oasis-canvas.js` uses `PU.getDeviceOpts().reduceAnimations`.
 |---|---|---|---|---|
 | `high` | false | YES (3 blobs) | YES (CSS only) | YES |
 | `medium` | false | YES (3 blobs) | YES (CSS only) | YES |
-| `low` | true | NO — skipped | YES (CSS only) | NO |
-| Any + reduced-motion | true | NO — skipped | NO (media query) | NO |
+| `low` | true | NO - skipped | YES (CSS only) | NO |
+| Any + reduced-motion | true | NO - skipped | NO (media query) | NO |
 
 ---
 
-## PHASE C — Living Visual Stats
+## PHASE C - Living Visual Stats
 
-### C.1 PWA: `modules/log-metric-widgets.js` — `applyMetricStatus` calls
+### C.1 PWA: `modules/log-metric-widgets.js` - `applyMetricStatus` calls
 
 After each widget renders its current value, call:
 
 ```js
-// Existing pattern in log-metric-widgets.js — find each widget's render function.
+// Existing pattern in log-metric-widgets.js - find each widget's render function.
 // They end with something like: widgetEl.querySelector('.metric-value').textContent = val;
 // ADD immediately after the textContent assignment:
 if (window.OasisCanvas) {
@@ -849,7 +849,7 @@ if (window.OasisCanvas) {
 ```js
 function deriveStatus(val, metric) {
   // Returns 'improving' | 'stable' | 'declining'
-  // Uses the same thresholds used for the existing colour coding — find them
+  // Uses the same thresholds used for the existing colour coding - find them
   // in the switch/case for metric type already in log-metric-widgets.js.
   // Map: green zone → 'improving', yellow → 'stable', red → 'declining'
   var bounds = getMetricBounds(metric); // existing function in the module
@@ -860,10 +860,10 @@ function deriveStatus(val, metric) {
 }
 ```
 
-### C.2 RN: `BalanceRadarChart.tsx` — animated polygon breathing
+### C.2 RN: `BalanceRadarChart.tsx` - animated polygon breathing
 
 **Strategy:** Add a secondary "ghost" polygon that breathes between `points` and
-`points * 1.04` (4% expansion). The data polygon stays static — the ghost is purely
+`points * 1.04` (4% expansion). The data polygon stays static - the ghost is purely
 decorative and gates on `useReduceMotionFlag`.
 
 **Exact diff to apply via StrReplace:**
@@ -915,7 +915,7 @@ import { useReduceMotionFlag } from '../../hooks/useReduceMotionFlag';
 ```
 
 ```typescript
-// FIND (the data Polygon — line ~69):
+// FIND (the data Polygon - line ~69):
         <Polygon
           points={geometry.data.map((p) => `${p.x},${p.y}`).join(' ')}
           fill={`${color}44`}
@@ -924,7 +924,7 @@ import { useReduceMotionFlag } from '../../hooks/useReduceMotionFlag';
         />
 
 // REPLACE WITH:
-        {/* Ghost breath ring — purely decorative, reduced-motion gated */}
+        {/* Ghost breath ring - purely decorative, reduced-motion gated */}
         {!reduceMotion && (
           <Animated.View
             style={{
@@ -955,14 +955,14 @@ import { useReduceMotionFlag } from '../../hooks/useReduceMotionFlag';
 ```
 
 **Mathematical interpolation constants:**
-- `breathAnim` range: 1.0 → 1.04 → 1.0 (±4% scale — subtle, not distracting)
+- `breathAnim` range: 1.0 → 1.04 → 1.0 (±4% scale - subtle, not distracting)
 - Duration: 3 000 ms each way = 6 000 ms cycle (matches `OASIS_TOKENS.motion.breathDurationMs`)
-- Easing: `Easing.inOut(Easing.sin)` — the smoothest organic oscillation available in RN
-- `useNativeDriver: true` — `scale` transform is GPU-composited on RN
-- The animated View wraps a duplicate SVG — avoids `useNativeDriver: false` penalty on SVG
+- Easing: `Easing.inOut(Easing.sin)` - the smoothest organic oscillation available in RN
+- `useNativeDriver: true` - `scale` transform is GPU-composited on RN
+- The animated View wraps a duplicate SVG - avoids `useNativeDriver: false` penalty on SVG
   props directly (SVG prop animation requires `useNativeDriver: false` which blocks RN bridge)
 
-### C.3 RN: `HomeWelcomeCard.tsx` — ambient pulse ring
+### C.3 RN: `HomeWelcomeCard.tsx` - ambient pulse ring
 
 Add a pulsing ring View positioned absolutely behind the card content.
 
@@ -1004,7 +1004,7 @@ const pulseOpacity = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0
 
 ---
 
-## PHASE D — Bioluminescent AI States
+## PHASE D - Bioluminescent AI States
 
 ### D.1 PWA: Neural trace in `#aiTab`
 
@@ -1014,13 +1014,13 @@ In `index.html`, find the AI tab container:
 ```
 Add the `oasis-neural-trace` div as the **first child** (oasis-canvas.js `injectNeuralTrace()`
 handles this dynamically, but the static HTML fallback is the `oasis-neural-trace` CSS class
-applied via `onTabActivated`). No HTML change needed — JS injection via `injectNeuralTrace`.
+applied via `onTabActivated`). No HTML change needed - JS injection via `injectNeuralTrace`.
 
-In `app.js` — the AI tab activation handler. Search for the existing AI tab init code
+In `app.js` - the AI tab activation handler. Search for the existing AI tab init code
 (likely named `initAiTab`, `showAiTab`, or similar). Add:
 
 ```js
-// Insertion 4 — inside AI tab activation (surgical, 3 lines):
+// Insertion 4 - inside AI tab activation (surgical, 3 lines):
 if (window.OasisCanvas) {
   window.OasisCanvas.injectNeuralTrace(document.getElementById('aiTab'));
 }
@@ -1033,7 +1033,7 @@ Find the element where AI status text is set (search `app.js` for `'Analysing'` 
 `aiStatusText` or the i18n key). When status transitions TO thinking state:
 
 ```js
-// Insertion 5 — when LLM inference begins:
+// Insertion 5 - when LLM inference begins:
 var thinkEl = document.querySelector('.ai-thinking-text, #aiStatusHeader');
 if (thinkEl && window.OasisCanvas) {
   window.OasisCanvas.morphThinkingText(thinkEl);
@@ -1044,13 +1044,13 @@ if (thinkEl && window.OasisCanvas) {
 }
 ```
 
-### D.3 PWA: Data-stream dots — trigger on AI insight render
+### D.3 PWA: Data-stream dots - trigger on AI insight render
 
 After insight cards are rendered from AI response, fire dots from metric source cards to
 the insight card. Search `app.js` for the function that appends AI insight cards.
 
 ```js
-// Insertion 6 — after insight cards are injected into DOM:
+// Insertion 6 - after insight cards are injected into DOM:
 if (window.OasisCanvas) {
   var insightCard = document.querySelector('.ai-insight-card');
   document.querySelectorAll('.metric-summary-card').forEach(function (src) {
@@ -1119,7 +1119,7 @@ const styles = StyleSheet.create({
 In `AiScreen.tsx`, add `<OasisNeuralTrace />` as the first child of the screen's root `View`
 (it is `position: 'absolute'` so it doesn't affect layout).
 
-### D.5 RN: `BootLoadingScreen.tsx` — bioluminescent rings
+### D.5 RN: `BootLoadingScreen.tsx` - bioluminescent rings
 
 ```typescript
 // Find the current skeleton/loading UI in BootLoadingScreen.tsx.
@@ -1138,7 +1138,7 @@ const RING_STAGGER  = 400;  // ms between rings
 // useNativeDriver: true for both
 ```
 
-Full implementation pattern — each ring gets its own `Animated.Value` for opacity, looped
+Full implementation pattern - each ring gets its own `Animated.Value` for opacity, looped
 with `Animated.loop(Animated.timing(...))`, started with `delay = index * RING_STAGGER`.
 
 ### D.6 Cloudflare observability calibration
@@ -1153,9 +1153,9 @@ Before Phase D is executed in production, run:
 
 ---
 
-## PHASE E — Micro-Interactions & Celebrations
+## PHASE E - Micro-Interactions & Celebrations
 
-### E.1 PWA: `ui-feedback.js` — add Oasis functions
+### E.1 PWA: `ui-feedback.js` - add Oasis functions
 
 **Injection point:** Add new functions **before the `global.showToast = showToast;` export block
 at line 597**. Use StrReplace on the unique anchor string `global.showToast = showToast;`:
@@ -1181,7 +1181,7 @@ at line 597**. Use StrReplace on the unique anchor string `global.showToast = sh
   global.triggerDailyCheckInShimmer = triggerDailyCheckInShimmer;
   // ─── END OASIS ───────────────────────────────────────────────────────────
 
-  global.showToast = showToast;  // ← this line already exists — anchor point
+  global.showToast = showToast;  // ← this line already exists - anchor point
 ```
 
 ### E.2 Where to call confetti from `app.js`
@@ -1210,7 +1210,7 @@ if (global.triggerDailyCheckInShimmer) {
 }
 ```
 
-### E.4 RN: `PrimaryButton.tsx` — spring tuning
+### E.4 RN: `PrimaryButton.tsx` - spring tuning
 
 **Current values** (from reading the file): `friction: 6, tension: 200`
 
@@ -1229,11 +1229,11 @@ Change to `friction: 12, tension: 200` for a more confident, snappy snap-back.
 - `tension: 200` = stiffness constant k = 200 (strong enough for instant feel)
 - `friction: 12` = damping coefficient c = 12 → critically damped at this tension
 - Critical damping condition: `c = 2 * sqrt(k * m)` where m ≈ 1 in RN units
-  → `2 * sqrt(200) ≈ 28.3`. friction 12 is underdamped but not bouncy — one clean snap.
+  → `2 * sqrt(200) ≈ 28.3`. friction 12 is underdamped but not bouncy - one clean snap.
 - Press-in `toValue: 0.95` → visual scale reduction 5% (perceptible but not jarring)
-- `useNativeDriver: true` — scale runs on the UI thread compositor, 60fps guaranteed
+- `useNativeDriver: true` - scale runs on the UI thread compositor, 60fps guaranteed
 
-### E.5 RN: `AchievementUnlockToast.tsx` — particle burst
+### E.5 RN: `AchievementUnlockToast.tsx` - particle burst
 
 The toast already has `translateY` slide-in and `glow` loop. Add an 8-dot particle
 burst that fires on the initial `Animated.parallel` show animation.
@@ -1249,12 +1249,12 @@ const particleAnims = useRef(
 ).current;
 
 // ADD inside the useEffect where the show animation fires (after line 82 `.start();`):
-    // Particle burst — 8 dots radiate from centre of toast
+    // Particle burst - 8 dots radiate from centre of toast
     const ANGLE_STEP = (2 * Math.PI) / 8;
     const particleBurst = Animated.parallel(
       particleAnims.map((anim, i) => {
         const angle = i * ANGLE_STEP;
-        const dist  = 40 + Math.random() * 20; // 40–60px radius
+        const dist  = 40 + Math.random() * 20; // 40-60px radius
         anim.x.setValue(0);
         anim.y.setValue(0);
         anim.op.setValue(1);
@@ -1297,18 +1297,18 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View, useWindowDimension
 
 ---
 
-## PHASE F — Accessibility Hardening
+## PHASE F - Accessibility Hardening
 
-### F.1 `useReduceMotionFlag.ts` — bulletproof gate
+### F.1 `useReduceMotionFlag.ts` - bulletproof gate
 
-**Current implementation** (lines 1–14) already correctly subscribes to
+**Current implementation** (lines 1-14) already correctly subscribes to
 `AccessibilityInfo.isReduceMotionEnabled()` and `reduceMotionChanged` event.
 
 **Enhancement: add Rianell user-pref override** so the in-app "Reduce motion" setting
 also kills loops instantly. This adds a second subscription path without breaking the existing.
 
 ```typescript
-// FIND (full file content — use StrReplace on entire file):
+// FIND (full file content - use StrReplace on entire file):
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
@@ -1385,7 +1385,7 @@ export function useReduceMotionFlag(): boolean {
 In `css/oasis.css` (already written in Phase B), the brain-fog rules are:
 
 ```css
-/* Already in oasis.css Phase B section 1 — verify they exist: */
+/* Already in oasis.css Phase B section 1 - verify they exist: */
 .rianell-brain-fog .oasis-blob,
 .rianell-brain-fog .oasis-grain { display: none !important; }
 .rianell-brain-fog [data-oasis-counter] { animation: none !important; }
@@ -1397,7 +1397,7 @@ Add these **additional** brain-fog overrides to `oasis.css`:
 /* Brain fog: also kill neural trace and particle overlay */
 .rianell-brain-fog .oasis-neural-trace { display: none !important; }
 .rianell-brain-fog .oasis-particle { animation: none !important; opacity: 0 !important; }
-/* Brain fog: counter flip — static fallback (no scaleY) */
+/* Brain fog: counter flip - static fallback (no scaleY) */
 .rianell-brain-fog .oasis-count-flip { animation: none !important; transform: none !important; }
 /* Brain fog: no check-in shimmer */
 .rianell-brain-fog .oasis-checkin-shimmer::after { display: none !important; }
@@ -1414,13 +1414,13 @@ In `oasis-canvas.js`, `applyMetricStatus` already sets `data-metric-status`.
 The CSS in `oasis.css` reacts purely via attribute selectors. No additional JS needed.
 
 The hue-rotate approach is explicitly NOT used (it would affect text readability).
-`drop-shadow` filter provides depth without colour distortion — safe per ui-motion.mdc.
+`drop-shadow` filter provides depth without colour distortion - safe per ui-motion.mdc.
 
 ---
 
-## PHASE G — Tests & Verification Gates
+## PHASE G - Tests & Verification Gates
 
-### G.1 `tests/unit/pwa/animation-polish.test.mjs` — new assertions
+### G.1 `tests/unit/pwa/animation-polish.test.mjs` - new assertions
 
 Add the following test cases to the existing file:
 
@@ -1482,7 +1482,7 @@ test('oasis-canvas.js: exports OasisCanvas on window', () => {
 });
 ```
 
-### G.2 Design catalog update — `design-catalog/index.html`
+### G.2 Design catalog update - `design-catalog/index.html`
 
 Add a new section after the existing motion tokens section:
 
@@ -1501,35 +1501,35 @@ Add a new section after the existing motion tokens section:
 Execute in this exact order. Each must exit 0 before proceeding to the next phase merge.
 
 ```bash
-# GATE 1 — After Phase A (tokens)
+# GATE 1 - After Phase A (tokens)
 npm run sync:tokens
 npm run test:unit                    # PASS condition: 491+ assertions, 0 failures
 
-# GATE 2 — After Phase B (canvas files created)
+# GATE 2 - After Phase B (canvas files created)
 npm run test:unit                    # PASS condition: 491+ assertions, 0 failures
 npm run audit:boot                   # PASS condition: FCP < 2000ms on Tier 3 profile
 
-# GATE 3 — After Phase C (living stats)
+# GATE 3 - After Phase C (living stats)
 npm run test:unit
 npm run verify:cwv                   # PASS: LCP < 2500ms, TBT < 300ms, CLS < 0.1
 
-# GATE 4 — After Phase D (AI states, SVG data URIs added)
+# GATE 4 - After Phase D (AI states, SVG data URIs added)
 npm run test:unit
 npm run verify:csp                   # PASS: data: URIs in img-src must be allowlisted
                                      # Check: grep for "data:" in verify-csp-connect-src.mjs output
 
-# GATE 5 — After Phase E (micro-interactions)
+# GATE 5 - After Phase E (micro-interactions)
 npm run test:unit
 # Playwright particle ceiling test (via playwright-ui-tester MCP):
 # Test: trigger confetti → measure time from first particle to last animationend
 # Assert: max(animationend timestamps) - triggerTime <= 1500ms
 # Command: npx playwright test tests/e2e/oasis-particles.spec.ts
 
-# GATE 6 — After Phase F (accessibility hardening)
+# GATE 6 - After Phase F (accessibility hardening)
 npm run test:unit
 npm run verify:a11y                  # PASS: 0 critical/serious axe violations
 
-# GATE 7 — Final
+# GATE 7 - Final
 npm run test:unit
 npm run verify:cwv
 npm run verify:a11y
@@ -1550,16 +1550,16 @@ npm run verify:csp
 
 ---
 
-## PHASE H — CHANGELOG & Version Bump
+## PHASE H - CHANGELOG & Version Bump
 
 Update `CHANGELOG.md` with:
 
 ```markdown
-## [2.1.0-oasis] — 2026-XX-XX
+## [2.1.0-oasis] - 2026-XX-XX
 ### Added
 - UI Oasis Overhaul: ambient bioluminescent blob canvas across all 5 tab panels (PWA + RN)
 - `modules/oasis-canvas.js`: self-contained Oasis animation module (no new npm deps)
-- `css/oasis.css`: scoped `.oasis-*` stylesheet — zero collision with legacy styles.css
+- `css/oasis.css`: scoped `.oasis-*` stylesheet - zero collision with legacy styles.css
 - OASIS_TOKENS: per-team ambient palettes, oasis motion tokens in @rianell/tokens
 - Living stats: calm-glow ring + positive shimmer on improving metric cards
 - BalanceRadarChart: 4%-scale ghost breath polygon (RN, GPU-composited)
@@ -1582,15 +1582,15 @@ Update `CHANGELOG.md` with:
 
 ---
 
-## Appendix A — CSS Namespace Safety Proof
+## Appendix A - CSS Namespace Safety Proof
 
 All new selectors start with `.oasis-` or `[data-oasis` or `[data-metric-status`.
 - `grep -r "\.oasis-" apps/pwa-webapp/styles.css` → **0 matches** (pre-change)
 - `grep -r "data-metric-status" apps/pwa-webapp/styles.css` → **0 matches** (pre-change)
 - Therefore zero specificity collision is mathematically guaranteed.
-- `oasis.css` is loaded after `styles.css` — if a collision existed, oasis rules would win.
+- `oasis.css` is loaded after `styles.css` - if a collision existed, oasis rules would win.
 
-## Appendix B — GPU Compositing Proof
+## Appendix B - GPU Compositing Proof
 
 All animated properties per `ui-motion.mdc`:
 
@@ -1607,12 +1607,12 @@ All animated properties per `ui-motion.mdc`:
 
 Properties NEVER used: `width`, `height`, `top`, `left`, `padding`, `margin`, `background-position`.
 
-## Appendix C — New File Inventory
+## Appendix C - New File Inventory
 
 | File | Type | Description |
 |------|------|-------------|
-| `apps/pwa-webapp/css/oasis.css` | NEW | All Oasis CSS — 13 sections, zero legacy collision |
-| `apps/pwa-webapp/modules/oasis-canvas.js` | NEW | All Oasis JS — IIFE, exposes `window.OasisCanvas` |
+| `apps/pwa-webapp/css/oasis.css` | NEW | All Oasis CSS - 13 sections, zero legacy collision |
+| `apps/pwa-webapp/modules/oasis-canvas.js` | NEW | All Oasis JS - IIFE, exposes `window.OasisCanvas` |
 | `apps/rn-app/src/components/ui/OasisNeuralTrace.tsx` | NEW | RN neural trace SVG component |
 | `tests/e2e/oasis-particles.spec.ts` | NEW | Playwright 1 500ms particle ceiling test |
 
@@ -1634,6 +1634,6 @@ Properties NEVER used: `width`, `height`, `top`, `left`, `padding`, `margin`, `b
 | `CHANGELOG.md` | Prepend new version entry |
 
 **Files NOT modified:**
-- `app.js` — receives max 6 one-liner surgical insertions via StrReplace (exact contexts provided)
-- `styles.css` — zero modifications
-- Any Supabase migration files — zero DB schema changes
+- `app.js` - receives max 6 one-liner surgical insertions via StrReplace (exact contexts provided)
+- `styles.css` - zero modifications
+- Any Supabase migration files - zero DB schema changes

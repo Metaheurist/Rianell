@@ -1,4 +1,4 @@
-# Plan 09 — References
+# Plan 09 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `Chart.js/ApexCharts performance docs — debounce resize handlers`
+- `Chart.js/ApexCharts performance docs - debounce resize handlers`
 
 ## External (verify online)
 

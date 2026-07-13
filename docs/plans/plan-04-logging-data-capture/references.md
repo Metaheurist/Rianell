@@ -1,4 +1,4 @@
-# Plan 04 — References
+# Plan 04 - References
 
 ## Internal
 
@@ -7,7 +7,7 @@
 
 ## Firecrawl research (local cache)
 
-- `.firecrawl/projects/owasp-health-mobile.json — on-device encryption`
+- `.firecrawl/projects/owasp-health-mobile.json - on-device encryption`
 
 ## External (verify online)
 

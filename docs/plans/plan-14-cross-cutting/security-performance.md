@@ -1,6 +1,6 @@
-# Plan 14 — Security & performance review
+# Plan 14 - Security & performance review
 
-**Section 14:** Cross-cutting concepts · **IDs:** X14.1–X14.5
+**Section 14:** Cross-cutting concepts · **IDs:** X14.1-X14.5
 
 Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
 
@@ -20,13 +20,13 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 - X14.1 guided flow: step lazy-load LLM/chart modules.
 - X14.4 presentation mode: reduce chart animation.
 
-**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit — no console `pageerror` regressions.
+**Local gate:** [`server/launch-server.ps1`](../../../server/launch-server.ps1) compiled mode + boot audit - no console `pageerror` regressions.
 
 ---
 
 ## Mitigations (implementation)
 
-- Audit plans 01–13 deferrals
+- Audit plans 01-13 deferrals
 - X14.2 copy audit for local-first
 - Legal review X14.5
 
