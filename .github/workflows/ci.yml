@@ -271,6 +271,8 @@ jobs:
     needs: [paths-filter, prepare-minified-assets]
     if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    # Lighthouse against the PWA can stall on network-quiet; fail the job instead of hanging the workflow.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
 
@@ -289,6 +291,9 @@ jobs:
           BENCHMARK_REPO_ROOT: ${{ github.workspace }}
           BENCHMARK_PWA_ROOT: ${{ github.workspace }}/ci-minified/site
           BENCHMARK_SKIP_README: "1"
+          # One shared measure for web-pwa + github-pages; 2 runs keeps median useful without 30m hangs.
+          BENCHMARK_LH_RUNS: "2"
+          BENCHMARK_LH_RUN_TIMEOUT_MS: "90000"
         run: node benchmarks/scripts/run-web-benchmarks.mjs
 
       - name: Record PWA bundle sizes
