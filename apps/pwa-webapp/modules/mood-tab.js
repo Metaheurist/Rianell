@@ -237,10 +237,10 @@
     var text = t('mood.recent.uniformStreak', {
       count: String(readings.length),
       score: String(score),
-      qual: qual ? ' — ' + qual : '',
+      qual: qual ? ' - ' + qual : '',
     });
     if (text === 'mood.recent.uniformStreak') {
-      text = readings.length + ' readings in a row at ' + score + '/10' + (qual ? ' — ' + qual : '');
+      text = readings.length + ' readings in a row at ' + score + '/10' + (qual ? ' - ' + qual : '');
     }
     return '<p class="mood-reading-streak" role="status">' + escapeHTML(text) + '</p>';
   }
@@ -779,7 +779,7 @@
     var tilt = deck.querySelector('.mood-deck-tilt');
     if (!tilt) return;
 
-    // Keep interactive check-in / tiles flat — rotating the parent breaks button hit-testing.
+    // Keep interactive check-in / tiles flat - rotating the parent breaks button hit-testing.
     deck.addEventListener('pointermove', function (e) {
       if (e.target && e.target.closest && e.target.closest('.mood-deck-orb, .mood-deck-cta, .mood-deck-tile')) {
         return;

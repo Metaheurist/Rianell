@@ -96,22 +96,30 @@
     svg.appendChild(sym);
   }
 
+  /** CSS paint with fallbacks — empty --avatar-secondary must not wipe strokes/fills. */
+  var AVATAR_FILL_PRIMARY = 'fill="var(--avatar-primary, var(--primary-color, currentColor))"';
+  var AVATAR_FILL_SECONDARY = 'fill="var(--avatar-secondary, var(--avatar-primary, var(--primary-color, currentColor)))"';
+  var AVATAR_STROKE_SECONDARY = 'stroke="var(--avatar-secondary, var(--avatar-primary, var(--primary-color, currentColor)))" stroke-width="1.5" fill="none"';
+  var AVATAR_FILL_GLOW = 'fill="var(--avatar-glow, var(--avatar-primary, var(--primary-color, currentColor)))"';
+  var AVATAR_FILL_EYE = 'fill="var(--avatar-eye, #1a1a1a)"';
+  var AVATAR_STROKE_EYE = 'stroke="var(--avatar-eye, #1a1a1a)"';
+
   function avatarCompanionEyes(cx, cy, gap) {
     gap = gap || 7;
-    var eyeFill = 'fill="var(--avatar-eye, #1a1a1a)"';
+    var eyeFill = AVATAR_FILL_EYE;
     return '<circle cx="' + (cx - gap) + '" cy="' + (cy - 3) + '" r="3.25" ' + eyeFill + '/>' +
       '<circle cx="' + (cx + gap) + '" cy="' + (cy - 3) + '" r="3.25" ' + eyeFill + '/>';
   }
 
   function avatarCompanionGlow(cx, cy, ry) {
     ry = ry || 9;
-    return '<ellipse class="avatar-companion-glow" cx="' + cx + '" cy="' + (cy + 20) + '" rx="22" ry="' + ry + '" fill="var(--avatar-glow)" opacity="0.48"/>';
+    return '<ellipse class="avatar-companion-glow" cx="' + cx + '" cy="' + (cy + 20) + '" rx="22" ry="' + ry + '" ' + AVATAR_FILL_GLOW + ' opacity="0.48"/>';
   }
 
   function avatarSymbolPathsForId(avatarId) {
     var id = normalizeAvatar(avatarId);
-    var f = 'fill="var(--avatar-primary)"';
-    var s = 'stroke="var(--avatar-secondary)" stroke-width="1.5" fill="none"';
+    var f = AVATAR_FILL_PRIMARY;
+    var s = AVATAR_STROKE_SECONDARY;
     var cx = 32;
     var cy = 30;
     var glow = avatarCompanionGlow(cx, cy);
@@ -171,10 +179,10 @@
           '<circle cx="32" cy="30" r="16" ' + s + ' opacity="0.35"/>' + eyes;
       case 'vortexseed':
         return glow + '<path d="M32 14 C42 20 44 32 32 42 C20 32 22 20 32 14Z" ' + f + '/>' +
-          '<path d="M32 18 C38 22 38 30 32 34 C26 30 26 22 32 18Z" fill="var(--avatar-secondary)" opacity="0.35"/>' + eyes;
+          '<path d="M32 18 C38 22 38 30 32 34 C26 30 26 22 32 18Z" ' + AVATAR_FILL_SECONDARY + ' opacity="0.35"/>' + eyes;
       case 'lumenshard':
         return glow + '<path d="M32 10 L42 44 L32 38 L22 44Z" ' + f + '/>' +
-          '<path d="M32 16 L36 36 L32 33 L28 36Z" fill="var(--avatar-secondary)" opacity="0.3"/>' + eyes;
+          '<path d="M32 16 L36 36 L32 33 L28 36Z" ' + AVATAR_FILL_SECONDARY + ' opacity="0.3"/>' + eyes;
       case 'driftmoss':
         return glow + '<ellipse cx="' + cx + '" cy="' + (cy + 4) + '" rx="20" ry="12" ' + f + '/>' +
           '<path d="M18 34 Q26 28 32 34 T46 34" ' + s + ' opacity="0.4"/>' + avatarCompanionEyes(cx, 26, 6);
@@ -202,8 +210,8 @@
   }
 
   function avatarFaceFeaturesMarkup(rng, cx, faceCy, faceRx, faceRy) {
-    var eyeFill = 'fill="var(--avatar-eye, #1a1a1a)"';
-    var strokeEye = 'stroke="var(--avatar-eye, #1a1a1a)"';
+    var eyeFill = AVATAR_FILL_EYE;
+    var strokeEye = AVATAR_STROKE_EYE;
     var gap = 4 + rng() * 4;
     var eyeY = faceCy - 1;
     var eyes = '';
@@ -253,7 +261,7 @@
     var type = pickAvatarAccessoryType(rng);
     var stroke = 'stroke="currentColor" stroke-width="1.45" fill="none" stroke-linecap="round" stroke-linejoin="round"';
     var fill = 'fill="currentColor"';
-    var eye = 'fill="var(--avatar-eye, #1a1a1a)"';
+    var eye = AVATAR_FILL_EYE;
     var topY = faceCy - faceRy;
     var midY = faceCy - 1;
     var leftX = cx - faceRx * 0.62;
@@ -344,8 +352,8 @@
   function avatarSymbolPathsFromSeed(seed) {
     var rng = avatarRngFromSeed(seed);
     var cx = 32;
-    var f = 'fill="var(--avatar-primary)"';
-    var s = 'stroke="var(--avatar-secondary)" stroke-width="1.5" fill="none"';
+    var f = AVATAR_FILL_PRIMARY;
+    var s = AVATAR_STROKE_SECONDARY;
     var glow = avatarCompanionGlow(cx, 28 + rng() * 4, 7 + rng() * 6);
 
     var faceRx = 9 + rng() * 5;
@@ -387,11 +395,11 @@
         body = '<path d="M32 ' + (bodyY - 2).toFixed(1) + ' C' + (cx + 20).toFixed(1) + ' ' + (bodyY + 4).toFixed(1) + ' ' + (cx + 16).toFixed(1) + ' ' + (bodyY + 22).toFixed(1) + ' 32 ' + (bodyY + 22).toFixed(1) +
           ' C' + (cx - 16).toFixed(1) + ' ' + (bodyY + 22).toFixed(1) + ' ' + (cx - 20).toFixed(1) + ' ' + (bodyY + 4).toFixed(1) + ' 32 ' + (bodyY - 2).toFixed(1) + 'Z" ' + f + '/>' +
           '<path d="M32 ' + (bodyY + 2).toFixed(1) + ' C' + (cx + 10).toFixed(1) + ' ' + (bodyY + 8).toFixed(1) + ' ' + (cx + 8).toFixed(1) + ' ' + (bodyY + 16).toFixed(1) + ' 32 ' + (bodyY + 16).toFixed(1) +
-          ' C' + (cx - 8).toFixed(1) + ' ' + (bodyY + 16).toFixed(1) + ' ' + (cx - 10).toFixed(1) + ' ' + (bodyY + 8).toFixed(1) + ' 32 ' + (bodyY + 2).toFixed(1) + 'Z" fill="var(--avatar-secondary)" opacity="0.32"/>';
+          ' C' + (cx - 8).toFixed(1) + ' ' + (bodyY + 16).toFixed(1) + ' ' + (cx - 10).toFixed(1) + ' ' + (bodyY + 8).toFixed(1) + ' 32 ' + (bodyY + 2).toFixed(1) + 'Z" ' + AVATAR_FILL_SECONDARY + ' opacity="0.32"/>';
         break;
       default:
         body = '<path d="M32 ' + (bodyY - 6).toFixed(1) + ' L' + (cx + 14).toFixed(1) + ' ' + (bodyY + 14).toFixed(1) + ' L' + (cx - 14).toFixed(1) + ' ' + (bodyY + 14).toFixed(1) + ' Z" ' + f + '/>' +
-          '<path d="M32 ' + (bodyY - 2).toFixed(1) + ' L36 ' + (bodyY + 10).toFixed(1) + ' L28 ' + (bodyY + 10).toFixed(1) + ' Z" fill="var(--avatar-secondary)" opacity="0.28"/>';
+          '<path d="M32 ' + (bodyY - 2).toFixed(1) + ' L36 ' + (bodyY + 10).toFixed(1) + ' L28 ' + (bodyY + 10).toFixed(1) + ' Z" ' + AVATAR_FILL_SECONDARY + ' opacity="0.28"/>';
         break;
     }
 
@@ -766,19 +774,18 @@
 
   function renderAvatarSvgUse(avatarId, className, title) {
     var rawId = typeof avatarId === 'string' ? avatarId.trim() : '';
-    var iconRef = rawId;
+    var cls = className ? ' class="' + escAttr(className) + '"' : '';
+    // Glyph SVGs are always decorative: parents expose the companion name via
+    // aria-label. Nested image roles previously triggered broken-image chrome
+    // above the glyph when CSS paint vars were incomplete.
+    var open = '<svg' + cls + ' viewBox="0 0 64 64" aria-hidden="true">';
     if (isGeneratedAvatarId(rawId)) {
       var genSeed = parseGeneratedSeed(rawId);
       ensureGeneratedAvatarSymbol(genSeed);
-      iconRef = generatedIconIdFromSeed(genSeed).replace(/^icon-/, '');
-    } else {
-      iconRef = normalizeAvatar(rawId);
+      return open + avatarSymbolPathsFromSeed(genSeed) + '</svg>';
     }
-    var cls = className ? ' class="' + escAttr(className) + '"' : '';
-    var titleTag = title ? '<title>' + escAttr(title) + '</title>' : '';
-    return '<svg' + cls + ' viewBox="0 0 64 64" aria-hidden="' + (title ? 'false' : 'true') + '" role="img">' +
-      titleTag +
-      '<use href="#icon-' + escAttr(iconRef) + '"></use></svg>';
+    var iconRef = normalizeAvatar(rawId);
+    return open + '<use href="#icon-' + escAttr(iconRef) + '"></use></svg>';
   }
 
   function avatarCarouselNavIcon(direction) {
@@ -1298,14 +1305,9 @@
     block.querySelectorAll('.goals-status-pill.below').forEach(function (pill) {
       pill.classList.add('goals-status-pill--pulse-ring');
     });
-    block.querySelectorAll('.goals-days').forEach(function (daysEl) {
-      if (daysEl.querySelector('.goals-days-trail')) return;
-      var trail = document.createElement('span');
-      trail.className = 'goals-days-trail';
-      trail.setAttribute('aria-hidden', 'true');
-      trail.innerHTML = '<svg viewBox="0 0 120 8" class="goals-days-trail__svg">' +
-        '<circle cx="8" cy="4" r="2"/><circle cx="40" cy="4" r="2"/><circle cx="72" cy="4" r="2"/><circle cx="104" cy="4" r="2"/></svg>';
-      daysEl.appendChild(trail);
+    /* Remove legacy static trail dots so day chips alone reflect target vs result. */
+    block.querySelectorAll('.goals-days-trail').forEach(function (trail) {
+      trail.remove();
     });
   }
 

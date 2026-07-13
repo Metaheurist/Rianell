@@ -1,5 +1,5 @@
 /**
- * oasis-canvas.js — UI Oasis Overhaul v2.1.0
+ * oasis-canvas.js - UI Oasis Overhaul v2.1.0
  * Ambient blobs, magnetic CTAs, confetti, check-in shimmer, data-stream dots.
  * Namespace: window.OasisCanvas
  * Depends: PerformanceUtils (performance-utils.js must be loaded first)
@@ -10,7 +10,7 @@
   // ── Guard: do not run if PerformanceUtils not ready ──────────────────────
   var PU = global.PerformanceUtils;
   if (!PU) {
-    if (typeof console !== 'undefined') console.warn('[OasisCanvas] PerformanceUtils not found — skipping.');
+    if (typeof console !== 'undefined') console.warn('[OasisCanvas] PerformanceUtils not found - skipping.');
     return;
   }
 
@@ -173,7 +173,7 @@
 
   // ── D.4 Data-stream dots ──────────────────────────────────────────────
   // Fires N dots from sourceEl centroid toward destEl centroid.
-  // Uses CSS custom properties --dot-x0/y0 (0,0 — relative to dot spawn point)
+  // Uses CSS custom properties --dot-x0/y0 (0,0 - relative to dot spawn point)
   // and --dot-x1/y1 (delta vector to destination).
   var STREAM_DOT_COLOURS = ['var(--oasis-glow)', 'rgba(255,255,255,0.6)', 'var(--oasis-glow)'];
 

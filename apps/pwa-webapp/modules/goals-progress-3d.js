@@ -115,22 +115,25 @@
 
     for (var i = 0; i < 7; i++) {
       var pct = Math.max(0, Math.min(100, Number(pcts[i]) || 0));
-      var targetH = 0.12 + (pct / 100) * 1.05;
+      /* Near-flat stubs for empty days; height tracks that day's % of target. */
+      var targetH = pct <= 0 ? 0.04 : 0.1 + (pct / 100) * 1.1;
       var geo = new THREE.BoxGeometry(0.34, 0.08, 0.34);
+      var emissiveStrength = pct <= 0 ? 0 : (pct / 100) * 0.45;
       var mat = new THREE.MeshStandardMaterial({
         color: pct > 0 ? fillColor : emptyColor,
         roughness: 0.55,
         metalness: 0.08,
-        emissive: pct >= 100 ? fillColor.clone().multiplyScalar(0.35) : 0x000000,
-        emissiveIntensity: pct >= 100 ? 0.6 : 0,
-        transparent: pct === 0,
-        opacity: pct === 0 ? 0.35 : 1,
+        emissive: pct > 0 ? fillColor.clone().multiplyScalar(0.2 + (pct / 100) * 0.3) : 0x000000,
+        emissiveIntensity: emissiveStrength,
+        transparent: true,
+        opacity: pct <= 0 ? 0.28 : Math.max(0.45, pct / 100),
       });
       var bar = new THREE.Mesh(geo, mat);
       bar.position.set(startX + i * spacing, targetH / 2, 0);
       bar.scale.y = 0.01;
       bar.userData.targetH = targetH;
       bar.userData.targetPct = pct;
+      bar.userData.baseEmissive = emissiveStrength;
       group.add(bar);
       bars.push(bar);
 
@@ -222,8 +225,9 @@
         var h = bar.userData.targetH * localEased;
         bar.scale.y = Math.max(0.01, h / 0.08);
         bar.position.y = h / 2;
-        if (bar.userData.targetPct >= 100) {
-          bar.material.emissiveIntensity = 0.35 + Math.sin(clock.elapsedTime * 2 + idx) * 0.2;
+        if (bar.userData.targetPct > 0) {
+          var pulse = bar.userData.targetPct >= 100 ? 0.2 : 0.08;
+          bar.material.emissiveIntensity = bar.userData.baseEmissive + Math.sin(clock.elapsedTime * 2 + idx) * pulse;
         }
       });
 

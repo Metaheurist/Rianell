@@ -5,7 +5,7 @@
 
 /* ── Vibe body enhancements (extends tokens.css vars) ─────────────────────── */
 body[class*='vibe-'] {
-  --avatar-glow: var(--vibe-particle-color, var(--oasis-glow));
+  --avatar-glow: var(--vibe-particle-color, var(--oasis-glow, var(--primary-color)));
 }
 
 body.vibe-energy .avatar-carousel__item--selected {
@@ -1307,17 +1307,11 @@ body.light-mode .graphics-achievement-icon {
 }
 
 .goals-days-trail {
-  display: block;
-  width: 100%;
-  margin-top: 0.25rem;
+  display: none;
 }
 
 .goals-days-trail__svg {
-  width: 100%;
-  max-width: 8rem;
-  height: 0.5rem;
-  color: var(--primary-color);
-  opacity: 0.55;
+  display: none;
 }
 
 .ai-wellbeing-ring-wrap--halo {

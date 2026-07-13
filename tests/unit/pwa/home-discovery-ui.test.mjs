@@ -49,3 +49,16 @@ test('ai-chat module is loaded in index.html', () => {
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
   assert.ok(/modules\/ai-chat\.js/.test(html));
 });
+
+test('ask rianell chat is gated until AI model is ready', () => {
+  const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const chat = readFileSync('apps/pwa-webapp/modules/ai-chat.js', 'utf8');
+  assert.match(app, /gateAiHealthChatOpen/);
+  assert.match(app, /deviceSupportsOnDeviceLlmChat/);
+  assert.match(app, /promptEnableAiAndDownloadForChat/);
+  assert.match(app, /home\.chat\.needAi/);
+  assert.match(app, /home\.discover\.askAnything\.hint\.setup/);
+  assert.match(chat, /skipGate/);
+  assert.match(chat, /forceGeneric/);
+  assert.match(chat, /gateAiHealthChatOpen/);
+});

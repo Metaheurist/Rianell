@@ -114,6 +114,15 @@ test('light mode settings primary buttons use dark ink for readable contrast', (
   assert.match(mintLight[0], /--primary-color:\s*#2e7d32/);
 });
 
+test('avatar secondary tokens always include a color-mix fallback', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.doesNotMatch(css, /--avatar-secondary:\s*var\(--secondary-color\);/);
+  assert.match(
+    css,
+    /--avatar-secondary:\s*var\(--secondary-color,\s*color-mix\(in srgb, var\(--primary-color\)/,
+  );
+});
+
 test('styles.css tokenises tutorial footer CTA buttons', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /--tutorial-cta-finish-bg:/);
