@@ -33,8 +33,18 @@ updates:
       # RTL 14 needs a coordinated RN test-stack bump.
       - dependency-name: "@testing-library/react-native"
         versions: [">=14.0.0"]
+      # TypeScript 6+/7 is a separate toolchain upgrade.
+      - dependency-name: "typescript"
+        versions: [">=6.0.0"]
+      # jest-expo follows Expo SDK; stay on 55 with SDK 55.
+      - dependency-name: "jest-expo"
+        versions: [">=56.0.0"]
   - package-ecosystem: pip
     # Python server deps live at repo root (requirements.txt), not under server/
     directory: "/"
     schedule:
       interval: weekly
+    ignore:
+      # supabase realtime 2.31.x still requires websockets<16
+      - dependency-name: "websockets"
+        versions: [">=16.0.0"]

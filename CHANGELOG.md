@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.7] - 2026-07-13
+
+### Changed
+
+- **Deps (npm):** `@sentry/node` ^10.65.0, `sharp` ^0.35.3; Expo SDK 55 patch group (`expo` ~55.0.27 and related modules); pin `react-native-screens` 4.25.2 (RN 0.83-compatible; blocks 4.26 peer requiring RN >=0.84)
+- **Deps (pip):** Raise floors for `pydantic` (>=2.13.4), `cryptography` (>=49), `watchdog` (>=6), `psycopg2-binary` (>=2.9.12). Keep `websockets<16` for supabase realtime peer
+- **Dependabot:** Ignore `typescript` >=6, `jest-expo` >=56, and `websockets` >=16 until coordinated upgrades
+
+---
+
 ## [2.2.6] - 2026-07-13
 
 ### Fixed
@@ -20,7 +30,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **CI:** MobSF scan action pin fixed from invalid `v0.3.8` to release tag `0.4.5`
 - **Dependabot:** Ignore Expo `>=56`, Babel `>=8`, and `@testing-library/react-native` `>=14` until coordinated SDK/toolchain upgrades
 - **Secret scanning:** Dismissed HashiCorp Vault FP on Transformers.js Deberta export identifiers; vendor script rewrites Vault-shaped `s.`+24 property access to bracket form; `.github/secret_scanning.yml` ignores `vendor/transformers/**`
-- **Supply chain (CVE-2026-54285 / GHSA-8988-4f7v-96qf):** Root pins `@sentry/node@10.58.0` and `@opentelemetry/core@2.9.0` (overrides with `$` refs) so Lighthouse no longer resolves vulnerable `@opentelemetry/core@1.30.1`
+- **Supply chain (CVE-2026-54285 / GHSA-8988-4f7v-96qf):** Root pins `@sentry/node` and `@opentelemetry/core@2.9.0` (overrides with `$` refs) so Lighthouse no longer resolves vulnerable `@opentelemetry/core@1.30.1`
 
 ---
 

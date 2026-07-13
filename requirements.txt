@@ -8,22 +8,22 @@
 supabase>=2.31.0
 
 # Pydantic stack — keeps pydantic-core in sync with postgrest/supabase-auth (avoids SystemError on import)
-pydantic>=2.10,<3
+pydantic>=2.13.4,<3
 
 # Supabase realtime peer dependency (realtime 2.31.x requires websockets<16)
 websockets>=11,<16
 
 # File watching for auto-reload (optional but recommended)
-watchdog>=3.0.0
+watchdog>=6.0.0
 
 # Environment variable management (required for .env file support)
 # Floor >=1.2.2: OSV clean (GHSA-mf9w-mj56-hr94 fixed in 1.2.2).
 python-dotenv>=1.2.2
 
 # Cryptography for data encryption/decryption (required for encrypted anonymised data)
-# Floor >=48.0.1: OSV clean (GHSA-537c-gmf6-5ccf fixed in 48.0.1; 46.x still flagged by OSV-Scanner).
-cryptography>=48.0.1
+# Floor >=49.0.0: current OSV-clean floor (was >=48.0.1 / GHSA-537c-gmf6-5ccf).
+cryptography>=49.0.0
 
 # PostgreSQL drivers for direct SQL when DATABASE_URL is set (optional; at least one needed for exec_sql)
 psycopg[binary]>=3.0.0
-psycopg2-binary>=2.9.0
+psycopg2-binary>=2.9.12

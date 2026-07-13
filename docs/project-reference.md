@@ -304,7 +304,7 @@ Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live
 
 - **PWA boot:** Phase 2b privacy-gate light i18n; `revealAppShellWithLocale()` restores full locale hydration after catalogs load.
 - **CI:** Minified artifact upload retry; Playwright install for post-deploy `audit:boot:strict`.
-- **Supply chain:** Root `@sentry/node@10.58.0` + `@opentelemetry/core@2.9.0` (CVE-2026-54285); `cryptography>=48.0.1`.
+- **Supply chain:** Root `@sentry/node` ^10.65 + `@opentelemetry/core@2.9.0` (CVE-2026-54285); `cryptography>=49.0.0`.
 - **See:** [testing-and-configuration.md](testing-and-configuration.md) § PWA boot locale hydration; [SECURITY.md](SECURITY.md) dependency floors.
 
 ### v1.87.0 documentation sync (locale refresh all tabs)
@@ -509,7 +509,7 @@ For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only 
 
 ### Python (server package)
 - `supabase>=2.0.0` - Supabase client library
-- `watchdog>=3.0.0` - File watching for auto-reload
+- `watchdog>=6.0.0` - File watching for auto-reload
 - `python-dotenv>=1.2.2` - Environment variable management ([OSV: GHSA-mf9w-mj56-hr94](https://osv.dev/GHSA-mf9w-mj56-hr94) fixed in 1.2.2)
 
 ### JavaScript (Frontend)

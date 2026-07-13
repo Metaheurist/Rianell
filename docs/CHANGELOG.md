@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.6** - Avatar, goals progress, Ask Rianell gate, CI/supply-chain hardening.
+**Latest: v2.2.7** - Dependency floor bumps (npm + pip) with Dependabot ignores for unsafe majors.
+
+### v2.2.7 - 2026-07-13 - Dependency floors
+
+- **npm:** `@sentry/node` ^10.65.0, `sharp` ^0.35.3, Expo 55 patch group, pin `react-native-screens` 4.25.2.
+- **pip:** `pydantic` >=2.13.4, `cryptography` >=49, `watchdog` >=6, `psycopg2-binary` >=2.9.12; keep `websockets<16`.
+- **Dependabot:** Ignore TypeScript >=6, jest-expo >=56, websockets >=16.
+
+**Previous: v2.2.6** - Avatar, goals progress, Ask Rianell gate, CI/supply-chain hardening.
 
 ### v2.2.6 - 2026-07-13 - Companion avatar, goals, chat gate, CI
 
