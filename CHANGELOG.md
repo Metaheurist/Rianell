@@ -13,6 +13,7 @@ CI reliability patch: Playwright smoke tests no longer race on the local probe s
 ### Fixed
 
 - **CI Playwright smoke:** `benchmarks/playwright.config.ts` forces `workers: 1` on CI so parallel boot waits no longer time out waiting for `body.loaded`
+- **CI web benchmarks:** Lighthouse hard-timeouts each run (`maxWaitForLoad` / `withTimeout`), logs progress, measures once for both `web-pwa` and `github-pages` (same artifact), and the job has a 25-minute `timeout-minutes` so SPA network-quiet stalls cannot hang the workflow forever
 
 ### Added
 
