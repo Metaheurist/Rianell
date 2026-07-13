@@ -6,10 +6,10 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v2.2.2 - 2026-07-13 - CI smoke reliability
 
-- **CI:** Playwright smoke config uses a single worker on CI so parallel boots against the local probe server no longer time out.
+- **CI:** Playwright smoke config uses a single worker on CI so parallel boots against the local probe server no longer time out. Web benchmarks bound Lighthouse waits, dedupe PWA/Pages measurement, and cap the job at 25 minutes.
 - **Dev:** `scripts/dev/shutdown-pc.ps1` schedules a delayed Windows shutdown (cancel with `shutdown /a`).
 - **Benchmarks:** `benchmarks/memory/*.json` stress outputs gitignored; directory kept via `.gitkeep`.
-- **Tests:** 757 passing; `lighthouse-ci-probe` covers Playwright CI worker pin.
+- **Tests:** contracts for Playwright CI worker pin, Lighthouse run timeouts, and single-pass web benchmark writes.
 
 ### v2.2.1 - 2026-07-08 - PWA polish and boot reliability
 

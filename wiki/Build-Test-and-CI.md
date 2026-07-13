@@ -65,6 +65,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 - **benchmarks-expo** — Hermes bundle stats (non-blocking)
 - **playwright-e2e** — PWA smoke + oasis particle specs against local probe (`workers: 1` on CI — see `benchmarks/playwright.config.ts`)
+- **benchmarks-web** — Lighthouse + nav timings on minified PWA (`timeout-minutes: 25`; shared measure for `web-pwa` / `github-pages`; `BENCHMARK_LH_RUNS=2`)
 - **rncli-android-apk** / **rncli-ios-zip** — native artifacts (parallel)
 - **audit-boot-post-deploy** — boot audit on exact Pages `site/` (see below)
 
