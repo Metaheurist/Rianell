@@ -29,13 +29,19 @@ test('rAF latency benchmark cannot hang forever', () => {
   const src = readFileSync('apps/pwa-webapp/device-benchmark.js', 'utf8');
   assert.match(src, /function rafLatency/);
   assert.match(src, /rAF latency timed out/);
-  assert.match(src, /setTimeout\(function \(\) \{[\s\S]*finish\(/);
+  assert.match(src, /RAF_LATENCY_TIMEOUT_MS/);
+  assert.match(src, /_rafLatencyCancel/);
+  // Boot must not depend on requestAnimationFrame — overlay paint can stall it forever.
+  assert.doesNotMatch(src, /requestAnimationFrame\(step\)/);
+  assert.match(src, /setTimeout\(step,\s*0\)/);
 });
 
 test('CPU suite yields during boot and cannot stall at array step', () => {
   const src = readFileSync('apps/pwa-webapp/device-benchmark.js', 'utf8');
   assert.match(src, /function cpuArithAsync/);
   assert.match(src, /function arrayThroughputAsync/);
+  assert.match(src, /function stringOpsAsync/);
+  assert.match(src, /function domFragmentBuildAsync/);
   assert.match(src, /scheduleBenchmarkStep/);
   assert.doesNotMatch(src, /requestAnimationFrame\(function \(\) \{ setTimeout\(fn, 0\)/);
   assert.match(src, /slice watchdog/);
