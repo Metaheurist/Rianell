@@ -11,7 +11,7 @@ supabase>=2.31.0
 pydantic>=2.13.4,<3
 
 # Supabase realtime peer dependency (realtime 2.31.x requires websockets<16)
-websockets>=11,<16
+websockets>=15.0.1,<16
 
 # File watching for auto-reload (optional but recommended)
 watchdog>=6.0.0
@@ -25,5 +25,6 @@ python-dotenv>=1.2.2
 cryptography>=49.0.0
 
 # PostgreSQL drivers for direct SQL when DATABASE_URL is set (optional; at least one needed for exec_sql)
-psycopg[binary]>=3.0.0
+psycopg[binary]>=3.3.4
 psycopg2-binary>=2.9.12
+

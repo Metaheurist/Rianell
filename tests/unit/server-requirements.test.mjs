@@ -6,9 +6,10 @@ test('requirements.txt pins supabase stack peers for pip resolver', () => {
   const req = readFileSync('requirements.txt', 'utf8');
   assert.match(req, /supabase>=2\.31/);
   assert.match(req, /pydantic>=2\.13\.4,<3/);
-  assert.match(req, /websockets>=11,<16/);
+  assert.match(req, /websockets>=15\.0\.1,<16/);
   assert.match(req, /cryptography>=49\.0\.0/);
   assert.match(req, /watchdog>=6\.0\.0/);
+  assert.match(req, /psycopg\[binary\]>=3\.3\.4/);
   assert.match(req, /psycopg2-binary>=2\.9\.12/);
 });
 

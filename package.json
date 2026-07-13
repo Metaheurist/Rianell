@@ -118,7 +118,7 @@
     "@sentry/node": "^10.65.0",
     "esbuild": "0.28.1",
     "sharp": "^0.35.3",
-    "turbo": "^2.9.18"
+    "turbo": "^2.10.5"
   },
   "overrides": {
     "@babel/core": "$@babel/core",

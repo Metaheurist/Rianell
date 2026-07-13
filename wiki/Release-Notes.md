@@ -6,8 +6,9 @@
 
 ### Highlights
 
-- **Dependencies:** Safer floors for Python (`pydantic`, `cryptography`, `watchdog`, `psycopg2-binary`) and npm (`@sentry/node`, `sharp`, Expo 55 patches). Kept `websockets<16` for Supabase realtime; pinned `react-native-screens` 4.25.2 for RN 0.83.
-- **Dependabot:** Ignores TypeScript 6+/7, jest-expo 56+, and websockets 16+ until coordinated upgrades.
+- **Dependencies:** Safer floors for Python (`pydantic`, `cryptography`, `watchdog`, `psycopg2-binary`, `psycopg` >=3.3.4, `websockets` >=15.0.1,<16) and npm (`@sentry/node`, `sharp`, `turbo`, `@supabase/supabase-js`, `jest-expo` 55.0.19, Expo 55 patches). Pinned `react-native-screens` 4.25.2 for RN 0.83; kept babel-preset-expo on SDK 55.
+- **Dependabot:** Ignores TypeScript 6+/7, jest-expo/babel-preset-expo 56+, react-native-screens 4.26+, and websockets 16+ until coordinated upgrades.
+- **CI:** Soft-pass Live LLM probe on Hugging Face Forbidden from GHA IPs; security inventory regenerated for package 2.2.6.
 
 See **v2.2.6** below for avatar, goals, Ask Rianell gate, and CI/security fixes.
 
