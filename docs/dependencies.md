@@ -36,7 +36,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@sentry/node` | ^10.65.0 |
 | `esbuild` | 0.28.1 |
 | `sharp` | ^0.35.3 |
-| `turbo` | ^2.9.18 |
+| `turbo` | ^2.10.5 |
 
 **`overrides`** — 34 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `expo-modules-core`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `react-native-screens`, `react-native-transformers → @huggingface/transformers`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
@@ -86,7 +86,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `@rianell/llm` | file:../../packages/llm |
 | `@rianell/shared` | file:../../packages/shared |
 | `@rianell/tokens` | file:../../packages/tokens |
-| `@supabase/supabase-js` | ^2.100.1 |
+| `@supabase/supabase-js` | ^2.110.3 |
 | `@ungap/structured-clone` | ^1.3.3 |
 | `expo` | ~55.0.27 |
 | `expo-av` | ^16.0.8 |
@@ -125,7 +125,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `@types/react` | ~19.2.17 |
 | `babel-preset-expo` | ~55.0.12 |
 | `jest` | ^29.7.0 |
-| `jest-expo` | ~55.0.11 |
+| `jest-expo` | ~55.0.19 |
 | `react-test-renderer` | 19.2.7 |
 | `typescript` | ~5.9.2 |
 
@@ -159,11 +159,11 @@ Workspace **`@rianell/benchmark-runner`**.
 |---------|------------|------|
 | `supabase` | >=2.31.0 | Supabase client |
 | `pydantic` | >=2.13.4,<3 | — |
-| `websockets` | >=11,<16 | — |
+| `websockets` | >=15.0.1,<16 | — |
 | `watchdog` | >=6.0.0 | File watching / auto-reload (recommended) |
 | `python-dotenv` | >=1.2.2 | `.env` loading |
 | `cryptography` | >=49.0.0 | Encryption for anonymised data |
-| `psycopg[binary]` | >=3.0.0 | PostgreSQL driver (optional path for direct SQL) |
+| `psycopg[binary]` | >=3.3.4 | PostgreSQL driver (optional path for direct SQL) |
 | `psycopg2-binary` | >=2.9.12 | Alternate PostgreSQL driver |
 
 Install: `pip install -r requirements.txt` (Python **3.8+** per file header).
