@@ -1,6 +1,6 @@
 # PWA bundle sizes
 
-Generated: 2026-07-13T19:29:59.262Z
+Generated: 2026-07-13T20:03:58.841Z
 
 | File | Raw | Gzip |
 |------|-----|------|
@@ -16,8 +16,8 @@ Generated: 2026-07-13T19:29:59.262Z
 | ci-minified/site/modules/graphics-portfolio.js | 80967 | 17175 |
 | ci-minified/site/summary-llm.js | 79144 | 17787 |
 | ci-minified/site/vendor/rianell-ai-engine.js | 60916 | 14797 |
+| ci-minified/site/device-benchmark.js | 51625 | 11044 |
 | ci-minified/site/export-utils.js | 49309 | 11835 |
-| ci-minified/site/device-benchmark.js | 48474 | 10441 |
 | ci-minified/site/modules/mood-tab.js | 43704 | 9361 |
 | ci-minified/site/css/graphics-portfolio.css | 41737 | 7476 |
 | ci-minified/site/modules/log-metric-widgets.js | 40149 | 8711 |
@@ -25,5 +25,5 @@ Generated: 2026-07-13T19:29:59.262Z
 | ci-minified/site/guided-onboarding.js | 35662 | 7165 |
 | ci-minified/site/privacy-region.js | 30397 | 6405 |
 
-**JS total (gzip):** 1282402 bytes
+**JS total (gzip):** 1283005 bytes
 **CSS total (gzip):** 136824 bytes

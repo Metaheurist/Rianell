@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-13T19:29:59.262Z",
+  "generatedAt": "2026-07-13T20:03:58.841Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5400168,
+    "jsBytes": 5403319,
     "cssBytes": 806668,
-    "jsGzipBytes": 1282402,
+    "jsGzipBytes": 1283005,
     "cssGzipBytes": 136824
   },
   "files": [
@@ -69,14 +69,14 @@
       "gzipBytes": 14797
     },
     {
+      "file": "ci-minified/site/device-benchmark.js",
+      "bytes": 51625,
+      "gzipBytes": 11044
+    },
+    {
       "file": "ci-minified/site/export-utils.js",
       "bytes": 49309,
       "gzipBytes": 11835
-    },
-    {
-      "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 48474,
-      "gzipBytes": 10441
     },
     {
       "file": "ci-minified/site/modules/mood-tab.js",
