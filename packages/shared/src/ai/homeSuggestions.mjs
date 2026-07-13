@@ -327,7 +327,7 @@ function trendPhrase(metric, trend) {
   if (metric === 'sleep' || metric === 'mood') {
     return trend.direction === 'up'
       ? ` ${label} has been trending up in the second half of this period.`
-      : ` ${label} has dipped in the second half of this period — note what changed around those days.`;
+      : ` ${label} has dipped in the second half of this period - note what changed around those days.`;
   }
   return trend.direction === 'up'
     ? ` ${label} has been climbing in the second half of this period.`
@@ -362,7 +362,7 @@ export function buildHealthChatOfflineReply(analysis = {}, userMessage = '', log
     const trend = metricTrend(workLogs, 'sleep');
     let line = avgSleep != null
       ? `Your recent sleep average is ${formatMetricAvg(avgSleep)}/10 across ${total} logged days.`
-      : `You have ${total} logged days, but sleep scores are still sparse — add a sleep rating when you log.`;
+      : `You have ${total} logged days, but sleep scores are still sparse - add a sleep rating when you log.`;
     line += trendPhrase('sleep', trend);
     if (corr && (corr.a === 'sleep' || corr.b === 'sleep')) {
       const other = METRIC_LABELS[corr.a === 'sleep' ? corr.b : corr.a] || (corr.a === 'sleep' ? corr.b : corr.a);
@@ -375,10 +375,10 @@ export function buildHealthChatOfflineReply(analysis = {}, userMessage = '', log
     const trend = metricTrend(workLogs, 'mood');
     let line = avgMood != null
       ? `Your recent mood average is ${formatMetricAvg(avgMood)}/10 across ${total} logged days.`
-      : `You have ${total} logged days, but mood scores are still sparse — rate mood when you log.`;
+      : `You have ${total} logged days, but mood scores are still sparse - rate mood when you log.`;
     line += trendPhrase('mood', trend);
     if (topStressor) line += ` ${topStressor} shows up often in your stress logs and may be worth tracking after tough days.`;
-    else if (topSymptom) line += ` ${topSymptom} is your most frequent symptom — note whether mood dips on high-symptom days.`;
+    else if (topSymptom) line += ` ${topSymptom} is your most frequent symptom - note whether mood dips on high-symptom days.`;
     else if (corr && (corr.a === 'mood' || corr.b === 'mood')) {
       const other = METRIC_LABELS[corr.a === 'mood' ? corr.b : corr.a] || (corr.a === 'mood' ? corr.b : corr.a);
       line += ` Mood and ${other} look linked in your recent entries.`;
@@ -402,7 +402,7 @@ export function buildHealthChatOfflineReply(analysis = {}, userMessage = '', log
         `${METRIC_LABELS[corr.a] || corr.a} and ${METRIC_LABELS[corr.b] || corr.b} move together in your data.`,
       );
     }
-    if (flare > 0) parts.push(`You had ${flare} flare day(s) — compare sleep and stress around those dates.`);
+    if (flare > 0) parts.push(`You had ${flare} flare day(s) - compare sleep and stress around those dates.`);
     if (parts.length > 1) return parts.join(' ');
   }
 
@@ -427,14 +427,14 @@ export function buildHealthChatOfflineReply(analysis = {}, userMessage = '', log
   }
 
   if (flare > 0) {
-    return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help — note sleep and stress around flare days.`;
+    return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help - note sleep and stress around flare days.`;
   }
 
   if (avgSleep != null && avgMood != null) {
-    return `Across ${total} logged days, sleep averages ${formatMetricAvg(avgSleep)}/10 and mood ${formatMetricAvg(avgMood)}/10. Keep noting what helps — patterns build with steady logging.`;
+    return `Across ${total} logged days, sleep averages ${formatMetricAvg(avgSleep)}/10 and mood ${formatMetricAvg(avgMood)}/10. Keep noting what helps - patterns build with steady logging.`;
   }
 
-  return `You logged ${total} days recently. Keep noting what helps — patterns build with steady logging.`;
+  return `You logged ${total} days recently. Keep noting what helps - patterns build with steady logging.`;
 }
 
 /** Deterministic fallback when LLM unavailable. */

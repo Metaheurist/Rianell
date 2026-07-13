@@ -379,7 +379,7 @@ body.theme-red-black {
   --ui-icon-color: var(--primary-color);
   --home-checkin-icon-color: var(--primary-color);
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color);
+  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
   --avatar-glow: var(--oasis-glow, #ff8d98);
 }
 
@@ -410,7 +410,7 @@ body.theme-mono {
   --ui-icon-success: #bdbdbd;
   --home-checkin-icon-color: var(--primary-color);
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color);
+  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
   --avatar-glow: #d0d0d0;
 }
 
@@ -780,7 +780,7 @@ body.light-mode:not(.theme-red-black):not(.theme-mono):not(.theme-rainbow) {
   --surface-header-tint: rgba(248, 253, 248, 0.96);
   --shell-bg: #e8f5e9;
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color);
+  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, #e8f5e8 45%));
   --avatar-glow: var(--oasis-glow, #7bdf8c);
 }
 
@@ -816,7 +816,7 @@ body.light-mode.theme-red-black {
   --status-improving: var(--primary-color);
   --ai-status-optimal: var(--primary-color);
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color);
+  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
   --avatar-glow: var(--oasis-glow, #ff8d98);
 }
 
@@ -848,7 +848,7 @@ body.light-mode.theme-mono {
   --status-improving: #424242;
   --ai-status-optimal: #616161;
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color);
+  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
   --avatar-glow: #d0d0d0;
 }
 
@@ -869,7 +869,7 @@ body.light-mode.theme-rainbow {
   --surface-header-tint: rgba(255, 248, 252, 0.97);
   --shell-bg: #f5f7ff;
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color);
+  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
   --avatar-glow: var(--oasis-glow, #ff4fa0);
 }
 
@@ -5801,6 +5801,18 @@ body.theme-rainbow .app-bottom-nav-btn.active {
   filter: drop-shadow(0 0 6px var(--nav-icon-active-glow));
 }
 
+/* AI glyph has more detail - render slightly larger so it matches Home/Mood visual weight. */
+.main-nav-tab[data-tab="ai"] .tab-icon-svg {
+  width: calc(var(--nav-icon-size) * 1.22);
+  height: calc(var(--nav-icon-size) * 1.22);
+  opacity: 1;
+}
+
+.app-bottom-nav-btn.main-nav-tab[data-tab="ai"] .tab-icon-svg {
+  width: calc(var(--nav-icon-size-bottom) * 1.22);
+  height: calc(var(--nav-icon-size-bottom) * 1.22);
+}
+
 @media (not (prefers-reduced-motion: reduce)) {
   .main-nav-tab.active[data-tab="home"] .tab-icon-svg,
   .main-nav-tab[aria-current="page"][data-tab="home"] .tab-icon-svg {
@@ -5859,7 +5871,7 @@ body.theme-rainbow .app-bottom-nav-btn.active {
   .main-nav-tab.active[data-tab="ai"] .nav-icon-ai-scope-diaphragm-inner,
   .main-nav-tab[aria-current="page"][data-tab="ai"] .nav-icon-ai-scope-diaphragm-inner {
     animation: navIconAiStethoscopePulse 2.2s ease-in-out infinite;
-    transform-origin: 12px 19.45px;
+    transform-origin: 12px 20.85px;
     transform-box: fill-box;
   }
 
@@ -8876,12 +8888,12 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
 
 @keyframes overviewMonitorScroll {
   0%, 100% { transform: translateY(0); }
-  45% { transform: translateY(-3.6px); }
+  45% { transform: translateY(-2.8px); }
 }
 
 @keyframes overviewMonitorScrollbar {
-  0%, 100% { transform: translateY(0); opacity: 0.35; }
-  45% { transform: translateY(2.4px); opacity: 0.58; }
+  0%, 100% { transform: translateY(0); opacity: 0.45; }
+  45% { transform: translateY(2.1px); opacity: 0.7; }
 }
 
 .ai-chapter--lifestyle.ai-summary-section {
@@ -8955,9 +8967,14 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
 }
 
 .ai-chapter-header .ai-inline-icon {
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.9rem;
+  height: 1.9rem;
   flex-shrink: 0;
+}
+
+.ai-chapter--overview .ai-chapter-header .ai-inline-icon {
+  width: 2.05rem;
+  height: 2.05rem;
 }
 
 .ai-hero-row {
@@ -18903,9 +18920,35 @@ body.light-mode .goals-value-label {
   position: relative;
   min-height: 3.25rem;
   border-radius: var(--radius-sm, 8px);
-  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 16%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--goals-metric-accent, var(--primary-color)) calc(5% + (var(--goals-row-pct, 0) * 0.22%)),
+    transparent
+  );
+  border: 1px solid color-mix(
+    in srgb,
+    var(--goals-metric-accent, var(--primary-color)) calc(12% + (var(--goals-row-pct, 0) * 0.28%)),
+    transparent
+  );
+  box-shadow: inset 0 0 calc(6px + (var(--goals-row-pct, 0) * 0.1px))
+    color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) calc(8% + (var(--goals-row-pct, 0) * 0.2%)), transparent);
   overflow: hidden;
+}
+
+.goals-metric-row[data-metric="hydration"] {
+  --goals-metric-accent: #6ec8ff;
+}
+
+.goals-metric-row[data-metric="sleep"] {
+  --goals-metric-accent: #b8a0ff;
+}
+
+.goals-metric-row[data-metric="goodDays"] {
+  --goals-metric-accent: #ffc76b;
+}
+
+.goals-metric-row[data-metric="steps"] {
+  --goals-metric-accent: var(--primary-color);
 }
 
 .goals-3d-slot .goals-svg-chart {
@@ -18919,9 +18962,15 @@ body.light-mode .goals-value-label {
   color: var(--goals-fill, var(--primary-color));
 }
 
+.goals-svg-panel {
+  fill: color-mix(in srgb, var(--goals-fill) var(--goals-panel-mix, 6%), transparent);
+  stroke: color-mix(in srgb, var(--goals-fill) var(--goals-panel-stroke, 18%), transparent);
+  stroke-width: 0.8;
+}
+
 .goals-svg-decor {
   color: color-mix(in srgb, var(--goals-fill) 72%, #ffffff 28%);
-  opacity: 0.85;
+  opacity: var(--goals-decor-opacity, 0.85);
 }
 
 .goals-svg-bar {
@@ -18932,7 +18981,8 @@ body.light-mode .goals-value-label {
 
 .goals-svg-bar-wrap--filled .goals-svg-bar {
   fill: var(--goals-fill);
-  filter: drop-shadow(0 0 3px var(--goals-glow));
+  fill-opacity: var(--goals-bar-fill-opacity, 1);
+  filter: drop-shadow(0 0 calc(1px + (var(--goals-bar-pct, 0) * 0.04px)) var(--goals-glow));
 }
 
 .goals-svg-bar-wrap:not(.goals-svg-bar-wrap--filled) .goals-svg-bar {
@@ -18944,11 +18994,11 @@ body.light-mode .goals-value-label {
   transform-box: fill-box;
   transform-origin: bottom center;
   transform: scaleY(0.08);
-  opacity: 0.55;
+  opacity: 0.35;
 }
 
 .goals-svg-bar-wrap--filled {
-  opacity: 1;
+  opacity: 0.55;
 }
 
 .goals-svg-chart--visible .goals-svg-bar-wrap {
@@ -18964,7 +19014,7 @@ body.light-mode .goals-value-label {
 @keyframes goalsSvgBarGrow {
   to {
     transform: scaleY(1);
-    opacity: 1;
+    opacity: var(--goals-bar-final-opacity, 1);
   }
 }
 
@@ -19042,7 +19092,11 @@ body.light-mode .goals-value-label {
 }
 
 .goals-progress-block--svg .goals-3d-slot {
-  background: color-mix(in srgb, var(--primary-color) 5%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--goals-metric-accent, var(--primary-color)) calc(4% + (var(--goals-row-pct, 0) * 0.2%)),
+    transparent
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -19054,7 +19108,7 @@ body.light-mode .goals-value-label {
 
   .goals-svg-bar-wrap {
     transform: scaleY(1);
-    opacity: 1;
+    opacity: var(--goals-bar-final-opacity, 1);
   }
 }
 
@@ -19181,12 +19235,12 @@ body.light-mode .goals-value-label {
   border-radius: 4px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--primary-color) 58%, transparent),
-    color-mix(in srgb, var(--primary-color) 96%, #ffffff 4%)
+    color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) 58%, transparent),
+    color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) 96%, #ffffff 4%)
   );
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffffff 35%, transparent),
-    0 0 8px color-mix(in srgb, var(--primary-color) 45%, transparent);
+    0 0 8px color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) 45%, transparent);
   transform: scaleX(var(--progress, 0));
   transform-origin: left center;
   transition: transform 0.45s var(--ease-out-expo, ease-out);
@@ -19235,9 +19289,23 @@ body.light-mode .goals-value-label {
   flex-shrink: 0;
 }
 
+.goals-dot--partial {
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) 88%, #ffffff 12%)
+      calc(var(--goals-dot-pct, 0) * 1%),
+    rgba(255, 255, 255, 0.16) 0
+  );
+  box-shadow: 0 0 3px color-mix(
+    in srgb,
+    var(--goals-metric-accent, var(--primary-color)) calc(var(--goals-dot-pct, 0) * 0.45%),
+    transparent
+  );
+}
+
 .goals-dot.filled {
-  background: color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%);
-  box-shadow: 0 0 5px color-mix(in srgb, var(--primary-color) 55%, transparent);
+  background: color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) 88%, #ffffff 12%);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) 55%, transparent);
 }
 
 .goals-status-pill {
@@ -19279,8 +19347,11 @@ body.theme-rainbow .goals-bar-fill {
 
 body.theme-red-black .goals-dot.filled,
 body.theme-mono .goals-dot.filled,
-body.theme-rainbow .goals-dot.filled {
-  background: color-mix(in srgb, var(--primary-color) 90%, #ffffff 10%) !important;
+body.theme-rainbow .goals-dot.filled,
+body.theme-red-black .goals-dot--partial,
+body.theme-mono .goals-dot--partial,
+body.theme-rainbow .goals-dot--partial {
+  background: color-mix(in srgb, var(--goals-metric-accent, var(--primary-color)) 90%, #ffffff 10%) !important;
 }
 
 .goals-status-pill.mixed {
@@ -19328,8 +19399,16 @@ body.light-mode .goals-dot {
   background: rgba(0,0,0,0.2);
 }
 
+body.light-mode .goals-dot--partial {
+  background: linear-gradient(
+    to top,
+    var(--goals-metric-accent, var(--primary-color)) calc(var(--goals-dot-pct, 0) * 1%),
+    rgba(0, 0, 0, 0.2) 0
+  );
+}
+
 body.light-mode .goals-dot.filled {
-  background: var(--primary-color);
+  background: var(--goals-metric-accent, var(--primary-color));
 }
 
 body.light-mode .goals-status-pill.on-track {

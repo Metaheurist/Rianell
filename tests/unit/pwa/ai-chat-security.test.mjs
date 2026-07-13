@@ -70,6 +70,14 @@ test('ai-chat close button renders visible dismiss glyph', () => {
   assert.match(css, /\.ai-chat-close[\s\S]*color: var\(--primary-color\)/);
 });
 
+test('ai-chat open path respects model gate and generic fallback', () => {
+  const src = readFileSync('apps/pwa-webapp/modules/ai-chat.js', 'utf8');
+  assert.match(src, /gateAiHealthChatOpen/);
+  assert.match(src, /forceGeneric/);
+  assert.match(src, /_forceGeneric/);
+  assert.match(src, /skipGate/);
+});
+
 test('weekChat system prompt enforces instruction hierarchy', () => {
   const pack = readFileSync('packages/shared/src/i18n/promptPackData.mjs', 'utf8');
   assert.ok(/weekChat\.system/.test(pack));

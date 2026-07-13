@@ -145,6 +145,14 @@ test('index.html nav symbols are polished multi-path icons', () => {
   assert.match(html, /id="rianell-nav-mood"[\s\S]*nav-icon-mood-eye--L/);
   assert.match(html, /id="rianell-nav-ai"[\s\S]*nav-icon-ai-head/);
   assert.match(html, /nav-icon-ai-scope-diaphragm/);
+  assert.match(html, /id="rianell-nav-ai"[\s\S]*width="13\.8"/);
+});
+
+test('AI Analysis and Overview icons are sized for visibility', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /main-nav-tab\[data-tab="ai"\] \.tab-icon-svg[\s\S]*1\.22/);
+  assert.match(css, /\.ai-chapter--overview \.ai-chapter-header \.ai-inline-icon[\s\S]*2\.05rem/);
+  assert.match(css, /\.ai-chapter-header \.ai-inline-icon[\s\S]*1\.9rem/);
 });
 
 test('index.html AI chapter sprites include overview monitor and trends vitals', () => {

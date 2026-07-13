@@ -1301,7 +1301,7 @@ function openBenchmarkDetails() {
 }
 
 // ============================================
-// Share modal — see modules/share-modal.js
+// Share modal - see modules/share-modal.js
 // ============================================
 
 // Medical synopsis wording for email/WhatsApp shares (for care team or doctor)
@@ -9034,7 +9034,7 @@ function renderAIThingsToWatch(anomalies) {
     html += '</ul>';
   }
 
-  html += '<p class="ai-watch-panel__footnote" role="note">' + escapeHTML(tUiOr('ai.watch.footnote', 'Patterns in your logs only — not a diagnosis. Mention significant changes to your care team.')) + '</p>';
+  html += '<p class="ai-watch-panel__footnote" role="note">' + escapeHTML(tUiOr('ai.watch.footnote', 'Patterns in your logs only - not a diagnosis. Mention significant changes to your care team.')) + '</p>';
   html += '</div>';
   return html;
 }
@@ -11634,9 +11634,17 @@ function updateGoalsProgressBlock() {
     if (avgPct >= 100) return { cls: 'on-track', label: 'Avg above target' };
     return { cls: 'below', label: 'Below target' };
   }
-  function daysDots(met) {
+  /** Seven day chips driven by that day's % of target (0–100), not a binary met/not count. */
+  function daysDotsFromPcts(pcts) {
+    var values = Array.isArray(pcts) ? pcts : [];
     var s = '';
-    for (var i = 0; i < 7; i++) s += '<span class="goals-dot' + (i < met ? ' filled' : '') + '" aria-hidden="true"></span>';
+    for (var i = 0; i < 7; i++) {
+      var pct = Math.max(0, Math.min(100, Number(values[i]) || 0));
+      var cls = 'goals-dot';
+      if (pct >= 100) cls += ' filled goals-dot--met';
+      else if (pct > 0) cls += ' goals-dot--partial';
+      s += '<span class="' + cls + '" style="--goals-dot-pct:' + pct + '" aria-hidden="true"></span>';
+    }
     return s;
   }
 
@@ -11649,13 +11657,13 @@ function updateGoalsProgressBlock() {
     var stepsPct = goals.steps > 0 ? Math.min(100, Math.round((stepsAvg / goals.steps) * 100)) : 0;
     var si = insight(stepsMet, 7, goals.steps > 0 ? Math.round((stepsAvg / goals.steps) * 100) : 0);
     var stepsDaily = buildGoalsDailyPcts(function (l) { return parseInt(l.steps, 10); }, goals.steps);
-    rows.push('<div class="goals-metric-row" data-metric="steps" data-daily-pcts="' + escapeAttr(JSON.stringify(stepsDaily)) + '">' +
+    rows.push('<div class="goals-metric-row" data-metric="steps" data-progress-pct="' + stepsPct + '" data-daily-pcts="' + escapeAttr(JSON.stringify(stepsDaily)) + '" style="--goals-row-pct:' + stepsPct + '">' +
       '<div class="goals-metric-visual">' +
       '<div class="goals-3d-slot" aria-hidden="true"></div>' +
       '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">' + tUi('charts.metric.steps') + '</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + stepsPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
+      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met target">' + daysDotsFromPcts(stepsDaily) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
       '</div></div></div>');
   }
   if (goals.hydration > 0) {
@@ -11666,13 +11674,13 @@ function updateGoalsProgressBlock() {
     var hydPct = goals.hydration > 0 ? Math.min(100, Math.round((parseFloat(hydAvg) / goals.hydration) * 100)) : 0;
     var si = insight(hydMet, 7, goals.hydration > 0 ? Math.round((parseFloat(hydAvg) / goals.hydration) * 100) : 0);
     var hydDaily = buildGoalsDailyPcts(function (l) { return parseFloat(l.hydration); }, goals.hydration);
-    rows.push('<div class="goals-metric-row" data-metric="hydration" data-daily-pcts="' + escapeAttr(JSON.stringify(hydDaily)) + '">' +
+    rows.push('<div class="goals-metric-row" data-metric="hydration" data-progress-pct="' + hydPct + '" data-daily-pcts="' + escapeAttr(JSON.stringify(hydDaily)) + '" style="--goals-row-pct:' + hydPct + '">' +
       '<div class="goals-metric-visual">' +
       '<div class="goals-3d-slot" aria-hidden="true"></div>' +
       '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">' + tUi('charts.metric.hydration') + '</span>' + buildHydrationGoalsNumsHtml(hydAvg, goals.hydration) + '</div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + hydPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met">' + daysDots(hydMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
+      '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met target">' + daysDotsFromPcts(hydDaily) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
       '</div></div></div>');
   }
   if (goals.sleep > 0) {
@@ -11683,13 +11691,13 @@ function updateGoalsProgressBlock() {
     var sleepPct = goals.sleep > 0 ? Math.min(100, Math.round((parseFloat(sleepAvg) / goals.sleep) * 100)) : 0;
     var si = insight(sleepMet, 7, goals.sleep > 0 ? Math.round((parseFloat(sleepAvg) / goals.sleep) * 100) : 0);
     var sleepDaily = buildGoalsDailyPcts(function (l) { return parseInt(l.sleep, 10); }, goals.sleep);
-    rows.push('<div class="goals-metric-row" data-metric="sleep" data-daily-pcts="' + escapeAttr(JSON.stringify(sleepDaily)) + '">' +
+    rows.push('<div class="goals-metric-row" data-metric="sleep" data-progress-pct="' + sleepPct + '" data-daily-pcts="' + escapeAttr(JSON.stringify(sleepDaily)) + '" style="--goals-row-pct:' + sleepPct + '">' +
       '<div class="goals-metric-visual">' +
       '<div class="goals-3d-slot" aria-hidden="true"></div>' +
       '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-moon"></i></span><span class="goals-metric-name">' + tUi('export.csv.sleep') + '</span><span class="goals-metric-nums">' + sleepAvg + ' / ' + goals.sleep + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + sleepPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + sleepMet + ' of 7 days met">' + daysDots(sleepMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
+      '<div class="goals-meta"><span class="goals-days" title="' + sleepMet + ' of 7 days met target">' + daysDotsFromPcts(sleepDaily) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div>' +
       '</div></div></div>');
   }
   if (goals.goodDaysPerWeek > 0) {
@@ -11703,13 +11711,14 @@ function updateGoalsProgressBlock() {
       var s = parseInt(l.sleep, 10);
       return (!isNaN(m) && m >= 6 && !isNaN(s) && s >= 6) ? 1 : 0;
     }, 1);
-    rows.push('<div class="goals-metric-row" data-metric="goodDays" data-daily-pcts="' + escapeAttr(JSON.stringify(goodDaily)) + '">' +
+    var goodMetDays = goodDaily.filter(function (p) { return Number(p) >= 100; }).length;
+    rows.push('<div class="goals-metric-row" data-metric="goodDays" data-progress-pct="' + goodPct + '" data-daily-pcts="' + escapeAttr(JSON.stringify(goodDaily)) + '" style="--goals-row-pct:' + goodPct + '">' +
       '<div class="goals-metric-visual">' +
       '<div class="goals-3d-slot" aria-hidden="true"></div>' +
       '<div class="goals-metric-body">' +
       '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-face-smile"></i></span><span class="goals-metric-name">' + tUi('common.good.days') + '</span><span class="goals-metric-nums">' + goodThisWeek + ' / ' + goals.goodDaysPerWeek + (streak > 0 ? ' · ' + streak + ' in a row' : '') + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" data-progress="' + goodPct + '"></div></div>' +
-      '<div class="goals-meta"><span class="goals-status-pill ' + goodCls + '">' + goodLabel + '</span></div>' +
+      '<div class="goals-meta"><span class="goals-days" title="' + goodMetDays + ' of 7 days were good days">' + daysDotsFromPcts(goodDaily) + '</span><span class="goals-status-pill ' + goodCls + '">' + goodLabel + '</span></div>' +
       '</div></div></div>');
   }
   if (rows.length === 0) { block.style.display = 'none'; return; }
@@ -24595,6 +24604,143 @@ function renderDiscoveryCardHtml(card, index) {
   return html;
 }
 
+function deviceSupportsOnDeviceLlmChat() {
+  if (typeof WebAssembly === 'undefined') return false;
+  var locale = (typeof appSettings !== 'undefined' && appSettings && (appSettings.uiLocale || appSettings.locale)) || 'en-GB';
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.isLlmInferenceAllowed === 'function' && !S.isLlmInferenceAllowed(locale)) {
+    return false;
+  }
+  if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function') {
+    var opts = window.PerformanceUtils.getDeviceOpts();
+    if (opts && opts.deferAI) return false;
+  }
+  return true;
+}
+if (typeof window !== 'undefined') window.deviceSupportsOnDeviceLlmChat = deviceSupportsOnDeviceLlmChat;
+
+function getHealthChatAiModelState() {
+  if (typeof window === 'undefined' || typeof window.getAiModelStatus !== 'function') return 'unknown';
+  try {
+    var status = window.getAiModelStatus();
+    return status && status.state ? status.state : 'unknown';
+  } catch (e) {
+    return 'unknown';
+  }
+}
+
+function promptEnableAiAndDownloadForChat(pendingOpenOptions) {
+  var title = typeof tUi === 'function' ? tUi('home.chat.needAi.title') : 'Enable AI to chat';
+  var body = typeof tUi === 'function' ? tUi('home.chat.needAi.body') : 'Turn on AI features and download the on-device model before chatting.';
+  var confirmText = typeof tUi === 'function' ? tUi('home.chat.needAi.confirm') : 'Enable and download';
+  var cancelText = typeof tUi === 'function' ? tUi('home.chat.needAi.cancel') : 'Not now';
+  if (typeof showConfirmModal !== 'function') {
+    if (typeof showToast === 'function') showToast(body, { type: 'info' });
+    return;
+  }
+  showConfirmModal(body, title, function () {
+    if (typeof appSettings === 'undefined' || !appSettings) return;
+    appSettings.aiEnabled = true;
+    if (typeof saveSettings === 'function') saveSettings();
+    var aiEnabledToggle = document.getElementById('aiEnabledToggle');
+    if (aiEnabledToggle) {
+      aiEnabledToggle.classList.add('active');
+      aiEnabledToggle.setAttribute('aria-checked', 'true');
+    }
+    var ensure = typeof ensureSummaryLlmLoadedForSettings === 'function'
+      ? ensureSummaryLlmLoadedForSettings()
+      : Promise.resolve();
+    ensure.then(function () {
+      if (typeof promptAiModelDownloadConsent === 'function') {
+        return promptAiModelDownloadConsent();
+      }
+      return false;
+    }).then(function (granted) {
+      if (!granted) return null;
+      if (typeof window.preloadSummaryLLM === 'function') {
+        return window.preloadSummaryLLM().catch(function () { return null; });
+      }
+      return null;
+    }).then(function () {
+      var state = getHealthChatAiModelState();
+      if (state === 'ready' && typeof openAiHealthChat === 'function') {
+        openAiHealthChat(Object.assign({}, pendingOpenOptions || {}, { skipGate: true }));
+        return;
+      }
+      if (state === 'downloading' || state === 'consented') {
+        if (typeof showToast === 'function') {
+          showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.downloading') : 'Downloading the on-device AI model…', { type: 'info' });
+        }
+        return;
+      }
+      if (typeof showToast === 'function') {
+        showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.preparing') : 'Preparing on-device AI…', { type: 'info' });
+      }
+    }).catch(function () {
+      if (typeof showToast === 'function') {
+        showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.preparing') : 'Preparing on-device AI…', { type: 'info' });
+      }
+    });
+  }, null, { confirmText: confirmText, cancelText: cancelText });
+}
+if (typeof window !== 'undefined') window.promptEnableAiAndDownloadForChat = promptEnableAiAndDownloadForChat;
+
+/**
+ * Gate Ask Rianell chat: require AI enabled + model ready on capable devices;
+ * use generic fallback chat when the device cannot run on-device LLM.
+ * @returns {{ allow: boolean, forceGeneric?: boolean }}
+ */
+function gateAiHealthChatOpen(options) {
+  options = options || {};
+  if (typeof appSettings !== 'undefined' && appSettings && appSettings.simpleMode === true) {
+    return { allow: false };
+  }
+  if (!deviceSupportsOnDeviceLlmChat()) {
+    return { allow: true, forceGeneric: true };
+  }
+  var aiOn = typeof appSettings === 'undefined' || !appSettings || appSettings.aiEnabled !== false;
+  var state = getHealthChatAiModelState();
+  if (aiOn && state === 'unknown') {
+    if (typeof ensureSummaryLlmLoadedForSettings === 'function') {
+      ensureSummaryLlmLoadedForSettings().then(function () {
+        if (typeof openAiHealthChat === 'function') {
+          openAiHealthChat(Object.assign({}, options, { skipGate: false }));
+        }
+      }).catch(function () {
+        promptEnableAiAndDownloadForChat(options);
+      });
+    } else {
+      promptEnableAiAndDownloadForChat(options);
+    }
+    return { allow: false };
+  }
+  if (aiOn && state === 'ready') {
+    return { allow: true, forceGeneric: false };
+  }
+  if (aiOn && (state === 'consented' || state === 'downloading')) {
+    if (typeof ensureSummaryLlmLoadedForSettings === 'function') {
+      ensureSummaryLlmLoadedForSettings().then(function () {
+        if (typeof window.preloadSummaryLLM === 'function') {
+          return window.preloadSummaryLLM();
+        }
+        return null;
+      }).then(function () {
+        if (getHealthChatAiModelState() === 'ready' && typeof openAiHealthChat === 'function') {
+          openAiHealthChat(Object.assign({}, options, { skipGate: true }));
+        }
+      }).catch(function () {});
+    }
+    if (typeof showToast === 'function') {
+      var msgKey = state === 'downloading' ? 'home.chat.needAi.downloading' : 'home.chat.needAi.preparing';
+      showToast(typeof tUi === 'function' ? tUi(msgKey) : 'Preparing on-device AI…', { type: 'info' });
+    }
+    return { allow: false };
+  }
+  promptEnableAiAndDownloadForChat(options);
+  return { allow: false };
+}
+if (typeof window !== 'undefined') window.gateAiHealthChatOpen = gateAiHealthChatOpen;
+
 function openDiscoveryChatFromCard(btn, logArr) {
   if (!btn) return;
   var seedKey = btn.getAttribute('data-discovery-seed-key');
@@ -24619,14 +24765,29 @@ function renderHomeDiscoveryChips(logArr) {
   var wrap = document.getElementById('homeDiscoveryChips');
   if (!wrap) return;
   var count = Array.isArray(logArr) ? logArr.length : 0;
-  var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false && appSettings.simpleMode !== true;
-  if (!aiOn) {
+  var simpleOff = typeof appSettings !== 'undefined' && appSettings && appSettings.simpleMode === true;
+  if (simpleOff) {
     wrap.hidden = true;
     wrap.innerHTML = '';
     return;
   }
+  var aiOn = typeof appSettings === 'undefined' || !appSettings || appSettings.aiEnabled !== false;
+  var supportsLlm = typeof deviceSupportsOnDeviceLlmChat === 'function' ? deviceSupportsOnDeviceLlmChat() : true;
+  var modelState = getHealthChatAiModelState();
+  var modelReady = modelState === 'ready';
   var cards = [];
-  if (count === 0) {
+  if (!aiOn || (supportsLlm && !modelReady)) {
+    var setupHint = !supportsLlm
+      ? 'home.discover.askAnything.hint.generic'
+      : 'home.discover.askAnything.hint.setup';
+    cards.push({
+      id: 'ask-anything',
+      icon: 'discover-orb',
+      titleKey: 'home.discover.askAnything',
+      hintKey: setupHint,
+      seedKey: '',
+    });
+  } else if (count === 0) {
     cards = buildStaticDiscoveryCards();
   } else {
     var S = getHomeSharedAi();
@@ -24664,7 +24825,7 @@ function renderHomeDiscoveryChips(logArr) {
       id: 'ask-anything',
       icon: 'discover-orb',
       titleKey: 'home.discover.askAnything',
-      hintKey: 'home.discover.askAnything.hint',
+      hintKey: supportsLlm ? 'home.discover.askAnything.hint' : 'home.discover.askAnything.hint.generic',
       seedKey: '',
     });
   }
@@ -26233,7 +26394,7 @@ function ensureChartsStylesLoaded() {
   document.head.appendChild(l);
 }
 
-// Motion-safe progress scale (transform-only — search: @rianell/progress-scale)
+// Motion-safe progress scale (transform-only - search: @rianell/progress-scale)
 function setProgressScale(el, pct) {
   if (!el) return;
   var n = Math.max(0, Math.min(100, Number(pct) || 0)) / 100;

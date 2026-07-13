@@ -65,10 +65,17 @@
     }
   }
 
-  function buildChartSvg(metric, pcts) {
+  function buildChartSvg(metric, pcts, rowPct) {
     var theme = metricTheme(metric);
     var values = Array.isArray(pcts) ? pcts.slice(0, 7) : [];
     while (values.length < 7) values.push(0);
+
+    var sum = 0;
+    for (var s = 0; s < values.length; s++) sum += Math.max(0, Math.min(100, Number(values[s]) || 0));
+    var avgPct = Number.isFinite(rowPct) ? Math.max(0, Math.min(100, rowPct)) : Math.round(sum / 7);
+    var panelMix = Math.round(4 + (avgPct / 100) * 26);
+    var panelStroke = Math.round(12 + (avgPct / 100) * 28);
+    var decorOpacity = (0.35 + (avgPct / 100) * 0.55).toFixed(2);
 
     var barW = 11;
     var gap = 4.5;
@@ -79,28 +86,40 @@
 
     for (var i = 0; i < 7; i++) {
       var pct = Math.max(0, Math.min(100, Number(values[i]) || 0));
-      var h = pct > 0 ? Math.max(5, (pct / 100) * maxH) : 7;
+      /* Empty stubs stay short; progress height scales with that day's % of target. */
+      var h = pct <= 0 ? 2.4 : Math.max(4, (pct / 100) * maxH);
       var x = startX + i * (barW + gap);
       var filled = pct > 0;
       var met = pct >= 100;
+      var fillOpacity = pct <= 0 ? 0.22 : Math.max(0.4, pct / 100);
+      var finalOpacity = pct <= 0 ? 0.4 : 1;
       bars += '<g class="goals-svg-bar-wrap' + (filled ? ' goals-svg-bar-wrap--filled' : '') + (met ? ' goals-svg-bar-wrap--met' : '') + '" ' +
-        'transform="translate(' + x.toFixed(1) + ' ' + baseY + ')" style="--goals-bar-h:' + h.toFixed(1) + ';--goals-bar-delay:' + (i * 0.07).toFixed(2) + 's">' +
+        'transform="translate(' + x.toFixed(1) + ' ' + baseY + ')" style="--goals-bar-h:' + h.toFixed(1) +
+        ';--goals-bar-delay:' + (i * 0.07).toFixed(2) + 's;--goals-bar-pct:' + pct +
+        ';--goals-bar-fill-opacity:' + fillOpacity.toFixed(2) +
+        ';--goals-bar-final-opacity:' + finalOpacity + '">' +
         '<rect class="goals-svg-bar" x="0" y="' + (-h).toFixed(1) + '" width="' + barW + '" height="' + h.toFixed(1) + '" rx="2.2"/>' +
         '</g>';
     }
 
-    return '<svg class="goals-svg-chart" data-metric="' + metric + '" viewBox="0 0 120 52" focusable="false" aria-hidden="true" ' +
-      'style="--goals-fill:' + theme.fill + ';--goals-empty:' + theme.empty + ';--goals-glow:' + theme.glow + '">' +
-      '<rect class="goals-svg-panel" x="1" y="1" width="118" height="50" rx="6" fill="color-mix(in srgb, var(--goals-fill) 6%, transparent)" stroke="color-mix(in srgb, var(--goals-fill) 18%, transparent)" stroke-width="0.8"/>' +
+    return '<svg class="goals-svg-chart" data-metric="' + metric + '" data-progress-pct="' + avgPct +
+      '" viewBox="0 0 120 52" focusable="false" aria-hidden="true" ' +
+      'style="--goals-fill:' + theme.fill + ';--goals-empty:' + theme.empty + ';--goals-glow:' + theme.glow +
+      ';--goals-row-pct:' + avgPct + ';--goals-panel-mix:' + panelMix + '%;--goals-panel-stroke:' + panelStroke +
+      '%;--goals-decor-opacity:' + decorOpacity + '">' +
+      '<rect class="goals-svg-panel" x="1" y="1" width="118" height="50" rx="6"/>' +
       decorSvg(theme.decor) +
       '<line class="goals-svg-baseline" x1="4" y1="' + baseY + '" x2="116" y2="' + baseY + '" stroke="color-mix(in srgb, var(--goals-fill) 28%, transparent)" stroke-width="1" stroke-linecap="round"/>' +
       bars +
       '</svg>';
   }
 
-  function mountChart(slot, metric, pcts) {
+  function mountChart(slot, metric, pcts, rowPct) {
     if (!slot) return null;
-    slot.innerHTML = buildChartSvg(metric, pcts);
+    slot.innerHTML = buildChartSvg(metric, pcts, rowPct);
+    if (Number.isFinite(rowPct)) {
+      slot.style.setProperty('--goals-row-pct', String(Math.max(0, Math.min(100, rowPct))));
+    }
     var svg = slot.querySelector('.goals-svg-chart');
     if (!svg) return null;
 
@@ -156,7 +175,9 @@
       var raw = row.getAttribute('data-daily-pcts') || '[]';
       var pcts;
       try { pcts = JSON.parse(raw); } catch (e) { pcts = []; }
-      var ctrl = mountChart(slot, metric, pcts);
+      var rowPct = Number(row.getAttribute('data-progress-pct'));
+      if (!Number.isFinite(rowPct)) rowPct = undefined;
+      var ctrl = mountChart(slot, metric, pcts, rowPct);
       if (ctrl) activeCharts.push(ctrl);
     });
     return activeCharts;

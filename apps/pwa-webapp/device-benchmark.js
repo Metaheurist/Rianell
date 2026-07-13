@@ -272,7 +272,7 @@
 
   /**
    * Event-loop / frame pacing sample for boot.
-   * Uses setTimeout only — requestAnimationFrame can stall indefinitely while the
+   * Uses setTimeout only - requestAnimationFrame can stall indefinitely while the
    * loading overlay holds first paint, which freezes “Measuring… · rAF latency”
    * and can trip Chrome’s “Page Unresponsive” dialog.
    */
@@ -292,7 +292,7 @@
     }
     var fallbackTimer = setTimeout(function () {
       if (typeof console !== 'undefined' && console.warn) {
-        console.warn('[Benchmark] rAF latency timed out — using fallback sample');
+        console.warn('[Benchmark] rAF latency timed out - using fallback sample');
       }
       finish({ avgMs: samples.length ? mean(samples) : 16.7, samples: samples, timedOut: true });
     }, RAF_LATENCY_TIMEOUT_MS);
@@ -761,7 +761,7 @@
       cpuIterations: clampInt(200000 * scale, 120000, 1600000),
       arraySize: clampInt(45000 * scale, 20000, 220000),
       jsonSize: clampInt(180 * scale, 80, 900),
-      // Cap string/DOM work — large sync builds freeze the loading overlay / main thread.
+      // Cap string/DOM work - large sync builds freeze the loading overlay / main thread.
       stringSize: clampInt(20000 * scale, 12000, 48000),
       domNodes: clampInt(130 * scale, 80, 320),
       rafFrames: 5
@@ -805,7 +805,7 @@
 
     function scheduleBenchmarkStep(fn) {
       if (suiteAborted) return;
-      // setTimeout only — requestAnimationFrame can pause indefinitely during first paint / boot.
+      // setTimeout only - requestAnimationFrame can pause indefinitely during first paint / boot.
       var delay = (typeof document !== 'undefined' && document.visibilityState === 'hidden') ? 16 : 0;
       setTimeout(fn, delay);
     }
@@ -816,7 +816,7 @@
       var sliceGuard = setTimeout(function () {
         if (suiteAborted || isDone()) return;
         if (typeof console !== 'undefined' && console.warn) {
-          console.warn('[Benchmark] slice watchdog — yielding long-running step');
+          console.warn('[Benchmark] slice watchdog - yielding long-running step');
         }
         touchStepWatchdog();
         scheduleBenchmarkStep(function () { runWorkInSlices(tickFn, isDone, done); });

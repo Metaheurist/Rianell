@@ -1,6 +1,6 @@
 /**
  * Ephemeral on-device health chat panel (Home discovery + AI Q&A).
- * State lives in module scope only — cleared on close and beforeunload.
+ * State lives in module scope only - cleared on close and beforeunload.
  */
 (function (global) {
   'use strict';
@@ -16,6 +16,7 @@
   var _sendInFlight = false;
   var _requestGen = 0;
   var _claimedModalActive = false;
+  var _forceGeneric = false;
 
   function t(key, params) {
     if (typeof global.tUi === 'function') return global.tUi(key, params);
@@ -95,7 +96,7 @@
     if (S && typeof S.buildHealthChatFallback === 'function') {
       return S.buildHealthChatFallback(snap || {}, userMessage, getLogs());
     }
-    return 'Keep logging daily — patterns become clearer with more entries.';
+    return 'Keep logging daily - patterns become clearer with more entries.';
   }
 
   function ensureDom() {
@@ -156,8 +157,13 @@
     var title = overlay.querySelector('#aiChatTitle');
     if (title) title.textContent = t('home.chat.title');
     var trust = overlay.querySelector('.ai-chat-trust');
-    if (trust) trust.textContent = t('home.chat.trustBadge');
-    var input = overlay.querySelector('#aiChatInput');
+    if (trust) {
+      trust.textContent = _forceGeneric
+        ? (typeof global.tUiOr === 'function'
+          ? global.tUiOr('home.chat.trustBadge.generic', 'Guided tips · no on-device model on this device')
+          : t('home.chat.trustBadge.generic'))
+        : t('home.chat.trustBadge');
+    }    var input = overlay.querySelector('#aiChatInput');
     if (input) {
       input.placeholder = t('ai.weekChat.placeholder');
       var label = overlay.querySelector('label[for="aiChatInput"]');
@@ -260,6 +266,7 @@
 
   async function runInference(userMessage) {
     var fallback = buildFallback(userMessage);
+    if (_forceGeneric) return fallback;
     var payload = assemblePayload(userMessage);
     var fn = global.generateHealthChatWithLLM || global.generateWeekChatWithLLM;
     if (typeof fn !== 'function') return fallback;
@@ -332,6 +339,7 @@
   function wipeState() {
     _requestGen += 1;
     _sendInFlight = false;
+    _forceGeneric = false;
     _turns = [];
     _baseContext = '';
     _analysis = null;
@@ -345,11 +353,19 @@
 
   function openAiHealthChat(options) {
     options = options || {};
-    var aiOn = global.appSettings && global.appSettings.aiEnabled !== false && global.appSettings.simpleMode !== true;
-    if (!aiOn) return;
+    if (!options.skipGate && typeof global.gateAiHealthChatOpen === 'function') {
+      var gate = global.gateAiHealthChatOpen(options);
+      if (!gate || gate.allow === false) return;
+      if (gate.forceGeneric) options.forceGeneric = true;
+    }
+    var simpleOff = global.appSettings && global.appSettings.simpleMode === true;
+    if (simpleOff) return;
+    var aiOn = !global.appSettings || global.appSettings.aiEnabled !== false;
+    if (!aiOn && !options.forceGeneric) return;
     ensureDom();
     bindLifecycle();
     _open = true;
+    _forceGeneric = !!options.forceGeneric;
     var S = getShared();
     _analysis = options.analysis || null;
     if (!_analysis && S && typeof S.computeHomeAnalysisSnapshot === 'function') {
@@ -363,6 +379,7 @@
       overlay.removeAttribute('aria-hidden');
       if ('inert' in overlay) overlay.inert = false;
       overlay.classList.add('ai-chat-overlay--open');
+      overlay.classList.toggle('ai-chat-overlay--generic', _forceGeneric);
     }
     _claimedModalActive = true;
     document.body.classList.add('modal-active', 'ai-chat-open');

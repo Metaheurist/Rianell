@@ -34,7 +34,7 @@ function formatChangeMessage(metric, prior, current, kind) {
 
 function buildHeadline(improvements, concerns) {
   if (improvements.length) return 'Your week shows positive shifts in a few areas.';
-  if (concerns.length) return 'A few metrics shifted this week — worth a look.';
+  if (concerns.length) return 'A few metrics shifted this week - worth a look.';
   return 'Keep logging to build your weekly digest.';
 }
 
