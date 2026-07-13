@@ -33,12 +33,12 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
 | `@opentelemetry/core` | ^2.9.0 |
-| `@sentry/node` | ^10.58.0 |
+| `@sentry/node` | ^10.65.0 |
 | `esbuild` | 0.28.1 |
-| `sharp` | ^0.33.5 |
+| `sharp` | ^0.35.3 |
 | `turbo` | ^2.9.18 |
 
-**`overrides`** — 33 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `expo-modules-core`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `react-native-transformers → @huggingface/transformers`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — 34 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `expo-modules-core`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `react-native-screens`, `react-native-transformers → @huggingface/transformers`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
@@ -77,38 +77,38 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `@huggingface/transformers` | 3.3.2 |
 | `@react-native-async-storage/async-storage` | ^3.0.1 |
 | `@react-native-community/netinfo` | ^11.4.1 |
-| `@react-navigation/bottom-tabs` | ^7.18.7 |
+| `@react-navigation/bottom-tabs` | ^7.18.8 |
 | `@react-navigation/core` | ^7.21.2 |
 | `@react-navigation/native` | ^7.2.0 |
-| `@react-navigation/native-stack` | ^7.17.9 |
+| `@react-navigation/native-stack` | ^7.17.10 |
 | `@rianell/ai-engine` | file:../../packages/ai-engine |
 | `@rianell/cloud-sync` | file:../../packages/cloud-sync |
 | `@rianell/llm` | file:../../packages/llm |
 | `@rianell/shared` | file:../../packages/shared |
 | `@rianell/tokens` | file:../../packages/tokens |
 | `@supabase/supabase-js` | ^2.100.1 |
-| `@ungap/structured-clone` | ^1.3.2 |
-| `expo` | ~55.0.8 |
+| `@ungap/structured-clone` | ^1.3.3 |
+| `expo` | ~55.0.27 |
 | `expo-av` | ^16.0.8 |
 | `expo-constants` | ~55.0.9 |
-| `expo-crypto` | ~55.0.4 |
+| `expo-crypto` | ~55.0.16 |
 | `expo-file-system` | ~55.0.22 |
-| `expo-haptics` | ~55.0.4 |
-| `expo-local-authentication` | ~55.0.4 |
+| `expo-haptics` | ~55.0.15 |
+| `expo-local-authentication` | ~55.0.15 |
 | `expo-modules-autolinking` | ^55.0.11 |
 | `expo-modules-core` | 55.0.25 |
-| `expo-print` | ~55.0.4 |
-| `expo-secure-store` | ~55.0.4 |
-| `expo-sharing` | ~55.0.20 |
-| `expo-speech` | ^55.0.9 |
-| `expo-speech-recognition` | ^3.1.2 |
+| `expo-print` | ~55.0.16 |
+| `expo-secure-store` | ~55.0.15 |
+| `expo-sharing` | ~55.0.21 |
+| `expo-speech` | ^55.0.15 |
+| `expo-speech-recognition` | ^3.1.3 |
 | `expo-status-bar` | ~55.0.4 |
 | `onnxruntime-react-native` | ^1.22.0 |
 | `react` | 19.2.7 |
 | `react-freeze` | ^1.0.0 |
 | `react-native` | 0.83.2 |
 | `react-native-safe-area-context` | ^5.7.0 |
-| `react-native-screens` | ^4.24.0 |
+| `react-native-screens` | 4.25.2 |
 | `react-native-smartlook-analytics` | ^2.1.21 |
 | `react-native-svg` | ^15.15.5 |
 | `react-native-transformers` | ^1.0.0 |
@@ -158,13 +158,13 @@ Workspace **`@rianell/benchmark-runner`**.
 | Package | Constraint | Role |
 |---------|------------|------|
 | `supabase` | >=2.31.0 | Supabase client |
-| `pydantic` | >=2.10,<3 | — |
+| `pydantic` | >=2.13.4,<3 | — |
 | `websockets` | >=11,<16 | — |
-| `watchdog` | >=3.0.0 | File watching / auto-reload (recommended) |
+| `watchdog` | >=6.0.0 | File watching / auto-reload (recommended) |
 | `python-dotenv` | >=1.2.2 | `.env` loading |
-| `cryptography` | >=48.0.1 | Encryption for anonymised data |
+| `cryptography` | >=49.0.0 | Encryption for anonymised data |
 | `psycopg[binary]` | >=3.0.0 | PostgreSQL driver (optional path for direct SQL) |
-| `psycopg2-binary` | >=2.9.0 | Alternate PostgreSQL driver |
+| `psycopg2-binary` | >=2.9.12 | Alternate PostgreSQL driver |
 
 Install: `pip install -r requirements.txt` (Python **3.8+** per file header).
 

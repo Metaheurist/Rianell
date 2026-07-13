@@ -1,6 +1,19 @@
 # Release Notes
 
-## Latest release (v2.2.6)
+## Latest release (v2.2.7)
+
+**Date:** 2026-07-13
+
+### Highlights
+
+- **Dependencies:** Safer floors for Python (`pydantic`, `cryptography`, `watchdog`, `psycopg2-binary`) and npm (`@sentry/node`, `sharp`, Expo 55 patches). Kept `websockets<16` for Supabase realtime; pinned `react-native-screens` 4.25.2 for RN 0.83.
+- **Dependabot:** Ignores TypeScript 6+/7, jest-expo 56+, and websockets 16+ until coordinated upgrades.
+
+See **v2.2.6** below for avatar, goals, Ask Rianell gate, and CI/security fixes.
+
+---
+
+## Previous (v2.2.6)
 
 **Date:** 2026-07-13
 
