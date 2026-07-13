@@ -60,8 +60,23 @@ test('mood tab renders unified Mood Control Deck with 3D panel hooks', () => {
 test('check-in slider wires click handlers for period selection (RN parity)', () => {
   const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.match(js, /function wireCheckinSliderEvents/);
-  assert.match(js, /addEventListener\('click'/);
+  assert.match(js, /closest\('\.checkin-slider-stop'\)/);
+  assert.match(js, /aria-pressed/);
   assert.doesNotMatch(js, /_checkinDragMoved/);
+  assert.doesNotMatch(
+    js,
+    /checkin-slider-stop:not\(\.is-done\)/,
+  );
+});
+
+test('mood deck period orbs stay clickable without 3D translateZ hit-test traps', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
+  assert.match(css, /\.mood-control-deck \.mood-deck-orb[\s\S]*?transform:\s*scale\(0\.98\)/);
+  assert.doesNotMatch(css, /\.mood-control-deck \.mood-deck-orb[\s\S]*?transform:\s*translateZ\(6px\)/);
+  assert.match(css, /\.checkin-slider-stop\.is-done[\s\S]*pointer-events:\s*auto/);
+  assert.doesNotMatch(js, /isDone \? ' disabled'/);
+  assert.match(js, /data-checkin-done/);
 });
 
 test('mood deck tile icons inherit stroke/fill token rules', () => {

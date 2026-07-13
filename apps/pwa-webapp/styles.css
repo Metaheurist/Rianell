@@ -26240,9 +26240,10 @@ body.light-mode .mood-sparkline-wrap {
 }
 
 .checkin-slider-stop.is-done {
-  opacity: 0.42;
-  cursor: default;
-  pointer-events: none;
+  opacity: 0.55;
+  cursor: pointer;
+  /* Keep selectable so the user can change the current period (update check-in) */
+  pointer-events: auto;
 }
 
 .checkin-cta-btn {
@@ -26382,20 +26383,23 @@ body.light-mode .mood-sparkline-wrap {
   font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--text-light, inherit);
-  transform: translateZ(12px);
 }
 
 .mood-deck-orbs {
-  transform-style: preserve-3d;
-  transform: translateZ(8px);
+  /* Flat hit-testing — preserve-3d + translateZ on buttons breaks clicks in Chromium */
+  transform: none;
+  position: relative;
+  z-index: 2;
 }
 
 .mood-control-deck .mood-deck-orbs-wrap {
   gap: 14px;
+  position: relative;
+  z-index: 2;
 }
 
 .mood-control-deck .mood-deck-track {
-  transform-style: preserve-3d;
+  transform-style: flat;
   padding: 4px 0;
 }
 
@@ -26408,7 +26412,6 @@ body.light-mode .mood-sparkline-wrap {
     transparent
   );
   box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-color) 18%, transparent);
-  transform: translateZ(2px);
 }
 
 .mood-control-deck .mood-deck-orb {
@@ -26417,17 +26420,21 @@ body.light-mode .mood-sparkline-wrap {
   border-radius: 16px;
   padding: 10px 8px 8px;
   min-width: 4.75rem;
-  background: color-mix(in srgb, var(--btn-chrome-bg, transparent) 72%, transparent);
+  background: color-mix(in srgb, var(--btn-chrome-bg, var(--surface-bg, #fff)) 88%, transparent);
   border: 1px solid color-mix(in srgb, var(--surface-border) 80%, transparent);
   box-shadow:
     0 6px 14px color-mix(in srgb, var(--surface-border) 45%, transparent),
     0 1px 0 color-mix(in srgb, var(--primary-color) 16%, transparent) inset;
-  transform: translateZ(6px) scale(0.98);
+  /* 2D only — translateZ under a rotated parent steals / misses pointer hits */
+  transform: scale(0.98);
   transition:
     transform var(--dur-fast) var(--ease-spring),
     box-shadow var(--dur-fast) ease,
     border-color var(--dur-fast) ease,
     background-color var(--dur-fast) ease;
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .mood-control-deck .mood-deck-orb::after {
@@ -26439,14 +26446,13 @@ body.light-mode .mood-sparkline-wrap {
   background: color-mix(in srgb, var(--primary-color) 22%, transparent);
   filter: blur(4px);
   opacity: 0.55;
-  transform: translateZ(-2px);
   pointer-events: none;
 }
 
 .mood-control-deck .mood-deck-orb[data-selected="true"] {
-  transform: translateZ(18px) scale(1.04);
+  transform: scale(1.04);
   border-color: color-mix(in srgb, var(--primary-color) 48%, transparent);
-  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 14%, var(--btn-chrome-bg, #fff));
   box-shadow:
     var(--ui-icon-glow),
     0 10px 22px color-mix(in srgb, var(--primary-color) 18%, transparent),
@@ -26460,7 +26466,6 @@ body.light-mode .mood-sparkline-wrap {
   background: color-mix(in srgb, var(--primary-color) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--surface-border) 35%, transparent);
-  transform: translateZ(4px);
 }
 
 .mood-control-deck .mood-deck-orb[data-selected="true"] .mood-deck-orb-icon-slot {
@@ -26479,11 +26484,16 @@ body.light-mode .mood-sparkline-wrap {
 }
 
 .mood-control-deck .mood-deck-cta {
-  transform: translateZ(14px);
+  transform: none;
+  position: relative;
+  z-index: 2;
   min-height: 46px;
   border-radius: calc(var(--radius-md) + 2px);
   font-size: 0.86rem;
   letter-spacing: 0.02em;
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
   box-shadow:
     0 8px 20px color-mix(in srgb, var(--home-checkin-icon-color) 28%, transparent),
     0 2px 0 color-mix(in srgb, var(--primary-color) 40%, transparent) inset,
@@ -26507,7 +26517,7 @@ body.light-mode .mood-sparkline-wrap {
 }
 
 .mood-control-deck .mood-deck-cta:active {
-  transform: translateZ(8px) scale(0.97);
+  transform: scale(0.97);
   animation: none;
 }
 
@@ -26515,7 +26525,9 @@ body.light-mode .mood-sparkline-wrap {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  transform: translateZ(10px);
+  position: relative;
+  z-index: 2;
+  transform: none;
 }
 
 .mood-control-deck .mood-deck-tile {
@@ -26537,10 +26549,12 @@ body.light-mode .mood-sparkline-wrap {
   line-height: 1.25;
   text-align: center;
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
   box-shadow:
     0 5px 14px color-mix(in srgb, var(--surface-border) 50%, transparent),
     0 1px 0 color-mix(in srgb, var(--primary-color) 14%, transparent) inset;
-  transform: translateZ(4px);
+  transform: none;
   transition:
     transform var(--dur-fast) var(--ease-spring),
     box-shadow var(--dur-fast) ease,
@@ -26553,7 +26567,7 @@ body.light-mode .mood-sparkline-wrap {
 }
 
 .mood-control-deck .mood-deck-tile:hover {
-  transform: translateZ(10px) translateY(-2px);
+  transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--primary-color) 36%, transparent);
   background: color-mix(in srgb, var(--btn-chrome-bg-hover, var(--btn-chrome-bg)) 92%, transparent);
   box-shadow:
@@ -26567,7 +26581,7 @@ body.light-mode .mood-sparkline-wrap {
 }
 
 .mood-control-deck .mood-deck-tile:active {
-  transform: translateZ(2px) scale(0.97);
+  transform: scale(0.97);
 }
 
 .mood-deck-tile-icon {
@@ -26580,7 +26594,6 @@ body.light-mode .mood-sparkline-wrap {
   background: color-mix(in srgb, var(--ui-icon-surface) 88%, transparent);
   border: 1px solid color-mix(in srgb, var(--primary-color) 24%, transparent);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--surface-border) 40%, transparent);
-  transform: translateZ(6px);
 }
 
 .mood-deck-tile-icon-svg {
@@ -26607,7 +26620,6 @@ body.light-mode .mood-sparkline-wrap {
 .mood-deck-tile-label {
   display: block;
   max-width: 100%;
-  transform: translateZ(4px);
 }
 
 @media (max-width: 420px) {
@@ -26647,7 +26659,7 @@ body.light-mode .mood-sparkline-wrap {
   }
 
   .mood-control-deck .mood-deck-orb[data-selected="true"] {
-    transform: translateZ(0) scale(1);
+    transform: scale(1);
   }
 }
 

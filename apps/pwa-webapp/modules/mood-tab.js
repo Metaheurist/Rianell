@@ -722,7 +722,7 @@
       var label = t(checkinPeriodLabelKey(period));
       var isDone = done.has(period);
       var isSelected = period === selectedPeriod;
-      html += '<button type="button" class="checkin-slider-stop mood-deck-orb' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(label) + '">';
+      html += '<button type="button" class="checkin-slider-stop mood-deck-orb' + (isDone ? ' is-done' : '') + '" data-period="' + escapeHTML(period) + '" data-selected="' + (isSelected ? 'true' : 'false') + '" aria-pressed="' + (isSelected ? 'true' : 'false') + '"' + (isDone ? ' data-checkin-done="true"' : '') + ' aria-label="' + escapeAttr(label) + (isDone ? ' (' + escapeAttr(t('home.checkin.done')) + ')' : '') + '">';
       html += '<span class="checkin-slider-icon-slot mood-deck-orb-icon-slot" aria-hidden="true">';
       html += svgIcon(checkinPeriodIconName(period), 'checkin-slider-stop-icon mood-deck-orb-icon');
       html += '</span>';
@@ -779,12 +779,16 @@
     var tilt = deck.querySelector('.mood-deck-tilt');
     if (!tilt) return;
 
+    // Keep interactive check-in / tiles flat — rotating the parent breaks button hit-testing.
     deck.addEventListener('pointermove', function (e) {
+      if (e.target && e.target.closest && e.target.closest('.mood-deck-orb, .mood-deck-cta, .mood-deck-tile')) {
+        return;
+      }
       var rect = deck.getBoundingClientRect();
       var x = (e.clientX - rect.left) / rect.width - 0.5;
       var y = (e.clientY - rect.top) / rect.height - 0.5;
-      tilt.style.setProperty('--deck-rx', (y * -5).toFixed(2) + 'deg');
-      tilt.style.setProperty('--deck-ry', (x * 7).toFixed(2) + 'deg');
+      tilt.style.setProperty('--deck-rx', (y * -3).toFixed(2) + 'deg');
+      tilt.style.setProperty('--deck-ry', (x * 4).toFixed(2) + 'deg');
     });
     deck.addEventListener('pointerleave', function () {
       tilt.style.setProperty('--deck-rx', '0deg');
