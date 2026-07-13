@@ -101,6 +101,19 @@ test('app.js chart theme helpers read theme ink tokens', () => {
   assert.doesNotMatch(appJs, /text: light \? '#1b5e20'/);
 });
 
+test('light mode settings primary buttons use dark ink for readable contrast', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(
+    css,
+    /body\.light-mode \.settings-data-btn--primary[\s\S]*?color:\s*var\(--text-dark\)/,
+  );
+  const mintLight = css.match(
+    /body\.light-mode\.theme-mint,\s*body\.light-mode:not\(\.theme-red-black\):not\(\.theme-mono\):not\(\.theme-rainbow\)\s*\{[\s\S]*?\n\}/,
+  );
+  assert.ok(mintLight, 'mint light block');
+  assert.match(mintLight[0], /--primary-color:\s*#2e7d32/);
+});
+
 test('styles.css tokenises tutorial footer CTA buttons', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /--tutorial-cta-finish-bg:/);
