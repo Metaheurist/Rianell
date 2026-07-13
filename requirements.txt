@@ -26,4 +26,4 @@ cryptography>=48.0.1
 
 # PostgreSQL drivers for direct SQL when DATABASE_URL is set (optional; at least one needed for exec_sql)
 psycopg[binary]>=3.0.0
-psycopg2-binary>=2.9.0
+psycopg2-binary>=2.9.12
