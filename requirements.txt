@@ -11,7 +11,7 @@ supabase>=2.31.0
 pydantic>=2.13.4,<3
 
 # Supabase realtime peer dependency (realtime 2.31.x requires websockets<16)
-websockets>=11,<16
+websockets>=15.0.1,<16
 
 # File watching for auto-reload (optional but recommended)
 watchdog>=6.0.0
