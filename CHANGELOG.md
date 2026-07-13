@@ -6,6 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.5] - 2026-07-13
+
+### Fixed
+
+- **Settings AI button:** “Clear and redownload model” (and other light-mode primary settings buttons) use `--text-dark` so labels stay readable on white chrome; mint light primary is now `#2e7d32` instead of neon `#7bdf8c`
+
+---
+
 ## [2.2.4] - 2026-07-13
 
 Non-mint themes no longer leak mint greens through light-mode chrome, nav icons, vibes, or character/achievement fills.

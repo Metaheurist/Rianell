@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.4** - Non-mint themes keep mint greens out of light chrome, icons, vibes, and avatars.
+**Latest: v2.2.5** - Light-mode settings primary buttons use readable dark ink.
+
+### v2.2.5 - 2026-07-13 - Settings button contrast
+
+- **Settings:** “Clear and redownload model” and other `--primary`/`--accent` settings buttons use `--text-dark` in light mode; mint light primary darkened to `#2e7d32`.
 
 ### v2.2.4 - 2026-07-13 - Theme token completeness
 

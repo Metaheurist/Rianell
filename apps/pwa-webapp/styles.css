@@ -764,6 +764,8 @@ body.light-mode {
 /* Light mode must follow the global theme team — do not leave mint greens when Red/Black (or others) is active. */
 body.light-mode.theme-mint,
 body.light-mode:not(.theme-red-black):not(.theme-mono):not(.theme-rainbow) {
+  --primary-color: #2e7d32;
+  --primary-gradient: linear-gradient(135deg, #1b5e20 0%, #2e7d32 45%, #66bb6a 100%);
   --background-light: linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%);
   --text-dark: #1b5e20;
   --text-light: #163a23;
@@ -20868,7 +20870,13 @@ body.light-mode .settings-performance-advanced-body .settings-sub-label {
 
 body.light-mode .settings-data-btn--primary,
 body.light-mode .settings-data-btn--accent {
-  color: var(--primary-color);
+  /* Dark ink on white chrome — never use neon-lime primary as label colour */
+  color: var(--text-dark);
+}
+
+body.light-mode .settings-data-btn--primary:hover,
+body.light-mode .settings-data-btn--accent:hover {
+  color: var(--text-dark);
 }
 
 .settings-data-btn:disabled {
