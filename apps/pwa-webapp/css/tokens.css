@@ -37,7 +37,7 @@
   --surface-modal-backdrop: rgba(0,0,0,0.5);
   /* Avatar graphics portfolio — search: @rianell/avatar-theme-tokens */
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color);
+  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
   --avatar-glow: var(--oasis-blob-a, var(--primary-color));
   --avatar-dark: var(--bg-secondary);
   --avatar-health-state: 2;
@@ -56,22 +56,22 @@ body.light-mode {
 }
 
 body.vibe-calm {
-  --vibe-ambient-bg: radial-gradient(ellipse 120% 80% at 50% 0%, rgba(26, 92, 58, 0.35) 0%, transparent 55%);
-  --vibe-particle-color: rgba(125, 223, 140, 0.35);
+  --vibe-ambient-bg: radial-gradient(ellipse 120% 80% at 50% 0%, color-mix(in srgb, var(--primary-color) 35%, transparent) 0%, transparent 55%);
+  --vibe-particle-color: color-mix(in srgb, var(--primary-color) 35%, transparent);
   --vibe-motion-multiplier: 0.5;
   --vibe-particle-mode: drift;
 }
 
 body.vibe-energy {
-  --vibe-ambient-bg: radial-gradient(ellipse 100% 70% at 50% 20%, rgba(123, 223, 140, 0.28) 0%, transparent 50%);
-  --vibe-particle-color: rgba(123, 223, 140, 0.55);
+  --vibe-ambient-bg: radial-gradient(ellipse 100% 70% at 50% 20%, color-mix(in srgb, var(--primary-color) 28%, transparent) 0%, transparent 50%);
+  --vibe-particle-color: color-mix(in srgb, var(--primary-color) 55%, transparent);
   --vibe-motion-multiplier: 1.5;
   --vibe-particle-mode: spark;
 }
 
 body.vibe-nature {
-  --vibe-ambient-bg: radial-gradient(ellipse 110% 75% at 40% 10%, rgba(46, 122, 90, 0.32) 0%, transparent 52%);
-  --vibe-particle-color: rgba(154, 232, 164, 0.4);
+  --vibe-ambient-bg: radial-gradient(ellipse 110% 75% at 40% 10%, color-mix(in srgb, var(--primary-color) 32%, transparent) 0%, transparent 52%);
+  --vibe-particle-color: color-mix(in srgb, var(--primary-color) 40%, transparent);
   --vibe-motion-multiplier: 1;
   --vibe-particle-mode: sway;
 }

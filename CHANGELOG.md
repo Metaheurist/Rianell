@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.4] - 2026-07-13
+
+Non-mint themes no longer leak mint greens through light-mode chrome, nav icons, vibes, or character/achievement fills.
+
+### Fixed
+
+- **Theme tokens:** Light-mode tab nav, metrics, check-in labels, mood “okay/good” orbs, wizard chrome, and chart toolbars use `--text-dark` / `--primary-color` instead of hardcoded mint hex
+- **Mono light:** Greyscale success/status/avatar tokens so black-and-white is actually black-and-white (not olive ink with grey accents)
+- **Red/Black light:** Page shell, semantic success, and avatar primary/secondary follow red team tokens
+- **Vibes:** Calm / energy / nature ambient washes mix from `--primary-color` (no stuck mint particles on red/mono)
+
+### Tests
+
+- `theme-accent-tokens` covers red-black/mono light blocks, ink hardcode removal, and `getThemeInkColor` chart helpers
+
+---
+
 ## [2.2.3] - 2026-07-13
 
 Boot device benchmark no longer freezes the loading overlay on “rAF latency”.

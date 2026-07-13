@@ -1,6 +1,19 @@
 # Release Notes
 
-## Latest release (v2.2.3)
+## Latest release (v2.2.4)
+
+**Date:** 2026-07-13
+
+### Highlights
+
+- **Themes:** Red/Black and Mono light mode no longer leave mint greens on nav, headers, check-in, mood orbs, vibes, or character/achievement icons — surfaces follow theme ink and primary tokens.
+- **Mono light:** Black-and-white actually greyscales semantic success/status fills instead of keeping olive ink.
+
+See **v2.2.3** below for boot rAF latency hang fix.
+
+---
+
+## Previous (v2.2.3)
 
 **Date:** 2026-07-13
 

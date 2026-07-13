@@ -110,12 +110,26 @@ function getApexLineChartTheme() {
   return {
     mode: light ? 'light' : 'dark',
     tooltipTheme: light ? 'light' : 'dark',
-    text: light ? '#1b5e20' : '#e0f2f1',
+    text: light ? getThemeInkColor('#151515') : '#e0f2f1',
     gridBorder: light ? getThemeAccentSoft('#81c784') : '#374151',
-    legendColor: light ? '#1b5e20' : '#e0f2f1',
+    legendColor: light ? getThemeInkColor('#151515') : '#e0f2f1',
     crosshair: light ? '#546e7a' : '#b0bec5',
-    tooltipDescription: light ? '#4a6358' : '#b0bec5'
+    tooltipDescription: light ? getThemeInkColor('#4a6358') : '#b0bec5'
   };
+}
+
+/** Read active theme ink from CSS tokens (updates when globalTheme / light-mode changes). */
+function getThemeInkColor(fallback) {
+  try {
+    if (typeof document !== 'undefined') {
+      var el = document.body || document.documentElement;
+      var v = getComputedStyle(el).getPropertyValue('--text-dark').trim();
+      if (v) return v;
+      v = getComputedStyle(el).getPropertyValue('--light-ink').trim();
+      if (v) return v;
+    }
+  } catch (e) {}
+  return fallback || '#1b5e20';
 }
 
 /** Read active theme accent from CSS tokens (updates when globalTheme changes). */
@@ -257,10 +271,10 @@ function getApexRadarChartTheme() {
   return {
     mode: light ? 'light' : 'dark',
     tooltipTheme: light ? 'light' : 'dark',
-    axisLabel: light ? '#1b5e20' : '#e0f2f1',
-    legendColor: light ? '#1b5e20' : '#e0f2f1',
+    axisLabel: light ? getThemeInkColor('#151515') : '#e0f2f1',
+    legendColor: light ? getThemeInkColor('#151515') : '#e0f2f1',
     polygonStroke: light ? getThemeAccentSoft('#81c784') : '#374151',
-    polygonFill: light ? 'rgba(129, 199, 132, 0.14)' : 'rgba(55, 65, 81, 0.1)'
+    polygonFill: light ? themePrimaryRgba(0.14) : 'rgba(55, 65, 81, 0.1)'
   };
 }
 

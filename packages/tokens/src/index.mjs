@@ -137,20 +137,20 @@ export const VIBE_IDS = ['calm', 'energy', 'nature', 'clinical', 'dark'];
 
 export const VIBE_TOKENS = {
   calm: {
-    ambientBg: 'radial-gradient(ellipse 120% 80% at 50% 0%, rgba(26, 92, 58, 0.35) 0%, transparent 55%)',
-    particleColor: 'rgba(125, 223, 140, 0.35)',
+    ambientBg: 'radial-gradient(ellipse 120% 80% at 50% 0%, color-mix(in srgb, var(--primary-color) 35%, transparent) 0%, transparent 55%)',
+    particleColor: 'color-mix(in srgb, var(--primary-color) 35%, transparent)',
     motionMultiplier: 0.5,
     particleMode: 'drift',
   },
   energy: {
-    ambientBg: 'radial-gradient(ellipse 100% 70% at 50% 20%, rgba(123, 223, 140, 0.28) 0%, transparent 50%)',
-    particleColor: 'rgba(123, 223, 140, 0.55)',
+    ambientBg: 'radial-gradient(ellipse 100% 70% at 50% 20%, color-mix(in srgb, var(--primary-color) 28%, transparent) 0%, transparent 50%)',
+    particleColor: 'color-mix(in srgb, var(--primary-color) 55%, transparent)',
     motionMultiplier: 1.5,
     particleMode: 'spark',
   },
   nature: {
-    ambientBg: 'radial-gradient(ellipse 110% 75% at 40% 10%, rgba(46, 122, 90, 0.32) 0%, transparent 52%)',
-    particleColor: 'rgba(154, 232, 164, 0.4)',
+    ambientBg: 'radial-gradient(ellipse 110% 75% at 40% 10%, color-mix(in srgb, var(--primary-color) 32%, transparent) 0%, transparent 52%)',
+    particleColor: 'color-mix(in srgb, var(--primary-color) 40%, transparent)',
     motionMultiplier: 1,
     particleMode: 'sway',
   },

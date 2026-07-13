@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.3** - Boot benchmark no longer freezes on rAF latency behind the loading overlay.
+**Latest: v2.2.4** - Non-mint themes keep mint greens out of light chrome, icons, vibes, and avatars.
+
+### v2.2.4 - 2026-07-13 - Theme token completeness
+
+- **Themes:** Light-mode chrome (tabs, metrics, check-in, mood orbs, charts) uses theme ink/primary tokens — no leftover mint hex on Red/Black or Mono.
+- **Mono light:** Greyscale success/status/avatar tokens so black-and-white actually reads as B&W.
+- **Vibes / avatars:** Calm/energy/nature ambient washes and character fills follow `--primary-color` / `--avatar-*`.
 
 ### v2.2.3 - 2026-07-13 - Boot rAF latency hang
 
