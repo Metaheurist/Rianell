@@ -1,4 +1,4 @@
-/** v2.0.0 passkey titles, API scope labels, BBT slider hint — Tier A overrides. */
+/** v2.0.0 passkey titles, API scope labels, BBT slider hint - Tier A overrides. */
 export const V2_TIER_A_OVERRIDES = {
   'pt-BR': {
     'common.sign.in.with.a.passkey.biometrics.or.sec':

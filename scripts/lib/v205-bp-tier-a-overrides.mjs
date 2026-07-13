@@ -1,4 +1,4 @@
-/** v2.0.5 BP+BPM widget keys — Tier A translation overrides (CI 13% identical gate). */
+/** v2.0.5 BP+BPM widget keys - Tier A translation overrides (CI 13% identical gate). */
 export const V205_BP_TIER_A_OVERRIDES = {
   'pt-BR': {
     'common.bpm': 'batimentos/min',

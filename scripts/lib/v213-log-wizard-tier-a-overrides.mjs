@@ -1,9 +1,9 @@
-/** v2.1.3 log wizard, AI watch, severity and vitals keys — Tier A overrides (CI 13% identical gate). */
+/** v2.1.3 log wizard, AI watch, severity and vitals keys - Tier A overrides (CI 13% identical gate). */
 export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'pt-BR': {
     'ai.watch.countAria': '{count} leituras incomuns',
     'ai.watch.footnote':
-      'Padrões apenas nos seus registros — não é um diagnóstico. Mencione mudanças significativas à sua equipe de cuidados.',
+      'Padrões apenas nos seus registros - não é um diagnóstico. Mencione mudanças significativas à sua equipe de cuidados.',
     'ai.watch.intro':
       'Leituras que se destacam da sua faixa habitual neste período, ordenadas pela frequência.',
     'ai.watch.unusualReadings': 'leituras incomuns',
@@ -25,7 +25,7 @@ export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'fr-FR': {
     'ai.watch.countAria': '{count} lectures inhabituelles',
     'ai.watch.footnote':
-      'Tendances dans vos journaux uniquement — pas un diagnostic. Signalez les changements importants à votre équipe soignante.',
+      'Tendances dans vos journaux uniquement - pas un diagnostic. Signalez les changements importants à votre équipe soignante.',
     'ai.watch.intro':
       'Lectures qui sortent de votre plage habituelle sur cette période, classées par fréquence.',
     'ai.watch.unusualReadings': 'lectures inhabituelles',
@@ -47,7 +47,7 @@ export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'de-DE': {
     'ai.watch.countAria': '{count} ungewöhnliche Messwerte',
     'ai.watch.footnote':
-      'Muster nur in Ihren Protokollen — keine Diagnose. Erwähnen Sie wichtige Änderungen gegenüber Ihrem Behandlungsteam.',
+      'Muster nur in Ihren Protokollen - keine Diagnose. Erwähnen Sie wichtige Änderungen gegenüber Ihrem Behandlungsteam.',
     'ai.watch.intro':
       'Messwerte, die in diesem Zeitraum von Ihrem üblichen Bereich abweichen, sortiert nach Häufigkeit.',
     'ai.watch.unusualReadings': 'ungewöhnliche Messwerte',
@@ -69,7 +69,7 @@ export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'es-ES': {
     'ai.watch.countAria': '{count} lecturas inusuales',
     'ai.watch.footnote':
-      'Patrones solo en sus registros — no es un diagnóstico. Comente cambios significativos a su equipo de cuidados.',
+      'Patrones solo en sus registros - no es un diagnóstico. Comente cambios significativos a su equipo de cuidados.',
     'ai.watch.intro':
       'Lecturas que se apartan de su rango habitual en este periodo, ordenadas por frecuencia.',
     'ai.watch.unusualReadings': 'lecturas inusuales',
@@ -91,7 +91,7 @@ export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'it-IT': {
     'ai.watch.countAria': '{count} letture insolite',
     'ai.watch.footnote':
-      'Schemi solo nei tuoi registri — non è una diagnosi. Segnala cambiamenti significativi al team di cura.',
+      'Schemi solo nei tuoi registri - non è una diagnosi. Segnala cambiamenti significativi al team di cura.',
     'ai.watch.intro':
       'Letture che si discostano dal tuo intervallo abituale in questo periodo, ordinate per frequenza.',
     'ai.watch.unusualReadings': 'letture insolite',
@@ -113,7 +113,7 @@ export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'nl-NL': {
     'ai.watch.countAria': '{count} ongebruikelijke metingen',
     'ai.watch.footnote':
-      'Patronen alleen in uw logboeken — geen diagnose. Noem belangrijke veranderingen aan uw zorgteam.',
+      'Patronen alleen in uw logboeken - geen diagnose. Noem belangrijke veranderingen aan uw zorgteam.',
     'ai.watch.intro':
       'Metingen die in deze periode afwijken van uw gebruikelijke bereik, gerangschikt op frequentie.',
     'ai.watch.unusualReadings': 'ongebruikelijke metingen',
@@ -135,7 +135,7 @@ export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'pl-PL': {
     'ai.watch.countAria': '{count} nietypowych odczytów',
     'ai.watch.footnote':
-      'Wzorce tylko w Twoich dziennikach — to nie diagnoza. Wspomnij o istotnych zmianach zespołowi opieki.',
+      'Wzorce tylko w Twoich dziennikach - to nie diagnoza. Wspomnij o istotnych zmianach zespołowi opieki.',
     'ai.watch.intro':
       'Odczyty wyróżniające się od zwykłego zakresu w tym okresie, uszeregowane według częstotliwości.',
     'ai.watch.unusualReadings': 'nietypowe odczyty',
@@ -157,7 +157,7 @@ export const V213_LOG_WIZARD_TIER_A_OVERRIDES = {
   'pt-PT': {
     'ai.watch.countAria': '{count} leituras incomuns',
     'ai.watch.footnote':
-      'Padrões apenas nos seus registos — não é um diagnóstico. Mencione alterações significativas à sua equipa de cuidados.',
+      'Padrões apenas nos seus registos - não é um diagnóstico. Mencione alterações significativas à sua equipa de cuidados.',
     'ai.watch.intro':
       'Leituras que se destacam do seu intervalo habitual neste período, ordenadas pela frequência.',
     'ai.watch.unusualReadings': 'leituras incomuns',
