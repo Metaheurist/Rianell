@@ -2231,7 +2231,7 @@
     "wizard.type.stressor": "Tipo estresante",
     "wizard.type.symptom": "Tipo síntoma",
     "wizard.use.diagram.text": "Usar texto de diagrama",
-    "wizard.vitals.advanced": "Advanced vitals",
+    "wizard.vitals.advanced": "Anadir constantes vitales avanzadas (opcional)",
     "wizard.vitals.advanced.hint": "(optional)",
     "wizard.vitals.bloodGlucose": "Blood glucose",
     "wizard.vitals.bloodPressure": "Blood pressure",
@@ -2266,7 +2266,23 @@
     "wizard.vitals.useLastValue.aria": "Apply last reading: {value} from {date}",
     "wizard.vitals.weight": "Body weight",
     "wizard.weather.sensitivity.1.10": "Sensibilidad climática (1-10)",
-    "wizard.weight.kg": "Peso (kg)"
+    "wizard.weight.kg": "Peso (kg)",
+    "common.goals.movedToSettings": "Los objetivos y logros estan en Ajustes - IA y objetivos.",
+    "common.open.settings": "Abrir ajustes",
+    "common.decrease.sleep": "Decrease Sueño",
+    "common.increase.sleep": "Increase Sueño",
+    "common.decrease.good.days": "Decrease good days",
+    "common.increase.good.days": "Increase good days",
+    "common.expand.details": "Expand details",
+    "common.entry.categories": "Entry categories",
+    "common.mental": "Mental",
+    "common.physical": "Physical",
+    "common.tap.to.expand.details": "Tap to expand details",
+    "common.summary": "Summary",
+    "common.today.scores": "Hoy scores",
+    "wizard.symptoms.regionSeverity.lede": "Zonas pulsadas - ajustar intensidad",
+    "wizard.symptoms.regionSeverity.empty": "Pulsa una zona de la figura para fijar la intensidad.",
+    "achievements.trophy.homeHint": "La Sala de trofeos esta en Inicio, bajo tu perfil."
   },
   "machineTranslatedUi": true
 }
