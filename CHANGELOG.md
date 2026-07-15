@@ -6,6 +6,41 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.13] - 2026-07-15
+
+### Changed
+- **Wizard / Profile (Phase 4 close):** Trophy Room on Home; tapped body areas show None/Mild/Pain intensity pills beside the map (same `painLocation` payload)
+
+## [2.2.12] - 2026-07-15
+
+### Changed
+- **Wizard / Goals (Phase 4):** Advanced vitals closed accordion; symptoms map + scales side-by-side on wide viewports; daily targets move into Settings → AI & Goals (`openGoalsModal(0)` redirects)
+
+## [2.2.11] - 2026-07-14
+
+### Changed
+- **Logs / Mood (Phase 3):** Compact All/7D/30D/Custom filter bar + sort toggle; log cards show one-line summary with Physical/Lifestyle/Mental panes when expanded; Mood puts today's check-in first and uses a 30-day activity heatmap
+
+---
+
+## [2.2.10] - 2026-07-14
+
+### Changed
+- **Home command center (Phase 2):** Compact dashboard header; MOTD/EKG hidden; daily-action hero CTA; last-7-days goals as 2×2 bento; flattened Ask Rianell pills + inline ask bar
+
+---
+
+## [2.2.9] - 2026-07-14
+
+### Added
+- **UI Phase 1 primitives:** `SegmentedScaleInput` (PWA + RN), `.ui-card` / `.ui-accordion`, RN `Accordion`; log metrics use number pills synced to existing range inputs
+- **Docs:** `DESIGN.md` becomes the UI/UX architectural refactor plan; `docs/styling.md` documents card / scale / accordion rules
+
+### Changed
+- **Cards:** Flat single-layer surfaces (neutral border + `shadow-sm`); log accordion loses nested mint wash
+
+---
+
 ## [2.2.8] - 2026-07-14
 
 ### Fixed

@@ -1,6 +1,59 @@
 # Release Notes
 
-## Latest release (v2.2.8)
+## Latest release (v2.2.13)
+
+**Phase 4 close** - Achievements Trophy Room sits on Home under your profile. In the log wizard, tapped body areas show None / Mild / Pain pills next to the figure (saves the same way as tap-to-cycle).
+
+See **v2.2.12** for advanced vitals accordion and goals in Settings.
+
+## Previous (v2.2.12)
+
+**Wizard + Goals (Phase 4)** - Optional advanced vitals sit in a closed accordion. Split-screen body map + scales; daily targets live under **Settings → AI & Goals**.
+
+See **v2.2.11** for Logs/Mood IA.
+
+## Previous (v2.2.11)
+
+**Date:** 2026-07-14
+
+### Highlights
+
+- **Logs:** Quick range pills (All / 7D / 30D / Custom) and a sort toggle. Entries show a one-line summary; expand for Physical, Lifestyle, and Mental details.
+- **Mood:** Today's check-in sits at the top. History uses a 30-day colour grid you can tap for day detail.
+
+See **v2.2.10** for the Home command-center layout.
+
+---
+
+## Previous (v2.2.10)
+
+**Date:** 2026-07-14
+
+### Highlights
+
+- **Home:** Cleaner top bar (greeting + date + sync). Big daily log button when you have not logged yet.
+- **Targets:** Last-7-days goals show as a compact 2×2 grid instead of long stacked rows.
+- **Ask Rianell:** Pattern pills stay light; type a question in the home bar to open chat.
+
+See **v2.2.9** for segmented scale pills and flat card primitives.
+
+---
+
+## Previous (v2.2.9)
+
+**Date:** 2026-07-14
+
+### Highlights
+
+- **Logging scales:** Number pills (1-10) replace bulky sliders on metric widgets; scores still save the same way.
+- **Flatter cards:** Single-layer surfaces with soft shadow - less nested green boxes.
+- **Docs:** [DESIGN.md](https://github.com/Metaheurist/Rianell/blob/main/DESIGN.md) is the UI declutter roadmap (Phase 1 primitives shipped).
+
+See **v2.2.8** below for heart / trampoline / theme token polish.
+
+---
+
+## Previous (v2.2.8)
 
 **Date:** 2026-07-14
 

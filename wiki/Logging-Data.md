@@ -53,9 +53,12 @@ When you pick a date, cycle day and phase may be **suggested** from your last lo
 
 ## Viewing and editing
 
-- **View logs** tab - tap a day card to expand full detail.
+- **View logs** tab - filter with **All / 7D / 30D / Custom** and a newest/oldest sort toggle.
+- Tap a day card for a one-line summary; expand for **Physical / Lifestyle / Mental** detail panes.
 - **Edit** or **delete** from the action bar on each entry.
 - **Share** (web) - circular green share button per entry.
+
+**Mood** tab leads with today’s check-in; history uses a compact 30-day heatmap.
 
 ---
 

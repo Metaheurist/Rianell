@@ -2,7 +2,37 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.8** - BP heart, trampoline, theme token cleanup, MD dash hygiene.
+**Latest: v2.2.13** - Phase 4 close (Trophy Room + region severity).
+
+### v2.2.13 - 2026-07-15 - Phase 4 close-out
+Home Trophy Room; body-map region intensity pills; master UI roadmap Phases 1–4 complete.
+
+**Previous: v2.2.12** - Wizard/goals information architecture (Phase 4).
+
+### v2.2.12 - 2026-07-15 - Wizard + Goals Phase 4
+Optional vitals accordion, split-screen body map + scales, daily targets in Settings → AI & Goals.
+
+**Previous: v2.2.11** - Logs/Mood information architecture (Phase 3).
+
+### v2.2.11 - 2026-07-14 - Logs + Mood Phase 3
+
+- Filter bar All/7D/30D/Custom; expandable log summaries with category tabs; Mood check-in first + 30-day heatmap.
+
+**Previous: v2.2.10** - Home command-center declutter (Phase 2).
+
+### v2.2.10 - 2026-07-14 - Home Phase 2
+
+- Compact header (no MOTD/EKG clutter); daily log CTA; 2×2 goals bento; flat Ask hub with inline chat bar.
+
+**Previous: v2.2.9** - UI Phase 1 primitives (segmented scales, flat cards, accordion).
+
+### v2.2.9 - 2026-07-14 - UI architectural Phase 1
+
+- **Primitives:** Segmented 1-10 pills for log metrics (PWA + RN); `.ui-card` / `.ui-accordion`; RN `Accordion`.
+- **Cards:** Single-layer neutral borders + `shadow-sm`; no nested mint wash on log accordions.
+- **Docs:** `DESIGN.md` is the product UI refactor plan; `docs/styling.md` documents the primitives.
+
+**Previous: v2.2.8** - BP heart, trampoline, theme token cleanup, MD dash hygiene.
 
 ### v2.2.8 - 2026-07-14 - UI polish and token cleanup
 

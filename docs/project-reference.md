@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.2.13 documentation sync (UI architectural Phases 1-4)
+
+- **DESIGN.md:** Product UI declutter roadmap (not Airbnb palette). Primitives in `docs/styling.md` and `docs/design-token-contract.md`.
+- **PWA:** Home command center; logs filter + expand panes; Mood check-in + heatmap; vitals accordion; body map split + region severity pills; targets in Settings → AI & Goals; Trophy Room on Home.
+- **RN:** `SegmentedScaleInput`, `Accordion`, flat `Card` borders.
+- **Tests:** `segmented-scale-input`, `home-command-center`, `logs-mood-ia`, `wizard-phase4-ia`, `pain-region-severity`.
+- **Wiki:** [[Release-Notes]] §2.2.9-2.2.13; [[Features-Guide]], [[Logging-Data]], [[Settings-and-Languages]], [[Platforms-and-Parity]].
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.9]`-`[2.2.13]`.
+
 ### v2.1.9 documentation sync (security hardening, dead-code removal, module extraction)
 
 - **Security:** `verify-no-unsafe-sinks` in CI; SW push URL same-origin guard; live CSP drift on scheduled workflow; SH-11 entry in `security-hardening-execution-log.md`.

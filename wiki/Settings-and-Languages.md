@@ -14,11 +14,13 @@ Open the **gear icon** to access a scrollable **settings carousel** with grouped
 | **Performance** | On-device AI model download, clear/redownload, benchmarks |
 | **Privacy & region** | Language, region gate, policy documents, health consent, **session recording disclosure**, consent dashboard (revoke consents), optional Smartlook toggle |
 | **Cloud** | Sign-in, sync, delete cloud data, anonymised contribution |
-| **Goals** | Targets shown on Home |
+| **AI & Goals** | Enable AI features, anonymised contribution toggles, **daily targets** (steps, hydration, sleep, good days) |
 | **Accessibility** | Text sizing and contrast-related options where available |
 | **Integrations** | Strava, Withings, Google Sheets OAuth connectors (cloud sign-in required); import wizard for Bearable/Flaredown/etc. |
 
 Exact pane count may vary slightly by platform; native Settings mirrors web section titles for parity.
+
+**Achievements** are on **Home** (Trophy Room), not inside Settings.
 
 ---
 

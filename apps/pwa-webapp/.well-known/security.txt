@@ -4,7 +4,7 @@ Preferred-Languages: en
 Canonical: https://rianell.com/.well-known/security.txt
 Policy: https://rianell.com/docs/SECURITY.md
 Encryption: https://rianell.com/docs/SECURITY.md#contact-and-reporting
-Acknowledgments: https://github.com/rianell/Health-app/blob/main/docs/SECURITY.md
+Acknowledgments: https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md
 
-# Report security vulnerabilities privately — do not open public GitHub issues for undisclosed flaws.
-# See docs/incident-response.md for operator playbooks.
+# Report security vulnerabilities privately - do not open public GitHub issues for undisclosed flaws.
+# See https://github.com/Metaheurist/Rianell/blob/main/docs/incident-response.md for operator playbooks.
