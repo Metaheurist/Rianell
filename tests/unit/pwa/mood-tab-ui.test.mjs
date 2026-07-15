@@ -24,9 +24,16 @@ test('mood history cards open day detail modal', () => {
 test('mood-tab uses compact history ribbon without duplicating latest', () => {
   const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
   assert.match(js, /function renderMoodReadingCard/);
-  assert.match(js, /history = ordered\.length > 1 \? ordered\.slice\(0, -1\)/);
-  assert.match(js, /mood-reading-card--compact/);
-  assert.match(js, /renderMoodUniformStreak/);
+  assert.match(js, /function renderMoodHeatmap/);
+  assert.match(js, /mood-heatmap__grid/);
+  assert.match(js, /renderMoodControlDeck\(todayStr, simpleMode\)/);
+});
+
+test('mood tab places check-in deck before metrics (Phase 3)', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
+  const deckIdx = js.indexOf('html = renderMoodControlDeck');
+  const metricsIdx = js.indexOf('mood-metrics-grid');
+  assert.ok(deckIdx > 0 && metricsIdx > deckIdx);
 });
 
 test('mood sparkline includes goal target line', () => {

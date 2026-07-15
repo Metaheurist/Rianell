@@ -11381,9 +11381,7 @@ if (typeof window !== 'undefined') {
   ensureAchievementToastPresenter();
 }
 
-function openGoalsModal(paneIndex) {
-  var overlay = document.getElementById('goalsModalOverlay');
-  if (!overlay) return;
+function hydrateGoalControlsFromStorage() {
   var goals = getGoals();
   var stepsEl = document.getElementById('goalSteps');
   var hydrationEl = document.getElementById('goalHydration');
@@ -11393,16 +11391,66 @@ function openGoalsModal(paneIndex) {
   if (hydrationEl) { hydrationEl.value = goals.hydration; updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses'); }
   if (sleepEl) { sleepEl.value = goals.sleep; updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score'); }
   if (goodDaysEl) { goodDaysEl.value = goals.goodDaysPerWeek; updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days'); }
-  overlay.style.display = 'block';
-  overlay.style.visibility = 'visible';
-  overlay.style.opacity = '1';
-  document.body.classList.add('modal-active');
-  document.body.style.overflow = 'hidden';
-  overlay.onclick = function(e) { if (e.target === overlay) closeGoalsModal(); };
-  var escapeHandler = function(e) { if (e.key === 'Escape') { closeGoalsModal(); document.removeEventListener('keydown', escapeHandler); } };
-  document.addEventListener('keydown', escapeHandler);
-  tickAchievements();
-  if (typeof initGoalsCarouselUI === 'function') initGoalsCarouselUI(typeof paneIndex === 'number' ? paneIndex : 0);
+}
+
+function openSettingsToGoalsAndAchievements(paneIndex) {
+  var focusAchievements = paneIndex === 1;
+
+  if (focusAchievements) {
+    closeGoalsModal();
+    if (typeof closeSettingsModalIfOpen === 'function') closeSettingsModalIfOpen();
+    if (typeof switchTab === 'function') switchTab('home');
+    tickAchievements();
+    setTimeout(function() {
+      var focusTarget = document.getElementById('achievementsTrophyRoom');
+      if (focusTarget) {
+        try {
+          focusTarget.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        } catch (e) {
+          focusTarget.scrollIntoView(true);
+        }
+      }
+    }, 180);
+    return;
+  }
+
+  var aiPaneIndex = typeof getSettingsPaneIndexByI18nKey === 'function'
+    ? getSettingsPaneIndexByI18nKey('settings.ai.title')
+    : 2;
+
+  function revealGoalsInSettings() {
+    if (typeof settingsCarouselGo === 'function') {
+      settingsCarouselGo(aiPaneIndex);
+    }
+    hydrateGoalControlsFromStorage();
+    tickAchievements();
+    setTimeout(function() {
+      var focusTarget = document.getElementById('targetSettingsPanel');
+      if (focusTarget) {
+        try {
+          focusTarget.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        } catch (e) {
+          focusTarget.scrollIntoView(true);
+        }
+      }
+    }, 320);
+  }
+
+  closeGoalsModal();
+  var overlay = document.getElementById('settingsOverlay');
+  var settingsOpen = overlay && overlay.classList.contains('settings-overlay--open');
+  if (!settingsOpen && typeof toggleSettings === 'function') {
+    toggleSettings();
+    setTimeout(revealGoalsInSettings, 120);
+  } else {
+    revealGoalsInSettings();
+  }
+}
+if (typeof window !== 'undefined') window.openSettingsToGoalsAndAchievements = openSettingsToGoalsAndAchievements;
+
+function openGoalsModal(paneIndex) {
+  // Phase 4: de-modalize — same entry points open Settings → AI & Goals
+  openSettingsToGoalsAndAchievements(typeof paneIndex === 'number' ? paneIndex : 0);
 }
 
 function closeGoalsModal() {
@@ -11411,6 +11459,8 @@ function closeGoalsModal() {
     overlay.style.display = 'none';
     overlay.style.visibility = 'hidden';
     overlay.style.opacity = '0';
+    overlay.setAttribute('hidden', '');
+    overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('modal-active');
     document.body.style.overflow = '';
   }
@@ -11427,11 +11477,55 @@ function updateGoalLabel(sliderId, labelId, _zeroOff, suffix) {
   else if (suffix === 'days') label.textContent = val === 0 ? 'Off' : val + ' days';
 }
 
+function nudgeGoalControl(sliderId, delta) {
+  var slider = document.getElementById(sliderId);
+  if (!slider) return;
+  var min = parseFloat(slider.min) || 0;
+  var max = parseFloat(slider.max) || 100;
+  var step = parseFloat(slider.step) || 1;
+  var next = Math.min(max, Math.max(min, (parseFloat(slider.value) || 0) + delta));
+  next = Math.round(next / step) * step;
+  slider.value = String(next);
+  var labelMap = {
+    goalSteps: ['goalStepsLabel', 'steps'],
+    goalHydration: ['goalHydrationLabel', 'glasses'],
+    goalSleep: ['goalSleepLabel', 'score'],
+    goalGoodDays: ['goalGoodDaysLabel', 'days']
+  };
+  var meta = labelMap[sliderId];
+  if (meta) updateGoalLabel(sliderId, meta[0], 0, meta[1]);
+  try { slider.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {}
+}
+
+function bindGoalSteppersOnce() {
+  if (typeof document === 'undefined' || document.documentElement.dataset.goalSteppersBound === '1') return;
+  document.documentElement.dataset.goalSteppersBound = '1';
+  document.addEventListener('click', function(e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-goal-nudge]') : null;
+    if (!btn) return;
+    var id = btn.getAttribute('data-goal-nudge');
+    var delta = parseFloat(btn.getAttribute('data-delta'));
+    if (!id || !isFinite(delta)) return;
+    e.preventDefault();
+    nudgeGoalControl(id, delta);
+  });
+}
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindGoalSteppersOnce);
+  } else {
+    bindGoalSteppersOnce();
+  }
+}
+
 function saveGoalsAndClose() {
   saveGoalsFromModal();
   closeGoalsModal();
   updateGoalsProgressBlock();
   updateGoalsHeaderUnseenBadge();
+  if (typeof notifySuccess === 'function') {
+    try { notifySuccess(typeof tUi === 'function' ? tUi('common.save') : 'Saved'); } catch (e) {}
+  }
 }
 
 function openBugReportModal() {
@@ -11722,8 +11816,8 @@ function updateGoalsProgressBlock() {
       '</div></div></div>');
   }
   if (rows.length === 0) { block.style.display = 'none'; return; }
-  block.className = 'goals-progress-block';
-  block.innerHTML = '<div class="goals-progress-head"><p class="goals-progress-title">' + escapeHTML(tUi('home.goals.lastSevenTitle')) + '</p><p class="goals-progress-sub">' + escapeHTML(tUi('home.goals.lastSevenSubtitle')) + '</p></div>' + rows.join('');
+  block.className = 'goals-progress-block goals-progress-block--bento';
+  block.innerHTML = '<div class="goals-progress-head"><p class="goals-progress-title">' + escapeHTML(tUi('home.goals.lastSevenTitle')) + '</p><p class="goals-progress-sub">' + escapeHTML(tUi('home.goals.lastSevenSubtitle')) + '</p></div><div class="goals-bento-grid">' + rows.join('') + '</div>';
   block.style.display = 'block';
   animateGoalsBars(block);
   if (typeof initScrollReveal === 'function') initScrollReveal(block);
@@ -13200,6 +13294,77 @@ function setPainLocationFromText(text, stateObj) {
   });
 }
 
+function renderSymptomsRegionSeverity(containerId) {
+  var list = document.getElementById('symptomsRegionSeverityList');
+  var empty = document.getElementById('symptomsRegionSeverityEmpty');
+  if (!list || containerId !== 'painBodyDiagram') return;
+  var state = painBodyStates[containerId] || {};
+  var active = PAIN_BODY_REGIONS.filter(function (r) { return (state[r.id] || 0) > 0; });
+  list.innerHTML = '';
+  if (empty) empty.hidden = active.length > 0;
+  var levelLabels = [
+    (typeof tUiOr === 'function' ? tUiOr('common.none', 'None') : 'None'),
+    (typeof tUiOr === 'function' ? tUiOr('common.mild', 'Mild') : 'Mild'),
+    (typeof tUiOr === 'function' ? tUiOr('common.pain', 'Pain') : 'Pain')
+  ];
+  active.forEach(function (r) {
+    var row = document.createElement('div');
+    row.className = 'symptoms-region-severity__row';
+    row.setAttribute('data-region-id', r.id);
+    var title = document.createElement('div');
+    title.className = 'symptoms-region-severity__label';
+    title.textContent = r.label || r.id;
+    var scale = document.createElement('div');
+    scale.className = 'segmented-scale symptoms-region-severity__scale';
+    scale.setAttribute('role', 'radiogroup');
+    scale.setAttribute('aria-label', (r.label || r.id) + ' intensity');
+    [0, 1, 2].forEach(function (lvl) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'segmented-scale__btn' + ((state[r.id] || 0) === lvl ? ' is-active' : '');
+      btn.setAttribute('role', 'radio');
+      btn.setAttribute('aria-checked', ((state[r.id] || 0) === lvl) ? 'true' : 'false');
+      btn.textContent = levelLabels[lvl];
+      btn.addEventListener('click', function () {
+        setPainBodyRegionLevel(containerId, r.id, lvl);
+      });
+      scale.appendChild(btn);
+    });
+    row.appendChild(title);
+    row.appendChild(scale);
+    list.appendChild(row);
+  });
+}
+
+function setPainBodyRegionLevel(containerId, regionId, level) {
+  var container = document.getElementById(containerId);
+  var hiddenId = containerId === 'editPainBodyDiagram' ? 'editPainLocation' : 'painLocation';
+  var hidden = document.getElementById(hiddenId);
+  if (!container || !hidden) return;
+  if (!painBodyStates[containerId]) {
+    painBodyStates[containerId] = {};
+    PAIN_BODY_REGIONS.forEach(function (r) { painBodyStates[containerId][r.id] = 0; });
+  }
+  var state = painBodyStates[containerId];
+  var next = Math.max(0, Math.min(2, parseInt(level, 10) || 0));
+  state[regionId] = next;
+  var svg = container.querySelector('.pain-body-svg');
+  if (svg) {
+    var el = svg.querySelector('[data-region="' + regionId + '"]');
+    if (el) {
+      el.classList.remove('pain-state-0', 'pain-state-1', 'pain-state-2', 'pain-state-changed');
+      void el.offsetWidth;
+      el.classList.add('pain-state-' + next, 'pain-state-changed');
+      var levels = ['none', 'mild', 'pain'];
+      var regionMeta = PAIN_BODY_REGIONS.find(function (r) { return r.id === regionId; }) || {};
+      el.setAttribute('aria-label', (regionMeta.label || regionId) + ', ' + levels[next]);
+    }
+  }
+  hidden.value = getPainLocationTextFromState(state);
+  if (typeof haptic === 'function') haptic(8);
+  renderSymptomsRegionSeverity(containerId);
+}
+
 function initPainBodyDiagram(containerId, hiddenInputId) {
   const container = document.getElementById(containerId);
   const hidden = document.getElementById(hiddenInputId);
@@ -13221,6 +13386,7 @@ function initPainBodyDiagram(containerId, hiddenInputId) {
       }
     });
     hidden.value = getPainLocationTextFromState(state);
+    renderSymptomsRegionSeverity(containerId);
   }
 
   container.querySelectorAll('.pain-region').forEach(el => {
@@ -13273,6 +13439,7 @@ function setPainBodyStateFromText(containerId, hiddenInputId, text) {
       }
     });
   }
+  renderSymptomsRegionSeverity(containerId);
 }
 
 function resetPainBodyDiagram(containerId, hiddenInputId) {
@@ -13280,6 +13447,9 @@ function resetPainBodyDiagram(containerId, hiddenInputId) {
   const hidden = document.getElementById(hiddenInputId);
   if (!container || !hidden) return;
   hidden.value = '';
+  if (painBodyStates[containerId]) {
+    PAIN_BODY_REGIONS.forEach(r => { painBodyStates[containerId][r.id] = 0; });
+  }
   const svg = container.querySelector('.pain-body-svg');
   if (svg) {
     svg.querySelectorAll('.pain-region').forEach(el => {
@@ -13287,6 +13457,7 @@ function resetPainBodyDiagram(containerId, hiddenInputId) {
       el.classList.add('pain-state-0');
     });
   }
+  renderSymptomsRegionSeverity(containerId);
 }
 
 // Stressors and Symptoms functions for main form
@@ -15037,6 +15208,7 @@ function generateLogEntryHTML(log) {
   const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">' + tUi('common.flare.up') + '</span>' : '<span class="flare-badge flare-no">' + tUi('common.no.flare.up') + '</span>';
   const foodCount = getAllFoodItems(log).length;
   const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
+  const summaryLine = buildLogEntrySummaryLine(log);
   
   const safeDate = escapeHTML(log.date);
   const editButton = isEditing 
@@ -15057,6 +15229,7 @@ function generateLogEntryHTML(log) {
           ? `<input type="date" class="inline-edit-date inline-edit-field inline-edit-field--date" value="${log.date}" onclick="event.stopPropagation();" />`
           : `<h3 class="log-date">${formattedDate}</h3>`
         }
+        ${summaryLine}
         <div class="header-badges">
           <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); if(window.openFoodModal) window.openFoodModal('${escapeHTML(log.date)}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
             ${svgIcon('food', 'ui-svg-icon', 'Food log')}${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
@@ -15074,10 +15247,16 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       <span class="log-entry-chevron log-entry-arrow" aria-hidden="true">▸</span>
+      <span class="log-entry-expand-hint">${escapeHTML(tUiOr('common.expand.details', 'Expand details'))}</span>
     </div>
     <div class="log-entry-content">
+      <div class="log-detail-tabs" role="tablist" aria-label="${escapeHTML(tUiOr('common.entry.categories', 'Entry categories'))}" onclick="event.stopPropagation();">
+        <button type="button" role="tab" class="log-detail-tab is-active" data-log-pane="physical" aria-selected="true">${escapeHTML(tUiOr('common.physical', 'Physical'))}</button>
+        <button type="button" role="tab" class="log-detail-tab" data-log-pane="lifestyle" aria-selected="false">${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}</button>
+        <button type="button" role="tab" class="log-detail-tab" data-log-pane="mental" aria-selected="false">${escapeHTML(tUiOr('common.mental', 'Mental'))}</button>
+      </div>
       <div class="log-metrics-grid">
-      <div class="metric-group vital-signs">
+      <div class="metric-group vital-signs" data-log-pane="physical">
         <h4 class="metric-group-title">${tUi('common.vital.signs')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('activity', 'metric-svg-icon', 'Heart rate')} Heart Rate</span>
@@ -15119,7 +15298,7 @@ function generateLogEntryHTML(log) {
           <span class="metric-value">${log.bodyWeight} ${log.bodyWeightUnit || 'kg'}</span>
         </div>` : ''}
       </div>
-      <div class="metric-group symptoms">
+      <div class="metric-group symptoms" data-log-pane="physical">
         <h4 class="metric-group-title">${tUi('wizard.step.symptoms')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Fatigue')} Fatigue</span>
@@ -15157,7 +15336,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group wellbeing">
+      <div class="metric-group wellbeing" data-log-pane="mental">
         <h4 class="metric-group-title">${tUi('common.wellbeing')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Sleep')} Sleep</span>
@@ -15181,7 +15360,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group function">
+      <div class="metric-group function" data-log-pane="physical">
         <h4 class="metric-group-title">${tUi('common.function')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Mobility')} Mobility</span>
@@ -15198,7 +15377,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group energy-cognitive">
+      <div class="metric-group energy-cognitive" data-log-pane="mental">
         <h4 class="metric-group-title">${svgIcon('zap', 'metric-svg-icon', 'Energy')} Energy & Mental Clarity</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Energy clarity')} Energy/Clarity</span>
@@ -15216,7 +15395,7 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       ${(log.steps || log.hydration) 
-        ? `<div class="metric-group lifestyle-factors">
+        ? `<div class="metric-group lifestyle-factors" data-log-pane="lifestyle">
           <h4 class="metric-group-title">${svgIcon('chart-up', 'metric-svg-icon', 'Lifestyle')} Lifestyle Factors</h4>
           ${log.steps ? `<div class="metric-item">
             <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Steps')} Steps</span>
@@ -15234,11 +15413,11 @@ function generateLogEntryHTML(log) {
           </div>` : ''}
         </div>` : ''
       }
-      <div class="metric-group food-log">
+      <div class="metric-group food-log" data-log-pane="lifestyle">
         <h4 class="metric-group-title">${svgIcon('food', 'metric-svg-icon', 'Food log')} Food Log</h4>
         ${getAllFoodItems(log).length > 0 ? formatFoodLogForView(log) : `<div class="metric-item"><span class="metric-label">${tUi('common.items')}</span><span class="metric-value metric-value-muted">${tUi('common.none.logged')}</span></div>`}
       </div>
-      <div class="metric-group exercise-log">
+      <div class="metric-group exercise-log" data-log-pane="lifestyle">
         <h4 class="metric-group-title">${svgIcon('chart-up', 'metric-svg-icon', 'Exercise log')} Exercise Log</h4>
         <div class="metric-item">
           <span class="metric-label">${tUi('common.activities')}</span>
@@ -15248,14 +15427,14 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group stress-triggers">
+      <div class="metric-group stress-triggers" data-log-pane="mental">
         <h4 class="metric-group-title">${svgIcon('brain', 'metric-svg-icon', 'Stress')} Stress & Triggers</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Stressors')} Stressors</span>
           <span class="metric-value">${(log.stressors && log.stressors.length > 0) ? log.stressors.map(s => escapeHTML(s)).join(', ') : '-'}</span>
         </div>
       </div>
-      <div class="metric-group additional-symptoms">
+      <div class="metric-group additional-symptoms" data-log-pane="physical">
         <h4 class="metric-group-title">${svgIcon('notice', 'metric-svg-icon', 'Symptoms')} Additional Symptoms</h4>
         <div class="metric-item">
           <span class="metric-label">${tUi('wizard.step.symptoms')}</span>
@@ -15269,7 +15448,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group medications-log">
+      <div class="metric-group medications-log" data-log-pane="lifestyle">
         <h4 class="metric-group-title">${svgIcon('save', 'metric-svg-icon', 'Medication')} Medication / Supplements</h4>
         <div class="metric-item">
           <span class="metric-label">${tUi('common.items')}</span>
@@ -15301,10 +15480,57 @@ function toggleLogEntry(logDate) {
     if (arrow) arrow.textContent = '▸';
   } else {
     entry.classList.add('expanded');
+    if (!entry.getAttribute('data-active-pane')) entry.setAttribute('data-active-pane', 'physical');
     if (content) content.style.display = '';
     if (arrow) arrow.textContent = '▾';
+    wireLogDetailTabs(entry);
   }
   if (typeof haptic === 'function') haptic(6);
+}
+
+function buildLogEntrySummaryLine(log) {
+  if (!log) return '';
+  var bits = [];
+  function add(label, val) {
+    if (val == null || val === '' || isNaN(val)) return;
+    bits.push('<span class="log-entry-summary__chip"><span class="log-entry-summary__k">' + escapeHTML(label) + '</span><strong>' + escapeHTML(String(val)) + '</strong></span>');
+  }
+  add('Mood', parseInt(log.mood, 10));
+  add('Sleep', parseInt(log.sleep, 10));
+  add('Pain', parseInt(log.jointPain != null ? log.jointPain : log.backPain, 10));
+  add('Fatigue', parseInt(log.fatigue, 10));
+  if (!bits.length) return '<p class="log-entry-summary log-entry-summary--empty">' + escapeHTML(tUiOr('common.tap.to.expand.details', 'Tap to expand details')) + '</p>';
+  return '<div class="log-entry-summary" aria-label="' + escapeHTML(tUiOr('common.summary', 'Summary')) + '">' + bits.join('') + '</div>';
+}
+
+function wireLogDetailTabs(entry) {
+  if (!entry || entry.dataset.logTabsBound === '1') return;
+  var tabs = entry.querySelectorAll('.log-detail-tab');
+  if (!tabs.length) return;
+  entry.dataset.logTabsBound = '1';
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var pane = tab.getAttribute('data-log-pane') || 'physical';
+      entry.setAttribute('data-active-pane', pane);
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      applyLogEntryPaneVisibility(entry);
+    });
+  });
+  applyLogEntryPaneVisibility(entry);
+}
+
+function applyLogEntryPaneVisibility(entry) {
+  if (!entry) return;
+  var pane = entry.getAttribute('data-active-pane') || 'physical';
+  entry.querySelectorAll('.log-metrics-grid .metric-group[data-log-pane]').forEach(function (group) {
+    group.hidden = group.getAttribute('data-log-pane') !== pane;
+  });
 }
 
 // Build a single log entry DOM element (shared by chunked and non-chunked render)
@@ -23388,18 +23614,90 @@ function setLogViewRange(days) {
   updateRangeSlider('logRangeSlider', logPos);
   updateRangeSlider('chartRangeSlider', logPos);
   Logger.debug('View range slider updated', { days, pos: logPos });
+
+  syncLogFilterPills(days === 7 ? '7' : days === 30 ? '30' : days === 1 ? '7' : String(days), false);
   
   // Hide custom date range selector if it was showing
   const customDateRangeSelector = document.getElementById('customDateRangeSelector');
   if (customDateRangeSelector) {
     customDateRangeSelector.classList.add('hidden');
   }
+  var customPanel = document.getElementById('logFilterCustom');
+  if (customPanel) customPanel.hidden = true;
   
   // Filter and render logs (this will call checkAndUpdateViewRangeButtons, but our button should stay active)
   filterLogs();
   
   // Refresh charts to match the new range
   refreshCharts();
+}
+
+function setLogViewRangeAll() {
+  clearAISection();
+  var startDateInput = document.getElementById('startDate');
+  var endDateInput = document.getElementById('endDate');
+  if (startDateInput) startDateInput.value = '';
+  if (endDateInput) endDateInput.value = '';
+  syncLogFilterPills('all', false);
+  var customPanel = document.getElementById('logFilterCustom');
+  if (customPanel) customPanel.hidden = true;
+  renderLogs();
+}
+
+function syncLogFilterPills(activeKey, showCustom) {
+  document.querySelectorAll('.log-filter-pill').forEach(function (btn) {
+    var on = btn.getAttribute('data-log-range') === String(activeKey);
+    btn.classList.toggle('is-active', on);
+    if (btn.getAttribute('data-log-range') === 'custom') {
+      btn.setAttribute('aria-expanded', showCustom || activeKey === 'custom' ? 'true' : 'false');
+    }
+  });
+}
+
+function setLogFilterMode(mode) {
+  var customPanel = document.getElementById('logFilterCustom');
+  if (mode === 'all') {
+    setLogViewRangeAll();
+    return;
+  }
+  if (mode === 'custom') {
+    syncLogFilterPills('custom', true);
+    if (customPanel) customPanel.hidden = false;
+    var customBtn = document.getElementById('logRangeCustom');
+    if (customBtn) customBtn.setAttribute('aria-expanded', 'true');
+    return;
+  }
+  var days = parseInt(mode, 10);
+  if (days === 7 || days === 30) setLogViewRange(days);
+}
+
+var _logFilterBarBound = false;
+function bindLogFilterBarOnce() {
+  if (_logFilterBarBound) return;
+  var bar = document.getElementById('logFilterBar');
+  if (!bar) return;
+  _logFilterBarBound = true;
+  bar.querySelectorAll('.log-filter-pill').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setLogFilterMode(btn.getAttribute('data-log-range'));
+    });
+  });
+  // Default Phase 3 view: last 7 days
+  syncLogFilterPills('7', false);
+}
+
+function updateLogSortToggleUi() {
+  var toggle = document.getElementById('logSortToggle');
+  if (!toggle) return;
+  toggle.setAttribute('data-sort', currentSortOrder);
+  var label = toggle.querySelector('.log-sort-toggle__label');
+  var newest = currentSortOrder === 'newest';
+  if (label) label.textContent = newest ? 'Newest' : 'Oldest';
+  toggle.title = newest
+    ? (typeof tUi === 'function' ? tUi('common.newest.first') : 'Newest first')
+    : (typeof tUi === 'function' ? tUi('common.oldest.first') : 'Oldest first');
+  var use = toggle.querySelector('use');
+  if (use) use.setAttribute('href', newest ? '#icon-chart-up' : '#icon-chart-down');
 }
 
 // Set AI date range
@@ -23574,11 +23872,17 @@ function setSortOrder(order) {
   var newestBtn = document.getElementById('sortNewest');
   if (oldestBtn) oldestBtn.classList.toggle('active', order === 'oldest');
   if (newestBtn) newestBtn.classList.toggle('active', order === 'newest');
+  updateLogSortToggleUi();
 
-  var startDate = document.getElementById('startDate').value;
-  var endDate = document.getElementById('endDate').value;
+  var startDateEl = document.getElementById('startDate');
+  var endDateEl = document.getElementById('endDate');
+  var startDate = startDateEl ? startDateEl.value : '';
+  var endDate = endDateEl ? endDateEl.value : '';
   var logsToSort = [];
-  if (startDate || endDate) {
+  var allActive = document.getElementById('logRangeAll') && document.getElementById('logRangeAll').classList.contains('is-active');
+  if (allActive && !startDate && !endDate) {
+    logsToSort = logs.slice();
+  } else if (startDate || endDate) {
     logsToSort = logs.filter(function(log) {
       var logDate = new Date(log.date);
       var start = startDate ? new Date(startDate) : new Date('1900-01-01');
@@ -23913,10 +24217,13 @@ function applyHomeCardLayout() {
   if (typeof window !== 'undefined' && window.RianellWeeklyReview && typeof window.RianellWeeklyReview.renderHomeWeeklyReviewCard === 'function') {
     window.RianellWeeklyReview.renderHomeWeeklyReviewCard(todayStr, ctx);
   }
-  var header = homeTab.querySelector('.home-today-header');
+  var header = homeTab.querySelector('.home-dashboard-header') || homeTab.querySelector('.home-today-header');
   var insertAfter = header;
+  var commandGrid = document.getElementById('homeCommandGrid');
   order.forEach(function(cardId) {
     if (cardId === 'checkin' || cardId === 'weather' || cardId === 'appointment' || cardId === 'streak' || cardId === 'weeklyReview' || cardId === 'hero') return;
+    // Phase 2: keep goals inside the command grid (bento column).
+    if (cardId === 'goals' && commandGrid) return;
     var el = homeTab.querySelector('[data-home-card="' + cardId + '"]');
     if (!el || !insertAfter || !insertAfter.parentNode) return;
     insertAfter.parentNode.insertBefore(el, insertAfter.nextSibling);
@@ -24835,16 +25142,9 @@ function renderHomeDiscoveryChips(logArr) {
     return;
   }
   wrap.hidden = false;
-  var html = '<section class="home-discovery-section" aria-label="' + escapeAttr(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '">';
-  html += '<header class="home-discovery-header">';
-  html += '<span class="home-discovery-orb-host home-discovery-ai-glyph" aria-hidden="true">';
-  html += discoveryCardIcon('discover-orb');
-  html += '</span>';
-  html += '<div class="home-discovery-header-copy">';
+  var html = '<section class="home-discovery-section home-discovery-section--flat" aria-label="' + escapeAttr(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '">';
   html += '<p class="home-discovery-section-title">' + escapeHTML(typeof tUi === 'function' ? tUi('home.discover.sectionTitle') : 'Ask Rianell') + '</p>';
-  html += '<p class="home-discovery-section-sub">' + escapeHTML(typeof tUi === 'function' ? tUi('home.discover.sectionSubtitle') : '') + '</p>';
-  html += '</div></header>';
-  html += '<div class="home-discovery-scroll" role="list">';
+  html += '<div class="home-discovery-scroll home-discovery-scroll--pills" role="list">';
   cards.forEach(function (card, i) { html += renderDiscoveryCardHtml(card, i); });
   html += '</div></section>';
   wrap.innerHTML = html;
@@ -24868,6 +25168,7 @@ async function updateHomeTodayPanel() {
   var dateEl = document.getElementById('homeTodayDate');
   var statusEl = document.getElementById('homeTodayStatus');
   var hero = document.getElementById('homeHeroCard');
+  var ctaWrap = document.getElementById('homeHeroCtaWrap');
   if (!appSettings.firstOpenDate) {
     appSettings.firstOpenDate = getTodayDateStr();
     if (typeof saveSettings === 'function') saveSettings();
@@ -24881,6 +25182,7 @@ async function updateHomeTodayPanel() {
   if (dateEl) {
     dateEl.textContent = formatUiDate(d, { weekday: 'long', month: 'long', day: 'numeric' });
   }
+  updateHomeSyncChip();
   if (!statusEl) return;
   var yyyy = d.getFullYear();
   var mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -24896,12 +25198,14 @@ async function updateHomeTodayPanel() {
   if (today) {
     var loggedTitle = typeof tUi === 'function' ? tUi('home.status.loggedToday') : 'Logged today';
     var loggedDetail = typeof tUi === 'function' ? tUi('home.status.loggedTodayDetail') : 'Open View logs to browse or edit your entry.';
-    statusEl.innerHTML = '<strong>' + escapeHTML(loggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(loggedDetail) + '</p>';
+    var summaryHtml = buildHomeTodaySummaryHtml(today);
+    statusEl.innerHTML = '<strong>' + escapeHTML(loggedTitle) + '</strong>' + summaryHtml + '<p class="home-status-detail">' + escapeHTML(loggedDetail) + '</p>';
     statusEl.classList.remove('home-today-status--streak-nudge');
     if (hero) {
       hero.classList.add('home-hero-card--logged');
       hero.classList.remove('home-hero-card--streak-nudge');
     }
+    renderHomeHeroCta(ctaWrap, true);
   } else if (shouldSuppressFirstRunLoggingPrompt()) {
     var welcomeTitle = typeof tUi === 'function' ? tUi('home.welcome.title') : 'Welcome to Rianell';
     var welcomeDetail = typeof tUi === 'function' ? tUi('logs.empty.warm.message') : 'Each entry helps spot what affects how you feel. No pressure - a quick note is enough.';
@@ -24910,6 +25214,7 @@ async function updateHomeTodayPanel() {
     if (hero) {
       hero.classList.remove('home-hero-card--logged', 'home-hero-card--streak-nudge');
     }
+    renderHomeHeroCta(ctaWrap, false);
   } else {
     var notLoggedTitle = typeof tUi === 'function' ? tUi('home.status.notLoggedYet') : 'Not logged yet';
     var notLoggedDetail = streakGrace
@@ -24923,11 +25228,13 @@ async function updateHomeTodayPanel() {
       hero.classList.remove('home-hero-card--logged');
       hero.classList.toggle('home-hero-card--streak-nudge', streakBroken && !streakGrace);
     }
+    renderHomeHeroCta(ctaWrap, false);
   }
   updateHomeFabPulse(!today && !shouldSuppressFirstRunLoggingPrompt());
   if (typeof renderHomeWelcomeCard === 'function') renderHomeWelcomeCard(logArr);
   if (typeof renderHomeDiscoveryChips === 'function') renderHomeDiscoveryChips(logArr);
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
+  bindHomeAskBarOnce();
   if (typeof renderCommunityTipsPane === 'function') {
     var conditionTags = appSettings && appSettings.medicalCondition ? [appSettings.medicalCondition] : [];
     try { await renderCommunityTipsPane(conditionTags); } catch (e) { /* ignore */ }
@@ -24938,6 +25245,85 @@ async function updateHomeTodayPanel() {
     hero.classList.add('rianell-in-view');
     if (typeof initScrollReveal === 'function') initScrollReveal(hero.parentElement);
   }
+}
+
+function buildHomeTodaySummaryHtml(log) {
+  if (!log) return '';
+  var chips = [];
+  function pushChip(label, val) {
+    if (val == null || val === '' || isNaN(val)) return;
+    chips.push('<span class="home-today-score-chip"><span class="home-today-score-chip__label">' + escapeHTML(label) + '</span><strong>' + escapeHTML(String(val)) + '</strong></span>');
+  }
+  pushChip(typeof tUi === 'function' ? tUi('charts.metric.mood') : 'Mood', parseInt(log.mood, 10));
+  pushChip(typeof tUi === 'function' ? tUi('charts.metric.sleep') : 'Sleep', parseInt(log.sleep, 10));
+  pushChip(typeof tUi === 'function' ? tUi('charts.metric.fatigue') : 'Fatigue', parseInt(log.fatigue, 10));
+  if (!chips.length) return '';
+  return '<div class="home-today-score-row" aria-label="' + escapeHTML(tUiOr('common.today.scores', 'Today scores')) + '">' + chips.join('') + '</div>';
+}
+
+function renderHomeHeroCta(wrap, loggedToday) {
+  if (!wrap) return;
+  if (loggedToday) {
+    var readLabel = typeof tUi === 'function' ? tUi('home.action.readTodayEntry') : "Read today's entry";
+    wrap.innerHTML = '<button type="button" class="home-daily-action-cta home-daily-action-cta--secondary" id="homeHeroCta">' +
+      escapeHTML(readLabel) + '</button>';
+    var btn = document.getElementById('homeHeroCta');
+    if (btn) btn.onclick = function () { if (typeof switchTab === 'function') switchTab('logs'); };
+    return;
+  }
+  var logLabel = typeof tUi === 'function' ? tUi('home.action.logNow') : 'Log now';
+  wrap.innerHTML = '<button type="button" class="home-daily-action-cta" id="homeHeroCta">' +
+    '<span class="home-daily-action-cta__glyph" aria-hidden="true">✦</span> ' +
+    escapeHTML(logLabel) + '</button>';
+  var cta = document.getElementById('homeHeroCta');
+  if (cta) cta.onclick = function () { if (typeof openLogWizardFromHome === 'function') openLogWizardFromHome(); };
+}
+
+function updateHomeSyncChip() {
+  var chip = document.getElementById('homeSyncChip');
+  if (!chip) return;
+  var auth = typeof cloudSyncState !== 'undefined' && cloudSyncState && cloudSyncState.isAuthenticated;
+  if (!auth) {
+    chip.textContent = '';
+    chip.hidden = true;
+    chip.removeAttribute('data-state');
+    return;
+  }
+  chip.hidden = false;
+  chip.setAttribute('data-state', 'synced');
+  var label = 'Synced';
+  try {
+    if (cloudSyncState.lastSync) {
+      var when = new Date(cloudSyncState.lastSync);
+      if (!isNaN(when.getTime())) label = 'Synced · ' + formatUiDate(when, { hour: 'numeric', minute: '2-digit' });
+    }
+  } catch (e) { /* ignore */ }
+  chip.textContent = label;
+}
+
+var _homeAskBarBound = false;
+function bindHomeAskBarOnce() {
+  if (_homeAskBarBound) return;
+  var form = document.getElementById('homeAskBar');
+  var input = document.getElementById('homeAskInput');
+  if (!form || !input) return;
+  _homeAskBarBound = true;
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var q = String(input.value || '').trim();
+    if (!q) {
+      if (typeof openAiHealthChat === 'function') {
+        openAiHealthChat({ seedPrompt: '' });
+      }
+      return;
+    }
+    input.value = '';
+    if (typeof gateAiHealthChatOpen === 'function' && !gateAiHealthChatOpen()) return;
+    var snap = window._homeAiAnalysisSnapshot || null;
+    if (typeof openAiHealthChat === 'function') {
+      openAiHealthChat({ seedPrompt: q, analysis: snap });
+    }
+  });
 }
 
 function getHomeSharedAi() {
@@ -27260,8 +27646,7 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
 }
 
 function initializeDateFilters() {
-  const today = new Date();
-  // Default View Logs range to Today (1 day)
+  // Phase 3 default: last 7 days via LogFilterBar
   const formatDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -27271,25 +27656,37 @@ function initializeDateFilters() {
   
   const startDateInput = document.getElementById('startDate');
   const endDateInput = document.getElementById('endDate');
+  bindLogFilterBarOnce();
+  updateLogSortToggleUi();
   
   if (startDateInput && endDateInput) {
-    startDateInput.value = formatDate(today);
-    endDateInput.value = formatDate(today);
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 6);
+    startDateInput.value = formatDate(start);
+    endDateInput.value = formatDate(end);
     
     // Add event listeners to detect manual date changes
     startDateInput.addEventListener('change', () => {
       clearAISection(); // Clear AI section when date changes
       checkAndUpdateViewRangeButtons();
+      syncLogFilterPills('custom', true);
+      var customPanel = document.getElementById('logFilterCustom');
+      if (customPanel) customPanel.hidden = false;
     });
     
     endDateInput.addEventListener('change', () => {
       clearAISection(); // Clear AI section when date changes
       checkAndUpdateViewRangeButtons();
+      syncLogFilterPills('custom', true);
+      var customPanel = document.getElementById('logFilterCustom');
+      if (customPanel) customPanel.hidden = false;
     });
     
     // Automatically apply the filter
     setTimeout(() => {
-      filterLogs();
+      if (typeof setLogViewRange === 'function') setLogViewRange(7);
+      else filterLogs();
     }, 100);
   }
 }
@@ -27354,6 +27751,8 @@ function attachInlineHandlersToWindow() {
     setChartDateRange,
     setGlobalTheme,
     setLogViewRange,
+    setLogFilterMode,
+    setLogViewRangeAll,
     setPredictionRange,
     setSortOrder,
     setTutorialAIChoice,
