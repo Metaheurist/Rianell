@@ -31,7 +31,7 @@ Machine-readable contract: `docs/platform-parity.json` (v2).
 ### v1.121.0 note
 
 - **Cycle period-start anchor:** PWA + RN - `cycle.periodStart`, day selector 1-35 with irregular expand to 45, shared `findLatestPeriodStart` / `computeCycleDayFromPeriodStart`.
-- **Goals modal (PWA):** Carousel meta line i18n + themed dot icons.
+- **Goals / achievements (PWA v2.2.13):** Targets via Settings → AI & Goals; Trophy Room on Home; legacy goals modal shell retained for carousel module parity.
 
 ### v1.120.0 note
 

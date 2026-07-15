@@ -10,9 +10,9 @@ This document describes how **Rianell** (this health app) handles health-related
 
 ## v1.134.0 DNS hygiene and AI crawler blocking
 
-- **Dangling A records (Moderate):** External security scan (2026-06-22) found 4 DNS A records for `rianell.com` pointing to IPs that no longer respond to the hostname - subdomain takeover risk. Action: audit DNS A records in Cloudflare and remove any pointing to released IPs. See [cloudflare-headers-recommended.md → Dangling A records](../security/cloudflare-headers-recommended.md).
-- **DMARC missing (Low):** No valid DMARC record at `_dmarc.rianell.com`. Add `v=DMARC1; p=quarantine; rua=mailto:security@rianell.com` TXT record. See [cloudflare-headers-recommended.md → DMARC](../security/cloudflare-headers-recommended.md).
-- **AI crawler blocking:** Added `apps/pwa-webapp/robots.txt` declaring `Disallow: /` for 25+ AI training bots (GPTBot, Google-Extended, ClaudeBot, CCBot, Bytespider, etc.). Enable Cloudflare **Block AI bots** toggle for edge enforcement. See [cloudflare-headers-recommended.md → AI crawler blocking](../security/cloudflare-headers-recommended.md).
+- **Dangling A records (Moderate):** External security scan (2026-06-22) found 4 DNS A records for `rianell.com` pointing to IPs that no longer respond to the hostname - subdomain takeover risk. Action: audit DNS A records in Cloudflare and remove any pointing to released IPs. See [security/cloudflare-headers-recommended.md → Dangling A records](../security/cloudflare-headers-recommended.md#dangling-a-records-moderate---subdomain-takeover-risk).
+- **DMARC missing (Low):** No valid DMARC record at `_dmarc.rianell.com`. Add `v=DMARC1; p=quarantine; rua=mailto:security@rianell.com` TXT record. See [security/cloudflare-headers-recommended.md → DMARC](../security/cloudflare-headers-recommended.md#dmarc-missing--misconfigured-low---email-spoofing-risk).
+- **AI crawler blocking:** Added `apps/pwa-webapp/robots.txt` declaring `Disallow: /` for 25+ AI training bots (GPTBot, Google-Extended, ClaudeBot, CCBot, Bytespider, etc.). Enable Cloudflare **Block AI bots** toggle for edge enforcement. See [security/cloudflare-headers-recommended.md → AI crawler blocking](../security/cloudflare-headers-recommended.md#ai-crawler-blocking).
 
 ## v1.113.0 dependency and CVE review
 
@@ -33,17 +33,17 @@ This document describes how **Rianell** (this health app) handles health-related
 | Topic | Location |
 |-------|----------|
 | **Privacy program index** | [privacy/global-baseline.md](privacy/global-baseline.md) - [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), [ropa.json](privacy/ropa.json), [region-policy-execution-plan.md](privacy/region-policy-execution-plan.md) |
-| Threat model | [threat-model.md](threat-model.md) |
-| AI security | [ai-security.md](ai-security.md) |
-| Incident response | [incident-response.md](incident-response.md) |
-| Crypto roadmap | [crypto-roadmap.md](crypto-roadmap.md) |
-| Key rotation (operators) | [../security/rotation-runbook.md](../security/rotation-runbook.md) |
-| Security inventory (generated) | [security-inventory.md](security-inventory.md) - `npm run docs:security-inventory` |
+| Threat model | [docs/threat-model.md](threat-model.md) |
+| AI security | [docs/ai-security.md](ai-security.md) |
+| Incident response | [docs/incident-response.md](incident-response.md) (not repo-root `incident-response.md`) |
+| Crypto roadmap | [docs/crypto-roadmap.md](crypto-roadmap.md) |
+| Key rotation (operators) | [security/rotation-runbook.md](../security/rotation-runbook.md) |
+| Security inventory (generated) | [docs/security-inventory.md](security-inventory.md) - `npm run docs:security-inventory` |
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
-| Supabase schema (SQL) | [../supabase/Schema.sql](../supabase/Schema.sql) |
+| Supabase schema (SQL) | [supabase/Schema.sql](../supabase/Schema.sql) |
 | Android network / cleartext (RN native builds) | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
-| Automated audits (CI) | Reusable [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) - **Security & supply-chain checks** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml). See [CI security matrix](#dependency-and-ci-scanning) below. Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
-| Web CSP (meta tag) | [../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [edge header note](../security/cloudflare-headers-recommended.md) |
+| Automated audits (CI) | Reusable [.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) - **Security & supply-chain checks** job in [.github/workflows/ci.yml](../.github/workflows/ci.yml). See [CI security matrix](#dependency-and-ci-scanning) below. Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
+| Web CSP (meta tag) | [apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md) |
 
 ## Server logs
 
@@ -153,7 +153,7 @@ Since v1.50.0, **`apps/rn-app/src/cloud/secureStorageAdapter.ts`** persists Supa
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
 - **Nonce migration roadmap (v1.94+):** Phase 1 ships SRI on all pinned jsDelivr assets and `/.well-known/security.txt`. A future release will add CSP **nonces** for inline boot scripts, deploy **report-only** CSP at Cloudflare to collect violations, then remove `'unsafe-inline'` from `script-src` once violation rate is zero. Do not enforce nonce-only CSP until ML bootstrap paths are bundled or nonce-injected at build time.
-- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct. **Operators:** do not set a **narrower** HTTP CSP than the meta tag; remove the duplicate header or align it fully - see [../security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md). Set **`frame-ancestors 'self'`** via HTTP only (not meta).
+- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct. **Operators:** do not set a **narrower** HTTP CSP than the meta tag; remove the duplicate header or align it fully - see [security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md). Set **`frame-ancestors 'self'`** via HTTP only (not meta).
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
 - Client code uses **`escapeHTML()`** / **`sanitizeHTML()`** for many user-derived strings (e.g. log entries, AI anomaly lines). New UI that builds HTML from user input should use the same helpers-avoid raw **`innerHTML`** with unescaped strings.
 
@@ -254,4 +254,4 @@ Health logs in the browser live in **`localStorage`** (and optionally IndexedDB)
 
 **General questions** about this security model or the project: **jan.andersson@rianell.com** (also LinkedIn: [Johan (typicaljohan)](https://www.linkedin.com/in/typicaljohan/)).
 
-**Security vulnerabilities and incidents:** do **not** open a public GitHub issue for an undisclosed vulnerability. Contact **jan.andersson@rianell.com** privately so details can be triaged before public disclosure. See [incident-response.md](incident-response.md) for operator playbooks.
+**Security vulnerabilities and incidents:** do **not** open a public GitHub issue for an undisclosed vulnerability. Contact **jan.andersson@rianell.com** privately so details can be triaged before public disclosure. See [docs/incident-response.md](incident-response.md) for operator playbooks.

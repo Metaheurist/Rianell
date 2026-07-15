@@ -1,6 +1,55 @@
 # Styling guide (web UI)
 
-This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`apps/pwa-webapp/styles.css`** (large single file), with supplemental tokens in **`apps/pwa-webapp/css/tokens.css`**.
+This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`apps/pwa-webapp/styles.css`** (large single file), with supplemental tokens in **`apps/pwa-webapp/css/tokens.css`**. Architecture for the product UI declutter is in root **[DESIGN.md](../DESIGN.md)**; token SoT remains **[design-token-contract.md](design-token-contract.md)**.
+
+## UI architectural primitives (Phase 1)
+
+Flat, single-layer chrome for the home / logs / wizard refactor. **Do not** nest a second bordered/tinted box inside a card.
+
+### `.ui-card` (single-layer surface)
+
+| Rule | Token / value |
+|------|----------------|
+| Fill | `var(--surface-card-solid)` - light `#FFFFFF`, dark opaque shell |
+| Border | `1px solid var(--surface-border-muted)` (neutral slate; not accent glow) |
+| Radius | `var(--radius-xl)` (24px) or `var(--radius-lg)` (16px) |
+| Elevation | `var(--shadow-sm)` only |
+| Brand voltage | `--accent-*` on CTAs, active pills, progress - not on every card edge |
+
+Compose existing panels onto this language: `.form-section` and `.log-accordion` / `.ui-accordion` should not reintroduce mint-washed nested cards.
+
+## Home command center (Phase 2)
+
+- **Header:** `#homeDashboardHeader` - avatar, greeting, date/weather, optional `#homeSyncChip`. Large MOTD + EKG strip hidden.
+- **Grid:** `#homeCommandGrid` - 1 column on narrow, `5fr + 7fr` from 992px. Left `#homeHeroCard` with `#homeHeroCtaWrap` CTA (`openLogWizardFromHome`). Right `#goalsProgressBlock.goals-progress-block--bento` with `.goals-bento-grid`.
+- **Ask hub:** `#homeAskHub` flats discovery pills + `#homeAskBar` → `openAiHealthChat` (same gates as before).
+
+## Logs + Mood IA (Phase 3)
+
+- **Logs toolbar:** `#logFilterBar` pills All / 7D / 30D / Custom; `#logSortToggle`; custom dates in `#logFilterCustom`. Legacy `#logRangeSlider` stays hidden for chart parity.
+- **Log rows:** One-line `.log-entry-summary` (mood/sleep/pain/fatigue). Expand → Physical / Lifestyle / Mental tabs over existing metric groups.
+- **Mood:** `#moodTabContent` renders check-in deck first, then metric cards, then `.mood-heatmap` (30 days). Ribbon history retained in module helpers but not the primary IA.
+
+## Wizard + goals IA (Phase 4)
+
+- **Advanced vitals:** `#vitalsAdvancedDetails` is a closed `.ui-accordion` (`Add Advanced Vitals (Optional)`). Primary BP/BPM stay outside.
+- **Symptoms split:** `#symptomsSplitLayout` — `#symptomsScaleColumn` (segmented metric scales + `#symptomsRegionSeverity` for tapped body areas) + `.symptoms-split-layout__map`. From 768px, CSS grid puts the map on the left (`order: -1`). Region intensity pills sync to `#painLocation` (none/mild/pain) without schema changes.
+- **Goals:** `#targetSettingsPanel` on Settings → AI & Goals (`#goalSteps|Hydration|Sleep|GoodDays`). `openGoalsModal(0)` opens that pane.
+- **Trophy Room:** `#achievementsTrophyRoom` / `#achievementsGrid` on Home (profile surface). `openGoalsModal(1)` scrolls there. Settings AI pane links out.
+
+### `.segmented-scale` (`RianellSegmentedScale`)
+
+Horizontal **1–10** (configurable `min`/`max`) number pills that replace range sliders + `+/-` steppers. Module: **`apps/pwa-webapp/modules/segmented-scale-input.js`**. Keeps a hidden/synced `<input type="range">` so wizard save paths stay unchanged.
+
+- Hit target: **min 44×44px** per `.segmented-scale__btn`
+- Active pill uses `--accent-primary` / `--accent-fill-*`
+- Narrow viewports: row may scroll horizontally (`overflow-x: auto`)
+
+Wired from **`log-metric-widgets.js`** via `RianellSegmentedScale.mount` after metrics build.
+
+### `.ui-accordion` / `.log-accordion`
+
+Native `<details>` accordion, **closed by default** for optional blocks. Flat card shell (same as `.ui-card`); summary min-height supports 44px touch. Prefer this over nesting a second `.form-section` inside another.
 
 ## v1.60.0 RTL layout (ar / he)
 
@@ -41,11 +90,13 @@ This document describes how the legacy web app’s visual layer is organised: **
 
 | File | Role |
 | :--- | :--- |
-| **`apps/pwa-webapp/styles.css`** | Main application styles, design tokens in `:root`, layout, components, light mode overrides. |
+| **`apps/pwa-webapp/styles.css`** | Main application styles, design tokens in `:root`, layout, components, light mode overrides (includes `.ui-card`, `.segmented-scale`, `.ui-accordion`). |
 | **`apps/pwa-webapp/css/tokens.css`** | Supplemental semantic/motion tokens (loaded before **`styles.css`**). |
+| **`apps/pwa-webapp/modules/segmented-scale-input.js`** | Reusable 1-N pill scale; syncs range inputs for log metrics. |
 | **`apps/pwa-webapp/ui-feedback.js`** | Toast, haptic, ripple, offline, theme crossfade, and modal animation helpers. |
 | **`apps/pwa-webapp/index.html`** | Loads **`css/tokens.css`**, **`styles.css?v=…`**, and **`ui-feedback.js`**; critical inline CSS for first paint / loading overlay. |
 | **`apps/pwa-webapp/styles-charts.css`** | Deferred when charts open (ApexCharts + chart chrome). |
+| **`DESIGN.md`** | Product UI refactor roadmap and non-negotiable UX boundaries. |
 
 After meaningful CSS changes, **bump the `?v=`** on the stylesheet link in **`index.html`** so browsers and CDNs pick up updates.
 

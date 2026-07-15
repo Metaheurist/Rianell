@@ -8,8 +8,9 @@ Rianell helps you log daily health metrics, spot trends, and optionally run AI-a
 
 | Tab | Purpose |
 |-----|---------|
-| **Home** | Today’s summary, goals progress, streak patterns, weekly review card, optional AI suggestion chips |
-| **View logs** | Browse, expand, edit, share, or delete past entries |
+| **Home** | Compact today header, daily log CTA, 2×2 goals bento, Ask Rianell bar, Trophy Room |
+| **View logs** | Browse with All/7D/30D/Custom filter; expand for Physical / Lifestyle / Mental details |
+| **Mood** | Today's check-in first, then a 30-day activity heatmap |
 | **Charts** | ApexCharts visualisations with optional predictions |
 | **AI Analysis** | Rule-based insights plus optional on-device LLM summaries |
 
@@ -34,11 +35,13 @@ flowchart LR
 
 Step through date, vitals, symptoms, food, exercise, medications, and notes. You can **quick-save** after date + flare only; missing numeric scores get sensible defaults so charts still work.
 
+Optional advanced vitals (glucose, SpO2, HRV, weight) sit in a closed **Add Advanced Vitals** accordion. Symptom scores use **1-10 number pills** on capable devices. On wider screens the body map sits beside the scales; tapped areas show **None / Mild / Pain** intensity pills (same save format as tap-to-cycle).
+
 When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes **Period started today**, cycle day (1-35, expandable to 45), phase, and optional flow - with suggested values from your last period start.
 
 **First-run:** A guided questionnaire modal asks one friendly multichoice question at a time (appearance, **profile companion**, region, coach tone, helper level, consents, optional AI download). Progress dots and a step counter match on web and native. Tutorial is opt-in from the finish card or Settings replay; tutorial slides use side arrows with **Finish** on the last slide only.
 
-**Sliders:** Every symptom and wellness metric uses the same scale - **Bad (0)** on the left, **Good (10)** on the right. Symptom scores (fatigue, pain, etc.) are stored in their original semantics but displayed on the unified scale.
+**Scales:** Symptom and wellness metrics use a unified **Bad → Good** presentation. Numeric fields still save to the same schema ranges as before.
 
 Detailed field reference: [[Logging-Data]].
 
@@ -46,14 +49,11 @@ Detailed field reference: [[Logging-Data]].
 
 ## Goals and targets
 
-Open **Goals & targets** from Home or Settings. The modal has two panes:
+Open **Goals & targets** from the Home header button (or **Settings → AI & Goals**). Daily targets (steps, hydration, sleep quality, good-days per week) live in Settings. Progress still shows on Home as a compact 2×2 grid for the last 7 days.
 
-- **Targets** - steps, hydration, sleep quality, good-days per week
-- **Achievements** - badges for progressive logging unlocks (food day 7, exercise day 14, medications day 21)
+**Achievements** use a **Trophy Room** on Home under your profile (badges for progressive logging unlocks: food day 7, exercise day 14, medications day 21). Unlock toasts stay non-blocking.
 
-On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings).
-
-Swipe or use arrows to move between panes. Locked wizard steps link here when a category is not yet unlocked.
+On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings). Locked wizard steps link to targets or the Trophy Room when a category is not yet unlocked.
 
 ---
 
