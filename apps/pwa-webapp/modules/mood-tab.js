@@ -796,17 +796,47 @@
     });
   }
 
+  function renderMoodHeatmap(dailyAverages, days) {
+    var n = Math.max(1, days || 30);
+    var byDate = {};
+    (dailyAverages || []).forEach(function (d) {
+      if (d && d.date) byDate[d.date] = d.average != null ? d.average : d.mood;
+    });
+    var cells = [];
+    for (var i = n - 1; i >= 0; i--) {
+      var dt = new Date();
+      dt.setHours(12, 0, 0, 0);
+      dt.setDate(dt.getDate() - i);
+      var key = dt.toISOString().slice(0, 10);
+      var score = byDate[key];
+      var tone = score != null && !isNaN(score) ? moodToneFromScore(score) : 'empty';
+      var label = key + (score != null && !isNaN(score) ? (': ' + score + '/10') : ': no reading');
+      cells.push(
+        '<button type="button" class="mood-heatmap__cell mood-heatmap__cell--' + tone + '"' +
+        ' data-mood-date="' + escapeHTML(key) + '"' +
+        (score != null && !isNaN(score) ? ' data-mood-score="' + escapeHTML(String(score)) + '"' : '') +
+        ' title="' + escapeAttr(label) + '" aria-label="' + escapeAttr(label) + '"></button>'
+      );
+    }
+    return '<section class="mood-heatmap" aria-label="30-day mood activity">' +
+      '<h3 class="mood-section-title">' + escapeHTML(t('mood.recent.title')) + '</h3>' +
+      '<div class="mood-heatmap__grid">' + cells.join('') + '</div></section>';
+  }
+
   function renderMoodTab() {
     var root = document.getElementById('moodTabContent');
     if (!root) return;
     var settings = getSettings();
     var simpleMode = settings.simpleMode === true;
     var todayStr = getTodayStr();
+    var heatDays = 30;
     var summary = S && typeof S.summarizeMoodMetrics === 'function'
-      ? S.summarizeMoodMetrics(getLogs(), { days: _moodRangeDays, todayStr: todayStr, moodTarget: moodTarget() })
+      ? S.summarizeMoodMetrics(getLogs(), { days: Math.max(_moodRangeDays, heatDays), todayStr: todayStr, moodTarget: moodTarget() })
       : { count: 0, readings: [], dailyAverages: [] };
 
-    var html = '<p class="mood-lead">' + escapeHTML(t('mood.lead')) + '</p>';
+    // Phase 3: check-in first, then summaries, then 30-day heatmap (replaces badge ribbon).
+    var html = renderMoodControlDeck(todayStr, simpleMode);
+    html += '<p class="mood-lead">' + escapeHTML(t('mood.lead')) + '</p>';
 
     if (!summary.count) {
       html += '<div class="mood-empty-state">';
@@ -831,13 +861,8 @@
       html += renderMoodSparkline(summary.dailyAverages, summary.moodTarget != null ? summary.moodTarget : moodTarget()) + '</div>';
       html += renderMoodReadingsSummaryCard(summary);
       html += '</div>';
-
-      html += '<section class="mood-recent-section"><h3 class="mood-section-title">' + escapeHTML(t('mood.recent.title')) + '</h3>';
-      html += renderMoodReadingRibbon(summary.readings);
-      html += '</section>';
+      html += renderMoodHeatmap(summary.dailyAverages, heatDays);
     }
-
-    html += renderMoodControlDeck(todayStr, simpleMode);
 
     root.innerHTML = html;
 
@@ -846,13 +871,12 @@
     }
 
     attachMoodReadingData(root, summary.readings || []);
-    wireMoodReadingRibbon(root);
-    var activeCard = root.querySelector('.mood-reading-card[data-reading-i]:last-child') ||
-      root.querySelector('.mood-reading-card[data-reading-i]');
-    if (activeCard) activeCard.classList.add('mood-reading-card--active');
-
-    var moodTimelineScroll = root.querySelector('.mood-timeline-scroll:not(.mood-reading-ribbon-scroll)');
-    if (moodTimelineScroll) wireMoodTimelineScroll(moodTimelineScroll);
+    root.querySelectorAll('.mood-heatmap__cell[data-mood-date]').forEach(function (cell) {
+      cell.addEventListener('click', function () {
+        var d = cell.getAttribute('data-mood-date');
+        if (d && typeof openMoodDayDetailModal === 'function') openMoodDayDetailModal(d);
+      });
+    });
 
     var moodControlDeck = root.querySelector('.mood-control-deck');
     if (moodControlDeck && typeof global.wireCheckinSliderEvents === 'function') {

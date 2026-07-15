@@ -6,7 +6,7 @@ test('home discovery renders rich prompt cards', () => {
   const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.ok(/home-discovery-section/.test(js));
   assert.ok(/home-discovery-pill-title/.test(js));
-  assert.ok(/home-discovery-pill-hint/.test(js));
+  assert.ok(/home-discovery-scroll--pills/.test(js));
   assert.ok(/discover-mood/.test(js));
   assert.ok(/discover-goals/.test(js));
   assert.ok(/discover-ai/.test(js));
@@ -43,6 +43,7 @@ test('discovery styles include AI presence and motion', () => {
   assert.ok(/homeDiscoveryShimmer/.test(css));
   assert.ok(/prefers-reduced-motion/.test(css));
   assert.ok(/ai-chat-panel/.test(css));
+  assert.ok(/home-discovery-section--flat/.test(css));
 });
 
 test('ai-chat module is loaded in index.html', () => {

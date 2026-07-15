@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=128" as="style">
+  <link rel="preload" href="styles.css?v=133" as="style">
   <link rel="modulepreload" href="app.js?v=60" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=128" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=128&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=133" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=133&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=2">
   <style>
@@ -1599,6 +1599,67 @@
         </div>
         <p class="settings-hint" id="useOpenDataHint" data-i18n="common.use.anonymised.data.pool.for.ai.training">Use anonymised data pool for AI training (requires 90+ days of data)</p>
         <p class="settings-hint" data-i18n="common.used.for.personalised.ai.analysis.and.ad">Used for personalised AI analysis and advice</p>
+
+        <!-- Phase 4: goals / targets live in Settings (same rianellGoals IDs; no modal) -->
+        <div class="ui-card target-settings-panel" id="targetSettingsPanel">
+          <h5 class="target-settings-panel__title" data-i18n="common.goals.targets">Goals &amp; targets</h5>
+          <p class="field-hint" data-i18n="common.goals.hint">Set daily or weekly targets. Progress appears on the Home tab. Use 0 to leave a goal off.</p>
+          <div id="goalsOrientationCard" class="goals-orientation-card" hidden></div>
+          <div class="goals-slider-group">
+            <label for="goalSteps" data-i18n="common.steps.per.day">Steps per day</label>
+            <div class="goals-slider-row">
+              <input type="range" id="goalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('goalSteps', 'goalStepsLabel', 0, 'steps')">
+              <span id="goalStepsLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+            </div>
+            <div class="goals-stepper-row" role="group">
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalSteps" data-delta="-500" aria-label="Decrease steps" data-i18n-aria="common.decrease.steps">−</button>
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalSteps" data-delta="500" aria-label="Increase steps" data-i18n-aria="common.increase.steps">+</button>
+            </div>
+          </div>
+          <div class="goals-slider-group">
+            <label for="goalHydration" data-i18n="common.hydration.glasses.per.day">Hydration (glasses per day)</label>
+            <div class="goals-slider-row">
+              <input type="range" id="goalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses')">
+              <span id="goalHydrationLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+            </div>
+            <div class="goals-stepper-row" role="group">
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalHydration" data-delta="-1" aria-label="Decrease hydration" data-i18n-aria="common.decrease.hydration">−</button>
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalHydration" data-delta="1" aria-label="Increase hydration" data-i18n-aria="common.increase.hydration">+</button>
+            </div>
+          </div>
+          <div class="goals-slider-group">
+            <label for="goalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1-10)</label>
+            <div class="goals-slider-row">
+              <input type="range" id="goalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score')">
+              <span id="goalSleepLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+            </div>
+            <div class="goals-stepper-row" role="group">
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalSleep" data-delta="-1" aria-label="Decrease sleep" data-i18n-aria="common.decrease.sleep">−</button>
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalSleep" data-delta="1" aria-label="Increase sleep" data-i18n-aria="common.increase.sleep">+</button>
+            </div>
+          </div>
+          <div class="goals-slider-group">
+            <label for="goalGoodDays" data-i18n="common.good.days.per.week.no.flare.mood.6">Good days per week (no flare, mood ≥ 6)</label>
+            <div class="goals-slider-row">
+              <input type="range" id="goalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days')">
+              <span id="goalGoodDaysLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+            </div>
+            <div class="goals-stepper-row" role="group">
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalGoodDays" data-delta="-1" aria-label="Decrease good days" data-i18n-aria="common.decrease.good.days">−</button>
+              <button type="button" class="vital-stepper-btn" data-goal-nudge="goalGoodDays" data-delta="1" aria-label="Increase good days" data-i18n-aria="common.increase.good.days">+</button>
+            </div>
+          </div>
+          <div class="settings-pane-footer" style="margin-top: 12px;">
+            <button type="button" class="modal-save-btn settings-pane-footer__btn" onclick="saveGoalsAndClose()" data-i18n="common.save">Save</button>
+          </div>
+        </div>
+
+        <div class="settings-option" style="margin-top: 14px;">
+          <label data-i18n="achievements.title">Achievements</label>
+          <button type="button" class="cloud-btn settings-pane-footer__btn" id="openTrophyRoomFromSettingsBtn" onclick="typeof openGoalsModal==='function'&&openGoalsModal(1)" data-i18n="achievements.viewInGoals">View achievements</button>
+        </div>
+        <p class="settings-hint" data-i18n="achievements.trophy.homeHint">Trophy Room lives on Home under your profile.</p>
+
         <div class="settings-pane-footer">
           <button type="button" id="exportContributionHistoryBtn" class="modal-save-btn settings-pane-footer__btn" onclick="typeof exportContributionHistoryUI==='function'&&exportContributionHistoryUI()" data-i18n="research.pool.export.action">Export my contribution history</button>
         </div>
@@ -2039,8 +2100,8 @@
     </div>
   </div>
 
-  <!-- Goals & Targets Modal -->
-  <div class="modal-overlay goals-modal-overlay" id="goalsModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Goals and targets" data-i18n-aria="common.goals.and.targets">
+  <!-- Legacy goals modal shell kept for carousel module / parity tests; Phase 4 routes UI to Settings -->
+  <div class="modal-overlay goals-modal-overlay" id="goalsModalOverlay" style="display: none;" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Goals and targets" data-i18n-aria="common.goals.and.targets">
     <div class="modal-content goals-modal-content goals-modal-carousel-shell" onclick="event.stopPropagation()">
       <button type="button" class="goals-carousel-side goals-carousel-side--prev" id="goalsCarouselPrev" onclick="goalsCarouselStep(-1)" aria-label="Previous section" data-i18n-aria="common.previous.settings.section"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg></button>
       <div class="goals-modal-inner">
@@ -2056,48 +2117,18 @@
           <div class="goals-carousel-track" id="goalsCarouselTrack" data-goals-index="0">
             <div class="goals-carousel-pane goals-carousel-pane--active goals-carousel-pane--targets" data-pane-title="Goals" data-i18n-title="common.goals.targets" role="tabpanel" aria-hidden="false">
               <div class="modal-body goals-modal-body">
-                <div id="goalsOrientationCard" class="goals-orientation-card" hidden></div>
-                <p class="field-hint" style="margin-bottom: 16px;" data-i18n="common.goals.hint">Set daily or weekly targets. Progress appears on the Home tab. Use 0 to leave a goal off.</p>
-                <div class="goals-slider-group">
-                  <label for="goalSteps" data-i18n="common.steps.per.day">Steps per day</label>
-                  <div class="goals-slider-row">
-                    <input type="range" id="goalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('goalSteps', 'goalStepsLabel', 0, 'steps')">
-                    <span id="goalStepsLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-                  </div>
-                </div>
-                <div class="goals-slider-group">
-                  <label for="goalHydration" data-i18n="common.hydration.glasses.per.day">Hydration (glasses per day)</label>
-                  <div class="goals-slider-row">
-                    <input type="range" id="goalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses')">
-                    <span id="goalHydrationLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-                  </div>
-                </div>
-                <div class="goals-slider-group">
-                  <label for="goalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1-10)</label>
-                  <div class="goals-slider-row">
-                    <input type="range" id="goalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score')">
-                    <span id="goalSleepLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-                  </div>
-                </div>
-                <div class="goals-slider-group">
-                  <label for="goalGoodDays" data-i18n="common.good.days.per.week.no.flare.mood.6">Good days per week (no flare, mood ≥ 6)</label>
-                  <div class="goals-slider-row">
-                    <input type="range" id="goalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days')">
-                    <span id="goalGoodDaysLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-                  </div>
-                </div>
+                <p class="field-hint" data-i18n="common.goals.movedToSettings">Goals and achievements are in Settings → AI &amp; Goals.</p>
               </div>
             </div>
             <div class="goals-carousel-pane" data-pane-title="Achievements" data-i18n-title="achievements.title" role="tabpanel" aria-hidden="true">
               <div class="modal-body goals-modal-body achievements-modal-body">
-                <p class="field-hint achievements-lede" data-i18n="achievements.subtitle">Unlock food, exercise, and medication logging by tracking consistently.</p>
-                <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
+                <p class="field-hint" data-i18n="common.goals.movedToSettings">Goals and achievements are in Settings → AI &amp; Goals.</p>
               </div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="modal-save-btn" onclick="saveGoalsAndClose()" data-i18n="common.save">Save</button>
+          <button type="button" class="modal-save-btn" onclick="closeGoalsModal(); if(typeof openSettingsToGoalsAndAchievements==='function')openSettingsToGoalsAndAchievements(0);" data-i18n="common.open.settings">Open Settings</button>
         </div>
       </div>
       <button type="button" class="goals-carousel-side goals-carousel-side--next" id="goalsCarouselNext" onclick="goalsCarouselStep(1)" aria-label="Next section" data-i18n-aria="common.next.settings.section"><svg class="ui-svg-icon carousel-side-icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg></button>
@@ -2442,7 +2473,8 @@
     </div>
     <div class="container app-main-scroll" id="main-content">
 
-    <div class="title-container">
+    <!-- Phase 2: MOTD + EKG kept for JS compat but hidden via CSS (declutters Home) -->
+    <div class="title-container" hidden aria-hidden="true">
       <div class="motd-spin-host" id="motdSpinHost">
         <div class="motd-sway-wrap">
           <h1 id="dashboardTitle" data-text="Rianell">Rianell</h1>
@@ -2464,9 +2496,7 @@
               </feMerge>
             </filter>
           </defs>
-          <!-- Base line (subtle) -->
           <line x1="0" y1="30" x2="400" y2="30" stroke="color-mix(in srgb, var(--primary-color) 24%, transparent)" stroke-width="2.2"/>
-          <!-- ECG trace: d filled by initEcgHeartbeatLine() in app.js (natural QRS + slight randomness) -->
           <path class="heartbeat-path" pathLength="1000"
                 d="M0,30 L400,30"
                 fill="none"
@@ -2505,26 +2535,45 @@
       </button>
     </div>
 
-    <!-- Home / Today -->
+    <!-- Home / Today — Phase 2 command center -->
     <div id="homeTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-home">
       <div id="homeWelcomeCard" class="home-welcome-card-wrap" data-scroll-reveal hidden style="display:none!important"></div>
-      <div class="home-today-header">
+      <header class="home-dashboard-header home-today-header" id="homeDashboardHeader">
         <div id="profileAvatarHeader" class="profile-avatar-header" role="img" data-i18n-aria="settings.avatar.title"></div>
-        <h2 class="tab-title home-today-greeting" id="homeGreeting" data-i18n="home.greeting.today">Today</h2>
-        <div class="home-today-meta">
-          <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
-          <div id="homeWeatherStrip" class="home-weather-strip" aria-live="polite" hidden></div>
+        <div class="home-dashboard-header__copy">
+          <h2 class="tab-title home-today-greeting" id="homeGreeting" data-i18n="home.greeting.today">Today</h2>
+          <div class="home-today-meta">
+            <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
+            <div id="homeWeatherStrip" class="home-weather-strip" aria-live="polite" hidden></div>
+          </div>
         </div>
+        <div id="homeSyncChip" class="home-sync-chip" aria-live="polite"></div>
+      </header>
+      <div class="home-command-grid" id="homeCommandGrid">
+        <div id="homeHeroCard" class="home-hero-card home-daily-action-hero home-hero-stagger" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
+          <div id="homeTodayStatus" class="home-today-status"></div>
+          <div id="homeHeroCtaWrap" class="home-hero-cta-wrap"></div>
+          <div id="homeStreakCard" class="home-hero-inset home-streak-inset" data-home-card="streak" hidden></div>
+          <div id="homeWeeklyReviewCard" class="home-hero-inset home-weekly-review-inset" data-home-card="weeklyReview" hidden></div>
+          <div id="homeCheckinCard" class="home-checkin-card" data-home-card="checkin" hidden></div>
+        </div>
+        <div id="goalsProgressBlock" class="goals-progress-block goals-progress-block--bento" data-home-card="goals" style="display: none;" aria-live="polite" data-scroll-reveal></div>
       </div>
-      <div id="homeHeroCard" class="home-hero-card home-hero-stagger" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
-        <div id="homeTodayStatus" class="home-today-status"></div>
-        <div id="homeStreakCard" class="home-hero-inset home-streak-inset" data-home-card="streak" hidden></div>
-        <div id="homeWeeklyReviewCard" class="home-hero-inset home-weekly-review-inset" data-home-card="weeklyReview" hidden></div>
-        <div id="homeCheckinCard" class="home-checkin-card" data-home-card="checkin" hidden></div>
+      <section id="homeAskHub" class="home-ask-hub ui-card" aria-label="Ask Rianell" data-i18n-aria="home.chat.title">
         <div id="homeDiscoveryChips" class="home-discovery-chips-wrap" hidden aria-live="polite"></div>
-        <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
-      </div>
-      <div id="goalsProgressBlock" class="goals-progress-block" data-home-card="goals" style="display: none;" aria-live="polite" data-scroll-reveal></div>
+        <form id="homeAskBar" class="home-ask-bar" autocomplete="off">
+          <label class="visually-hidden" for="homeAskInput" data-i18n="home.chat.inputLabel">Ask about your health logs</label>
+          <input type="text" id="homeAskInput" class="home-ask-input" maxlength="280" data-i18n-placeholder="home.chat.inputLabel" placeholder="Ask about your health logs" />
+          <button type="submit" class="home-ask-send" id="homeAskSend" data-i18n="ai.weekChat.send">Send</button>
+        </form>
+      </section>
+      <!-- Phase 4 close: Trophy Room on Home (profile surface) -->
+      <section class="ui-card achievements-trophy-room home-trophy-room" id="achievementsTrophyRoom" aria-labelledby="achievementsTrophyTitle">
+        <h3 class="achievements-trophy-room__title" id="achievementsTrophyTitle" data-i18n="achievements.title">Achievements</h3>
+        <p class="field-hint achievements-lede" data-i18n="achievements.subtitle">Unlock food, exercise, and medication logging by tracking consistently.</p>
+        <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
+      </section>
+      <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       <div id="cohortBenchmarkCard" class="cohort-benchmark-card" hidden aria-live="polite" data-scroll-reveal></div>
       <div id="communityTipsFeed" class="community-tips-feed" hidden aria-live="polite" data-scroll-reveal></div>
     </div>
@@ -2743,15 +2792,15 @@
               <input type="hidden" id="bpm" name="bpm" value="" />
             </div>
 
-            <!-- Advanced vitals - collapsed by default -->
-            <details class="vitals-advanced-details" id="vitalsAdvancedDetails">
-              <summary class="vitals-advanced-summary">
+            <!-- Advanced vitals - closed by default (Phase 4) -->
+            <details class="vitals-advanced-details ui-accordion" id="vitalsAdvancedDetails">
+              <summary class="vitals-advanced-summary ui-accordion__summary">
                 <svg class="ui-svg-icon vitals-advanced-summary__icon" aria-hidden="true"><use href="#icon-activity"></use></svg>
-                <span data-i18n="wizard.vitals.advanced">Advanced vitals</span>
-                <span class="optional-hint" data-i18n="wizard.vitals.advanced.hint">(optional)</span>
+                <span data-i18n="wizard.vitals.advanced">Add Advanced Vitals (Optional)</span>
+                <span class="optional-hint" data-i18n="wizard.vitals.advanced.hint">(glucose, SpO₂, HRV, weight)</span>
                 <svg class="ui-svg-icon vitals-advanced-summary__chevron" aria-hidden="true"><use href="#icon-chart-down"></use></svg>
               </summary>
-              <div class="vitals-advanced-body">
+              <div class="vitals-advanced-body ui-accordion__body">
                 <div class="vital-widget vital-widget--glucose" id="glucoseWidget" data-vital-active="false" data-vital-zone="idle">
                   <div class="vital-widget__header weight-label-container">
                     <label class="field-label-with-icon" data-i18n="wizard.vitals.bloodGlucose">
@@ -2918,6 +2967,8 @@
           <span class="section-title" data-i18n="common.symptoms.pain">Symptoms & Pain</span>
         </button>
         <div class="section-content" id="symptoms">
+      <div class="symptoms-split-layout" id="symptomsSplitLayout">
+      <div class="symptoms-split-layout__scales" id="symptomsScaleColumn">
       <div class="slider-container">
         <input type="range" id="stiffness" min="1" max="10" step="1" />
         <label for="stiffness" class="slider-label" data-i18n="common.stiffness.level">Stiffness Level</label>
@@ -2941,7 +2992,13 @@
         <label for="swelling" class="slider-label" data-i18n="common.joint.swelling">Joint Swelling</label>
         <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad" data-i18n="common.bad">Bad</span><span class="slider-hint-good" data-i18n="common.good">Good</span></div>
       </div>
-      <div class="input-container pain-body-container">
+      <div class="symptoms-region-severity" id="symptomsRegionSeverity" aria-live="polite">
+        <p class="field-hint symptoms-region-severity__lede" data-i18n="wizard.symptoms.regionSeverity.lede">Tapped areas — adjust intensity</p>
+        <p class="field-hint symptoms-region-severity__empty" id="symptomsRegionSeverityEmpty" data-i18n="wizard.symptoms.regionSeverity.empty">Tap a body area on the figure to set intensity.</p>
+        <div class="symptoms-region-severity__list" id="symptomsRegionSeverityList"></div>
+      </div>
+      </div>
+      <div class="input-container pain-body-container symptoms-split-layout__map">
         <div class="pain-body-intro" role="group" aria-labelledby="pain-body-title">
           <h3 class="pain-body-title" id="pain-body-title" data-i18n="common.where.it.hurts">Where it hurts</h3>
           <p class="pain-body-hint" data-i18n="common.tap.any.area.on.the.figure.to.cycle.inte">Tap any area on the figure to cycle intensity.</p>
@@ -2991,6 +3048,7 @@
             <circle class="pain-region pain-state-0" data-region="right_ankle" cx="86" cy="268" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
           </svg>
         </div>
+      </div>
       </div>
         </div>
       </div>
@@ -3493,32 +3551,45 @@
 
     <!-- View Logs Tab -->
     <div id="logsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-logs">
-      <section class="tab-filters" aria-label="Filter and sort" data-i18n-aria="common.filter.and.sort">
-        <div class="filter-section">
+      <section class="tab-filters log-filter-bar-section" aria-label="Filter and sort" data-i18n-aria="common.filter.and.sort">
+        <div class="log-filter-bar" id="logFilterBar">
+          <div class="log-filter-bar__ranges" role="group" aria-label="Date range" data-i18n-aria="common.view.range">
+            <button type="button" class="log-filter-pill" data-log-range="all" id="logRangeAll">All</button>
+            <button type="button" class="log-filter-pill" data-log-range="7" id="logRange7">7D</button>
+            <button type="button" class="log-filter-pill" data-log-range="30" id="logRange30">30D</button>
+            <button type="button" class="log-filter-pill" data-log-range="custom" id="logRangeCustom" aria-haspopup="dialog" aria-expanded="false" data-i18n="common.custom">Custom ▾</button>
+          </div>
+          <div class="log-filter-bar__tools">
+            <button type="button" id="logSortToggle" class="log-sort-toggle" data-sort="newest" onclick="toggleSort()" title="Newest first" data-i18n-title="common.newest.first" aria-label="Sort order">
+              <svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-chart-up"></use></svg>
+              <span class="log-sort-toggle__label" data-i18n="logs.sort.newest">Newest</span>
+            </button>
+          </div>
+        </div>
+        <div class="log-filter-custom" id="logFilterCustom" hidden>
+          <div class="date-range">
+            <input type="date" id="startDate" placeholder="Start Date" data-i18n-placeholder="common.start.date">
+            <span class="date-separator">to</span>
+            <input type="date" id="endDate" placeholder="End Date" data-i18n-placeholder="common.end.date">
+          </div>
+          <button type="button" onclick="filterLogs()" class="filter-btn"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-calendar"></use></svg> Filter</button>
+        </div>
+        <!-- Legacy controls kept for event-handlers / chart parity (visually hidden) -->
+        <div class="filter-section visually-hidden" aria-hidden="true">
           <div class="log-view-range-buttons">
-            <label class="filter-label" data-i18n="common.view.range">View Range:</label>
             <div class="range-slider-group rs-accent" id="logRangeSliderGroup">
-              <input type="range" class="range-slider rs-accent" id="logRangeSlider" min="0" max="3" step="1" value="0" aria-label="Log view range">
+              <input type="range" class="range-slider rs-accent" id="logRangeSlider" min="0" max="3" step="1" value="1" aria-hidden="true" tabindex="-1">
               <div class="range-slider-labels">
-                <span class="range-slider-label active" data-idx="0" data-i18n="home.greeting.today">Today</span>
-                <span class="range-slider-label" data-idx="1">7 Days</span>
+                <span class="range-slider-label" data-idx="0" data-i18n="common.today">Today</span>
+                <span class="range-slider-label active" data-idx="1">7 Days</span>
                 <span class="range-slider-label" data-idx="2">30 Days</span>
                 <span class="range-slider-label" data-idx="3">90 Days</span>
               </div>
             </div>
           </div>
-          <p class="field-hint" data-i18n="common.choose.which.days.to.include">Choose which days to include.</p>
-          <div class="compact-filters">
-            <div class="date-range">
-              <input type="date" id="startDate" placeholder="Start Date" data-i18n-placeholder="common.start.date">
-              <span class="date-separator">to</span>
-              <input type="date" id="endDate" placeholder="End Date" data-i18n-placeholder="common.end.date">
-            </div>
-            <button onclick="filterLogs()" class="filter-btn"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-calendar"></use></svg> Filter</button>
-            <div class="sort-buttons-group" role="group" aria-label="Sort order" data-i18n-aria="common.sort.order">
-              <button type="button" id="sortOldest" class="sort-btn sort-btn-option" data-sort="oldest" onclick="setSortOrder('oldest')" title="Oldest first" data-i18n-title="common.oldest.first"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-chart-down"></use></svg> Oldest</button>
-              <button type="button" id="sortNewest" class="sort-btn sort-btn-option active" data-sort="newest" onclick="setSortOrder('newest')" title="Newest first" data-i18n-title="common.newest.first"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-chart-up"></use></svg> Newest</button>
-            </div>
+          <div class="sort-buttons-group" role="group">
+            <button type="button" id="sortOldest" class="sort-btn sort-btn-option" data-sort="oldest" onclick="setSortOrder('oldest')"></button>
+            <button type="button" id="sortNewest" class="sort-btn sort-btn-option active" data-sort="newest" onclick="setSortOrder('newest')"></button>
           </div>
         </div>
       </section>
@@ -5112,7 +5183,8 @@
   <script defer src="llm-load-ladder-sync.js?v=3"></script>
   <script defer src="device-benchmark.js?v=8"></script>
   <script defer src="performance-utils.js"></script>
-  <script defer src="modules/log-metric-widgets.js?v=10"></script>
+  <script defer src="modules/segmented-scale-input.js?v=1"></script>
+  <script defer src="modules/log-metric-widgets.js?v=11"></script>
   <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=3"></script>
   <script defer src="modules/oasis-canvas.js"></script>
