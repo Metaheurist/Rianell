@@ -652,16 +652,25 @@
     badge.className = 'metric-zone-badge';
     controls.appendChild(badge);
 
-    slider.classList.add('metric-slider');
+    slider.classList.add('metric-slider', 'segmented-scale__native');
     slider.parentNode.removeChild(slider);
     controls.appendChild(slider);
 
-    var stepper = document.createElement('div');
-    stepper.className = 'metric-stepper-row';
-    stepper.innerHTML =
-      '<button type="button" class="metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="-1" aria-label="Decrease">−</button>' +
-      '<button type="button" class="metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="1" aria-label="Increase">+</button>';
-    controls.appendChild(stepper);
+    // Phase 1: segmented pills replace bulky range + +/- steppers; keep range input for save/read.
+    if (global.RianellSegmentedScale && typeof global.RianellSegmentedScale.mount === 'function') {
+      global.RianellSegmentedScale.mount({
+        input: slider,
+        mount: controls,
+        name: (label && label.textContent ? label.textContent.trim() : id) + ' scale',
+      });
+    } else {
+      var stepper = document.createElement('div');
+      stepper.className = 'metric-stepper-row';
+      stepper.innerHTML =
+        '<button type="button" class="metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="-1" aria-label="Decrease">−</button>' +
+        '<button type="button" class="metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="1" aria-label="Increase">+</button>';
+      controls.appendChild(stepper);
+    }
 
     if (goodBad) {
       if (isSeverityMetric(id)) applySeverityScaleHints(container);
