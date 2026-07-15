@@ -2231,7 +2231,7 @@
     "wizard.type.stressor": "Type stressor",
     "wizard.type.symptom": "Typ symptoom",
     "wizard.use.diagram.text": "Gebruik diagramtekst",
-    "wizard.vitals.advanced": "Advanced vitals",
+    "wizard.vitals.advanced": "Geavanceerde vitalen toevoegen (optioneel)",
     "wizard.vitals.advanced.hint": "(optional)",
     "wizard.vitals.bloodGlucose": "Blood glucose",
     "wizard.vitals.bloodPressure": "Blood pressure",
@@ -2266,7 +2266,23 @@
     "wizard.vitals.useLastValue.aria": "Apply last reading: {value} from {date}",
     "wizard.vitals.weight": "Body weight",
     "wizard.weather.sensitivity.1.10": "Weersgevoeligheid (1-10)",
-    "wizard.weight.kg": "Gewicht (kg)"
+    "wizard.weight.kg": "Gewicht (kg)",
+    "common.goals.movedToSettings": "Doelen en prestaties staan in Instellingen - AI en doelen.",
+    "common.open.settings": "Instellingen openen",
+    "common.decrease.sleep": "Decrease Slaap",
+    "common.increase.sleep": "Increase Slaap",
+    "common.decrease.good.days": "Decrease good days",
+    "common.increase.good.days": "Increase good days",
+    "common.expand.details": "Details uitklappen",
+    "common.entry.categories": "Entry categories",
+    "common.mental": "Mental",
+    "common.physical": "Physical",
+    "common.tap.to.expand.details": "Tik om details uit te klappen",
+    "common.summary": "Summary",
+    "common.today.scores": "Vandaag scores",
+    "wizard.symptoms.regionSeverity.lede": "Aangetikte zones - intensiteit aanpassen",
+    "wizard.symptoms.regionSeverity.empty": "Tik een lichaamszone aan om de intensiteit in te stellen.",
+    "achievements.trophy.homeHint": "De Trophy Room staat op Home onder je profiel."
   },
   "machineTranslatedUi": true
 }

@@ -2266,7 +2266,23 @@
     "wizard.vitals.useLastValue.aria": "Apply last reading: {value} from {date}",
     "wizard.vitals.weight": "Body weight",
     "wizard.weather.sensitivity.1.10": "Weather sensitivity (1-10)",
-    "wizard.weight.kg": "Weight (kg)"
+    "wizard.weight.kg": "Weight (kg)",
+    "common.goals.movedToSettings": "Goals and achievements are in Settings → AI & Goals.",
+    "common.open.settings": "Open Settings",
+    "common.decrease.sleep": "Decrease sleep",
+    "common.increase.sleep": "Increase sleep",
+    "common.decrease.good.days": "Decrease good days",
+    "common.increase.good.days": "Increase good days",
+    "common.expand.details": "Expand details",
+    "common.entry.categories": "Entry categories",
+    "common.mental": "Mental",
+    "common.physical": "Physical",
+    "common.tap.to.expand.details": "Tap to expand details",
+    "common.summary": "Summary",
+    "common.today.scores": "Today scores",
+    "wizard.symptoms.regionSeverity.lede": "Tapped areas - adjust intensity",
+    "wizard.symptoms.regionSeverity.empty": "Tap a body area on the figure to set intensity.",
+    "achievements.trophy.homeHint": "Trophy Room lives on Home under your profile."
   },
   "llmCapability": "ui-only"
 }
