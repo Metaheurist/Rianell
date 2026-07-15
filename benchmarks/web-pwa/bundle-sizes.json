@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-13T23:57:14.337Z",
+  "generatedAt": "2026-07-15T21:49:00.803Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5421360,
-    "cssBytes": 818255,
-    "jsGzipBytes": 1287060,
-    "cssGzipBytes": 138420
+    "jsBytes": 5457974,
+    "cssBytes": 830620,
+    "jsGzipBytes": 1296649,
+    "cssGzipBytes": 140580
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1156980,
-      "gzipBytes": 251448
+      "bytes": 1173995,
+      "gzipBytes": 255374
     },
     {
-      "file": "ci-minified/site/app.dc76bef363da.min.js",
-      "bytes": 855519,
-      "gzipBytes": 198062
+      "file": "ci-minified/site/app.f3b6749fa517.min.js",
+      "bytes": 869378,
+      "gzipBytes": 201772
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.1c04bdd1d827.css",
-      "bytes": 743140,
-      "gzipBytes": 123136
+      "file": "ci-minified/site/styles.a6a48726b976.css",
+      "bytes": 755505,
+      "gzipBytes": 125296
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -80,8 +80,8 @@
     },
     {
       "file": "ci-minified/site/modules/mood-tab.js",
-      "bytes": 44069,
-      "gzipBytes": 9479
+      "bytes": 45209,
+      "gzipBytes": 9816
     },
     {
       "file": "ci-minified/site/css/graphics-portfolio.css",
@@ -90,8 +90,8 @@
     },
     {
       "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 40045,
-      "gzipBytes": 8696
+      "bytes": 40491,
+      "gzipBytes": 8850
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
@@ -287,6 +287,11 @@
       "file": "ci-minified/site/appointment-pdf.js",
       "bytes": 4959,
       "gzipBytes": 1771
+    },
+    {
+      "file": "ci-minified/site/modules/segmented-scale-input.js",
+      "bytes": 4154,
+      "gzipBytes": 1462
     },
     {
       "file": "ci-minified/site/android-update-check.js",
