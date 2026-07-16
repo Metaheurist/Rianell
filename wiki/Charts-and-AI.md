@@ -32,6 +32,10 @@ A multi-layer pipeline processes your logs without sending raw data to a cloud L
 
 This runs **entirely on your device** using your stored logs.
 
+Lifestyle impact cards compare food/exercise days with Helps / Watch badges and With / Without averages. Exercise timelines label each bar with its date. Pattern and advice strings are plain text (no leading presentation emoji).
+
+On the Overview chapter, the wellbeing score ring shows the final number immediately when reduced motion is preferred (no count-up from zero).
+
 ### On-device LLM (optional)
 
 For richer summaries and note suggestions, Rianell can download a **~3.5 GB** model:

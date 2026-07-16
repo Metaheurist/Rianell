@@ -9,7 +9,7 @@ Open the **gear icon** to access a scrollable **settings carousel** with grouped
 | Pane | Examples |
 |------|----------|
 | **Display** | Global theme, colour-blind mode, **profile companion** (carousel), notification preferences |
-| **Data options** | Demo mode, import/export, clear local data |
+| **Data options** | Demo mode, import/export, clear local data, enable AI features, anonymised contribution toggles |
 | **Data management** | App version, install links (web) or release links (native) |
 | **Performance** | On-device AI model download, clear/redownload, benchmarks |
 | **Privacy & region** | Language, region gate, policy documents, health consent, **session recording disclosure**, consent dashboard (revoke consents), optional Smartlook toggle |
@@ -19,9 +19,11 @@ Open the **gear icon** to access a scrollable **settings carousel** with grouped
 
 Exact pane count may vary slightly by platform; native Settings mirrors web section titles for parity.
 
-**Daily targets / AI enablement** open from the Home header **Goals & targets** button (Goals modal), not a Settings carousel pane.
+**Daily targets** open from the Home header **Goals & targets** button (Goals modal). That modal also has an **Achievements** pane with the badge grid; the Home **Trophy Room** stays the primary showcase.
 
-**Achievements** are on **Home** (Trophy Room), not inside Settings.
+**Enable AI features** and anonymised contribution toggles live under **Settings → Data options** (not inside the Goals modal).
+
+**Achievements** are on **Home** (Trophy Room) and mirrored in the Goals modal Achievements pane — not inside Settings.
 
 ---
 
