@@ -29,6 +29,18 @@ test('mood-tab uses compact history ribbon without duplicating latest', () => {
   assert.match(js, /renderMoodControlDeck\(todayStr, simpleMode\)/);
 });
 
+test('mood heatmap tiles show a date label (day + month on boundaries)', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
+  assert.match(js, /mood-heatmap__cell-day/);
+  assert.match(js, /mood-heatmap__cell-month/);
+  assert.match(js, /dayNum === 1 \|\| i === n - 1/);
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  // Parent button zeroes font-size/colour, so the label must size and colour itself.
+  assert.match(css, /\.mood-heatmap__cell-day[\s\S]*?font-size: 0\.62rem/);
+  assert.match(css, /\.mood-heatmap__cell-month[\s\S]*?font-size: 0\.5rem/);
+  assert.match(css, /\.mood-heatmap__cell--good \.mood-heatmap__cell-day/);
+});
+
 test('mood heatmap cells beat light-mode button chrome', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /body\.light-mode button\.mood-heatmap__cell/);
@@ -106,6 +118,26 @@ test('check-in slider icons scale up for button footprint', () => {
   assert.match(css, /--checkin-stop-icon-size: 1\.65rem/);
   assert.match(css, /--checkin-stop-icon-size-selected: 2\.25rem/);
   assert.match(css, /\.mood-control-deck[\s\S]*--checkin-stop-icon-size-selected: 2\.4rem/);
+});
+
+test('mood deck quick-check tiles use clipboard and anxious-face icons', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(js, /renderMoodDeckActionTile\('moodPhq2Btn'[\s\S]*?'mood-clipboard'/);
+  assert.match(js, /renderMoodDeckActionTile\('moodGad2Btn'[\s\S]*?'anxious-face'/);
+  assert.match(html, /id="icon-mood-clipboard"/);
+  assert.match(html, /id="icon-anxious-face"/);
+  assert.match(app, /'anxious-face'/);
+  assert.match(app, /'mood-clipboard'/);
+  const clipboard = html.match(/id="icon-mood-clipboard"[^>]*>([\s\S]*?)<\/symbol>/);
+  const anxious = html.match(/id="icon-anxious-face"[^>]*>([\s\S]*?)<\/symbol>/);
+  assert.ok(clipboard, 'mood-clipboard symbol');
+  assert.ok(anxious, 'anxious-face symbol');
+  assert.match(clipboard[1], /stroke="currentColor"/);
+  assert.match(anxious[1], /stroke="currentColor"/);
+  assert.match(anxious[1], /rotate\(-18/);
+  assert.match(anxious[1], /M10\.45 7\.85/);
 });
 
 test('chart-bars and brain-wave sprites use currentColor (not invisible/black fills)', () => {
