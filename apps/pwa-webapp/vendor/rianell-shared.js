@@ -586,6 +586,7 @@ var RianellShared = (() => {
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shareRowToEnvelope: () => shareRowToEnvelope,
     shouldActivateSessionRecording: () => shouldActivateSessionRecording,
+    shouldAllowAiModelDownload: () => shouldAllowAiModelDownload,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
     shouldFireAchievementUnlockNotification: () => shouldFireAchievementUnlockNotification,
     shouldFireFlareRiskNudge: () => shouldFireFlareRiskNudge,
@@ -1777,13 +1778,17 @@ var RianellShared = (() => {
   }
   function getFeatureAvailability(regionId, featureKey, consents, pack) {
     const resolved = resolvePolicyPack(regionId, pack);
+    const c = consents && typeof consents === "object" ? consents : {};
+    if (featureKey === "onDeviceLlmDownload" && c.demoMode === true) {
+      return { available: true, regionId: resolved.regionId };
+    }
     const feat = resolved.features?.[featureKey];
     if (!feat || feat.enabled === false) {
       return { available: false, reason: "disabled_for_region", regionId: resolved.regionId };
     }
     const required = Array.isArray(feat.requiredConsents) ? feat.requiredConsents : [];
     for (const key of required) {
-      if (!consentOk(consents, key)) {
+      if (!consentOk(c, key)) {
         return { available: false, reason: "missing_consent", missing: key, regionId: resolved.regionId };
       }
     }
@@ -1817,7 +1822,8 @@ var RianellShared = (() => {
       aiModel: p.aiEnabled !== false && (p.aiModelDownloadConsent === "granted" || p.aiEnabled === true),
       aiEnabled: p.aiEnabled !== false,
       aiModelDownloadConsent: p.aiModelDownloadConsent,
-      sessionRecording: p.sessionRecording === true
+      sessionRecording: p.sessionRecording === true,
+      demoMode: p.demoMode === true
     };
   }
 
@@ -2220,6 +2226,9 @@ var RianellShared = (() => {
     if (!isLocalOnlyModeEnabled(prefs)) return true;
     const blocked = new Set(LOCAL_ONLY_NETWORK_FEATURES.map((f) => f.id));
     return !blocked.has(featureId);
+  }
+  function shouldAllowAiModelDownload(prefs) {
+    return shouldAllowNetworkOperation(prefs, "modelDownload");
   }
   function localOnlyBlockReason(featureId) {
     return { blocked: true, featureId, reason: "local_only_mode" };
