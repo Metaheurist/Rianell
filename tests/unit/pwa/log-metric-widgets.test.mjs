@@ -2,6 +2,20 @@ import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+test('severity metric drums sync to displayed raw values, not inverted wellness', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  assert.match(js, /function displayValueFromSlider/);
+  assert.match(js, /function sliderValueFromDisplay/);
+  assert.match(js, /displayValueFromSlider\(slider\.id, slider\.value\)/);
+  assert.match(js, /sliderValueFromDisplay\(slider\.id, displayVal\)/);
+  assert.match(js, /sliderValueFromDisplay\(id, nextDisplay\)/);
+  // Scale hints match ascending raw severity on the drum.
+  assert.match(
+    js,
+    /slider-hint-good[\s\S]*wizard\.metric\.severity\.low[\s\S]*slider-hint-bad[\s\S]*wizard\.metric\.severity\.high/,
+  );
+});
+
 test('metric widgets mount compact drums instead of segmented scales', () => {
   const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
   assert.match(js, /function bindMetricDrum/);

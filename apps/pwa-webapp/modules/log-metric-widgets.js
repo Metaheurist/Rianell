@@ -88,10 +88,23 @@
   function applySeverityScaleHints(container) {
     var goodBad = container.querySelector('.slider-good-bad');
     if (!goodBad) return;
+    // Drum shows ascending raw severity (1→10), so Low sits left and High right.
     goodBad.innerHTML =
-      '<span class="slider-hint-bad" data-i18n="wizard.metric.severity.high">High</span>' +
-      '<span class="slider-hint-good" data-i18n="wizard.metric.severity.low">Low</span>';
+      '<span class="slider-hint-good" data-i18n="wizard.metric.severity.low">Low</span>' +
+      '<span class="slider-hint-bad" data-i18n="wizard.metric.severity.high">High</span>';
     container.setAttribute('data-metric-scale', 'severity');
+  }
+
+  /** User-facing number shown in readout/drum (raw severity for pain-like metrics). */
+  function displayValueFromSlider(id, sliderValue) {
+    var wellness = clamp(parseInt(sliderValue, 10) || 5, 1, 10);
+    return isSeverityMetric(id) ? rawFromWellness(id, wellness) : wellness;
+  }
+
+  /** Convert drum/readout number back into the wellness value stored on the range input. */
+  function sliderValueFromDisplay(id, displayVal) {
+    var d = clamp(parseInt(displayVal, 10) || 5, 1, 10);
+    return isSeverityMetric(id) ? wellnessFromRaw(id, d) : d;
   }
 
   function applyOasisMetricFeedback(widget, display, zoneId) {
@@ -605,7 +618,9 @@
     if (!slider) return;
     var min = parseInt(slider.min, 10) || 1;
     var max = parseInt(slider.max, 10) || 10;
-    slider.value = String(clamp(parseInt(slider.value, 10) + delta, min, max));
+    var display = displayValueFromSlider(id, slider.value);
+    var nextDisplay = clamp(display + delta, min, max);
+    slider.value = String(sliderValueFromDisplay(id, nextDisplay));
     slider.dispatchEvent(new Event('input', { bubbles: true }));
     if (typeof global.updateSliderColor === 'function') global.updateSliderColor(slider);
     else refreshSlider(slider);
@@ -635,7 +650,7 @@
     if (!slider) return;
     var drum = document.getElementById(slider.id + 'Drum');
     if (!drum) return;
-    var val = parseInt(slider.value, 10);
+    var val = displayValueFromSlider(slider.id, slider.value);
     if (isNaN(val)) return;
     if (global.RianellDrumPicker && typeof global.RianellDrumPicker.scrollToValue === 'function') {
       global.RianellDrumPicker.scrollToValue(drum, val, false);
@@ -653,20 +668,21 @@
     var max = parseInt(slider.max, 10) || 10;
     buildMetricDrum(drum, min, max);
     function applyFromDrum(commit) {
-      var val = null;
+      var displayVal = null;
       if (global.RianellDrumPicker && typeof global.RianellDrumPicker.valueAtCenter === 'function') {
-        val = global.RianellDrumPicker.valueAtCenter(drum);
+        displayVal = global.RianellDrumPicker.valueAtCenter(drum);
       }
-      if (val == null) return;
-      val = clamp(val, min, max);
-      if (String(slider.value) !== String(val)) {
-        slider.value = String(val);
+      if (displayVal == null) return;
+      displayVal = clamp(displayVal, min, max);
+      var wellness = sliderValueFromDisplay(slider.id, displayVal);
+      if (String(slider.value) !== String(wellness)) {
+        slider.value = String(wellness);
         slider.dispatchEvent(new Event('input', { bubbles: true }));
       } else {
         refreshSlider(slider);
       }
       drum.querySelectorAll('.vital-drum-item').forEach(function (item) {
-        item.classList.toggle('vital-drum-item--center', parseInt(item.getAttribute('data-value'), 10) === val);
+        item.classList.toggle('vital-drum-item--center', parseInt(item.getAttribute('data-value'), 10) === displayVal);
       });
       if (commit && typeof global.updateSliderColor === 'function') global.updateSliderColor(slider);
     }
