@@ -48,10 +48,19 @@
     scrollEl.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
   }
 
+  function prefersReducedMotion() {
+    try {
+      return !!(global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function snapToNearest(scrollEl, smooth) {
     var val = drumValueAtCenter(scrollEl);
     if (val == null) return null;
-    scrollDrumToValue(scrollEl, val, smooth !== false);
+    var useSmooth = smooth !== false && !prefersReducedMotion();
+    scrollDrumToValue(scrollEl, val, useSmooth);
     return val;
   }
 
@@ -81,7 +90,8 @@
 
     function finishSnap() {
       if (dragging) return;
-      snapToNearest(scrollEl, true);
+      // Snap without bounce when reduced motion is preferred.
+      snapToNearest(scrollEl, !prefersReducedMotion());
       onScroll();
       onSnap();
     }

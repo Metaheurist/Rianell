@@ -2,6 +2,15 @@ import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+test('metric widgets mount compact drums instead of segmented scales', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  assert.match(js, /function bindMetricDrum/);
+  assert.match(js, /metric-drum-shell/);
+  assert.match(js, /visually-hidden/);
+  assert.match(js, /syncMetricDrumFromSlider/);
+  assert.doesNotMatch(js, /SegmentedScaleInput|mountSegmented/);
+});
+
 test('swelling widget uses pin-anchored balloon SVG tied to slider value', () => {
   const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
   assert.match(js, /case 'swelling':[\s\S]*metric-balloon-body/);

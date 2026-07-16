@@ -4558,6 +4558,15 @@ body.light-mode .vitals-last-value-hint__value {
   transform: scale(1.06);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .vital-drum-item {
+    transition: none;
+  }
+  .vital-drum-item--center {
+    transform: none;
+  }
+}
+
 /* Glucose droplet */
 .glucose-droplet-svg {
   width: 56px;
