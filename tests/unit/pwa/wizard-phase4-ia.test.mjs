@@ -22,21 +22,19 @@ test('Phase 4 symptoms split layout puts map + scales columns', () => {
   assert.match(css, /order:\s*-1/);
 });
 
-test('Phase 4 targets via Goals modal; Trophy Room on Home', () => {
+test('Phase 4 targets and achievements live in the Goals modal', () => {
   assert.match(html, /id="targetSettingsPanel"/);
   assert.match(html, /id="goalsModalOverlay"/);
-  assert.match(html, /id="achievementsTrophyRoom"/);
-  assert.match(html, /home-trophy-room/);
   assert.match(html, /id="goalSteps"/);
-  assert.match(html, /id="achievementsGrid"/);
   assert.match(html, /id="goalsAchievementsGrid"/);
   assert.match(html, /data-goal-nudge="goalSteps"/);
   assert.doesNotMatch(html, /data-settings-pane-title="AI & Goals"/);
   assert.doesNotMatch(html, /id="openTrophyRoomFromGoalsBtn"/);
+  assert.doesNotMatch(html, /id="achievementsTrophyRoom"/);
+  assert.doesNotMatch(html, /id="achievementsGrid"/);
+  assert.doesNotMatch(html, /home-trophy-room/);
   assert.equal((html.match(/id="goalSteps"/g) || []).length, 1);
-  assert.equal((html.match(/id="achievementsGrid"/g) || []).length, 1);
   assert.equal((html.match(/id="goalsAchievementsGrid"/g) || []).length, 1);
-  assert.equal((html.match(/id="achievementsTrophyRoom"/g) || []).length, 1);
 });
 
 test('Goals modal achievements pane renders the badge grid in-place', () => {
@@ -47,6 +45,7 @@ test('Goals modal achievements pane renders the badge grid in-place', () => {
   assert.match(js, /function getAchievementsGridRoots/);
   assert.match(js, /goalsAchievementsGrid/);
   assert.match(js, /function buildAchievementsGridHtml/);
+  assert.doesNotMatch(js, /getElementById\('achievementsGrid'\)/);
 });
 
 test('AI and data sharing toggles live in Settings data options, not Goals modal', () => {

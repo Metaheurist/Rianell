@@ -11265,9 +11265,7 @@ function buildAchievementsGridHtml(snapshots, totalCount, unlockedCount) {
 
 function getAchievementsGridRoots() {
   var roots = [];
-  var home = document.getElementById('achievementsGrid');
   var modal = document.getElementById('goalsAchievementsGrid');
-  if (home) roots.push(home);
   if (modal) roots.push(modal);
   return roots;
 }
@@ -11454,8 +11452,8 @@ function tickAchievements() {
     fireAchievementUnlockNotifications(newly);
   }
   _achievementSnapshotsPrev = snapshots.map(function (s) { return Object.assign({}, s); });
-  var grid = document.getElementById('achievementsGrid');
-  if (grid && grid.childElementCount) renderAchievementsPane();
+  var grids = getAchievementsGridRoots();
+  if (grids.some(function (grid) { return grid.childElementCount; })) renderAchievementsPane();
   updateGoalsHeaderUnseenBadge();
 }
 
