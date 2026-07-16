@@ -13,13 +13,19 @@ function consentOk(consents, key) {
 
 export function getFeatureAvailability(regionId, featureKey, consents, pack) {
   const resolved = resolvePolicyPack(regionId, pack);
+  const c = consents && typeof consents === 'object' ? consents : {};
+  // Demo mode: allow on-device LLM download/init without the full health-consent gate.
+  // Export, cloud sync, and anon pool stay demo-blocked elsewhere.
+  if (featureKey === 'onDeviceLlmDownload' && c.demoMode === true) {
+    return { available: true, regionId: resolved.regionId };
+  }
   const feat = resolved.features?.[featureKey];
   if (!feat || feat.enabled === false) {
     return { available: false, reason: 'disabled_for_region', regionId: resolved.regionId };
   }
   const required = Array.isArray(feat.requiredConsents) ? feat.requiredConsents : [];
   for (const key of required) {
-    if (!consentOk(consents, key)) {
+    if (!consentOk(c, key)) {
       return { available: false, reason: 'missing_consent', missing: key, regionId: resolved.regionId };
     }
   }
@@ -56,5 +62,6 @@ export function prefsToConsents(prefs) {
     aiEnabled: p.aiEnabled !== false,
     aiModelDownloadConsent: p.aiModelDownloadConsent,
     sessionRecording: p.sessionRecording === true,
+    demoMode: p.demoMode === true,
   };
 }

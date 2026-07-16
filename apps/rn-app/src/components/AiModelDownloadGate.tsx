@@ -54,8 +54,11 @@ export function AiModelDownloadGate({ prefs, onChangePrefs, children }: Props) {
     }
     let cancelled = false;
     void (async () => {
-      const { shouldAllowNetworkOperation } = await import('@rianell/shared');
-      if (!shouldAllowNetworkOperation(prefs, 'modelDownload')) {
+      const { shouldAllowAiModelDownload, shouldAllowNetworkOperation } = await import('@rianell/shared');
+      const allow = typeof shouldAllowAiModelDownload === 'function'
+        ? shouldAllowAiModelDownload(prefs)
+        : shouldAllowNetworkOperation(prefs, 'modelDownload');
+      if (!allow) {
         setPhase('ready');
         return;
       }

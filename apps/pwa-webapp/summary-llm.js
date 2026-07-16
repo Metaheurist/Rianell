@@ -767,6 +767,7 @@
   function isLlmNetworkAllowed() {
     var prefs = typeof window !== 'undefined' && window.appSettings;
     if (!prefs) return true;
+    // Local-only blocks outbound model fetch; demo mode explicitly allows on-device download.
     if (prefs.localOnlyMode === true) return false;
     return true;
   }
