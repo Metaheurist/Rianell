@@ -696,9 +696,12 @@
             writeGpuPipelineFailCache(gpuClass);
           }
         }
-        if (typeof console !== 'undefined' && console.warn) {
-          console.warn('Summary LLM: attempt failed (' + label + '):', e.message || e,
-            gpuClass.code ? ('[' + gpuClass.class + ' ' + gpuClass.code + ']') : ('[' + gpuClass.class + ']'));
+        if (typeof console !== 'undefined') {
+          var logGpuFallback = gpuClass.retryPath === 'mlc' && console.info ? console.info : console.warn;
+          if (logGpuFallback) {
+            logGpuFallback.call(console, 'Summary LLM: attempt failed (' + label + '), retrying fallback:', e.message || e,
+              gpuClass.code ? ('[' + gpuClass.class + ' ' + gpuClass.code + ']') : ('[' + gpuClass.class + ']'));
+          }
         }
         if (gpuClass.retryPath === 'mlc' && plan.device === 'webgpu') {
           break;
@@ -1095,8 +1098,9 @@
 
       if (!loaded) {
         if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-        if (typeof console !== 'undefined' && console.warn) {
-          console.warn('Summary LLM: GPU/MLC attempts failed, trying WASM:', gpuErr && (gpuErr.message || gpuErr));
+        if (typeof console !== 'undefined') {
+          var logWasmFallback = console.info || console.warn;
+          if (logWasmFallback) logWasmFallback.call(console, 'Summary LLM: GPU/MLC attempts unavailable, trying WASM:', gpuErr && (gpuErr.message || gpuErr));
         }
         try {
           var modWasm = gpuPlans.length > 0 ? await importTransformersModule(true) : mod;

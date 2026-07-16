@@ -12,6 +12,7 @@ test('home Phase 2 command grid and dashboard header exist', () => {
   assert.match(html, /id="homeHeroCtaWrap"/);
   assert.match(html, /id="homeAskBar"/);
   assert.match(html, /id="homeAskInput"/);
+  assert.match(html, /id="homeAskSetupGate"/);
   assert.match(html, /data-no-voice-input="true"/);
   assert.doesNotMatch(html, /id="homeAskSend"/);
   assert.doesNotMatch(html, /class="home-ask-send"/);

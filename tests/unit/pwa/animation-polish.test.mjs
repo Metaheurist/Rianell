@@ -90,6 +90,9 @@ test('styles.css body.reduce-motion disables webgl and hero stagger', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /body\.reduce-motion[\s\S]*\.rianell-webgl-canvas/);
   assert.match(css, /body\.reduce-motion[\s\S]*\.home-hero-stagger/);
+  // Stagger children start at opacity:0; reduced-motion must restore visibility
+  assert.match(css, /body\.reduce-motion\s+\.home-hero-stagger\s*>\s*\*[\s\S]*?opacity:\s*1\s*!important/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.home-hero-stagger\s*>\s*\*[\s\S]*?opacity:\s*1\s*!important/);
 });
 
 test('app.js wires lazyLoadWebGL and syncReduceMotionBodyClass', () => {

@@ -2,6 +2,16 @@ import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+test('wellbeing ring shows score immediately under reduce-motion', () => {
+  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  assert.match(js, /function renderWellbeingScoreRing/);
+  assert.match(js, /Under reduce-motion, show the final score immediately/);
+  assert.match(js, /valueHtml = reduceMotion/);
+  assert.match(js, /function initAIChapterAnimations/);
+  assert.match(js, /never leave the wellbeing ring stuck on the "0" placeholder/);
+  assert.match(js, /document\.body && document\.body\.classList\.contains\('reduce-motion'\)/);
+});
+
 test('app.js renders enriched AI trend metric cards', () => {
   const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.match(js, /function buildAITrendSparklineSvg/);

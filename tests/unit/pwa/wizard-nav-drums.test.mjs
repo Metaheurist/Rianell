@@ -20,6 +20,11 @@ test('desktop wizard shows side nav and hides chunky bottom nav row', () => {
   );
 });
 
+test('log wizard bottom dock does not block side navigation clicks', () => {
+  assert.match(css, /\.log-wizard-bottom-dock\s*\{[\s\S]*?pointer-events:\s*none/);
+  assert.match(css, /\.log-wizard-bottom-dock button,\s*[\s\S]*?\.log-wizard-bottom-dock \.log-wizard-step-dot\s*\{[\s\S]*?pointer-events:\s*auto/);
+});
+
 test('side Next saves on review step', () => {
   assert.match(app, /data-nav-mode',\s*onReviewStep \? 'save' : 'next'/);
   assert.match(app, /logWizardSaveBtn[\s\S]*\.click\(\)/);

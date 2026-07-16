@@ -32,6 +32,20 @@ test('log entries have summary line and Physical/Lifestyle/Mental carousel panes
   assert.match(js, /data-log-pane="mental"/);
   assert.match(js, /function wireLogDetailTabs/);
   assert.match(js, /common\.expand\.details/);
+  // Lifestyle/Mental dots use leaf + brain-wave (not food/brain) for clearer category cues.
+  assert.match(js, /svgIcon\('leaf',\s*'log-detail-dot__svg'\)/);
+  assert.match(js, /svgIcon\('brain-wave',\s*'log-detail-dot__svg'\)/);
+});
+
+test('log detail carousel uses stable inner scrolling and tokenized pane tones', () => {
+  assert.match(js, /function scrollTrackToPane/);
+  assert.match(js, /track\.scrollTo\(\{ left: left, top: 0/);
+  assert.doesNotMatch(js, /target\.scrollIntoView\(\{ behavior: 'smooth', inline: 'start', block: 'nearest' \}\)/);
+  assert.match(css, /--log-pane-lifestyle:\s*var\(--color-info\)/);
+  assert.match(css, /--log-pane-mental:\s*var\(--color-ai-accent\)/);
+  assert.match(css, /\.log-detail-pane__body\.log-metrics-grid[\s\S]*min-height:\s*clamp/);
+  assert.doesNotMatch(css, /--log-pane-lifestyle:\s*#2a9d8f/);
+  assert.doesNotMatch(css, /--log-pane-mental:\s*#9c27b0/);
 });
 
 test('log filter helpers preserve setLogViewRange and sort order', () => {

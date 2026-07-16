@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=146" as="style">
-  <link rel="modulepreload" href="app.js?v=67" crossorigin>
+  <link rel="preload" href="styles.css?v=147" as="style">
+  <link rel="modulepreload" href="app.js?v=68" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=146" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=146&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=147" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=147&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=3">
   <style>
@@ -1115,7 +1115,7 @@
     <symbol id="icon-chart-up" viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-4 3 3 5-7"/><path d="M15 7h4v4"/></symbol>
     <symbol id="icon-chart-down" viewBox="0 0 24 24"><path d="M4 5v14h16"/><path d="m7 8 4 4 3-3 5 7"/><path d="M15 16h4v-4"/></symbol>
     <symbol id="icon-balance" viewBox="0 0 24 24"><path d="M12 4v17"/><path d="M5 7h14"/><path d="m7 7-4 7h8L7 7Z"/><path d="m17 7-4 7h8l-4-7Z"/></symbol>
-    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.35" fill="none" stroke="currentColor" stroke-width="1.55" opacity="0.52"/><circle cx="12" cy="12" r="5.35" fill="none" stroke="currentColor" stroke-width="1.65"/><circle cx="12" cy="12" r="2.65" fill="none" stroke="currentColor" stroke-width="1.65"/><circle class="icon-fill" cx="12" cy="12" r="1.05"/><circle cx="12" cy="12" r="1.85" fill="none" stroke="currentColor" stroke-width="1" opacity="0.35"/><line x1="12" y1="1.65" x2="12" y2="3.85" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="12" y1="20.15" x2="12" y2="22.35" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="1.65" y1="12" x2="3.85" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><line x1="20.15" y1="12" x2="22.35" y2="12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle class="icon-fill" cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></symbol>
     <symbol id="icon-medal" viewBox="0 0 24 24"><path d="M8.6 2.4 6.8 8.2 9.6 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.4 2.4 17.2 8.2 14.4 9.2" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.6 9.2h4.8" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/><circle cx="12" cy="15.4" r="5.65" fill="none" stroke="currentColor" stroke-width="1.65"/><circle cx="12" cy="15.4" r="4.15" fill="none" stroke="currentColor" stroke-width="1.1" opacity="0.42"/><path d="M8.8 13.6q3.2-1.4 6.4 0" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity="0.5"/><path class="icon-fill" d="M12 11.8 12.95 13.95 15.35 14.25 13.55 15.75 14.05 18.05 12 16.95 9.95 18.05 10.45 15.75 8.65 14.25 11.05 13.95Z"/></symbol>
     <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/><path d="M8 14h2M12 14h2M16 14h2M8 17h2M12 17h2"/></symbol>
     <symbol id="icon-palette" viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 0-1 15.9c.9.1 1.4-.5 1.4-1.1 0-.5-.3-.9-.3-1.4 0-.8.7-1.4 1.5-1.4H15a5 5 0 0 0 5-5c0-3.9-3.6-7-8-7Z"/><circle cx="8" cy="10" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="7.5" cy="13" r="1"/></symbol>
@@ -1210,12 +1210,32 @@
     <symbol id="icon-weather-aqi-poor" viewBox="0 0 24 24"><path d="M12 21s-6.5-4.5-6.5-10A6.5 6.5 0 0 1 12 4.5a6.5 6.5 0 0 1 6.5 6.5c0 5.5-6.5 10-6.5 10Z"/><path d="M9.5 14.5h5"/></symbol>
     <!-- Ask Rianell discovery — high-contrast stroke icons (readable at pill size) -->
     <symbol id="icon-discover-mood" viewBox="0 0 24 24"><path d="M3.5 19.5V6.5" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/><path d="M3.5 19.5h17" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/><path d="M6.5 15.5 9 11.5 12 13.5 15.5 8.5 18 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle class="icon-fill" cx="6.5" cy="15.5" r="1.35"/><circle class="icon-fill" cx="9" cy="11.5" r="1.35"/><circle class="icon-fill" cx="12" cy="13.5" r="1.35"/><circle class="icon-fill" cx="15.5" cy="8.5" r="1.35"/><circle class="icon-fill" cx="18" cy="10" r="1.35"/><circle cx="18.5" cy="4.75" r="2.35" fill="none" stroke="currentColor" stroke-width="1.55"/><path d="M17.15 5.35q1.35 1 2.7 0" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle class="icon-fill" cx="17.55" cy="4.05" r="0.38"/><circle class="icon-fill" cx="19.45" cy="4.05" r="0.38"/></symbol>
-    <symbol id="icon-discover-goals" viewBox="0 0 24 24"><circle cx="12" cy="13" r="7.75" fill="none" stroke="currentColor" stroke-width="1.75"/><circle cx="12" cy="13" r="4.85" fill="none" stroke="currentColor" stroke-width="1.75"/><circle class="icon-fill" cx="12" cy="13" r="1.65"/><path d="M12 3.25v3.75" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 19v3.75" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M3.25 13h3.75" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M17 13h3.75" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 3.25 15.8 5.1v3.35" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-discover-goals" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle class="icon-fill" cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></symbol>
     <symbol id="icon-discover-ai" viewBox="0 0 24 24"><path d="M9.25 5.75A3.55 3.55 0 0 0 5.7 9.3c0 .95-.55 1.85-1.35 2.35" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.75 5.75a3.55 3.55 0 0 1 3.55 3.55c0 .95.55 1.85 1.35 2.35" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10.2 12.2h3.6M12 12.2v5.8" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/><circle class="icon-fill" cx="7.35" cy="13.15" r="1.35"/><circle class="icon-fill" cx="16.65" cy="13.15" r="1.35"/><circle class="icon-fill" cx="12" cy="9.15" r="1.35"/><path d="M8.7 13.15h1.95M13.35 13.15h1.95M10.45 10.05l1.1 1.05M12.45 10.05l1.1 1.05" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/><path d="M4.25 12h1.85M17.9 12h1.85" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/><path class="icon-fill" d="M20.35 4.15l.55 1.15 1.25.15-.9.85.2 1.2-1.1-.6-1.1.6.2-1.2-.9-.85 1.25-.15z"/></symbol>
     <symbol id="icon-discover-orb" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.35" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3.35" fill="none" stroke="currentColor" stroke-width="1.45" opacity="0.55"/><circle class="icon-fill" cx="12" cy="12" r="1.25"/><circle class="icon-fill" cx="12" cy="4.65" r="1.1"/><circle class="icon-fill" cx="18.15" cy="8.35" r="1.1"/><circle class="icon-fill" cx="18.15" cy="15.65" r="1.1"/><circle class="icon-fill" cx="12" cy="19.35" r="1.1"/><circle class="icon-fill" cx="5.85" cy="15.65" r="1.1"/><circle class="icon-fill" cx="5.85" cy="8.35" r="1.1"/><path d="M12 5.75v2.45M15.95 9.05l-1.75 1.4M15.95 14.95l-1.75-1.4M12 18.25v-2.45M8.05 14.95l1.75-1.4M8.05 9.05l1.75 1.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></symbol>
     <!-- AI Analysis tab - custom icons (2026 overhaul) -->
     <symbol id="icon-brain-wave" viewBox="0 0 24 24"><path class="icon-fill" d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z"/><path class="icon-fill" d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z"/><path d="M3 12h2M19 12h2M6 16h1.5M16.5 16H18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="icon-heart-pulse" viewBox="0 0 24 24"><path d="M12 20s-6-3.5-6-9a4 4 0 0 1 7-2.5A4 4 0 0 1 20 11c0 5.5-6 9-6 9Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M4 12h3l2-3 3 6 2-4h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <!-- Quick mood check: clipboard + half-smile / half-sad face -->
+    <symbol id="icon-mood-clipboard" viewBox="0 0 24 24">
+      <rect x="6" y="4.5" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/>
+      <path d="M9 4.5V3.75A1.75 1.75 0 0 1 10.75 2h2.5A1.75 1.75 0 0 1 15 3.75V4.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+      <rect class="icon-fill" x="10" y="2.85" width="4" height="2.1" rx="0.7"/>
+      <circle cx="12" cy="13.1" r="4.35" fill="none" stroke="currentColor" stroke-width="1.55"/>
+      <circle class="icon-fill" cx="10.35" cy="12" r="0.7"/>
+      <circle class="icon-fill" cx="13.65" cy="12" r="0.7"/>
+      <path d="M9.6 14.55q1.2 1.35 2.4 0" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+      <path d="M12 14.55q1.2-1.35 2.4 0" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+    </symbol>
+    <!-- Quick anxiety check: anxious face (tilted eyes, worried brows, trembling mouth) -->
+    <symbol id="icon-anxious-face" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="8.25" fill="none" stroke="currentColor" stroke-width="1.75"/>
+      <ellipse class="icon-fill" cx="9.15" cy="10.45" rx="1.05" ry="1.4" transform="rotate(-18 9.15 10.45)"/>
+      <ellipse class="icon-fill" cx="14.85" cy="10.45" rx="1.05" ry="1.4" transform="rotate(18 14.85 10.45)"/>
+      <path d="M10.45 7.85 7.65 9.05" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M13.55 7.85 16.35 9.05" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M8.55 15.4 9.65 14.35 10.75 15.4 11.85 14.35 12.95 15.4 14.05 14.35 15.15 15.4" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
     <symbol id="icon-trends-vitals" viewBox="0 0 24 24">
       <g class="trends-vitals-heart-pulse">
         <path class="trends-vitals-heart icon-fill" d="M12 20.75 C8.75 18 5.75 15.25 5.75 11.25 C5.75 8.25 7.75 6.25 10.25 6.25 C11.35 6.25 12.15 6.95 12.85 8.15 C13.55 6.95 14.35 6.25 15.45 6.25 C17.95 6.25 19.95 8.25 19.95 11.25 C19.95 15.25 16.7 18 12 20.75 Z"/>
@@ -1710,6 +1730,25 @@
           <label style="visibility: hidden;" data-i18n="common.helper">Helper</label>
           <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
         </div>
+        <div class="settings-option settings-option-with-hint">
+          <label data-i18n="settings.ai.enableFeatures">Enable AI features &amp; Goals</label>
+          <div class="toggle-switch" id="aiEnabledToggle" role="switch" tabindex="0" aria-checked="true" onclick="toggleAIFeatures()"></div>
+        </div>
+        <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals &amp; targets are available. When off: they are hidden. You can change this anytime.</p>
+        <div class="settings-option">
+          <label data-i18n="settings.cloud.anon">Contribute anonymised data</label>
+          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()" role="switch" aria-describedby="contributeAnonDataHint"></div>
+        </div>
+        <p class="settings-hint" id="contributeAnonDataHint" data-i18n="common.contribute.your.anonymised.data.to.help.">Contribute your anonymised data to help improve AI models</p>
+        <div class="settings-option">
+          <label data-i18n="common.use.open.data.for.training">Use open data for training</label>
+          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()" role="switch" aria-describedby="useOpenDataHint"></div>
+        </div>
+        <p class="settings-hint" id="useOpenDataHint" data-i18n="common.use.anonymised.data.pool.for.ai.training">Use anonymised data pool for AI training (requires 90+ days of data)</p>
+        <p class="settings-hint" data-i18n="common.used.for.personalised.ai.analysis.and.ad">Used for personalised AI analysis and advice</p>
+        <div class="settings-option" style="margin-top: 14px;">
+          <button type="button" id="exportContributionHistoryBtn" class="modal-save-btn settings-pane-footer__btn" onclick="typeof exportContributionHistoryUI==='function'&&exportContributionHistoryUI()" data-i18n="research.pool.export.action">Export my contribution history</button>
+        </div>
       </div>
       <div class="settings-section">
         <h4 data-i18n="settings.dataOptions.loggingSection">Logging modules</h4>
@@ -2011,23 +2050,6 @@
           <div class="goals-carousel-track" id="goalsCarouselTrack" data-goals-index="0">
             <div class="goals-carousel-pane goals-carousel-pane--active goals-carousel-pane--targets" data-pane-title="Goals" data-i18n-title="common.goals.targets" role="tabpanel" aria-hidden="false">
               <div class="modal-body goals-modal-body">
-                <div class="settings-option settings-option-with-hint">
-                  <label data-i18n="settings.ai.enableFeatures">Enable AI features &amp; Goals</label>
-                  <div class="toggle-switch" id="aiEnabledToggle" role="switch" tabindex="0" aria-checked="true" onclick="toggleAIFeatures()"></div>
-                </div>
-                <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals &amp; targets are available. When off: they are hidden. You can change this anytime.</p>
-                <div class="settings-option" style="margin-top: 14px;">
-                  <label data-i18n="settings.cloud.anon">Contribute anonymised data</label>
-                  <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()" role="switch" aria-describedby="contributeAnonDataHint"></div>
-                </div>
-                <p class="settings-hint" id="contributeAnonDataHint" data-i18n="common.contribute.your.anonymised.data.to.help.">Contribute your anonymised data to help improve AI models</p>
-                <div class="settings-option">
-                  <label data-i18n="common.use.open.data.for.training">Use open data for training</label>
-                  <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()" role="switch" aria-describedby="useOpenDataHint"></div>
-                </div>
-                <p class="settings-hint" id="useOpenDataHint" data-i18n="common.use.anonymised.data.pool.for.ai.training">Use anonymised data pool for AI training (requires 90+ days of data)</p>
-                <p class="settings-hint" data-i18n="common.used.for.personalised.ai.analysis.and.ad">Used for personalised AI analysis and advice</p>
-
                 <div class="ui-card target-settings-panel" id="targetSettingsPanel">
                   <h5 class="target-settings-panel__title" data-i18n="common.goals.targets">Goals &amp; targets</h5>
                   <p class="field-hint" data-i18n="common.goals.hint">Set daily or weekly targets. Progress appears on the Home tab. Use 0 to leave a goal off.</p>
@@ -2077,17 +2099,12 @@
                     </div>
                   </div>
                 </div>
-
-                <div class="settings-option" style="margin-top: 14px;">
-                  <button type="button" id="exportContributionHistoryBtn" class="modal-save-btn settings-pane-footer__btn" onclick="typeof exportContributionHistoryUI==='function'&&exportContributionHistoryUI()" data-i18n="research.pool.export.action">Export my contribution history</button>
-                </div>
               </div>
             </div>
             <div class="goals-carousel-pane" data-pane-title="Achievements" data-i18n-title="achievements.title" role="tabpanel" aria-hidden="true">
               <div class="modal-body goals-modal-body achievements-modal-body">
                 <p class="field-hint achievements-lede" data-i18n="achievements.subtitle">Unlock food, exercise, and medication logging by tracking consistently.</p>
-                <button type="button" class="cloud-btn settings-pane-footer__btn" id="openTrophyRoomFromGoalsBtn" onclick="typeof openGoalsModal==='function'&&openGoalsModal(1)" data-i18n="achievements.viewInGoals">View achievements</button>
-                <p class="settings-hint" data-i18n="achievements.trophy.homeHint">Trophy Room lives on Home under your profile.</p>
+                <div id="goalsAchievementsGrid" class="achievements-grid achievements-grid--modal" aria-live="polite"></div>
               </div>
             </div>
           </div>
@@ -2387,9 +2404,9 @@
       </symbol>
       <symbol id="rianell-nav-charts" viewBox="0 0 24 24">
         <path class="nav-icon-charts-axis" d="M4.5 19.25V5.25M4.5 19.25H19.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-        <path class="nav-icon-charts-bar nav-icon-charts-bar--1" d="M8.25 17.25V11.5" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"/>
-        <path class="nav-icon-charts-bar nav-icon-charts-bar--2" d="M12 17.25V7.25" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"/>
-        <path class="nav-icon-charts-bar nav-icon-charts-bar--3" d="M15.75 17.25v-4.5" stroke="currentColor" stroke-width="2.75" stroke-linecap="round"/>
+        <path class="nav-icon-charts-bar nav-icon-charts-bar--1" d="M8.25 17.25V11.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-charts-bar nav-icon-charts-bar--2" d="M12 17.25V7.25" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-charts-bar nav-icon-charts-bar--3" d="M15.75 17.25v-4.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
       </symbol>
       <symbol id="rianell-nav-mood" viewBox="0 0 24 24">
         <circle class="nav-icon-mood-face" cx="12" cy="12" r="8.75" fill="none" stroke="currentColor" stroke-width="1.75"/>
@@ -2398,18 +2415,18 @@
         <path class="nav-icon-mood-smile" d="M8.75 14.35c.95 1.35 2.05 2.05 3.25 2.05s2.3-.7 3.25-2.05" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
       </symbol>
       <symbol id="rianell-nav-ai" viewBox="0 0 24 24">
-        <path class="nav-icon-ai-antenna" d="M12 2.2v2.05" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path class="nav-icon-ai-antenna" d="M12 2.2v2.05" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
         <circle class="nav-icon-ai-antenna-tip" cx="12" cy="1.7" r="1.15" fill="currentColor"/>
-        <rect class="nav-icon-ai-head" x="5.1" y="4.2" width="13.8" height="10.2" rx="3.1" fill="none" stroke="currentColor" stroke-width="2"/>
+        <rect class="nav-icon-ai-head" x="5.1" y="4.2" width="13.8" height="10.2" rx="3.1" fill="none" stroke="currentColor" stroke-width="1.75"/>
         <circle class="nav-icon-ai-eye nav-icon-ai-eye--L" cx="9.25" cy="8.55" r="1.55" fill="currentColor"/>
         <circle class="nav-icon-ai-eye nav-icon-ai-eye--R" cx="14.75" cy="8.55" r="1.55" fill="currentColor"/>
-        <path class="nav-icon-ai-mouth" d="M9.05 11.55h5.9" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-        <path class="nav-icon-ai-body" d="M8.35 14.4h7.3v3.05a1.35 1.35 0 0 1-1.35 1.35h-4.6a1.35 1.35 0 0 1-1.35-1.35V14.4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-        <path class="nav-icon-ai-scope-tube nav-icon-ai-scope-tube--L" d="M6.85 9.35C4.55 9.7 3.7 11.85 3.95 14.1c.2 1.85 1.45 3.2 3.35 3.45" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-        <path class="nav-icon-ai-scope-tube nav-icon-ai-scope-tube--R" d="M17.15 9.35c2.3.35 3.15 2.5 2.9 4.75-.2 1.85-1.45 3.2-3.35 3.45" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-        <path class="nav-icon-ai-scope-stem" d="M7.3 17.25 Q12 18.7 16.7 17.25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-        <path class="nav-icon-ai-scope-stem" d="M12 18.05v1.15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-        <circle class="nav-icon-ai-scope-diaphragm" cx="12" cy="20.85" r="1.75" fill="none" stroke="currentColor" stroke-width="1.9"/>
+        <path class="nav-icon-ai-mouth" d="M9.05 11.55h5.9" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-ai-body" d="M8.35 14.4h7.3v3.05a1.35 1.35 0 0 1-1.35 1.35h-4.6a1.35 1.35 0 0 1-1.35-1.35V14.4Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+        <path class="nav-icon-ai-scope-tube nav-icon-ai-scope-tube--L" d="M6.85 9.35C4.55 9.7 3.7 11.85 3.95 14.1c.2 1.85 1.45 3.2 3.35 3.45" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-ai-scope-tube nav-icon-ai-scope-tube--R" d="M17.15 9.35c2.3.35 3.15 2.5 2.9 4.75-.2 1.85-1.45 3.2-3.35 3.45" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-ai-scope-stem" d="M7.3 17.25 Q12 18.7 16.7 17.25" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <path class="nav-icon-ai-scope-stem" d="M12 18.05v1.15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+        <circle class="nav-icon-ai-scope-diaphragm" cx="12" cy="20.85" r="1.75" fill="none" stroke="currentColor" stroke-width="1.75"/>
         <circle class="nav-icon-ai-scope-diaphragm-inner" cx="12" cy="20.85" r="0.75" fill="currentColor"/>
       </symbol>
     </svg>
@@ -2417,9 +2434,7 @@
     <div class="header-buttons-wrap">
       <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets" data-i18n-title="common.goals.targets">
         <svg class="targets-face-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
-          <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
-          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+          <use href="#icon-target"></use>
         </svg>
       </button>
       <button type="button" class="bug-report-button-top" onclick="openBugReportModal()" title="Report a bug" data-i18n-title="home.bugReport.title" aria-label="Report a bug" data-i18n-aria="home.bugReport.title">
@@ -2527,6 +2542,7 @@
         <div id="goalsProgressBlock" class="goals-progress-block goals-progress-block--bento" data-home-card="goals" style="display: none;" aria-live="polite" data-scroll-reveal></div>
       </div>
       <section id="homeAskHub" class="home-ask-hub ui-card" aria-label="Ask Rianell" data-i18n-aria="home.chat.title">
+        <div id="homeAskSetupGate" class="home-ask-setup" hidden aria-live="polite"></div>
         <div id="homeDiscoveryChips" class="home-discovery-chips-wrap" hidden aria-live="polite"></div>
         <form id="homeAskBar" class="home-ask-bar" autocomplete="off">
           <label class="visually-hidden" for="homeAskInput" data-i18n="home.chat.inputLabel">Ask about your health logs</label>
@@ -3662,7 +3678,7 @@
           </div>
         </div>
         <div class="chart-date-range-filter">
-          <div class="filter-row">
+          <div class="filter-row chart-range-row">
             <div class="filter-group">
               <label class="filter-label" data-i18n="common.view.range">View Range:</label>
               <label class="filter-label-mobile" data-i18n="common.view.range">View Range:</label>
@@ -3677,7 +3693,6 @@
                 </div>
               </div>
             </div>
-            <p class="field-hint" data-i18n="common.choose.which.days.to.include">Choose which days to include.</p>
             <div class="filter-group">
               <label class="filter-label" data-i18n="common.prediction.range">Prediction Range:</label>
               <label class="filter-label-mobile" data-i18n="common.prediction.range">Prediction Range:</label>
@@ -3693,6 +3708,7 @@
               </div>
             </div>
           </div>
+          <p class="field-hint chart-range-hint" data-i18n="common.choose.which.days.to.include">Choose which days to include.</p>
           <div id="customDateRangeSelector" class="custom-date-range hidden">
             <label for="chartStartDate" data-i18n="common.from">From:</label>
             <input type="date" id="chartStartDate" onchange="applyCustomDateRange()">
@@ -5222,7 +5238,7 @@
   <script defer src="guided-onboarding.js?v=5"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script type="module" defer src="app.js?v=67"></script>
+  <script type="module" defer src="app.js?v=68"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="modules/goals-carousel.js?v=8"></script>

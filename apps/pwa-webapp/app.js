@@ -3385,12 +3385,12 @@ function escapeHTML(str) {
 
 function svgIcon(name, className, title) {
   var KNOWN_SVG_ICONS = new Set([
-    'accessibility', 'activity', 'android', 'apple', 'balance', 'bandage', 'brain', 'brain-wave', 'bundle',
+    'accessibility', 'activity', 'android', 'anxious-face', 'apple', 'balance', 'bandage', 'brain', 'brain-wave', 'bundle',
     'calendar', 'calendar-heatmap', 'chart-bars', 'chart-down', 'chart-up', 'check', 'checkin-am', 'checkin-midday',
     'checkin-pm', 'chevron-left', 'chevron-right', 'close', 'backspace', 'cloud', 'cloud-up', 'code', 'cycle', 'cycle-follicular', 'cycle-luteal',
     'cycle-menstrual', 'cycle-ovulation', 'discover-ai', 'discover-goals', 'discover-mood', 'discover-orb', 'document', 'edit', 'eye', 'food', 'gauge', 'globe', 'gut',
     'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal',
-    'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-globe', 'onboard-heart',
+    'mood-clipboard', 'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-globe', 'onboard-heart',
     'onboard-helper', 'onboard-install', 'onboard-mascot', 'onboard-shield', 'onboard-sparkle', 'notice', 'reload',
     'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring', 'overview-monitor', 'trends-vitals',
     'star', 'stethoscope', 'stress', 'stressor-bolt', 'target', 'trash', 'user', 'zap',
@@ -7940,11 +7940,23 @@ async function generateAISummary() {
     : (window._aiAnalysisCacheMap && window._aiAnalysisCacheMap[cacheKey]);
   if (cached) {
     window._aiAnalysisCache = cached;
+    if (window._aiSummaryLastRenderedCacheKey === cacheKey) {
+      perfLog('AI generateAISummary (cached no-op)', Date.now() - _perfT0, { range: cacheKey });
+      Logger.debug('AI Summary - Skip duplicate cached display');
+      return cached.analysis;
+    }
     perfLog('AI generateAISummary (from cache)', Date.now() - _perfT0, { range: cacheKey });
     displayAISummary(cached.analysis, cached.sortedLogs, cached.sortedLogs.length, null, cached.dateRangeText);
     updateSummaryNoteWithLLM(cached.analysis, cached.sortedLogs, cached.sortedLogs.length);
+    window._aiSummaryLastRenderedCacheKey = cacheKey;
     Logger.info('AI Summary - Display from cache');
-    return;
+    return cached.analysis;
+  }
+
+  window._aiSummaryInFlightMap = window._aiSummaryInFlightMap || {};
+  if (window._aiSummaryInFlightMap[cacheKey]) {
+    perfLog('AI generateAISummary (joined in-flight)', Date.now() - _perfT0, { range: cacheKey });
+    return window._aiSummaryInFlightMap[cacheKey];
   }
 
   // Show loading state in results area only (so user sees progress and avoids perceived lag)
@@ -7961,7 +7973,7 @@ async function generateAISummary() {
     }
   });
 
-  (async function() {
+  var runPromise = (async function() {
     try {
       const allLogsForTraining = window.PerformanceUtils?.memoizedSort
         ? window.PerformanceUtils.memoizedSort(logs, (a, b) => new Date(a.date) - new Date(b.date), 'allLogsForTraining')
@@ -7982,14 +7994,16 @@ async function generateAISummary() {
       perfLog('AI generateAISummary (computed)', Date.now() - _perfT0, { range: cacheKey, logs: sortedLogs.length });
       displayAISummary(analysis, sortedLogs, sortedLogs.length, null, dateRangeText);
       updateSummaryNoteWithLLM(analysis, sortedLogs, sortedLogs.length);
+      window._aiSummaryLastRenderedCacheKey = cacheKey;
       Logger.info('AI Summary - Display complete');
+      return analysis;
     } catch (error) {
       Logger.error('AI Summary - Error during analysis', { error: error.message, stack: error.stack });
       resultsContent = document.getElementById('aiResultsContent');
       if (resultsContent) {
         resultsContent.innerHTML = `
           <div class="ai-error">
-            <h3>❌ Error</h3>
+            <h3>${escapeHTML(tUi('common.error'))}</h3>
             <p>${tUi('common.something.went.wrong.analysing.your.data')}</p>
             <p style="font-size: 0.9rem; color: #78909c; margin-top: 10px;">${escapeHTML(error.message)}</p>
           </div>
@@ -7997,6 +8011,14 @@ async function generateAISummary() {
       }
     }
   })();
+  window._aiSummaryInFlightMap[cacheKey] = runPromise;
+  try {
+    return await runPromise;
+  } finally {
+    if (window._aiSummaryInFlightMap && window._aiSummaryInFlightMap[cacheKey] === runPromise) {
+      delete window._aiSummaryInFlightMap[cacheKey];
+    }
+  }
 }
 
 // Returns payload for AI preload (worker or main). Null if preload not applicable.
@@ -9103,7 +9125,22 @@ function renderAIExercisePanel(timeline, summary, reduceUIAnimations) {
     timeline.forEach(function(d, idx) {
       var h = Math.max(10, Math.round((d.minutes / maxMin) * 52));
       var active = d.minutes > 0;
-      html += '<span class="ai-exercise-timeline__bar' + (active ? ' ai-exercise-timeline__bar--active' : '') + '" style="height:' + h + 'px;--bar-delay:' + (idx * 18) + 'ms" title="' + escapeAttr(d.date + ': ' + d.minutes + ' min') + '"></span>';
+      var dateKey = d && d.date ? String(d.date) : '';
+      var dt = dateKey ? new Date(dateKey + 'T12:00:00') : null;
+      var dayNum = dt && !isNaN(dt.getTime()) ? dt.getDate() : '';
+      var showMonth = idx === 0 || dayNum === 1;
+      var monthShort = showMonth && dt && !isNaN(dt.getTime())
+        ? dt.toLocaleDateString(undefined, { month: 'short' })
+        : '';
+      var tip = dateKey + ': ' + d.minutes + ' min';
+      html += '<span class="ai-exercise-timeline__day" title="' + escapeAttr(tip) + '">';
+      html += '<span class="ai-exercise-timeline__bar' + (active ? ' ai-exercise-timeline__bar--active' : '') + '" style="height:' + h + 'px;--bar-delay:' + (idx * 18) + 'ms"></span>';
+      html += '<span class="ai-exercise-timeline__date" aria-hidden="true">';
+      if (showMonth && monthShort) {
+        html += '<span class="ai-exercise-timeline__month">' + escapeHTML(monthShort) + '</span>';
+      }
+      html += escapeHTML(String(dayNum));
+      html += '</span></span>';
     });
     html += '</div></div></section>';
     return html;
@@ -9128,13 +9165,13 @@ function renderAIHelpfulImpactCard(impact) {
   var html = '<article class="ai-helpful-card ai-helpful-card--' + tone + '">';
   html += '<div class="ai-helpful-card__head">';
   html += '<span class="ai-helpful-card__type">' + (impact.isPositive ? svgIcon('chart-up', 'ai-inline-icon icon-success') : svgIcon('notice', 'ai-inline-icon icon-warning')) + ' ' + escapeHTML(typeLabel) + '</span>';
-  html += '<span class="ai-helpful-card__badge">' + escapeHTML(impact.isPositive ? tUi('ai.helpful.helps', 'Helps') : tUi('ai.helpful.watch', 'Watch')) + '</span>';
+  html += '<span class="ai-helpful-card__badge">' + escapeHTML(impact.isPositive ? tUiOr('ai.helpful.helps', 'Helps') : tUiOr('ai.helpful.watch', 'Watch')) + '</span>';
   html += '</div>';
   html += '<p class="ai-helpful-card__metric">' + escapeHTML(impact.metric || '') + '</p>';
   html += '<div class="ai-helpful-card__compare">';
-  html += '<div class="ai-helpful-card__stat ai-helpful-card__stat--with"><span class="ai-helpful-card__stat-value">' + escapeHTML(String(impact.withAvg)) + '</span><span class="ai-helpful-card__stat-label">' + escapeHTML(tUi('ai.helpful.withDays', 'with')) + '</span></div>';
+  html += '<div class="ai-helpful-card__stat ai-helpful-card__stat--with"><span class="ai-helpful-card__stat-value">' + escapeHTML(String(impact.withAvg)) + '</span><span class="ai-helpful-card__stat-label">' + escapeHTML(tUiOr('ai.helpful.withDays', 'With')) + '</span></div>';
   html += '<span class="ai-helpful-card__vs" aria-hidden="true">vs</span>';
-  html += '<div class="ai-helpful-card__stat ai-helpful-card__stat--without"><span class="ai-helpful-card__stat-value">' + escapeHTML(String(impact.withoutAvg)) + '</span><span class="ai-helpful-card__stat-label">' + escapeHTML(tUi('ai.helpful.withoutDays', 'without')) + '</span></div>';
+  html += '<div class="ai-helpful-card__stat ai-helpful-card__stat--without"><span class="ai-helpful-card__stat-value">' + escapeHTML(String(impact.withoutAvg)) + '</span><span class="ai-helpful-card__stat-label">' + escapeHTML(tUiOr('ai.helpful.withoutDays', 'Without')) + '</span></div>';
   html += '</div>';
   html += '<div class="ai-helpful-card__bars" aria-hidden="true"><span class="ai-helpful-card__bar ai-helpful-card__bar--with" style="width:' + withPct + '%"></span><span class="ai-helpful-card__bar ai-helpful-card__bar--without" style="width:' + withoutPct + '%"></span></div>';
   html += '</article>';
@@ -9145,7 +9182,7 @@ function renderAIHelpfulPatterns(impacts) {
   if (!impacts || !impacts.length) return '';
   var html = '<section class="ai-lifestyle-panel ai-helpful-panel">';
   html += '<h4 class="ai-lifestyle-panel__title">' + svgIcon('sparkle-ring', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.helpful.patterns')) + '</h4>';
-  html += '<p class="ai-lifestyle-panel__intro">' + escapeHTML(tUi('ai.helpful.intro', 'How food and exercise days compare to your other metrics in this period.')) + '</p>';
+  html += '<p class="ai-lifestyle-panel__intro">' + escapeHTML(tUiOr('ai.helpful.intro', 'How food and exercise days compare to your other metrics in this period.')) + '</p>';
   html += '<div class="ai-helpful-grid" role="list">';
   impacts.slice(0, 4).forEach(function(impact) {
     html += renderAIHelpfulImpactCard(impact);
@@ -9427,12 +9464,17 @@ function renderAIQuickStatHtml(stat, reduceUIAnimations) {
 }
 
 function renderWellbeingScoreRing(score, reduceMotion) {
-  var s = Math.max(0, Math.min(100, score || 0));
+  var s = Math.max(0, Math.min(100, Number(score)));
+  if (isNaN(s)) s = 0;
   var r = 54;
   var c = 2 * Math.PI * r;
   var offset = c * (1 - s / 100);
   var arcClass = reduceMotion ? '' : ' ai-wellbeing-ring__arc--draw';
   var color = s >= 75 ? 'var(--ai-status-optimal)' : s >= 50 ? 'var(--ai-status-caution)' : 'var(--ai-status-alert)';
+  // Under reduce-motion, show the final score immediately (count-up is skipped).
+  var valueHtml = reduceMotion
+    ? '<span class="ai-wellbeing-ring__value" data-count-target="' + s + '">' + s + '</span>'
+    : '<span class="ai-wellbeing-ring__value ai-count-up" data-count-target="' + s + '">0</span>';
   return '<div class="ai-wellbeing-ring-wrap" role="img" aria-label="' + escapeAttr(tUi('ai.wellbeing.scoreAria', { score: String(s) })) + '">' +
     '<svg class="ai-wellbeing-ring" viewBox="0 0 120 120" aria-hidden="true">' +
     '<circle class="ai-wellbeing-ring__track" cx="60" cy="60" r="' + r + '"/>' +
@@ -9441,7 +9483,7 @@ function renderWellbeingScoreRing(score, reduceMotion) {
     'style="--ai-ring-circumference:' + c.toFixed(2) + ';--ai-ring-offset:' + offset.toFixed(2) + '"/>' +
     '</svg>' +
     '<div class="ai-wellbeing-ring__score">' +
-    '<span class="ai-wellbeing-ring__value ai-count-up" data-count-target="' + s + '">0</span>' +
+    valueHtml +
     '<span class="ai-wellbeing-ring__label">' + escapeHTML(tUi('ai.wellbeing.label')) + '</span>' +
     '</div></div>';
 }
@@ -9604,9 +9646,21 @@ function renderAITrendCardHtml(metric, trend, index, animationDelay) {
 }
 
 function initAIChapterAnimations(container) {
-  if (!container || container.classList.contains('reduce-motion')) return;
-  var counters = container.querySelectorAll('.ai-count-up[data-count-target]');
+  if (!container) return;
+  var counters = container.querySelectorAll('[data-count-target]');
+  var reduceMotion = container.classList.contains('reduce-motion') ||
+    (typeof document !== 'undefined' && document.body && document.body.classList.contains('reduce-motion'));
+  if (reduceMotion) {
+    // Snap scores to final values — never leave the wellbeing ring stuck on the "0" placeholder.
+    counters.forEach(function(el) {
+      if (!el.classList.contains('ai-count-up') && !el.classList.contains('ai-wellbeing-ring__value')) return;
+      var target = parseInt(el.getAttribute('data-count-target'), 10);
+      if (!isNaN(target)) el.textContent = String(target);
+    });
+    return;
+  }
   counters.forEach(function(el) {
+    if (!el.classList.contains('ai-count-up')) return;
     var target = parseInt(el.getAttribute('data-count-target'), 10);
     if (isNaN(target)) return;
     var start = 0;
@@ -11149,14 +11203,7 @@ function computeCurrentAchievementSnapshots() {
   return result;
 }
 
-function renderAchievementsPane() {
-  var grid = document.getElementById('achievementsGrid');
-  if (!grid) return;
-  var S = typeof window !== 'undefined' ? window.RianellShared : null;
-  var result = computeCurrentAchievementSnapshots();
-  var snapshots = result.snapshots || [];
-  var totalCount = S && S.ALL_ACHIEVEMENTS ? S.ALL_ACHIEVEMENTS.length : snapshots.length;
-  var unlockedCount = snapshots.filter(function (s) { return s.unlocked; }).length;
+function buildAchievementsGridHtml(snapshots, totalCount, unlockedCount) {
   var t = typeof tUi === 'function' ? tUi : function (k) { return k; };
   var counterText = t('achievements.completionCounter')
     .replace('{unlocked}', String(unlockedCount))
@@ -11169,7 +11216,7 @@ function renderAchievementsPane() {
     '</div>';
   var GP = typeof window !== 'undefined' ? window.RianellGraphicsPortfolio : null;
   var profileAvatar = (appSettings && appSettings.profileAvatar) ? appSettings.profileAvatar : 'voidorb';
-  grid.innerHTML = counterHtml + snapshots.map(function (s) {
+  return counterHtml + (snapshots || []).map(function (s) {
     var title = escapeHTML(t(s.i18nTitle));
     var desc = escapeHTML(t(s.i18nDescription));
     var progressText = s.unlocked
@@ -11214,14 +11261,39 @@ function renderAchievementsPane() {
       '</article>'
     );
   }).join('');
+}
+
+function getAchievementsGridRoots() {
+  var roots = [];
+  var home = document.getElementById('achievementsGrid');
+  var modal = document.getElementById('goalsAchievementsGrid');
+  if (home) roots.push(home);
+  if (modal) roots.push(modal);
+  return roots;
+}
+
+function renderAchievementsPane() {
+  var grids = getAchievementsGridRoots();
+  if (!grids.length) return;
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  var result = computeCurrentAchievementSnapshots();
+  var snapshots = result.snapshots || [];
+  var totalCount = S && S.ALL_ACHIEVEMENTS ? S.ALL_ACHIEVEMENTS.length : snapshots.length;
+  var unlockedCount = snapshots.filter(function (s) { return s.unlocked; }).length;
+  var html = buildAchievementsGridHtml(snapshots, totalCount, unlockedCount);
+  grids.forEach(function (grid) {
+    grid.innerHTML = html;
+  });
   requestAnimationFrame(function () {
-    grid.querySelectorAll('.achievement-progress-fill').forEach(function (el) {
-      var target = el.getAttribute('data-progress') || '0';
-      animateProgressScale(el, target);
+    grids.forEach(function (grid) {
+      grid.querySelectorAll('.achievement-progress-fill').forEach(function (el) {
+        var target = el.getAttribute('data-progress') || '0';
+        animateProgressScale(el, target);
+      });
+      if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.animateAchievementDayChips === 'function') {
+        window.RianellGraphicsPortfolio.animateAchievementDayChips(grid);
+      }
     });
-    if (window.RianellGraphicsPortfolio && typeof window.RianellGraphicsPortfolio.animateAchievementDayChips === 'function') {
-      window.RianellGraphicsPortfolio.animateAchievementDayChips(grid);
-    }
   });
 }
 
@@ -11414,35 +11486,11 @@ function hydrateGoalControlsFromStorage() {
 }
 
 function openSettingsToGoalsAndAchievements(paneIndex) {
-  var focusAchievements = paneIndex === 1;
-
-  if (focusAchievements) {
-    closeGoalsModal();
-    if (typeof closeSettingsModalIfOpen === 'function') closeSettingsModalIfOpen();
-    if (typeof switchTab === 'function') switchTab('home');
-    tickAchievements();
-    setTimeout(function() {
-      var focusTarget = document.getElementById('achievementsTrophyRoom');
-      if (focusTarget) {
-        try {
-          focusTarget.scrollIntoView({ block: 'start', behavior: 'smooth' });
-        } catch (e) {
-          focusTarget.scrollIntoView(true);
-        }
-      }
-    }, 180);
-    return;
-  }
-
-  openGoalsModal(0);
+  openGoalsModal(typeof paneIndex === 'number' ? paneIndex : 0);
 }
 if (typeof window !== 'undefined') window.openSettingsToGoalsAndAchievements = openSettingsToGoalsAndAchievements;
 
 function openGoalsModal(paneIndex) {
-  if (paneIndex === 1) {
-    openSettingsToGoalsAndAchievements(1);
-    return;
-  }
   var overlay = document.getElementById('goalsModalOverlay');
   if (!overlay) return;
   if (typeof closeSettingsModalIfOpen === 'function') closeSettingsModalIfOpen();
@@ -15405,7 +15453,7 @@ function generateLogEntryHTML(log) {
           </section>
           <section class="log-detail-pane log-detail-pane--lifestyle" data-log-pane="lifestyle" aria-label="${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}">
             <header class="log-detail-pane__bar">
-              <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('food', 'log-detail-pane__svg')}</span>
+              <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('leaf', 'log-detail-pane__svg')}</span>
               <span class="log-detail-pane__title">${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}</span>
               <span class="log-detail-pane__swipe" aria-hidden="true">${svgIcon('chevron-left', 'log-detail-pane__chevron')}${svgIcon('chevron-right', 'log-detail-pane__chevron')}</span>
             </header>
@@ -15457,7 +15505,7 @@ function generateLogEntryHTML(log) {
           </section>
           <section class="log-detail-pane log-detail-pane--mental" data-log-pane="mental" aria-label="${escapeHTML(tUiOr('common.mental', 'Mental'))}">
             <header class="log-detail-pane__bar">
-              <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('brain', 'log-detail-pane__svg')}</span>
+              <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('brain-wave', 'log-detail-pane__svg')}</span>
               <span class="log-detail-pane__title">${escapeHTML(tUiOr('common.mental', 'Mental'))}</span>
               <span class="log-detail-pane__swipe" aria-hidden="true">${svgIcon('chevron-left', 'log-detail-pane__chevron')}</span>
             </header>
@@ -15515,8 +15563,8 @@ function generateLogEntryHTML(log) {
         </div>
         <div class="log-detail-carousel__dots" role="tablist" aria-label="${escapeHTML(tUiOr('common.entry.categories', 'Entry categories'))}">
           <button type="button" class="log-detail-dot log-detail-dot--physical is-active" data-log-pane="physical" role="tab" aria-selected="true" aria-label="${escapeHTML(tUiOr('common.physical', 'Physical'))}">${svgIcon('activity', 'log-detail-dot__svg')}</button>
-          <button type="button" class="log-detail-dot log-detail-dot--lifestyle" data-log-pane="lifestyle" role="tab" aria-selected="false" aria-label="${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}">${svgIcon('food', 'log-detail-dot__svg')}</button>
-          <button type="button" class="log-detail-dot log-detail-dot--mental" data-log-pane="mental" role="tab" aria-selected="false" aria-label="${escapeHTML(tUiOr('common.mental', 'Mental'))}">${svgIcon('brain', 'log-detail-dot__svg')}</button>
+          <button type="button" class="log-detail-dot log-detail-dot--lifestyle" data-log-pane="lifestyle" role="tab" aria-selected="false" aria-label="${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}">${svgIcon('leaf', 'log-detail-dot__svg')}</button>
+          <button type="button" class="log-detail-dot log-detail-dot--mental" data-log-pane="mental" role="tab" aria-selected="false" aria-label="${escapeHTML(tUiOr('common.mental', 'Mental'))}">${svgIcon('brain-wave', 'log-detail-dot__svg')}</button>
         </div>
       </div>
       ${isEditing 
@@ -15572,6 +15620,22 @@ function wireLogDetailTabs(entry) {
   entry.dataset.logTabsBound = '1';
   var panes = ['physical', 'lifestyle', 'mental'];
 
+  function scrollTrackToPane(pane, behavior) {
+    var target = track.querySelector('.log-detail-pane[data-log-pane="' + pane + '"]');
+    if (!target) return;
+    var left = target.offsetLeft - track.offsetLeft;
+    if (typeof track.scrollTo === 'function') {
+      try {
+        track.scrollTo({ left: left, top: 0, behavior: behavior || 'auto' });
+        return;
+      } catch (e) {
+        track.scrollLeft = left;
+        return;
+      }
+    }
+    track.scrollLeft = left;
+  }
+
   function setActivePane(pane, scroll) {
     if (panes.indexOf(pane) < 0) pane = 'physical';
     entry.setAttribute('data-active-pane', pane);
@@ -15582,14 +15646,7 @@ function wireLogDetailTabs(entry) {
     });
     carousel.setAttribute('data-active-pane', pane);
     if (scroll) {
-      var target = track.querySelector('.log-detail-pane[data-log-pane="' + pane + '"]');
-      if (target && typeof target.scrollIntoView === 'function') {
-        try {
-          target.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
-        } catch (e) {
-          target.scrollIntoView(true);
-        }
-      }
+      scrollTrackToPane(pane, 'smooth');
     }
   }
 
@@ -15614,6 +15671,7 @@ function wireLogDetailTabs(entry) {
   }, { passive: true });
 
   setActivePane(entry.getAttribute('data-active-pane') || 'physical', false);
+  scrollTrackToPane(entry.getAttribute('data-active-pane') || 'physical', 'auto');
 }
 
 function applyLogEntryPaneVisibility(entry) {
@@ -15627,11 +15685,13 @@ function applyLogEntryPaneVisibility(entry) {
     return;
   }
   var target = track.querySelector('.log-detail-pane[data-log-pane="' + pane + '"]');
-  if (target && typeof target.scrollIntoView === 'function') {
+  if (target) {
+    var left = target.offsetLeft - track.offsetLeft;
     try {
-      target.scrollIntoView({ behavior: 'auto', inline: 'start', block: 'nearest' });
+      if (typeof track.scrollTo === 'function') track.scrollTo({ left: left, top: 0, behavior: 'auto' });
+      else track.scrollLeft = left;
     } catch (e) {
-      target.scrollIntoView(true);
+      track.scrollLeft = left;
     }
   }
   entry.querySelectorAll('.log-detail-dot').forEach(function (dot) {
@@ -17403,7 +17463,7 @@ function scheduleChartsPreload() {
   }
 }
 
-async function updateChartsImmediate() {
+async function updateChartsImmediateImpl() {
   var _perfT0 = Date.now();
   try {
     if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
@@ -17450,6 +17510,17 @@ async function updateChartsImmediate() {
     enforceChartSectionView(getCurrentChartView());
   }
   perfLog('Charts updateChartsImmediate (14 charts)', Date.now() - _perfT0, {});
+}
+
+async function updateChartsImmediate() {
+  if (window._chartsImmediateInFlight) return window._chartsImmediateInFlight;
+  var run = updateChartsImmediateImpl();
+  window._chartsImmediateInFlight = run;
+  try {
+    return await run;
+  } finally {
+    if (window._chartsImmediateInFlight === run) window._chartsImmediateInFlight = null;
+  }
 }
 
 function updateChartEmptyState(hasData) {
@@ -18949,6 +19020,13 @@ if (typeof window !== 'undefined') {
     } else if (!detail || !detail.active) {
       stopLlmStoragePoll();
     }
+    if (typeof renderHomeAskSetupGate === 'function') {
+      try { renderHomeAskSetupGate(); } catch (e) { /* ignore */ }
+    }
+    if (detail && !detail.active && typeof renderHomeDiscoveryChips === 'function') {
+      var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+      try { renderHomeDiscoveryChips(logArr); } catch (e2) { /* ignore */ }
+    }
   });
 }
 
@@ -19341,6 +19419,12 @@ function applyAIFeatureVisibility() {
   var bottomAi = document.getElementById('bottom-tab-ai');
   if (bottomAi) bottomAi.style.display = on ? '' : 'none';
   applySimpleModeSettingsVisibility();
+  if (typeof renderHomeDiscoveryChips === 'function') {
+    var logArr = typeof window !== 'undefined' && window.logs ? window.logs : [];
+    try { renderHomeDiscoveryChips(logArr); } catch (e) { /* ignore */ }
+  } else if (typeof renderHomeAskSetupGate === 'function') {
+    try { renderHomeAskSetupGate(); } catch (e2) { /* ignore */ }
+  }
 }
 
 function applySimpleModeSettingsVisibility() {
@@ -19646,6 +19730,14 @@ async function generateApiKey() {
     if (displayEl) { displayEl.textContent = 'API keys require Cloud Sync to be enabled.'; displayEl.hidden = false; }
     return;
   }
+  var client = getDevSupabaseClient();
+  if (!client) {
+    if (displayEl) {
+      displayEl.textContent = getDevCloudUnavailableMessage();
+      displayEl.hidden = false;
+    }
+    return;
+  }
   try {
     var rawKey = Shared.generateRawApiKey();
     var hash = await Shared.hashApiKey(rawKey);
@@ -19654,16 +19746,14 @@ async function generateApiKey() {
     var label = labelEl && labelEl.value.trim ? labelEl.value.trim() : '';
     var scopes = getSelectedDevApiScopes();
     if (!scopes.length) scopes = Shared.DEFAULT_API_SCOPES || ['logs:read'];
-    var client = getDevSupabaseClient();
-    if (client) {
-      var insertRow = {
-        key_hash: hash,
-        key_prefix: keyPrefix,
-        scopes: scopes,
-      };
-      if (label) insertRow.label = label.slice(0, 80);
-      await client.from('api_keys').insert(insertRow);
-    }
+    var insertRow = {
+      key_hash: hash,
+      key_prefix: keyPrefix,
+      scopes: scopes,
+    };
+    if (label) insertRow.label = label.slice(0, 80);
+    var insertRes = await client.from('api_keys').insert(insertRow);
+    if (insertRes && insertRes.error) throw insertRes.error;
     if (displayEl) {
       displayEl.innerHTML = '<p class="settings-hint">Your new API key (shown once):</p><code class="api-key-code" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.textContent)">' + escapeHTML(rawKey) + '</code><p class="settings-hint">' + escapeHTML(tUi('settings.developer.apiKeyCopyOnceHint')) + '</p>';
       displayEl.hidden = false;
@@ -19677,7 +19767,16 @@ async function generateApiKey() {
 }
 if (typeof window !== 'undefined') window.generateApiKey = generateApiKey;
 
+function getDevCloudUnavailableMessage() {
+  if (typeof appSettings !== 'undefined' && appSettings.demoMode) return 'Cloud developer tools are unavailable in demo mode.';
+  if (typeof appSettings !== 'undefined' && appSettings.localOnlyMode) return 'Cloud developer tools are unavailable in local-only mode.';
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return 'Cloud developer tools are unavailable while offline.';
+  return 'Cloud Sync required.';
+}
+
 function getDevSupabaseClient() {
+  if (typeof appSettings !== 'undefined' && (appSettings.demoMode || appSettings.localOnlyMode)) return null;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;
   if (typeof window.getSupabaseClient === 'function') {
     var fromGetter = window.getSupabaseClient();
     if (fromGetter) return fromGetter;
@@ -19755,9 +19854,10 @@ async function loadApiKeysList() {
   var listEl = document.getElementById('apiKeysList');
   if (!listEl) return;
   var client = getDevSupabaseClient();
-  if (!client) { listEl.innerHTML = '<p class="settings-hint">Cloud Sync required.</p>'; return; }
+  if (!client) { listEl.innerHTML = '<p class="settings-hint">' + escapeHTML(getDevCloudUnavailableMessage()) + '</p>'; return; }
   try {
     var r = await client.from('api_keys').select('id, created_at, scopes, key_prefix, label, last_used_at').is('revoked_at', null).order('created_at', { ascending: false }).limit(10);
+    if (r && r.error) throw r.error;
     var rows = r && r.data || [];
     if (!rows.length) { listEl.innerHTML = '<p class="settings-hint">No API keys yet.</p>'; return; }
     var html = '<ul class="api-keys-list-inner">';
@@ -25064,7 +25164,101 @@ function getHealthChatAiModelState() {
   }
 }
 
+/**
+ * Home Ask / chat surface gate.
+ * @returns {{ mode: 'hidden'|'setup'|'ready'|'generic', aiOn: boolean, supportsLlm: boolean, modelState: string }}
+ */
+function getHomeAskGateState() {
+  var simpleOff = typeof appSettings !== 'undefined' && appSettings && appSettings.simpleMode === true;
+  if (simpleOff) {
+    return { mode: 'hidden', aiOn: false, supportsLlm: false, modelState: 'unknown' };
+  }
+  var aiOn = typeof appSettings === 'undefined' || !appSettings || appSettings.aiEnabled !== false;
+  var supportsLlm = typeof deviceSupportsOnDeviceLlmChat === 'function' ? deviceSupportsOnDeviceLlmChat() : true;
+  var modelState = getHealthChatAiModelState();
+  if (!supportsLlm) {
+    return { mode: 'generic', aiOn: aiOn, supportsLlm: false, modelState: modelState };
+  }
+  if (aiOn && modelState === 'ready') {
+    return { mode: 'ready', aiOn: true, supportsLlm: true, modelState: modelState };
+  }
+  return { mode: 'setup', aiOn: aiOn, supportsLlm: true, modelState: modelState };
+}
+if (typeof window !== 'undefined') window.getHomeAskGateState = getHomeAskGateState;
+
+function isHomeAskChatReady() {
+  var state = getHomeAskGateState();
+  return state.mode === 'ready' || state.mode === 'generic';
+}
+if (typeof window !== 'undefined') window.isHomeAskChatReady = isHomeAskChatReady;
+
+function runEnableAiAndDownloadForChat(pendingOpenOptions) {
+  if (typeof appSettings === 'undefined' || !appSettings) return;
+  appSettings.aiEnabled = true;
+  if (typeof saveSettings === 'function') saveSettings();
+  var aiEnabledToggle = document.getElementById('aiEnabledToggle');
+  if (aiEnabledToggle) {
+    aiEnabledToggle.classList.add('active');
+    aiEnabledToggle.setAttribute('aria-checked', 'true');
+  }
+  if (typeof applyAIFeatureVisibility === 'function') applyAIFeatureVisibility();
+  if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
+  var ensure = typeof ensureSummaryLlmLoadedForSettings === 'function'
+    ? ensureSummaryLlmLoadedForSettings()
+    : Promise.resolve();
+  ensure.then(function () {
+    if (typeof promptAiModelDownloadConsent === 'function') {
+      return promptAiModelDownloadConsent();
+    }
+    return false;
+  }).then(function (granted) {
+    if (!granted) {
+      if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
+      return null;
+    }
+    if (typeof window.preloadSummaryLLM === 'function') {
+      return window.preloadSummaryLLM().catch(function () { return null; });
+    }
+    return null;
+  }).then(function () {
+    if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
+    if (typeof renderHomeDiscoveryChips === 'function') {
+      var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+      renderHomeDiscoveryChips(logArr);
+    }
+    var state = getHealthChatAiModelState();
+    if (state === 'ready' && typeof openAiHealthChat === 'function') {
+      openAiHealthChat(Object.assign({}, pendingOpenOptions || {}, { skipGate: true }));
+      return;
+    }
+    if (state === 'downloading' || state === 'consented') {
+      if (typeof showToast === 'function') {
+        showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.downloading') : 'Downloading the on-device AI model…', { type: 'info' });
+      }
+      return;
+    }
+    if (typeof showToast === 'function') {
+      showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.preparing') : 'Preparing on-device AI…', { type: 'info' });
+    }
+  }).catch(function () {
+    if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
+    if (typeof showToast === 'function') {
+      showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.preparing') : 'Preparing on-device AI…', { type: 'info' });
+    }
+  });
+}
+if (typeof window !== 'undefined') window.runEnableAiAndDownloadForChat = runEnableAiAndDownloadForChat;
+
 function promptEnableAiAndDownloadForChat(pendingOpenOptions) {
+  if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
+  var cta = document.getElementById('homeAskSetupCta');
+  if (cta && !cta.disabled) {
+    try { cta.focus(); } catch (e) { /* ignore */ }
+    if (typeof showToast === 'function') {
+      showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.body') : 'Turn on AI features and download the on-device model before chatting.', { type: 'info' });
+    }
+    return;
+  }
   var title = typeof tUi === 'function' ? tUi('home.chat.needAi.title') : 'Enable AI to chat';
   var body = typeof tUi === 'function' ? tUi('home.chat.needAi.body') : 'Turn on AI features and download the on-device model before chatting.';
   var confirmText = typeof tUi === 'function' ? tUi('home.chat.needAi.confirm') : 'Enable and download';
@@ -25074,48 +25268,7 @@ function promptEnableAiAndDownloadForChat(pendingOpenOptions) {
     return;
   }
   showConfirmModal(body, title, function () {
-    if (typeof appSettings === 'undefined' || !appSettings) return;
-    appSettings.aiEnabled = true;
-    if (typeof saveSettings === 'function') saveSettings();
-    var aiEnabledToggle = document.getElementById('aiEnabledToggle');
-    if (aiEnabledToggle) {
-      aiEnabledToggle.classList.add('active');
-      aiEnabledToggle.setAttribute('aria-checked', 'true');
-    }
-    var ensure = typeof ensureSummaryLlmLoadedForSettings === 'function'
-      ? ensureSummaryLlmLoadedForSettings()
-      : Promise.resolve();
-    ensure.then(function () {
-      if (typeof promptAiModelDownloadConsent === 'function') {
-        return promptAiModelDownloadConsent();
-      }
-      return false;
-    }).then(function (granted) {
-      if (!granted) return null;
-      if (typeof window.preloadSummaryLLM === 'function') {
-        return window.preloadSummaryLLM().catch(function () { return null; });
-      }
-      return null;
-    }).then(function () {
-      var state = getHealthChatAiModelState();
-      if (state === 'ready' && typeof openAiHealthChat === 'function') {
-        openAiHealthChat(Object.assign({}, pendingOpenOptions || {}, { skipGate: true }));
-        return;
-      }
-      if (state === 'downloading' || state === 'consented') {
-        if (typeof showToast === 'function') {
-          showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.downloading') : 'Downloading the on-device AI model…', { type: 'info' });
-        }
-        return;
-      }
-      if (typeof showToast === 'function') {
-        showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.preparing') : 'Preparing on-device AI…', { type: 'info' });
-      }
-    }).catch(function () {
-      if (typeof showToast === 'function') {
-        showToast(typeof tUi === 'function' ? tUi('home.chat.needAi.preparing') : 'Preparing on-device AI…', { type: 'info' });
-      }
-    });
+    runEnableAiAndDownloadForChat(pendingOpenOptions);
   }, null, { confirmText: confirmText, cancelText: cancelText });
 }
 if (typeof window !== 'undefined') window.promptEnableAiAndDownloadForChat = promptEnableAiAndDownloadForChat;
@@ -25127,19 +25280,24 @@ if (typeof window !== 'undefined') window.promptEnableAiAndDownloadForChat = pro
  */
 function gateAiHealthChatOpen(options) {
   options = options || {};
-  if (typeof appSettings !== 'undefined' && appSettings && appSettings.simpleMode === true) {
+  var askState = getHomeAskGateState();
+  if (askState.mode === 'hidden') {
     return { allow: false };
   }
-  if (!deviceSupportsOnDeviceLlmChat()) {
+  if (askState.mode === 'generic') {
     return { allow: true, forceGeneric: true };
   }
-  var aiOn = typeof appSettings === 'undefined' || !appSettings || appSettings.aiEnabled !== false;
-  var state = getHealthChatAiModelState();
+  if (askState.mode === 'ready') {
+    return { allow: true, forceGeneric: false };
+  }
+  var state = askState.modelState;
+  var aiOn = askState.aiOn;
   if (aiOn && state === 'unknown') {
     if (typeof ensureSummaryLlmLoadedForSettings === 'function') {
       ensureSummaryLlmLoadedForSettings().then(function () {
-        if (typeof openAiHealthChat === 'function') {
-          openAiHealthChat(Object.assign({}, options, { skipGate: false }));
+        if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
+        if (getHomeAskGateState().mode === 'ready' && typeof openAiHealthChat === 'function') {
+          openAiHealthChat(Object.assign({}, options, { skipGate: true }));
         }
       }).catch(function () {
         promptEnableAiAndDownloadForChat(options);
@@ -25149,9 +25307,6 @@ function gateAiHealthChatOpen(options) {
     }
     return { allow: false };
   }
-  if (aiOn && state === 'ready') {
-    return { allow: true, forceGeneric: false };
-  }
   if (aiOn && (state === 'consented' || state === 'downloading')) {
     if (typeof ensureSummaryLlmLoadedForSettings === 'function') {
       ensureSummaryLlmLoadedForSettings().then(function () {
@@ -25160,11 +25315,13 @@ function gateAiHealthChatOpen(options) {
         }
         return null;
       }).then(function () {
+        if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
         if (getHealthChatAiModelState() === 'ready' && typeof openAiHealthChat === 'function') {
           openAiHealthChat(Object.assign({}, options, { skipGate: true }));
         }
       }).catch(function () {});
     }
+    if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
     if (typeof showToast === 'function') {
       var msgKey = state === 'downloading' ? 'home.chat.needAi.downloading' : 'home.chat.needAi.preparing';
       showToast(typeof tUi === 'function' ? tUi(msgKey) : 'Preparing on-device AI…', { type: 'info' });
@@ -25175,6 +25332,74 @@ function gateAiHealthChatOpen(options) {
   return { allow: false };
 }
 if (typeof window !== 'undefined') window.gateAiHealthChatOpen = gateAiHealthChatOpen;
+
+function renderHomeAskSetupGate() {
+  var hub = document.getElementById('homeAskHub');
+  var gate = document.getElementById('homeAskSetupGate');
+  var bar = document.getElementById('homeAskBar');
+  var chips = document.getElementById('homeDiscoveryChips');
+  if (!hub || !gate) return;
+  var state = getHomeAskGateState();
+  if (state.mode === 'hidden') {
+    hub.hidden = true;
+    gate.hidden = true;
+    gate.innerHTML = '';
+    if (bar) bar.hidden = true;
+    if (chips) {
+      chips.hidden = true;
+      chips.innerHTML = '';
+    }
+    return;
+  }
+  hub.hidden = false;
+  if (state.mode !== 'setup') {
+    gate.hidden = true;
+    gate.innerHTML = '';
+    if (bar) bar.hidden = false;
+    return;
+  }
+  if (bar) bar.hidden = true;
+  if (chips) {
+    chips.hidden = true;
+    chips.innerHTML = '';
+  }
+  var modelState = state.modelState;
+  var downloading = modelState === 'downloading' || modelState === 'consented';
+  var title = typeof tUi === 'function' ? tUi('home.chat.needAi.title') : 'Enable AI to chat';
+  var body = downloading
+    ? (typeof tUi === 'function' ? tUi(modelState === 'downloading' ? 'home.chat.needAi.downloading' : 'home.chat.needAi.preparing') : 'Preparing on-device AI…')
+    : (typeof tUi === 'function' ? tUi('home.chat.needAi.body') : 'Turn on AI features and download the on-device model before chatting.');
+  var confirmText = typeof tUi === 'function' ? tUi('home.chat.needAi.confirm') : 'Enable and download';
+  var pct = null;
+  try {
+    if (typeof window.getAiModelStatus === 'function') {
+      var st = window.getAiModelStatus();
+      if (st && typeof st.pct === 'number') pct = st.pct;
+    }
+  } catch (e) { /* ignore */ }
+  var html = '<div class="home-ask-setup__inner">';
+  html += '<p class="home-ask-setup__title">' + escapeHTML(title) + '</p>';
+  html += '<p class="home-ask-setup__body">' + escapeHTML(body) + '</p>';
+  if (downloading && pct != null) {
+    html += '<div class="home-ask-setup__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pct) + '">';
+    html += '<div class="home-ask-setup__progress-fill" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></div>';
+    html += '</div>';
+  }
+  if (!downloading) {
+    html += '<button type="button" class="home-ask-setup__cta" id="homeAskSetupCta">' + escapeHTML(confirmText) + '</button>';
+  } else {
+    html += '<button type="button" class="home-ask-setup__cta home-ask-setup__cta--busy" id="homeAskSetupCta" disabled>' +
+      escapeHTML(typeof tUi === 'function' ? tUi('home.chat.needAi.downloading') : 'Downloading…') + '</button>';
+  }
+  html += '</div>';
+  gate.innerHTML = html;
+  gate.hidden = false;
+  var cta = document.getElementById('homeAskSetupCta');
+  if (cta && !cta.disabled) {
+    cta.onclick = function () { runEnableAiAndDownloadForChat(null); };
+  }
+}
+if (typeof window !== 'undefined') window.renderHomeAskSetupGate = renderHomeAskSetupGate;
 
 function openDiscoveryChatFromCard(btn, logArr) {
   if (!btn) return;
@@ -25199,30 +25424,18 @@ function openDiscoveryChatFromCard(btn, logArr) {
 function renderHomeDiscoveryChips(logArr) {
   var wrap = document.getElementById('homeDiscoveryChips');
   if (!wrap) return;
-  var count = Array.isArray(logArr) ? logArr.length : 0;
-  var simpleOff = typeof appSettings !== 'undefined' && appSettings && appSettings.simpleMode === true;
-  if (simpleOff) {
+  if (typeof renderHomeAskSetupGate === 'function') renderHomeAskSetupGate();
+  var askState = getHomeAskGateState();
+  if (askState.mode === 'hidden' || askState.mode === 'setup') {
     wrap.hidden = true;
     wrap.innerHTML = '';
     return;
   }
-  var aiOn = typeof appSettings === 'undefined' || !appSettings || appSettings.aiEnabled !== false;
-  var supportsLlm = typeof deviceSupportsOnDeviceLlmChat === 'function' ? deviceSupportsOnDeviceLlmChat() : true;
-  var modelState = getHealthChatAiModelState();
-  var modelReady = modelState === 'ready';
+  var count = Array.isArray(logArr) ? logArr.length : 0;
+  var aiOn = askState.aiOn;
+  var supportsLlm = askState.supportsLlm;
   var cards = [];
-  if (!aiOn || (supportsLlm && !modelReady)) {
-    var setupHint = !supportsLlm
-      ? 'home.discover.askAnything.hint.generic'
-      : 'home.discover.askAnything.hint.setup';
-    cards.push({
-      id: 'ask-anything',
-      icon: 'discover-orb',
-      titleKey: 'home.discover.askAnything',
-      hintKey: setupHint,
-      seedKey: '',
-    });
-  } else if (count === 0) {
+  if (count === 0) {
     cards = buildStaticDiscoveryCards();
   } else {
     var S = getHomeSharedAi();
@@ -25438,6 +25651,10 @@ function bindHomeAskBarOnce() {
   _homeAskBarBound = true;
   form.addEventListener('submit', function (ev) {
     ev.preventDefault();
+    if (typeof isHomeAskChatReady === 'function' && !isHomeAskChatReady()) {
+      if (typeof promptEnableAiAndDownloadForChat === 'function') promptEnableAiAndDownloadForChat({ seedPrompt: '' });
+      return;
+    }
     var q = String(input.value || '').trim();
     if (!q) {
       if (typeof openAiHealthChat === 'function') {
@@ -25446,7 +25663,6 @@ function bindHomeAskBarOnce() {
       return;
     }
     input.value = '';
-    if (typeof gateAiHealthChatOpen === 'function' && !gateAiHealthChatOpen()) return;
     var snap = window._homeAiAnalysisSnapshot || null;
     if (typeof openAiHealthChat === 'function') {
       openAiHealthChat({ seedPrompt: q, analysis: snap });
@@ -25602,6 +25818,10 @@ async function answerHomeQuestionInModal(chip, requestId) {
 
 if (typeof window !== 'undefined') {
   window.renderHomeAiSuggestions = renderHomeAiSuggestions;
+  window.renderHomeAskSetupGate = renderHomeAskSetupGate;
+  window.getHomeAskGateState = getHomeAskGateState;
+  window.isHomeAskChatReady = isHomeAskChatReady;
+  window.runEnableAiAndDownloadForChat = runEnableAiAndDownloadForChat;
   window.openHomeQuestionModal = openHomeQuestionModal;
   window.closeHomeQuestionModal = closeHomeQuestionModal;
 }
