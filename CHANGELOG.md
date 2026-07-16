@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.15] - 2026-07-16
+
+### Fixed
+- **Boot benchmark (CPU arithmetic):** First-run desktop suite no longer packs CPU batches in a while-loop (cold JIT could freeze Chrome’s “Page Unresponsive” dialog). One adaptive batch per `setTimeout` tick; lighter boot workloads/repeats; string `join` in its own tick.
+
+### Tests
+- `perf-benchmark-modal` asserts cooperative one-tick yields, adaptive CPU batches, and `bootLite` boot path
+
+---
+
 ## [2.2.14] - 2026-07-16
 
 ### Added

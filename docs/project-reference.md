@@ -44,7 +44,7 @@
 - **Log metrics (PWA):** Swelling balloon, irritability, mobility trampoline, weather widgets in `log-metric-widgets.js` + `styles.css`.
 - **Cycle tracking (PWA):** 45-day timeline in `cycle-tracking-ui.js`; beacon cleanup in `graphics-portfolio.js`.
 - **Goals carousel (PWA):** Animated dot SVG icons in `goals-carousel.js`.
-- **Device benchmark (PWA):** Async sliced suite + timeouts in `device-benchmark.js` (v8).
+- **Device benchmark (PWA):** Cooperative one-tick CPU/array batches (`bootLite` first boot) in `device-benchmark.js` (`?v=9`); avoids Chrome Page Unresponsive on cold “CPU arithmetic”.
 - **Tokens:** `SPACING_TOKENS`, `SURFACE_TOKENS` in `packages/tokens/src/index.mjs`; synced via `scripts/build/sync-tokens-to-pwa.mjs`.
 - **RN:** `apps/rn-app/src/components/ScreenCard.tsx`, `ScreenContainer.tsx`, `RangeChip.tsx`, `themeHelpers.ts`; tab screens use `resolveScreenBackground()`.
 - **PWA motion:** `setProgressScale()` in `app.js`; progress fills in `styles.css` use `transform: scaleX(var(--progress))`; tab indicator uses `translateX` + `scaleX`.
