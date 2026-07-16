@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-15T21:49:00.803Z",
+  "generatedAt": "2026-07-16T12:35:04.578Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5457974,
-    "cssBytes": 830620,
-    "jsGzipBytes": 1296649,
-    "cssGzipBytes": 140580
+    "jsBytes": 5482231,
+    "cssBytes": 838580,
+    "jsGzipBytes": 1301028,
+    "cssGzipBytes": 141837
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1173995,
-      "gzipBytes": 255374
+      "bytes": 1182537,
+      "gzipBytes": 256771
     },
     {
-      "file": "ci-minified/site/app.f3b6749fa517.min.js",
-      "bytes": 869378,
-      "gzipBytes": 201772
+      "file": "ci-minified/site/app.0806376753e2.min.js",
+      "bytes": 875728,
+      "gzipBytes": 202858
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.a6a48726b976.css",
-      "bytes": 755505,
-      "gzipBytes": 125296
+      "file": "ci-minified/site/styles.b97f6747baaa.css",
+      "bytes": 763402,
+      "gzipBytes": 126539
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 396545,
-      "gzipBytes": 90319
+      "bytes": 396968,
+      "gzipBytes": 90369
     },
     {
       "file": "ci-minified/site/vendor/three/three.module.min.js",
@@ -55,13 +55,13 @@
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
-      "bytes": 81201,
-      "gzipBytes": 17379
+      "bytes": 81175,
+      "gzipBytes": 17363
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 79144,
-      "gzipBytes": 17787
+      "bytes": 79239,
+      "gzipBytes": 17833
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -84,14 +84,14 @@
       "gzipBytes": 9816
     },
     {
-      "file": "ci-minified/site/css/graphics-portfolio.css",
-      "bytes": 41624,
-      "gzipBytes": 7452
+      "file": "ci-minified/site/modules/log-metric-widgets.js",
+      "bytes": 42924,
+      "gzipBytes": 9185
     },
     {
-      "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 40491,
-      "gzipBytes": 8850
+      "file": "ci-minified/site/css/graphics-portfolio.css",
+      "bytes": 41687,
+      "gzipBytes": 7466
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
@@ -110,8 +110,8 @@
     },
     {
       "file": "ci-minified/site/modules/settings.js",
-      "bytes": 29740,
-      "gzipBytes": 6079
+      "bytes": 29708,
+      "gzipBytes": 6072
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -120,8 +120,8 @@
     },
     {
       "file": "ci-minified/site/modules/advanced-vitals-widgets.js",
-      "bytes": 24756,
-      "gzipBytes": 5149
+      "bytes": 25979,
+      "gzipBytes": 5360
     },
     {
       "file": "ci-minified/site/notifications.js",
@@ -149,14 +149,19 @@
       "gzipBytes": 5967
     },
     {
+      "file": "ci-minified/site/event-handlers.js",
+      "bytes": 17862,
+      "gzipBytes": 3496
+    },
+    {
       "file": "ci-minified/site/modules/app-lock.js",
       "bytes": 17770,
       "gzipBytes": 4071
     },
     {
-      "file": "ci-minified/site/event-handlers.js",
-      "bytes": 17507,
-      "gzipBytes": 3404
+      "file": "ci-minified/site/modules/lifestyle-vitals-widgets.js",
+      "bytes": 16965,
+      "gzipBytes": 4111
     },
     {
       "file": "ci-minified/site/styles-charts.css",
@@ -182,11 +187,6 @@
       "file": "ci-minified/site/security-utils.js",
       "bytes": 12801,
       "gzipBytes": 3787
-    },
-    {
-      "file": "ci-minified/site/modules/lifestyle-vitals-widgets.js",
-      "bytes": 12620,
-      "gzipBytes": 3076
     },
     {
       "file": "ci-minified/site/i18n-pwa.js",
@@ -234,14 +234,14 @@
       "gzipBytes": 2118
     },
     {
+      "file": "ci-minified/site/modules/drum-picker-scroll.js",
+      "bytes": 7133,
+      "gzipBytes": 1957
+    },
+    {
       "file": "ci-minified/site/print-utils.js",
       "bytes": 6849,
       "gzipBytes": 2113
-    },
-    {
-      "file": "ci-minified/site/modules/drum-picker-scroll.js",
-      "bytes": 6584,
-      "gzipBytes": 1807
     },
     {
       "file": "ci-minified/site/sw.js",
