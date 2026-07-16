@@ -6,6 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.14] - 2026-07-16
+
+### Added
+- **Wizard side nav (desktop):** Always-visible lowkey side chevrons; chunky bottom Back/Skip/Next pills hidden; side Next saves on the review step
+- **Scroll/drag number boxes:** Log metrics (1-10), steps, hydration, glucose, HRV, and weight use SpO2-style drums with −/+, neighbor preview, and horizontal or vertical drag (shared `RianellDrumPicker`)
+
+### Changed
+- **Goals:** Daily targets open from the Home header target button (Goals modal); Settings carousel no longer has an AI & Goals pane
+- **Home Ask:** Enter submits; Send and mic controls removed from the ask bar
+- **Home header:** Date stacks under the greeting; weather enable/metrics sit on the far right with sync
+- **Discovery / charts / Overview icons:** Thinner Ask-anything stroke; active chart view-toggle SVG stays white; Overview chapter uses a thin monitor outline
+- **Companion:** Larger glyph in picker and header rings
+- **Mobility / Energy & Clarity:** Side-view running legs cadence; per-option energy/clarity icon animations
+- **Symptoms:** Tapped-area intensity controls sit under Where it hurts (map column)
+- **Demo AI:** Demo mode may download/init the on-device LLM; local-only still blocks model fetch
+
+### Fixed
+- **Companion broken-image chrome:** Named avatars inline SVG paths (no nested `role="img"` / fragile `<use>`)
+
+---
+
 ## [2.2.13] - 2026-07-15
 
 ### Changed

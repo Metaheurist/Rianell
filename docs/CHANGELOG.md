@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.13** - Phase 4 close (Trophy Room + region severity).
+**Latest: v2.2.14** - Wizard side nav + drums, Goals from header, demo AI download, companion polish.
+
+### v2.2.14 - 2026-07-16 - Wizard drums + Goals IA + companion polish
+
+- Desktop wizard side chevrons; metric/vital drums; Goals modal from header (no Settings AI & Goals pane); Home Ask Enter-only; weather right / date under greeting; larger inlined companions; demo mode on-device LLM download.
+
+**Previous: v2.2.13** - Phase 4 close (Trophy Room + region severity).
 
 ### v2.2.13 - 2026-07-15 - Phase 4 close-out
 Home Trophy Room; body-map region intensity pills; master UI roadmap Phases 1–4 complete.
@@ -10,7 +16,7 @@ Home Trophy Room; body-map region intensity pills; master UI roadmap Phases 1–
 **Previous: v2.2.12** - Wizard/goals information architecture (Phase 4).
 
 ### v2.2.12 - 2026-07-15 - Wizard + Goals Phase 4
-Optional vitals accordion, split-screen body map + scales, daily targets in Settings → AI & Goals.
+Optional vitals accordion, split-screen body map + scales, daily targets in Settings → AI & Goals (superseded by header Goals modal in v2.2.14).
 
 **Previous: v2.2.11** - Logs/Mood information architecture (Phase 3).
 

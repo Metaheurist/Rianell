@@ -1,14 +1,20 @@
 # Release Notes
 
-## Latest release (v2.2.13)
+## Latest release (v2.2.14)
+
+**Wizard controls + Goals** - Log wizard uses lowkey side arrows on desktop (side Next saves on review). Wellness and vital ranges use scroll/drag number boxes with −/+ like SpO2. Open **Goals & targets** from the Home header (not Settings). Demo mode can download the on-device AI model; companions render larger without broken-image chrome.
+
+See **v2.2.13** for Trophy Room and region severity pills.
+
+## Previous (v2.2.13)
 
 **Phase 4 close** - Achievements Trophy Room sits on Home under your profile. In the log wizard, tapped body areas show None / Mild / Pain pills next to the figure (saves the same way as tap-to-cycle).
 
-See **v2.2.12** for advanced vitals accordion and goals in Settings.
+See **v2.2.12** for advanced vitals accordion and goals placement history.
 
 ## Previous (v2.2.12)
 
-**Wizard + Goals (Phase 4)** - Optional advanced vitals sit in a closed accordion. Split-screen body map + scales; daily targets live under **Settings → AI & Goals**.
+**Wizard + Goals (Phase 4)** - Optional advanced vitals sit in a closed accordion. Split-screen body map + scales; daily targets later moved to the Home header Goals modal (v2.2.14).
 
 See **v2.2.11** for Logs/Mood IA.
 

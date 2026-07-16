@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.2.14 documentation sync (wizard drums + Goals IA)
+
+- **Date:** 2026-07-16
+- **PWA:** Side-nav wizard; metric/vital drums; Goals from header; Home Ask Enter-only; weather right; larger inlined companions; demo AI download.
+- **Wiki:** [[Release-Notes]] §2.2.14; [[Features-Guide]], [[Settings-and-Languages]], [[Platforms-and-Parity]].
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.14]`.
+
 ### v2.2.13 documentation sync (UI architectural Phases 1-4)
 
 - **DESIGN.md:** Product UI declutter roadmap (not Airbnb palette). Primitives in `docs/styling.md` and `docs/design-token-contract.md`.
