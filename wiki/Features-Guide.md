@@ -49,9 +49,9 @@ Detailed field reference: [[Logging-Data]].
 
 ## Goals and targets
 
-Open **Goals & targets** from the Home header button (or **Settings → AI & Goals**). Daily targets (steps, hydration, sleep quality, good-days per week) live in Settings. Progress still shows on Home as a compact 2×2 grid for the last 7 days.
+Open **Goals & targets** from the Home header target button. Daily targets (steps, hydration, sleep quality, good-days per week) live in that modal. Progress still shows on Home as a compact 2×2 grid for the last 7 days.
 
-**Achievements** use a **Trophy Room** on Home under your profile (badges for progressive logging unlocks: food day 7, exercise day 14, medications day 21). Unlock toasts stay non-blocking.
+**Achievements** use a **Trophy Room** on Home under your profile (badges for progressive logging unlocks: food day 7, exercise day 14, medications day 21). Unlock toasts stay non-blocking. From Goals, **View achievements** jumps to the Home Trophy Room.
 
 On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings). Locked wizard steps link to targets or the Trophy Room when a category is not yet unlocked.
 
