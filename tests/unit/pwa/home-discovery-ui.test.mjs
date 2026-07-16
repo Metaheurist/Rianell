@@ -77,3 +77,13 @@ test('home ask setup replaces discovery when AI model is not ready', () => {
   assert.match(css, /\.home-ask-setup__/);
   assert.match(css, /\.home-ask-setup__cta/);
 });
+
+test('header chrome splits bug report left from goals and settings right', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(html, /header-buttons-wrap--left[\s\S]*bug-report-button-top/);
+  assert.match(html, /header-buttons-wrap--right[\s\S]*targets-button-top[\s\S]*settings-button-top/);
+  assert.doesNotMatch(html, /header-buttons-wrap--right[\s\S]*bug-report-button-top/);
+  assert.match(css, /\.header-buttons-wrap--left\s*\{[^}]*left:/);
+  assert.match(css, /\.header-buttons-wrap--right\s*\{[^}]*right:/);
+});

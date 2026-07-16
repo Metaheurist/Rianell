@@ -110,7 +110,9 @@ test('mood deck tile icons inherit stroke/fill token rules', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /\.mood-deck-tile-icon-svg \*,[\s\S]*stroke: currentColor/);
   assert.match(css, /\.mood-deck-tile-icon-svg \.icon-fill[\s\S]*fill: currentColor/);
-  assert.match(css, /\.mood-deck-tile-icon-svg[\s\S]*width: 1\.7rem/);
+  assert.match(css, /\.mood-deck-tile-icon-svg[\s\S]*width: 2\.35rem/);
+  assert.match(css, /\.mood-deck-tile-icon[\s\S]*width: 3\.45rem/);
+  assert.match(css, /\.mood-deck-tile--mood \.mood-deck-tile-icon-svg[\s\S]*width: 2\.5rem/);
 });
 
 test('check-in slider icons scale up for button footprint', () => {
@@ -137,7 +139,8 @@ test('mood deck quick-check tiles use clipboard and anxious-face icons', () => {
   assert.match(clipboard[1], /stroke="currentColor"/);
   assert.match(anxious[1], /stroke="currentColor"/);
   assert.match(anxious[1], /rotate\(-18/);
-  assert.match(anxious[1], /M10\.45 7\.85/);
+  assert.match(anxious[1], /M10\.7 7\.35/);
+  assert.match(anxious[1], /stroke-width="2/);
 });
 
 test('chart-bars and brain-wave sprites use currentColor (not invisible/black fills)', () => {
