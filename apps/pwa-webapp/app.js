@@ -15407,7 +15407,10 @@ function generateLogEntryHTML(log) {
             <header class="log-detail-pane__bar">
               <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('food', 'log-detail-pane__svg')}</span>
               <span class="log-detail-pane__title">${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}</span>
-              <span class="log-detail-pane__swipe" aria-hidden="true">${svgIcon('chevron-left', 'log-detail-pane__chevron')}${svgIcon('chevron-right', 'log-detail-pane__chevron')}</span> 
+              <span class="log-detail-pane__swipe" aria-hidden="true">${svgIcon('chevron-left', 'log-detail-pane__chevron')}${svgIcon('chevron-right', 'log-detail-pane__chevron')}</span>
+            </header>
+            <div class="log-detail-pane__body log-metrics-grid">
+      ${(log.steps || log.hydration) 
         ? `<div class="metric-group lifestyle-factors" data-log-pane="lifestyle">
           <h4 class="metric-group-title">${svgIcon('chart-up', 'metric-svg-icon', 'Lifestyle')} Lifestyle Factors</h4>
           ${log.steps ? `<div class="metric-item">
