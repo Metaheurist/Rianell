@@ -10,7 +10,7 @@ Rianell helps you log daily health metrics, spot trends, and optionally run AI-a
 |-----|---------|
 | **Home** | Compact today header, daily log CTA, 2×2 goals bento, Ask Rianell bar, Trophy Room |
 | **View logs** | Browse with All/7D/30D/Custom filter; expand for Physical / Lifestyle / Mental details |
-| **Mood** | Today's check-in first, then a 30-day activity heatmap |
+| **Mood** | Today's check-in first, then a 30-day activity heatmap with day numbers on each tile |
 | **Charts** | ApexCharts visualisations with optional predictions |
 | **AI Analysis** | Rule-based insights plus optional on-device LLM summaries |
 
@@ -41,7 +41,7 @@ When **cycle tracking** is enabled (Settings → Data options or first-run tutor
 
 **First-run:** A guided questionnaire modal asks one friendly multichoice question at a time (appearance, **profile companion**, region, coach tone, helper level, consents, optional AI download). Progress dots and a step counter match on web and native. Tutorial is opt-in from the finish card or Settings replay; tutorial slides use side arrows with **Finish** on the last slide only.
 
-**Scales:** Symptom and wellness metrics use a unified **Bad → Good** presentation. Numeric fields still save to the same schema ranges as before.
+**Scales:** Symptom and wellness metrics use scroll/drag number boxes. Severity scales (pain, stiffness, fatigue, swelling, irritability, and similar) show **Low → High** on the drum while still saving the same schema values. Other wellness scales stay **Bad → Good**.
 
 Detailed field reference: [[Logging-Data]].
 
@@ -51,7 +51,7 @@ Detailed field reference: [[Logging-Data]].
 
 Open **Goals & targets** from the Home header target button. Daily targets (steps, hydration, sleep quality, good-days per week) live in that modal. Progress still shows on Home as a compact 2×2 grid for the last 7 days.
 
-**Achievements** use a **Trophy Room** on Home under your profile (badges for progressive logging unlocks: food day 7, exercise day 14, medications day 21). Unlock toasts stay non-blocking. From Goals, **View achievements** jumps to the Home Trophy Room.
+**Achievements** use a **Trophy Room** on Home under your profile (badges for progressive logging unlocks: food day 7, exercise day 14, medications day 21). Unlock toasts stay non-blocking. The Goals modal also has an **Achievements** pane with the same badge grid.
 
 On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings). Locked wizard steps link to targets or the Trophy Room when a category is not yet unlocked.
 

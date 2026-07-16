@@ -21,7 +21,7 @@ Save after **date + flare** only. Missing numeric scores are filled with mid-sca
 | **Flare** | Yes / No | Default No |
 | **BPM** | number | Heart rate; typical range 30-120 |
 | **Weight** | text | kg as decimal string |
-| **Fatigue, stiffness, sleep, joint pain, mobility, daily function, swelling, mood, irritability** | 0-10 | Subjective scales (PWA: scroll/drag number box with −/+; instant snap when reduced motion is preferred) |
+| **Fatigue, stiffness, sleep, joint pain, mobility, daily function, swelling, mood, irritability** | 0-10 | Subjective scales (PWA: scroll/drag number box with −/+; instant snap when reduced motion is preferred). Severity-oriented metrics show **Low → High** on the drum. |
 | **Weather sensitivity** | 1-10 | Same drum-style control as other wellness scales |
 | **Steps** | integer | PWA drum (with −/+) |
 | **Hydration** | number | Glasses / units; PWA drum |
@@ -58,7 +58,7 @@ When you pick a date, cycle day and phase may be **suggested** from your last lo
 - **Edit** or **delete** from the action bar on each entry.
 - **Share** (web) - circular green share button per entry.
 
-**Mood** tab leads with today’s check-in; history uses a compact 30-day heatmap.
+**Mood** tab leads with today’s check-in; history uses a compact 30-day heatmap with the day number on each tile (month abbr on the first tile and each 1st of month). Quick mood / anxiety checks use clipboard and anxious-face icons.
 
 ---
 

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.16** - Wizard drum snap respects reduced motion.
+**Latest: v2.2.17** - Mood deck icons, severity drums, AI lifestyle polish.
+
+### v2.2.17 - 2026-07-16 - Mood icons + AI lifestyle polish
+
+- Mood heatmap day labels; clipboard / anxious-face quick-check icons; severity drums Low→High; lifestyle Helps/Watch i18n; emoji-free AI advice; wizard dock hit-testing; wellbeing ring reduce-motion; quieter console coalescing.
+
+**Previous: v2.2.16** - Wizard drum snap respects reduced motion.
 
 ### v2.2.16 - 2026-07-16 - Drum reduced-motion snap
 

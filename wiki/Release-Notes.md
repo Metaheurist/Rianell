@@ -1,6 +1,14 @@
 # Release Notes
 
-## Latest release (v2.2.16)
+## Latest release (v2.2.17)
+
+**Mood + logging polish** - Mood heatmap tiles show day numbers. Quick mood check uses a clipboard with a half-smile / half-sad face; quick anxiety check uses an anxious face. Severity number boxes now read Low→High the way you expect. Hard-refresh for `styles.css?v=147` / `app.js?v=68`.
+
+**AI Analysis** - Lifestyle “what helps” cards use clear Helps/Watch and With/Without labels. Advice text no longer leads with emoji. The wellbeing ring shows your score straight away when reduced motion is on.
+
+See **v2.2.16** for drum reduced-motion snap.
+
+## Previous (v2.2.16)
 
 **Wizard drums** - Number boxes snap instantly (no bounce) when the system prefers reduced motion. Hard-refresh for `drum-picker-scroll.js?v=3` / `styles.css?v=146`.
 

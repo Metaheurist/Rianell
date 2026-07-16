@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.2.17 documentation sync (mood icons + AI lifestyle polish)
+
+- **PWA:** Mood heatmap day labels; `mood-clipboard` / `anxious-face` deck icons; severity drum display mapping; lifestyle helpful i18n; emoji-free AIEngine advice; wizard bottom-dock pointer-events; wellbeing ring reduce-motion; AI/chart refresh coalescing.
+- **Cache:** `styles.css?v=147`, `app.js?v=68`.
+- **Wiki:** [[Release-Notes]] §2.2.17; [[Features-Guide]], [[Logging-Data]], [[Charts-and-AI]].
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.17]`.
+
 ### v2.2.16 documentation sync (drum reduced-motion)
 
 - **PWA:** `RianellDrumPicker` snaps without bounce under `prefers-reduced-motion`; cache `drum-picker-scroll.js?v=3`, `styles.css?v=146`.

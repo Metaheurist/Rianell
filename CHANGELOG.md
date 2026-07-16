@@ -6,6 +6,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.17] - 2026-07-16
+
+### Added
+- **Mood heatmap dates:** Each 30-day tile shows the day number; month abbr on the first tile and each 1st of month
+- **Mood deck icons:** Quick mood check uses clipboard + half-smile/half-sad face; quick anxiety check uses an anxious face sprite
+- **i18n:** `ai.helpful.helps|watch|withDays|withoutDays|intro` for lifestyle impact cards (all locales + Tier-A overrides)
+
+### Changed
+- **AI advice copy:** Rule-based patterns/advice no longer prefix presentation emoji
+- **Lifestyle impact cards:** Helps/Watch badges and With/Without labels use stable i18n keys; exercise timeline bars show date labels
+- **Food/exercise tiles:** Staggered entrance motion with reduced-motion guards
+- **Log detail dots:** Lifestyle uses leaf; Mental uses brain-wave
+- **Goals modal:** Achievements pane renders the badge grid in-place; AI/data-sharing toggles stay under Settings → Data options
+- **Cache bust:** `styles.css?v=147`, `app.js?v=68`
+
+### Fixed
+- **Severity drums:** Display and −/+ steps use raw Low→High values while the range input still stores inverted wellness
+- **Wizard Skip/Next:** Bottom dock no longer intercepts clicks meant for side nav arrows
+- **Wellbeing ring:** Under reduce-motion, score renders immediately (no stuck `0` placeholder)
+- **Console noise:** Coalesce in-flight AI summary/chart refresh; demo/offline API-key path; WebGPU→WASM fallback logs at info
+
+### Tests
+- Mood heatmap/icons, severity drums, lifestyle i18n/layout, wellbeing ring, picker-tile motion, console-noise regression, Goals achievements grid, wizard dock hit-testing
+
+---
+
 ## [2.2.16] - 2026-07-16
 
 ### Fixed
