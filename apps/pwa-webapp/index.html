@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=147" as="style">
-  <link rel="modulepreload" href="app.js?v=68" crossorigin>
+  <link rel="preload" href="styles.css?v=150" as="style">
+  <link rel="modulepreload" href="app.js?v=69" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=147" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=147&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=150" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=150&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=3">
   <style>
@@ -1216,25 +1216,25 @@
     <!-- AI Analysis tab - custom icons (2026 overhaul) -->
     <symbol id="icon-brain-wave" viewBox="0 0 24 24"><path class="icon-fill" d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z"/><path class="icon-fill" d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z"/><path d="M3 12h2M19 12h2M6 16h1.5M16.5 16H18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
     <symbol id="icon-heart-pulse" viewBox="0 0 24 24"><path d="M12 20s-6-3.5-6-9a4 4 0 0 1 7-2.5A4 4 0 0 1 20 11c0 5.5-6 9-6 9Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M4 12h3l2-3 3 6 2-4h6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-    <!-- Quick mood check: clipboard + half-smile / half-sad face -->
+    <!-- Quick mood check: clipboard + half-smile / half-sad face (bold strokes for tile size) -->
     <symbol id="icon-mood-clipboard" viewBox="0 0 24 24">
-      <rect x="6" y="4.5" width="12" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"/>
-      <path d="M9 4.5V3.75A1.75 1.75 0 0 1 10.75 2h2.5A1.75 1.75 0 0 1 15 3.75V4.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-      <rect class="icon-fill" x="10" y="2.85" width="4" height="2.1" rx="0.7"/>
-      <circle cx="12" cy="13.1" r="4.35" fill="none" stroke="currentColor" stroke-width="1.55"/>
-      <circle class="icon-fill" cx="10.35" cy="12" r="0.7"/>
-      <circle class="icon-fill" cx="13.65" cy="12" r="0.7"/>
-      <path d="M9.6 14.55q1.2 1.35 2.4 0" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
-      <path d="M12 14.55q1.2-1.35 2.4 0" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+      <rect x="4.5" y="3.75" width="15" height="17.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="2.15"/>
+      <path d="M8.25 3.75V2.85A1.9 1.9 0 0 1 10.15 1h3.7A1.9 1.9 0 0 1 15.75 2.85V3.75" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round"/>
+      <rect class="icon-fill" x="9.15" y="1.65" width="5.7" height="2.55" rx="0.85"/>
+      <circle cx="12" cy="13.35" r="5.15" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle class="icon-fill" cx="9.85" cy="12" r="1.05"/>
+      <circle class="icon-fill" cx="14.15" cy="12" r="1.05"/>
+      <path d="M8.85 15q1.55 1.85 3.15 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+      <path d="M12 15q1.55-1.85 3.15 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
     </symbol>
     <!-- Quick anxiety check: anxious face (tilted eyes, worried brows, trembling mouth) -->
     <symbol id="icon-anxious-face" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="8.25" fill="none" stroke="currentColor" stroke-width="1.75"/>
-      <ellipse class="icon-fill" cx="9.15" cy="10.45" rx="1.05" ry="1.4" transform="rotate(-18 9.15 10.45)"/>
-      <ellipse class="icon-fill" cx="14.85" cy="10.45" rx="1.05" ry="1.4" transform="rotate(18 14.85 10.45)"/>
-      <path d="M10.45 7.85 7.65 9.05" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M13.55 7.85 16.35 9.05" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M8.55 15.4 9.65 14.35 10.75 15.4 11.85 14.35 12.95 15.4 14.05 14.35 15.15 15.4" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="12" r="9.1" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <ellipse class="icon-fill" cx="8.85" cy="10.2" rx="1.45" ry="1.85" transform="rotate(-18 8.85 10.2)"/>
+      <ellipse class="icon-fill" cx="15.15" cy="10.2" rx="1.45" ry="1.85" transform="rotate(18 15.15 10.2)"/>
+      <path d="M10.7 7.35 7.2 9" fill="none" stroke="currentColor" stroke-width="2.05" stroke-linecap="round"/>
+      <path d="M13.3 7.35 16.8 9" fill="none" stroke="currentColor" stroke-width="2.05" stroke-linecap="round"/>
+      <path d="M7.85 15.65 9.2 14.2 10.55 15.65 11.9 14.2 13.25 15.65 14.6 14.2 15.95 15.65" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </symbol>
     <symbol id="icon-trends-vitals" viewBox="0 0 24 24">
       <g class="trends-vitals-heart-pulse">
@@ -2430,19 +2430,21 @@
         <circle class="nav-icon-ai-scope-diaphragm-inner" cx="12" cy="20.85" r="0.75" fill="currentColor"/>
       </symbol>
     </svg>
-    <!-- Sibling of .container (not inside scroll/transform) so fixed top-right matches FAB behavior -->
-    <div class="header-buttons-wrap">
-      <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets" data-i18n-title="common.goals.targets">
-        <svg class="targets-face-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <use href="#icon-target"></use>
-        </svg>
-      </button>
+    <!-- Sibling of .container (not inside scroll/transform) so fixed chrome matches FAB behavior -->
+    <div class="header-buttons-wrap header-buttons-wrap--left">
       <button type="button" class="bug-report-button-top" onclick="openBugReportModal()" title="Report a bug" data-i18n-title="home.bugReport.title" aria-label="Report a bug" data-i18n-aria="home.bugReport.title">
         <svg class="bug-report-bug-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <circle cx="12" cy="7" r="3" stroke="currentColor" stroke-width="2"/>
           <path d="M9 4 8 2M15 4 16 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           <ellipse cx="12" cy="15" rx="5" ry="6" stroke="currentColor" stroke-width="2"/>
           <path d="M7 13H4M20 13h-3M6 17H3M21 17h-3M8 21H5M19 21h-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="header-buttons-wrap header-buttons-wrap--right">
+      <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets" data-i18n-title="common.goals.targets">
+        <svg class="targets-face-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <use href="#icon-target"></use>
         </svg>
       </button>
       <button type="button" class="settings-button-top" data-benchmark="open-settings" title="Settings" data-i18n-title="settings.title" aria-label="Settings" data-i18n-aria="settings.title">
@@ -2548,12 +2550,6 @@
           <label class="visually-hidden" for="homeAskInput" data-i18n="home.chat.inputLabel">Ask about your health logs</label>
           <input type="text" id="homeAskInput" class="home-ask-input" maxlength="280" data-no-voice-input="true" data-i18n-placeholder="home.chat.inputLabel" placeholder="Ask about your health logs" enterkeyhint="send" />
         </form>
-      </section>
-      <!-- Phase 4 close: Trophy Room on Home (profile surface) -->
-      <section class="ui-card achievements-trophy-room home-trophy-room" id="achievementsTrophyRoom" aria-labelledby="achievementsTrophyTitle">
-        <h3 class="achievements-trophy-room__title" id="achievementsTrophyTitle" data-i18n="achievements.title">Achievements</h3>
-        <p class="field-hint achievements-lede" data-i18n="achievements.subtitle">Unlock food, exercise, and medication logging by tracking consistently.</p>
-        <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
       </section>
       <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       <div id="cohortBenchmarkCard" class="cohort-benchmark-card" hidden aria-live="polite" data-scroll-reveal></div>
@@ -5238,7 +5234,7 @@
   <script defer src="guided-onboarding.js?v=5"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script type="module" defer src="app.js?v=68"></script>
+  <script type="module" defer src="app.js?v=69"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="modules/goals-carousel.js?v=8"></script>

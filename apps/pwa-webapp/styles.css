@@ -1794,24 +1794,6 @@ body.light-mode .motd-sway-wrap {
     display: none !important;
   }
 
-  body.log-wizard-active #logTab.log-wizard-mode #logForm {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-  }
-
-  body.log-wizard-active #logTab.log-wizard-mode #logForm.log-wizard-form--review {
-    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
-  }
-
-  @media (max-width: 768px) {
-    body.log-wizard-active #logTab.log-wizard-mode #logForm {
-      padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-    }
-
-    body.log-wizard-active #logTab.log-wizard-mode #logForm.log-wizard-form--review {
-      padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
-    }
-  }
-
   .log-wizard-quick-save-btn {
     margin-top: 12px;
     width: 100%;
@@ -2759,9 +2741,20 @@ body.light-mode .home-weather-enable-prompt:hover {
 #logTab.log-wizard-mode #logForm {
   padding-left: max(12px, env(safe-area-inset-left, 0px));
   padding-right: max(12px, env(safe-area-inset-right, 0px));
-  /* Space so the last fields scroll above the fixed .log-wizard-bottom-dock */
-  padding-bottom: calc(168px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
+}
+
+/* Keep step fields above the fixed .log-wizard-bottom-dock (see body.log-wizard-active rule) */
+body.log-wizard-active #logTab.log-wizard-mode #logForm {
+  --log-wizard-dock-offset: calc(116px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: var(--log-wizard-dock-offset);
+  scroll-padding-bottom: var(--log-wizard-dock-offset);
+}
+
+body.log-wizard-active #logTab.log-wizard-mode #logForm.log-wizard-form--review {
+  --log-wizard-dock-offset: calc(176px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: var(--log-wizard-dock-offset);
+  scroll-padding-bottom: var(--log-wizard-dock-offset);
 }
 
 @media (max-width: 768px) {
@@ -2770,8 +2763,13 @@ body.light-mode .home-weather-enable-prompt:hover {
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
-  #logTab.log-wizard-mode #logForm {
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+
+  body.log-wizard-active #logTab.log-wizard-mode #logForm {
+    --log-wizard-dock-offset: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.log-wizard-active #logTab.log-wizard-mode #logForm.log-wizard-form--review {
+    --log-wizard-dock-offset: calc(156px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -5369,6 +5367,10 @@ body.light-mode .cycle-flow-btn {
   box-sizing: border-box;
 }
 
+body.log-wizard-active #logTab.log-wizard-mode #logForm.log-wizard-form--review .log-review-summary {
+  padding-bottom: 0.75rem;
+}
+
 .log-review-summary .log-review-card {
   border: 1px solid var(--accent-fill-14);
   background: rgba(8, 14, 11, 0.42);
@@ -5555,7 +5557,7 @@ body.light-mode .log-wizard-bottom-dock {
 
 .log-wizard-bottom-dock .log-wizard-sticky-actions {
   margin-top: 0;
-  padding: 0 0 10px 0;
+  padding: 0;
   border-top: none;
   background: transparent;
   backdrop-filter: none;
@@ -5691,7 +5693,7 @@ body.light-mode .log-wizard-bottom-btn.log-wizard-nav-btn--primary {
   z-index: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   margin-top: 0;
   padding: 0;
   background: transparent;
@@ -5853,20 +5855,21 @@ body.light-mode .log-wizard-dot--done {
 #logTab.log-wizard-mode #logForm {
   padding-left: max(44px, calc(16px + env(safe-area-inset-left, 0px)));
   padding-right: max(44px, calc(16px + env(safe-area-inset-right, 0px)));
-  padding-bottom: 1.25rem;
 }
 
 .log-wizard-dots-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .log-wizard-dots-row .log-wizard-step-dots {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  justify-content: center;
 }
 
 .log-wizard-mobile-skip {
@@ -5874,9 +5877,9 @@ body.light-mode .log-wizard-dot--done {
   flex-shrink: 0;
   align-items: center;
   margin: 0 !important;
-  padding: 6px 12px;
-  min-height: 32px;
-  font-size: 0.78rem;
+  padding: 5px 11px;
+  min-height: 30px;
+  font-size: 0.74rem;
   font-weight: 600;
   border-radius: 999px;
   border: 1px dashed color-mix(in srgb, var(--primary-color) 44%, transparent);
@@ -18517,16 +18520,25 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   text-align: center;
 }
 
-/* Header buttons wrap: Targets (face) + Settings - sibling of .app-main-scroll so position:fixed is viewport-relative (not inside .container transform) */
+/* Header buttons: bug (left) + goals/settings (right) — siblings of .app-main-scroll */
 .header-buttons-wrap {
   position: fixed;
   top: max(24px, env(safe-area-inset-top, 0px));
-  right: max(24px, env(safe-area-inset-right, 0px));
   z-index: 10002;
   display: flex;
   align-items: center;
   gap: 8px;
   pointer-events: all;
+}
+
+.header-buttons-wrap--left {
+  left: max(24px, env(safe-area-inset-left, 0px));
+  right: auto;
+}
+
+.header-buttons-wrap--right {
+  right: max(24px, env(safe-area-inset-right, 0px));
+  left: auto;
 }
 
 @media (min-width: 1024px) {
@@ -22924,19 +22936,28 @@ body.light-mode .danger-zone {
     min-height: 120px;
   }
 
-  /* Goals + Settings: fixed top-right while scrolling (same as desktop); safe-area for notch */
+  /* Goals + Settings (right) and bug report (left): fixed while scrolling; safe-area for notch */
   .header-buttons-wrap {
     position: fixed;
     top: max(14px, env(safe-area-inset-top, 0px));
-    right: max(22px, env(safe-area-inset-right, 0px));
-    left: auto;
     width: auto;
     gap: 16px;
-    justify-content: flex-end;
     margin-bottom: 0;
     box-sizing: border-box;
     z-index: 10003;
     pointer-events: auto;
+  }
+
+  .header-buttons-wrap--left {
+    left: max(22px, env(safe-area-inset-left, 0px));
+    right: auto;
+    justify-content: flex-start;
+  }
+
+  .header-buttons-wrap--right {
+    right: max(22px, env(safe-area-inset-right, 0px));
+    left: auto;
+    justify-content: flex-end;
   }
 
   #dashboardTitle {
@@ -27598,17 +27619,17 @@ body.light-mode .mood-sparkline-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.85rem;
-  height: 2.85rem;
+  width: 3.45rem;
+  height: 3.45rem;
   border-radius: 50%;
   background: color-mix(in srgb, var(--ui-icon-surface) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 24%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
   box-shadow: 0 2px 8px color-mix(in srgb, var(--surface-border) 40%, transparent);
 }
 
 .mood-deck-tile-icon-svg {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 2.35rem;
+  height: 2.35rem;
   color: var(--home-checkin-icon-color);
   filter: var(--ui-icon-glow);
 }
@@ -27617,9 +27638,16 @@ body.light-mode .mood-sparkline-wrap {
 .mood-deck-tile-icon-svg {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.15;
+  stroke-width: 2.35;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* Quick-check sprites: keep bold glyph strokes readable at tile size */
+.mood-deck-tile--mood .mood-deck-tile-icon-svg,
+.mood-deck-tile--anxiety .mood-deck-tile-icon-svg {
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .mood-deck-tile-icon-svg .icon-fill {

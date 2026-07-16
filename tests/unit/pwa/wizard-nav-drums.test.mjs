@@ -25,6 +25,13 @@ test('log wizard bottom dock does not block side navigation clicks', () => {
   assert.match(css, /\.log-wizard-bottom-dock button,\s*[\s\S]*?\.log-wizard-bottom-dock \.log-wizard-step-dot\s*\{[\s\S]*?pointer-events:\s*auto/);
 });
 
+test('log wizard form reserves scroll space above fixed bottom dock', () => {
+  assert.match(css, /body\.log-wizard-active #logTab\.log-wizard-mode #logForm\s*\{[\s\S]*?--log-wizard-dock-offset/);
+  assert.match(css, /body\.log-wizard-active #logTab\.log-wizard-mode #logForm\.log-wizard-form--review\s*\{[\s\S]*?--log-wizard-dock-offset/);
+  assert.match(css, /padding-bottom:\s*var\(--log-wizard-dock-offset\)/);
+  assert.doesNotMatch(css, /#logTab\.log-wizard-mode #logForm\s*\{[\s\S]*?padding-bottom:\s*1\.25rem/);
+});
+
 test('side Next saves on review step', () => {
   assert.match(app, /data-nav-mode',\s*onReviewStep \? 'save' : 'next'/);
   assert.match(app, /logWizardSaveBtn[\s\S]*\.click\(\)/);
