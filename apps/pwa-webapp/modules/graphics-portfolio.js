@@ -648,7 +648,7 @@
     return '<div class="graphics-achievement-icon graphics-achievement-icon--' + escAttr(achId) +
       ' graphics-achievement-icon--tier-' + escAttr(tierId) + lockCls +
       '" data-achievement="' + escAttr(achId) + '" data-tier="' + escAttr(tierId) + '">' +
-      '<svg class="graphics-achievement-icon__svg" viewBox="0 0 64 64" role="img" aria-hidden="true">' +
+      '<svg class="graphics-achievement-icon__svg" viewBox="0 0 64 64" aria-hidden="true">' +
       achievementIconSvgMarkup(achId) +
       '</svg></div>';
   }
@@ -785,7 +785,7 @@
       return open + avatarSymbolPathsFromSeed(genSeed) + '</svg>';
     }
     var iconRef = normalizeAvatar(rawId);
-    return open + '<use href="#icon-' + escAttr(iconRef) + '"></use></svg>';
+    return open + avatarSymbolPathsForId(iconRef) + '</svg>';
   }
 
   function avatarCarouselNavIcon(direction) {

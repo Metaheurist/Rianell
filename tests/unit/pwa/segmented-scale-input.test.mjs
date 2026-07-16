@@ -15,9 +15,10 @@ test('RianellSegmentedScale mounts radiogroup pills and syncs range input', () =
   assert.match(js, /dispatchEvent\(new Event\('input'/);
 });
 
-test('log-metric-widgets prefers SegmentedScale over stepper row', () => {
-  assert.match(widgets, /RianellSegmentedScale\.mount/);
-  assert.match(widgets, /segmented-scale__native/);
+test('log-metric-widgets mounts compact drums instead of segmented pills', () => {
+  assert.match(widgets, /metric-drum-shell|vital-drum-shell--compact/);
+  assert.match(widgets, /bindMetricDrum|RianellDrumPicker/);
+  assert.doesNotMatch(widgets, /RianellSegmentedScale\.mount/);
 });
 
 test('segmented scale CSS enforces 44px touch targets and hides native range', () => {

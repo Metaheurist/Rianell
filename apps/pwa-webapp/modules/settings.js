@@ -190,7 +190,6 @@ function toggleSettingsChapter(chapterId) {
 var SETTINGS_PANE_ICON_BY_KEY = {
   'settings.privacy.title': 'check',
   'settings.personal.title': 'user',
-  'settings.ai.title': 'brain',
   'settings.display.title': 'chart-bars',
   'settings.customisation.title': 'palette',
   'settings.accessibility.title': 'accessibility',

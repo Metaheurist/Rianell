@@ -1,12 +1,12 @@
 /**
- * Animated advanced vitals: glucose (droplet slider), SpO2 (ring + drum),
- * HRV (waveform slider), body weight (balance slider).
+ * Animated advanced vitals: glucose (droplet + drum), SpO2 (ring + drum),
+ * HRV (waveform + drum), body weight (balance + drum).
  */
 (function (global) {
   'use strict';
 
   var SPO2 = { min: 70, max: 100, default: 98 };
-  var HRV = { min: 0, max: 300, default: 55 };
+  var HRV = { min: 0, max: 300, step: 1, default: 55 };
   var WEIGHT_KG = { min: 20, max: 300, default: 70, step: 0.1 };
   var WEIGHT_LBS = { min: 44, max: 661, default: 154, step: 0.1 };
   var GLUCOSE_DROPLET = { left: 8, width: 48, top: 8, bottom: 92, idlePuddle: 0.05 };
@@ -55,6 +55,33 @@
   function weightRange() {
     if (settings().bodyWeightUnit === 'lbs') return WEIGHT_LBS;
     return WEIGHT_KG;
+  }
+
+  function weightDrumCfg() {
+    var range = weightRange();
+    var step = settings().bodyWeightUnit === 'lbs' ? 1 : 0.5;
+    return {
+      min: range.min,
+      max: range.max,
+      default: range.default,
+      step: step,
+      format: function (v) {
+        return step === 0.5 ? Number(v).toFixed(1) : String(Math.round(v));
+      },
+    };
+  }
+
+  function glucoseDrumCfg() {
+    var range = glucoseRange();
+    return {
+      min: range.min,
+      max: range.max,
+      step: range.step,
+      default: range.default,
+      format: function (v) {
+        return formatGlucose(v, range.unit);
+      },
+    };
   }
 
   function classifyGlucose(val, unit) {
@@ -135,6 +162,12 @@
     scrollEl.appendChild(spacer.cloneNode(true));
   }
 
+  function rebuildDrum(scrollEl, cfg) {
+    if (!scrollEl) return;
+    delete scrollEl.dataset.vitalDrumBuilt;
+    buildDrum(scrollEl, cfg);
+  }
+
   function drumValueAtCenter(scrollEl) {
     if (global.RianellDrumPicker && typeof global.RianellDrumPicker.valueAtCenter === 'function') {
       return global.RianellDrumPicker.valueAtCenter(scrollEl);
@@ -210,6 +243,14 @@
     });
   }
 
+  function markDrumCenter(scrollEl, active, val, compare) {
+    if (!scrollEl) return;
+    scrollEl.querySelectorAll('.vital-drum-item').forEach(function (item) {
+      var itemVal = parseFloat(item.getAttribute('data-value'));
+      item.classList.toggle('vital-drum-item--center', active && compare(itemVal, val));
+    });
+  }
+
   function ratio(val, min, max) {
     if (max <= min) return 0;
     return clamp((val - min) / (max - min), 0, 1);
@@ -218,6 +259,10 @@
   function formatGlucose(val, unit) {
     if (unit === 'mgdl') return String(Math.round(val));
     return val.toFixed(1);
+  }
+
+  function formatWeightDisplay(val, step) {
+    return step === 0.5 ? Number(val).toFixed(1) : String(Math.round(val));
   }
 
   function glucoseFillRatio(active, val, range) {
@@ -251,17 +296,17 @@
 
   function updateGlucose(markActive) {
     var widget = document.getElementById('glucoseWidget');
-    var slider = document.getElementById('glucoseSlider');
+    var drum = document.getElementById('glucoseDrum');
     var display = document.getElementById('glucoseValueDisplay');
     var badge = document.getElementById('glucoseZoneBadge');
-    if (!widget || !slider) return;
+    if (!widget || !drum) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
     var range = glucoseRange();
-    var val = parseFloat(slider.value);
+    var val = drumValueAtCenter(drum);
     var prevVal = parseFloat(widget.dataset.glucosePrev || String(range.default));
     if (active) {
-      val = clamp(isNaN(val) ? range.default : val, range.min, range.max);
+      val = clamp(val != null && !isNaN(val) ? val : range.default, range.min, range.max);
       setHidden('bloodGlucose', formatGlucose(val, range.unit), true);
     } else {
       setHidden('bloodGlucose', null, false);
@@ -277,19 +322,20 @@
     applyOasisVitalFeedback(widget, display, zone);
     updateGlucoseDroplet(active, val, range, active && markActive && val > prevVal + 0.001);
     widget.dataset.glucosePrev = String(active ? val : range.default);
-    slider.style.setProperty('--vital-fill-pct', (ratio(val, range.min, range.max) * 100).toFixed(1) + '%');
+    markDrumCenter(drum, active, val, function (itemVal, centerVal) {
+      return Math.abs(itemVal - centerVal) < 0.0001;
+    });
   }
 
-  function syncGlucoseSliderRange(preserve) {
-    var slider = document.getElementById('glucoseSlider');
+  function syncGlucoseDrumRange(preserve) {
+    var drum = document.getElementById('glucoseDrum');
     var hidden = document.getElementById('bloodGlucose');
-    if (!slider) return;
+    if (!drum) return;
     var range = glucoseRange();
     var prev = preserve && hidden && hidden.value ? parseFloat(hidden.value) : range.default;
-    slider.min = String(range.min);
-    slider.max = String(range.max);
-    slider.step = String(range.step);
-    slider.value = String(clamp(isNaN(prev) ? range.default : prev, range.min, range.max));
+    var value = clamp(isNaN(prev) ? range.default : prev, range.min, range.max);
+    rebuildDrum(drum, glucoseDrumCfg());
+    scrollDrumToValue(drum, value, false);
     var suffix = document.getElementById('glucoseUnitDisplay');
     if (suffix) suffix.textContent = range.unit === 'mgdl' ? 'mg/dL' : 'mmol/L';
     var suffix2 = document.getElementById('glucoseUnitSuffix');
@@ -329,45 +375,48 @@
 
   function updateHrv(markActive) {
     var widget = document.getElementById('hrvWidget');
-    var slider = document.getElementById('hrvSlider');
+    var drum = document.getElementById('hrvDrum');
     var display = document.getElementById('hrvValueDisplay');
     var badge = document.getElementById('hrvZoneBadge');
-    if (!widget || !slider) return;
+    if (!widget || !drum) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
-    var val = parseInt(slider.value, 10);
-    if (active) val = clamp(isNaN(val) ? HRV.default : val, HRV.min, HRV.max);
-    setHidden('hrv', active ? val : null, active);
+    var val = drumValueAtCenter(drum);
+    if (active) val = clamp(val != null && !isNaN(val) ? val : HRV.default, HRV.min, HRV.max);
+    setHidden('hrv', active ? Math.round(val) : null, active);
     var zone = classifyHrv(active ? val : null);
     var waveRate = active ? Math.max(0.45, 1.8 - ratio(val, HRV.min, HRV.max) * 1.2) : 1.2;
     applyZone(widget, zone, waveRate);
     if (display) {
-      display.textContent = active ? String(val) : '-';
+      display.textContent = active ? String(Math.round(val)) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
     if (badge) badge.textContent = active ? zone.label : t('wizard.vitals.hrv.hint', 'Slide to set HRV');
     applyOasisVitalFeedback(widget, display, zone);
-    slider.style.setProperty('--vital-fill-pct', (ratio(val, HRV.min, HRV.max) * 100).toFixed(1) + '%');
+    markDrumCenter(drum, active, Math.round(val), function (itemVal, centerVal) {
+      return Math.round(itemVal) === centerVal;
+    });
   }
 
   function updateBodyWeight(markActive) {
     var widget = document.getElementById('bodyWeightWidget');
-    var slider = document.getElementById('bodyWeightSlider');
+    var drum = document.getElementById('bodyWeightDrum');
     var display = document.getElementById('bodyWeightValueDisplay');
     var badge = document.getElementById('bodyWeightZoneBadge');
     var beam = document.getElementById('bodyWeightBeam');
-    if (!widget || !slider) return;
+    if (!widget || !drum) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
     var range = weightRange();
-    var val = parseFloat(slider.value);
-    if (active) val = clamp(isNaN(val) ? range.default : val, range.min, range.max);
+    var drumCfg = weightDrumCfg();
+    var val = drumValueAtCenter(drum);
+    if (active) val = clamp(val != null && !isNaN(val) ? val : range.default, range.min, range.max);
     var unit = settings().bodyWeightUnit === 'lbs' ? 'lbs' : 'kg';
-    setHidden('bodyWeight', active ? val.toFixed(1) : null, active);
+    setHidden('bodyWeight', active ? Number(val).toFixed(1) : null, active);
     applyZone(widget, { id: active ? 'set' : 'idle', label: active ? unit : '-', color: '#a5d6a7' }, 1.1);
     if (display) {
-      display.textContent = active ? val.toFixed(1) : '-';
+      display.textContent = active ? formatWeightDisplay(val, drumCfg.step) : '-';
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
@@ -376,20 +425,21 @@
       var tilt = (ratio(val, range.min, range.max) - 0.5) * 14;
       beam.style.transform = 'rotate(' + tilt.toFixed(2) + 'deg)';
     }
-    slider.style.setProperty('--vital-fill-pct', (ratio(val, range.min, range.max) * 100).toFixed(1) + '%');
+    markDrumCenter(drum, active, val, function (itemVal, centerVal) {
+      return Math.abs(itemVal - centerVal) < 0.0001;
+    });
     if (typeof global.updateBmiReadout === 'function') global.updateBmiReadout();
   }
 
-  function syncBodyWeightSliderRange(preserve) {
-    var slider = document.getElementById('bodyWeightSlider');
+  function syncBodyWeightDrumRange(preserve) {
+    var drum = document.getElementById('bodyWeightDrum');
     var hidden = document.getElementById('bodyWeight');
-    if (!slider) return;
+    if (!drum) return;
     var range = weightRange();
     var prev = preserve && hidden && hidden.value ? parseFloat(hidden.value) : range.default;
-    slider.min = String(range.min);
-    slider.max = String(range.max);
-    slider.step = String(range.step);
-    slider.value = String(clamp(isNaN(prev) ? range.default : prev, range.min, range.max));
+    var value = clamp(isNaN(prev) ? range.default : prev, range.min, range.max);
+    rebuildDrum(drum, weightDrumCfg());
+    scrollDrumToValue(drum, value, false);
     var display = document.getElementById('bodyWeightUnitDisplay');
     if (display) display.textContent = settings().bodyWeightUnit === 'lbs' ? 'lbs' : 'kg';
     var suffix = document.getElementById('bodyWeightUnitSuffix');
@@ -399,12 +449,14 @@
 
   function nudge(kind, delta) {
     if (kind === 'glucose') {
-      var slider = document.getElementById('glucoseSlider');
-      var range = glucoseRange();
-      if (!slider) return;
-      var step = range.step;
-      var dir = delta >= 0 ? step : -step;
-      slider.value = String(clamp(parseFloat(slider.value) + dir, range.min, range.max));
+      var glucoseDrum = document.getElementById('glucoseDrum');
+      var gRange = glucoseRange();
+      if (!glucoseDrum) return;
+      var gCur = drumValueAtCenter(glucoseDrum);
+      if (gCur == null || isNaN(gCur)) gCur = gRange.default;
+      var gStep = gRange.step || 0.1;
+      var gDelta = delta >= 0 ? gStep : -gStep;
+      scrollDrumToValue(glucoseDrum, clamp(gCur + gDelta, gRange.min, gRange.max), true);
       updateGlucose(true);
       dispatchInput('bloodGlucose');
     } else if (kind === 'spo2') {
@@ -414,16 +466,20 @@
       updateSpO2(true);
       dispatchInput('spO2');
     } else if (kind === 'hrv') {
-      var hrvSlider = document.getElementById('hrvSlider');
-      if (!hrvSlider) return;
-      hrvSlider.value = String(clamp(parseInt(hrvSlider.value, 10) + delta, HRV.min, HRV.max));
+      var hrvDrum = document.getElementById('hrvDrum');
+      if (!hrvDrum) return;
+      var hrvCur = drumValueAtCenter(hrvDrum);
+      if (hrvCur == null || isNaN(hrvCur)) hrvCur = HRV.default;
+      scrollDrumToValue(hrvDrum, clamp(hrvCur + delta, HRV.min, HRV.max), true);
       updateHrv(true);
       dispatchInput('hrv');
     } else if (kind === 'bodyWeight') {
-      var wSlider = document.getElementById('bodyWeightSlider');
+      var wDrum = document.getElementById('bodyWeightDrum');
       var wRange = weightRange();
-      if (!wSlider) return;
-      wSlider.value = String(clamp(parseFloat(wSlider.value) + delta, wRange.min, wRange.max));
+      if (!wDrum) return;
+      var wCur = drumValueAtCenter(wDrum);
+      if (wCur == null || isNaN(wCur)) wCur = wRange.default;
+      scrollDrumToValue(wDrum, clamp(wCur + delta, wRange.min, wRange.max), true);
       updateBodyWeight(true);
       dispatchInput('bodyWeight');
     }
@@ -437,11 +493,10 @@
         if (id === 'glucoseWidget') w.dataset.glucosePrev = '0';
       }
     });
-    syncGlucoseSliderRange(false);
+    syncGlucoseDrumRange(false);
     scrollDrumToValue(document.getElementById('spo2Drum'), SPO2.default, false);
-    var hrvSlider = document.getElementById('hrvSlider');
-    if (hrvSlider) hrvSlider.value = String(HRV.default);
-    syncBodyWeightSliderRange(false);
+    scrollDrumToValue(document.getElementById('hrvDrum'), HRV.default, false);
+    syncBodyWeightDrumRange(false);
     setHidden('bloodGlucose', null, false);
     setHidden('spO2', null, false);
     setHidden('hrv', null, false);
@@ -454,8 +509,7 @@
 
   function restoreFromHiddenInputs() {
     if (parseHidden('bloodGlucose') != null) {
-      var gSlider = document.getElementById('glucoseSlider');
-      if (gSlider) gSlider.value = String(parseHidden('bloodGlucose'));
+      scrollDrumToValue(document.getElementById('glucoseDrum'), parseHidden('bloodGlucose'), false);
       updateGlucose(true);
     }
     if (parseHidden('spO2') != null) {
@@ -463,32 +517,27 @@
       updateSpO2(true);
     }
     if (parseHidden('hrv') != null) {
-      var hrvSlider = document.getElementById('hrvSlider');
-      if (hrvSlider) hrvSlider.value = String(parseHidden('hrv'));
+      scrollDrumToValue(document.getElementById('hrvDrum'), parseHidden('hrv'), false);
       updateHrv(true);
     }
     if (parseHidden('bodyWeight') != null) {
-      var wSlider = document.getElementById('bodyWeightSlider');
-      if (wSlider) wSlider.value = String(parseHidden('bodyWeight'));
+      scrollDrumToValue(document.getElementById('bodyWeightDrum'), parseHidden('bodyWeight'), false);
       updateBodyWeight(true);
     }
   }
 
   function setVitalValues(fieldId, value) {
     if (fieldId === 'bloodGlucose' && value != null) {
-      var gSlider = document.getElementById('glucoseSlider');
-      if (gSlider) gSlider.value = String(value);
+      scrollDrumToValue(document.getElementById('glucoseDrum'), value, false);
       updateGlucose(true);
     } else if (fieldId === 'spO2' && value != null) {
       scrollDrumToValue(document.getElementById('spo2Drum'), value, false);
       updateSpO2(true);
     } else if (fieldId === 'hrv' && value != null) {
-      var hrvSlider = document.getElementById('hrvSlider');
-      if (hrvSlider) hrvSlider.value = String(value);
+      scrollDrumToValue(document.getElementById('hrvDrum'), value, false);
       updateHrv(true);
     } else if (fieldId === 'bodyWeight' && value != null) {
-      var wSlider = document.getElementById('bodyWeightSlider');
-      if (wSlider) wSlider.value = String(value);
+      scrollDrumToValue(document.getElementById('bodyWeightDrum'), value, false);
       updateBodyWeight(true);
     }
   }
@@ -498,6 +547,12 @@
     if (!root || root.dataset.vitalWidgetsInit === '1') return;
     root.dataset.vitalWidgetsInit = '1';
 
+    syncGlucoseDrumRange(false);
+    bindDrumScroll(document.getElementById('glucoseDrum'), function (commit) {
+      updateGlucose(true);
+      if (commit) dispatchInput('bloodGlucose');
+    });
+
     buildDrum(document.getElementById('spo2Drum'), SPO2);
     scrollDrumToValue(document.getElementById('spo2Drum'), SPO2.default, false);
     bindDrumScroll(document.getElementById('spo2Drum'), function (commit) {
@@ -505,25 +560,18 @@
       if (commit) dispatchInput('spO2');
     });
 
-    syncGlucoseSliderRange(false);
-    syncBodyWeightSliderRange(false);
+    buildDrum(document.getElementById('hrvDrum'), HRV);
+    scrollDrumToValue(document.getElementById('hrvDrum'), HRV.default, false);
+    bindDrumScroll(document.getElementById('hrvDrum'), function (commit) {
+      updateHrv(true);
+      if (commit) dispatchInput('hrv');
+    });
 
-    var glucoseSlider = document.getElementById('glucoseSlider');
-    if (glucoseSlider) {
-      glucoseSlider.addEventListener('input', function () { updateGlucose(true); dispatchInput('bloodGlucose'); });
-    }
-    var hrvSlider = document.getElementById('hrvSlider');
-    if (hrvSlider) {
-      hrvSlider.min = String(HRV.min);
-      hrvSlider.max = String(HRV.max);
-      hrvSlider.step = '1';
-      hrvSlider.value = String(HRV.default);
-      hrvSlider.addEventListener('input', function () { updateHrv(true); dispatchInput('hrv'); });
-    }
-    var bodyWeightSlider = document.getElementById('bodyWeightSlider');
-    if (bodyWeightSlider) {
-      bodyWeightSlider.addEventListener('input', function () { updateBodyWeight(true); dispatchInput('bodyWeight'); });
-    }
+    syncBodyWeightDrumRange(false);
+    bindDrumScroll(document.getElementById('bodyWeightDrum'), function (commit) {
+      updateBodyWeight(true);
+      if (commit) dispatchInput('bodyWeight');
+    });
 
     root.querySelectorAll('[data-vital-nudge]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -543,8 +591,8 @@
     reset: resetAdvancedVitals,
     restoreFromHiddenInputs: restoreFromHiddenInputs,
     setVitalValues: setVitalValues,
-    syncGlucoseUnit: syncGlucoseSliderRange,
-    syncBodyWeightUnit: syncBodyWeightSliderRange,
+    syncGlucoseUnit: syncGlucoseDrumRange,
+    syncBodyWeightUnit: syncBodyWeightDrumRange,
   };
   global.initAdvancedVitalsWidgets = initAdvancedVitalsWidgets;
   global.resetAdvancedVitalsWidgets = resetAdvancedVitals;

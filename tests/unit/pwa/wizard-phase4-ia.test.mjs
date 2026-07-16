@@ -22,13 +22,15 @@ test('Phase 4 symptoms split layout puts map + scales columns', () => {
   assert.match(css, /order:\s*-1/);
 });
 
-test('Phase 4 targets in Settings; Trophy Room on Home', () => {
+test('Phase 4 targets via Goals modal; Trophy Room on Home', () => {
   assert.match(html, /id="targetSettingsPanel"/);
+  assert.match(html, /id="goalsModalOverlay"/);
   assert.match(html, /id="achievementsTrophyRoom"/);
   assert.match(html, /home-trophy-room/);
   assert.match(html, /id="goalSteps"/);
   assert.match(html, /id="achievementsGrid"/);
   assert.match(html, /data-goal-nudge="goalSteps"/);
+  assert.doesNotMatch(html, /data-settings-pane-title="AI & Goals"/);
   assert.equal((html.match(/id="goalSteps"/g) || []).length, 1);
   assert.equal((html.match(/id="achievementsGrid"/g) || []).length, 1);
   assert.equal((html.match(/id="achievementsTrophyRoom"/g) || []).length, 1);
@@ -37,17 +39,21 @@ test('Phase 4 targets in Settings; Trophy Room on Home', () => {
 test('Phase 4 region severity list syncs tapped body areas', () => {
   assert.match(html, /id="symptomsRegionSeverity"/);
   assert.match(html, /id="symptomsRegionSeverityList"/);
+  assert.match(
+    html,
+    /pain-body-title[\s\S]*?id="symptomsRegionSeverity"[\s\S]*?id="painBodyDiagram"/
+  );
   assert.match(js, /function renderSymptomsRegionSeverity/);
   assert.match(js, /function setPainBodyRegionLevel/);
   assert.match(css, /\.symptoms-region-severity/);
 });
 
-test('Phase 4 openGoalsModal routes targets to Settings and achievements to Home', () => {
+test('Phase 4 openGoalsModal opens Goals modal; achievements route to Home', () => {
   assert.match(js, /function openSettingsToGoalsAndAchievements/);
   assert.match(js, /function openGoalsModal\(paneIndex\)/);
-  assert.match(js, /openSettingsToGoalsAndAchievements/);
-  assert.match(js, /settings\.ai\.title/);
   assert.match(js, /hydrateGoalControlsFromStorage/);
+  assert.match(js, /initGoalsCarouselUI/);
   assert.match(js, /switchTab\('home'\)/);
   assert.match(js, /achievementsTrophyRoom/);
+  assert.doesNotMatch(js, /settingsCarouselGo\(aiPaneIndex\)/);
 });

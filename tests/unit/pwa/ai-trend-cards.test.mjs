@@ -30,6 +30,9 @@ test('styles.css defines trend sparkline and status surfaces', () => {
   assert.match(css, /body\.light-mode \.ai-trend-card--stable/);
   assert.match(css, /icon-trends-vitals|trends-vitals-heart-pulse/);
   assert.match(css, /\.ai-chapter--trends \.ai-chapter-header \.ai-inline-icon/);
+  assert.match(css, /\.ai-trend-status-chip/);
+  assert.match(css, /white-space:\s*nowrap/);
+  assert.doesNotMatch(css, /\.ai-trend-card--metric \.ai-trend-status-chip[\s\S]{0,120}max-width:\s*48%/);
   assert.match(css, /\.ai-trend-stat__unit/);
   assert.doesNotMatch(css, /border-left: 4px solid #e91e63/);
 });

@@ -4424,7 +4424,14 @@ window.addEventListener('DOMContentLoaded', function() {
   var sidePrevBtn = document.getElementById('logWizardSidePrevBtn');
   if (sidePrevBtn) sidePrevBtn.addEventListener('click', function() { logWizardGoBack(); });
   var sideNextBtn = document.getElementById('logWizardSideNextBtn');
-  if (sideNextBtn) sideNextBtn.addEventListener('click', function() { logWizardGoNext(); });
+  if (sideNextBtn) sideNextBtn.addEventListener('click', function() {
+    if (currentLogWizardStep >= LOG_WIZARD_TOTAL_STEPS - 1) {
+      var saveBtnSide = document.getElementById('logWizardSaveBtn');
+      if (saveBtnSide) saveBtnSide.click();
+      return;
+    }
+    logWizardGoNext();
+  });
   if (skipBtn) skipBtn.addEventListener('click', function() { logWizardSkipCurrentStep(); });
   var mobileSkipBtn = document.getElementById('logWizardMobileSkipBtn');
   if (mobileSkipBtn) mobileSkipBtn.addEventListener('click', function() { logWizardSkipCurrentStep(); });
@@ -10674,6 +10681,19 @@ const ENERGY_CLARITY_ICONS = {
   'Distracted': 'fa-solid fa-arrows-up-down-left-right'
 };
 
+const ENERGY_CLARITY_ICON_ANIM = {
+  'High Energy': 'energy-clarity-icon--zap',
+  'Moderate Energy': 'energy-clarity-icon--breathe',
+  'Low Energy': 'energy-clarity-icon--drain',
+  'Mental Clarity': 'energy-clarity-icon--glow',
+  'Brain Fog': 'energy-clarity-icon--drift',
+  'Good Concentration': 'energy-clarity-icon--target',
+  'Poor Concentration': 'energy-clarity-icon--sparkle',
+  'Mental Fatigue': 'energy-clarity-icon--throb',
+  'Focused': 'energy-clarity-icon--lock',
+  'Distracted': 'energy-clarity-icon--scatter'
+};
+
 // Food group ids for tile colours (grains, protein, dairy, fruits, vegetables, snacks, mixed)
 // Predefined food items with calories and nutrients (selectable in food log). meals = which meal(s) show this item.
 const PREDEFINED_FOODS = [
@@ -11414,43 +11434,52 @@ function openSettingsToGoalsAndAchievements(paneIndex) {
     return;
   }
 
-  var aiPaneIndex = typeof getSettingsPaneIndexByI18nKey === 'function'
-    ? getSettingsPaneIndexByI18nKey('settings.ai.title')
-    : 2;
-
-  function revealGoalsInSettings() {
-    if (typeof settingsCarouselGo === 'function') {
-      settingsCarouselGo(aiPaneIndex);
-    }
-    hydrateGoalControlsFromStorage();
-    tickAchievements();
-    setTimeout(function() {
-      var focusTarget = document.getElementById('targetSettingsPanel');
-      if (focusTarget) {
-        try {
-          focusTarget.scrollIntoView({ block: 'start', behavior: 'smooth' });
-        } catch (e) {
-          focusTarget.scrollIntoView(true);
-        }
-      }
-    }, 320);
-  }
-
-  closeGoalsModal();
-  var overlay = document.getElementById('settingsOverlay');
-  var settingsOpen = overlay && overlay.classList.contains('settings-overlay--open');
-  if (!settingsOpen && typeof toggleSettings === 'function') {
-    toggleSettings();
-    setTimeout(revealGoalsInSettings, 120);
-  } else {
-    revealGoalsInSettings();
-  }
+  openGoalsModal(0);
 }
 if (typeof window !== 'undefined') window.openSettingsToGoalsAndAchievements = openSettingsToGoalsAndAchievements;
 
 function openGoalsModal(paneIndex) {
-  // Phase 4: de-modalize — same entry points open Settings → AI & Goals
-  openSettingsToGoalsAndAchievements(typeof paneIndex === 'number' ? paneIndex : 0);
+  if (paneIndex === 1) {
+    openSettingsToGoalsAndAchievements(1);
+    return;
+  }
+  var overlay = document.getElementById('goalsModalOverlay');
+  if (!overlay) return;
+  if (typeof closeSettingsModalIfOpen === 'function') closeSettingsModalIfOpen();
+  hydrateGoalControlsFromStorage();
+  var aiEnabledToggle = document.getElementById('aiEnabledToggle');
+  if (aiEnabledToggle) {
+    var aiOn = !(appSettings && appSettings.aiEnabled === false);
+    aiEnabledToggle.classList.toggle('active', aiOn);
+    aiEnabledToggle.setAttribute('aria-checked', aiOn ? 'true' : 'false');
+  }
+  var anonToggle = document.getElementById('contributeAnonDataToggle');
+  if (anonToggle && appSettings) {
+    anonToggle.classList.toggle('active', !!appSettings.contributeAnonData);
+  }
+  var openDataToggle = document.getElementById('useOpenDataToggle');
+  if (openDataToggle && appSettings) {
+    openDataToggle.classList.toggle('active', !!appSettings.useOpenData);
+  }
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  overlay.removeAttribute('hidden');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(e) { if (e.target === overlay) closeGoalsModal(); };
+  var escapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      closeGoalsModal();
+      document.removeEventListener('keydown', escapeHandler);
+    }
+  };
+  document.addEventListener('keydown', escapeHandler);
+  tickAchievements();
+  if (typeof initGoalsCarouselUI === 'function') {
+    initGoalsCarouselUI(typeof paneIndex === 'number' ? paneIndex : 0);
+  }
 }
 
 function closeGoalsModal() {
@@ -13026,8 +13055,9 @@ function renderEnergyClarityTiles() {
       btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
       if (currentValue === opt.value) btn.classList.add('selected');
       const iconClass = ENERGY_CLARITY_ICONS[opt.value] || 'fa-solid fa-bolt';
+      const animClass = ENERGY_CLARITY_ICON_ANIM[opt.value] || '';
       const iconEl = document.createElement('span');
-      iconEl.className = 'energy-clarity-chip-icon';
+      iconEl.className = 'energy-clarity-chip-icon' + (animClass ? ' ' + animClass : '');
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'energy-clarity-chip-name';
@@ -13092,8 +13122,9 @@ function renderEditEnergyClarityTiles() {
       btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
       if (currentValue === opt.value) btn.classList.add('selected');
       const iconClass = ENERGY_CLARITY_ICONS[opt.value] || 'fa-solid fa-bolt';
+      const animClass = ENERGY_CLARITY_ICON_ANIM[opt.value] || '';
       const iconEl = document.createElement('span');
-      iconEl.className = 'energy-clarity-chip-icon';
+      iconEl.className = 'energy-clarity-chip-icon' + (animClass ? ' ' + animClass : '');
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'energy-clarity-chip-name';
@@ -15250,12 +15281,15 @@ function generateLogEntryHTML(log) {
       <span class="log-entry-expand-hint">${escapeHTML(tUiOr('common.expand.details', 'Expand details'))}</span>
     </div>
     <div class="log-entry-content">
-      <div class="log-detail-tabs" role="tablist" aria-label="${escapeHTML(tUiOr('common.entry.categories', 'Entry categories'))}" onclick="event.stopPropagation();">
-        <button type="button" role="tab" class="log-detail-tab is-active" data-log-pane="physical" aria-selected="true">${escapeHTML(tUiOr('common.physical', 'Physical'))}</button>
-        <button type="button" role="tab" class="log-detail-tab" data-log-pane="lifestyle" aria-selected="false">${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}</button>
-        <button type="button" role="tab" class="log-detail-tab" data-log-pane="mental" aria-selected="false">${escapeHTML(tUiOr('common.mental', 'Mental'))}</button>
-      </div>
-      <div class="log-metrics-grid">
+      <div class="log-detail-carousel" data-log-carousel onclick="event.stopPropagation();">
+        <div class="log-detail-carousel__track" tabindex="0" role="region" aria-label="${escapeHTML(tUiOr('common.entry.categories', 'Entry categories'))}">
+          <section class="log-detail-pane log-detail-pane--physical" data-log-pane="physical" aria-label="${escapeHTML(tUiOr('common.physical', 'Physical'))}">
+            <header class="log-detail-pane__bar">
+              <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('activity', 'log-detail-pane__svg')}</span>
+              <span class="log-detail-pane__title">${escapeHTML(tUiOr('common.physical', 'Physical'))}</span>
+              <span class="log-detail-pane__swipe" aria-hidden="true">${svgIcon('chevron-right', 'log-detail-pane__chevron')}</span>
+            </header>
+            <div class="log-detail-pane__body log-metrics-grid">
       <div class="metric-group vital-signs" data-log-pane="physical">
         <h4 class="metric-group-title">${tUi('common.vital.signs')}</h4>
         <div class="metric-item">
@@ -15336,30 +15370,6 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group wellbeing" data-log-pane="mental">
-        <h4 class="metric-group-title">${tUi('common.wellbeing')}</h4>
-        <div class="metric-item">
-          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Sleep')} Sleep</span>
-          ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${log.sleep}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.sleep}/10</span>`
-          }
-        </div>
-        <div class="metric-item">
-          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Mood')} Mood</span>
-          ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${log.mood}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.mood}/10</span>`
-          }
-        </div>
-        <div class="metric-item">
-          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Irritability')} Irritability</span>
-          ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${log.irritability}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.irritability}/10</span>`
-          }
-        </div>
-      </div>
       <div class="metric-group function" data-log-pane="physical">
         <h4 class="metric-group-title">${tUi('common.function')}</h4>
         <div class="metric-item">
@@ -15377,24 +15387,27 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group energy-cognitive" data-log-pane="mental">
-        <h4 class="metric-group-title">${svgIcon('zap', 'metric-svg-icon', 'Energy')} Energy & Mental Clarity</h4>
+      <div class="metric-group additional-symptoms" data-log-pane="physical">
+        <h4 class="metric-group-title">${svgIcon('notice', 'metric-svg-icon', 'Symptoms')} Additional Symptoms</h4>
         <div class="metric-item">
-          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Energy clarity')} Energy/Clarity</span>
-          ${isEditing 
-            ? `<span class="inline-edit-field-wrap"><input type="text" class="inline-edit-energyClarity inline-edit-field inline-edit-field--energy" value="${escapeHTML(log.energyClarity || '')}" maxlength="50" /></span>`
-            : `<span class="metric-value">${log.energyClarity ? escapeHTML(log.energyClarity) : '-'}</span>`
-          }
+          <span class="metric-label">${tUi('wizard.step.symptoms')}</span>
+          <span class="metric-value">${(log.symptoms && log.symptoms.length > 0) ? log.symptoms.map(s => escapeHTML(s)).join(', ') : '-'}</span>
         </div>
         <div class="metric-item">
-          <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Weather sensitivity')} Weather Sensitivity</span>
+          <span class="metric-label">${svgIcon('balance', 'metric-svg-icon', 'Pain location')} Pain Location</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${log.weatherSensitivity || ''}" min="1" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '-'}</span>`
+            ? `<input type="text" class="inline-edit-painLocation inline-edit-field inline-edit-field--pain" value="${escapeHTML(log.painLocation || '')}" maxlength="150" />`
+            : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '-'}</span>`
           }
         </div>
       </div>
-      ${(log.steps || log.hydration) 
+            </div>
+          </section>
+          <section class="log-detail-pane log-detail-pane--lifestyle" data-log-pane="lifestyle" aria-label="${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}">
+            <header class="log-detail-pane__bar">
+              <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('food', 'log-detail-pane__svg')}</span>
+              <span class="log-detail-pane__title">${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}</span>
+              <span class="log-detail-pane__swipe" aria-hidden="true">${svgIcon('chevron-left', 'log-detail-pane__chevron')}${svgIcon('chevron-right', 'log-detail-pane__chevron')}</span> 
         ? `<div class="metric-group lifestyle-factors" data-log-pane="lifestyle">
           <h4 class="metric-group-title">${svgIcon('chart-up', 'metric-svg-icon', 'Lifestyle')} Lifestyle Factors</h4>
           ${log.steps ? `<div class="metric-item">
@@ -15427,27 +15440,6 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <div class="metric-group stress-triggers" data-log-pane="mental">
-        <h4 class="metric-group-title">${svgIcon('brain', 'metric-svg-icon', 'Stress')} Stress & Triggers</h4>
-        <div class="metric-item">
-          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Stressors')} Stressors</span>
-          <span class="metric-value">${(log.stressors && log.stressors.length > 0) ? log.stressors.map(s => escapeHTML(s)).join(', ') : '-'}</span>
-        </div>
-      </div>
-      <div class="metric-group additional-symptoms" data-log-pane="physical">
-        <h4 class="metric-group-title">${svgIcon('notice', 'metric-svg-icon', 'Symptoms')} Additional Symptoms</h4>
-        <div class="metric-item">
-          <span class="metric-label">${tUi('wizard.step.symptoms')}</span>
-          <span class="metric-value">${(log.symptoms && log.symptoms.length > 0) ? log.symptoms.map(s => escapeHTML(s)).join(', ') : '-'}</span>
-        </div>
-        <div class="metric-item">
-          <span class="metric-label">${svgIcon('balance', 'metric-svg-icon', 'Pain location')} Pain Location</span>
-          ${isEditing 
-            ? `<input type="text" class="inline-edit-painLocation inline-edit-field inline-edit-field--pain" value="${escapeHTML(log.painLocation || '')}" maxlength="150" />`
-            : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '-'}</span>`
-          }
-        </div>
-      </div>
       <div class="metric-group medications-log" data-log-pane="lifestyle">
         <h4 class="metric-group-title">${svgIcon('save', 'metric-svg-icon', 'Medication')} Medication / Supplements</h4>
         <div class="metric-item">
@@ -15458,6 +15450,71 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
+            </div>
+          </section>
+          <section class="log-detail-pane log-detail-pane--mental" data-log-pane="mental" aria-label="${escapeHTML(tUiOr('common.mental', 'Mental'))}">
+            <header class="log-detail-pane__bar">
+              <span class="log-detail-pane__icon" aria-hidden="true">${svgIcon('brain', 'log-detail-pane__svg')}</span>
+              <span class="log-detail-pane__title">${escapeHTML(tUiOr('common.mental', 'Mental'))}</span>
+              <span class="log-detail-pane__swipe" aria-hidden="true">${svgIcon('chevron-left', 'log-detail-pane__chevron')}</span>
+            </header>
+            <div class="log-detail-pane__body log-metrics-grid">
+      <div class="metric-group wellbeing" data-log-pane="mental">
+        <h4 class="metric-group-title">${tUi('common.wellbeing')}</h4>
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Sleep')} Sleep</span>
+          ${isEditing 
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${log.sleep}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${log.sleep}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Mood')} Mood</span>
+          ${isEditing 
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${log.mood}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${log.mood}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Irritability')} Irritability</span>
+          ${isEditing 
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${log.irritability}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${log.irritability}/10</span>`
+          }
+        </div>
+      </div>
+      <div class="metric-group energy-cognitive" data-log-pane="mental">
+        <h4 class="metric-group-title">${svgIcon('zap', 'metric-svg-icon', 'Energy')} Energy & Mental Clarity</h4>
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Energy clarity')} Energy/Clarity</span>
+          ${isEditing 
+            ? `<span class="inline-edit-field-wrap"><input type="text" class="inline-edit-energyClarity inline-edit-field inline-edit-field--energy" value="${escapeHTML(log.energyClarity || '')}" maxlength="50" /></span>`
+            : `<span class="metric-value">${log.energyClarity ? escapeHTML(log.energyClarity) : '-'}</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Weather sensitivity')} Weather Sensitivity</span>
+          ${isEditing 
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${log.weatherSensitivity || ''}" min="1" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '-'}</span>`
+          }
+        </div>
+      </div>
+      <div class="metric-group stress-triggers" data-log-pane="mental">
+        <h4 class="metric-group-title">${svgIcon('brain', 'metric-svg-icon', 'Stress')} Stress & Triggers</h4>
+        <div class="metric-item">
+          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Stressors')} Stressors</span>
+          <span class="metric-value">${(log.stressors && log.stressors.length > 0) ? log.stressors.map(s => escapeHTML(s)).join(', ') : '-'}</span>
+        </div>
+      </div>
+            </div>
+          </section>
+        </div>
+        <div class="log-detail-carousel__dots" role="tablist" aria-label="${escapeHTML(tUiOr('common.entry.categories', 'Entry categories'))}">
+          <button type="button" class="log-detail-dot log-detail-dot--physical is-active" data-log-pane="physical" role="tab" aria-selected="true" aria-label="${escapeHTML(tUiOr('common.physical', 'Physical'))}">${svgIcon('activity', 'log-detail-dot__svg')}</button>
+          <button type="button" class="log-detail-dot log-detail-dot--lifestyle" data-log-pane="lifestyle" role="tab" aria-selected="false" aria-label="${escapeHTML(tUiOr('common.lifestyle', 'Lifestyle'))}">${svgIcon('food', 'log-detail-dot__svg')}</button>
+          <button type="button" class="log-detail-dot log-detail-dot--mental" data-log-pane="mental" role="tab" aria-selected="false" aria-label="${escapeHTML(tUiOr('common.mental', 'Mental'))}">${svgIcon('brain', 'log-detail-dot__svg')}</button>
+        </div>
       </div>
       ${isEditing 
         ? `<div class="log-notes"><strong>${svgIcon('edit', 'metric-svg-icon', 'Note')} Note:</strong> <textarea class="inline-edit-notes inline-edit-field inline-edit-field--notes" onclick="event.stopPropagation();">${escapeHTML(log.notes || '')}</textarea></div>`
@@ -15505,31 +15562,79 @@ function buildLogEntrySummaryLine(log) {
 
 function wireLogDetailTabs(entry) {
   if (!entry || entry.dataset.logTabsBound === '1') return;
-  var tabs = entry.querySelectorAll('.log-detail-tab');
-  if (!tabs.length) return;
+  var carousel = entry.querySelector('[data-log-carousel]');
+  var track = entry.querySelector('.log-detail-carousel__track');
+  var dots = entry.querySelectorAll('.log-detail-dot');
+  if (!carousel || !track || !dots.length) return;
   entry.dataset.logTabsBound = '1';
-  tabs.forEach(function (tab) {
-    tab.addEventListener('click', function (ev) {
+  var panes = ['physical', 'lifestyle', 'mental'];
+
+  function setActivePane(pane, scroll) {
+    if (panes.indexOf(pane) < 0) pane = 'physical';
+    entry.setAttribute('data-active-pane', pane);
+    dots.forEach(function (dot) {
+      var on = dot.getAttribute('data-log-pane') === pane;
+      dot.classList.toggle('is-active', on);
+      dot.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    carousel.setAttribute('data-active-pane', pane);
+    if (scroll) {
+      var target = track.querySelector('.log-detail-pane[data-log-pane="' + pane + '"]');
+      if (target && typeof target.scrollIntoView === 'function') {
+        try {
+          target.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+        } catch (e) {
+          target.scrollIntoView(true);
+        }
+      }
+    }
+  }
+
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function (ev) {
       ev.preventDefault();
       ev.stopPropagation();
-      var pane = tab.getAttribute('data-log-pane') || 'physical';
-      entry.setAttribute('data-active-pane', pane);
-      tabs.forEach(function (t) {
-        var on = t === tab;
-        t.classList.toggle('is-active', on);
-        t.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      applyLogEntryPaneVisibility(entry);
+      setActivePane(dot.getAttribute('data-log-pane') || 'physical', true);
     });
   });
-  applyLogEntryPaneVisibility(entry);
+
+  var scrollTimer = null;
+  track.addEventListener('scroll', function () {
+    if (scrollTimer) clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () {
+      var width = track.clientWidth || 1;
+      var idx = Math.round(track.scrollLeft / width);
+      if (idx < 0) idx = 0;
+      if (idx > panes.length - 1) idx = panes.length - 1;
+      setActivePane(panes[idx], false);
+    }, 60);
+  }, { passive: true });
+
+  setActivePane(entry.getAttribute('data-active-pane') || 'physical', false);
 }
 
 function applyLogEntryPaneVisibility(entry) {
   if (!entry) return;
   var pane = entry.getAttribute('data-active-pane') || 'physical';
-  entry.querySelectorAll('.log-metrics-grid .metric-group[data-log-pane]').forEach(function (group) {
-    group.hidden = group.getAttribute('data-log-pane') !== pane;
+  var track = entry.querySelector('.log-detail-carousel__track');
+  if (!track) {
+    entry.querySelectorAll('.log-metrics-grid .metric-group[data-log-pane]').forEach(function (group) {
+      group.hidden = group.getAttribute('data-log-pane') !== pane;
+    });
+    return;
+  }
+  var target = track.querySelector('.log-detail-pane[data-log-pane="' + pane + '"]');
+  if (target && typeof target.scrollIntoView === 'function') {
+    try {
+      target.scrollIntoView({ behavior: 'auto', inline: 'start', block: 'nearest' });
+    } catch (e) {
+      target.scrollIntoView(true);
+    }
+  }
+  entry.querySelectorAll('.log-detail-dot').forEach(function (dot) {
+    var on = dot.getAttribute('data-log-pane') === pane;
+    dot.classList.toggle('is-active', on);
+    dot.setAttribute('aria-selected', on ? 'true' : 'false');
   });
 }
 
@@ -16012,7 +16117,7 @@ function applyCustomDateRange() {
 const RANGE_SLIDER_MAPS = {
   predictionRangeSlider: [null, 1, 7, 30, 90],  // null = off
   chartRangeSlider:      [1, 7, 30, 90, 'custom'],
-  logRangeSlider:        [1, 7, 30, 90],
+  logRangeSlider:        [1, 7, 30, 90, 'custom'],
   aiRangeSlider:         [7, 30, 90, 'custom'],
   moodRangeSlider:       [7, 14, 30],
 };
@@ -17853,6 +17958,10 @@ if (typeof window !== 'undefined') {
 }
 
 function privacyFeatureAvailable(featureKey) {
+  // Demo mode: on-device LLM download/init is allowed (local inference only).
+  if (featureKey === 'onDeviceLlmDownload' && appSettings && appSettings.demoMode === true) {
+    return true;
+  }
   if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.checkFeature === 'function') {
     var r = window.RianellPrivacy.checkFeature(featureKey);
     return !r || r.available !== false;
@@ -18689,14 +18798,20 @@ function refreshLlmModelSettingsHints() {
 function promptAiModelDownloadConsent(modelId) {
   return waitForShellPainted().then(function () {
   return new Promise(function (resolve) {
-    if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
-      if (!window.RianellShared.shouldAllowNetworkOperation(appSettings || {}, 'modelDownload')) {
-        if (typeof showAlertModal === 'function') {
-          showAlertModal(tUi('settings.privacy.localOnly.modelDownloadBlocked'), tUi('settings.privacy.localOnly.title'));
-        }
-        resolve(false);
-        return;
+    var allowDownload = true;
+    if (typeof window !== 'undefined' && window.RianellShared) {
+      if (typeof window.RianellShared.shouldAllowAiModelDownload === 'function') {
+        allowDownload = window.RianellShared.shouldAllowAiModelDownload(appSettings || {});
+      } else if (typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
+        allowDownload = window.RianellShared.shouldAllowNetworkOperation(appSettings || {}, 'modelDownload');
       }
+    }
+    if (!allowDownload) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal(tUi('settings.privacy.localOnly.modelDownloadBlocked'), tUi('settings.privacy.localOnly.title'));
+      }
+      resolve(false);
+      return;
     }
     if (appSettings.aiModelDownloadConsent === 'granted') {
       resolve(true);
@@ -23373,10 +23488,11 @@ function toggleDemoMode() {
             window.logs = logs;
           }
           
-          // Update settings for demo
+          // Update settings for demo — keep on-device AI available for exploration
           appSettings.userName = 'John Doe';
           appSettings.medicalCondition = 'Arthritis';
           appSettings.demoMode = true;
+          if (appSettings.aiEnabled === false) appSettings.aiEnabled = true;
           saveSettings();
           
           // Update UI
@@ -23615,7 +23731,7 @@ function setLogViewRange(days) {
   updateRangeSlider('chartRangeSlider', logPos);
   Logger.debug('View range slider updated', { days, pos: logPos });
 
-  syncLogFilterPills(days === 7 ? '7' : days === 30 ? '30' : days === 1 ? '7' : String(days), false);
+  syncLogFilterPills(String(days), false);
   
   // Hide custom date range selector if it was showing
   const customDateRangeSelector = document.getElementById('customDateRangeSelector');
@@ -23638,9 +23754,10 @@ function setLogViewRangeAll() {
   var endDateInput = document.getElementById('endDate');
   if (startDateInput) startDateInput.value = '';
   if (endDateInput) endDateInput.value = '';
-  syncLogFilterPills('all', false);
+  syncLogFilterPills('custom', true);
+  updateRangeSlider('logRangeSlider', 4);
   var customPanel = document.getElementById('logFilterCustom');
-  if (customPanel) customPanel.hidden = true;
+  if (customPanel) customPanel.hidden = false;
   renderLogs();
 }
 
@@ -23652,6 +23769,13 @@ function syncLogFilterPills(activeKey, showCustom) {
       btn.setAttribute('aria-expanded', showCustom || activeKey === 'custom' ? 'true' : 'false');
     }
   });
+  var customPanel = document.getElementById('logFilterCustom');
+  if (showCustom || activeKey === 'custom') {
+    updateRangeSlider('logRangeSlider', 4);
+    if (customPanel) customPanel.hidden = false;
+  } else if (customPanel && activeKey !== 'custom') {
+    /* keep panel visibility to caller */
+  }
 }
 
 function setLogFilterMode(mode) {
@@ -23663,26 +23787,27 @@ function setLogFilterMode(mode) {
   if (mode === 'custom') {
     syncLogFilterPills('custom', true);
     if (customPanel) customPanel.hidden = false;
-    var customBtn = document.getElementById('logRangeCustom');
-    if (customBtn) customBtn.setAttribute('aria-expanded', 'true');
+    updateRangeSlider('logRangeSlider', 4);
     return;
   }
   var days = parseInt(mode, 10);
-  if (days === 7 || days === 30) setLogViewRange(days);
+  if (days === 1 || days === 7 || days === 30 || days === 90) setLogViewRange(days);
 }
 
 var _logFilterBarBound = false;
 function bindLogFilterBarOnce() {
   if (_logFilterBarBound) return;
-  var bar = document.getElementById('logFilterBar');
-  if (!bar) return;
   _logFilterBarBound = true;
-  bar.querySelectorAll('.log-filter-pill').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      setLogFilterMode(btn.getAttribute('data-log-range'));
+  var bar = document.getElementById('logFilterBar');
+  if (bar) {
+    bar.querySelectorAll('.log-filter-pill').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setLogFilterMode(btn.getAttribute('data-log-range'));
+      });
     });
-  });
-  // Default Phase 3 view: last 7 days
+  }
+  // Default: last 7 days (slider position 1)
+  updateRangeSlider('logRangeSlider', 1);
   syncLogFilterPills('7', false);
 }
 
@@ -25865,16 +25990,14 @@ function updateLogWizardChrome() {
   }
   var sideNextBtn = document.getElementById('logWizardSideNextBtn');
   if (sideNextBtn) {
-    var canSideNext = currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
-    if (canSideNext) {
-      sideNextBtn.hidden = false;
-      sideNextBtn.disabled = false;
-      sideNextBtn.tabIndex = 0;
-    } else {
-      sideNextBtn.hidden = true;
-      sideNextBtn.disabled = true;
-      sideNextBtn.tabIndex = -1;
-    }
+    var onReviewStep = currentLogWizardStep >= LOG_WIZARD_TOTAL_STEPS - 1;
+    sideNextBtn.hidden = false;
+    sideNextBtn.disabled = false;
+    sideNextBtn.tabIndex = 0;
+    sideNextBtn.setAttribute('aria-label', onReviewStep
+      ? (typeof tUi === 'function' ? tUi('wizard.action.saveEntry', 'Save Entry') : 'Save Entry')
+      : (typeof tUi === 'function' ? tUi('wizard.aria.nextStep') : 'Next step'));
+    sideNextBtn.setAttribute('data-nav-mode', onReviewStep ? 'save' : 'next');
   }
   var logFormEl = document.getElementById('logForm');
   if (logFormEl) {
@@ -27305,7 +27428,40 @@ function runRianellBootAfterDomReady() {
     if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
   }
 
+  function ensureDemoModeAiModelInit() {
+    if (typeof appSettings === 'undefined' || !appSettings || !appSettings.demoMode) return;
+    if (appSettings.aiEnabled === false) return;
+    if (appSettings.localOnlyMode === true) return;
+    if (window.__rianellDemoAiInitStarted) return;
+    window.__rianellDemoAiInitStarted = true;
+
+    var ensure = typeof ensureSummaryLlmLoadedForSettings === 'function'
+      ? ensureSummaryLlmLoadedForSettings()
+      : Promise.resolve();
+
+    ensure.then(function () {
+      var state = typeof getHealthChatAiModelState === 'function' ? getHealthChatAiModelState() : 'unknown';
+      if (state === 'ready' || state === 'downloading') return null;
+      if (appSettings.aiModelDownloadConsent === 'granted') {
+        if (typeof window.preloadSummaryLLM === 'function') {
+          return window.preloadSummaryLLM().catch(function () { return null; });
+        }
+        return null;
+      }
+      // Demo exploration: offer download/init even if consent was previously deferred.
+      if (typeof promptAiModelDownloadConsent === 'function') {
+        return promptAiModelDownloadConsent().then(function (granted) {
+          if (!granted || typeof window.preloadSummaryLLM !== 'function') return null;
+          return window.preloadSummaryLLM().catch(function () { return null; });
+        });
+      }
+      return null;
+    }).catch(function () {});
+  }
+  if (typeof window !== 'undefined') window.ensureDemoModeAiModelInit = ensureDemoModeAiModelInit;
+
   function runPostShellIdleWork(skipAiPreload) {
+    if (typeof ensureDemoModeAiModelInit === 'function') ensureDemoModeAiModelInit();
     const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
     const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
     const shouldPreloadAi = !skipAiPreload && !window.__rianellAiPreloadedDuringBoot

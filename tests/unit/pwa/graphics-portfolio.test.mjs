@@ -86,19 +86,23 @@ test('graphics-portfolio resolves avatar names via lazy shared() after script lo
   const sharedIdx = html.indexOf('vendor/rianell-shared.js');
   const portfolioIdx = html.indexOf('modules/graphics-portfolio.js');
   assert.ok(sharedIdx >= 0 && portfolioIdx > sharedIdx, 'graphics-portfolio must load after rianell-shared.js');
-  assert.match(html, /graphics-portfolio\.js\?v=6/);
+  assert.match(html, /graphics-portfolio\.js\?v=7/);
 });
 
 test('generated companion avatars inline SVG paths without nested role=img', () => {
   const js = readFileSync('apps/pwa-webapp/modules/graphics-portfolio.js', 'utf8');
   assert.match(js, /function renderAvatarSvgUse/);
   assert.match(js, /avatarSymbolPathsFromSeed\(genSeed\)/);
+  assert.match(js, /avatarSymbolPathsForId\(iconRef\)/);
   assert.match(js, /AVATAR_FILL_SECONDARY/);
-  const renderFn = js.match(/function renderAvatarSvgUse\([\s\S]*?\n  \}/);
-  assert.ok(renderFn, 'renderAvatarSvgUse body');
-  assert.match(renderFn[0], /aria-hidden="true"/);
-  assert.doesNotMatch(renderFn[0], /role="img"/);
-  assert.match(renderFn[0], /isGeneratedAvatarId\(rawId\)/);
+  const start = js.indexOf('function renderAvatarSvgUse');
+  const end = js.indexOf('function avatarCarouselNavIcon');
+  const renderFn = js.slice(start, end);
+  assert.ok(renderFn.length > 40, 'renderAvatarSvgUse body');
+  assert.match(renderFn, /aria-hidden="true"/);
+  assert.doesNotMatch(renderFn, /role="img"/);
+  assert.doesNotMatch(renderFn, /<use href="#icon-/);
+  assert.match(renderFn, /isGeneratedAvatarId\(rawId\)/);
 });
 
 test('security lock symbols use stroke outlines not solid fill blobs', () => {

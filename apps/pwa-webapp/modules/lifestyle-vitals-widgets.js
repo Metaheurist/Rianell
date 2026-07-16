@@ -1,5 +1,6 @@
 /**
  * Animated lifestyle inputs: steps (footprint trail + runner) and hydration (glass fill).
+ * Steps and hydration use SpO2-style drum pickers.
  */
 (function (global) {
   'use strict';
@@ -69,6 +70,101 @@
     return n % 1 === 0 ? String(n) : n.toFixed(1);
   }
 
+  function buildDrum(scrollEl, cfg) {
+    if (!scrollEl || scrollEl.dataset.vitalDrumBuilt === '1') return;
+    scrollEl.dataset.vitalDrumBuilt = '1';
+    scrollEl.innerHTML = '';
+    var spacer = document.createElement('div');
+    spacer.className = 'vital-drum-spacer';
+    scrollEl.appendChild(spacer);
+    var step = cfg.step || 1;
+    for (var v = cfg.min; v <= cfg.max + 0.0001; v += step) {
+      var rounded = step < 1 ? Math.round(v * 10) / 10 : Math.round(v);
+      var item = document.createElement('div');
+      item.className = 'vital-drum-item';
+      item.setAttribute('data-value', String(rounded));
+      item.setAttribute('role', 'option');
+      item.textContent = cfg.format ? cfg.format(rounded) : String(rounded);
+      scrollEl.appendChild(item);
+    }
+    scrollEl.appendChild(spacer.cloneNode(true));
+  }
+
+  function drumValueAtCenter(scrollEl) {
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.valueAtCenter === 'function') {
+      return global.RianellDrumPicker.valueAtCenter(scrollEl);
+    }
+    if (!scrollEl) return null;
+    var rect = scrollEl.getBoundingClientRect();
+    var centerY = rect.top + rect.height / 2;
+    var best = null;
+    var bestDist = Infinity;
+    scrollEl.querySelectorAll('.vital-drum-item').forEach(function (item) {
+      var ir = item.getBoundingClientRect();
+      var dist = Math.abs(ir.top + ir.height / 2 - centerY);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = parseFloat(item.getAttribute('data-value'));
+      }
+    });
+    return best;
+  }
+
+  function scrollDrumToValue(scrollEl, value, smooth) {
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.scrollToValue === 'function') {
+      global.RianellDrumPicker.scrollToValue(scrollEl, value, smooth);
+      return;
+    }
+    if (!scrollEl) return;
+    var item = scrollEl.querySelector('.vital-drum-item[data-value="' + value + '"]');
+    if (!item) {
+      var items = scrollEl.querySelectorAll('.vital-drum-item');
+      var closest = null;
+      var diff = Infinity;
+      items.forEach(function (el) {
+        var v = parseFloat(el.getAttribute('data-value'));
+        var d = Math.abs(v - value);
+        if (d < diff) { diff = d; closest = el; }
+      });
+      item = closest;
+    }
+    if (item) item.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+  }
+
+  function bindDrumScroll(scrollEl, onChange) {
+    if (!scrollEl || scrollEl.dataset.vitalBound === '1') return;
+    scrollEl.dataset.vitalBound = '1';
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.bind === 'function') {
+      global.RianellDrumPicker.bind(scrollEl, {
+        onScroll: function () { onChange(false); },
+        onSnap: function () { onChange(true); },
+      });
+      return;
+    }
+    var ticking = false;
+    var scrollEndTimer = null;
+    scrollEl.addEventListener('scroll', function () {
+      if (!ticking) {
+        ticking = true;
+        global.requestAnimationFrame(function () {
+          ticking = false;
+          onChange(false);
+        });
+      }
+      if (scrollEndTimer) global.clearTimeout(scrollEndTimer);
+      scrollEndTimer = global.setTimeout(function () {
+        scrollEndTimer = null;
+        onChange(true);
+      }, 120);
+    }, { passive: true });
+    scrollEl.addEventListener('click', function (e) {
+      var item = e.target.closest('.vital-drum-item');
+      if (!item) return;
+      scrollDrumToValue(scrollEl, parseFloat(item.getAttribute('data-value')), true);
+      onChange(true);
+    });
+  }
+
   function buildHydrationMiniGlasses() {
     var row = document.getElementById('hydrationGlassesRow');
     if (!row || row.dataset.built === '1') return;
@@ -127,14 +223,15 @@
 
   function updateSteps(markActive) {
     var widget = document.getElementById('stepsWidget');
-    var slider = document.getElementById('stepsSlider');
+    var drum = document.getElementById('stepsDrum');
     var display = document.getElementById('stepsValueDisplay');
     var badge = document.getElementById('stepsZoneBadge');
-    if (!widget || !slider) return;
+    if (!widget || !drum) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
-    var val = parseInt(slider.value, 10);
-    if (active) val = clamp(isNaN(val) ? 0 : val, STEPS.min, STEPS.max);
+    var val = drumValueAtCenter(drum);
+    if (active) val = clamp(val != null ? val : STEPS.default, STEPS.min, STEPS.max);
+    else if (val == null || isNaN(val)) val = STEPS.default;
     setHidden('steps', val, active && val > 0);
     var zone = classifySteps(active ? val : null);
     applyZone(widget, zone, 1.3 - ratio(val, 0, 10000) * 0.5);
@@ -143,8 +240,10 @@
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
-    if (badge) badge.textContent = active && val > 0 ? zone.label : t('wizard.lifestyle.steps.hint', 'Slide to set steps');
-    slider.style.setProperty('--vital-fill-pct', (ratio(val, STEPS.min, STEPS.max) * 100).toFixed(1) + '%');
+    if (badge) badge.textContent = active && val > 0 ? zone.label : t('wizard.lifestyle.steps.hint', 'Slide drum to set steps');
+    drum.querySelectorAll('.vital-drum-item').forEach(function (item) {
+      item.classList.toggle('vital-drum-item--center', active && parseInt(item.getAttribute('data-value'), 10) === Math.round(val));
+    });
     var lit = active ? Math.ceil(ratio(val, 0, 10000) * 5) : 0;
     var prevLit = parseInt(widget.dataset.stepsLit || '0', 10);
     if (markActive) stampFootprints(widget, prevLit, lit);
@@ -156,14 +255,15 @@
 
   function updateHydration(markActive) {
     var widget = document.getElementById('hydrationWidget');
-    var slider = document.getElementById('hydrationSlider');
+    var drum = document.getElementById('hydrationDrum');
     var display = document.getElementById('hydrationValueDisplay');
     var badge = document.getElementById('hydrationZoneBadge');
-    if (!widget || !slider) return;
+    if (!widget || !drum) return;
     if (markActive) widget.setAttribute('data-vital-active', 'true');
     var active = widget.getAttribute('data-vital-active') === 'true';
-    var val = parseFloat(slider.value);
-    if (active) val = clamp(isNaN(val) ? 0 : val, HYDRATION.min, HYDRATION.max);
+    var val = drumValueAtCenter(drum);
+    if (active) val = clamp(val != null ? val : HYDRATION.default, HYDRATION.min, HYDRATION.max);
+    else if (val == null || isNaN(val)) val = HYDRATION.default;
     var prevVal = parseFloat(widget.dataset.hydrationPrev || '0');
     var rising = markActive && active && val > prevVal;
     setHidden('hydration', val, active && val > 0);
@@ -174,8 +274,11 @@
       if (markActive) display.classList.add('vital-readout--pulse');
       if (markActive) global.setTimeout(function () { display.classList.remove('vital-readout--pulse'); }, 280);
     }
-    if (badge) badge.textContent = active && val > 0 ? zone.label : t('wizard.lifestyle.hydration.hint', 'Slide to set hydration');
-    slider.style.setProperty('--vital-fill-pct', (ratio(val, HYDRATION.min, HYDRATION.max) * 100).toFixed(1) + '%');
+    if (badge) badge.textContent = active && val > 0 ? zone.label : t('wizard.lifestyle.hydration.hint', 'Slide drum to set hydration');
+    drum.querySelectorAll('.vital-drum-item').forEach(function (item) {
+      var itemVal = parseFloat(item.getAttribute('data-value'));
+      item.classList.toggle('vital-drum-item--center', active && Math.abs(itemVal - val) < 0.001);
+    });
     updateHydrationLiquid(active, val, rising);
     widget.dataset.hydrationPrev = String(active ? val : 0);
     var row = document.getElementById('hydrationGlassesRow');
@@ -197,15 +300,19 @@
 
   function nudge(kind, delta) {
     if (kind === 'steps') {
-      var slider = document.getElementById('stepsSlider');
-      if (!slider) return;
-      slider.value = String(clamp(parseInt(slider.value, 10) + delta, STEPS.min, STEPS.max));
+      var drum = document.getElementById('stepsDrum');
+      if (!drum) return;
+      var cur = drumValueAtCenter(drum);
+      if (cur == null || isNaN(cur)) cur = STEPS.default;
+      scrollDrumToValue(drum, clamp(cur + delta, STEPS.min, STEPS.max), true);
       updateSteps(true);
       dispatchInput('steps');
     } else if (kind === 'hydration') {
-      var hSlider = document.getElementById('hydrationSlider');
-      if (!hSlider) return;
-      hSlider.value = String(clamp(parseFloat(hSlider.value) + delta, HYDRATION.min, HYDRATION.max));
+      var hDrum = document.getElementById('hydrationDrum');
+      if (!hDrum) return;
+      var hCur = drumValueAtCenter(hDrum);
+      if (hCur == null || isNaN(hCur)) hCur = HYDRATION.default;
+      scrollDrumToValue(hDrum, clamp(hCur + delta, HYDRATION.min, HYDRATION.max), true);
       updateHydration(true);
       dispatchInput('hydration');
     }
@@ -220,10 +327,8 @@
       hydrationWidget.dataset.hydrationPrev = '0';
     }
     if (stepsWidget) stepsWidget.dataset.stepsLit = '0';
-    var stepsSlider = document.getElementById('stepsSlider');
-    var hydrationSlider = document.getElementById('hydrationSlider');
-    if (stepsSlider) stepsSlider.value = String(STEPS.default);
-    if (hydrationSlider) hydrationSlider.value = String(HYDRATION.default);
+    scrollDrumToValue(document.getElementById('stepsDrum'), STEPS.default, false);
+    scrollDrumToValue(document.getElementById('hydrationDrum'), HYDRATION.default, false);
     setHidden('steps', null, false);
     setHidden('hydration', null, false);
     updateSteps(false);
@@ -233,14 +338,12 @@
   function restoreFromHiddenInputs() {
     var stepsVal = document.getElementById('steps');
     if (stepsVal && stepsVal.value) {
-      var sSlider = document.getElementById('stepsSlider');
-      if (sSlider) sSlider.value = stepsVal.value;
+      scrollDrumToValue(document.getElementById('stepsDrum'), parseInt(stepsVal.value, 10), false);
       updateSteps(true);
     }
     var hydVal = document.getElementById('hydration');
     if (hydVal && hydVal.value) {
-      var hSlider = document.getElementById('hydrationSlider');
-      if (hSlider) hSlider.value = hydVal.value;
+      scrollDrumToValue(document.getElementById('hydrationDrum'), parseFloat(hydVal.value), false);
       updateHydration(true);
     }
   }
@@ -252,20 +355,30 @@
 
     buildHydrationMiniGlasses();
 
-    var stepsSlider = document.getElementById('stepsSlider');
-    if (stepsSlider) {
-      stepsSlider.addEventListener('input', function () {
-        updateSteps(true);
-        dispatchInput('steps');
-      });
-    }
-    var hydrationSlider = document.getElementById('hydrationSlider');
-    if (hydrationSlider) {
-      hydrationSlider.addEventListener('input', function () {
-        updateHydration(true);
-        dispatchInput('hydration');
-      });
-    }
+    var stepsDrum = document.getElementById('stepsDrum');
+    var hydrationDrum = document.getElementById('hydrationDrum');
+    buildDrum(stepsDrum, {
+      min: STEPS.min,
+      max: STEPS.max,
+      step: STEPS.step,
+      format: formatSteps,
+    });
+    buildDrum(hydrationDrum, {
+      min: HYDRATION.min,
+      max: HYDRATION.max,
+      step: HYDRATION.step,
+      format: formatHydration,
+    });
+    scrollDrumToValue(stepsDrum, STEPS.default, false);
+    scrollDrumToValue(hydrationDrum, HYDRATION.default, false);
+    bindDrumScroll(stepsDrum, function (commit) {
+      updateSteps(true);
+      if (commit) dispatchInput('steps');
+    });
+    bindDrumScroll(hydrationDrum, function (commit) {
+      updateHydration(true);
+      if (commit) dispatchInput('hydration');
+    });
 
     root.querySelectorAll('[data-lifestyle-nudge]').forEach(function (btn) {
       btn.addEventListener('click', function () {
