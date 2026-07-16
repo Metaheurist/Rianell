@@ -35,7 +35,7 @@ Compose existing panels onto this language: `.form-section` and `.log-accordion`
 - **Advanced vitals:** `#vitalsAdvancedDetails` is a closed `.ui-accordion` (`Add Advanced Vitals (Optional)`). Primary BP/BPM stay outside.
 - **Symptoms split:** `#symptomsSplitLayout` — `#symptomsScaleColumn` (segmented metric scales + `#symptomsRegionSeverity` for tapped body areas) + `.symptoms-split-layout__map`. From 768px, CSS grid puts the map on the left (`order: -1`). Region intensity pills sync to `#painLocation` (none/mild/pain) without schema changes.
 - **Goals:** Home header **Goals & targets** opens `#goalsModal` (`openGoalsModal`). Settings carousel no longer mounts an AI & Goals pane.
-- **Trophy Room:** `#achievementsTrophyRoom` / `#achievementsGrid` on Home (profile surface). `openGoalsModal(1)` scrolls there. Settings AI pane links out.
+- **Achievements:** Badge grid lives in the Goals modal Achievements pane (`#goalsAchievementsGrid`). `openGoalsModal(1)` opens that pane.
 
 ### `.segmented-scale` (`RianellSegmentedScale`)
 

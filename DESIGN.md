@@ -61,7 +61,7 @@ Do not start the next phase until the current phase is implemented and verified 
 
 - **Home (shipped Phase 2):** Compact `home-dashboard-header` (no MOTD/EKG), `home-command-grid` with daily action hero + goals bento, flattened Ask hub + ask bar.
 - **Logs / Mood (shipped Phase 3):** `#logFilterBar` (All/7D/30D/Custom), one-line summaries + Physical/Lifestyle/Mental panes; Mood check-in deck first + 30-day heatmap.
-- **Wizard / Goals (shipped Phase 4):** `#vitalsAdvancedDetails` closed accordion; `#symptomsSplitLayout` map+scales + `#symptomsRegionSeverity` for tapped regions; `#targetSettingsPanel` in Settings → AI & Goals; `#achievementsTrophyRoom` on Home (`openGoalsModal(1)`).
+- **Wizard / Goals (shipped Phase 4):** `#vitalsAdvancedDetails` closed accordion; `#symptomsSplitLayout` map+scales + `#symptomsRegionSeverity` for tapped regions; Goals modal for targets + `#goalsAchievementsGrid` (`openGoalsModal(1)`).
 
 ## Agent protocol (every phase)
 

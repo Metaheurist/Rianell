@@ -1444,7 +1444,7 @@
   function playAchievementUnlockSequence(newlyUnlocked) {
     if (!newlyUnlocked || !newlyUnlocked.length) return;
     if (typeof global.triggerMilestoneConfetti === 'function') {
-      var origin = document.getElementById('achievementsGrid') || document.querySelector('.achievement-card--unlocked');
+      var origin = document.getElementById('goalsAchievementsGrid') || document.querySelector('.achievement-card--unlocked');
       global.triggerMilestoneConfetti(origin || document.body);
     }
     newlyUnlocked.forEach(function (snap) {
@@ -1458,7 +1458,7 @@
         composite.classList.add('graphics-achievement-icon--unlock-sweep');
       }
     });
-    animateAchievementDayChips(document.getElementById('achievementsGrid'));
+    animateAchievementDayChips(document.getElementById('goalsAchievementsGrid'));
     reactHeaderAvatar();
   }
 
