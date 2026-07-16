@@ -51,7 +51,7 @@ Open `http://localhost:8080`. See [[Developer-Setup]] for Node, Supabase, and Re
 1. **First-run setup** - a short guided questionnaire asks where you live, how your helper should talk, how much it should guide you, and any required consents (one question at a time). Optional daily reminder, community help, and AI download. Finish with **Start** or take an optional **Quick tour** from Settings later. Medical condition and tracking profile stay in **Settings**.
 2. **Log a day** - tap **+**, pick date and flare (Yes/No), add any vitals you track, then save.
 3. **Explore tabs** - **Home** (summary), **View logs** (history), **Charts** (trends), **Mood**, **AI Analysis** (insights).
-4. **Settings** (gear icon) - language, theme, goals, privacy, consent dashboard, and optional cloud sync.
+4. **Settings** (gear icon, Home header right) - language, theme, privacy, consent dashboard, and optional cloud sync. **Goals & targets** is the bullseye icon beside Settings; **Report a bug** is the bug icon on the left.
 5. **Demo mode** - try sample data without affecting your real logs (Settings → Data options).
 
 ---

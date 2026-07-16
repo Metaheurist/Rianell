@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.17** - Mood deck icons, severity drums, AI lifestyle polish.
+**Latest: v2.2.18** - Achievements in Goals only; wizard dock clearance; header bug left.
+
+### v2.2.18 - 2026-07-16 - Achievements IA + Home chrome
+
+- **Achievements:** Home Trophy Room removed; badge grid only in Goals modal (`#goalsAchievementsGrid`). Unlock confetti / day-chip animation origins target the modal grid.
+- **Log wizard:** Form `padding-bottom` / `scroll-padding-bottom` use `--log-wizard-dock-offset` so Skip / Save Entry no longer cover step content; compact dock + skip-in-dots row.
+- **Mood deck:** Larger clipboard / anxious-face sprites and tile icon sizes (clearer strokes).
+- **Header:** Bug report fixed on the **left**; Goals (target) + Settings stay on the **right** (`.header-buttons-wrap--left` / `--right`).
+- **Cache:** `styles.css?v=150`, `app.js?v=69`.
+
+**Previous: v2.2.17** - Mood deck icons, severity drums, AI lifestyle polish.
 
 ### v2.2.17 - 2026-07-16 - Mood icons + AI lifestyle polish
 

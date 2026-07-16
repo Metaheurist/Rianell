@@ -19,11 +19,11 @@ Open the **gear icon** to access a scrollable **settings carousel** with grouped
 
 Exact pane count may vary slightly by platform; native Settings mirrors web section titles for parity.
 
-**Daily targets** open from the Home header **Goals & targets** button (Goals modal). That modal also has an **Achievements** pane with the badge grid; the Home **Trophy Room** stays the primary showcase.
+**Daily targets** open from the Home header **Goals & targets** button (Goals modal). That modal also has an **Achievements** pane with the badge grid.
 
 **Enable AI features** and anonymised contribution toggles live under **Settings → Data options** (not inside the Goals modal).
 
-**Achievements** are on **Home** (Trophy Room) and mirrored in the Goals modal Achievements pane — not inside Settings.
+**Achievements** are only in the Goals modal Achievements pane — not on Home and not inside Settings.
 
 ---
 
