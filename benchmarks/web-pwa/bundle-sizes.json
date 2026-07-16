@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-16T13:17:00.200Z",
+  "generatedAt": "2026-07-16T16:14:31.197Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5483859,
-    "cssBytes": 838580,
-    "jsGzipBytes": 1301580,
-    "cssGzipBytes": 141837
+    "jsBytes": 5484195,
+    "cssBytes": 838726,
+    "jsGzipBytes": 1301697,
+    "cssGzipBytes": 141858
   },
   "files": [
     {
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.b97f6747baaa.css",
-      "bytes": 763402,
-      "gzipBytes": 126539
+      "file": "ci-minified/site/styles.482a3bc1a303.css",
+      "bytes": 763548,
+      "gzipBytes": 126560
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -229,14 +229,14 @@
       "gzipBytes": 2131
     },
     {
+      "file": "ci-minified/site/modules/drum-picker-scroll.js",
+      "bytes": 7469,
+      "gzipBytes": 2074
+    },
+    {
       "file": "ci-minified/site/device-module.js",
       "bytes": 7306,
       "gzipBytes": 2118
-    },
-    {
-      "file": "ci-minified/site/modules/drum-picker-scroll.js",
-      "bytes": 7133,
-      "gzipBytes": 1957
     },
     {
       "file": "ci-minified/site/print-utils.js",

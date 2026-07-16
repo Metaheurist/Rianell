@@ -1,13 +1,13 @@
 # PWA bundle sizes
 
-Generated: 2026-07-16T13:17:00.200Z
+Generated: 2026-07-16T16:14:31.197Z
 
 | File | Raw | Gzip |
 |------|-----|------|
 | ci-minified/site/app.js | 1182537 | 256771 |
 | ci-minified/site/app.0806376753e2.min.js | 875728 | 202858 |
 | ci-minified/site/vendor/transformers/transformers.min.js | 818493 | 207733 |
-| ci-minified/site/styles.b97f6747baaa.css | 763402 | 126539 |
+| ci-minified/site/styles.482a3bc1a303.css | 763548 | 126560 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
 | ci-minified/site/vendor/rianell-shared.js | 396968 | 90369 |
 | ci-minified/site/vendor/three/three.module.min.js | 355116 | 84757 |
@@ -25,5 +25,5 @@ Generated: 2026-07-16T13:17:00.200Z
 | ci-minified/site/guided-onboarding.js | 35662 | 7165 |
 | ci-minified/site/privacy-region.js | 30397 | 6405 |
 
-**JS total (gzip):** 1301580 bytes
-**CSS total (gzip):** 141837 bytes
+**JS total (gzip):** 1301697 bytes
+**CSS total (gzip):** 141858 bytes
