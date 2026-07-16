@@ -29,8 +29,8 @@ test('segmented scale CSS enforces 44px touch targets and hides native range', (
   assert.match(css, /\.ui-accordion/);
 });
 
-test('index.html loads segmented-scale-input before log-metric-widgets', () => {
-  const seg = html.indexOf('modules/segmented-scale-input.js');
-  const met = html.indexOf('modules/log-metric-widgets.js');
-  assert.ok(seg > 0 && met > seg);
+test('index.html still ships segmented-scale module (unused by metric drums)', () => {
+  // Module kept for potential non-metric reuse; log metrics use drums only.
+  assert.match(html, /modules\/segmented-scale-input\.js/);
+  assert.doesNotMatch(widgets, /RianellSegmentedScale\.mount/);
 });

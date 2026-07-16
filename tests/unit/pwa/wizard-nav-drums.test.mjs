@@ -30,6 +30,15 @@ test('drum picker maps horizontal drag and arrow keys to scroll', () => {
   assert.match(drum, /ArrowLeft/);
   assert.match(drum, /ArrowRight/);
   assert.match(drum, /shiftKey/);
+  assert.match(drum, /prefers-reduced-motion:\s*reduce/);
+  assert.match(drum, /Snap without bounce when reduced motion/);
+});
+
+test('log-metric widgets keep range input sync via compact drums', () => {
+  assert.match(metrics, /function syncMetricDrumFromSlider/);
+  assert.match(metrics, /slider\.dispatchEvent\(new Event\('input'/);
+  assert.match(metrics, /RianellDrumPicker\.bind/);
+  assert.doesNotMatch(metrics, /SegmentedScaleInput|mountSegmented/);
 });
 
 test('metric widgets use compact drums synced to hidden range inputs', () => {
