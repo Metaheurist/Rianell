@@ -760,8 +760,8 @@
     html += '<div class="mood-deck-tiles">';
     html += renderMoodDeckActionTile('moodViewChartsBtn', t('mood.viewCharts'), 'chart-bars', 'mood-deck-tile--chart action-btn');
     if (!simpleMode) {
-      html += renderMoodDeckActionTile('moodPhq2Btn', t('mentalHealth.phq2.action'), 'heart-pulse', 'mood-deck-tile--mood settings-data-btn');
-      html += renderMoodDeckActionTile('moodGad2Btn', t('mentalHealth.gad2.action'), 'brain-wave', 'mood-deck-tile--anxiety settings-data-btn');
+      html += renderMoodDeckActionTile('moodPhq2Btn', t('mentalHealth.phq2.action'), 'mood-clipboard', 'mood-deck-tile--mood settings-data-btn');
+      html += renderMoodDeckActionTile('moodGad2Btn', t('mentalHealth.gad2.action'), 'anxious-face', 'mood-deck-tile--anxiety settings-data-btn');
     }
     html += '</div>';
     html += '</div></div></section>';
@@ -811,11 +811,20 @@
       var score = byDate[key];
       var tone = score != null && !isNaN(score) ? moodToneFromScore(score) : 'empty';
       var label = key + (score != null && !isNaN(score) ? (': ' + score + '/10') : ': no reading');
+      var dayNum = dt.getDate();
+      // First cell and each 1st of month also carry the month so the run of tiles stays identifiable.
+      var showMonth = dayNum === 1 || i === n - 1;
+      var monthShort = showMonth ? dt.toLocaleDateString(undefined, { month: 'short' }) : '';
       cells.push(
         '<button type="button" class="mood-heatmap__cell mood-heatmap__cell--' + tone + '"' +
         ' data-mood-date="' + escapeHTML(key) + '"' +
         (score != null && !isNaN(score) ? ' data-mood-score="' + escapeHTML(String(score)) + '"' : '') +
-        ' title="' + escapeAttr(label) + '" aria-label="' + escapeAttr(label) + '"></button>'
+        ' title="' + escapeAttr(label) + '" aria-label="' + escapeAttr(label) + '">' +
+        '<span class="mood-heatmap__cell-day" aria-hidden="true">' +
+        (showMonth ? '<span class="mood-heatmap__cell-month">' + escapeHTML(monthShort) + '</span>' : '') +
+        escapeHTML(String(dayNum)) +
+        '</span>' +
+        '</button>'
       );
     }
     return '<section class="mood-heatmap" aria-label="30-day mood activity">' +
