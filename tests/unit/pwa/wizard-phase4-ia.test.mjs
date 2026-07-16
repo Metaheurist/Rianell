@@ -29,11 +29,39 @@ test('Phase 4 targets via Goals modal; Trophy Room on Home', () => {
   assert.match(html, /home-trophy-room/);
   assert.match(html, /id="goalSteps"/);
   assert.match(html, /id="achievementsGrid"/);
+  assert.match(html, /id="goalsAchievementsGrid"/);
   assert.match(html, /data-goal-nudge="goalSteps"/);
   assert.doesNotMatch(html, /data-settings-pane-title="AI & Goals"/);
+  assert.doesNotMatch(html, /id="openTrophyRoomFromGoalsBtn"/);
   assert.equal((html.match(/id="goalSteps"/g) || []).length, 1);
   assert.equal((html.match(/id="achievementsGrid"/g) || []).length, 1);
+  assert.equal((html.match(/id="goalsAchievementsGrid"/g) || []).length, 1);
   assert.equal((html.match(/id="achievementsTrophyRoom"/g) || []).length, 1);
+});
+
+test('Goals modal achievements pane renders the badge grid in-place', () => {
+  assert.match(
+    html,
+    /data-pane-title="Achievements"[\s\S]*?id="goalsAchievementsGrid"/
+  );
+  assert.match(js, /function getAchievementsGridRoots/);
+  assert.match(js, /goalsAchievementsGrid/);
+  assert.match(js, /function buildAchievementsGridHtml/);
+});
+
+test('AI and data sharing toggles live in Settings data options, not Goals modal', () => {
+  assert.match(
+    html,
+    /data-settings-pane-title="Data options"[\s\S]*?id="aiEnabledToggle"[\s\S]*?id="contributeAnonDataToggle"[\s\S]*?id="useOpenDataToggle"/
+  );
+  assert.match(html, /data-settings-pane-title="Data options"[\s\S]*?id="exportContributionHistoryBtn"/);
+  assert.doesNotMatch(
+    html,
+    /id="goalsModalOverlay"[\s\S]*?id="aiEnabledToggle"[\s\S]*?id="targetSettingsPanel"/
+  );
+  assert.equal((html.match(/id="aiEnabledToggle"/g) || []).length, 1);
+  assert.equal((html.match(/id="contributeAnonDataToggle"/g) || []).length, 1);
+  assert.equal((html.match(/id="useOpenDataToggle"/g) || []).length, 1);
 });
 
 test('Phase 4 region severity list syncs tapped body areas', () => {
@@ -48,12 +76,13 @@ test('Phase 4 region severity list syncs tapped body areas', () => {
   assert.match(css, /\.symptoms-region-severity/);
 });
 
-test('Phase 4 openGoalsModal opens Goals modal; achievements route to Home', () => {
+test('Phase 4 openGoalsModal opens Goals modal with in-modal achievements', () => {
   assert.match(js, /function openSettingsToGoalsAndAchievements/);
   assert.match(js, /function openGoalsModal\(paneIndex\)/);
   assert.match(js, /hydrateGoalControlsFromStorage/);
   assert.match(js, /initGoalsCarouselUI/);
-  assert.match(js, /switchTab\('home'\)/);
-  assert.match(js, /achievementsTrophyRoom/);
+  assert.match(js, /goalsAchievementsGrid/);
+  assert.match(js, /getAchievementsGridRoots/);
+  assert.doesNotMatch(js, /if \(paneIndex === 1\) \{\s*openSettingsToGoalsAndAchievements\(1\)/);
   assert.doesNotMatch(js, /settingsCarouselGo\(aiPaneIndex\)/);
 });
