@@ -29,6 +29,14 @@ test('mood-tab uses compact history ribbon without duplicating latest', () => {
   assert.match(js, /renderMoodControlDeck\(todayStr, simpleMode\)/);
 });
 
+test('mood heatmap cells beat light-mode button chrome', () => {
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(css, /body\.light-mode button\.mood-heatmap__cell/);
+  assert.match(css, /body\.light-mode button\.mood-heatmap__cell--good/);
+  assert.match(css, /body\.light-mode button\.mood-heatmap__cell--empty/);
+  assert.match(css, /\.mood-heatmap__cell::before/);
+});
+
 test('mood tab places check-in deck before metrics (Phase 3)', () => {
   const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
   const deckIdx = js.indexOf('html = renderMoodControlDeck');

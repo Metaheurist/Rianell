@@ -55,32 +55,32 @@ test('irritability widget uses chill face and escaping thought cloud SVG', () =>
   assert.doesNotMatch(js, /metric-svg--ocean/);
 });
 
-test('mobility widget uses trampoline stick-figure bounce tied to score', () => {
+test('mobility widget uses side-view running legs tied to score cadence', () => {
   const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
-  assert.match(js, /case 'mobility':[\s\S]*metric-mobility-trampoline/);
-  assert.match(js, /metric-mobility-jumper-anchor/);
-  assert.match(js, /metric-mobility-jumper/);
-  assert.match(js, /metric-mobility-air-shadow/);
-  assert.match(js, /function applyMobilityBounce/);
-  assert.match(js, /--mobility-bounce-peak/);
+  assert.match(js, /case 'mobility':[\s\S]*metric-mobility-runner/);
+  assert.match(js, /metric-mobility-leg--near/);
+  assert.match(js, /metric-mobility-leg--far/);
+  assert.match(js, /metric-mobility-thigh/);
+  assert.match(js, /metric-mobility-shin/);
+  assert.match(js, /function applyMobilityRun/);
+  assert.match(js, /--mobility-run-dur/);
   assert.match(js, /data-mobility-level/);
-  assert.doesNotMatch(js, /metric-mobility-rim/);
-  assert.match(js, /metric-mobility-mat-wrap/);
-  assert.match(js, /metric-mobility-mat/);
-  assert.doesNotMatch(js, /--mobility-bounce-dur/);
-  assert.doesNotMatch(js, /metric-mobility-mat.*setAttribute/);
-  assert.doesNotMatch(js, /metric-mobility-walker/);
+  assert.doesNotMatch(js, /metric-mobility-trampoline/);
+  assert.doesNotMatch(js, /metric-mobility-jumper/);
+  assert.doesNotMatch(js, /applyMobilityBounce/);
 });
 
-test('mobility trampoline animation uses reference-frame bounce cycle', () => {
+test('mobility run animation uses continuous cadence CSS variable', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
-  assert.match(css, /@keyframes metricMobilityBounce[\s\S]*--mobility-bounce-peak/);
-  assert.match(css, /metricMobilityMatSquash/);
-  assert.match(css, /metricMobilityAirShadow/);
-  assert.match(css, /\.metric-mobility-jumper-anchor/);
-  assert.match(css, /\.metric-widget--mobility \.metric-mobility-jumper/);
+  assert.match(css, /@keyframes metricMobilityThighNear/);
+  assert.match(css, /@keyframes metricMobilityThighFar/);
+  assert.match(css, /@keyframes metricMobilityShinNear/);
+  assert.match(css, /@keyframes metricMobilityBob/);
+  assert.match(css, /--mobility-run-dur/);
+  assert.match(css, /\.metric-mobility-runner/);
   assert.match(css, /data-mobility-level="low"/);
-  assert.match(css, /--mobility-mat-compress/);
+  assert.doesNotMatch(css, /metricMobilityBounce/);
+  assert.doesNotMatch(css, /metric-mobility-trampoline/);
 });
 
 test('weather sensitivity widget fades cloud and reveals sun at high wellness', () => {

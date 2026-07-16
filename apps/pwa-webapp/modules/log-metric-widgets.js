@@ -114,31 +114,27 @@
           '<circle class="metric-pain-ring metric-pain-ring--1" cx="32" cy="36" r="14" fill="none" stroke="currentColor" stroke-width="2"/>' +
           '<circle class="metric-pain-core" cx="32" cy="36" r="9" fill="currentColor" opacity="0.35"/></svg>';
       case 'mobility':
+        /* Side-view running legs; cadence scales with score via --mobility-run-dur */
         return '<svg class="metric-svg metric-svg--mobility" viewBox="0 0 72 88" focusable="false" aria-hidden="true">' +
-          '<defs>' +
-          '<filter id="metricMobilityGlow" x="-40%" y="-40%" width="180%" height="180%">' +
-          '<feGaussianBlur stdDeviation="2.2" result="blur"/>' +
-          '</filter>' +
-          '</defs>' +
-          '<ellipse class="metric-mobility-shadow" cx="36" cy="84.5" rx="20" ry="3.5" fill="currentColor" opacity="0.2"/>' +
-          '<g class="metric-mobility-trampoline" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">' +
-          '<line class="metric-mobility-frame metric-mobility-frame--L" x1="13" y1="71" x2="7" y2="86" stroke-width="2.6"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--R" x1="59" y1="71" x2="65" y2="86" stroke-width="2.6"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--L2" x1="21" y1="71" x2="17" y2="86" stroke-width="2.2" opacity="0.85"/>' +
-          '<line class="metric-mobility-frame metric-mobility-frame--R2" x1="51" y1="71" x2="55" y2="86" stroke-width="2.2" opacity="0.85"/>' +
-          '<g class="metric-mobility-mat-wrap">' +
-          '<path class="metric-mobility-mat" d="M10 71 Q36 74.8 62 71" stroke-width="3.6"/>' +
-          '</g>' +
-          '</g>' +
-          '<ellipse class="metric-mobility-air-shadow" cx="36" cy="69" rx="9" ry="2.8" fill="currentColor" filter="url(#metricMobilityGlow)" opacity="0"/>' +
-          '<g class="metric-mobility-jumper-anchor" transform="translate(36 70)">' +
-          '<g class="metric-mobility-jumper">' +
-          '<circle class="metric-mobility-head" cx="0" cy="-21" r="4.8" fill="currentColor"/>' +
-          '<path class="metric-mobility-torso" d="M0 -16 v13" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--L" d="M0 -14 L-8 -7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-arm metric-mobility-arm--R" d="M0 -14 L8 -7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--L" d="M0 -3 L-6 5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
-          '<path class="metric-mobility-leg metric-mobility-leg--R" d="M0 -3 L6 5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>' +
+          '<ellipse class="metric-mobility-shadow" cx="36" cy="82" rx="18" ry="3.2" fill="currentColor" opacity="0.22"/>' +
+          '<line class="metric-mobility-ground" x1="14" y1="80" x2="58" y2="80" stroke="currentColor" stroke-width="1.4" opacity="0.28" stroke-linecap="round"/>' +
+          '<g transform="translate(36 34)">' +
+          '<g class="metric-mobility-runner">' +
+          '<g class="metric-mobility-leg metric-mobility-leg--far" opacity="0.55">' +
+          '<g class="metric-mobility-thigh">' +
+          '<line class="metric-mobility-thigh-bone" x1="0" y1="0" x2="0" y2="20" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/>' +
+          '<g class="metric-mobility-shin" transform="translate(0 20)">' +
+          '<line class="metric-mobility-shin-bone" x1="0" y1="0" x2="0" y2="18" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-foot" d="M-1.5 17.2 L11.5 18.2" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>' +
+          '</g></g></g>' +
+          '<g class="metric-mobility-leg metric-mobility-leg--near">' +
+          '<g class="metric-mobility-thigh">' +
+          '<line class="metric-mobility-thigh-bone" x1="0" y1="0" x2="0" y2="20" stroke="currentColor" stroke-width="4.6" stroke-linecap="round"/>' +
+          '<g class="metric-mobility-shin" transform="translate(0 20)">' +
+          '<line class="metric-mobility-shin-bone" x1="0" y1="0" x2="0" y2="18" stroke="currentColor" stroke-width="3.9" stroke-linecap="round"/>' +
+          '<path class="metric-mobility-foot" d="M-1.5 17.2 L12 18.2" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>' +
+          '</g></g></g>' +
+          '<circle class="metric-mobility-hip" cx="0" cy="0" r="3.8" fill="currentColor"/>' +
           '</g></g></svg>';
       case 'swelling':
         return '<svg class="metric-svg metric-svg--swelling-balloon" viewBox="0 0 72 92" focusable="false" aria-hidden="true">' +
@@ -319,13 +315,12 @@
     if (lightning) lightning.classList.toggle('metric-weather-lightning--on', storm >= 0.62 && cloudOpacity > 0.35);
   }
 
-  function applyMobilityBounce(widget, r) {
+  function applyMobilityRun(widget, r) {
+    // Higher mobility → shorter stride period (1.5s crawl → ~0.32s sprint)
+    var dur = (1.5 - clamp(r, 0, 1) * 1.18).toFixed(2);
     var level = r < 0.28 ? 'low' : r < 0.62 ? 'mid' : 'high';
-    var peakPx = (14 + r * 42).toFixed(1);
     widget.setAttribute('data-mobility-level', level);
-    // Peak height may update every tick; duration/shadow/mat stay tier-stable in CSS so the loop
-    // does not restart on each +/- step (changing animation-duration was freezing the bounce).
-    widget.style.setProperty('--mobility-bounce-peak', '-' + peakPx + 'px');
+    widget.style.setProperty('--mobility-run-dur', dur + 's');
   }
 
   /** Balloon scales from the pin anchor (36, 72) — matches low / mid / high reference frames. */
@@ -538,7 +533,7 @@
       var core = visual.querySelector('.metric-pain-core');
       if (core) core.setAttribute('opacity', String(0.2 + sev * 0.75));
     } else if (kind === 'mobility') {
-      applyMobilityBounce(widget, r);
+      applyMobilityRun(widget, r);
     } else if (kind === 'swelling') {
       applySwellingVisual(widget, visual, rawValue);
     } else if (kind === 'fatigue') {
@@ -614,6 +609,74 @@
     slider.dispatchEvent(new Event('input', { bubbles: true }));
     if (typeof global.updateSliderColor === 'function') global.updateSliderColor(slider);
     else refreshSlider(slider);
+    syncMetricDrumFromSlider(slider);
+  }
+
+  function buildMetricDrum(scrollEl, min, max) {
+    if (!scrollEl || scrollEl.dataset.metricDrumBuilt === '1') return;
+    scrollEl.dataset.metricDrumBuilt = '1';
+    scrollEl.innerHTML = '';
+    var spacer = document.createElement('div');
+    spacer.className = 'vital-drum-spacer';
+    spacer.setAttribute('aria-hidden', 'true');
+    scrollEl.appendChild(spacer);
+    for (var v = min; v <= max; v++) {
+      var item = document.createElement('div');
+      item.className = 'vital-drum-item';
+      item.setAttribute('data-value', String(v));
+      item.setAttribute('role', 'option');
+      item.textContent = String(v);
+      scrollEl.appendChild(item);
+    }
+    scrollEl.appendChild(spacer.cloneNode(true));
+  }
+
+  function syncMetricDrumFromSlider(slider) {
+    if (!slider) return;
+    var drum = document.getElementById(slider.id + 'Drum');
+    if (!drum) return;
+    var val = parseInt(slider.value, 10);
+    if (isNaN(val)) return;
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.scrollToValue === 'function') {
+      global.RianellDrumPicker.scrollToValue(drum, val, false);
+    }
+    drum.querySelectorAll('.vital-drum-item').forEach(function (item) {
+      item.classList.toggle('vital-drum-item--center', parseInt(item.getAttribute('data-value'), 10) === val);
+    });
+  }
+
+  function bindMetricDrum(slider) {
+    var drum = document.getElementById(slider.id + 'Drum');
+    if (!drum || drum.dataset.metricDrumBound === '1') return;
+    drum.dataset.metricDrumBound = '1';
+    var min = parseInt(slider.min, 10) || 1;
+    var max = parseInt(slider.max, 10) || 10;
+    buildMetricDrum(drum, min, max);
+    function applyFromDrum(commit) {
+      var val = null;
+      if (global.RianellDrumPicker && typeof global.RianellDrumPicker.valueAtCenter === 'function') {
+        val = global.RianellDrumPicker.valueAtCenter(drum);
+      }
+      if (val == null) return;
+      val = clamp(val, min, max);
+      if (String(slider.value) !== String(val)) {
+        slider.value = String(val);
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      } else {
+        refreshSlider(slider);
+      }
+      drum.querySelectorAll('.vital-drum-item').forEach(function (item) {
+        item.classList.toggle('vital-drum-item--center', parseInt(item.getAttribute('data-value'), 10) === val);
+      });
+      if (commit && typeof global.updateSliderColor === 'function') global.updateSliderColor(slider);
+    }
+    if (global.RianellDrumPicker && typeof global.RianellDrumPicker.bind === 'function') {
+      global.RianellDrumPicker.bind(drum, {
+        onScroll: function () { applyFromDrum(false); },
+        onSnap: function () { applyFromDrum(true); },
+      });
+    }
+    syncMetricDrumFromSlider(slider);
   }
 
   function buildWidget(slider) {
@@ -652,25 +715,22 @@
     badge.className = 'metric-zone-badge';
     controls.appendChild(badge);
 
-    slider.classList.add('metric-slider', 'segmented-scale__native');
+    slider.classList.add('metric-slider', 'visually-hidden');
+    slider.setAttribute('tabindex', '-1');
     slider.parentNode.removeChild(slider);
     controls.appendChild(slider);
 
-    // Phase 1: segmented pills replace bulky range + +/- steppers; keep range input for save/read.
-    if (global.RianellSegmentedScale && typeof global.RianellSegmentedScale.mount === 'function') {
-      global.RianellSegmentedScale.mount({
-        input: slider,
-        mount: controls,
-        name: (label && label.textContent ? label.textContent.trim() : id) + ' scale',
-      });
-    } else {
-      var stepper = document.createElement('div');
-      stepper.className = 'metric-stepper-row';
-      stepper.innerHTML =
-        '<button type="button" class="metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="-1" aria-label="Decrease">−</button>' +
-        '<button type="button" class="metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="1" aria-label="Increase">+</button>';
-      controls.appendChild(stepper);
-    }
+    var drumShell = document.createElement('div');
+    drumShell.className = 'vital-drum-shell vital-drum-shell--compact metric-drum-shell';
+    var labelText = label && label.textContent ? label.textContent.trim() : id;
+    drumShell.innerHTML =
+      '<button type="button" class="vital-drum-nudge metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="-1" aria-label="Decrease">−</button>' +
+      '<div class="vital-drum-window">' +
+      '<div class="vital-drum-highlight" aria-hidden="true"></div>' +
+      '<div class="vital-drum-scroll" id="' + id + 'Drum" role="listbox" aria-label="' + labelText + ' scale" tabindex="0"></div>' +
+      '</div>' +
+      '<button type="button" class="vital-drum-nudge metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="1" aria-label="Increase">+</button>';
+    controls.appendChild(drumShell);
 
     if (goodBad) {
       if (isSeverityMetric(id)) applySeverityScaleHints(container);
@@ -684,8 +744,13 @@
     }
     container.appendChild(body);
 
+    bindMetricDrum(slider);
     refreshSlider(slider);
+    syncMetricDrumFromSlider(slider);
 
+    slider.addEventListener('input', function () {
+      syncMetricDrumFromSlider(slider);
+    });
     slider.addEventListener('focus', function () {
       container.classList.add('metric-widget--focused');
     });

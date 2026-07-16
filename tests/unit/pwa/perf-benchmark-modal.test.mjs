@@ -66,7 +66,7 @@ test('in-app daily reminder respects first-run suppression', () => {
 test('home today header keeps stacked greeting and date beside avatar', () => {
   const css = readFileSync('apps/pwa-webapp/css/graphics-portfolio.css', 'utf8');
   assert.match(css, /\.home-today-header[\s\S]*display:\s*grid/);
-  assert.match(css, /\.home-today-greeting[\s\S]*grid-column:\s*2/);
-  assert.match(css, /\.home-today-meta[\s\S]*grid-column:\s*2/);
-  assert.match(css, /\.profile-avatar-header[\s\S]*grid-row:\s*1\s*\/\s*-1/);
+  assert.match(css, /\.home-today-header[\s\S]*grid-template-columns:\s*auto minmax\(0,\s*1fr\) auto/);
+  assert.match(css, /\.home-dashboard-header__aside/);
+  assert.match(css, /\.profile-avatar-header__glyph[\s\S]*2\.85rem/);
 });

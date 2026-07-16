@@ -159,7 +159,8 @@ test('index.html AI chapter sprites include overview monitor and trends vitals',
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
   const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.match(html, /id="icon-overview-monitor"/);
-  assert.match(html, /overview-monitor-page/);
+  assert.match(html, /overview-monitor-bezel/);
+  assert.doesNotMatch(html, /overview-monitor-page|overviewMonitorScreenClip/);
   assert.match(html, /id="icon-trends-vitals"/);
   assert.match(html, /trends-vitals-heart-pulse/);
   assert.match(appJs, /wrapAIChapter\('overview', 'ai\.chapter\.overview', 'overview-monitor'/);

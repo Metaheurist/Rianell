@@ -232,12 +232,18 @@ function initializeEventHandlers() {
     if (typeof updateRangeSlider === 'function') updateRangeSlider('chartRangeSlider', parseInt(chartRangeSlider.value, 10));
   }
 
-  // Log date range slider
+  // Log date range slider (Charts parity: Today / 7 / 30 / 90 / Custom)
   const logRangeSlider = document.getElementById('logRangeSlider');
   if (logRangeSlider) {
-    const logValues = [1, 7, 30, 90];
+    const logValues = [1, 7, 30, 90, 'custom'];
     logRangeSlider.addEventListener('input', function () {
-      setLogViewRange(logValues[parseInt(this.value, 10)]);
+      const val = logValues[parseInt(this.value, 10)];
+      if (val === 'custom') {
+        if (typeof setLogFilterMode === 'function') setLogFilterMode('custom');
+        else if (typeof updateRangeSlider === 'function') updateRangeSlider('logRangeSlider', 4);
+      } else if (typeof setLogViewRange === 'function') {
+        setLogViewRange(val);
+      }
     });
     if (typeof updateRangeSlider === 'function') updateRangeSlider('logRangeSlider', parseInt(logRangeSlider.value, 10));
   }

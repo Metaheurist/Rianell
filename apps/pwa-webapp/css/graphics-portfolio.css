@@ -112,8 +112,8 @@ body.vibe-clinical .vibe-scene {
 
 .avatar-carousel__glyph-wrap {
   position: relative;
-  width: 3.35rem;
-  height: 3.35rem;
+  width: 3.85rem;
+  height: 3.85rem;
   display: grid;
   place-items: center;
 }
@@ -130,8 +130,8 @@ body.vibe-clinical .vibe-scene {
 .avatar-carousel__glyph {
   position: relative;
   z-index: 1;
-  width: 3rem;
-  height: 3rem;
+  width: 3.55rem;
+  height: 3.55rem;
 }
 
 .avatar-carousel__label {
@@ -148,13 +148,13 @@ body.vibe-clinical .vibe-scene {
 }
 
 .avatar-carousel-shell--intro .avatar-carousel__glyph-wrap {
-  width: 4.25rem;
-  height: 4.25rem;
+  width: 4.75rem;
+  height: 4.75rem;
 }
 
 .avatar-carousel-shell--intro .avatar-carousel__glyph {
-  width: 3.75rem;
-  height: 3.75rem;
+  width: 4.35rem;
+  height: 4.35rem;
 }
 
 .avatar-random-shell--intro .avatar-random-name {
@@ -187,8 +187,8 @@ body.vibe-clinical .vibe-scene {
 
 .avatar-random-face-wrap {
   position: relative;
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 6.5rem;
+  height: 6.5rem;
   display: grid;
   place-items: center;
 }
@@ -205,8 +205,8 @@ body.vibe-clinical .vibe-scene {
 .avatar-random-glyphs {
   position: relative;
   z-index: 1;
-  width: 4.35rem;
-  height: 4.35rem;
+  width: 5.85rem;
+  height: 5.85rem;
 }
 
 .avatar-random-name {
@@ -259,13 +259,13 @@ body.vibe-clinical .vibe-scene {
 }
 
 .avatar-random-shell--intro .avatar-random-face-wrap {
-  width: 6.25rem;
-  height: 6.25rem;
+  width: 7.5rem;
+  height: 7.5rem;
 }
 
 .avatar-random-shell--intro .avatar-random-glyphs {
-  width: 5rem;
-  height: 5rem;
+  width: 6.75rem;
+  height: 6.75rem;
 }
 
 .avatar-random-shell--settings {
@@ -279,13 +279,13 @@ body.vibe-clinical .vibe-scene {
 }
 
 .avatar-random-shell--settings .avatar-random-face-wrap {
-  width: 7rem;
-  height: 7rem;
+  width: 8.5rem;
+  height: 8.5rem;
 }
 
 .avatar-random-shell--settings .avatar-random-glyphs {
-  width: 6.1rem;
-  height: 6.1rem;
+  width: 7.75rem;
+  height: 7.75rem;
 }
 
 .avatar-random-shell--settings .avatar-random-name {
@@ -918,36 +918,40 @@ body.light-mode .graphics-achievement-icon {
 /* ── Header / wizard avatar ─────────────────────────────────────────────── */
 .home-today-header {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-items: start;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto;
+  align-items: center;
   column-gap: 0.75rem;
   row-gap: 0.35rem;
 }
 
 .home-today-greeting {
-  grid-column: 2;
-  grid-row: 1;
   margin-bottom: 0;
   text-align: start;
 }
 
+.home-dashboard-header__copy {
+  min-width: 0;
+}
+
 .home-today-meta {
-  grid-column: 2;
-  grid-row: 2;
+  margin-top: 0.2rem;
+}
+
+.home-dashboard-header__aside {
+  justify-self: end;
+  align-self: center;
 }
 
 .profile-avatar-header {
-  grid-column: 1;
-  grid-row: 1 / -1;
   align-self: center;
 }
 
 .profile-avatar-header,
 .log-wizard-avatar {
   flex: 0 0 auto;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3.35rem;
+  height: 3.35rem;
 }
 
 .log-wizard-avatar {
@@ -958,7 +962,7 @@ body.light-mode .graphics-achievement-icon {
 
 .log-wizard-chrome {
   position: relative;
-  padding-right: 3.25rem;
+  padding-right: 3.85rem;
 }
 
 .profile-avatar-header__ring {
@@ -972,8 +976,8 @@ body.light-mode .graphics-achievement-icon {
 }
 
 .profile-avatar-header__glyph {
-  width: 1.85rem;
-  height: 1.85rem;
+  width: 2.85rem;
+  height: 2.85rem;
 }
 
 .profile-avatar-header--react .profile-avatar-header__ring {

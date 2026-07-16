@@ -1,5 +1,5 @@
 /**
- * Shared drum picker scroll: touch, mouse wheel, pointer drag, and snap-to-nearest value.
+ * Shared drum picker scroll: touch, mouse wheel, pointer drag (any axis), and snap-to-nearest value.
  */
 (function (global) {
   'use strict';
@@ -111,7 +111,11 @@
 
     scrollEl.addEventListener('wheel', function (e) {
       e.preventDefault();
-      scrollEl.scrollTop += e.deltaY;
+      var delta = e.deltaY;
+      if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+      }
+      scrollEl.scrollTop += delta;
       notifyScroll();
       if (wheelTimer) global.clearTimeout(wheelTimer);
       wheelTimer = global.setTimeout(function () {
@@ -125,11 +129,20 @@
       dragging = true;
       scrollEl.classList.add('drum-scroll--dragging');
       scrollEl.setPointerCapture(e.pointerId);
+      var startX = e.clientX;
       var startY = e.clientY;
       var startScroll = scrollEl.scrollTop;
+      var axis = null;
 
       function onMove(ev) {
-        scrollEl.scrollTop = startScroll - (ev.clientY - startY);
+        var dx = ev.clientX - startX;
+        var dy = ev.clientY - startY;
+        if (!axis) {
+          if (Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+          axis = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+        }
+        var delta = axis === 'h' ? dx : dy;
+        scrollEl.scrollTop = startScroll - delta;
         notifyScroll();
       }
 
@@ -164,9 +177,9 @@
       var val = drumValueAtCenter(scrollEl);
       if (val == null) return;
       var next = null;
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        var delta = e.key === 'ArrowUp' ? -1 : 1;
+        var delta = (e.key === 'ArrowUp' || e.key === 'ArrowLeft') ? -1 : 1;
         next = val + delta;
       } else if (e.key === 'PageUp' || e.key === 'PageDown') {
         e.preventDefault();

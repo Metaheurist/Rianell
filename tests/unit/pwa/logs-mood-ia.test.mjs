@@ -5,21 +5,28 @@ import { readFileSync } from 'node:fs';
 const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
 const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
 const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+const handlers = readFileSync('apps/pwa-webapp/event-handlers.js', 'utf8');
 
-test('logs Phase 3 filter bar has All/7D/30D/Custom pills', () => {
+test('logs filter uses Charts-parity View Range slider', () => {
   assert.match(html, /id="logFilterBar"/);
-  assert.match(html, /data-log-range="all"/);
-  assert.match(html, /data-log-range="7"/);
-  assert.match(html, /data-log-range="30"/);
-  assert.match(html, /data-log-range="custom"/);
+  assert.match(html, /id="logRangeSlider"/);
+  assert.match(html, /id="logRangeSliderGroup"/);
   assert.match(html, /id="logSortToggle"/);
   assert.match(html, /id="logFilterCustom"/);
-  assert.match(html, /id="logRangeSlider"/);
+  assert.match(html, /id="startDate"/);
+  assert.match(html, /id="endDate"/);
+  assert.match(html, /max="4"/);
+  assert.match(html, /data-i18n="common\.view\.range"/);
+  assert.match(handlers, /logValues = \[1, 7, 30, 90, 'custom'\]/);
+  assert.match(js, /logRangeSlider:\s*\[1, 7, 30, 90, 'custom'\]/);
 });
 
-test('log entries have summary line and Physical/Lifestyle/Mental tabs', () => {
+test('log entries have summary line and Physical/Lifestyle/Mental carousel panes', () => {
   assert.match(js, /function buildLogEntrySummaryLine/);
-  assert.match(js, /log-detail-tabs/);
+  assert.match(js, /log-detail-carousel/);
+  assert.match(js, /log-detail-pane--physical/);
+  assert.match(js, /log-detail-pane--lifestyle/);
+  assert.match(js, /log-detail-pane--mental/);
   assert.match(js, /data-log-pane="physical"/);
   assert.match(js, /data-log-pane="lifestyle"/);
   assert.match(js, /data-log-pane="mental"/);
@@ -36,8 +43,11 @@ test('log filter helpers preserve setLogViewRange and sort order', () => {
 });
 
 test('Phase 3 logs/mood CSS utilities exist', () => {
-  assert.match(css, /\.log-filter-bar/);
-  assert.match(css, /\.log-filter-pill\.is-active/);
-  assert.match(css, /\.log-detail-tab/);
+  assert.match(css, /\.log-filter-custom/);
+  assert.match(css, /\.log-sort-toggle/);
+  assert.match(css, /\.log-detail-carousel/);
+  assert.match(css, /\.log-detail-pane__bar/);
+  assert.match(css, /\.log-detail-dot/);
   assert.match(css, /\.mood-heatmap__grid/);
+  assert.match(css, /\.range-slider-group/);
 });
