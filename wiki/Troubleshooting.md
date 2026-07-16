@@ -51,13 +51,15 @@ Fixed in recent releases - all tabs should refresh on locale change. If not:
 
 ## Stuck on “Measuring performance…” at first start
 
-Boot runs a short device benchmark **behind the loading overlay** (before content is shown). Older builds could freeze there when the suite used `requestAnimationFrame` during first paint - often stuck around **16% · rAF latency** (Chrome may show **Page Unresponsive**) or **3% · Array throughput**.
+Boot runs a short device benchmark **behind the loading overlay** (before content is shown). Older builds could freeze there when the suite used `requestAnimationFrame` during first paint - often stuck around **16% · rAF latency** (Chrome may show **Page Unresponsive**) or **3% · Array throughput**. Later builds could still trip **Page Unresponsive** on **CPU arithmetic** when cold JIT packed large batches on the first desktop visit.
 
 **v2.2.3+:** the suite yields with `setTimeout` only (no boot-time `requestAnimationFrame`), slices string/DOM work, and aborts a stalled rAF-latency step within ~1.5s.
 
+**v2.2.15+:** CPU/array work uses **one adaptive batch per timer tick** (no while-packed batches) and a lighter first-boot suite, so cold Chrome should stay responsive through “Measuring performance… · CPU arithmetic”.
+
 1. **Wait up to ~20 seconds** - the boot watchdog should reveal the app automatically.
-2. **Hard refresh** after updating to the latest build.
-3. **Clear benchmark cache** (God mode → clear benchmark cache) only if the screen still never finishes after a refresh on v2.2.3+.
+2. **Hard refresh** after updating to the latest build (cache-bust `device-benchmark.js?v=9` or newer).
+3. **Clear benchmark cache** (God mode → clear benchmark cache) only if the screen still never finishes after a refresh on v2.2.15+.
 4. **Console check:** `JSON.stringify(window.__rianellBootLog)` - include output when filing a bug.
 
 The benchmark result is cached in `localStorage` (`rianellPerfBenchmark`); once it completes or aborts, later loads skip the full suite.

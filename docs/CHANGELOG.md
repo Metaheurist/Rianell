@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.14** - Wizard side nav + drums, Goals from header, demo AI download, companion polish.
+**Latest: v2.2.15** - Boot CPU arithmetic stays responsive under cold Chrome JIT.
+
+### v2.2.15 - 2026-07-16 - Boot CPU batch yields
+
+- First-run device benchmark: one adaptive CPU/array batch per timer tick (no while-packed batches); lighter boot workloads; string join in its own tick — avoids Chrome “Page Unresponsive” on “Measuring… · CPU arithmetic”.
+
+**Previous: v2.2.14** - Wizard side nav + drums, Goals from header, demo AI download, companion polish.
 
 ### v2.2.14 - 2026-07-16 - Wizard drums + Goals IA + companion polish
 

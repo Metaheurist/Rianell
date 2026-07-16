@@ -1,6 +1,12 @@
 # Release Notes
 
-## Latest release (v2.2.14)
+## Latest release (v2.2.15)
+
+**Boot reliability** - First-start “Measuring performance… · CPU arithmetic” yields one small adaptive batch at a time so cold Chrome should no longer show **Page Unresponsive**. Hard-refresh after deploy (`device-benchmark.js?v=9+`).
+
+See **v2.2.14** for wizard drums and Goals from the Home header.
+
+## Previous (v2.2.14)
 
 **Wizard controls + Goals** - Log wizard uses lowkey side arrows on desktop (side Next saves on review). Wellness and vital ranges use scroll/drag number boxes with −/+ like SpO2. Open **Goals & targets** from the Home header (not Settings). Demo mode can download the on-device AI model; companions render larger without broken-image chrome.
 
