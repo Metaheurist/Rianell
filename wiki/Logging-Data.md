@@ -21,7 +21,7 @@ Save after **date + flare** only. Missing numeric scores are filled with mid-sca
 | **Flare** | Yes / No | Default No |
 | **BPM** | number | Heart rate; typical range 30-120 |
 | **Weight** | text | kg as decimal string |
-| **Fatigue, stiffness, sleep, joint pain, mobility, daily function, swelling, mood, irritability** | 0-10 | Subjective scales (PWA: scroll/drag number box with −/+) |
+| **Fatigue, stiffness, sleep, joint pain, mobility, daily function, swelling, mood, irritability** | 0-10 | Subjective scales (PWA: scroll/drag number box with −/+; instant snap when reduced motion is preferred) |
 | **Weather sensitivity** | 1-10 | Same drum-style control as other wellness scales |
 | **Steps** | integer | PWA drum (with −/+) |
 | **Hydration** | number | Glasses / units; PWA drum |

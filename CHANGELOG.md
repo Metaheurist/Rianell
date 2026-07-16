@@ -6,6 +6,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.16] - 2026-07-16
+
+### Fixed
+- **Wizard drums:** Snap respects `prefers-reduced-motion` (instant snap, no scale bounce); cache-bust `drum-picker-scroll.js?v=3` / `styles.css?v=146`
+
+### Tests
+- Metric drum mount assertions; segmented-scale marked unused by metric widgets; wizard-nav reduced-motion coverage
+
+---
+
 ## [2.2.15] - 2026-07-16
 
 ### Fixed

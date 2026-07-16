@@ -4,6 +4,10 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.2.16 documentation sync (drum reduced-motion)
+
+- **PWA:** `RianellDrumPicker` snaps without bounce under `prefers-reduced-motion`; cache `drum-picker-scroll.js?v=3`, `styles.css?v=146`.
+
 ### v2.2.14 documentation sync (wizard drums + Goals IA)
 
 - **Date:** 2026-07-16

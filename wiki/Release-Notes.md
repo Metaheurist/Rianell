@@ -1,6 +1,12 @@
 # Release Notes
 
-## Latest release (v2.2.15)
+## Latest release (v2.2.16)
+
+**Wizard drums** - Number boxes snap instantly (no bounce) when the system prefers reduced motion. Hard-refresh for `drum-picker-scroll.js?v=3` / `styles.css?v=146`.
+
+See **v2.2.15** for boot CPU arithmetic freeze fix.
+
+## Previous (v2.2.15)
 
 **Boot reliability** - First-start “Measuring performance… · CPU arithmetic” yields one small adaptive batch at a time so cold Chrome should no longer show **Page Unresponsive**. Hard-refresh after deploy (`device-benchmark.js?v=9+`).
 
