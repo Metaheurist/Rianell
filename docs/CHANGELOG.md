@@ -10,6 +10,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Log wizard:** Form `padding-bottom` / `scroll-padding-bottom` use `--log-wizard-dock-offset` so Skip / Save Entry no longer cover step content; compact dock + skip-in-dots row.
 - **Mood deck:** Larger clipboard / anxious-face sprites and tile icon sizes (clearer strokes).
 - **Header:** Bug report fixed on the **left**; Goals (target) + Settings stay on the **right** (`.header-buttons-wrap--left` / `--right`).
+- **CI:** Publish GitHub Release uses `gh` with retries (avoids softprops failing on intermittent GitHub Unicorn/503 HTML).
 - **Cache:** `styles.css?v=150`, `app.js?v=69`.
 
 **Previous: v2.2.17** - Mood deck icons, severity drums, AI lifestyle polish.

@@ -1289,38 +1289,66 @@ jobs:
           find release-assets -type f | sort
 
       - name: Create GitHub Release with current build binaries
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: build-${{ github.run_number }}
-          name: Rianell build ${{ github.run_number }}
-          body: |
-            ## Build info
-            - Build: **${{ github.run_number }}**
-            - Branch: `${{ github.ref_name }}`
-            - Commit: `${{ github.sha }}`
-
-            ## Assets (APK + Windows EXE only)
-
-            ### Android APK
-            Directory: `release-assets/RNCLI/Android/`
-
-            ### Server (Windows EXE)
-            Directory: `release-assets/Server/`
-            - `rianell-server-x64.exe`
-            - `rianell-server-x86.exe`
-
-            ## Notes
-            - Expo bundles and iOS zips stay in Actions artifacts (1-day retention) and are not attached to releases.
-            - `artifacts/*/latest.json` manifests on the branch point at this release.
-          draft: false
-          prerelease: false
-          fail_on_unmatched_files: true
-          files: |
-            release-assets/RNCLI/Android/*
-            release-assets/Server/*.exe
-            release-assets/Server/*.json
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN: ${{ github.run_number }}
+          SHA: ${{ github.sha }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          TAG="build-${RUN}"
+          TITLE="Rianell build ${RUN}"
+          BODY="$(cat <<EOF
+          ## Build info
+          - Build: **${RUN}**
+          - Branch: \`${REF_NAME}\`
+          - Commit: \`${SHA}\`
+
+          ## Assets (APK + Windows EXE only)
+
+          ### Android APK
+          Directory: \`release-assets/RNCLI/Android/\`
+
+          ### Server (Windows EXE)
+          Directory: \`release-assets/Server/\`
+          - \`rianell-server-x64.exe\`
+          - \`rianell-server-x86.exe\`
+
+          ## Notes
+          - Expo bundles and iOS zips stay in Actions artifacts (1-day retention) and are not attached to releases.
+          - \`artifacts/*/latest.json\` manifests on the branch point at this release.
+          EOF
+          )"
+          # softprops was failing on intermittent GitHub Unicorn HTML (503). Use gh + retries.
+          shopt -s nullglob
+          ASSETS=(release-assets/RNCLI/Android/* release-assets/Server/*.exe release-assets/Server/*.json)
+          if [ "${#ASSETS[@]}" -eq 0 ]; then
+            echo "No release assets found"
+            exit 1
+          fi
+          attempt=1
+          max_attempts=6
+          while [ "$attempt" -le "$max_attempts" ]; do
+            echo "Release publish attempt ${attempt}/${max_attempts} for ${TAG}"
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              echo "Tag ${TAG} already exists — uploading/clobbering assets"
+              if gh release upload "$TAG" "${ASSETS[@]}" --clobber; then
+                echo "Assets updated on existing release ${TAG}"
+                exit 0
+              fi
+            else
+              if gh release create "$TAG" "${ASSETS[@]}" --title "$TITLE" --notes "$BODY" --latest; then
+                echo "Created release ${TAG}"
+                exit 0
+              fi
+            fi
+            sleep_s=$((attempt * 20))
+            echo "Attempt ${attempt} failed (likely GitHub API flake). Sleeping ${sleep_s}s…"
+            sleep "$sleep_s"
+            attempt=$((attempt + 1))
+          done
+          echo "Failed to publish ${TAG} after ${max_attempts} attempts"
+          exit 1
 
   readme-build-info:
     name: "4 · Update README beta build info (web-only)"
