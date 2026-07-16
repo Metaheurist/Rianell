@@ -2350,9 +2350,8 @@ const AIEngine = {
     if (impacts.length > 0) {
       impacts.forEach(impact => {
         const impactType = impact.type === 'food' ? 'Food logging' : 'Exercise';
-        const positiveIndicator = impact.isPositive ? '✅' : '⚠️';
         analysis.patterns.push(
-          `${positiveIndicator} ${impactType} days show ${impact.direction} ${impact.metric} levels (${impact.withAvg} vs ${impact.withoutAvg})`
+          `${impactType} days show ${impact.direction} ${impact.metric} levels (${impact.withAvg} vs ${impact.withoutAvg})`
         );
       });
       
@@ -2677,54 +2676,54 @@ const AIEngine = {
 
     // Sleep advice
     if (trends.sleep && trends.sleep.average < 6) {
-      advice.push("🛏️ **Sleep Improvement**: Your sleep quality is below optimal. Consider establishing a consistent bedtime routine, avoiding screens before bed, and discussing sleep aids with your doctor.");
+      advice.push("**Sleep Improvement**: Your sleep quality is below optimal. Consider establishing a consistent bedtime routine, avoiding screens before bed, and discussing sleep aids with your doctor.");
     } else if (trends.sleep && trends.sleep.average >= 7) {
-      advice.push("✅ **Sleep Quality**: Your sleep scores are good - maintaining this is important for managing " + conditionName + ".");
+      advice.push("**Sleep Quality**: Your sleep scores are good - maintaining this is important for managing " + conditionName + ".");
     }
 
     // Pain management
     if (trends.backPain && trends.backPain.average > 6) {
-      advice.push("🔥 **Pain Management**: High pain levels detected. Consider heat therapy, gentle stretching, anti-inflammatory medications, and discuss biologics with your rheumatologist if not already prescribed.");
+      advice.push("**Pain Management**: High pain levels detected. Consider heat therapy, gentle stretching, anti-inflammatory medications, and discuss biologics with your rheumatologist if not already prescribed.");
     } else if (trends.backPain && trends.backPain.average <= 4) {
-      advice.push("✅ **Pain Control**: Your pain levels are well-managed - excellent work!");
+      advice.push("**Pain Control**: Your pain levels are well-managed - excellent work!");
     }
 
     // Exercise and mobility
     if (trends.mobility && trends.mobility.average < 6) {
-      advice.push(`🏃 **Mobility Focus**: Low mobility scores suggest need for gentle exercise. Try swimming, yoga, or physical therapy exercises appropriate for ${conditionName}.`);
+      advice.push(`**Mobility Focus**: Low mobility scores suggest need for gentle exercise. Try swimming, yoga, or physical therapy exercises appropriate for ${conditionName}.`);
     } else if (trends.mobility && trends.mobility.average >= 7) {
-      advice.push("✅ **Mobility**: Your mobility scores are good - regular movement helps manage " + conditionName + ".");
+      advice.push("**Mobility**: Your mobility scores are good - regular movement helps manage " + conditionName + ".");
     }
 
     // Stiffness management
     if (trends.stiffness && trends.stiffness.average > 6) {
-      advice.push("🧘 **Morning Stiffness**: High stiffness levels indicate need for morning stretches, hot showers, and potentially adjusting medication timing with your doctor.");
+      advice.push("**Morning Stiffness**: High stiffness levels indicate need for morning stretches, hot showers, and potentially adjusting medication timing with your doctor.");
     } else if (trends.stiffness && trends.stiffness.average <= 4) {
-      advice.push("✅ **Stiffness Management**: Your stiffness is well-controlled.");
+      advice.push("**Stiffness Management**: Your stiffness is well-controlled.");
     }
 
     // Fatigue management
     if (trends.fatigue && trends.fatigue.average > 6) {
-      advice.push("⚡ **Energy Management**: Chronic fatigue detected. Focus on pacing activities, short naps (20-30 min), and discussing fatigue with your healthcare team as it may indicate disease activity.");
+      advice.push("**Energy Management**: Chronic fatigue detected. Focus on pacing activities, short naps (20-30 min), and discussing fatigue with your healthcare team as it may indicate disease activity.");
     } else if (trends.fatigue && trends.fatigue.average <= 4) {
-      advice.push("✅ **Energy Levels**: Your fatigue is well-managed.");
+      advice.push("**Energy Levels**: Your fatigue is well-managed.");
     }
 
     // Mood support
     if (trends.mood && trends.mood.average < 6) {
-      advice.push("😊 **Mental Health**: Low mood scores suggest connecting with support groups, considering counseling, and ensuring you're getting adequate vitamin D and social interaction.");
+      advice.push("**Mental Health**: Low mood scores suggest connecting with support groups, considering counseling, and ensuring you're getting adequate vitamin D and social interaction.");
     } else if (trends.mood && trends.mood.average >= 7) {
-      advice.push("✅ **Mental Wellbeing**: Your mood scores are positive - maintaining mental health is crucial for managing chronic conditions.");
+      advice.push("**Mental Wellbeing**: Your mood scores are positive - maintaining mental health is crucial for managing chronic conditions.");
     }
     
     // Swelling management
     if (trends.swelling && trends.swelling.average > 6) {
-      advice.push("💧 **Swelling Management**: Elevated swelling detected. Consider elevation, compression, anti-inflammatory measures, and discuss with your doctor.");
+      advice.push("**Swelling Management**: Elevated swelling detected. Consider elevation, compression, anti-inflammatory measures, and discuss with your doctor.");
     }
     
     // Daily function
     if (trends.dailyFunction && trends.dailyFunction.average < 6) {
-      advice.push("📋 **Daily activities**: Reduced scores suggest need for activity pacing, assistive devices if needed, and occupational therapy consultation.");
+      advice.push("**Daily activities**: Reduced scores suggest need for activity pacing, assistive devices if needed, and occupational therapy consultation.");
     }
 
     return advice;
@@ -2743,68 +2742,65 @@ const AIEngine = {
     if (trends.sleep && trends.sleep.average < 6) {
       const sleepTrend = trends.sleep.regression?.slope || 0;
       const urgency = sleepTrend < -0.1 ? 'urgent' : 'moderate';
-      const urgencyIcon = urgency === 'urgent' ? '🔴' : '🟡';
       
       enhancedAdvice.push(
-        `${urgencyIcon} **Sleep Improvement (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` +
+        `**Sleep Improvement (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` +
         `Your sleep quality is below optimal (avg ${trends.sleep.average.toFixed(1)}/10). ` +
         `Action steps: 1) Set consistent bedtime within 30 minutes, 2) Avoid screens 1 hour before bed, ` +
         `3) Keep bedroom cool (65-68°F), 4) Consider sleep study if persists >2 weeks. ` +
         `Timeframe: Start tonight, review in 1 week.`
       );
     } else if (trends.sleep && trends.sleep.average >= 7) {
-      enhancedAdvice.push("✅ **Sleep Quality**: Your sleep scores are good - maintaining this is important for managing " + conditionName + ".");
+      enhancedAdvice.push("**Sleep Quality**: Your sleep scores are good - maintaining this is important for managing " + conditionName + ".");
     }
     
     // Pain management with specific steps
     if (trends.backPain && trends.backPain.average > 6) {
       const painTrend = trends.backPain.regression?.slope || 0;
       const urgency = painTrend > 0.1 ? 'urgent' : 'moderate';
-      const urgencyIcon = urgency === 'urgent' ? '🔴' : '🟡';
       
       enhancedAdvice.push(
-        `${urgencyIcon} **Pain Management (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` +
+        `**Pain Management (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` +
         `High pain levels detected (avg ${trends.backPain.average.toFixed(1)}/10). ` +
         `Action steps: 1) Heat therapy 15-20 min, 2) Gentle stretching, 3) Anti-inflammatory medications as prescribed, ` +
         `4) Discuss biologics with rheumatologist if not already prescribed. ` +
         `Timeframe: Immediate, follow up with doctor within 1 week if no improvement.`
       );
     } else if (trends.backPain && trends.backPain.average <= 4) {
-      enhancedAdvice.push("✅ **Pain Control**: Your pain levels are well-managed - excellent work!");
+      enhancedAdvice.push("**Pain Control**: Your pain levels are well-managed - excellent work!");
     }
     
     // Exercise and mobility with specific recommendations
     if (trends.mobility && trends.mobility.average < 6) {
       enhancedAdvice.push(
-        `🏃 **Mobility Focus**: Low mobility scores (avg ${trends.mobility.average.toFixed(1)}/10) suggest need for gentle exercise. ` +
+        `**Mobility Focus**: Low mobility scores (avg ${trends.mobility.average.toFixed(1)}/10) suggest need for gentle exercise. ` +
         `Action steps: 1) Try swimming 2-3x/week, 2) Yoga or gentle stretching daily, ` +
         `3) Physical therapy exercises appropriate for ${conditionName}, 4) Start with 10-15 min, gradually increase. ` +
         `Timeframe: Start this week, review progress in 2 weeks.`
       );
     } else if (trends.mobility && trends.mobility.average >= 7) {
-      enhancedAdvice.push("✅ **Mobility**: Your mobility scores are good - regular movement helps manage " + conditionName + ".");
+      enhancedAdvice.push("**Mobility**: Your mobility scores are good - regular movement helps manage " + conditionName + ".");
     }
     
     // Stiffness management with timing
     if (trends.stiffness && trends.stiffness.average > 6) {
       enhancedAdvice.push(
-        `🧘 **Morning Stiffness**: High stiffness levels (avg ${trends.stiffness.average.toFixed(1)}/10) indicate need for morning routine. ` +
+        `**Morning Stiffness**: High stiffness levels (avg ${trends.stiffness.average.toFixed(1)}/10) indicate need for morning routine. ` +
         `Action steps: 1) Morning stretches upon waking, 2) Hot shower or warm compress, ` +
         `3) Adjust medication timing with your doctor, 4) Gentle movement before getting out of bed. ` +
         `Timeframe: Start tomorrow morning, review in 1 week.`
       );
     } else if (trends.stiffness && trends.stiffness.average <= 4) {
-      enhancedAdvice.push("✅ **Stiffness Management**: Your stiffness is well-controlled.");
+      enhancedAdvice.push("**Stiffness Management**: Your stiffness is well-controlled.");
     }
     
     // Fatigue management with pacing
     if (trends.fatigue && trends.fatigue.average > 6) {
       const fatigueTrend = trends.fatigue.regression?.slope || 0;
       const urgency = fatigueTrend > 0.1 ? 'urgent' : 'moderate';
-      const urgencyIcon = urgency === 'urgent' ? '🔴' : '🟡';
       
       enhancedAdvice.push(
-        `${urgencyIcon} **Energy Management (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` +
+        `**Energy Management (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` +
         `Chronic fatigue detected (avg ${trends.fatigue.average.toFixed(1)}/10). ` +
         `Action steps: 1) Pace activities throughout day, 2) Short naps (20-30 min) if needed, ` +
         `3) Discuss fatigue with healthcare team as it may indicate disease activity, ` +
@@ -2812,25 +2808,25 @@ const AIEngine = {
         `Timeframe: Immediate, schedule doctor visit within 2 weeks if persistent.`
       );
     } else if (trends.fatigue && trends.fatigue.average <= 4) {
-      enhancedAdvice.push("✅ **Energy Levels**: Your fatigue is well-managed.");
+      enhancedAdvice.push("**Energy Levels**: Your fatigue is well-managed.");
     }
     
     // Mood support with social connection
     if (trends.mood && trends.mood.average < 6) {
       enhancedAdvice.push(
-        `😊 **Mental Health**: Low mood scores (avg ${trends.mood.average.toFixed(1)}/10) suggest need for support. ` +
+        `**Mental Health**: Low mood scores (avg ${trends.mood.average.toFixed(1)}/10) suggest need for support. ` +
         `Action steps: 1) Connect with support groups, 2) Consider counseling or therapy, ` +
         `3) Ensure adequate vitamin D and social interaction, 4) Practice mindfulness or meditation. ` +
         `Timeframe: Start this week, consider professional help if mood < 4/10 for >2 weeks.`
       );
     } else if (trends.mood && trends.mood.average >= 7) {
-      enhancedAdvice.push("✅ **Mental Wellbeing**: Your mood scores are positive - maintaining mental health is crucial for managing chronic conditions.");
+      enhancedAdvice.push("**Mental Wellbeing**: Your mood scores are positive - maintaining mental health is crucial for managing chronic conditions.");
     }
     
     // Swelling management
     if (trends.swelling && trends.swelling.average > 6) {
       enhancedAdvice.push(
-        `💧 **Swelling Management**: Elevated swelling detected (avg ${trends.swelling.average.toFixed(1)}/10). ` +
+        `**Swelling Management**: Elevated swelling detected (avg ${trends.swelling.average.toFixed(1)}/10). ` +
         `Action steps: 1) Elevate affected areas, 2) Compression if appropriate, ` +
         `3) Anti-inflammatory measures, 4) Discuss with your doctor. ` +
         `Timeframe: Immediate, follow up if swelling persists >3 days.`
@@ -2840,7 +2836,7 @@ const AIEngine = {
     // Daily function
     if (trends.dailyFunction && trends.dailyFunction.average < 6) {
       enhancedAdvice.push(
-        `📋 **Daily activities**: Reduced scores (avg ${trends.dailyFunction.average.toFixed(1)}/10) suggest need for support. ` +
+        `**Daily activities**: Reduced scores (avg ${trends.dailyFunction.average.toFixed(1)}/10) suggest need for support. ` +
         `Action steps: 1) Activity pacing, 2) Assistive devices if needed, ` +
         `3) Occupational therapy consultation, 4) Break tasks into smaller steps. ` +
         `Timeframe: Start this week, consider OT referral if function < 5/10 for >2 weeks.`
