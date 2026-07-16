@@ -410,7 +410,7 @@ flowchart LR
 - **i18n:** Settings cross-cutting sections and PHQ/GAD screening modals resolve locale keys after catalogs load; em-dash cleanup in UI copy.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.113.0; [platform-parity.md](platform-parity.md) v1.113.0 note.
 
-- **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Goals modal** pane 0), **Report a bug** (**?** - now in-app RN bug modal + submit flow), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
+- **React Native Home (web parity):** same three Home chrome actions as **`apps/pwa-webapp/index.html`**: **Report a bug** (web: left edge; RN may still group chrome together), **Goals & targets** (opens **Goals modal** pane 0), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
 
 ### v1.45.29 documentation sync
 

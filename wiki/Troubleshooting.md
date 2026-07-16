@@ -108,7 +108,7 @@ The local PWA at `http://localhost:8080` still works without cloud sync.
 
 ## Where to report bugs
 
-1. In-app **bug report** (Settings or help) - include steps, expected vs actual.
+1. In-app **bug report** (Home header bug icon on the left; or Settings / help) - include steps, expected vs actual.
 2. [GitHub Issues](https://github.com/Metaheurist/Rianell/issues)
 3. Email **jan.andersson@rianell.com**
 

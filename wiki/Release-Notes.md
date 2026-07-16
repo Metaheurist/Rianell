@@ -1,8 +1,18 @@
 # Release Notes
 
-## Latest release (v2.2.17)
+## Latest release (v2.2.18)
 
-**Mood + logging polish** - Mood heatmap tiles show day numbers. Quick mood check uses a clipboard with a half-smile / half-sad face; quick anxiety check uses an anxious face. Severity number boxes now read Low→High the way you expect. Hard-refresh for `styles.css?v=147` / `app.js?v=68`.
+**Home chrome** - Bug report sits on the **left** edge; **Goals & targets** and **Settings** stay on the **right**. Achievements badges live only in the Goals modal (no Trophy Room on Home). Hard-refresh for `styles.css?v=150` / `app.js?v=69`.
+
+**Log wizard** - Bottom dock (Skip / Save Entry) no longer covers fields on each step; the form reserves scroll space above the dock.
+
+**Mood deck** - Quick-check clipboard and anxious-face icons are larger with clearer lines.
+
+See **v2.2.17** for mood heatmap day labels and AI lifestyle polish.
+
+## Previous (v2.2.17)
+
+**Mood + logging polish** - Mood heatmap tiles show day numbers. Quick mood check uses a clipboard with a half-smile / half-sad face; quick anxiety check uses an anxious face. Severity number boxes now read Low→High the way you expect.
 
 **AI Analysis** - Lifestyle “what helps” cards use clear Helps/Watch and With/Without labels. Advice text no longer leads with emoji. The wellbeing ring shows your score straight away when reduced motion is on.
 

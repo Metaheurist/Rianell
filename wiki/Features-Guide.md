@@ -8,7 +8,7 @@ Rianell helps you log daily health metrics, spot trends, and optionally run AI-a
 
 | Tab | Purpose |
 |-----|---------|
-| **Home** | Compact today header, daily log CTA, 2×2 goals bento, Ask Rianell bar, Trophy Room |
+| **Home** | Compact today header (bug left; Goals + Settings right), daily log CTA, 2×2 goals bento, Ask Rianell bar |
 | **View logs** | Browse with All/7D/30D/Custom filter; expand for Physical / Lifestyle / Mental details |
 | **Mood** | Today's check-in first, then a 30-day activity heatmap with day numbers on each tile |
 | **Charts** | ApexCharts visualisations with optional predictions |
@@ -51,9 +51,9 @@ Detailed field reference: [[Logging-Data]].
 
 Open **Goals & targets** from the Home header target button. Daily targets (steps, hydration, sleep quality, good-days per week) live in that modal. Progress still shows on Home as a compact 2×2 grid for the last 7 days.
 
-**Achievements** use a **Trophy Room** on Home under your profile (badges for progressive logging unlocks: food day 7, exercise day 14, medications day 21). Unlock toasts stay non-blocking. The Goals modal also has an **Achievements** pane with the same badge grid.
+**Achievements** live in the Goals modal **Achievements** pane (badges for progressive logging unlocks: food day 7, exercise day 14, medications day 21). Unlock toasts stay non-blocking.
 
-On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings). Locked wizard steps link to targets or the Trophy Room when a category is not yet unlocked.
+On web, the header **target** button gently glows until you save at least one non-zero target (respects reduced-motion settings). Locked wizard steps link to targets or the Goals → Achievements pane when a category is not yet unlocked.
 
 ---
 

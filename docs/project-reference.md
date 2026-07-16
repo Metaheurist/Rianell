@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.2.18 documentation sync (achievements IA + Home chrome)
+
+- **PWA:** Home Trophy Room removed; achievements only in Goals modal; log wizard `--log-wizard-dock-offset` clearance; larger mood deck icons; header bug report left / Goals+Settings right.
+- **Cache:** `styles.css?v=150`, `app.js?v=69`.
+- **Wiki:** [[Release-Notes]] §2.2.18; [[Features-Guide]], [[Settings-and-Languages]], [[Platforms-and-Parity]], [[Troubleshooting]].
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.18]`.
+
 ### v2.2.17 documentation sync (mood icons + AI lifestyle polish)
 
 - **PWA:** Mood heatmap day labels; `mood-clipboard` / `anxious-face` deck icons; severity drum display mapping; lifestyle helpful i18n; emoji-free AIEngine advice; wizard bottom-dock pointer-events; wellbeing ring reduce-motion; AI/chart refresh coalescing.
@@ -25,7 +32,7 @@
 ### v2.2.13 documentation sync (UI architectural Phases 1-4)
 
 - **DESIGN.md:** Product UI declutter roadmap (not Airbnb palette). Primitives in `docs/styling.md` and `docs/design-token-contract.md`.
-- **PWA:** Home command center; logs filter + expand panes; Mood check-in + heatmap; vitals accordion; body map split + region severity pills; targets in Settings → AI & Goals; Trophy Room on Home.
+- **PWA:** Home command center; logs filter + expand panes; Mood check-in + heatmap; vitals accordion; body map split + region severity pills; targets in Goals modal; achievements later moved to Goals modal only (v2.2.18).
 - **RN:** `SegmentedScaleInput`, `Accordion`, flat `Card` borders.
 - **Tests:** `segmented-scale-input`, `home-command-center`, `logs-mood-ia`, `wizard-phase4-ia`, `pain-region-severity`.
 - **Wiki:** [[Release-Notes]] §2.2.9-2.2.13; [[Features-Guide]], [[Logging-Data]], [[Settings-and-Languages]], [[Platforms-and-Parity]].
