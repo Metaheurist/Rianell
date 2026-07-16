@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.15** - Boot CPU arithmetic stays responsive under cold Chrome JIT.
+**Latest: v2.2.16** - Wizard drum snap respects reduced motion.
+
+### v2.2.16 - 2026-07-16 - Drum reduced-motion snap
+
+- Drum pickers snap without bounce when `prefers-reduced-motion: reduce`; metric tests assert drums (not segmented scales).
+
+**Previous: v2.2.15** - Boot CPU arithmetic stays responsive under cold Chrome JIT.
 
 ### v2.2.15 - 2026-07-16 - Boot CPU batch yields
 
