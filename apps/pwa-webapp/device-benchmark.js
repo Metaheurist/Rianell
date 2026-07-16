@@ -15,9 +15,13 @@
   var DEFAULT_TOTAL_CAP_MS = 12000;
   var SUITE_STALL_MS = 8000;
   var SUITE_HARD_CAP_MS = 45000;
-  var BENCHMARK_SLICE_MS = 8;
+  var BENCHMARK_SLICE_MS = 4;
   var ASYNC_TEST_STEP_MAX_MS = 6000;
   var RAF_LATENCY_TIMEOUT_MS = 1500;
+  /** Cold JIT can make a large first batch freeze Chrome (“Page Unresponsive”). */
+  var CPU_BATCH_MIN = 500;
+  var CPU_BATCH_MAX = 10000;
+  var CPU_BATCH_START = 1200;
   var _activeSuiteAbort = null;
   var _rafLatencyCancel = null;
 
@@ -754,16 +758,19 @@
     } catch (e) {}
   }
 
-  function computeSuiteWorkloads(tier) {
+  function computeSuiteWorkloads(tier, bootLite) {
     tier = Math.max(1, Math.min(MAX_TIER, Math.floor(tier || 3)));
     var scale = 1 + (tier - 1) * 0.45;
+    // Boot must stay cooperative under cold JIT; god-mode / forced suites can go larger.
+    var cpuCap = bootLite ? 280000 : 560000;
+    var cpuFloor = bootLite ? 80000 : 120000;
     return {
-      cpuIterations: clampInt(200000 * scale, 120000, 1600000),
-      arraySize: clampInt(45000 * scale, 20000, 220000),
-      jsonSize: clampInt(180 * scale, 80, 900),
+      cpuIterations: clampInt(200000 * scale, cpuFloor, cpuCap),
+      arraySize: clampInt(45000 * scale, bootLite ? 16000 : 20000, bootLite ? 90000 : 220000),
+      jsonSize: clampInt(180 * scale, 80, bootLite ? 400 : 900),
       // Cap string/DOM work - large sync builds freeze the loading overlay / main thread.
-      stringSize: clampInt(20000 * scale, 12000, 48000),
-      domNodes: clampInt(130 * scale, 80, 320),
+      stringSize: clampInt(20000 * scale, bootLite ? 8000 : 12000, bootLite ? 24000 : 48000),
+      domNodes: clampInt(130 * scale, 80, bootLite ? 200 : 320),
       rafFrames: 5
     };
   }
@@ -803,6 +810,9 @@
     var stallTimer = null;
     var hardCapTimer = null;
 
+    var bootLite = !!(opts && opts.bootLite);
+    var sliceRunId = 0;
+
     function scheduleBenchmarkStep(fn) {
       if (suiteAborted) return;
       // setTimeout only - requestAnimationFrame can pause indefinitely during first paint / boot.
@@ -810,43 +820,59 @@
       setTimeout(fn, delay);
     }
 
+    /**
+     * Cooperative yield: one tickFn per macrotask.
+     * Never pack batches in a while-loop — cold V8 JIT can make one 8k arith batch take
+     * hundreds of ms; packing several trips Chrome’s “Page Unresponsive” dialog on first boot.
+     */
     function runWorkInSlices(tickFn, isDone, done) {
       if (suiteAborted) return;
-      var sliceStart = nowMs();
-      var sliceGuard = setTimeout(function () {
-        if (suiteAborted || isDone()) return;
-        if (typeof console !== 'undefined' && console.warn) {
-          console.warn('[Benchmark] slice watchdog - yielding long-running step');
+      var myId = ++sliceRunId;
+      function step() {
+        if (suiteAborted || myId !== sliceRunId) return;
+        if (isDone()) {
+          done();
+          return;
+        }
+        try {
+          tickFn();
+        } catch (e) {
+          if (typeof console !== 'undefined' && console.warn) {
+            console.warn('[Benchmark] slice tick failed', e);
+          }
+          done();
+          return;
+        }
+        if (suiteAborted || myId !== sliceRunId) return;
+        if (isDone()) {
+          done();
+          return;
         }
         touchStepWatchdog();
-        scheduleBenchmarkStep(function () { runWorkInSlices(tickFn, isDone, done); });
-      }, Math.max(BENCHMARK_SLICE_MS * 4, 32));
-      try {
-        while (!isDone()) {
-          tickFn();
-          if (nowMs() - sliceStart >= BENCHMARK_SLICE_MS) {
-            clearTimeout(sliceGuard);
-            touchStepWatchdog();
-            scheduleBenchmarkStep(function () { runWorkInSlices(tickFn, isDone, done); });
-            return;
-          }
-        }
-      } finally {
-        clearTimeout(sliceGuard);
+        scheduleBenchmarkStep(step);
       }
-      done();
+      step();
+    }
+
+    function adaptBatch(batch, elapsedMs, minB, maxB) {
+      var target = BENCHMARK_SLICE_MS;
+      if (!(elapsedMs > 0)) return Math.min(maxB, Math.max(minB, batch * 2));
+      var next = Math.floor(batch * (target / Math.max(elapsedMs, 0.25)));
+      return clampInt(next, minB, maxB);
     }
 
     function cpuArithAsync(iterations, done) {
       var total = 0;
       var i = 0;
-      var batch = 8000;
+      var batch = CPU_BATCH_START;
       runWorkInSlices(
         function () {
           var limit = Math.min(i + batch, iterations);
+          var t0 = nowMs();
           for (; i < limit; i++) {
             total = (total + ((i * 31 + 17) % 97)) | 0;
           }
+          batch = adaptBatch(batch, nowMs() - t0, CPU_BATCH_MIN, CPU_BATCH_MAX);
         },
         function () { return i >= iterations; },
         function () { done(total); }
@@ -859,9 +885,10 @@
       var j = 0;
       var phase = 'fill';
       var s = 0;
-      var batch = 8000;
+      var batch = CPU_BATCH_START;
       runWorkInSlices(
         function () {
+          var t0 = nowMs();
           if (phase === 'fill') {
             var fillLimit = Math.min(i + batch, size);
             for (; i < fillLimit; i++) arr[i] = (i * 13) & 255;
@@ -873,6 +900,7 @@
               if ((v & 3) === 0) s += v;
             }
           }
+          batch = adaptBatch(batch, nowMs() - t0, CPU_BATCH_MIN, CPU_BATCH_MAX);
         },
         function () { return phase === 'scan' && j >= size; },
         function () { done(s); }
@@ -882,18 +910,23 @@
     function stringOpsAsync(size, done) {
       var parts = new Array(size);
       var i = 0;
-      var batch = 4000;
+      var batch = 2000;
       var s = '';
       var phase = 'fill';
       runWorkInSlices(
         function () {
           if (phase === 'fill') {
+            var t0 = nowMs();
             var fillLimit = Math.min(i + batch, size);
             for (; i < fillLimit; i++) parts[i] = String.fromCharCode(97 + (i % 26));
+            batch = adaptBatch(batch, nowMs() - t0, 400, 6000);
             if (i >= size) {
-              s = parts.join('');
-              phase = 'scan';
+              // Join in its own tick so a large concat cannot stack with fill work.
+              phase = 'join';
             }
+          } else if (phase === 'join') {
+            s = parts.join('');
+            phase = 'done';
           } else {
             phase = 'done';
           }
@@ -920,7 +953,7 @@
       }
       var frag = document.createDocumentFragment();
       var i = 0;
-      var batch = 40;
+      var batch = 24;
       runWorkInSlices(
         function () {
           var limit = Math.min(i + batch, nodeCount);
@@ -962,7 +995,7 @@
       finish(true);
     }, SUITE_HARD_CAP_MS);
 
-    var estimateIters = 280000;
+    var estimateIters = bootLite ? 60000 : 120000;
     var workloads = null;
     var baseRepeats = 5;
     var repeats = 5;
@@ -1117,6 +1150,7 @@
       if (finishCalled) return;
       finishCalled = true;
       suiteAborted = true;
+      sliceRunId++;
       _activeSuiteAbort = null;
       if (stallTimer) clearTimeout(stallTimer);
       if (hardCapTimer) clearTimeout(hardCapTimer);
@@ -1132,8 +1166,8 @@
 
       var classBefore = getLegacyDeviceClass(provisionalTier);
       var classAfter = getLegacyDeviceClass(tier);
-      if (!forced && classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
-        repeats = Math.min(9, repeats + 2);
+      if (!forced && classBefore !== classAfter && repeats < (bootLite ? 4 : 9) && (nowMs() - startAll) < (totalCapMs * 0.85)) {
+        repeats = Math.min(bootLite ? 4 : 9, repeats + (bootLite ? 1 : 2));
         totalSteps = (repeats * 5) + repeats;
         suiteAborted = false;
         finishCalled = false;
@@ -1218,13 +1252,17 @@
       var estMs = nowMs() - est0;
       var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
       provisionalTier = msPer200kToTier(estMsPer200k);
-      workloads = computeSuiteWorkloads(provisionalTier);
-      baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
+      workloads = computeSuiteWorkloads(provisionalTier, bootLite);
+      if (bootLite) {
+        baseRepeats = provisionalTier <= 2 ? 2 : 3;
+      } else {
+        baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
+      }
       repeats = baseRepeats;
 
       var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
       var near = thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08);
-      if (near) repeats = Math.min(baseRepeats + 2, 9);
+      if (near) repeats = Math.min(baseRepeats + (bootLite ? 1 : 2), bootLite ? 4 : 9);
 
       jsonPayload = makeJsonPayload(workloads.jsonSize);
       totalSteps = (repeats * 5) + repeats;
@@ -1275,7 +1313,7 @@
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
     if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
-    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS, forceFullSuite: true }, onProgress, function (resultObj) {
+    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS, forceFullSuite: true, bootLite: true }, onProgress, function (resultObj) {
       _lastTier = resultObj.tier;
       _lastPlatformType = resultObj.platformType;
       if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj, { cached: false });

@@ -44,11 +44,25 @@ test('CPU suite yields during boot and cannot stall at array step', () => {
   assert.match(src, /function domFragmentBuildAsync/);
   assert.match(src, /scheduleBenchmarkStep/);
   assert.doesNotMatch(src, /requestAnimationFrame\(function \(\) \{ setTimeout\(fn, 0\)/);
-  assert.match(src, /slice watchdog/);
+  // One tick per macrotask — never while-pack batches (cold JIT freezes Chrome).
+  assert.match(src, /Cooperative yield: one tickFn per macrotask/);
+  assert.doesNotMatch(src, /while\s*\(\s*!isDone\(\)/);
+  assert.match(src, /CPU_BATCH_START/);
+  assert.match(src, /adaptBatch/);
+  assert.match(src, /bootLite:\s*true/);
   assert.match(src, /test timed out/);
   assert.match(src, /abortActiveSuite/);
   assert.match(src, /suite stalled at step/);
   assert.match(src, /parts\.join\(''\)/);
+  assert.match(src, /phase = 'join'/);
+});
+
+test('boot CPU batches stay small under cold JIT', () => {
+  const src = readFileSync('apps/pwa-webapp/device-benchmark.js', 'utf8');
+  assert.match(src, /var CPU_BATCH_START = 1200/);
+  assert.match(src, /var CPU_BATCH_MAX = 10000/);
+  assert.match(src, /bootLite \? 60000 : 120000/);
+  assert.match(src, /cpuCap = bootLite \? 280000/);
 });
 
 test('boot watchdog aborts an in-flight benchmark before force reveal', () => {
