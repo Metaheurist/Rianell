@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-16T12:35:04.578Z",
+  "generatedAt": "2026-07-16T13:17:00.200Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5482231,
+    "jsBytes": 5483859,
     "cssBytes": 838580,
-    "jsGzipBytes": 1301028,
+    "jsGzipBytes": 1301580,
     "cssGzipBytes": 141837
   },
   "files": [
@@ -70,8 +70,8 @@
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 51615,
-      "gzipBytes": 11037
+      "bytes": 53243,
+      "gzipBytes": 11589
     },
     {
       "file": "ci-minified/site/export-utils.js",
