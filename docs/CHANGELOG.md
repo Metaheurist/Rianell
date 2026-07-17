@@ -2,7 +2,20 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.18** - Achievements in Goals only; wizard dock clearance; header bug left.
+**Latest: v2.2.19** - Ask Rianell UX, exercise chart, hold-to-repeat, log-detail tokens.
+
+### v2.2.19 - 2026-07-17 - Ask Rianell + Home polish
+
+- **Ask Rianell:** Animated open/close; empty-state capability copy; typing dots; bubble enter; generic-mode chrome; `n/5` turns; focus trap + return-focus; turn-limit recovery strip; primary “Ask anything” tile; Enter-only ask bar + enter hint.
+- **Inference:** Dedicated `generateHealthChatWithLLM` / `healthChat.system` (short, log-grounded wellness replies); contextual follow-ups.
+- **Exercise chart (AI lifestyle):** Sparse labels, Y-scale, bucketed long series, stronger bars, stagger animation, avg/days stats.
+- **Log detail dots:** Glyphs use `--log-dot-tone` / `currentColor` (activity, leaf, brain-wave).
+- **Hold-to-repeat:** Shared `hold-repeat.js` on BP / vitals / log metric / goal steppers.
+- **Header:** Targets, bug report, and Settings grouped top-right again.
+- **Mood deck:** Thinner chart/clipboard/anxious-face strokes.
+- **Security:** Ephemeral wipe, 5-turn cap, close glyph, llm-security contract unchanged.
+
+**Previous: v2.2.18** - Achievements in Goals only; wizard dock clearance; header bug left.
 
 ### v2.2.18 - 2026-07-16 - Achievements IA + Home chrome
 

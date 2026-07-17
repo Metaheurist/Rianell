@@ -12,7 +12,7 @@
 |---------|------------|---------------------|--------------|
 | **Deterministic analysis** | `@rianell/ai-engine` (regression, correlation, flare prediction) | No | Always on when user runs AI Analysis |
 | **On-device LLM (PWA)** | Transformers.js `@3.3.2` (self-hosted `/vendor/` or jsDelivr fallback) + **Hugging Face Hub** weights only | Weights downloaded from HF; **prompts stay on device** | Consent modal + download UI; **WebGPU** tried before WASM (`webgl` is not a valid Transformers device) |
-| **Ephemeral health chat (PWA Home)** | `modules/ai-chat.js` + `buildChatContext` (`@rianell/shared`) | **No persistence** - in-memory only, cleared on close/`beforeunload` | Opens from Home discovery cards; 5-turn limit; on-device inference via `generateHealthChatWithLLM` |
+| **Ephemeral health chat (PWA Home)** | `modules/ai-chat.js` + `buildChatContext` (`@rianell/shared`) | **No persistence** - in-memory only, cleared on close/`beforeunload` | Opens from Home discovery; 5-turn limit; on-device `generateHealthChatWithLLM` (`healthChat.system`); generic/offline fallback when model unavailable |
 | **On-device LLM (RN)** | `@rianell/llm` + `llmNative.ts` (ORT) or `llmJs.ts` (Expo Go WASM) | HF Hub download to app documents; prompts on device | `AiModelDownloadGate`; Android NNAPI / iOS CoreML before CPU |
 | **Rule-based fallbacks** | Shared MOTD / summary templates | No | Automatic when LLM unavailable or times out |
 | **Anonymized training pool** | Encrypted blobs in `anonymized_data` | Yes (opt-in) | Separate consent in settings |

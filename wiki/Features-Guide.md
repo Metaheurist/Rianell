@@ -8,7 +8,7 @@ Rianell helps you log daily health metrics, spot trends, and optionally run AI-a
 
 | Tab | Purpose |
 |-----|---------|
-| **Home** | Compact today header (bug left; Goals + Settings right), daily log CTA, 2×2 goals bento, Ask Rianell bar |
+| **Home** | Compact today header (Targets · Bug · Settings top-right), daily log CTA, 2×2 goals bento, Ask Rianell hub |
 | **View logs** | Browse with All/7D/30D/Custom filter; expand for Physical / Lifestyle / Mental details |
 | **Mood** | Today's check-in first, then a 30-day activity heatmap with day numbers on each tile |
 | **Charts** | ApexCharts visualisations with optional predictions |
@@ -127,7 +127,7 @@ Rianell uses gentle, GPU-friendly motion to make logging feel calmer - especiall
 | Ambient blobs | Home, Logs, Charts, Mood, AI tabs (web) | Yes - hidden on low-tier devices and when reduced motion is on |
 | Mood Control Deck | Mood tab check-in + quick actions (web) | Parallax/aurora disabled when reduced motion is on |
 | Mood day detail | Tap a compact history card on Mood tab | Modal shows that day’s log, check-ins, and average |
-| Ask Rianell (Home) | Bottom-sheet chat from discovery pills / + AI | Opens only when AI is enabled and the on-device model is ready (otherwise enable/download prompts). Topic-aware offline / generic replies when the LLM cannot run |
+| Ask Rianell (Home) | Bottom-sheet / side-panel chat from discovery pills and the ask bar | Opens when AI is enabled (model ready or guided generic mode). Animated sheet; capability empty state; suggestion chips; 5 turns then limit recovery. Ephemeral (clears on close). Wellness tips only — not medical advice |
 | Calm-glow metrics | Improving vitals/metrics (web) | Static glow remains in brain-fog mode; pulse disabled |
 | Neural trace | AI tab (web + mobile) | Hidden when reduced motion is on |
 | Milestone confetti | After achievements / milestones (web) | Skipped when reduced motion or brain fog |
