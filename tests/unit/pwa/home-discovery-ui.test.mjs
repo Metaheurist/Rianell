@@ -78,12 +78,25 @@ test('home ask setup replaces discovery when AI model is not ready', () => {
   assert.match(css, /\.home-ask-setup__cta/);
 });
 
-test('header chrome splits bug report left from goals and settings right', () => {
+test('ask hub has enter hint and primary ask-anything tile', () => {
+  const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
+  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(html, /id="homeAskEnterHint"/);
+  assert.match(html, /home\.chat\.enterHint/);
+  assert.doesNotMatch(html, /id="homeAskSend"/);
+  assert.match(js, /home-discovery-pill--ask-primary/);
+  assert.match(css, /\.home-discovery-pill--ask-primary/);
+  assert.match(css, /\.home-ask-enter-hint/);
+  assert.match(css, /\.ai-chat-overlay--generic/);
+  assert.match(css, /\.ai-chat-empty__/);
+});
+
+test('header chrome groups targets, bug report, and settings top-right', () => {
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
-  assert.match(html, /header-buttons-wrap--left[\s\S]*bug-report-button-top/);
-  assert.match(html, /header-buttons-wrap--right[\s\S]*targets-button-top[\s\S]*settings-button-top/);
-  assert.doesNotMatch(html, /header-buttons-wrap--right[\s\S]*bug-report-button-top/);
-  assert.match(css, /\.header-buttons-wrap--left\s*\{[^}]*left:/);
-  assert.match(css, /\.header-buttons-wrap--right\s*\{[^}]*right:/);
+  assert.match(html, /header-buttons-wrap[\s\S]*targets-button-top[\s\S]*bug-report-button-top[\s\S]*settings-button-top/);
+  assert.doesNotMatch(html, /header-buttons-wrap--left|header-buttons-wrap--right/);
+  assert.match(css, /\.header-buttons-wrap\s*\{[^}]*right:/);
+  assert.doesNotMatch(css, /\.header-buttons-wrap--left|\.header-buttons-wrap--right/);
 });

@@ -174,6 +174,22 @@ export function buildWeekChatPrompt(locale, userPayload, options = {}) {
   return { system, user: userPayload };
 }
 
+export function buildHealthChatPrompt(locale, userPayload, options = {}) {
+  const pack = loadPromptPack(locale, options.packs);
+  const system = applyCoachPersona(
+    promptString(
+      pack,
+      'healthChat.system',
+      'You are Ask Rianell, a wellness log coach. Answer from health log context only. '
+        + 'Prefer under 60 words, max 3 short sentences. No diagnosis or therapist role. '
+        + 'Reply with only your answer text.',
+    ),
+    pack,
+    options.persona,
+  );
+  return { system, user: userPayload };
+}
+
 /** B2: client sends explicit locale; invalid values fall back to en-GB. */
 export function buildLlmRequestPayload({ feature, model, modelSize, context, locale }) {
   return {
