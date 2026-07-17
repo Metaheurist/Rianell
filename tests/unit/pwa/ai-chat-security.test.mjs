@@ -78,8 +78,41 @@ test('ai-chat open path respects model gate and generic fallback', () => {
   assert.match(src, /skipGate/);
 });
 
+test('ai-chat closes with exit transition before hidden wipe', () => {
+  const src = readFileSync('apps/pwa-webapp/modules/ai-chat.js', 'utf8');
+  assert.match(src, /transitionend/);
+  assert.match(src, /finishHideOverlay/);
+  assert.match(src, /requestAnimationFrame/);
+  assert.match(src, /_openerEl/);
+  assert.match(src, /bindFocusTrap|Tab/);
+  assert.doesNotMatch(src, /function hideOverlayDom\(\) \{\s*var overlay[\s\S]*?overlay\.classList\.remove\('ai-chat-overlay--open'\);\s*overlay\.hidden = true/);
+});
+
+test('ai-chat empty state and typing indicator classes exist', () => {
+  const src = readFileSync('apps/pwa-webapp/modules/ai-chat.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(src, /ai-chat-empty/);
+  assert.match(src, /home\.chat\.emptyTitle/);
+  assert.match(src, /ai-chat-typing-dots/);
+  assert.match(src, /contextualFollowups/);
+  assert.match(src, /ai-chat-recovery|renderLimitRecovery/);
+  assert.match(css, /\.ai-chat-overlay--generic/);
+  assert.match(css, /\.ai-chat-empty__/);
+  assert.match(css, /\.ai-chat-recovery/);
+  assert.match(css, /@keyframes aiChatBubbleIn/);
+  assert.match(css, /@keyframes aiChatTypingDot/);
+});
+
 test('weekChat system prompt enforces instruction hierarchy', () => {
   const pack = readFileSync('packages/shared/src/i18n/promptPackData.mjs', 'utf8');
   assert.ok(/weekChat\.system/.test(pack));
+  assert.ok(/healthChat\.system/.test(pack));
   assert.ok(/system instructions|USER_NOTE|wellness/i.test(pack));
+});
+
+test('summary-llm exposes dedicated health chat prompt path', () => {
+  const src = readFileSync('apps/pwa-webapp/summary-llm.js', 'utf8');
+  assert.match(src, /function buildHealthChatPromptFromPack/);
+  assert.match(src, /async function generateHealthChatWithLLM/);
+  assert.match(src, /window\.generateHealthChatWithLLM = generateHealthChatWithLLM/);
 });
