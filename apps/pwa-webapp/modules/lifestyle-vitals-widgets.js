@@ -380,11 +380,17 @@
       if (commit) dispatchInput('hydration');
     });
 
-    root.querySelectorAll('[data-lifestyle-nudge]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+    if (global.RianellHoldRepeat) {
+      global.RianellHoldRepeat.bindAll(root, '[data-lifestyle-nudge]', function (btn) {
         nudge(btn.getAttribute('data-lifestyle-nudge'), parseFloat(btn.getAttribute('data-delta')));
       });
-    });
+    } else {
+      root.querySelectorAll('[data-lifestyle-nudge]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          nudge(btn.getAttribute('data-lifestyle-nudge'), parseFloat(btn.getAttribute('data-delta')));
+        });
+      });
+    }
 
     restoreFromHiddenInputs();
     updateSteps(false);
