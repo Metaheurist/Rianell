@@ -264,11 +264,17 @@
     bindDrumScroll(sysScroll);
     bindDrumScroll(bpmScroll);
 
-    widget.querySelectorAll('[data-bp-nudge]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+    if (global.RianellHoldRepeat) {
+      global.RianellHoldRepeat.bindAll(widget, '[data-bp-nudge]', function (btn) {
         nudgeDrum(btn.getAttribute('data-bp-nudge'), parseInt(btn.getAttribute('data-delta'), 10));
       });
-    });
+    } else {
+      widget.querySelectorAll('[data-bp-nudge]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          nudgeDrum(btn.getAttribute('data-bp-nudge'), parseInt(btn.getAttribute('data-delta'), 10));
+        });
+      });
+    }
 
     var sysEl = document.getElementById('bloodPressureSystolic');
     var bpmEl = document.getElementById('bpm');

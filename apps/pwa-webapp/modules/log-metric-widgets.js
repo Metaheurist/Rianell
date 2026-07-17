@@ -776,7 +776,14 @@
   }
 
   function bindSteppers(root) {
-    (root || document).querySelectorAll('[data-metric-nudge]').forEach(function (btn) {
+    var scope = root || document;
+    if (global.RianellHoldRepeat) {
+      global.RianellHoldRepeat.bindAll(scope, '[data-metric-nudge]', function (btn) {
+        nudgeSlider(btn.getAttribute('data-metric-nudge'), parseInt(btn.getAttribute('data-delta'), 10));
+      });
+      return;
+    }
+    scope.querySelectorAll('[data-metric-nudge]').forEach(function (btn) {
       if (btn.dataset.metricBound === '1') return;
       btn.dataset.metricBound = '1';
       btn.addEventListener('click', function () {
