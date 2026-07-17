@@ -273,7 +273,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 
 ### v1.45.26 parity note (Home header chrome)
 
-- **Web (v2.2.18+):** fixed **`.header-buttons-wrap--left`** (Report a bug) and **`.header-buttons-wrap--right`** (Goals & targets, Settings) beside scroll content (`apps/pwa-webapp/index.html`).
+- **Web (v2.2.19+):** single top-right **`.header-buttons-wrap`** order: Goals & targets → Report a bug → Settings (`apps/pwa-webapp/index.html`).
 - **React Native:** the same three actions appear on **Home** as a chrome row: **Goals** → Charts **Balance** + targets UI; **?** → security reporting doc; **Settings** → Settings tab. Full **Goals** modal and **bug report** modal parity remain Phase E.
 
 ### v1.45.29 parity note (View Logs Phase G)

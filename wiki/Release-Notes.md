@@ -1,8 +1,18 @@
 # Release Notes
 
-## Latest release (v2.2.18)
+## Latest release (v2.2.19)
 
-**Home chrome** - Bug report sits on the **left** edge; **Goals & targets** and **Settings** stay on the **right**. Achievements badges live only in the Goals modal (no Trophy Room on Home). Hard-refresh for `styles.css?v=150` / `app.js?v=69`.
+**Ask Rianell** - Chat sheet animates open and closed; empty state explains what you can ask; typing dots while thinking; turn counter `n/5`; focus stays in the panel; clears when you close. Home has a primary “Ask anything” tile and an Enter-to-ask hint (still no send button on the bar).
+
+**AI lifestyle Exercise chart** - Clearer bars, date labels that don’t crowd, a minutes scale, and a short grow-in animation.
+
+**Logging polish** - Hold +/− on steppers to repeat; log detail category dots use theme colours; header Groups **Targets · Bug · Settings** top-right again.
+
+See **v2.2.18** for achievements-only Goals and wizard dock clearance.
+
+## Previous (v2.2.18)
+
+**Home chrome** - Earlier split put bug report on the left; **v2.2.19** restores a single top-right group. Achievements badges live only in the Goals modal (no Trophy Room on Home).
 
 **Log wizard** - Bottom dock (Skip / Save Entry) no longer covers fields on each step; the form reserves scroll space above the dock.
 
