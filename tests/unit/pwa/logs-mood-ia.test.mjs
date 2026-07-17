@@ -46,6 +46,12 @@ test('log detail carousel uses stable inner scrolling and tokenized pane tones',
   assert.match(css, /\.log-detail-pane__body\.log-metrics-grid[\s\S]*min-height:\s*clamp/);
   assert.doesNotMatch(css, /--log-pane-lifestyle:\s*#2a9d8f/);
   assert.doesNotMatch(css, /--log-pane-mental:\s*#9c27b0/);
+  // Dot glyphs inherit zone tones (not ink/black) via --log-dot-tone.
+  assert.match(css, /\.log-detail-dot__svg[\s\S]*color:\s*var\(--log-dot-tone/);
+  assert.match(css, /\.log-detail-dot__svg \.icon-fill/);
+  assert.match(css, /\.log-detail-dot--physical\s*\{\s*--log-dot-tone:\s*var\(--log-pane-physical/);
+  assert.match(css, /\.log-detail-dot--lifestyle\s*\{\s*--log-dot-tone:\s*var\(--log-pane-lifestyle/);
+  assert.match(css, /\.log-detail-dot--mental\s*\{\s*--log-dot-tone:\s*var\(--log-pane-mental/);
 });
 
 test('log filter helpers preserve setLogViewRange and sort order', () => {

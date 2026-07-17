@@ -9114,35 +9114,115 @@ function renderAINutritionPanel(nut, macro, reduceUIAnimations) {
   return html;
 }
 
+function buildAIExerciseChartSeries(timeline) {
+  var maxBars = 28;
+  if (!timeline || !timeline.length) return [];
+  if (timeline.length <= maxBars) {
+    return timeline.map(function(d) {
+      return { date: d.date, endDate: d.date, minutes: d.minutes || 0, bucketCount: 1 };
+    });
+  }
+  var bucketSize = Math.ceil(timeline.length / maxBars);
+  var out = [];
+  for (var i = 0; i < timeline.length; i += bucketSize) {
+    var slice = timeline.slice(i, i + bucketSize);
+    var total = 0;
+    for (var j = 0; j < slice.length; j++) total += slice[j].minutes || 0;
+    out.push({
+      date: slice[0].date,
+      endDate: slice[slice.length - 1].date,
+      minutes: Math.round(total / slice.length),
+      bucketCount: slice.length
+    });
+  }
+  return out;
+}
+
+function formatAIExerciseDayLabel(dateKey, opts) {
+  opts = opts || {};
+  if (!dateKey) return { day: '', month: '' };
+  var dt = new Date(String(dateKey) + 'T12:00:00');
+  if (isNaN(dt.getTime())) return { day: '', month: '' };
+  return {
+    day: String(dt.getDate()),
+    month: opts.withMonth ? dt.toLocaleDateString(undefined, { month: 'short' }) : ''
+  };
+}
+
+function shouldShowAIExerciseLabel(idx, total, dayNum, labelEvery) {
+  if (idx === 0 || idx === total - 1) return { show: true, withMonth: true };
+  if (dayNum === 1) return { show: true, withMonth: true };
+  if (labelEvery > 1 && idx % labelEvery === 0 && idx < total - 1) {
+    return { show: true, withMonth: false };
+  }
+  return { show: false, withMonth: false };
+}
+
 function renderAIExercisePanel(timeline, summary, reduceUIAnimations) {
   if (timeline && timeline.length >= 2) {
-    var maxMin = Math.max.apply(null, timeline.map(function(d) { return d.minutes; }).concat([1]));
+    var series = buildAIExerciseChartSeries(timeline);
+    var maxMin = Math.max.apply(null, series.map(function(d) { return d.minutes; }).concat([1]));
+    var midMin = Math.round(maxMin / 2);
+    var chartH = 96;
+    var n = series.length;
+    var labelEvery = Math.max(1, Math.ceil(n / 6));
+    var totalMin = 0;
+    var activeDays = 0;
+    timeline.forEach(function(d) {
+      var m = d.minutes || 0;
+      totalMin += m;
+      if (m > 0) activeDays += 1;
+    });
+    var avgMin = summary && summary.avgMinutesPerDay != null
+      ? summary.avgMinutesPerDay
+      : Math.round(totalMin / Math.max(1, activeDays));
+    var daysLogged = summary && summary.daysWithExercise != null
+      ? summary.daysWithExercise
+      : activeDays;
     var html = '<section class="ai-lifestyle-panel ai-exercise-panel">';
     html += '<h4 class="ai-lifestyle-panel__title">' + svgIcon('run', 'ai-inline-icon') + ' ' + escapeHTML(tUi('ai.stats.exercise')) + '</h4>';
     html += '<p class="ai-lifestyle-panel__intro">' + escapeHTML(tUi('ai.exercise.timelineIntro')) + '</p>';
+    html += '<div class="ai-exercise-stats" role="list">';
+    html += '<div class="ai-exercise-stat" role="listitem"><span class="ai-exercise-stat__value">' + escapeHTML(String(avgMin)) + '</span><span class="ai-exercise-stat__label">' + escapeHTML(tUi('common.min.avg')) + '</span></div>';
+    html += '<div class="ai-exercise-stat" role="listitem"><span class="ai-exercise-stat__value">' + escapeHTML(String(daysLogged)) + '</span><span class="ai-exercise-stat__label">' + escapeHTML(tUi('ai.exercise.daysLogged', { count: String(daysLogged) }, daysLogged + ' days')) + '</span></div>';
+    html += '</div>';
     html += '<div class="ai-exercise-timeline-wrap" role="img" aria-label="' + escapeAttr(tUi('ai.exercise.timelineAria')) + '">';
-    html += '<div class="ai-exercise-timeline' + (reduceUIAnimations ? '' : ' ai-exercise-timeline--animate') + '">';
-    timeline.forEach(function(d, idx) {
-      var h = Math.max(10, Math.round((d.minutes / maxMin) * 52));
+    html += '<div class="ai-exercise-chart">';
+    html += '<div class="ai-exercise-chart__yscale" aria-hidden="true">';
+    html += '<span class="ai-exercise-chart__ytick">' + escapeHTML(String(maxMin)) + '</span>';
+    html += '<span class="ai-exercise-chart__ytick">' + escapeHTML(String(midMin)) + '</span>';
+    html += '<span class="ai-exercise-chart__ytick">0</span>';
+    html += '</div>';
+    html += '<div class="ai-exercise-chart__plot">';
+    html += '<div class="ai-exercise-chart__grid" aria-hidden="true"><span></span><span></span><span></span></div>';
+    html += '<div class="ai-exercise-timeline' + (reduceUIAnimations ? '' : ' ai-exercise-timeline--animate') + '" style="--exercise-chart-h:' + chartH + 'px">';
+    series.forEach(function(d, idx) {
+      var h = d.minutes > 0
+        ? Math.max(8, Math.round((d.minutes / maxMin) * chartH))
+        : 4;
       var active = d.minutes > 0;
       var dateKey = d && d.date ? String(d.date) : '';
+      var endKey = d && d.endDate ? String(d.endDate) : dateKey;
       var dt = dateKey ? new Date(dateKey + 'T12:00:00') : null;
-      var dayNum = dt && !isNaN(dt.getTime()) ? dt.getDate() : '';
-      var showMonth = idx === 0 || dayNum === 1;
-      var monthShort = showMonth && dt && !isNaN(dt.getTime())
-        ? dt.toLocaleDateString(undefined, { month: 'short' })
-        : '';
-      var tip = dateKey + ': ' + d.minutes + ' min';
-      html += '<span class="ai-exercise-timeline__day" title="' + escapeAttr(tip) + '">';
-      html += '<span class="ai-exercise-timeline__bar' + (active ? ' ai-exercise-timeline__bar--active' : '') + '" style="height:' + h + 'px;--bar-delay:' + (idx * 18) + 'ms"></span>';
-      html += '<span class="ai-exercise-timeline__date" aria-hidden="true">';
-      if (showMonth && monthShort) {
-        html += '<span class="ai-exercise-timeline__month">' + escapeHTML(monthShort) + '</span>';
+      var dayNum = dt && !isNaN(dt.getTime()) ? dt.getDate() : 0;
+      var labelMeta = shouldShowAIExerciseLabel(idx, n, dayNum, labelEvery);
+      var labels = labelMeta.show ? formatAIExerciseDayLabel(dateKey, { withMonth: labelMeta.withMonth }) : { day: '', month: '' };
+      var tip = dateKey === endKey
+        ? (dateKey + ': ' + d.minutes + ' min')
+        : (dateKey + ' – ' + endKey + ': ~' + d.minutes + ' min/day');
+      var delayMs = Math.round((idx / Math.max(1, n - 1)) * 520);
+      html += '<span class="ai-exercise-timeline__day' + (labelMeta.show ? ' ai-exercise-timeline__day--labeled' : '') + '" title="' + escapeAttr(tip) + '">';
+      html += '<span class="ai-exercise-timeline__bar' + (active ? ' ai-exercise-timeline__bar--active' : '') + '" style="height:' + h + 'px;--bar-delay:' + delayMs + 'ms"></span>';
+      html += '<span class="ai-exercise-timeline__date' + (labelMeta.show ? '' : ' ai-exercise-timeline__date--empty') + '" aria-hidden="true">';
+      if (labelMeta.show) {
+        if (labels.month) {
+          html += '<span class="ai-exercise-timeline__month">' + escapeHTML(labels.month) + '</span>';
+        }
+        html += escapeHTML(labels.day);
       }
-      html += escapeHTML(String(dayNum));
       html += '</span></span>';
     });
-    html += '</div></div></section>';
+    html += '</div></div></div></div></section>';
     return html;
   }
   if (summary && summary.daysWithExercise > 0) {
@@ -11575,14 +11655,21 @@ function nudgeGoalControl(sliderId, delta) {
 function bindGoalSteppersOnce() {
   if (typeof document === 'undefined' || document.documentElement.dataset.goalSteppersBound === '1') return;
   document.documentElement.dataset.goalSteppersBound = '1';
-  document.addEventListener('click', function(e) {
-    var btn = e.target && e.target.closest ? e.target.closest('[data-goal-nudge]') : null;
-    if (!btn) return;
+  function runGoalNudge(btn) {
     var id = btn.getAttribute('data-goal-nudge');
     var delta = parseFloat(btn.getAttribute('data-delta'));
     if (!id || !isFinite(delta)) return;
-    e.preventDefault();
     nudgeGoalControl(id, delta);
+  }
+  if (typeof window !== 'undefined' && window.RianellHoldRepeat) {
+    window.RianellHoldRepeat.bindAll(document, '[data-goal-nudge]', runGoalNudge);
+    return;
+  }
+  document.addEventListener('click', function(e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-goal-nudge]') : null;
+    if (!btn) return;
+    e.preventDefault();
+    runGoalNudge(btn);
   });
 }
 if (typeof document !== 'undefined') {
@@ -25120,7 +25207,8 @@ function renderDiscoveryCardHtml(card, index) {
   var goalsAction = card.action === 'goals'
     ? ' data-discovery-action="goals-direct"'
     : '';
-  var html = '<button type="button" class="home-discovery-pill" style="--discovery-stagger:' + delay + 's" data-discovery-chip="' + escapeHTML(card.id) + '"';
+  var primaryClass = card.id === 'ask-anything' ? ' home-discovery-pill--ask-primary' : '';
+  var html = '<button type="button" class="home-discovery-pill' + primaryClass + '" style="--discovery-stagger:' + delay + 's" data-discovery-chip="' + escapeHTML(card.id) + '"';
   if (card.seedKey) html += ' data-discovery-seed-key="' + escapeHTML(card.seedKey) + '"';
   if (card.labelKey) html += ' data-home-question-id="' + escapeHTML(card.id) + '"';
   if (goalsAction) html += goalsAction;
