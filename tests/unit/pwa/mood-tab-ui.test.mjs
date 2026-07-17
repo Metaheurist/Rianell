@@ -140,20 +140,25 @@ test('mood deck quick-check tiles use clipboard and anxious-face icons', () => {
   assert.match(anxious[1], /stroke="currentColor"/);
   assert.match(anxious[1], /rotate\(-18/);
   assert.match(anxious[1], /M10\.7 7\.35/);
-  assert.match(anxious[1], /stroke-width="2/);
+  assert.match(anxious[1], /stroke-width="1\./);
 });
 
 test('chart-bars and brain-wave sprites use currentColor (not invisible/black fills)', () => {
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
   const chartBars = html.match(/id="icon-chart-bars"[^>]*>([\s\S]*?)<\/symbol>/);
   const brainWave = html.match(/id="icon-brain-wave"[^>]*>([\s\S]*?)<\/symbol>/);
+  const activity = html.match(/id="icon-activity"[^>]*>([\s\S]*?)<\/symbol>/);
   assert.ok(chartBars, 'icon-chart-bars symbol');
   assert.ok(brainWave, 'icon-brain-wave symbol');
+  assert.ok(activity, 'icon-activity symbol');
   assert.match(chartBars[1], /class="icon-fill"/);
   assert.match(chartBars[1], /stroke="currentColor"/);
   assert.doesNotMatch(chartBars[1], /fill="none" x="7"/);
   assert.match(brainWave[1], /class="icon-fill" d="M9 4\.2/);
   assert.match(brainWave[1], /class="icon-fill" d="M15 4\.2/);
+  assert.match(brainWave[1], /fill="currentColor"/);
+  assert.match(activity[1], /stroke="currentColor"/);
+  assert.match(activity[1], /fill="none"/);
 });
 
 test('mood control deck CSS uses token-scoped 3D depth and reduced-motion guard', () => {
