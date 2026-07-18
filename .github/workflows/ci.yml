@@ -7,9 +7,10 @@
 # Pipeline phases (job keys — file order matches DAG):
 #   Phase 0 — paths-filter
 #   Phase 1 — unit-tests | prepare-minified-assets | security-audit  (max 3 parallel)
-#   Phase 2 — benchmarks-web | deploy-pages | expo-bundle-prod | server-exe |
-#             commit-dependencies-doc | sync-wiki-to-github | rn-build-version  (max 7 parallel)
-#   Phase 3 — benchmarks-expo | rncli-android-apk | rncli-ios-zip | audit-boot-post-deploy
+#   Phase 2 — benchmarks-web | deploy-pages | server-exe |
+#             commit-dependencies-doc | sync-wiki-to-github  (parallel)
+#   Phase 3 — audit-boot-post-deploy | playwright-e2e | lighthouse-ci | zap-scan |
+#             audit-llm-download-live
 #   Phase 4 — commit-benchmarks | commit-app-build | publish-release |
 #             readme-build-info | security-headers-report
 #
@@ -18,7 +19,6 @@
 #
 # Dependency caching (invalidates when lockfiles / versions change):
 #   npm — setup-node-ci | pip — setup-python-ci | Playwright — install-playwright-chromium
-#   Expo/Metro — cache-expo | Gradle + Android SDK — rncli-android-apk
 #   PyInstaller + UPX — server-exe | Gitleaks/OSV — security-audit.yml
 # =============================================================================
 
@@ -47,10 +47,10 @@ jobs:
   # Phase 0 — Gate
   # ═══════════════════════════════════════════════════════════════════════════
   paths-filter:
-    name: "0 · Path gate (mobile release)"
+    name: "0 · Path gate (release build)"
     runs-on: ubuntu-latest
     outputs:
-      mobile_release: ${{ steps.out.outputs.mobile_release }}
+      release_build: ${{ steps.out.outputs.release_build }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -59,33 +59,33 @@ jobs:
       - id: out
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "mobile_release=false" >> $GITHUB_OUTPUT
+            echo "release_build=false" >> $GITHUB_OUTPUT
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "mobile_release=true" >> $GITHUB_OUTPUT
+            echo "release_build=true" >> $GITHUB_OUTPUT
           elif [ "${{ github.event_name }}" = "push" ]; then
             BEFORE="${{ github.event.before }}"
             SHA="${{ github.sha }}"
             if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-              echo "mobile_release=true" >> $GITHUB_OUTPUT
+              echo "release_build=true" >> $GITHUB_OUTPUT
             else
               CHANGED=$(git diff --name-only "$BEFORE" "$SHA" 2>/dev/null || true)
               if [ -z "$CHANGED" ]; then
-                echo "mobile_release=false" >> $GITHUB_OUTPUT
+                echo "release_build=false" >> $GITHUB_OUTPUT
               elif echo "$CHANGED" | grep -qv '^artifacts/'; then
-                echo "mobile_release=true" >> $GITHUB_OUTPUT
+                echo "release_build=true" >> $GITHUB_OUTPUT
               else
-                echo "mobile_release=false" >> $GITHUB_OUTPUT
+                echo "release_build=false" >> $GITHUB_OUTPUT
               fi
             fi
           else
-            echo "mobile_release=false" >> $GITHUB_OUTPUT
+            echo "release_build=false" >> $GITHUB_OUTPUT
           fi
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 1 — Foundation (parallel after gate)
   # ═══════════════════════════════════════════════════════════════════════════
   unit-tests:
-    name: "1 · Unit tests and platform parity"
+    name: "1 · Unit tests"
     needs: [paths-filter]
     if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -120,13 +120,6 @@ jobs:
 
       - name: Production dependency license check
         run: npx --yes license-checker@25.0.1 --production --excludePrivatePackages --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;CC0-1.0;0BSD;Python-2.0;BlueOak-1.0.0"
-
-      - name: Platform parity checks
-        run: |
-          npm run parity:web
-          npm run parity:android
-          npm run parity:ios
-          npm run parity:inventory:check
 
       - name: Verify docs/dependencies.md matches manifests (pull requests only)
         if: github.event_name == 'pull_request'
@@ -182,13 +175,13 @@ jobs:
       - name: Build PWA vendor bundles + minified web (temp)
         run: |
           npm run vendor:transformers
-          npm run build:web:apk
+          npm run build:web:min
 
       - name: Prepare minified temp directories
         run: |
           rm -rf "ci-minified"
           mkdir -p "ci-minified"
-          cp -r "apps/pwa-webapp/.android-dist" "ci-minified/web-android-dist"
+          cp -r "apps/pwa-webapp/.web-dist" "ci-minified/web-dist"
 
           mkdir -p "ci-minified/site"
           cp -r apps/pwa-webapp/* "ci-minified/site/"
@@ -215,7 +208,7 @@ jobs:
             if (!m.mainJs) throw new Error(label + ': asset-manifest missing mainJs');
             if (!fs.existsSync(root + '/' + m.mainJs)) throw new Error(label + ': missing ' + m.mainJs);
           }
-          assertBundle('ci-minified/web-android-dist', 'web-android-dist');
+          assertBundle('ci-minified/web-dist', 'web-dist');
           assertBundle('ci-minified/site', 'site');
           if (!fs.existsSync('ci-minified/site/vendor/rianell-shared.js')) throw new Error('missing vendor/rianell-shared.js');
           const vendorWasm = 'ci-minified/site/vendor/transformers/ort-wasm-simd-threaded.jsep.wasm';
@@ -366,62 +359,12 @@ jobs:
         if: failure()
         uses: ./.github/actions/cancel-workflow-on-failure
 
-  expo-bundle-prod:
-    name: "2 · Expo prod bundle (gate)"
-    needs: [paths-filter, unit-tests, security-audit]
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: ./.github/actions/setup-node-ci
-
-      - uses: ./.github/actions/cache-expo
-
-      - name: Typecheck + test Expo app
-        run: |
-          npm run typecheck:mobile
-          npm run test:mobile
-
-      - name: Expo export — production bundles (Android + iOS)
-        env:
-          EXPO_NO_TELEMETRY: "1"
-          NODE_ENV: production
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
-        run: |
-          node scripts/build/run-mobile-export.mjs
-          npm ls expo-modules-autolinking
-          test -d "apps/rn-app/dist-expo-prod"
-
-      - name: Verify Android Hermes bundle (.hbc)
-        run: test -f apps/rn-app/dist-expo-prod/_expo/static/js/android/*.hbc
-
-      - name: Verify iOS Hermes bundle (.hbc)
-        run: test -f apps/rn-app/dist-expo-prod/_expo/static/js/ios/*.hbc
-
-      - name: Upload Expo bundle artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: expo-bundles
-          path: apps/rn-app/dist-expo-prod/
-          retention-days: 1
-
-      - name: Cancel workflow on failure
-        if: failure()
-        uses: ./.github/actions/cancel-workflow-on-failure
-
   server-exe:
     name: "2 · Server EXE (${{ matrix.arch }})"
     needs: [paths-filter, unit-tests, security-audit]
     if: |
       github.event_name == 'pull_request' ||
-      ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.paths-filter.outputs.mobile_release == 'true')
+      ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.paths-filter.outputs.release_build == 'true')
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -604,222 +547,9 @@ jobs:
           test -n "$WIKI_PUSH_TOKEN" || { echo "WIKI_PUSH_TOKEN secret required for wiki sync"; exit 1; }
           node scripts/wiki/sync-wiki.mjs --ci-token "$WIKI_PUSH_TOKEN"
 
-  rn-build-version:
-    name: "2 · RN CI sequential build number"
-    needs: [paths-filter]
-    if: |
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.mobile_release == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      rn_build: ${{ steps.calc.outputs.rn_build }}
-    steps:
-      - uses: actions/checkout@v5
-
-      - id: calc
-        shell: bash
-        run: |
-          set -euo pipefail
-          PREV=0
-          if [ -f "artifacts/RNCLI-Android/latest.json" ]; then
-            PREV=$(node -e "const j=require('./artifacts/RNCLI-Android/latest.json'); process.stdout.write(String(parseInt(j.version,10)||0));" 2>/dev/null || echo 0)
-          fi
-          NEXT=$((PREV + 1))
-          echo "rn_build=$NEXT" >> "$GITHUB_OUTPUT"
-          echo "RN sequential build: $NEXT (previous $PREV)"
-
   # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 3 — Downstream builds and post-deploy audit
+  # Phase 3 — Post-deploy audit and live checks
   # ═══════════════════════════════════════════════════════════════════════════
-  benchmarks-expo:
-    name: "3 · Benchmarks (Expo / RN)"
-    needs: [paths-filter, expo-bundle-prod]
-    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: ./.github/actions/setup-node-ci
-
-      - name: Download Expo bundle output
-        uses: actions/download-artifact@v8
-        with:
-          name: expo-bundles
-          path: apps/rn-app/dist-expo-prod
-
-      - name: Run Expo bundle stats
-        env:
-          BENCHMARK_REPO_ROOT: ${{ github.workspace }}
-          BUNDLE_ROOT: ${{ github.workspace }}/apps/rn-app/dist-expo-prod
-          BENCHMARK_SKIP_README: "1"
-        run: node benchmarks/scripts/expo-bundle-stats.mjs
-
-      - name: Upload benchmark reports (expo)
-        uses: actions/upload-artifact@v7
-        with:
-          name: benchmarks-expo
-          path: benchmarks/expo-rn
-          retention-days: 1
-
-  rncli-android-apk:
-    name: "3 · Android APK (React Native CI)"
-    needs: [paths-filter, expo-bundle-prod, rn-build-version]
-    if: |
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.mobile_release == 'true'
-    runs-on: ubuntu-latest
-    env:
-      RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM: "1"
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Free disk space (remove unused toolchains)
-        run: |
-          df -h /
-          sudo rm -rf /usr/local/lib/android/sdk/ndk /usr/local/lib/android/sdk/system-images \
-            /usr/local/lib/android/sdk/emulator /opt/hostedtoolcache/CodeQL \
-            /usr/local/.ghcup /usr/share/dotnet /opt/ghc \
-            "$AGENT_TOOLSDIRECTORY/node" 2>/dev/null || true
-          sudo apt-get clean 2>/dev/null || true
-          df -h /
-
-      - uses: ./.github/actions/setup-node-ci
-
-      - uses: ./.github/actions/cache-expo
-
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
-      - uses: ./.github/actions/cache-android-sdk
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.1.12297006
-
-      - name: Restore Gradle cache
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            apps/rn-app/android/.gradle
-          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'apps/rn-app/package.json') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-
-      - name: Generate native project (expo prebuild -> RN CLI)
-        working-directory: apps/rn-app
-        env:
-          CI: "1"
-          EXPO_NO_TELEMETRY: "1"
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
-        run: npx expo prebuild --platform android --no-install
-
-      - name: Assemble Android debug APK
-        working-directory: apps/rn-app/android
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Assemble signed release APK (when keystore secret configured)
-        working-directory: apps/rn-app/android
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-        run: |
-          set -euo pipefail
-          if [ -z "${KEYSTORE_BASE64:-}" ]; then
-            echo "KEYSTORE_BASE64 not configured — skipping release APK"
-            exit 0
-          fi
-          echo "$KEYSTORE_BASE64" | base64 -d > /tmp/rianell-release.jks
-          cat >> gradle.properties <<EOF
-          RIANELL_RELEASE_STORE_FILE=/tmp/rianell-release.jks
-          RIANELL_RELEASE_KEY_ALIAS=${KEY_ALIAS}
-          RIANELL_RELEASE_STORE_PASSWORD=${STORE_PASSWORD}
-          RIANELL_RELEASE_KEY_PASSWORD=${KEY_PASSWORD}
-          EOF
-          ./gradlew assembleRelease --no-daemon
-
-      - name: Collect APK + latest.json
-        shell: bash
-        env:
-          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
-        run: |
-          set -euo pipefail
-          mkdir -p rncli-android-dist
-          shopt -s nullglob
-          apks=(apps/rn-app/android/app/build/outputs/apk/debug/*.apk)
-          if [ ${#apks[@]} -eq 0 ]; then
-            echo "No APKs found under apps/rn-app/android/app/build/outputs/apk/debug"
-            exit 1
-          fi
-          cp -v "${apks[0]}" rncli-android-dist/app-debug-beta.apk
-          release_apks=(apps/rn-app/android/app/build/outputs/apk/release/*.apk)
-          if [ ${#release_apks[@]} -gt 0 ]; then
-            cp -v "${release_apks[0]}" rncli-android-dist/app-release-signed.apk
-          fi
-          echo "{\"version\":${RN_BUILD},\"file\":\"app-debug-beta.apk\",\"downloadUrl\":\"https://github.com/Metaheurist/Rianell/releases/latest/download/app-debug-beta.apk\"}" > rncli-android-dist/latest.json
-
-      - name: Upload Android dist
-        uses: actions/upload-artifact@v7
-        with:
-          name: rncli-android-dist
-          path: rncli-android-dist/
-          retention-days: 1
-
-  rncli-ios-zip:
-    name: "3 · iOS emulator Xcode project zip"
-    needs: [paths-filter, expo-bundle-prod, rn-build-version]
-    if: |
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.mobile_release == 'true'
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: ./.github/actions/setup-node-ci
-
-      - uses: ./.github/actions/cache-expo
-
-      - name: Generate native project (expo prebuild -> RN CLI)
-        working-directory: apps/rn-app
-        env:
-          CI: "1"
-          EXPO_NO_TELEMETRY: "1"
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
-        run: npx expo prebuild --platform ios --no-install
-
-      - name: Zip iOS project for emulator usage
-        shell: bash
-        env:
-          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
-        run: |
-          set -euo pipefail
-          mkdir -p rncli-ios-dist
-          run="${RN_BUILD}"
-          zip -r "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "apps/rn-app/ios"
-          cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-ios-alpha-latest.zip"
-          cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-simulator-alpha-${run}.zip"
-          echo "{\"version\":${run},\"file\":\"Health-Tracker-ios-alpha-build-${run}.zip\",\"simulatorFile\":\"Health-Tracker-simulator-alpha-${run}.zip\",\"installUrl\":\"https://rianell.com/artifacts/iOS/Health-Tracker-ios-alpha-latest.zip\"}" > rncli-ios-dist/latest.json
-
-      - name: Upload iOS dist
-        uses: actions/upload-artifact@v7
-        with:
-          name: rncli-ios-dist
-          path: rncli-ios-dist/
-          retention-days: 1
-
   playwright-e2e:
     name: "3 · Playwright E2E smoke"
     needs: [deploy-pages]
@@ -1110,7 +840,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   commit-benchmarks:
     name: "4 · Commit benchmark reports"
-    needs: [benchmarks-web, benchmarks-expo]
+    needs: [benchmarks-web]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     concurrency:
@@ -1134,14 +864,8 @@ jobs:
           name: benchmarks-web
           path: bw
 
-      - name: Download Expo benchmark artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: benchmarks-expo
-          path: be
-
       - name: Merge reports and update index
-        run: node benchmarks/scripts/merge-benchmark-ci.mjs bw be "${{ github.workspace }}"
+        run: node benchmarks/scripts/merge-benchmark-ci.mjs bw "${{ github.workspace }}"
 
       - name: Commit and push benchmarks
         run: |
@@ -1154,10 +878,10 @@ jobs:
 
   commit-app-build:
     name: "4 · Commit artifact manifests to repo"
-    needs: [paths-filter, expo-bundle-prod, server-exe, rncli-android-apk, rncli-ios-zip]
+    needs: [paths-filter, server-exe]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.mobile_release == 'true'
+      needs.paths-filter.outputs.release_build == 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
@@ -1173,18 +897,6 @@ jobs:
         run: |
           git fetch origin "${{ github.ref_name }}"
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
-
-      - name: Download RN CLI Android APK
-        uses: actions/download-artifact@v8
-        with:
-          name: rncli-android-dist
-          path: artifacts/RNCLI-Android/
-
-      - name: Download RN CLI iOS Xcode project zip
-        uses: actions/download-artifact@v8
-        with:
-          name: rncli-ios-dist
-          path: artifacts/iOS/
 
       - name: Download Server EXE artifacts
         uses: actions/download-artifact@v8
@@ -1203,13 +915,6 @@ jobs:
             echo '{"version":${{ github.run_number }},"file":"rianell-server-x64.exe"}' > "artifacts/Server/latest.json"
           fi
           rm -f "artifacts/Server/"*.exe 2>/dev/null || true
-
-      - name: Strip binaries from artifact dirs (manifest-only policy)
-        run: |
-          rm -f artifacts/RNCLI-Android/*.apk 2>/dev/null || true
-          rm -f "artifacts/iOS/Health-Tracker-ios-alpha-build-"*.zip 2>/dev/null || true
-          rm -f "artifacts/iOS/Health-Tracker-simulator-alpha-"*.zip 2>/dev/null || true
-          rm -rf "artifacts/Expo/dist-expo-prod" 2>/dev/null || true
 
       - uses: ./.github/actions/setup-node-ci
         with:
@@ -1231,9 +936,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
           for f in \
-            "artifacts/RNCLI-Android/latest.json" \
-            "artifacts/iOS/latest.json" \
-            "artifacts/iOS/Health-Tracker-ios-alpha-latest.zip" \
             "artifacts/Server/latest.json" \
             "artifacts/Server/latest-x64.json" \
             "artifacts/Server/latest-x86.json"; do
@@ -1245,21 +947,15 @@ jobs:
 
   publish-release:
     name: "4 · Publish GitHub Release"
-    needs: [paths-filter, server-exe, rncli-android-apk]
+    needs: [paths-filter, server-exe]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.mobile_release == 'true'
+      needs.paths-filter.outputs.release_build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v5
-
-      - name: Download RN CLI Android APK artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: rncli-android-dist
-          path: gh-release/RNCLI-Android/
 
       - name: Download Server EXE binaries
         uses: actions/download-artifact@v8
@@ -1267,16 +963,11 @@ jobs:
           pattern: server-exe-*
           path: gh-release/Server
 
-      - name: Prepare release assets (APK + EXE only)
+      - name: Prepare release assets (Windows EXE only)
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/RNCLI/Android release-assets/Server
-
-          if [ -d "gh-release/RNCLI-Android" ]; then
-            cp -v gh-release/RNCLI-Android/*.apk release-assets/RNCLI/Android/ 2>/dev/null || true
-            cp -v gh-release/RNCLI-Android/latest.json release-assets/RNCLI/Android/ 2>/dev/null || true
-          fi
+          mkdir -p release-assets/Server
 
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x86/rianell-server-x86.exe" "release-assets/Server/"
@@ -1304,10 +995,7 @@ jobs:
           - Branch: \`${REF_NAME}\`
           - Commit: \`${SHA}\`
 
-          ## Assets (APK + Windows EXE only)
-
-          ### Android APK
-          Directory: \`release-assets/RNCLI/Android/\`
+          ## Assets (Windows EXE only)
 
           ### Server (Windows EXE)
           Directory: \`release-assets/Server/\`
@@ -1315,13 +1003,12 @@ jobs:
           - \`rianell-server-x86.exe\`
 
           ## Notes
-          - Expo bundles and iOS zips stay in Actions artifacts (1-day retention) and are not attached to releases.
           - \`artifacts/*/latest.json\` manifests on the branch point at this release.
           EOF
           )"
           # softprops was failing on intermittent GitHub Unicorn HTML (503). Use gh + retries.
           shopt -s nullglob
-          ASSETS=(release-assets/RNCLI/Android/* release-assets/Server/*.exe release-assets/Server/*.json)
+          ASSETS=(release-assets/Server/*.exe release-assets/Server/*.json)
           if [ "${#ASSETS[@]}" -eq 0 ]; then
             echo "No release assets found"
             exit 1
@@ -1356,7 +1043,7 @@ jobs:
     if: |
       success() &&
       github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      needs.paths-filter.outputs.mobile_release != 'true'
+      needs.paths-filter.outputs.release_build != 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
