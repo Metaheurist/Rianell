@@ -1,10 +1,10 @@
 # Accessibility
 
-Rianell targets WCAG-oriented patterns across PWA and React Native.
+Rianell targets WCAG-oriented patterns in the PWA.
 
 ## User-facing features
 
-- **Reduce motion:** Honors OS `prefers-reduced-motion` and in-app Settings preference (PWA `body.reduce-motion`, RN `useReduceMotionFlag`).
+- **Reduce motion:** Honors OS `prefers-reduced-motion` and in-app Settings preference (PWA `body.reduce-motion`).
 - **Text scale:** Settings → Accessibility text size.
 - **Colorblind modes:** Deuteranopia / protanopia / tritanopia filters in Settings.
 - **RTL:** 13 locales including Arabic and Hebrew; layout mirrors where required.

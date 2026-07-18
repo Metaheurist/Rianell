@@ -40,16 +40,15 @@ On the Overview chapter, the wellbeing score ring shows the final number immedia
 
 For richer summaries and note suggestions, Rianell can download a **~3.5 GB** model:
 
-- Weights are hosted on **Supabase Storage** (chunked downloads, reassembled locally).
+- Weights are hosted on **Hugging Face** (chunked downloads, reassembled locally).
 - **PWA:** Transformers.js + `summary-llm.js`
-- **React Native:** `llmNative.ts` with local file cache
 
 **Download UX:**
 
 | Context | Behaviour |
 |---------|-----------|
 | Desktop PWA | Progress banner near **+** button |
-| Installed mobile PWA / RN | Blocking modal until cached (or skip on mobile web) |
+| Installed mobile PWA | Blocking modal until cached (or skip on mobile web) |
 | Settings → Performance | **Clear and redownload model** wipes cache and restarts download |
 
 Arabic and Hebrew UI locales use **rule-based + MOTD fallback only** for LLM output (no on-device LLM in those locales).

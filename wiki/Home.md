@@ -10,14 +10,14 @@
 
 | Guide | What you'll learn |
 |-------|-------------------|
-| [[Getting-Started]] | Install the web app, Android, or iOS build and log your first day |
+| [[Getting-Started]] | Install the web app and log your first day |
 | [[Features-Guide]] | Main tabs, log wizard, goals, and settings overview |
 | [[Logging-Data]] | What each health field means; import and export |
 | [[Charts-and-AI]] | Trends, predictions, and on-device AI summaries |
 | [[Cloud-Sync-and-Backup]] | Optional encrypted cloud backup (Supabase) |
 | [[Privacy-and-Your-Data]] | Local-first design, consent, and deletion |
 | [[Settings-and-Languages]] | Themes, 13 languages, RTL support |
-| [[Downloads]] | Latest Android APK, iOS zip, server EXE, and web build |
+| [[Downloads]] | Web build and optional server EXE |
 | [[Troubleshooting]] · [[FAQ]] | Common fixes and quick answers |
 
 ---
@@ -29,7 +29,7 @@
 | [[Developer-Home]] | Monorepo layout and quick commands |
 | [[Developer-Setup]] | Clone, dependencies, environment variables |
 | [[Architecture-Overview]] | Data flow, shared packages, AI pipeline |
-| [[Platforms-and-Parity]] | Web/PWA vs React Native feature contract |
+| [[Platforms-and-Parity]] | Web/PWA platform overview |
 | [[Build-Test-and-CI]] | npm scripts, tests, benchmarks, GitHub Actions |
 | [[Contributing]] | PR expectations and how to update this wiki |
 

@@ -36,7 +36,7 @@ Exact pane count may vary slightly by platform; native Settings mirrors web sect
 | fr-FR, de-DE, es-ES, it-IT, pl-PL, nl-NL | European languages |
 | ar, he | **RTL** - layout mirrors; chart time axes stay LTR |
 
-Change language: **Settings → Privacy & region → Language**. The UI refreshes **all tabs** without a full page reload (PWA) or app restart (RN).
+Change language: **Settings → Privacy & region → Language**. The UI refreshes **all tabs** without a full page reload.
 
 ---
 
@@ -63,4 +63,3 @@ Report theme bugs with theme name + screenshots of Home, navbar, modals, and AI 
 ## Read more (technical)
 
 - [App overview - i18n sections](https://github.com/Metaheurist/Rianell/blob/main/docs/app-and-features.md)
-- [Platform parity - RTL and catalog](https://github.com/Metaheurist/Rianell/blob/main/docs/platform-parity.md)

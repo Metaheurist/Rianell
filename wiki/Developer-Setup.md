@@ -32,10 +32,6 @@ SUPABASE_PUBLISHABLE_KEY=your_publishable_key
 
 Legacy names still work: `SUPABASE_ANON_KEY` (publishable), `SUPABASE_SERVICE_KEY` (server-only secret).
 
-**React Native:** copy the same Supabase vars into `apps/rn-app/` local env configuration or use `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
-
-Optional RN LLM endpoint: `EXPO_PUBLIC_LLM_ENDPOINT` for remote summary generation (falls back to local AIEngine if unset).
-
 ---
 
 ## 3. Run the web app locally
@@ -58,24 +54,7 @@ powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1 -NoCompile
 
 ---
 
-## 4. Run React Native
-
-```bash
-npm run dev
-```
-
-Or from `apps/rn-app`: `npx expo start`.
-
-Quality gates:
-
-```bash
-npm run typecheck:mobile
-npm run test:mobile
-```
-
----
-
-## 5. Supabase (optional)
+## 4. Supabase (optional)
 
 Required for cloud sync testing and LLM model hosting:
 
@@ -85,7 +64,7 @@ Required for cloud sync testing and LLM model hosting:
 
 ---
 
-## 6. Build production PWA
+## 5. Build production PWA
 
 ```bash
 npm run build:web
@@ -95,7 +74,7 @@ Output is content-hashed under `apps/pwa-webapp/` (`app.<hash>.min.js`, `styles.
 
 ---
 
-## 7. Wiki sync (maintainers)
+## 6. Wiki sync (maintainers)
 
 ```bash
 npm run wiki:verify
@@ -109,5 +88,4 @@ Requires git push access to `Metaheurist/Rianell.wiki.git`.
 ## Read more (technical)
 
 - [Setup & usage](https://github.com/Metaheurist/Rianell/blob/main/docs/setup-and-usage.md)
-- [React Native setup](https://github.com/Metaheurist/Rianell/blob/main/docs/react-native-setup.md)
 - [SECURITY.md - local secrets](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)

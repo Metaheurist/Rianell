@@ -116,7 +116,7 @@ The local PWA at `http://localhost:8080` still works without cloud sync.
 
 **Include when reporting:**
 
-- Platform (web PWA, Android, iOS) and build number
+- Platform (web PWA) and build number
 - Selected theme and locale
 - For cloud issues: signed-in state and which setting failed
 - Browser console errors (web) or device OS version (mobile)

@@ -10,11 +10,11 @@ Use [GitHub Issues](https://github.com/Metaheurist/Rianell/issues) or the in-app
 
 **Include:**
 
-- Platform (web PWA, Android, iOS) and build/version
+- Platform (web PWA) and build/version
 - Steps to reproduce, expected vs actual behaviour
 - Theme name and locale if UI-related
 - For cloud sync: signed-in state and which setting failed
-- Console logs (web) or device OS (mobile)
+- Console logs
 
 ---
 
@@ -26,8 +26,6 @@ Use [GitHub Issues](https://github.com/Metaheurist/Rianell/issues) or the in-app
    ```bash
    npm run test:unit
    npm run verify:i18n    # if locales/strings changed
-   npm run parity:web     # if PWA changed
-   npm run typecheck:mobile  # if RN changed
    ```
 4. If you change `package.json`, `requirements.txt`, or PWA CDN URLs:
    ```bash

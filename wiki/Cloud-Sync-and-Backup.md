@@ -19,7 +19,7 @@ Your publishable Supabase key in the client is safe to embed; **never** put a se
 
 ## Before first sync - health data consent
 
-Under GDPR Article 9, processing special-category health data requires explicit consent. Both PWA and React Native show a **Health data processing consent** dialog before the first cloud operation. Declining keeps everything local-only.
+Under GDPR Article 9, processing special-category health data requires explicit consent. The PWA shows a **Health data processing consent** dialog before the first cloud operation. Declining keeps everything local-only.
 
 ---
 
@@ -39,7 +39,7 @@ Live site (rianell.com) receives Supabase URL and publishable key at **deploy ti
 
 Log JSON is encrypted client-side before upload. The server stores ciphertext blobs; decryption happens only on your devices with your key.
 
-Local storage (browser/RN) remains plaintext at rest unless a future at-rest encryption phase ships.
+Local browser storage remains plaintext at rest unless a future at-rest encryption phase ships.
 
 ---
 
