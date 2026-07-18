@@ -10,7 +10,10 @@
 
 ### Tech stack
 
-**Core**
+<table>
+<tr>
+<td><b>🧩&nbsp;Core</b></td>
+<td>
 
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla%20%2B%20modules-F7DF1E?style=flat-square&logo=javascript&logoColor=000)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
@@ -20,31 +23,51 @@
 [![npm](https://img.shields.io/badge/npm-11.11.0-CB3837?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/)
 [![Python](https://img.shields.io/badge/Python-server-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 
-**Web / PWA**
+</td>
+</tr>
+<tr>
+<td><b>🌐&nbsp;Web&nbsp;/&nbsp;PWA</b></td>
+<td>
 
 [![React](https://img.shields.io/badge/React-19.2.4-61DAFB?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
 [![PWA](https://img.shields.io/badge/PWA-Service%20worker%20%26%20manifest-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
 [![esbuild](https://img.shields.io/badge/esbuild-0.28.1-FFCF00?style=flat-square&logo=esbuild&logoColor=000)](https://esbuild.github.io/)
 [![ApexCharts](https://img.shields.io/badge/ApexCharts-charts-008FFB?style=flat-square)](https://apexcharts.com/)
 
-**AI / On-device inference**
+</td>
+</tr>
+<tr>
+<td><b>🧠&nbsp;AI&nbsp;/&nbsp;On-device</b></td>
+<td>
 
 [![Transformers.js](https://img.shields.io/badge/Transformers.js-3.3.2-FFD21E?style=flat-square&logo=huggingface&logoColor=000)](https://huggingface.co/docs/transformers.js)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-%40rianell%2Fai--engine-FFD21E?style=flat-square&logo=huggingface&logoColor=000)](https://huggingface.co/)
 
-**Backend / Cloud**
+</td>
+</tr>
+<tr>
+<td><b>☁️&nbsp;Backend&nbsp;/&nbsp;Cloud</b></td>
+<td>
 
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%2017%20%26%20Auth-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://supabase.com/)
 [![Supabase%20Edge](https://img.shields.io/badge/Supabase%20Edge%20Functions-Deno-3FCF8E?style=flat-square&logo=deno&logoColor=white)](https://supabase.com/docs/guides/functions)
 [![supabase-js](https://img.shields.io/badge/supabase--js-2.100.1-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://github.com/supabase/supabase-js)
 
-**OAuth Connectors**
+</td>
+</tr>
+<tr>
+<td><b>🔗&nbsp;OAuth&nbsp;Connectors</b></td>
+<td>
 
 [![Strava](https://img.shields.io/badge/Strava-connector-FC4C02?style=flat-square&logo=strava&logoColor=white)](https://developers.strava.com/)
 [![Withings](https://img.shields.io/badge/Withings-connector-00B5AD?style=flat-square)](https://developer.withings.com/)
 [![Google%20Sheets](https://img.shields.io/badge/Google%20Sheets-connector-34A853?style=flat-square&logo=googlesheets&logoColor=white)](https://developers.google.com/sheets)
 
-**Tooling & CI**
+</td>
+</tr>
+<tr>
+<td><b>🛠️&nbsp;Tooling&nbsp;&&nbsp;CI</b></td>
+<td>
 
 [![Turbo](https://img.shields.io/badge/Turbo-2.9.18-EF4444?style=flat-square&logo=turborepo&logoColor=white)](https://turbo.build/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
@@ -52,6 +75,10 @@
 [![API](https://img.shields.io/badge/API-v1-blue)](docs/api/openapi.yaml)
 [![FHIR R4](https://img.shields.io/badge/FHIR-R4-green)](docs/connectors/fasten-health.md)
 [![n8n](https://img.shields.io/badge/n8n-node-orange)](https://www.npmjs.com/package/n8n-nodes-rianell)
+
+</td>
+</tr>
+</table>
 
 ### Session recording (Smartlook)
 
@@ -95,6 +122,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | <img src="docs/icons/brain.svg" width="32" height="32" alt="" aria-hidden="true"> | **[AI architecture](docs/ai-architecture.md)** |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Architecture standard](docs/architecture-standard.md)** - repo layout, workspaces, scripts, artifacts policy, migration log |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
+| <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Codebase interaction map](docs/codebase_interaction_map.md)** - generated Tree-sitter map of key modules and their call/import relationships (LocalRepoMapper MCP) |
 | <img src="docs/icons/paperclip.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) - npm workspaces, Python, CDN/runtime, CI tooling |
 | <img src="docs/icons/palette.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
 | <img src="docs/icons/user.svg" width="32" height="32" alt="" aria-hidden="true"> | **[About & support](docs/about-and-support.md)** |
