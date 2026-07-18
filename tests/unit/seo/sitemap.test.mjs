@@ -48,7 +48,8 @@ test('buildSitemap emits valid urlset with absolute rianell.com URLs', () => {
 test('committed sitemap.xml is up to date (ignoring lastmod dates)', () => {
   const committed = fs.readFileSync(path.join(webRoot, 'sitemap.xml'), 'utf8');
   const generated = buildSitemap(webRoot);
-  const strip = (s) => s.replace(/<lastmod>[^<]*<\/lastmod>/g, '');
+  // EOL-agnostic (core.autocrlf makes the working tree CRLF on Windows, LF in CI) and lastmod-agnostic.
+  const strip = (s) => s.replace(/\r\n/g, '\n').replace(/<lastmod>[^<]*<\/lastmod>/g, '');
   assert.equal(
     strip(committed),
     strip(generated),
