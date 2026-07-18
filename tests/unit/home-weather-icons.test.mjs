@@ -9,6 +9,7 @@ import {
   buildWeatherDisplayMetrics,
 } from '../../packages/shared/src/home/weatherIcons.mjs';
 import { parseWeatherApiResponse } from '../../packages/shared/src/home/homeWeather.mjs';
+import { readFileSync } from 'node:fs';
 
 test('resolveConditionIconId maps WMO codes', () => {
   assert.equal(resolveConditionIconId(0), 'weather-clear');
@@ -71,4 +72,17 @@ test('parseWeatherApiResponse includes weatherCode', () => {
   assert.ok(snap);
   assert.equal(snap.weatherCode, 2);
   assert.equal(snap.tempC, 12.4);
+});
+
+test('light-mode weather cloud icon re-resolves to the darker heading green', () => {
+  // The :root definition inherits a fixed mint value from :root context, so the
+  // token must be re-declared under body.light-mode to pick up the dark green.
+  const css = readFileSync(
+    new URL('../../apps/pwa-webapp/styles.css', import.meta.url),
+    'utf8',
+  );
+  assert.match(
+    css,
+    /body\.light-mode \{[\s\S]*--home-weather-icon-color: var\(--text-dark\)/,
+  );
 });

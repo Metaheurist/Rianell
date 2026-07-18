@@ -1,6 +1,20 @@
 # Release Notes
 
-## Latest release (v2.2.19)
+## Latest release (v2.2.20)
+
+**Metric animations that react to your value** - In the log wizard, the stiffness gear spins faster and pulses harder the stiffer you feel; joint pain pulses more urgently with higher pain; the swelling balloon gently floats (bobbing higher as swelling rises); the fatigue battery has a crisper outline; and the sleep moon fills from a thin crescent to a full moon as sleep quality goes up.
+
+**Clearer pain severity picker** - For a selected body part, intensity is now a fixed three-button control (None · Mild · Pain) that never turns into a fiddly scroller, with the active choice colour-coded.
+
+**Smoother AI model download** - The download bar no longer jumps to 100% and restarts. It tracks the main model file, then shows **“Preparing on-device AI…”** while the model finishes compiling. If preparation hangs, it now times out with a retry instead of getting stuck, and it automatically falls back to the compatibility engine when needed. The green “download” pill on Home no longer flashes.
+
+**Weather icon** - The cloud icon in the header uses the darker heading green in light mode.
+
+Hard-refresh after deploy for `styles.css?v=156`, `app.js?v=71`, `log-metric-widgets.js?v=16`, `ui-feedback.js?v=4`, `summary-llm.js?v=2`.
+
+See **v2.2.19** for Ask Rianell UX and the AI lifestyle exercise chart.
+
+## Previous (v2.2.19)
 
 **Ask Rianell** - Chat sheet animates open and closed; empty state explains what you can ask; typing dots while thinking; turn counter `n/5`; focus stays in the panel; clears when you close. Home has a primary “Ask anything” tile and an Enter-to-ask hint (still no send button on the bar).
 
