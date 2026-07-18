@@ -3392,7 +3392,7 @@ function svgIcon(name, className, title) {
     'heart-pulse', 'import-arrow', 'leaf', 'learn', 'life-ring', 'link', 'lock', 'lock-open', 'medal',
     'mood-clipboard', 'onboard-bell', 'onboard-celebrate', 'onboard-coach', 'onboard-cookie', 'onboard-globe', 'onboard-heart',
     'onboard-helper', 'onboard-install', 'onboard-mascot', 'onboard-shield', 'onboard-sparkle', 'notice', 'reload',
-    'palette', 'pill', 'pill-check', 'plus', 'qr', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring', 'overview-monitor', 'trends-vitals',
+    'palette', 'pill', 'pill-check', 'plus', 'qr', 'compass', 'run', 'save', 'share', 'shield-check', 'sleep', 'sparkle-ring', 'overview-monitor', 'trends-vitals',
     'star', 'stethoscope', 'stress', 'stressor-bolt', 'target', 'trash', 'user', 'zap',
     'weather-aqi-good', 'weather-aqi-moderate', 'weather-aqi-poor',
     'weather-clear', 'weather-cloudy', 'weather-fog', 'weather-partly-cloudy',
@@ -25559,7 +25559,7 @@ function renderHomeDiscoveryChips(logArr) {
     });
     cards.push({
       id: 'ask-anything',
-      icon: 'discover-orb',
+      icon: 'compass',
       titleKey: 'home.discover.askAnything',
       hintKey: supportsLlm ? 'home.discover.askAnything.hint' : 'home.discover.askAnything.hint.generic',
       seedKey: '',

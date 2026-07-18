@@ -78,16 +78,15 @@ test('home ask setup replaces discovery when AI model is not ready', () => {
   assert.match(css, /\.home-ask-setup__cta/);
 });
 
-test('ask hub has enter hint and primary ask-anything tile', () => {
+test('ask hub has primary ask-anything tile and no enter hint', () => {
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
   const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
-  assert.match(html, /id="homeAskEnterHint"/);
-  assert.match(html, /home\.chat\.enterHint/);
+  assert.doesNotMatch(html, /id="homeAskEnterHint"/);
+  assert.doesNotMatch(html, /home\.chat\.enterHint/);
   assert.doesNotMatch(html, /id="homeAskSend"/);
   assert.match(js, /home-discovery-pill--ask-primary/);
   assert.match(css, /\.home-discovery-pill--ask-primary/);
-  assert.match(css, /\.home-ask-enter-hint/);
   assert.match(css, /\.ai-chat-overlay--generic/);
   assert.match(css, /\.ai-chat-empty__/);
 });

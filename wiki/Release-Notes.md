@@ -1,10 +1,16 @@
 # Release Notes
 
-## Latest release (v2.2.22)
+## Latest release (v2.2.23)
+
+**Ask Rianell polish** - On larger screens the Ask Rianell chat now opens centred on screen instead of docked to the side where it could look offset or clipped. The "Ask anything about my logs" card gets a tidy compass icon, and the redundant "Press Enter to ask" hint under the input is gone.
+
+**Readable boot-recovery message** - If the app takes unusually long to start (after ~22 seconds) it shows a recovery message with a Reload button. In light mode that text was previously light-on-light and hard to read; it now sits on a dark panel so it's always legible.
+
+Hard-refresh after deploy for `styles.css?v=159` and `app.js?v=72`.
+
+## Previous (v2.2.22)
 
 **Weather cloud no longer hidden on phones** - On medium-width phones (about 481-768px) the header's weather cloud could sit behind the fixed goals/bug/settings buttons in the top-right corner. The home header now drops below those buttons so the cloud is fully visible.
-
-Hard-refresh after deploy for `styles.css?v=158`.
 
 ## Previous (v2.2.21)
 
