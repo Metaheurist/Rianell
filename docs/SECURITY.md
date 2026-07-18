@@ -1,4 +1,4 @@
-# Security model: web, React Native, Python server
+# Security model: web PWA and Python server
 
 ## v1.53.0 credential hygiene (LLM upload + client config)
 
@@ -18,7 +18,6 @@ This document describes how **Rianell** (this health app) handles health-related
 
 - **`npm audit`** at release: **0** production vulnerabilities (Jun 2026).
 - **Operator checklist:** If Apple or Azure OAuth is enabled on self-hosted Supabase Auth, confirm Auth **≥ 2.185.0** (CVE-2026-31813). Hosted Supabase projects: verify dashboard version.
-- **Dev-only:** CVE-2025-11953 (Metro bundler RCE) affects React Native CLI tooling, not shipped app bundles; keep CLI updated on developer machines.
 - **Patched in tree:** `@supabase/auth-js` 2.108.2 (CVE-2025-48370); `protobufjs` 7.6.4 (CVE-2026-41242). React Server Components / React2Shell (CVE-2025-55182) not applicable (no RSC).
 - **Residual app-layer risks** (tracked, not closed in v1.113.0): plaintext `user_keys` in Supabase, CSP `unsafe-inline`/`unsafe-eval`, prefer `getUser()` over `getSession()` for auth decisions, dev-server encryption-key API, SecureStorage fail-open paths, anon `bug_reports` INSERT policy.
 
@@ -41,7 +40,6 @@ This document describes how **Rianell** (this health app) handles health-related
 | Security inventory (generated) | [docs/security-inventory.md](security-inventory.md) - `npm run docs:security-inventory` |
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase schema (SQL) | [supabase/Schema.sql](../supabase/Schema.sql) |
-| Android network / cleartext (RN native builds) | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
 | Automated audits (CI) | Reusable [.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) - **Security & supply-chain checks** job in [.github/workflows/ci.yml](../.github/workflows/ci.yml). See [CI security matrix](#dependency-and-ci-scanning) below. Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
 | Web CSP (meta tag) | [apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md) |
 
@@ -67,7 +65,6 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 | Surface | Data at risk | Primary controls |
 |--------|----------------|------------------|
 | **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html)), Supabase **RLS** ([../supabase/Schema.sql](../supabase/Schema.sql)) |
-| **React Native (Expo)** | AsyncStorage (logs); **Supabase auth session in `expo-secure-store`** (v1.50.0) | `@supabase/supabase-js` with publishable key + **RLS**; bug reports via Supabase insert; RN CLI Android/iOS builds |
 | **Python server** | LAN exposure, optional proxy to Supabase | Bind address ([../server/config.py](../server/config.py)), gated sensitive APIs, no TLS on dev server |
 
 ## Python server: bind address and threat model
@@ -104,7 +101,6 @@ Authenticated cloud sync stores a per-user AES key in Supabase **`user_keys.encr
 
 - **PWA (static host):** inserts into **`bug_reports`** via Supabase anon/authenticated client when configured (`submitBugReportToSupabase` in [../apps/pwa-webapp/cloud-sync.js](../apps/pwa-webapp/cloud-sync.js)).
 - **PWA (dev server):** `POST /api/bug-report` on loopback (or LAN+secret) uses the service role.
-- **React Native:** [../apps/rn-app/src/utils/submitBugReport.ts](../apps/rn-app/src/utils/submitBugReport.ts) - same Supabase insert; requires `EXPO_PUBLIC_SUPABASE_*` at build time.
 - RLS: **insert-only** for `anon`/`authenticated`; no public SELECT on reports.
 
 ## Supabase and Row Level Security (RLS)
@@ -135,19 +131,15 @@ Re-apply [../supabase/Schema.sql](../supabase/Schema.sql) §4 after schema chang
 
 | Class | Examples | Storage | Encryption | Retention |
 |-------|----------|---------|------------|-----------|
-| **Local health logs** | Daily metrics, notes, food/exercise | PWA `localStorage` / IDB; RN AsyncStorage | None at rest (device OS lock) | Until user clears |
+| **Local health logs** | Daily metrics, notes, food/exercise | PWA `localStorage` / IDB | None at rest (device OS lock) | Until user clears |
 | **Cloud backup** | Encrypted log blobs | Supabase `health_data` + key in `user_keys` | AES-GCM (client) | Until user deletes cloud data |
 | **Anonymised contribution** | Pseudonymous encrypted payloads | Supabase `anonymized_data` | AES-GCM (client) | Until erasure request |
-| **Auth session** | JWT / refresh tokens | PWA browser storage; RN **`expo-secure-store`** | OS secure enclave / Keychain | Until sign-out |
+| **Auth session** | JWT / refresh tokens | PWA browser storage | Browser storage (device OS lock) | Until sign-out |
 | **App settings sync** | Goals, preferences (non-health) | Supabase `health_data` settings blob | Same as backup key | With cloud account |
 | **Bug reports** | Summary, console snapshot | Supabase `bug_reports` | TLS in transit | Until user cloud erasure |
 | **Server logs** | IPs, sync metadata | Local `logs/` (dev server) | N/A | Rotating files |
 
 Unified **Delete cloud data** removes user-linked rows from `health_data`, `user_keys`, `user_privacy_profile`, `user_achievements`, `anonymized_data`, and `bug_reports`. Achievement payloads contain notification timestamps only (non-PHI). See [data-model.md](data-model.md) and [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
-
-### React Native: Supabase auth in SecureStore (v1.50.0)
-
-Since v1.50.0, **`apps/rn-app/src/cloud/secureStorageAdapter.ts`** persists Supabase auth tokens via **`expo-secure-store`** (Keychain / EncryptedSharedPreferences), not AsyncStorage. Health logs remain in AsyncStorage (plaintext at rest). Android builds set **`allowBackup: false`** in `app.json` to reduce token export via OS backup. See [react-native-setup.md](react-native-setup.md).
 
 ## Content Security Policy (CSP) and XSS
 
@@ -187,29 +179,6 @@ These are **accepted or environmental** limitations called out so operators and 
 | **Python dev server without TLS** | Use only on loopback or a trusted LAN; never expose raw to the internet. |
 | **GitHub Actions / static deploy secrets** | Production Supabase URL and anon key are injected at deploy from repository secrets; do not commit real secrets to the repo. |
 
-## Android: cleartext and mixed content (React Native)
-
-Primary Android builds come from **React Native CLI / Expo prebuild** (`apps/rn-app`). The native project under **`apps/rn-app/android/`** (after `npx expo prebuild`) should follow standard Android network security practice.
-
-### Mixed content
-
-The RN app loads remote HTTPS APIs (Supabase) and local bundled assets. Do **not** enable mixed HTTP subresources on HTTPS origins in production WebViews or embedded browsers.
-
-### Cleartext traffic
-
-Do **not** rely on **`android:usesCleartextTraffic="true"`** on `<application>` for production. Prefer **`network_security_config.xml`**: default **cleartext off**; optional **domain-scoped** cleartext for dev hosts only (e.g. `localhost`, `10.0.2.2`).
-
-### Android release checklist
-
-On each **release** build (or before tagging):
-
-- Confirm **`usesCleartextTraffic`** is not set to **`true`** on `<application>` in `AndroidManifest.xml`.
-- Confirm **`network_security_config.xml`** matches your policy (no accidental wide cleartext).
-- Review **`android:exported`** on activities / providers / receivers (only what deep links require).
-- Keep Supabase and API calls on **HTTPS** only in production builds.
-
-> **Historical note:** Legacy Capacitor WebView builds were removed in v1.49.0. Old Capacitor-specific patch scripts and config paths no longer apply.
-
 ## Dependency and CI scanning
 
 - **Reusable workflow (no duplicate runs):** [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) is **only** invoked from CI’s **`security-audit`** job (not a second workflow run on every push).
@@ -237,8 +206,8 @@ On each **release** build (or before tagging):
 
 Local equivalents: `npm run verify:privacy-docs`, `npm run verify:csp`, `npm run docs:security-inventory`. Security unit tests: `tests/unit/security/`.
 
-- **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`shell-quote`**, **`postcss`**, **`ws`**, **`uuid`**, **`basic-ftp`**, **`ip-address`**, **`tmp`**, **`@xmldom/xmldom@0.8.13`** on **`@expo/plist`**, **`plist`**, **`@trapezedev/project`**, **`mergexml`** (LTS line - **0.9.x** breaks Expo **`prebuild`** because **`@expo/plist`** omits **`mimeType`** on **`parseFromString`**). **`http-proxy-agent@5.0.0`** is overridden to **`7.0.2`** so **`jest-environment-jsdom`** → **`jsdom@20`** no longer pulls **`@tootallnate/once@2`** via the old v5 agent (Dependabot low-severity **GHSA-vpq2-c234-7xj6**). **`@tootallnate/once`** is also pinned to **`^3.0.1`**. Root pins **`@sentry/node`** (^10.65) and **`@opentelemetry/core@2.9.0`** via overrides (dollar-ref from root devDependencies) so Lighthouse resolves OpenTelemetry 2.9.x, clearing OSV **CVE-2026-54285** / **GHSA-8988-4f7v-96qf**. `npm ls` may show **`invalid`** for **`@sentry/node`** under Lighthouse (manifest asks **`^9.28.1`**); that pin is intentional. `npm ls` may show **`invalid`** next to **`http-proxy-agent`** under **`jsdom`** because **`jsdom`** still declares **`^5.0.0`** in its manifest; the installed v7 agent is API-compatible for Jest’s test environment and **`npm run test:mobile`** is the regression check. **`npm audit --omit=dev`** and a **full** **`npm audit`** are expected to report **no** vulnerabilities with the current lockfile - re-run after lockfile changes and triage any new **Dependabot** alerts. **Python:** **`requirements.txt`** floors include **`cryptography>=49.0.0`** (OSV **GHSA-537c-gmf6-5ccf**) and **`python-dotenv>=1.2.2`** for **OSV-Scanner** / **`pip-audit`**.
-- **CI reference:** The **`security-audit`** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml) gates downstream mobile bundle jobs. Failures should be triaged like Dependabot alerts. Branch protection should require the **CI** workflow (or the **`Security & supply-chain checks`** job), not a separate duplicate workflow name.
+- **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`shell-quote`**, **`postcss`**, **`ws`**, **`uuid`**, **`basic-ftp`**, **`ip-address`**, **`tmp`**, **`@xmldom/xmldom@0.8.13`**). **`http-proxy-agent@5.0.0`** is overridden to **`7.0.2`** so **`jest-environment-jsdom`** → **`jsdom@20`** no longer pulls **`@tootallnate/once@2`** via the old v5 agent (Dependabot low-severity **GHSA-vpq2-c234-7xj6**). **`@tootallnate/once`** is also pinned to **`^3.0.1`**. Root pins **`@sentry/node`** (^10.65) and **`@opentelemetry/core@2.9.0`** via overrides (dollar-ref from root devDependencies) so Lighthouse resolves OpenTelemetry 2.9.x, clearing OSV **CVE-2026-54285** / **GHSA-8988-4f7v-96qf**. `npm ls` may show **`invalid`** for **`@sentry/node`** under Lighthouse (manifest asks **`^9.28.1`**); that pin is intentional. `npm ls` may show **`invalid`** next to **`http-proxy-agent`** under **`jsdom`** because **`jsdom`** still declares **`^5.0.0`** in its manifest; the installed v7 agent is API-compatible for Jest’s test environment and **`npm run test:unit`** is the regression check. **`npm audit --omit=dev`** and a **full** **`npm audit`** are expected to report **no** vulnerabilities with the current lockfile - re-run after lockfile changes and triage any new **Dependabot** alerts. **Python:** **`requirements.txt`** floors include **`cryptography>=49.0.0`** (OSV **GHSA-537c-gmf6-5ccf**) and **`python-dotenv>=1.2.2`** for **OSV-Scanner** / **`pip-audit`**.
+- **CI reference:** The **`security-audit`** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml) gates downstream build jobs. Failures should be triaged like Dependabot alerts. Branch protection should require the **CI** workflow (or the **`Security & supply-chain checks`** job), not a separate duplicate workflow name.
 - **CI caching (v1.89.2):** npm, pip, Playwright, and security-tool binaries are restored from GitHub Actions cache when lockfiles are unchanged - see [testing-and-configuration.md](testing-and-configuration.md) § CI dependency caching.
 
 ## Client-side storage and privacy

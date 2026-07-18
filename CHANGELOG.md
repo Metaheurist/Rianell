@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.24] - 2026-07-18
+
+### Removed
+- **Native mobile support (Android / iOS):** Dropped the React Native (Expo) app and all native-platform surface area. Deleted `apps/rn-app/`, mobile build artifacts, parity scripts/docs, mobile-only unit tests, and the mobile CI jobs, caches, and composite actions in `.github/workflows/ci.yml`.
+- **Native download/install UI:** Removed Android/iOS app-download links, Capacitor detection, `android-update-check.js`, and `buildDownloads.js` from the PWA. Removed the corresponding native download/install i18n keys across all locale trees and Tier-A/pl-PL override generators.
+
+### Changed
+- **PWA-only project:** Reworked `package.json` workspaces/scripts, `tsconfig.json`, `turbo.json`, `dependabot.yml`, `.gitleaks.toml`, and `.gitignore` to drop the RN workspace and native tooling. Renamed the minified-web output from `.android-dist` to `.web-dist` (`build:web:apk` → `build:web:min`).
+- **Docs & wiki:** Rewrote `README.md`, `docs/`, `wiki/`, `AGENTS.md`, and `.cursor/rules/` to describe a PWA-only codebase. PWA mobile-browser features (Add to Home Screen, `apple-touch-icon`) and health-data connectors (Apple Health, Health Connect) are retained.
+- **AI Analysis nav icon:** Redesigned the brain glyph with a small central gap between the two hemispheres and simplified gyrus fold lines for clearer legibility at nav sizes.
+- **Ask Rianell chat panel:** Rounds all four corners (previously a bottom-flat sheet); cache-bust `styles.css?v=160`.
+
+---
+
 ## [2.2.17] - 2026-07-16
 
 ### Added

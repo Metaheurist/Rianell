@@ -17,7 +17,7 @@ Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cur
 | Command | When |
 |---------|------|
 | `npm run test:unit` | Every phase |
-| `npm run verify:design-tokens` | UI token/motion changes in PWA or RN screens |
+| `npm run verify:design-tokens` | UI token/motion changes in PWA screens |
 | `npm run verify:root-hygiene` | Phase 23+ (root layout) |
 | `npm run verify:migration:foundation` | After Phase 7 |
 | `npm run verify:migration` | Phase 20+ |
@@ -26,7 +26,7 @@ Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cur
 
 ## Conventions
 
-- **`apps/`** - deployables (`@rianell/pwa-webapp`, `@rianell/rn-app`)
+- **`apps/`** - deployables (`@rianell/pwa-webapp`)
 - **`packages/`** - shared `@rianell/*` libraries
 - **`scripts/`** - nested by concern (`build/`, `i18n/`, `verify/`, `ci/`, `audit/`, `wiki/`, `models/`, `dev/`, `migration/legacy/`)
 - **`artifacts/`** - CI binaries + `latest.json` (renamed from legacy `App build/`)

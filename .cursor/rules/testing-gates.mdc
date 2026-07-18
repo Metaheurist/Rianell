@@ -8,7 +8,7 @@ alwaysApply: true
 ## Minimum gate — every change
 
 ```bash
-npm run test:unit          # 491 assertions must all pass
+npm run test:unit          # full unit suite must pass (0 failures)
 node scripts/verify/doc-links.mjs --strict   # exit 0 required
 ```
 

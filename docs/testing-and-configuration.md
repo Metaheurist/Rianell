@@ -2,7 +2,7 @@
 
 ## 🧪 Testing Data
 
-**Toolchain:** Run tests and scripts with **Node.js 24.14.1+** (see [Installation & usage](setup-and-usage.md) and root `package.json` `engines`). **Unit tests** (`npm run test:unit`) use the Node test runner from the repository root; **mobile** tests use Jest under `apps/rn-app`. When you bump npm/Python/CDN dependency pins, run **`npm run docs:dependencies`** and commit **`docs/dependencies.md`** (see [dependencies.md](dependencies.md)).
+**Toolchain:** Run tests and scripts with **Node.js 24.14.1+** (see [Installation & usage](setup-and-usage.md) and root `package.json` `engines`). **Unit tests** (`npm run test:unit`) use the Node test runner from the repository root. When you bump npm/Python/CDN dependency pins, run **`npm run docs:dependencies`** and commit **`docs/dependencies.md`** (see [dependencies.md](dependencies.md)).
 
 
 ### v1.69.1 i18n verification commands
@@ -11,7 +11,6 @@ From the repo root after editing locale/prompt/motd packs:
 
 ```bash
 npm run verify:i18n
-npm run test:mobile
 ```
 
 `verify:i18n` (v1.77.0) runs, in order: `build-content-catalog-keys.mjs` → `generate-locale-overrides.mjs` → `auto-translate-ui-strings.mjs` → `auto-translate-policy-strings.mjs` → `translate-motd-packs.mjs` → `sync-i18n-assets.mjs` → locale/prompt/motd/HTML/audit gates → `verify-translation-coverage.mjs --strict --max-pct=13` → `verify-mixed-language-strings.mjs`.
@@ -61,13 +60,7 @@ node scripts/verify/verify-prompt-packs.mjs
 node scripts/verify/verify-no-html-in-locale-packs.mjs
 node scripts/verify/audit-hardcoded-strings.mjs --check
 npm run test:unit
-npm run typecheck:mobile
-npm run test:mobile
 ```
-
-### v1.46.3 documentation sync
-
-- **React Native:** After Settings or Log wizard changes, run `npx jest src/screens/SettingsScreen.test.tsx src/screens/LogWizardScreen.test.tsx` from `apps/rn-app` (or the repo’s `npm run test:mobile` if configured). Settings tests mock `expo-constants` for the app installation section.
 
 ### v1.44.2 documentation sync
 
@@ -123,7 +116,6 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 ### v1.53.1 CI fixes
 
 - **Web benchmarks:** Playwright navigation timings open Settings without **`ReferenceError: global is not defined`** (`resolveSettingsPaneTitle` uses **`window.RianellI18n`**).
-- **Mobile typecheck:** **`npm run typecheck:mobile`** - see [CHANGELOG.md](CHANGELOG.md) v1.53.1.
 
 ### Performance tier benchmark toolkit (v1.78-v1.81)
 
@@ -147,16 +139,15 @@ Agent-executable suite under `benchmarks/toolkit/` - runs Playwright probes acro
 
 ### AI engine benchmark suite (v1.82)
 
-Rule-based AI microbench (no LLM/ONNX) - four parallel CI jobs after `benchmarks-expo`.
+Rule-based AI microbench (no LLM/ONNX) - parallel CI jobs.
 
 | npm (root) | Output slug | Runtime |
 |------------|-------------|---------|
 | `benchmark:ai-package` | `benchmarks/ai-engine-package/` | Node `@rianell/ai-engine` |
 | `benchmark:ai-layers` | `benchmarks/ai-engine-layers/` | Playwright tier-3 + `AIEngine.js` layers |
 | `benchmark:ai-algos` | `benchmarks/ai-engine-algos/` | Playwright tier-3 + atomic algos |
-| `benchmark:ai-rn` | `benchmarks/ai-engine-rn/` | Jest `summarizeLogsForAi` |
 | `benchmark:ai-verify -- --strict` | exit gate | `ai-thresholds.json` |
-| `benchmark:ai-all` | all four + verify | local orchestrator |
+| `benchmark:ai-all` | all + verify | local orchestrator |
 
 **PWA hooks:** `runAiLayerBenchmark`, `runAiAlgoBenchmark`, `getAiBenchMeta` (requires `?benchmark_test=1`). Fixtures injected via Playwright `addInitScript` from `ai-fixtures.mjs`.
 
@@ -164,7 +155,7 @@ Rule-based AI microbench (no LLM/ONNX) - four parallel CI jobs after `benchmarks
 
 **CI:** Uses `ci-minified/site`; artifacts merged on `main`/`master`. See `benchmarks/toolkit/AGENT-RUNBOOK.md`.
 
-**v1.84 fixes:** Relative `BENCHMARK_PWA_ROOT` (repo-root join); Playwright `load` + `ensureAIEngineLoaded` pre-warm; RN runner uses `node_modules/jest/bin/jest.js` on Windows.
+**v1.84 fixes:** Relative `BENCHMARK_PWA_ROOT` (repo-root join); Playwright `load` + `ensureAIEngineLoaded` pre-warm.
 
 ### UI locale refresh (v1.87)
 
@@ -213,13 +204,10 @@ Caches invalidate when lockfiles or pinned tool versions change (not every run):
 | node_modules | `package-lock.json` hash | `setup-node-ci` (skip `npm ci` on hit) |
 | pip | `requirements.txt`, `ci-pip-*.txt` | `./.github/actions/setup-python-ci` |
 | Playwright | `package-lock.json` hash | `./.github/actions/install-playwright-chromium` |
-| Expo / Metro | lockfiles | `./.github/actions/cache-expo` |
-| Gradle | `package-lock.json` + `apps/rn-app/package.json` | `actions/cache` on Android APK job |
-| Android SDK | API 36 + NDK 27 paths | `./.github/actions/cache-android-sdk` |
 | PyInstaller | requirements + pip extras | `actions/cache` on Windows server EXE job |
 | Gitleaks / OSV / npx | pinned version or lockfile | `security-audit.yml` |
 
-Gate jobs (**unit-tests**, **prepare-minified-assets**, **expo-bundle-prod**, **deploy-pages**, **audit-boot-post-deploy**) cancel the workflow on failure so mobile/server/release jobs do not burn minutes after a failed gate. Benchmark jobs are intentionally **not** cancelled.
+Gate jobs (**unit-tests**, **prepare-minified-assets**, **deploy-pages**, **audit-boot-post-deploy**) cancel the workflow on failure so server/release jobs do not burn minutes after a failed gate. Benchmark jobs are intentionally **not** cancelled.
 
 ### On-device model clear/redownload (v1.85)
 

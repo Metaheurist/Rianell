@@ -37,8 +37,7 @@ Follow the architecture rules from `docs/architecture-standard.md`:
 |--------------------|--------------|
 | New deployable UI surface | `apps/<name>/` + workspace entry in root `package.json` |
 | Shared logic / utilities | `packages/<name>/src/` as `@rianell/<name>` |
-| PWA-only feature | `apps/pwa-webapp/` (modules in `apps/pwa-webapp/modules/`) |
-| RN-only feature | `apps/rn-app/src/` (screens, components, hooks) |
+| PWA feature | `apps/pwa-webapp/` (modules in `apps/pwa-webapp/modules/`) |
 | Build / verify script | `scripts/<concern>/` |
 | i18n strings | `i18n-packs/locale-packs/v1/en-GB.json` (canonical source) |
 

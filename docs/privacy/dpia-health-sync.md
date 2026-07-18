@@ -25,7 +25,7 @@ A DPIA is required because Rianell involves:
 
 | Flow | Description |
 |------|-------------|
-| **Local logging** | User enters daily health metrics; stored in browser `localStorage` / RN AsyncStorage (plaintext). |
+| **Local logging** | User enters daily health metrics; stored in browser `localStorage` (plaintext). |
 | **Cloud backup** | User authenticates; client generates AES key; stores key in `user_keys`; encrypts logs/settings/`ai_state` into `health_data`. |
 | **Anonymized contribution** | Opt-in: client strips direct identifiers, encrypts payload, inserts into `anonymized_data` with optional `medical_condition` label and `user_id` link. |
 | **On-device AI** | Deterministic `@rianell/ai-engine` + optional Transformers.js LLM using local logs; model weights from Hugging Face. |

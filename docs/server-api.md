@@ -15,7 +15,7 @@ Rate limits apply (`http_security` limiters in `server/`).
 
 ## LLM proxy payload (optional dev / LAN)
 
-When a client POSTs to a configured LLM endpoint (React Native `llmEndpoint` extra), the JSON body **must** include an explicit BCP-47 **`locale`** field (for example `en-GB`, `de-DE`). Valid values match `SHIPPED_LOCALES` in `@rianell/shared`; invalid values are coerced to **`en-GB`** client-side before send.
+When a client POSTs to a configured LLM endpoint, the JSON body **must** include an explicit BCP-47 **`locale`** field (for example `en-GB`, `de-DE`). Valid values match `SHIPPED_LOCALES` in `@rianell/shared`; invalid values are coerced to **`en-GB`** client-side before send.
 
 | Field | Type | Notes |
 | :--- | :--- | :--- |
@@ -52,7 +52,7 @@ JSON body fields (all optional except **`description`**):
 - `console_output`, `app_theme`, `user_agent`
 - `url` or `page_url`, `client_timestamp`
 
-**Production PWA and React Native** submit bug reports **directly to Supabase** under RLS instead of this route when not on the dev server.
+**Production PWA** submits bug reports **directly to Supabase** under RLS instead of this route when not on the dev server.
 
 ## Environment
 

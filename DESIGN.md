@@ -3,7 +3,7 @@ version: 1.0
 authority: ui-ux-architecture
 canonical_tokens: docs/design-token-contract.md
 name: Rianell-UI-UX-Architectural-Refactor
-description: Master plan for de-cluttering Rianell PWA and RN surfaces without changing data models, state payloads, or on-device AI logic. Runtime colors and spacing remain @rianell/tokens mapped to --accent-* / --surface-* - not an external brand palette dump.
+description: Master plan for de-cluttering Rianell PWA surfaces without changing data models, state payloads, or on-device AI logic. Runtime colors and spacing remain @rianell/tokens mapped to --accent-* / --surface-* - not an external brand palette dump.
 ---
 
 # Rianell UI/UX Architectural Refactor
@@ -43,7 +43,6 @@ Do not start the next phase until the current phase is implemented and verified 
 
 - **Contract:** `min` / `max` integers (wizard metrics use **1–10**), horizontal row of number pills, replace bulky range + `+/-` steppers.
 - **PWA:** `apps/pwa-webapp/modules/segmented-scale-input.js` → `window.RianellSegmentedScale`. Syncs a (often visually hidden) `<input type="range">` so existing save/read paths stay unchanged.
-- **RN:** `apps/rn-app/src/components/ui/SegmentedScaleInput.tsx`.
 - **CSS:** `.segmented-scale` / `.segmented-scale__btn` in `styles.css` - min 44×44px hit targets; horizontal scroll when needed.
 
 ### Accordion

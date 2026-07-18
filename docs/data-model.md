@@ -1,13 +1,12 @@
 # Health log data model
 
-Canonical log shape is defined in **`packages/shared`** (`normalizeLogEntry` in `src/index.mjs`). Web (PWA), React Native, and import/export paths all normalize through this function so JSON backups are portable.
+Canonical log shape is defined in **`packages/shared`** (`normalizeLogEntry` in `src/index.mjs`). The PWA and import/export paths all normalize through this function so JSON backups are portable.
 
 ## Storage keys
 
 | Platform | Key | Notes |
 | :--- | :--- | :--- |
 | Web / PWA | `healthLogs` in `localStorage` (batched via `StorageBatcher`) | Optional IndexedDB mirror via `logs-idb.js` |
-| React Native | `@rianell/shared` `LOGS_STORAGE_KEY_V1` in AsyncStorage | Legacy mobile key migrated on read |
 
 ## Entry fields
 
@@ -48,7 +47,7 @@ All entries require a **`date`** (`YYYY-MM-DD`). Other fields are optional; empt
 
 ## Preferences (Plan 04 logging + Plan 16 units)
 
-Stored in app settings / RN `Preferences` (not in each log entry):
+Stored in app settings (not in each log entry):
 
 | Field | Type | Notes |
 | :--- | :--- | :--- |
@@ -81,7 +80,7 @@ Each definition includes `tier` (`bronze` \| `silver` \| `gold` \| `platinum`) f
 
 | Field | Storage | Notes |
 | :--- | :--- | :--- |
-| `achievements` | PWA `appSettings.achievements`; RN `prefs.achievements` | Map of achievement id → `{ notifiedAt?, seenAt? }` only |
+| `achievements` | PWA `appSettings.achievements` | Map of achievement id → `{ notifiedAt?, seenAt? }` only |
 | `rianellAchievements` | PWA `localStorage` (legacy mirror) | Kept in sync with `appSettings.achievements` on write; quota errors logged fail-closed |
 
 In-app unlock toasts use `achievementToastQueue` (sequential queue); OS notifications remain optional via `shouldFireAchievementUnlockNotification`.
@@ -90,7 +89,7 @@ Cloud backup when signed in: one row per user in **`user_achievements.achievemen
 
 ## Home dashboard engagement (v1.97.0)
 
-Normalized via `normalizeHomeDashboardPrefs` (PWA `appSettings` + RN `prefs`):
+Normalized via `normalizeHomeDashboardPrefs` (PWA `appSettings`):
 
 | Field | Type | Notes |
 | :--- | :--- | :--- |
@@ -100,15 +99,15 @@ Normalized via `normalizeHomeDashboardPrefs` (PWA `appSettings` + RN `prefs`):
 | `weeklyReviewCompletedAt` | ISO timestamp | Hero banner within 60 min of completion |
 | `personalBestDismissedAt` | ISO timestamp | Dismisses personal-best home card |
 
-Ephemeral engagement state (not cloud-synced): `logMilestonesShown` (localStorage/AsyncStorage), `goalCelebrated_YYYY-MM-DD`, `tabBadge_charts` / `tabBadge_ai` (24h discovery dots), `wizardUnlockBannerShown` per category.
+Ephemeral engagement state (not cloud-synced): `logMilestonesShown` (localStorage), `goalCelebrated_YYYY-MM-DD`, `tabBadge_charts` / `tabBadge_ai` (24h discovery dots), `wizardUnlockBannerShown` per category.
 
 ## Minimal log (quick save)
 
-Both web and RN support saving after **date + flare** only. Normalization fills missing numeric scores with defaults (typically mid-scale 5s) so charts and summaries remain valid.
+The PWA supports saving after **date + flare** only. Normalization fills missing numeric scores with defaults (typically mid-scale 5s) so charts and summaries remain valid.
 
 ## Cloud backup
 
-Encrypted backups use AES-GCM. The encryption key for cloud sync is stored in Supabase **`user_keys`** (see [SECURITY.md](SECURITY.md)). Local logs remain plaintext in browser/RN storage unless a future at-rest encryption phase ships.
+Encrypted backups use AES-GCM. The encryption key for cloud sync is stored in Supabase **`user_keys`** (see [SECURITY.md](SECURITY.md)). Local logs remain plaintext in browser storage unless a future at-rest encryption phase ships.
 
 ## Supabase tables (cloud)
 
@@ -123,7 +122,7 @@ Encrypted backups use AES-GCM. The encryption key for cloud sync is stored in Su
 
 ## Cloud deletion semantics (v1.50.0+)
 
-Unified **Delete cloud data** (PWA `deleteAllUserDataFromCloud`, RN `deleteAllUserDataFromCloud`) deletes all rows where **`user_id`** matches the signed-in user across **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`**. Narrower actions: delete encrypted backup only (`health_data` + `user_keys`) or anonymised contribution only (`anonymized_data`). Does not delete the Supabase **`auth.users`** record - sign out or contact operator for full account removal. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+Unified **Delete cloud data** (PWA `deleteAllUserDataFromCloud`) deletes all rows where **`user_id`** matches the signed-in user across **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`**. Narrower actions: delete encrypted backup only (`health_data` + `user_keys`) or anonymised contribution only (`anonymized_data`). Does not delete the Supabase **`auth.users`** record - sign out or contact operator for full account removal. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
 
 ## Related
 

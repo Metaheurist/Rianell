@@ -23,7 +23,7 @@ docker compose up --build
 | `RIANELL_MODE` | Behaviour |
 |----------------|-----------|
 | `cloud` (default) | Full Supabase sync |
-| `local` | IndexedDB/AsyncStorage only; cloud sync disabled |
+| `local` | IndexedDB only; cloud sync disabled |
 
 ## Upgrade
 

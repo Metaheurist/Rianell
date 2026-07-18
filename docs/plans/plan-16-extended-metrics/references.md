@@ -3,7 +3,7 @@
 ## Internal
 
 - [docs/data-model.md](../../data-model.md) - log entry fields
-- [docs/platform-parity.json](../../platform-parity.json) - `extended_vital_metrics`, `health_photos_storage`
+- `docs/platform-parity.json` - `extended_vital_metrics`, `health_photos_storage`
 - [plan-04-logging-data-capture/plan.md](../plan-04-logging-data-capture/plan.md) - base wizard/schema
 
 ## External

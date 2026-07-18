@@ -9,22 +9,22 @@
 ## 1. Standards target
 
 - **WCAG 2.2 Level AA** for core flows (home, log wizard, settings, charts).
-- Platform: PWA (web) + React Native (Android/iOS).
+- Platform: PWA (web).
 
 ---
 
 ## 2. Implemented controls (Phase 6)
 
-| Control | PWA | RN |
-|---------|-----|-----|
-| Skip to main content | `#main-content` skip link | N/A (native focus order) |
-| Focus visible | `:focus-visible` tokens in `styles.css` | Theme focus rings |
-| Toggle switches | `role="switch"` + `aria-checked` | Switch components in settings |
-| Modals | Focus trap (settings, app lock) | Modal screens |
-| Reduced motion | `prefers-reduced-motion` + setting | `AccessibilityInfo` |
-| Large text | Settings → Accessibility | System font scale |
-| TTS | Optional read-aloud | `expo-speech` |
-| Color contrast | Token verify script | Shared `@rianell/tokens` |
+| Control | PWA |
+|---------|-----|
+| Skip to main content | `#main-content` skip link |
+| Focus visible | `:focus-visible` tokens in `styles.css` |
+| Toggle switches | `role="switch"` + `aria-checked` |
+| Modals | Focus trap (settings, app lock) |
+| Reduced motion | `prefers-reduced-motion` + setting |
+| Large text | Settings → Accessibility |
+| TTS | Optional read-aloud |
+| Color contrast | Token verify script |
 
 ---
 
@@ -51,7 +51,7 @@ Checks text/background and accent pairs from `@rianell/tokens` for **≥ 4.5:1**
 
 - Chart tooltips: partial keyboard access (ApexCharts).
 - ONNX model download gate: long progress announcements - improve `aria-live` politeness.
-- RN Charts parity: accessibility labels on some sparklines pending.
+- Charts: accessibility labels on some sparklines pending.
 
 ---
 

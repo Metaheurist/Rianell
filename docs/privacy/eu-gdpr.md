@@ -28,7 +28,7 @@ Rianell processes **special category data** (health) under Art. 9. Primary estab
 | **Art. 12** Transparent info | Clear, accessible privacy info | In-app policy + docs | Link from settings |
 | **Art. 13** Info at collection | Privacy notice at first collection | Consent modals + about | [data-subject-rights.md](data-subject-rights.md) |
 | **Art. 14** Info when not from subject | N/A for direct collection | - | - |
-| **Art. 15** Right of access | Copy of personal data | Export JSON + cloud fetch | PWA/RN export paths |
+| **Art. 15** Right of access | Copy of personal data | Export JSON + cloud fetch | PWA export paths |
 | **Art. 16** Rectification | Correct inaccurate data | In-app log edit | Logs edit wizard |
 | **Art. 17** Erasure | Delete personal data | Delete cloud + local clear | Preserves anonymized if legally anonymized |
 | **Art. 18** Restriction | Limit processing | Disable sync / AI | Settings |

@@ -4,7 +4,7 @@ Canonical layout contract for the Rianell monorepo. Changelog-style history live
 
 ## Purpose and principles
 
-- **`apps/`** = deployable surfaces (PWA, React Native)
+- **`apps/`** = deployable surfaces (PWA)
 - **`packages/`** = shared libraries consumed via `@rianell/*`
 - **Root `package.json`** orchestrates npm workspaces and automation scripts
 - **Incremental moves** - one phase per concern; verify gates between phases
@@ -18,7 +18,6 @@ References: [Turbo structuring](https://turbo.build/repo/docs/crafting-your-repo
 ```
 apps/
   pwa-webapp/          @rianell/pwa-webapp - vanilla JS PWA + esbuild
-  rn-app/              @rianell/rn-app - Expo / React Native
 packages/
   shared/              @rianell/shared
   ai-engine/           @rianell/ai-engine
@@ -30,7 +29,7 @@ packages/
 scripts/
   build/               PWA build, tokens, icons, orchestrators
   i18n/                locale sync, MT batches, pack generation
-  verify/              parity, CSP, privacy, doc-links, migration checks
+  verify/              CSP, privacy, doc-links, migration checks
   ci/                  README, deps doc, deploy probes
   audit/               boot audit, security headers, deploy HTML
   wiki/                sync-wiki, verify-wiki
@@ -66,15 +65,12 @@ tests/                 Node unit tests (tests/unit/)
 flowchart TB
   root[root package.json]
   pwa["@rianell/pwa-webapp"]
-  rn["@rianell/rn-app"]
   shared["@rianell/shared"]
   root --> pwa
-  root --> rn
-  rn --> shared
   pwa --> shared
 ```
 
-Root workspaces: `apps/rn-app`, `apps/pwa-webapp` (Phase 3+), `packages/*`, `benchmarks`.
+Root workspaces: `apps/pwa-webapp`, `packages/*`, `benchmarks`.
 
 ## Dependency rules
 
@@ -110,21 +106,17 @@ Root workspaces: `apps/rn-app`, `apps/pwa-webapp` (Phase 3+), `packages/*`, `ben
 
 ## Artifact and release policy (Phase 14+)
 
-- Git tracks **`artifacts/**/latest.json`** and small metadata only - **not** APK/EXE/zips
+- Git tracks **`artifacts/**/latest.json`** and small metadata only - **not** EXE/zips
 - CI job **`commit-app-build`** commits README + manifest JSON; binaries ship via **GitHub Releases** (`publish-release` job)
 - Same-origin download links in the PWA resolve via manifest `file` fields pointing at release assets or historical paths
-- Legacy Capacitor paths under `artifacts/Legacy/` retained for historical links (see legacy audit below)
 
 ## Legacy artifact audit (Phase 15)
 
 | Path | Status | Notes |
 |------|--------|-------|
-| `artifacts/Legacy/` | **Retain** | Capacitor-era manifests; linked from old docs |
-| `artifacts/Android/` | **Retain** | Pre-RNCLI Android manifest only (`latest.json`) |
-| `artifacts/Expo/dist-expo-prod/` | **Not in git** | CI artifact only; manifests optional |
 | Stale `run-*.md` under `security/securityheaders-runs/` | **Prune** | Keep last 10 (Phase 9) |
 
-No binary blobs removed in Phase 15 - repo already manifest-only under `artifacts/RNCLI-Android/`, `artifacts/iOS/`, `artifacts/Server/`.
+Repo is manifest-only under `artifacts/Server/`.
 
 ## Retention policies (Phase 9+)
 

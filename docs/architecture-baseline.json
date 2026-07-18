@@ -18,7 +18,7 @@
   ],
   "scriptsRootMjsCount": 65,
   "workspaces": [
-    "apps/rn-app",
+    "apps/pwa-webapp",
     "packages/*",
     "benchmarks"
   ],

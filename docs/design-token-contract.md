@@ -8,9 +8,9 @@
 
 | Layer | Location | Consumed by |
 |-------|----------|-------------|
-| Primitive | `SPACING_TOKENS`, `SURFACE_TOKENS`, team colors in `@rianell/tokens` | RN `ThemeProvider`, PWA `:root` |
+| Primitive | `SPACING_TOKENS`, `SURFACE_TOKENS`, team colors in `@rianell/tokens` | PWA `:root` |
 | Semantic | `color.success`, `color.danger`, `color.onAccent`, `surface.*` | Components, screens |
-| Component | `ScreenCard`, `PrimaryButton`, `Card`, PWA BEM classes | Deployable apps |
+| Component | PWA BEM classes | Deployable apps |
 
 ## Spacing scale (4px base)
 
@@ -38,7 +38,7 @@
 
 ## Surface tokens
 
-Dark and light `surface.card`, `surface.cardSolid`, `surface.glass`, `surface.borderMuted`, `surface.modalBackdrop` - use `themeHelpers` on RN; CSS vars `--surface-*` on PWA.
+Dark and light `surface.card`, `surface.cardSolid`, `surface.glass`, `surface.borderMuted`, `surface.modalBackdrop` - CSS vars `--surface-*` on PWA.
 
 ## Motion contract
 
@@ -48,5 +48,4 @@ Animate only `transform`, `opacity`, `filter`. Progress indicators use `transfor
 
 1. Edit `packages/tokens/src/index.mjs` (+ sync `index.cjs` for Jest).
 2. Run `npm run sync:tokens` for PWA CSS vars.
-3. Update RN `themeHelpers` if semantic accessors change.
-4. Run `npm run test:unit` and `node scripts/verify/verify-design-tokens.mjs`.
+3. Run `npm run test:unit` and `node scripts/verify/verify-design-tokens.mjs`.

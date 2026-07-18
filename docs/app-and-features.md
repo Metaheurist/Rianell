@@ -68,9 +68,9 @@ flowchart LR
 
 - **Purpose:** Optional EU session analytics (Smartlook) - **on by default after onboarding disclosure**; opt out during first-run or in Settings anytime.
 - **Gate:** `shouldActivateSessionRecording()` - pref alone does not start SDK until disclosure or Settings enable timestamp.
-- **First-run:** Shared `sessionRecording` step after cookies (PWA + RN); toggle default on.
+- **First-run:** Shared `sessionRecording` step after cookies; toggle default on.
 - **Controls:** Settings → Privacy & region → **Session recording**; **Consent dashboard** (Privacy pane) to revoke; blocked in **local-only mode**.
-- **Platforms:** PWA (`smartlook.js`); RN (`sessionRecording.ts` + `react-native-smartlook-analytics`).
+- **Implementation:** PWA (`smartlook.js`).
 - **Docs:** [privacy/smartlook-session-recording.md](privacy/smartlook-session-recording.md), [subprocessors.md](privacy/subprocessors.md), RoPA **PA-10**.
 
 ### v1.61.0 README documentation icons
@@ -80,7 +80,7 @@ flowchart LR
 ### v1.60.0 UI localization (13 locales)
 
 - **Languages:** en-GB (default), en-US, en-AU, pt-BR, fr-FR, de-DE, es-ES, it-IT, pl-PL, nl-NL, pt-PT, **Arabic (ar)**, **Hebrew (he)** - picker in Settings → Privacy & region.
-- **RTL:** Arabic and Hebrew set `dir=rtl` (PWA) and `I18nManager.forceRTL` (RN); chart time axes stay LTR.
+- **RTL:** Arabic and Hebrew set `dir=rtl`; chart time axes stay LTR.
 - **UGC policy (B1):** Log notes, symptoms, and meds stay exactly as typed - never auto-translated. Export localizes column headers only; LLM prompts wrap user notes in `---USER_NOTE---` delimiters.
 - **LLM locale (B2):** On-device and proxy LLM requests include explicit client `locale`; output language follows UI locale (ar/he use rule-based + motd fallback only).
 - **Policy (B3):** Machine-translated `policy.*` strings ship with disclaimer banner; en-GB remains authoritative.
@@ -89,12 +89,12 @@ flowchart LR
 
 - **Settings carousel:** Nine panes (includes Privacy & region); scrollable dot strip; carousel re-inits on open and locale change.
 - **Policy viewer (PWA):** HTML policy summaries render in the alert modal; confirm-dialog argument order fixed for region change and policy updates.
-- **CI:** Web benchmark settings step no longer throws **`global is not defined`**; mobile **`typecheck:mobile`** passes after RN sync/gate/modal fixes.
+- **CI:** Web benchmark settings step no longer throws **`global is not defined`**.
 
 ### v1.53.0 On-device LLM download gates
 
 - **On-device LLM weights:** Downloaded from **Hugging Face Hub** (onnx-community `*-ONNX` repos) and cached locally. See **`apps/pwa-webapp/models/README.md`**.
-- **Download UX:** Desktop PWA shows progress **bottom-right under + FAB**; **installed mobile PWA** and **RN** use a **blocking** progress modal until the model is cached; **mobile web** can skip with **Not now**.
+- **Download UX:** Desktop PWA shows progress **bottom-right under + FAB**; the **installed mobile PWA** uses a **blocking** progress modal until the model is cached; **mobile web** can skip with **Not now**.
 - **Host priority (PWA):** Hugging Face only.
 - **Operator scripts:** `npm run models:download`, `models:verify`. Supabase upload is deprecated/disabled.
 
@@ -108,290 +108,22 @@ flowchart LR
 
 ### v1.52.0 privacy region and UI localization
 
-- **Health data consent (GDPR Art. 9):** PWA modal before first cloud use; RN `healthDataConsent` / `healthDataConsentAt` in preferences. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
-- **Unified cloud deletion:** **Delete cloud data** removes rows from **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`** for the signed-in user (PWA + RN). RN anonymised sync now targets **`anonymized_data`** (not legacy table names).
+- **Health data consent (GDPR Art. 9):** PWA modal before first cloud use. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+- **Unified cloud deletion:** **Delete cloud data** removes rows from **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`** for the signed-in user.
 - **XSS (P0):** Import preview in **`import-utils.js`** escapes user-derived HTML before display.
 
-### v1.49.0 platform parity (Capacitor sunset)
+### v1.49.0 shared packages
 
-- **Two platforms only:** PWA (`apps/pwa-webapp/`) + React Native (`apps/rn-app/`). Legacy Capacitor WebView shell and CI release artifacts removed.
-- **Shared packages:** `@rianell/shared`, `@rianell/ai-engine`, `@rianell/cloud-sync`, `@rianell/llm` - PWA vendor bundles + RN imports share merge/analysis logic.
-- **RN parity:** Cloud sync UI, expanded settings/goals, chart predictions, print export, offline queue flush, native LLM consent path.
-- **CI gates:** `parity:web`, `parity:android`, `parity:ios`, `parity:inventory:check` on every PR.
+- **Shared packages:** `@rianell/shared`, `@rianell/ai-engine`, `@rianell/cloud-sync`, `@rianell/llm` - the PWA vendor bundles consume the shared merge/analysis logic.
 
 ### v1.46.24 documentation sync
 
-- **Bug report (web + RN):** Web modal supports optional **More detail** (steps / expected / actual), close button, and bug icon; RN captures recent **`console`** lines for the payload. Server accepts **`page_url`** from **`url`** or **`page_url`**. See [CHANGELOG.md](CHANGELOG.md) v1.46.24.
-
-### v1.46.3 documentation sync
-
-- **RN Settings carousel (8 panes):** Matches the web settings carousel section titles. Notifications and demo mode are split into **Display** and **Data options** respectively; **Performance** holds the on-device AI model and benchmark actions.
-- **RN Data management / App installation:** Native builds show version, build number, and links to GitHub releases (and Android APK for non-Android devices) instead of PWA install buttons, which do not apply inside the native shell.
-- **RN Log wizard - Suggest note:** Available on the medications/notes step when AI features are enabled; appends a suggested line to notes (500 character cap) using the shared LLM/rule-based pipeline.
-- **See also:** `docs/CHANGELOG.md` v1.46.3 for file-level pointers and validation notes.
-
-### v1.46.2 documentation sync
-
-- **CI/release labeling clarity:** GitHub Release legacy artifacts are now explicitly named `legacy-capacitor-android-*` and `legacy-capacitor-ios-*`, while RN CLI assets remain under the RNCLI paths.
-- **README metadata resilience:** CI now preserves README build-info updates even when large native artifacts exceed GitHub repository push limits for branch artifact commits.
-
-### v1.46.1 documentation sync
-
-- **Checkpoint refresh:** docs are synchronised so Phase E notification diagnostics coverage stays consistent across features/parity pages after recent summary + trajectory refinements.
-
-### v1.46.0 documentation sync
-
-- **RN unknown-action diagnostics summary view (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces a compact session summary line that combines quality, drift, and trajectory stability for fast triage.
-
-### v1.45.99 documentation sync
-
-- **RN unknown-action diagnostics trajectory status (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a trajectory stability note (`stable`/`shifted`) derived from first-to-latest unknown-action source path.
-
-### v1.45.98 documentation sync
-
-- **RN unknown-action diagnostics trajectory context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows the source trajectory (`first -> latest`) for unknown reminder actions within the session.
-
-### v1.45.97 documentation sync
-
-- **RN unknown-action diagnostics actionable guidance (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a recommended next-check message based on observability quality to guide immediate runtime triage.
-
-### v1.45.96 documentation sync
-
-- **RN unknown-action diagnostics quality summary (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows an observability quality score (`low`/`medium`/`high`) to summarize how reliable current-session unknown-action diagnostics are at a glance.
-
-### v1.45.95 documentation sync
-
-- **Checkpoint refresh:** docs are synchronised so Phase E notification diagnostics coverage is consistent across feature and parity pages (counts, startup/live split, confidence, and low-sample guard).
-
-### v1.45.94 documentation sync
-
-- **RN unknown-action diagnostics sampling guard (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now labels dominant-source confidence as preliminary until at least three unknown reminder actions are observed in-session.
-
-### v1.45.93 documentation sync
-
-- **RN unknown-action diagnostics confidence (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces dominant-source confidence (`weak`/`medium`/`strong`, or balanced) for startup-vs-live unknown reminder-action distribution.
-
-### v1.45.92 documentation sync
-
-- **RN unknown-action diagnostics split (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now reports startup/live percentage split for unknown reminder actions in-session, alongside count and drift status visibility.
-
-### v1.45.91 documentation sync
-
-- **RN unknown-action diagnostics status (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows session-level unknown-action drift status (`low`, `moderate`, `high`) so long-tail runtime variance can be triaged faster in-app.
-
-### v1.45.90 documentation sync
-
-- **Checkpoint refresh:** docs are synchronised so Phase E notification diagnostics are consistently described across feature pages (total count, startup/live breakdown, last-seen, source, runtime-cause hint, and reset control).
-
-### v1.45.89 documentation sync
-
-- **RN unknown-action diagnostics breakdown (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows startup-vs-live unknown-action counts, making source-pattern drift easier to read at a glance.
-
-### v1.45.88 documentation sync
-
-- **RN unknown-action diagnostics source context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows whether the latest unknown reminder action came from startup snapshot state or the live listener path.
-
-### v1.45.87 documentation sync
-
-- **RN unknown-action diagnostics context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces a last-seen time for unknown reminder actions in addition to the session count and reset control.
-
-### v1.45.86 documentation sync
-
-- **RN unknown-action diagnostics control (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now adds a reset button for the session unknown-action counter, letting users clear diagnostics after confirming behaviour.
-
-### v1.45.85 documentation sync
-
-- **RN unknown-action diagnostics depth (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a contextual drift hint when unknown reminder actions are observed on runtimes without dismiss-action identifiers.
-
-### v1.45.84 documentation sync
-
-- **Checkpoint refresh:** documentation is synchronised so the Settings notification story consistently reflects dismiss capability visibility, safe-dismiss ignore semantics, and session-level unknown-action observability.
-
-### v1.45.83 documentation sync
-
-- **RN unknown-action observability (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces an in-session unknown reminder action counter so runtime action drift can be seen without logs/telemetry tooling.
-
-### v1.45.82 documentation sync
-
-- **RN notification runtime matrix depth (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now includes dismiss-semantics capability visibility in the runtime support hint, backed by `apps/rn-app/src/permissions/permissions.ts` capability detection.
-
-### v1.45.81 documentation sync
-
-- **RN reminder dismiss safety (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps dismissed/close-style reminder notification actions to `none`, so dismiss gestures do not trigger fallback navigation behaviour.
-
-### v1.45.80 documentation sync
-
-- **RN snooze reminder response parity (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps snoozed reminder notification responses into the shared reminder action flow so snooze reminder taps follow open-app semantics instead of being ignored.
-
-### v1.45.79 documentation sync
-
-- **RN reminder action normalization (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now normalizes reminder action identifiers across runtime format variants before action mapping, and `apps/rn-app/src/permissions/permissions.test.ts` validates these semantics.
-
-### v1.45.78 documentation sync
-
-- **Checkpoint refresh:** synchronised documentation wording after the reminder-action stability increments so feature notes consistently reflect action-policy visibility plus duplicate-action burst suppression behaviour in RN notification routing.
-
-### v1.45.77 documentation sync
-
-- **RN reminder action stability (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now ignores immediate duplicate reminder-action events in a short window so `log-now` / `later` / `default` / `unknown` routes are not executed twice on noisy runtime callbacks.
-
-### v1.45.76 documentation sync
-
-- **RN reminder action policy visibility (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows explicit action-policy copy (`log-now` -> Log today, `later` -> snooze/Home fallback, `default/unknown` -> Home) so notification response semantics are understandable without digging into implementation details.
-
-### v1.45.75 documentation sync
-
-- **RN reminder unknown-action policy (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes unknown reminder actions to safe Home intent, and `apps/rn-app/src/screens/SettingsScreen.tsx` now displays matching fallback guidance text.
-
-### v1.45.74 documentation sync
-
-- **RN notification status UX (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now uses readable reminder action labels and shows listener-unavailable fallback guidance for runtimes that cannot stream action callbacks.
-
-### v1.45.73 documentation sync
-
-- **RN notifications runtime adaptation (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now gates snooze interval interaction by runtime capability and shows an explicit fallback note when snooze scheduling is unavailable.
-
-### v1.45.72 documentation sync
-
-- **Checkpoint refresh:** documentation pages are synchronised to the current notification parity state (runtime capability line, tri-path action handling, snooze personalization, and fallback behaviour) with remaining backlog called out in the phase plan.
-
-### v1.45.71 documentation sync
-
-- **RN notification runtime matrix (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now reports reminder capability support and `apps/rn-app/src/screens/SettingsScreen.tsx` shows a runtime capability line for schedule/channel/category/action support.
-
-### v1.45.70 documentation sync
-
-- **RN notifications fallback UX (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes to Home when `later` snooze scheduling fails at runtime, and `apps/rn-app/src/screens/SettingsScreen.tsx` now explains this fallback in notification help text.
-
-### v1.45.69 documentation sync
-
-- **RN notifications personalization (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now exposes a snooze interval selector for reminder `later` actions, persisted via `apps/rn-app/src/storage/preferences.ts` and consumed by root reminder handling.
-
-### v1.45.68 documentation sync
-
-- **RN reminder default-action semantics (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now treats default reminder taps as explicit app-home open intent, completing baseline tri-path handling (`log-now`, `later`, `default`).
-
-### v1.45.67 documentation sync
-
-- **RN reminder snooze semantics (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now treats `later` actions as snooze intent, and `apps/rn-app/src/permissions/permissions.ts` schedules a one-time snooze reminder when runtime APIs support it.
-
-### v1.45.66 documentation sync
-
-- **RN notifications action lifecycle (Phase E):** reminder responses are now consumed/cleared after handling in `apps/rn-app/src/permissions/permissions.ts`, and root action-routing logic avoids stale response replay loops.
-
-### v1.45.65 documentation sync
-
-- **RN reminder action routing (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes notification `log-now` actions into the native `LogWizard` flow, extending parity from delivery semantics into action-to-screen behaviour.
-
-### v1.45.64 documentation sync
-
-- **RN notifications response path (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now exposes reminder action-response helpers, and `apps/rn-app/src/screens/SettingsScreen.tsx` surfaces last reminder action state for in-app delivery-response visibility.
-
-### v1.45.63 documentation sync
-
-- **RN notifications OS semantics (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now sets iOS reminder action categories when supported (alongside Android channels), and `apps/rn-app/src/screens/SettingsScreen.tsx` now reports iOS/channel+category delivery semantics in reminder status text.
-
-### v1.45.62 documentation sync
-
-- **RN notifications delivery semantics (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now configures Android reminder channels when supported and returns structured schedule/delivery results, and `apps/rn-app/src/screens/SettingsScreen.tsx` now shows delivery semantics status text for scheduled reminders.
-
-### v1.45.61 documentation sync
-
-- **Program status rollup:** documentation now explicitly marks `v1.45.60` Logs virtualization as the latest shipped parity increment and keeps remaining RN backlog items called out in the plan docs.
-- **Next implementation target:** notifications channel/delivery semantics parity (where runtime supports platform-specific behaviour) is now recorded as the next active workstream.
-
-### v1.45.60 documentation sync
-
-- **RN View Logs performance (Phase G/F):** `apps/rn-app/src/screens/LogsScreen.tsx` now applies adaptive list virtualization settings for medium/large histories and fixed-row layout hints to improve scroll/render stability.
-
-### v1.45.59 documentation sync
-
-- **RN notifications (Phase E path):** `apps/rn-app/src/screens/SettingsScreen.tsx` now wires reminder preferences to daily notification scheduling attempts when permission is granted, with runtime-safe fallback behaviour in `apps/rn-app/src/permissions/permissions.ts`.
-
-### v1.45.58 documentation sync
-
-- **RN AI analysis (Phase C depth):** `apps/rn-app/src/screens/AiScreen.tsx` now includes richer web-aligned helper copy across findings/trends/flare/correlation/group sections, and `apps/rn-app/src/ai/analyzeLogs.ts` now reports correlation direction/strength using clearer web-style phrasing.
-
-### v1.45.57 documentation sync
-
-- **RN AI analysis performance:** `apps/rn-app/src/screens/AiScreen.tsx` now memoizes analysis summaries from fetched logs/range and separates summary-note generation from refresh loading, improving render/update stability as AI surfaces grow.
-
-### v1.45.56 documentation sync
-
-- **RN cloud config parity:** `apps/rn-app/app.config.js` now explicitly includes shared `SUPABASE_*` fallback sources alongside `EXPO_PUBLIC_SUPABASE_*`, keeping RN cloud env wiring consistent with web/CI expectations and unit-test guards.
-
-### v1.45.55 documentation sync
-
-- **Build pipeline reliability:** `apps/pwa-webapp/build-site.mjs` now resolves web root paths for both current and legacy layouts, keeping the CI minified legacy bundle step (`npm run build:web:apk`) stable across path migration drift.
-
-### v1.45.54 documentation sync
-
-- **React Native Charts (Phase B motion polish):** `apps/rn-app/src/screens/ChartsScreen.tsx` now applies reduced-motion-aware transition behaviour for view/range/refresh chart updates using native accessibility settings, with explicit in-screen copy when reduced motion is enabled.
-
-### v1.45.53 documentation sync
-
-- **CI unit-tests reliability:** root unit tests now reference current repo folders (`apps/pwa-webapp`, `apps/rn-app`) instead of legacy `web`/`apps/mobile` paths, preventing `ENOENT` failures in GitHub Actions.
-
-### v1.45.52 documentation sync
-
-- **CI build reliability (prebuild assets + unit tests):** regenerated root `package-lock.json` from active workspaces to remove stale workspace lock metadata and keep root `npm ci` stable across CI jobs that install root dependencies.
-
-### v1.45.51 documentation sync
-
-- **CI unit-tests workflow reliability:** root/workspace package manifest alignment was synced so CI root `npm ci` resolves the RN workspace graph without lock mismatch (`mobile` / `rianell-shell` missing-entry failures).
-
-### v1.45.50 documentation sync
-
-- **CI reliability / security audit gate:** root workspace lockfile was resynced so `npm ci --omit=dev` and production-only `npm audit --audit-level=high --omit=dev` run cleanly in the security-audit workflow path.
-
-### v1.45.42 documentation sync
-
-- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now supports in-modal **Edit** for date/flare/core metrics/notes, plus existing share/delete actions. Large-list behaviour now includes baseline `FlatList` tuning (`initialNumToRender`, `maxToRenderPerBatch`, `windowSize`, clipped subviews); final virtualization strategy is still tracked in the parity plan.
-- **React Native wizard polish (Step 3/4):** `apps/rn-app/src/screens/LogWizardScreen.tsx` now includes searchable body-region chips for Symptoms & pain and smoother expand/collapse behaviour for Energy & mental clarity via `LayoutAnimation`, while keeping grouped tiles/search/collapsible behaviour.
-
-### v1.45.43 documentation sync
-
-- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` now includes a first combined-view visual chart baseline (multi-series trend plot using web-aligned metric colors) in addition to existing trend rows/sparks and balance target snapshot. Remaining parity work is richer individual/balance chart visuals, animation/chrome depth, and prediction-overlay parity.
-
-### v1.45.44 documentation sync
-
-- **React Native AI Analysis (Phase C):** `apps/rn-app/src/screens/AiScreen.tsx` now aligns section copy/order closer to web intent with **At a glance** and **What we found** flow, updates wording to **How you're doing**, and shows a clear disabled-state message when AI is turned off in settings.
-
-### v1.45.45 documentation sync
-
-- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now includes richer entry context in list rows and modal detail (**symptoms**, **stressors**, **pain location**, **food**, **exercise**) alongside modal edit/share/delete actions and existing range/sort/filter controls.
-
-### v1.45.46 documentation sync
-
-- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` individual mode now includes a first per-metric visual trend baseline (colour-coded plotted points) to complement existing trend rows/sparks and combined-view visual baseline.
-
-### v1.45.47 documentation sync
-
-- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` balance mode now includes a first visual balance chart baseline (colour-coded bars for core balance metrics) alongside the existing targets snapshot.
-
-### v1.45.48 documentation sync
-
-- **React Native Settings (Phase E notifications baseline):** `apps/rn-app/src/screens/SettingsScreen.tsx` now exposes notification reminder preferences (**enable**, **HH:MM time**, **sound**) and notification permission status/request actions as the first RN-native parity step.
-
-### v1.45.49 documentation sync
-
-- **React Native Goals targets (Phase E baseline):** `apps/rn-app/src/screens/SettingsScreen.tsx` now persists mood/sleep/fatigue targets, and `apps/rn-app/src/screens/ChartsScreen.tsx` uses those persisted values in Balance target lines.
-
-### v1.45.40 documentation sync
-
-- **RN parity snapshot:** documented that RN now includes baseline parity hooks for **AIEngine-style helpers + LLM wrapper**, **demo mode lifecycle**, and **benchmark-tier model selection settings**; full web benchmark modal/stability-graph parity remains open.
-- **RN install scope:** clarified that native RN builds do **not** show in-app install/download actions (already-installed app model); install/download flows remain web/PWA-facing.
-
-### v1.45.41 documentation sync
-
-- Added parity status wording for RN AI/LLM, demo mode, and benchmark/model selection (see **`docs/platform-parity.md`** and **[CHANGELOG.md](CHANGELOG.md)**).
-
-### v1.45.26 documentation sync
+- **Bug report:** Web modal supports optional **More detail** (steps / expected / actual), close button, and bug icon. Server accepts **`page_url`** from **`url`** or **`page_url`**. See [CHANGELOG.md](CHANGELOG.md) v1.46.24.
 
 ### v1.116.0 documentation sync
 
 - **Screening (X14.5):** Stepped PHQ-9/GAD-7 follow-up when PHQ-2 or GAD-2 score ≥ 3; severity bands on full instrument; PHQ-9 item 9 triggers prominent crisis UI; answers ephemeral (not persisted).
-- **PWA + RN:** Multi-phase modal flow (`initial` → `followup` → `result`) in `weekly-review.js` and `MoodScreen.tsx`.
+- **Flow:** Multi-phase modal flow (`initial` → `followup` → `result`) in `weekly-review.js`.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.116.0; [plan-14 security-performance](plans/plan-14-cross-cutting/security-performance.md).
 
 ### v1.114.0 documentation sync
@@ -399,27 +131,20 @@ flowchart LR
 - **Security lock (Settings tab 10):** Passcode setup with masked fields; caregiver/proxy logging moved here from Privacy; tab icon shows locked vs unlocked state.
 - **Home:** Hero status card includes streak nudge text when relevant; energy-budget/pacing card removed.
 - **Charts:** Correlation/forecast/compare/pacing insights panel removed.
-- **Screening:** PHQ-2/GAD-2 slider UX and friendlier copy on PWA and RN.
-- **Logging modules:** Cycle wizard fields both platforms when enabled; barcode food logging optional (camera + Open Food Facts).
+- **Screening:** PHQ-2/GAD-2 slider UX and friendlier copy.
+- **Logging modules:** Cycle wizard fields when enabled; barcode food logging optional (camera + Open Food Facts).
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0.
 
 ### v1.113.0 documentation sync
 
-- **Mood tab:** Fifth primary tab (between Charts and AI) on PWA and RN - mood metrics from log answers, recent feelings, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, link to Charts mood series.
+- **Mood tab:** Fifth primary tab (between Charts and AI) - mood metrics from log answers, recent feelings, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, link to Charts mood series.
 - **Home:** Opt-in weather inline in the welcome/date header (standalone weather card removed); micro-check-in and Upcoming visit cards removed from Home (check-in lives on Mood tab; CL1 appointment PDF prep remains in clinician flows).
 - **i18n:** Settings cross-cutting sections and PHQ/GAD screening modals resolve locale keys after catalogs load; em-dash cleanup in UI copy.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.113.0; [platform-parity.md](platform-parity.md) v1.113.0 note.
-
-- **React Native Home (web parity):** same three Home chrome actions as **`apps/pwa-webapp/index.html`**: **Report a bug** (web: left edge; RN may still group chrome together), **Goals & targets** (opens **Goals modal** pane 0), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
-
-### v1.45.29 documentation sync
-
-- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now ships web-aligned **range chips** (Today / 7 / 30 / 90 / All), **Newest/Oldest** sort, **pull-to-refresh**, **text filter**, filtered/total count copy, and entry detail modal actions. Remaining parity items are richer card/detail depth and final large-list virtualization decisions.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.113.0.
 
 ### v1.45.25 documentation sync
 
-- **npm workspaces:** install from repository root with **`npm ci`** / **`npm install`**; a **single** **`package-lock.json`** applies to **`apps/rn-app`**, **`packages/*`**, and **`benchmarks`** (plus **`apps/pwa-webapp`** tooling via root scripts).
-- **React Native shell:** bottom tab **labels** (Home, Logs, Charts, Mood, AI; Settings via header); Home **Log today** FAB uses tab-bar height + **Beta** badge; **Charts → Balance** includes a **Targets** snapshot (default 7/10; custom goals parity with web is planned). See **[CHANGELOG.md](CHANGELOG.md)** (v1.113.0 Mood tab; v1.45.25 shell).
+- **npm workspaces:** install from repository root with **`npm ci`** / **`npm install`**; a **single** **`package-lock.json`** applies to **`packages/*`** and **`benchmarks`** (plus **`apps/pwa-webapp`** tooling via root scripts).
 
 ### v1.45.3 documentation sync
 
@@ -475,7 +200,7 @@ flowchart LR
 - **AI**: In-flight **deduplication** of `analyzeHealthMetrics`; guarded AI preload and chart **precompute** (idle / debounced; slower when the tab is hidden).
 - **View logs**: For very large histories, **IntersectionObserver** loads additional entries as you scroll (windowed append).
 - **Scripts**: **`summary-llm.js`** loads with `requestIdleCallback` on non-low devices (no `document.write`); Font Awesome remains deferred.
-- **Build**: Root **`npm run build:web`** runs **`apps/pwa-webapp/build-site.mjs`**: AST instrumentation (function trace hooks) for first-party scripts into **`apps/pwa-webapp/.trace-build/`**, then esbuild minifies **`app.js`** and renames the output to **`app.<hash>.min.js`** with **`asset-manifest.json`** (both gitignored). **`npm run build:web:apk`** (**`--skip-trace`**) also builds **`apps/pwa-webapp/.android-dist/`** with hashed **`styles.<hash>.css`**. **GitHub Pages** uses **`build-site.mjs --site`** on the copied **`site/`** tree so **`index.html`** references the hashed bundle and stylesheet (see [GitHub Pages](setup-and-usage.md#github-pages-app-at-repo-root)).
+- **Build**: Root **`npm run build:web`** runs **`apps/pwa-webapp/build-site.mjs`**: AST instrumentation (function trace hooks) for first-party scripts into **`apps/pwa-webapp/.trace-build/`**, then esbuild minifies **`app.js`** and renames the output to **`app.<hash>.min.js`** with **`asset-manifest.json`** (both gitignored). **`npm run build:web:min`** (**`--skip-trace`**) also builds **`apps/pwa-webapp/.web-dist/`** with hashed **`styles.<hash>.css`**. **GitHub Pages** uses **`build-site.mjs --site`** on the copied **`site/`** tree so **`index.html`** references the hashed bundle and stylesheet (see [GitHub Pages](setup-and-usage.md#github-pages-app-at-repo-root)).
 - **Web Workers**: `apps/pwa-webapp/workers/io-worker.js` - large JSON **parse** / **stringify** when the optimisation profile has **`useWorkers`** (import / export paths).
 - **Service worker**: **On** for **rianell.com**, **www.rianell.com**, and **\*.github.io** (PWA updates and offline-friendly caching via `apps/pwa-webapp/sw.js`). Other origins: opt-in with `localStorage.setItem('rianellEnableStaticSW','1')` or **`?sw=1`**. A full **page reload** after a deploy happens only when you confirm **Update** in the app’s modal - not from the Python dev server’s SSE reload (that path is **loopback-only**).
 - **Python server**: **gzip** for compressible static files when the client sends `Accept-Encoding: gzip`; **Cache-Control** tuned for common static extensions (`server/main.py`).
@@ -505,9 +230,9 @@ flowchart LR
 - **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analysing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
 
 ### Goals and targets
-- **Goals modal (v1.117.0):** PWA and RN open a **2-pane carousel** from Home **Goals & targets** - pane 0 sets steps, hydration, sleep quality, and good-days/week targets; pane 1 shows **Achievements** for progressive logging unlocks.
+- **Goals modal (v1.117.0):** Opens a **2-pane carousel** from Home **Goals & targets** - pane 0 sets steps, hydration, sleep quality, and good-days/week targets; pane 1 shows **Achievements** for progressive logging unlocks.
 - **Achievements:** Food (day 7), exercise (day 14), and medication (day 21) badges derived from `trackingProfile.configuredAt`; theme-tokenized icons; one-shot unlock notification when notifications are enabled; wizard lock steps link to Achievements pane.
-- **Goals**: Targets stored in settings (`rianellGoals` / RN preferences) and synced to cloud when signed in.
+- **Goals**: Targets stored in settings (`rianellGoals`) and synced to cloud when signed in.
 - **Medications**: Optional medications list in settings (stored locally and in cloud with settings).
 
 ### Data management
@@ -516,15 +241,9 @@ flowchart LR
 - **Print**: Print-friendly view of logs and reports.
 - **Clear/reset**: Option to clear all local data (with confirmation).
 
-**React Native app (`apps/rn-app`)**: Settings includes **Data management** with **JSON export** (system share sheet) and **JSON import** (paste modal): **Merge** appends only entries for dates that are not already stored; **Replace all** overwrites local logs after confirmation. Entries are normalized with `@rianell/shared` so the format matches web portability.
-
-**React Native - Log today wizard (web parity):** Ten-step flow (date → vitals → symptoms & pain → energy & mental clarity → stress → lifestyle → food → exercise → meds → review). **Symptoms & pain** includes a tap-to-cycle **body diagram** with the same SVG **silhouette path** as `apps/pwa-webapp/index.html`, optional text field + chips for all regions, and merge into stored `painLocation`. **Energy & mental clarity** uses grouped icon tiles (positive / neutral / negative), search, collapsible picker, and accessibility labels on fatigue/sleep/mood.
-
-**React Native - Charts & AI (Phase B/C):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab now includes range-based deterministic sections plus a generated **Summary note** through the RN LLM wrapper and AIEngine fallback path. See **`docs/platform-parity.md`** and **[CHANGELOG.md](CHANGELOG.md)** for ongoing refinements. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
-
 ### Cloud sync (Supabase)
 - **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; inserts into **`anonymized_data`**; medical condition used for server-side aggregation only.
-- **Health data consent**: Art. 9 modal (PWA) and preference fields (RN) required before cloud backup or anonymised upload.
+- **Health data consent**: Art. 9 modal required before cloud backup or anonymised upload.
 - **Cloud erasure**: Settings → delete encrypted backup, anonymised contribution, or **all cloud data** (`health_data`, `user_keys`, `user_privacy_profile`, `user_achievements`, `anonymized_data`, `bug_reports`).
 - **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
 - **Settings sync**: Goals and app settings synced to Supabase when signed in (e.g. app_settings table).
@@ -536,27 +255,13 @@ flowchart LR
 - **Sound**: "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
 
 ### Install and run options
-- **React Native (`apps/rn-app`)**: Settings intentionally focuses on **in-app data management** (JSON export/import). Install/download actions are web/PWA entry-point UX and are not shown inside RN builds.
-- **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline. Shown in the UI with a **Beta** tag (same channel as the Android APK).
-- **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `artifacts/Android/` for same-origin download links. Shown with a **Beta** tag.
-- **Install on iOS (device)**: Add to Home Screen from Safari (Settings or Install modal) - **Beta** (PWA install path).
-- **iOS native build (Xcode zip / optional OTA)**: Download the zip from Settings when offered; this path is **Alpha** in the UI. Build metadata lives in `artifacts/iOS/latest.json`.
-
-#### Release channels (Beta vs Alpha) and build numbers
-
-| Channel | Meaning in this app | Where the build number comes from |
-|--------|---------------------|-----------------------------------|
-| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | **RN CLI:** `artifacts/RNCLI-Android/latest.json` → `version` for the APK. The Settings UI shows `(build N)` after fetch. |
-| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI:** `artifacts/iOS/latest.json` and **`artifacts/RNCLI-Android/latest.json`**. **`version`** is the **sequential RN CLI build** (increments each time CI produces native RN artifacts), **not** the global workflow run number. **Server** and **Web / PWA** rows in the README use **`GITHUB_RUN_NUMBER`**. |
-
-**Build numbers in this README:** The **CI builds** table is **updated automatically** when CI commits **`artifacts/`** and runs **`scripts/ci/update-readme-build-info.mjs`**.
-
-The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refreshBuildDownloadLinks`) so the label **(build N)** on install links stays in sync after each CI deploy. **Beta** / **Alpha** pills are fixed labels in the UI: every install/download path except the **iOS native zip/OTA** link is **Beta**; the **iOS native** download is **Alpha**.
+- **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline.
+- **Add to Home Screen (iOS Safari / Android Chrome)**: Install the PWA from Settings or the Install modal for an app-like standalone experience.
 
 ### Tutorial and onboarding
-- **First-run wizard**: One modal stepper on first launch combines privacy region, health data consent (EEA/UK), cookie consent, session recording disclosure, tutorial slides, on-device AI download consent, and (PWA only) install options. **v1.120.0:** Footer shows one unified **step X of Y** across wizard panes and each tutorial slide (shared `unifiedOnboardingProgress.mjs` on PWA + RN).
+- **First-run wizard**: One modal stepper on first launch combines privacy region, health data consent (EEA/UK), cookie consent, session recording disclosure, tutorial slides, on-device AI download consent, and install options. **v1.120.0:** Footer shows one unified **step X of Y** across wizard panes and each tutorial slide (shared `unifiedOnboardingProgress.mjs`).
 - **Tutorial**: First-run slides (Welcome, Log entry, View & AI, Settings & data, Data options, Goals, You're all set); first card "Enable AI & Goals?" (Enable / Skip); skipping hides AI-related slides.
-- **Install modal**: Post-tutorial modal (once) with web/Android/iOS install options; can be retriggered from God mode.
+- **Install modal**: Post-tutorial modal (once) with PWA install options; can be retriggered from God mode.
 
 ### Settings and UI
 - **Settings layout**: The settings dialog is split into **sections** (e.g. AI & Goals, Personal, Display, Cloud sync). On **wide screens**, **‹** and **›** on the sides of the modal move between sections; on **narrow screens**, **swipe** horizontally. The header shows the current section index (e.g. `1 / 8`) and name.
@@ -578,8 +283,6 @@ The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refresh
 
 ## 📁 Project structure
 
-- **`apps/pwa-webapp/`** - Static PWA: HTML, CSS, JavaScript, icons, and assets (parity reference for the web UI). The server serves this directory at the root URL.
-- **`apps/rn-app/`** - React Native (Expo) app: native shell, tabs, **Log today** wizard (pain diagram aligned with web outline, energy tiles, etc.), Charts / AI Analysis, Settings (JSON data management + install links). See `npm run typecheck:mobile` and `npm run test:mobile` from the repo root.
-- **`apps/rn-app/`** - React Native (Expo) primary mobile app; root script **`npm run dev`** starts Expo.
+- **`apps/pwa-webapp/`** - Static PWA: HTML, CSS, JavaScript, icons, and assets (the web UI). The server serves this directory at the root URL.
 - **`server/`** - Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
 

@@ -30,9 +30,9 @@ For issues and questions:
 
 ### Documentation pointers (current)
 
-- **Roadmap / parity:** **[docs/next-phase-development-plan.md](next-phase-development-plan.md)** - current status (no active roadmap); detail in **[app-and-features.md](app-and-features.md)** and **[platform-parity.md](platform-parity.md)**.
-- **Features (web + native):** **[docs/app-and-features.md](app-and-features.md)** - includes React Native log wizard, Settings, Charts/AI notes.
+- **Roadmap:** **[docs/next-phase-development-plan.md](next-phase-development-plan.md)** - current status (no active roadmap); detail in **[app-and-features.md](app-and-features.md)**.
+- **Features:** **[docs/app-and-features.md](app-and-features.md)** - includes the PWA log wizard, Settings, Charts/AI notes.
 - When reporting theme issues, include selected theme name and screenshots for loading overlay, Home pulse/title, navbar active tab, and goals/targets block.
 - For cloud settings sync reports, include whether user was signed in and which setting did not persist across devices.
-- For **mobile** issues, note app build or branch, `npm run test:mobile` / `typecheck:mobile` if relevant, and device OS.
+- For browser issues, note the deploy build or branch and the browser/OS.
 

@@ -38,16 +38,7 @@
 
 ---
 
-## 4. Mobile (Capacitor / mid Android)
-
-| Metric | Budget |
-|--------|--------|
-| Cold start to interactive | ≤ 5 s |
-| Log save (encrypted RN) | ≤ 200 ms p95 |
-
----
-
-## 5. Regression gates
+## 4. Regression gates
 
 - **CI:** `audit-boot-post-deploy` records boot milestones; compare to `audit-history/baseline.json`.
 - **Local:** `npm run audit:boot:strict` before release.
@@ -55,7 +46,7 @@
 
 ---
 
-## 6. Optimization levers
+## 5. Optimization levers
 
 - Preconnect: Supabase, jsDelivr, Open-Meteo (`index.html`)
 - Lazy loaders: `performance-utils.js` (`ensureSupabaseLoaded`, `ensureApexChartsLoaded`, `ensureAIEngineLoaded`)

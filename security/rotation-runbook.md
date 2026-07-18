@@ -44,10 +44,8 @@
      - `SUPABASE_URL` (if changed - rare)
      - `SUPABASE_ANON_KEY` or `SUPABASE_PUBLISHABLE_KEY` (match workflow names in `.github/workflows/`)
    - Local: `security/.env` → `SUPABASE_PUBLISHABLE_KEY=`
-   - RN local: `apps/rn-app/.env` → `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 4. Trigger CI deploy (push to default branch or `workflow_dispatch`) so GitHub Pages bundle receives new `SUPABASE_CONFIG`.
-5. Rebuild and publish RN binaries if store builds are live.
-6. Revoke/disable previous anon key in dashboard when traffic shows 100% on new deploy (check Supabase API logs).
+5. Revoke/disable previous anon key in dashboard when traffic shows 100% on new deploy (check Supabase API logs).
 7. Run smoke test: sign-in, cloud sync upload/download, bug report insert.
 
 ### 3.2 Single Supabase project (current)

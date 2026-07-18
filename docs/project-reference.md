@@ -33,7 +33,6 @@
 
 - **DESIGN.md:** Product UI declutter roadmap (not Airbnb palette). Primitives in `docs/styling.md` and `docs/design-token-contract.md`.
 - **PWA:** Home command center; logs filter + expand panes; Mood check-in + heatmap; vitals accordion; body map split + region severity pills; targets in Goals modal; achievements later moved to Goals modal only (v2.2.18).
-- **RN:** `SegmentedScaleInput`, `Accordion`, flat `Card` borders.
 - **Tests:** `segmented-scale-input`, `home-command-center`, `logs-mood-ia`, `wizard-phase4-ia`, `pain-region-severity`.
 - **Wiki:** [[Release-Notes]] §2.2.9-2.2.13; [[Features-Guide]], [[Logging-Data]], [[Settings-and-Languages]], [[Platforms-and-Parity]].
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.9]`-`[2.2.13]`.
@@ -47,15 +46,12 @@
 - **Wiki:** `API-and-Integrations.md`, `Accessibility.md`; Release Notes §2.1.8-2.1.9.
 - **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.9]`.
 
-### v2.1.7 documentation sync (dependency patches, lighthouse 13, RN ScrollView refs)
+### v2.1.7 documentation sync (dependency patches, lighthouse 13)
 
-- **npm:** Patch-updates group (react 19.2.7, @types/react, react-native-svg, @react-navigation, @playwright/test, babel-preset 0.83.10); lighthouse 13.4.0 in `benchmarks/`.
-- **RN:** Carousel ScrollView refs in `GoalsModal.tsx`, `MoodScreen.tsx`, `SettingsScreen.tsx` use `ComponentRef<typeof ScrollView>`.
-- **Dependabot:** `.github/dependabot.yml` ignores jest ≥30, babel-preset ≥0.84, expo-modules-core ≥56.
-- **Tests:** `tests/unit/rn-scroll-ref-contract.test.mjs`.
+- **npm:** Patch-updates group (react 19.2.7, @types/react, @playwright/test); lighthouse 13.4.0 in `benchmarks/`.
 - **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.7]`; wiki [[Release-Notes]] § v2.1.7.
 
-### v2.1.6 documentation sync (design token contract, RN primitives, motion guardrails, Mood Control Deck)
+### v2.1.6 documentation sync (design token contract, motion guardrails, Mood Control Deck)
 
 - **Contract:** `docs/design-token-contract.md` - `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only.
 - **Mood tab (PWA):** Mood Control Deck in `modules/mood-tab.js` + scoped `.mood-control-deck` CSS; Home check-in card unchanged.
@@ -64,7 +60,6 @@
 - **Goals carousel (PWA):** Animated dot SVG icons in `goals-carousel.js`.
 - **Device benchmark (PWA):** Cooperative one-tick CPU/array batches (`bootLite` first boot) in `device-benchmark.js` (`?v=9`); avoids Chrome Page Unresponsive on cold “CPU arithmetic”.
 - **Tokens:** `SPACING_TOKENS`, `SURFACE_TOKENS` in `packages/tokens/src/index.mjs`; synced via `scripts/build/sync-tokens-to-pwa.mjs`.
-- **RN:** `apps/rn-app/src/components/ScreenCard.tsx`, `ScreenContainer.tsx`, `RangeChip.tsx`, `themeHelpers.ts`; tab screens use `resolveScreenBackground()`.
 - **PWA motion:** `setProgressScale()` in `app.js`; progress fills in `styles.css` use `transform: scaleX(var(--progress))`; tab indicator uses `translateX` + `scaleX`.
 - **Verify:** `scripts/verify/verify-design-tokens.mjs` + `npm run verify:design-tokens` (CI unit-tests job).
 - **Tests:** `mood-tab-ui`, `log-metric-widgets`, `pwa-goals-carousel`, `perf-benchmark-modal`, `ai-engine-parity`, `tokens`, `verify-design-tokens`.
@@ -125,7 +120,6 @@
 - **Tokens:** `OASIS_TOKENS` in `packages/tokens/src/index.mjs` - per-team ambient palettes, motion timings, status glow strings.
 - **PWA (new files):** `apps/pwa-webapp/css/oasis.css`, `modules/oasis-canvas.js` (`window.OasisCanvas`); wired from `index.html` + surgical `app.js` hooks. **`styles.css` unchanged** for oasis (file-protection rule).
 - **PWA effects:** Ambient blobs, magnetic CTAs, calm-glow metrics, AI neural trace, thinking-text morph, data-stream dots, confetti, check-in shimmer.
-- **RN:** `OasisNeuralTrace.tsx`, `BalanceRadarChart` breath ring, `HomeWelcomeCard` pulse, `BootLoadingScreen` rings, `AchievementUnlockToast` burst; `useReduceMotionFlag` OR-gates OS + in-app pref.
 - **Tests:** `animation-polish.test.mjs` (8 assertions), `oasis-particles.test.mjs`, `benchmarks/specs/oasis-particles.spec.ts`.
 - **See:** [CHANGELOG.md](CHANGELOG.md) `[2.1.0-oasis]`; [UI_OASIS_PLAN.md](plans/UI_OASIS_PLAN.md).
 
@@ -145,7 +139,6 @@
 
 ### v2.0.9 documentation sync (Animation polish and slider range)
 
-- **RN motion:** `PrimaryButton`, `Skeleton`, `Toast`, `EmptyState`, `HomeWelcomeCard`, `SettingsChapter`; screen stagger/slide on AI, Charts, Mood, Log Wizard.
 - **PWA motion:** Tab transitions, AI stagger (`ai-animate-in` nth-child), shimmer timing, boot skeleton delays, bottom-nav icon lift in `styles.css`.
 - **Sliders (shared):** `sliderWellness.mjs` - range **1-10**; `wellnessSliderFillPercent` uses `(v - 1) / 9`.
 - **Boot (PWA):** Benchmark modal not auto-shown on first run; god-mode benchmark on all viewports.
@@ -155,7 +148,6 @@
 
 - **Onboarding (shared):** `packages/shared/src/onboarding/guidedQuestionnaire.mjs` - `buildGuidedQuestionnaire`, `applyQuestionnaireAnswer`, `createGuidedOnboardingProgressSession`.
 - **PWA:** `guided-onboarding.js`, `#guidedOnboardingOverlay`; privacy gate whitelists guided overlay.
-- **RN:** `FirstRunWizard.tsx` renders shared card script; `onboardingIllustrations.tsx` for mascot SVG + idle animation.
 - **Consents:** Unbundled multichoice cards with “See details” → policy viewer; timestamps + audit unchanged.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.7.
 
@@ -165,7 +157,7 @@
 - **Vitals drums (PWA):** `modules/drum-picker-scroll.js` - scroll + snap for BP/BPM and advanced vitals pickers.
 - **Metric widgets (PWA):** Irritability animated ocean; weather-sensitivity lightning; mood face direction fix (`log-metric-widgets.js`).
 - **Goals prompt (PWA):** `.targets-button-top--prompt` glow when `hasActiveGoals()` is false; respects AI feature gate and reduced motion.
-- **Onboarding (shared + PWA + RN):** Unified steps 1-14; tutorial arrow nav; first-session logging nag suppressed via `firstSessionPrompt.mjs`.
+- **Onboarding (shared + PWA):** Unified steps 1-14; tutorial arrow nav; first-session logging nag suppressed via `firstSessionPrompt.mjs`.
 - **i18n:** “Ability to do Daily activities” rename; `common.goals.setPrompt`.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.6.
 
@@ -201,7 +193,7 @@
 - **Mood tab (PWA):** `renderMoodReadingsSummaryCard()` - count, ring, goal, stat chips (`mood.readings.*` i18n).
 - **Barcode (PWA):** Desktop webcam via `BarcodeDetector` / ZXing; `#icon-barcode-scan` SVG.
 - **View logs (PWA):** `.filter-section` mobile stack for date/filter/sort.
-- **Settings (PWA + RN):** `SETTINGS_PANE_ICON_BY_KEY` per-pane icons; import section accent button tokens.
+- **Settings (PWA):** `SETTINGS_PANE_ICON_BY_KEY` per-pane icons; import section accent button tokens.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.2.
 
 ### v2.0.1 documentation sync (Post-2.0.0 polish)
@@ -209,14 +201,14 @@
 - **Barcode food logging (PWA):** Settings toggle + consent dashboard row; scan icon in food modal; Open Food Facts lookup; wiki privacy section for camera + lookup.
 - **App lock:** PIN encryption via `minPassphraseLength: 4`; i18n fallbacks in `app-lock.js`; `window.tUi` exposed for deferred modules.
 - **Removed:** Guided voice log extraction (`voiceLogExtract.mjs`, `guidedVoiceLogEnabled` pref).
-- **UX:** Mood reading ribbon (PWA + RN); cycle ribbon with integrated flow (PWA); BBT thermometer widget; brain fog toggle fix; passkey button styling; Developer & API panel scaling; check-in slider icons; AI download modal stability; settings nav spacing.
+- **UX:** Mood reading ribbon (PWA); cycle ribbon with integrated flow (PWA); BBT thermometer widget; brain fog toggle fix; passkey button styling; Developer & API panel scaling; check-in slider icons; AI download modal stability; settings nav spacing.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.1; [wiki/Privacy-and-Your-Data.md](../wiki/Privacy-and-Your-Data.md) § Barcode food logging.
 
 ### v2.0.0 documentation sync (Rianell 2.0 production)
 
-- **Version:** Root `@rianell` workspace **2.0.0**; PWA and RN app packages aligned.
+- **Version:** Root `@rianell` workspace **2.0.0**; PWA app package aligned.
 - **Branding:** Production PWA icons (`Icons/`), no open-beta chip or install Beta badges.
-- **Log wizard:** Cycle timeline, vitals last-value hints, mobile nav parity (PWA + RN).
+- **Log wizard:** Cycle timeline, vitals last-value hints, mobile nav (PWA).
 - **Benchmark:** Desktop full suite on cold boot when cache lacks per-test data.
 - **Connectors:** Strava, Withings, Google Sheets (Plan 19); operator guide `docs/connectors/SETUP.md`.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v2.0.0; [EXTERNAL-SETUP.md](plans/EXTERNAL-SETUP.md) § Plan 19; wiki [[Release-Notes]] / [[Features-Guide]].
@@ -226,7 +218,6 @@
 - **Connectors:** Strava, Withings, Google Sheets OAuth via Supabase Edge Functions (`connector-auth`, `connector-callback`, `connector-disconnect`, provider sync functions).
 - **Token storage:** Encrypted `connector_tokens` (service-role only); client-safe status in `user_integrations` (`last_sync_at`, `sync_status`, sheet config).
 - **PWA:** Settings → Integrations - Connect, Sync now, Disconnect, Google Sheets configure/export modal, `connector-success.html` OAuth popup bridge.
-- **RN:** `oauthConnect.ts` + `SettingsConnectorsPane` with `rianell://connector/callback` deep link.
 - **Shared:** `@rianell/shared` mappers (`strava`, `withings`, `googleSheets`, `oauthState`, `providers`).
 - **Operator setup:** [docs/connectors/SETUP.md](connectors/SETUP.md); policy rows in [FREE-TIER-POLICY.md](plans/FREE-TIER-POLICY.md).
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.135.0; [EXTERNAL-SETUP.md](plans/EXTERNAL-SETUP.md) § Plan 19; wiki [[Release-Notes]] / [[Features-Guide]].
@@ -234,13 +225,13 @@
 ### v1.97.0 documentation sync (Achievements + Engagement & UX)
 
 - **Achievements:** 11-id catalog with tier accents, per-card progress bars, completion counter, in-app unlock toast queue, unseen badge on Goals header (`markAchievementSeen` on achievements pane).
-- **Empty states:** Warm copy + animated placeholders on Logs, Charts, AI, Mood, Weekly Review (RN components + PWA HTML/CSS); ghost chart bars and AI insight cards when data is sparse.
+- **Empty states:** Warm copy + animated placeholders on Logs, Charts, AI, Mood, Weekly Review (PWA HTML/CSS); ghost chart bars and AI insight cards when data is sparse.
 - **Home:** Welcome card, discovery chips, FAB pulse, goals progress bars, streak grace day, personal-best card, tab discovery badges (Charts/AI).
 - **Settings:** Collapsible chapters, setup progress strip, inline info expanders on complex toggles.
 - **Goals modal:** First-visit orientation card; per-field target hints (`goals.field.*`); achievement progress bars with WCAG `progressbar` role.
 - **Gamification:** Behavior-gated log milestones, daily goal celebration, wizard unlock banners - no points/leaderboards.
 - **Prefs:** `homeWelcomeCardDismissed`, `goalsModalSeenCount`, `firstOpenDate`, `weeklyReviewCompletedAt`, `personalBestDismissedAt` via `normalizeHomeDashboardPrefs`.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.97.0; [data-model.md](data-model.md) § Home dashboard engagement; [platform-parity.md](platform-parity.md) v1.97.0 note; [ux-audit.md](ux-audit.md).
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.97.0; [data-model.md](data-model.md) § Home dashboard engagement; [ux-audit.md](ux-audit.md).
 
 ### v1.96.2 documentation sync (First-run wizard interaction fix)
 
@@ -253,14 +244,14 @@
 - **Cycle tracking:** **Period started today** on log wizard step 1 sets `cycle.periodStart` + day 1; `suggestCycleForDate` counts from `findLatestPeriodStart`. UI day pills **1-35** default; expand to **45** for irregular cycles; late hint above day 35.
 - **Shared constants:** `CYCLE_DAY_NORMAL_MAX` (35), `CYCLE_DAY_SELECTOR_MAX` (35), `CYCLE_DAY_MAX` (45); helpers `computeCycleDayFromPeriodStart`, `isCycleDayLate`, `daysSincePeriodStart`.
 - **Goals modal (PWA):** Carousel meta/i18n via `RianellI18n.t`; themed dot icons (`ui-svg-icon`).
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.121.0; [data-model.md](data-model.md) § Cycle; [platform-parity.md](platform-parity.md) v1.121.0 note.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.121.0; [data-model.md](data-model.md) § Cycle.
 
 ### v1.120.0 documentation sync (Theme tokens & unified onboarding)
 
 - **Theme accents (PWA):** `--accent-primary`, `--accent-soft`, `--accent-border*`, `--accent-fill-*`, `--accent-glow-*` in `styles.css` `:root`; bulk migration off hardcoded Material green. Chart/AI JS uses `getThemePrimaryColor()` from **`document.body`**; `setGlobalTheme()` triggers `refreshCharts()` + AI re-render.
 - **Semantic colours unchanged:** Food/exercise tile group hues and per-metric chart line colours remain data-visualization semantics; UI chrome (modals, nav accents, AI cards, mood scores) follows global theme.
-- **Onboarding:** `buildUnifiedOnboardingSteps()` / `resolveUnifiedOnboardingProgress()` - single step counter for wizard + tutorial slides on PWA and RN.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.120.0; [styling.md](styling.md) § Theme accent tokens; [platform-parity.md](platform-parity.md) v1.120.0 note.
+- **Onboarding:** `buildUnifiedOnboardingSteps()` / `resolveUnifiedOnboardingProgress()` - single step counter for wizard + tutorial slides on PWA.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.120.0; [styling.md](styling.md) § Theme accent tokens.
 
 ### v1.119.0 documentation sync (Cycle tracking UX & Home cards)
 
@@ -269,14 +260,14 @@
 - **Logging modules:** Settings → Data options - **cycle module** and **barcode food logging** (camera + Open Food Facts lookup).
 - **Home:** Recent patterns inset (icon + streak summary); Weekly review card gates on LLM ready - **Enable AI** triggers download consent when model not loaded.
 - **Mood tab:** Sparkline in metrics grid scales to card width on narrow viewports.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.119.0; [platform-parity.md](platform-parity.md) v1.119.0 note; [data-model.md](data-model.md) § Cycle.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.119.0; [data-model.md](data-model.md) § Cycle.
 
 ### v1.118.0 documentation sync (Onboarding UX & Smartlook default-on)
 
 - **First-run wizard:** Shared step order - region → health consent (EEA/UK) → cookies → **session recording disclosure** → tutorial → AI download → install (PWA). Tracking profile deferred; defaults from `completeFirstRunWizard()`.
 - **Smartlook:** Default-on **preference** with disclosure gate - recording starts only after onboarding step or explicit Settings enable. See [smartlook-session-recording.md](privacy/smartlook-session-recording.md).
 - **Settings PWA:** Consent dashboard on Privacy & region pane; Goals modal carousel IIFE fix.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.118.0; [platform-parity.md](platform-parity.md) v1.118.0 note.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.118.0.
 
 ### v1.117.1 documentation sync (Supabase pool RPC hardening)
 
@@ -287,22 +278,22 @@
 ### v1.117.0 documentation sync (Achievements & logging unlock)
 
 - **Progressive unlock:** Food/exercise/medication wizard steps remain gated by `getUnlockedLogCategories`; achievements surface the same schedule plus milestone and engagement badges (11 total in `ALL_ACHIEVEMENTS`) with tier accents, per-card progress bars, completion counter, in-app unlock toast, and optional OS notifications.
-- **Goals modal:** PWA `#goalsModal` and RN `GoalsModal` - carousel panes 0 (targets) and 1 (achievements); sleek crosshair/medal nav icons; Home **Goals & targets** opens pane 0 on both platforms.
-- **Persistence:** Local `appSettings.achievements` (PWA) / `prefs.achievements` (RN); cloud row in **`user_achievements`** when signed in with backup enabled.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.117.0; [platform-parity.md](platform-parity.md) v1.117.0 note; [data-model.md](data-model.md) § Achievements.
+- **Goals modal:** PWA `#goalsModal` - carousel panes 0 (targets) and 1 (achievements); sleek crosshair/medal nav icons; Home **Goals & targets** opens pane 0.
+- **Persistence:** Local `appSettings.achievements` (PWA); cloud row in **`user_achievements`** when signed in with backup enabled.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.117.0; [data-model.md](data-model.md) § Achievements.
 
 ### v1.116.0 documentation sync (Stepped PHQ-9/GAD-7 screening)
 
-- **Mental health screeners:** PHQ-2/GAD-2 remain entry points on Mood tab (hidden in simple mode). Initial score ≥ 3 triggers stepped PHQ-9 or GAD-7 follow-up questions in the weekly-review modal (PWA) and Mood screening modal (RN).
+- **Mental health screeners:** PHQ-2/GAD-2 remain entry points on Mood tab (hidden in simple mode). Initial score ≥ 3 triggers stepped PHQ-9 or GAD-7 follow-up questions in the weekly-review modal.
 - **Scoring:** Shared `@rianell/shared` `mentalHealthScreening.mjs` - `shouldOfferPhq9FollowUp` / `shouldOfferGad7FollowUp`, merge helpers, severity interpreters, `isPhq9SuicideItemPositive`.
 - **Privacy:** Screening responses are not written to logs, IndexedDB, AsyncStorage, or Supabase.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.116.0; [platform-parity.md](platform-parity.md) v1.116.0 note.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.116.0.
 
 ### v1.115.0 documentation sync (PWA boot shell + Smartlook)
 
 - **PWA boot:** `#appShell` must be a direct `<body>` child - not inside `#settingsOverlay`. Missing closing tag caused a black/blank viewport (`shellW/H: 0`). Fixed in `index.html`; `ensureAppShellDomPlacement()` reparents on boot for stale cached HTML; `logBootState()` logs `shellParentId`, `shellMisplaced`, layout blockers.
 - **Shell probes:** `npm run audit:probe-shell`, `audit:probe-shell:screenshot`, `audit:probe-shell:layout` (layout + DOM parent check); `scripts/audit/check-dom-nesting.mjs` for HTML div balance.
-- **Smartlook:** Optional EU session recording (PWA + RN) - off by default; Settings → Privacy → Session recording; see [smartlook-session-recording.md](privacy/smartlook-session-recording.md).
+- **Smartlook:** Optional EU session recording (PWA) - off by default; Settings → Privacy → Session recording; see [smartlook-session-recording.md](privacy/smartlook-session-recording.md).
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.115.0; [testing-and-configuration.md](testing-and-configuration.md) § PWA shell boot probes.
 
 ### v1.114.0 documentation sync (Security lock tab and UX trim)
@@ -310,13 +301,13 @@
 - **Settings carousel:** Ten panes - **Security lock** is tab 10 (passcode + caregiver/proxy); Privacy tab 1 no longer includes app lock or caregiver toggles.
 - **Home:** Single hero status card merges streak nudge when applicable; pacing/energy-budget card removed.
 - **Charts:** Insights side panel removed; core chart series and presentation mode unchanged.
-- **Screening:** PHQ-2/GAD-2 sliders in weekly-review modal (PWA) and Mood tab (RN).
+- **Screening:** PHQ-2/GAD-2 sliders in weekly-review modal (PWA) and Mood tab.
 - **Logging modules** (Settings → Data options): `cycleModuleEnabled` shows cycle fields on **log wizard step 1** (SVG icons, phase suggest from last log). **Barcode food** uses camera + Open Food Facts lookup.
-- **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0; [platform-parity.md](platform-parity.md) v1.114.0 note.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0.
 
 ### v1.113.0 documentation sync (Mood tab and Home UX)
 
-- **Navigation:** Primary tabs are **Home → Logs → Charts → Mood → AI** (PWA bottom bar + top strip; RN bottom tabs). Settings remains a header action, not a main tab.
+- **Navigation:** Primary tabs are **Home → Logs → Charts → Mood → AI** (PWA bottom bar + top strip). Settings remains a header action, not a main tab.
 - **Mood tab:** Metrics from submitted log mood/irritability answers, recent-feeling list, AM/midday/PM check-in, PHQ/GAD shortcuts, Charts mood link; shared `packages/shared/src/mood/moodMetrics.mjs`.
 - **Home:** Weather strip inline under greeting/date (H5); micro-check-in and appointment countdown cards removed from Home stack.
 - **i18n:** Cross-cutting Settings + screening modals hydrate after catalogs load; em-dash copy cleanup across locale/prompt packs.
@@ -402,7 +393,6 @@ Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live
 - **Plan:** [i18n-gap-closeout-plan.md](i18n-gap-closeout-plan.md) - segmented delivery v1.71.0-v1.77.0 (all phases done).
 - **`verify:i18n`:** Content build → generate → UI fill → policy → MOTD translate → sync → full gate suite including `verify-motd-translation-coverage`, `verify-mixed-language-strings`, coverage `--strict --max-pct=13`.
 - **PWA (v1.72-v1.74):** Cookie/install/picker wiring; god mode / benchmark / wizard review i18n; `tContent()` tile catalogs; `device-benchmark.js` localized test labels.
-- **RN (v1.74):** `LogWizardScreen` `tContent()`; `ga` in `I18nProvider`.
 - **Scripts (v1.73-v1.76):** `lc20-mixed-fixes`, `batch-mt-hybrid-keys`, `build-content-catalog-keys`, `verify-motd-translation-coverage`, `auto-translate-policy-strings`.
 - **ga (v1.71):** Shipped locale with UI-only LLM; batch MT pass.
 
@@ -428,13 +418,11 @@ Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live
 
 - **Verify:** `npm run verify:i18n` - sync, locale/prompt/motd/HTML/audit, `--require-wiring`, `--strict` hardcoded UI, translation coverage `--strict`.
 - **CI:** `.github/workflows/ci.yml` mirrors the full i18n gate suite.
-- **Parity:** `docs/platform-parity.json` - `ui_string_catalog_full`, `ui_rtl_ar_he`, `llm_prompt_i18n` supported.
 
 ### v1.65.0-v1.67.0 documentation sync (LC-16-LC-18)
 
 - **Tier A MT (v1.65):** `scripts/i18n/batch-mt-tier-a.mjs`, `apply-tier-a-exact-overrides.mjs`, `verify-translation-coverage.mjs --strict`.
 - **Prompt/MOTD (v1.66):** `translate-prompt-packs.mjs`, `translate-motd-packs.mjs` → canonical `i18n-packs/` then `sync-i18n-assets.mjs`.
-- **RTL (v1.67):** RN `isRtl` row/chevron mirroring in `LogWizardScreen.tsx`, `SettingsScreen.tsx`.
 
 ### v1.61.0 documentation sync (README icons)
 
@@ -445,14 +433,13 @@ Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live
 
 - **i18n paths:** `i18n-packs/` - `locale-packs/v1/` (UI + policy strings), `prompt-packs/v1/` (LLM templates), `motd-packs/v1/` (offline quotes), `policy-packs/v1.json`; synced by **`scripts/i18n/sync-i18n-assets.mjs`**.
 - **Shared runtime:** `packages/shared/src/i18n/` - `translate.mjs`, `resolveLocale.mjs`, `format.mjs`, `rtl.mjs`, `promptPack.mjs`, generated `promptPackData.mjs`.
-- **PWA:** `apps/pwa-webapp/i18n-pwa.js` → `window.RianellI18n`; **RN:** `apps/rn-app/src/i18n/I18nProvider.tsx` → `useT()`.
+- **PWA:** `apps/pwa-webapp/i18n-pwa.js` → `window.RianellI18n`.
 - **Verify:** `scripts/verify/verify-locale-packs.mjs`, `verify-prompt-packs.mjs`, `audit-hardcoded-strings.mjs`.
 - **Key naming:** UI strings use `{namespace}.{semantic.slug}` in `i18n-packs/locale-packs/v1/en-GB.json` (e.g. `wizard.saveEntry`, `settings.privacy.title`). Namespaces follow rollout order: `common`, `nav`, `gate`, `consent`, `settings`, `wizard`, `logs`, `modal`, `toast`, `charts`, `ai`, `export`, `tutorial`, `units`, `policy`. Slugs are lowercase dot-separated words derived from English copy; intentional English (brand names, medical codes) is listed in `scripts/.audit/i18n-allowlist.json`.
 
 ### v1.53.1 documentation sync (settings/privacy fixes)
 
 - **PWA:** Settings carousel nine panes, policy HTML modal, benchmark **`global` → `window`** fix - see [CHANGELOG.md](CHANGELOG.md) v1.53.1.
-- **RN:** Mobile typecheck fixes in **`sync.ts`**, **`AiModelDownloadGate.tsx`**, **`PolicyDocumentsModal.tsx`**.
 
 ### v1.53.0 documentation sync (LLM scripts + gitignore)
 
@@ -461,7 +448,7 @@ Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live
 
 ### v1.46.28 documentation sync (PWA content-hashed bundles)
 
-- **Build:** Production PWA output uses **`app.<hash>.min.js`** and (for **`--site`** / **`.android-dist`**) **`styles.<hash>.css`**, with **`asset-manifest.json`** at the app root. Source **`index.html`** in git still uses **`app.js?v=`** / **`styles.css?v=`** for local development.
+- **Build:** Production PWA output uses **`app.<hash>.min.js`** and (for **`--site`** / **`.web-dist`**) **`styles.<hash>.css`**, with **`asset-manifest.json`** at the app root. Source **`index.html`** in git still uses **`app.js?v=`** / **`styles.css?v=`** for local development.
 
 ### v1.46.16 documentation sync (security header runs + MOTD)
 
@@ -472,34 +459,24 @@ Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live
 
 - **Layout:** **`benchmarks/`** is the single workspace for **`@rianell/benchmark-runner`** (scripts, reporters, Playwright specs) and generated Markdown/JSON (**`web-pwa/`**, **`compare.md`**, etc.). See changelog v1.46.13.
 
-### v1.46.11 documentation sync (RN README build vs workflow run)
+### v1.46.11 documentation sync (README build numbers)
 
-- **CI:** README **Alpha RN** rows use the **sequential RN build** from **`rn-build-version`** (stored in **`artifacts/RNCLI-Android/latest.json`**). **Server** and **Web / PWA** rows still follow **`GITHUB_RUN_NUMBER`**. Metadata-only fallback commits keep JSON in sync when large binaries cannot be pushed.
+- **CI:** **Server** and **Web / PWA** rows follow **`GITHUB_RUN_NUMBER`**. Metadata-only fallback commits keep JSON in sync when large binaries cannot be pushed.
 - **Next-phase plan:** `docs/next-phase-development-plan.md` is a short status note (no active roadmap items).
-
-### v1.46.10 documentation sync (CI RN build numbers)
-
-- **CI:** (superseded by v1.46.11) RN `latest.json` briefly used **`github.run_number`**; restored sequential RN counter for correct README differentiation.
-- **Tests:** `tests/unit/workflows-ci-rncli.test.mjs` guards the workflow shape.
 
 ### v1.46.4 documentation sync
 
 - **Infrastructure:** See **[infrastructure-and-security-edge.md](infrastructure-and-security-edge.md)** for DNS, Cloudflare, and GitHub Pages (public-safe; no account secrets).
 - **Benchmarks:** `benchmarks/scripts/lib/` is part of the repo (see `.gitignore` root-only `/lib/` rule) so CI web benchmarks can import the static server and measurement helpers.
 
-### v1.46.3 documentation sync
-
-- **React Native:** `apps/rn-app/src/settings/SettingsAppInstallSection.tsx` provides the native **App installation** block in Settings → **Data management**; `apps/rn-app/src/screens/SettingsScreen.tsx` implements the eight-pane carousel aligned with the web settings overlay.
-
 ### v1.44.2 documentation sync
 
-- Added parity/testing references for `docs/platform-parity.md` and `docs/platform-parity.json` release metadata.
 - Styling references now include settings mini-icon navigation and single-tone MOTD 3D title updates in `docs/styling.md`.
 
 ```
 Rianell/
 ├── apps/
-│   ├── pwa-webapp/         # Static PWA (GitHub Pages site root; parity reference)
+│   ├── pwa-webapp/         # Static PWA (GitHub Pages site root)
 │   │   ├── index.html      # Main application HTML
 │   │   ├── app.js          # Core application logic
 │   │   ├── app.<hash>.min.js  # (generated) esbuild + content hash; gitignored - see asset-manifest.json
@@ -520,8 +497,6 @@ Rianell/
 │   │   ├── models/                # manifest.json (committed); ONNX weights gitignored → Supabase
 │   │   ├── notifications.js
 │   │   └── …
-│   ├── rn-app/             # React Native (Expo) CLI - primary native mobile surface
-│   │   └── src/            # Tabs, Log wizard, Charts, AI, Settings, …
 ├── packages/               # @rianell/shared, ai-engine, cloud-sync, llm, tokens
 ├── benchmarks/             # @rianell/benchmark-runner - perf reports (CI + local), scripts, reporters
 ├── scripts/
@@ -551,10 +526,9 @@ For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only 
 - Uses browser APIs and Supabase JS client
 - Font Awesome 6 (CDN) for icons
 
-### Node.js (PWA minify, RN, benchmarks)
-- **Minimum Node.js 24.14.1** (LTS); see root `package.json` `engines` and **`.nvmrc`**. Used for PWA minify, Expo/RN, benchmarks, and CI.
-- Root `package.json`: scripts for `build:web`, `dev` (Expo), `parity:*`, workspace packages under `packages/*`
-- `apps/rn-app/`: Expo SDK 55 / React Native; run `npm run dev` from repo root or `npx expo start` in `apps/rn-app`
+### Node.js (PWA minify, benchmarks)
+- **Minimum Node.js 24.14.1** (LTS); see root `package.json` `engines` and **`.nvmrc`**. Used for PWA minify, benchmarks, and CI.
+- Root `package.json`: scripts for `build:web`, workspace packages under `packages/*`
 
 <a id="nav-development"></a>
 
@@ -584,7 +558,7 @@ Server logs are saved to `logs/rianell_YYYYMMDD.log`. The `Rianell` logger uses 
 ## 🛡️ GDPR Compliance
 
 The app includes GDPR-compliant data sharing:
-- Explicit user consent required (including **Art. 9 health-data consent** modal on PWA + RN preference fields - see [data-subject-rights.md](privacy/data-subject-rights.md))
+- Explicit user consent required (including **Art. 9 health-data consent** modal on the PWA - see [data-subject-rights.md](privacy/data-subject-rights.md))
 - Optional **Smartlook session recording** (off by default; Settings → Privacy → Session recording) - see [smartlook-session-recording.md](privacy/smartlook-session-recording.md)
 - Data anonymisation before upload
 - Clear privacy agreement
@@ -601,7 +575,6 @@ The app includes GDPR-compliant data sharing:
 | **Default** | Off - no SDK load until user opts in |
 | **User UI** | Settings → Privacy & region → Session recording; Consent dashboard revoke |
 | **PWA** | `apps/pwa-webapp/smartlook.js` (Web SDK, EU region) |
-| **RN** | `apps/rn-app/src/analytics/sessionRecording.ts` + `react-native-smartlook-analytics` (dev build; not Expo Go) |
 | **Shared** | `sessionRecording` pref; policy feature in `i18n-packs/policy-packs/v1.json`; `packages/shared/src/settings/consentDashboard.mjs` |
 | **CSP** | `apps/pwa-webapp/index.html`; verified by `scripts/verify/verify-csp-connect-src.mjs` |
 | **Privacy docs** | [smartlook-session-recording.md](privacy/smartlook-session-recording.md), [subprocessors.md](privacy/subprocessors.md), RoPA **PA-10** |
@@ -652,11 +625,6 @@ The app includes GDPR-compliant data sharing:
 - **“Page did not load correctly” / styles overlay:** If `styles.css` fails to load (network blip), `index.html` shows a **reload** overlay. That is **not** the Python server; fix connectivity or cache and tap **Reload**.
 
 - **Installed iOS PWA (Add to Home Screen) fails or shows a blank screen:** Safari/Chrome **standalone** mode has **no DevTools**. Open once with **`?debug=1`** to show a red **launch error panel** at the bottom of the screen (errors from first script onward); tap **Copy** and share the report. Debug is **off by default**; any old **`localStorage.rianellDebug`** flag is cleared on load. After a deploy, force-quit the home-screen icon and relaunch (or remove and re-add) so **`sw.js`** picks up the new **`CACHE_NAME`**.
-
-**React Native / IDE: `File 'expo/tsconfig.base' not found` on `apps/rn-app/tsconfig.json`**:
-
-- In this monorepo, **`expo`** is installed under **`apps/rn-app/node_modules`**, not the repo root. **`apps/rn-app/tsconfig.json`** extends **`./node_modules/expo/tsconfig.base.json`**; root **`tsconfig.json`** references the mobile app for IDE project discovery.
-- Run **`npm install`** at the repo root, then **`npm run typecheck:mobile`**. If the squiggle persists in Cursor/VS Code, **Developer: Reload Window**.
 
 <a id="nav-security-notes"></a>
 
