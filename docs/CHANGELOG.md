@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.22** - Fix weather cloud hidden behind fixed header buttons on 481-768px phones.
+**Latest: v2.2.23** - Centred Ask Rianell chat, compass discovery icon, readable boot-recovery text, removed Enter hint.
+
+### v2.2.23 - 2026-07-18 - Ask Rianell polish
+
+- **Ask Rianell chat centring:** On ≥768px the chat panel now opens as a centred modal (rise + subtle scale-in) instead of a right-docked drawer that could sit offset/clipped.
+- **Discovery card icon:** The “Ask anything about my logs” tile now uses a line-art **compass** glyph (`icon-compass`) in the shared 1.7px `currentColor` style.
+- **Boot-recovery text readability:** The 22s boot-recovery overlay (shown when `body.loaded` never lands) forced near-white text but only pinned a dark background in dark mode; in light mode it inherited the light `--shell-bg`, leaving light-on-light text. Light mode now pins `--recovery-overlay-bg` dark so the message stays readable.
+- **Ask bar:** Removed the redundant “Press Enter to ask” hint below the input.
+- **Cache bust:** `styles.css?v=159`, `app.js?v=72`.
+
+**Previous: v2.2.22** - Fix weather cloud hidden behind fixed header buttons on 481-768px phones.
 
 ### v2.2.22 - 2026-07-18 - Mobile header weather clearance
 

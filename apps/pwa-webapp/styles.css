@@ -732,7 +732,10 @@ body.light-mode {
      Ink RGB defaults to mint; team overrides set --text-light / --text-light-rgb below. */
   --text-light: #163a23;
   --text-light-rgb: 22, 58, 35;
-  /* Recovery overlay keeps a fixed dark background, so its text must stay light. */
+  /* Recovery overlay keeps a fixed dark background, so its text must stay light.
+     Pin the background here too: it otherwise inherits the light --shell-bg in
+     light mode, which left the near-white text unreadable (light-on-light). */
+  --recovery-overlay-bg: #0d1f16;
   --recovery-overlay-text: #e8eeec;
   --neutral-card-rgb: 255, 255, 255;
   /* Icon polish: mix primary with theme ink (team blocks override ink). */
@@ -2300,17 +2303,6 @@ body.light-mode .app-log-fab {
   background: transparent;
   color: var(--text-light);
   font-size: 0.95rem;
-}
-
-.home-ask-enter-hint {
-  margin: 0;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--text-secondary, var(--text-muted)) 88%, var(--primary-color) 12%);
-}
-
-body.light-mode .home-ask-enter-hint {
-  color: rgba(0, 0, 0, 0.48);
 }
 
 .home-ask-setup,
@@ -29106,22 +29098,22 @@ body.guided-onboarding-active #appShell {
 
 @media (min-width: 768px) {
   .ai-chat-overlay {
-    align-items: stretch;
-    justify-content: flex-end;
-    padding: 1rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
     background: var(--surface-modal-backdrop, rgba(0, 0, 0, 0.4));
   }
 
   .ai-chat-panel {
-    width: min(24rem, 100%);
-    max-height: calc(100vh - 2rem);
+    width: min(30rem, 100%);
+    max-height: min(88vh, 44rem);
     margin: 0;
     border-radius: var(--radius-lg, 12px);
-    transform: translateX(110%);
+    transform: translateY(14px) scale(0.98);
   }
 
   .ai-chat-overlay--open .ai-chat-panel {
-    transform: translateX(0);
+    transform: translateY(0) scale(1);
   }
 
   .ai-chat-drag-handle {
