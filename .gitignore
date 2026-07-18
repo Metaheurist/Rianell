@@ -12,8 +12,6 @@ security/*.key
 
 # Local signing material (never commit)
 .secrets/
-*.jks
-*.keystore
 
 # Encryption keys (repo root - legacy)
 .encryption_key
@@ -27,8 +25,6 @@ replacements.txt
 
 # Logs
 logs/
-!apps/rn-app/src/logs/
-!apps/rn-app/src/logs/**
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -84,7 +80,6 @@ dist/
 !.cursor/hooks.json
 !.cursor/MCP-AND-CLI-GUIDE.md
 ci-probe-test/
-apps/rn-app/dist-expo-prod/
 apps/pwa-webapp/app.min.js
 .server-dist/
 # Isolated dev Chromium (Playwright) for server/ debugging
@@ -94,7 +89,7 @@ server/*.bak
 apps/pwa-webapp/app.*.min.js
 apps/pwa-webapp/asset-manifest.json
 apps/pwa-webapp/.trace-build/
-apps/pwa-webapp/.android-dist/
+apps/pwa-webapp/.web-dist/
 ci-minified/
 apps/pwa-webapp/styles.*.css
 
@@ -120,7 +115,5 @@ scripts/.audit/*
 !scripts/.audit/hardcoded-ui-baseline.json
 
 # CI binaries → GitHub Releases only; repo keeps manifest JSON under artifacts/
-artifacts/**/*.apk
 artifacts/**/*.exe
 artifacts/**/*.zip
-artifacts/**/dist-expo-prod/

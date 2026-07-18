@@ -2,38 +2,25 @@
   "name": "rianell",
   "private": true,
   "version": "2.2.6",
-  "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
+  "description": "Rianell - health dashboard (rianell.com); PWA webapp",
   "workspaces": [
-    "apps/rn-app",
     "apps/pwa-webapp",
     "packages/*",
     "benchmarks"
   ],
   "scripts": {
-    "dev": "cd apps/rn-app && npx expo start",
     "dev:web": "node scripts/dev/launch-web.mjs",
     "test:unit": "node --test tests/unit/**/*.test.mjs",
     "test:oasis-particles": "node tests/e2e/oasis-particles.mjs",
-    "typecheck": "npm run typecheck:mobile",
-    "typecheck:mobile": "cd apps/rn-app && npm run typecheck",
-    "test:mobile": "cd apps/rn-app && npm test",
-    "bundle:mobile:prod": "node scripts/build/run-mobile-export.mjs",
-    "build:web:apk": "node scripts/build/run-web.mjs --skip-trace",
+    "build:web:min": "node scripts/build/run-web.mjs --skip-trace",
     "build": "npm run build:web",
     "build:web": "node scripts/build/run-web.mjs",
     "icons:generate": "node scripts/build/generate-icon-set.mjs",
     "icons:beta": "node scripts/build/add-beta-badge-to-icons.mjs",
     "smoke:trace": "node scripts/build/smoke-function-trace.mjs",
-    "parity:web": "node scripts/verify/check-platform-parity.mjs web",
-    "parity:android": "node scripts/verify/check-platform-parity.mjs android",
-    "parity:ios": "node scripts/verify/check-platform-parity.mjs ios",
-    "parity:inventory": "node scripts/verify/parity-inventory.mjs",
-    "parity:inventory:check": "node scripts/verify/parity-inventory.mjs --check",
-    "parity": "npm run parity:web && npm run parity:android && npm run parity:ios && npm run parity:inventory:check",
     "sync:tokens": "node scripts/build/sync-tokens-to-pwa.mjs",
     "benchmark": "npm run all --workspace=@rianell/benchmark-runner",
     "benchmark:web": "npm run web --workspace=@rianell/benchmark-runner",
-    "benchmark:expo": "npm run expo --workspace=@rianell/benchmark-runner",
     "benchmark:all": "npm run benchmark",
     "docs:dependencies": "node scripts/ci/generate-dependencies-doc.mjs",
     "docs:security-inventory": "node scripts/ci/generate-security-inventory.mjs",
@@ -100,7 +87,6 @@
     "agentic:llm-full-scope": "node scripts/ci/agentic-llm-full-scope.mjs",
     "agentic:gpu-v1": "node scripts/ci/agentic-gpu-v1.mjs",
     "test:gpu-llama-matrix": "node scripts/test/gpu-llama-matrix.mjs",
-    "test:gpu-rn-matrix": "node scripts/test/gpu-rn-matrix.mjs",
     "test:webnn-probe": "node scripts/test/webnn-probe.mjs",
     "projects:gate": "powershell -ExecutionPolicy Bypass -File scripts/projects/post-plan-gate.ps1",
     "projects:gate:fast": "powershell -ExecutionPolicy Bypass -File scripts/projects/post-plan-gate.ps1 -NoCompile",
@@ -117,6 +103,7 @@
     "@opentelemetry/core": "^2.9.0",
     "@sentry/node": "^10.65.0",
     "esbuild": "0.28.1",
+    "jsdom": "^29.1.1",
     "sharp": "^0.35.3",
     "turbo": "^2.10.5"
   },
@@ -128,18 +115,6 @@
     },
     "esbuild": "0.28.1",
     "@xmldom/xmldom": "0.8.13",
-    "@expo/plist": {
-      "@xmldom/xmldom": "0.8.13"
-    },
-    "plist": {
-      "@xmldom/xmldom": "0.8.13"
-    },
-    "@trapezedev/project": {
-      "@xmldom/xmldom": "0.8.13"
-    },
-    "mergexml": {
-      "@xmldom/xmldom": "0.8.13"
-    },
     "http-proxy-agent@5.0.0": "7.0.2",
     "@tootallnate/once": "^3.0.1",
     "brace-expansion": "^5.0.6",
@@ -167,12 +142,7 @@
     "lighthouse": {
       "@sentry/node": "$@sentry/node"
     },
-    "react-native-transformers": {
-      "@huggingface/transformers": "3.3.2"
-    },
-    "@huggingface/transformers": "3.3.2",
-    "expo-modules-core": "55.0.25",
-    "react-native-screens": "4.25.2"
+    "@huggingface/transformers": "3.3.2"
   },
   "engines": {
     "node": ">=24.14.1"
