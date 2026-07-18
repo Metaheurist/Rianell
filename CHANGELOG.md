@@ -21,6 +21,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ### Fixed
 - **CI vendor step:** Restored `@huggingface/transformers` (pinned 3.3.2) as an explicit root devDependency — it was previously provided transitively by the removed RN app, breaking `vendor:transformers` on a clean `npm ci`.
 - **CI live boot probe:** `deploy-probe-loop.mjs` could wedge in browser launch/navigation against the live Cloudflare site and consume the entire 45-min job; added a per-probe watchdog, launch timeout, retries with backoff, and heartbeat logging.
+- **CI LLM download job:** No longer probes the live `rianell.com` / Cloudflare URL — Cloudflare bot-mitigation intermittently 403/503-blocks GitHub Actions runner IPs, which is unrelated to deploy health (already gated by deploy-pages + post-deploy boot audit + Playwright + Lighthouse). The ONNX model download is now verified directly from Hugging Face against the deployed Pages bundle served locally.
 - **CI live LLM download:** Extended the `PROBE_SOFT_HF_FORBIDDEN` soft-pass to also cover Hugging Face throttling the large ONNX weights past the app model-prep timeout (metadata + weight request + vendor bundle verified, zero failed requests / JS errors) — previously only a hard 403 soft-passed.
 
 ---

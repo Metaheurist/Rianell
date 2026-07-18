@@ -753,7 +753,7 @@ jobs:
         uses: ./.github/actions/cancel-workflow-on-failure
 
   audit-llm-download-live:
-    name: "3 · Live LLM download (rianell.com / Cloudflare)"
+    name: "3 · LLM model download (Hugging Face, local bundle)"
     needs: [deploy-pages]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
@@ -770,19 +770,12 @@ jobs:
 
       - uses: ./.github/actions/setup-python-ci
 
-      - name: Wait for live deploy HTML
-        env:
-          VERIFY_URLS: https://rianell.com/
-          VERIFY_ATTEMPTS: "12"
-          VERIFY_DELAY_MS: "30000"
-        run: node scripts/audit/verify-deploy-html.mjs
-
-      - name: Live boot probe (Cloudflare)
-        env:
-          PROBE_URL: https://rianell.com/
-          PROBE_PASS_MS: "120000"
-          PROBE_GOTO_TIMEOUT_MS: "180000"
-        run: node scripts/ci/deploy-probe-loop.mjs
+      # NOTE: This job intentionally does NOT probe the live rianell.com URL.
+      # Cloudflare bot-mitigation intermittently 403/503-blocks GitHub Actions
+      # datacenter IPs, which is unrelated to deploy health (already gated by
+      # deploy-pages + post-deploy boot audit + Playwright E2E + Lighthouse).
+      # The real functional check — downloading the ONNX model straight from
+      # Hugging Face — runs against the deployed Pages bundle served locally.
 
       - name: Download deployed Pages site (LLM probe — bypass Cloudflare bot CSP)
         uses: actions/download-artifact@v8
