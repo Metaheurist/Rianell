@@ -22866,9 +22866,11 @@ body.light-mode .danger-zone {
     padding: 15px;
   }
 
-  /* MOTD is position:sticky (first child of #main-content); in-flow ? no huge top padding or JS padding-top. */
+  /* Reserve top space for the fixed top-right chrome (goals/bug/settings) so the home
+     header's weather cloud is not hidden behind them on 481-768px phones. Matches the
+     ≤480px block. (MOTD is no longer a sticky top child, so top padding is safe.) */
   .container {
-    padding: 12px 18px 10px 18px;
+    padding: 100px 18px 10px 18px;
     padding-bottom: 10px;
     margin: 0 0 0 0;
     margin-bottom: 0;

@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.21** - AI Analysis nav icon is now a line-art brain.
+**Latest: v2.2.22** - Fix weather cloud hidden behind fixed header buttons on 481-768px phones.
+
+### v2.2.22 - 2026-07-18 - Mobile header weather clearance
+
+- **Mobile header overlap:** On 481-768px viewports the home `.container` only reserved 12px of top padding, so the header's weather cloud sat behind the fixed top-right chrome (goals/bug/settings). It now reserves the same 100px top as the ≤480px block, dropping the greeting + weather clear of the buttons.
+- **Cache bust:** `styles.css?v=158`.
+
+**Previous: v2.2.21** - AI Analysis nav icon is now a line-art brain.
 
 ### v2.2.21 - 2026-07-18 - Brain nav icon
 
