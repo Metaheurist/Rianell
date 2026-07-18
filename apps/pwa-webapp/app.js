@@ -13487,6 +13487,7 @@ function renderSymptomsRegionSeverity(containerId) {
       btn.type = 'button';
       btn.className = 'segmented-scale__btn' + ((state[r.id] || 0) === lvl ? ' is-active' : '');
       btn.setAttribute('role', 'radio');
+      btn.setAttribute('data-level', String(lvl));
       btn.setAttribute('aria-checked', ((state[r.id] || 0) === lvl) ? 'true' : 'false');
       btn.textContent = levelLabels[lvl];
       btn.addEventListener('click', function () {
