@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.19** - Ask Rianell UX, exercise chart, hold-to-repeat, log-detail tokens.
+**Latest: v2.2.20** - Value-reactive metric animations, region severity pills, AI download reliability, darker cloud icon.
+
+### v2.2.20 - 2026-07-18 - Metric motion + AI download reliability
+
+- **Metric widget motion (log wizard):** Stiffness gear spins faster and pulses harder as the value climbs; joint pain pulses rings **and** a core with value-scaled cadence; swelling balloon always floats (amplitude scales with severity); fatigue battery gains a defined, metric-tinted shell; sleep moon waxes from a thin crescent (low) to full (high) via an SVG mask shadow slide.
+- **Region pain severity:** Fixed 3-up segmented control (never a horizontal scroller) with colour-coded active pills — None neutral, Mild amber, Pain red (`data-level` + scoped `.symptoms-region-severity__scale`).
+- **On-device AI download:** Progress now tracks the dominant (weights) file so the bar no longer reaches 100% then restarts; caps at 99% until the engine finishes compiling/warming up (new **“Preparing on-device AI…”** phase). A finalize watchdog fails a hung compile instead of sticking near 100%, and each load attempt is stall-guarded so a hung backend falls through to the WASM fallback.
+- **Home “Ask Rianell” gate:** Removed the duplicate inline progress bar (the shared corner/modal overlay owns progress); a render-signature guard stops the download pill from flashing every tick; busy state shows a spinner.
+- **Weather cloud icon:** Re-resolves in light mode to the darker heading green (`--text-dark`) instead of the mint primary.
+- **Cache bust:** `styles.css?v=156`, `app.js?v=71`, `modules/log-metric-widgets.js?v=16`, `ui-feedback.js?v=4`, `summary-llm.js?v=2`.
+
+**Previous: v2.2.19** - Ask Rianell UX, exercise chart, hold-to-repeat, log-detail tokens.
 
 ### v2.2.19 - 2026-07-17 - Ask Rianell + Home polish
 

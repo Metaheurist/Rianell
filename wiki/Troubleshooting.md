@@ -22,8 +22,10 @@ This is most common on high-end desktop PCs where the device tier is 5 (max feat
 1. Check free disk space (~3.5 GB needed).
 2. Confirm network stability; chunked downloads resume from Supabase Storage.
 3. **Settings → Performance → Clear and redownload model**.
-4. On desktop PWA, watch the progress indicator near the **+** button.
+4. On desktop PWA, watch the progress indicator near the **+** button (the same overlay is used everywhere — Home does not show a second bar).
 5. If Supabase is unreachable, the app may try same-origin or Hugging Face fallback (PWA).
+
+**About the progress bar (v2.2.20+):** The percentage tracks the main model weights file, so it climbs once and does not restart. When it reaches ~100% it switches to **“Preparing on-device AI…”** while the engine compiles and warms up (this phase shows no download activity and can take a little while on first run). If preparation hangs, the app now **times out and offers a retry** instead of sitting at 100% forever, and it automatically falls back to the compatibility (WASM) engine if a faster backend stalls.
 
 See [[Charts-and-AI]].
 
