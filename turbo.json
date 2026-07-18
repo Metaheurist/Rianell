@@ -3,11 +3,11 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["app.*.min.js", "asset-manifest.json", ".android-dist/**"]
+      "outputs": ["app.*.min.js", "asset-manifest.json", ".web-dist/**"]
     },
-    "build:apk": {
+    "build:min": {
       "dependsOn": ["^build"],
-      "outputs": ["app.*.min.js", "asset-manifest.json", ".android-dist/**"]
+      "outputs": ["app.*.min.js", "asset-manifest.json", ".web-dist/**"]
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
