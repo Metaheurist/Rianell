@@ -95,8 +95,8 @@ function main() {
 
   if (check) {
     const current = fs.existsSync(outPath) ? fs.readFileSync(outPath, 'utf8') : '';
-    // Compare ignoring the volatile <lastmod> dates.
-    const strip = (s) => s.replace(/<lastmod>[^<]*<\/lastmod>/g, '');
+    // Compare ignoring volatile <lastmod> dates and platform line endings (core.autocrlf).
+    const strip = (s) => s.replace(/\r\n/g, '\n').replace(/<lastmod>[^<]*<\/lastmod>/g, '');
     if (strip(current) !== strip(xml)) {
       console.error('[sitemap] stale: run "npm run seo:sitemap" and commit apps/pwa-webapp/sitemap.xml');
       process.exit(1);
