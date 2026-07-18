@@ -146,9 +146,9 @@ test('index.html nav symbols are polished multi-path icons', () => {
   assert.match(html, /id="rianell-nav-logs"[\s\S]*nav-icon-logs-board/);
   assert.match(html, /id="rianell-nav-charts"[\s\S]*nav-icon-charts-bar--1/);
   assert.match(html, /id="rianell-nav-mood"[\s\S]*nav-icon-mood-eye--L/);
-  assert.match(html, /id="rianell-nav-ai"[\s\S]*nav-icon-ai-head/);
-  assert.match(html, /nav-icon-ai-scope-diaphragm/);
-  assert.match(html, /id="rianell-nav-ai"[\s\S]*width="13\.8"/);
+  assert.match(html, /id="rianell-nav-ai"[\s\S]*nav-icon-ai-brain--left/);
+  assert.match(html, /nav-icon-ai-brain-fold/);
+  assert.match(html, /id="rianell-nav-ai"[\s\S]*nav-icon-ai-brain--right/);
 });
 
 test('AI Analysis and Overview icons are sized for visibility', () => {

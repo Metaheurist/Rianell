@@ -1,6 +1,14 @@
 # Release Notes
 
-## Latest release (v2.2.20)
+## Latest release (v2.2.21)
+
+**Brain icon for AI Analysis** - The AI Analysis tab now uses a clean line-art brain that matches the weight and style of the other navigation icons. The active tab still gives it a gentle pulse.
+
+Hard-refresh after deploy for `styles.css?v=157`.
+
+See **v2.2.20** below for value-reactive metric animations, the clearer pain severity picker, and the smoother AI model download.
+
+## Previous (v2.2.20)
 
 **Metric animations that react to your value** - In the log wizard, the stiffness gear spins faster and pulses harder the stiffer you feel; joint pain pulses more urgently with higher pain; the swelling balloon gently floats (bobbing higher as swelling rises); the fatigue battery has a crisper outline; and the sleep moon fills from a thin crescent to a full moon as sleep quality goes up.
 
