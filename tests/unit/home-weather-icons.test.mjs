@@ -86,3 +86,25 @@ test('light-mode weather cloud icon re-resolves to the darker heading green', ()
     /body\.light-mode \{[\s\S]*--home-weather-icon-color: var\(--text-dark\)/,
   );
 });
+
+test('mobile .container reserves top space so weather clears the fixed header buttons', () => {
+  // 481-768px phones previously used only 12px top padding, hiding the header's
+  // weather cloud behind the fixed goals/bug/settings chrome. Both the ≤768px and
+  // ≤480px blocks must reserve 100px of top padding.
+  const css = readFileSync(
+    new URL('../../apps/pwa-webapp/styles.css', import.meta.url),
+    'utf8',
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 768px\)[\s\S]*?\.container \{[\s\S]*?padding: 100px 18px 10px 18px/,
+  );
+  assert.match(
+    css,
+    /@media \(max-width: 480px\)[\s\S]*?\.container \{[\s\S]*?padding: 100px 8px 10px 8px/,
+  );
+  assert.doesNotMatch(
+    css,
+    /@media \(max-width: 768px\)[\s\S]*?\.container \{[\s\S]*?padding: 12px 18px 10px 18px/,
+  );
+});

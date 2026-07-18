@@ -1,10 +1,14 @@
 # Release Notes
 
-## Latest release (v2.2.21)
+## Latest release (v2.2.22)
+
+**Weather cloud no longer hidden on phones** - On medium-width phones (about 481-768px) the header's weather cloud could sit behind the fixed goals/bug/settings buttons in the top-right corner. The home header now drops below those buttons so the cloud is fully visible.
+
+Hard-refresh after deploy for `styles.css?v=158`.
+
+## Previous (v2.2.21)
 
 **Brain icon for AI Analysis** - The AI Analysis tab now uses a clean line-art brain that matches the weight and style of the other navigation icons. The active tab still gives it a gentle pulse.
-
-Hard-refresh after deploy for `styles.css?v=157`.
 
 See **v2.2.20** below for value-reactive metric animations, the clearer pain severity picker, and the smoother AI model download.
 
