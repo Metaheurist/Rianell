@@ -1,6 +1,14 @@
 # Release Notes
 
-## Latest release (v2.2.23)
+## Latest release (v2.2.25)
+
+**Easier to find and share** - Rianell now has dedicated public info pages you can link to and search for - covering features, symptom tracking, mental-health check-ins, on-device AI insights, the community, and the conditions people track. Each page is search-engine friendly (clear titles, descriptions, and structured data) and there's a fresh sitemap so search engines can discover everything.
+
+**Nicer link previews** - Sharing a rianell.com link now shows a clean branded preview card (logo, tagline, and "Free · Open source · Encrypted").
+
+Your health data stays private: the site continues to block known AI-training crawlers via `robots.txt`.
+
+## Previous (v2.2.23)
 
 **Ask Rianell polish** - On larger screens the Ask Rianell chat now opens centred on screen instead of docked to the side where it could look offset or clipped. The "Ask anything about my logs" card gets a tidy compass icon, and the redundant "Press Enter to ask" hint under the input is gone.
 
