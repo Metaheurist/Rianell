@@ -433,6 +433,11 @@
   }
 
   function formatAiDownloadLabel(state) {
+    // Once bytes are in and the model is compiling/warming up, say "Preparing…"
+    // rather than implying an endless download at 100%.
+    if (state && (state.status === 'finalizing' || (typeof state.pct === 'number' && state.pct >= 99))) {
+      return tUi('common.preparing.on.device.ai');
+    }
     return tUi('common.downloading.ai.model');
   }
 

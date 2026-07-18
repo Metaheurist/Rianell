@@ -2251,6 +2251,30 @@ body.light-mode .app-log-fab {
   cursor: default;
 }
 
+.home-ask-setup__cta--busy {
+  gap: 0.5rem;
+}
+
+.home-ask-setup__spinner {
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: homeAskSetupSpin 0.7s linear infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes homeAskSetupSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-ask-setup__spinner {
+    animation-duration: 1.6s;
+  }
+}
+
 .home-ask-bar {
   display: flex;
   flex-direction: column;
