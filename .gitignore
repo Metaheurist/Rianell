@@ -95,6 +95,9 @@ apps/pwa-webapp/styles.*.css
 
 .aider*
 
+# RepoMapper (LocalRepoMapper MCP) tags cache — regenerated per run
+.repomap.tags.cache.v*/
+
 backup/
 
 # Memory stress test outputs (stress-test-memory.mjs)

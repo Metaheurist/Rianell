@@ -6,6 +6,15 @@ const PASS_MS = Number(process.env.PROBE_PASS_MS || 60000);
 const GOTO_TIMEOUT_MS = Number(process.env.PROBE_GOTO_TIMEOUT_MS || 180000);
 const GOTO_WAIT_UNTIL = process.env.PROBE_GOTO_WAIT || 'domcontentloaded';
 const GOTO_ATTEMPTS = Number(process.env.PROBE_GOTO_ATTEMPTS || 3);
+// Hard per-probe wall-clock cap so a stuck launch/goto to the live Cloudflare
+// site can never consume the whole job timeout. Retried a few times with a
+// fresh browser to ride out transient Cloudflare / runner-IP flakiness.
+const LAUNCH_TIMEOUT_MS = Number(process.env.PROBE_LAUNCH_TIMEOUT_MS || 60000);
+const PROBE_DEADLINE_MS = Number(process.env.PROBE_DEADLINE_MS || 180000);
+const PROBE_RETRIES = Number(process.env.PROBE_RETRIES || 3);
+const PROBE_RETRY_DELAY_MS = Number(process.env.PROBE_RETRY_DELAY_MS || 15000);
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function killHeadless() {
   try {
@@ -39,10 +48,25 @@ async function clickThrough(page) {
 
 async function probe(cold) {
   killHeadless();
+  const label = cold ? 'COLD' : 'WARM';
+  console.error(`[${label}] launching browser (deadline ${Math.round(PROBE_DEADLINE_MS / 1000)}s)`);
   const browser = await chromium.launch({
     headless: true,
+    timeout: LAUNCH_TIMEOUT_MS,
     args: ['--disable-dev-shm-usage', '--no-sandbox'],
   });
+  // Watchdog: if goto/launch wedges (e.g. Cloudflare tarpits the runner IP),
+  // force-close the browser so the awaiting probe rejects instead of hanging.
+  let wedged = false;
+  const watchdog = setTimeout(() => {
+    wedged = true;
+    console.error(`[${label}] deadline exceeded — force-closing browser`);
+    browser.close().catch(() => {});
+    killHeadless();
+  }, PROBE_DEADLINE_MS);
+  const heartbeat = setInterval(() => {
+    console.error(`[${label}] still working…`);
+  }, 15000);
   try {
     const ctx = await browser.newContext({
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
@@ -116,16 +140,36 @@ async function probe(cold) {
     }
     return { ok: false, cold, elapsedMs: Date.now() - t0, ...last, errors };
   } finally {
-    await browser.close();
+    clearTimeout(watchdog);
+    clearInterval(heartbeat);
+    if (!wedged) await browser.close().catch(() => {});
     killHeadless();
   }
 }
 
+async function probeWithRetries(cold) {
+  const label = cold ? 'COLD' : 'WARM';
+  let lastErr;
+  for (let attempt = 1; attempt <= PROBE_RETRIES; attempt++) {
+    try {
+      const res = await probe(cold);
+      if (res.ok) return res;
+      lastErr = new Error(`probe not ready: ${JSON.stringify(res).slice(0, 200)}`);
+      console.error(`[${label}] attempt ${attempt}/${PROBE_RETRIES} not ready`);
+    } catch (e) {
+      lastErr = e;
+      console.error(`[${label}] attempt ${attempt}/${PROBE_RETRIES} errored: ${e.message}`);
+    }
+    if (attempt < PROBE_RETRIES) await sleep(PROBE_RETRY_DELAY_MS);
+  }
+  return { ok: false, cold, error: lastErr?.message || 'unknown' };
+}
+
 console.error('Probing', URL);
-const warm = await probe(false);
+const warm = await probeWithRetries(false);
 console.log('WARM', JSON.stringify(warm));
 if (!warm.ok) process.exit(1);
 
-const cold = await probe(true);
+const cold = await probeWithRetries(true);
 console.log('COLD', JSON.stringify(cold));
 process.exit(cold.ok ? 0 : 1);

@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "2.2.6",
+  "version": "2.3.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp",
   "workspaces": [
     "apps/pwa-webapp",
@@ -17,6 +17,9 @@
     "build:web": "node scripts/build/run-web.mjs",
     "icons:generate": "node scripts/build/generate-icon-set.mjs",
     "icons:beta": "node scripts/build/add-beta-badge-to-icons.mjs",
+    "seo:sitemap": "node scripts/build/generate-sitemap.mjs",
+    "seo:sitemap:check": "node scripts/build/generate-sitemap.mjs --check",
+    "seo:og-card": "node scripts/build/generate-og-card.mjs",
     "smoke:trace": "node scripts/build/smoke-function-trace.mjs",
     "sync:tokens": "node scripts/build/sync-tokens-to-pwa.mjs",
     "benchmark": "npm run all --workspace=@rianell/benchmark-runner",
@@ -27,6 +30,8 @@
     "verify:privacy-docs": "node scripts/verify/verify-privacy-docs.mjs",
     "verify:policy-packs": "node scripts/verify/verify-policy-packs.mjs",
     "verify:i18n": "node scripts/verify/i18n-all.mjs",
+    "i18n:ollama": "node scripts/i18n/ollama-translate-gaps.mjs",
+    "i18n:merge-tier-c": "node scripts/i18n/merge-tier-c-overrides-from-packs.mjs",
     "verify:a11y-tokens": "node scripts/verify/verify-a11y-tokens.mjs",
     "verify:design-tokens": "node scripts/verify/verify-design-tokens.mjs",
     "verify:api-spec": "node scripts/verify/verify-api-spec.mjs",

@@ -5,6 +5,342 @@
     "kind": "web",
     "status": "ok",
     "meta": {
+      "timestamp_utc": "2026-07-18T21:31:39.716Z",
+      "git_sha": "679d823138417aafe6485687eb15e29efda55c51",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "29661697648",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 12342,
+      "LCP_ms": 24900,
+      "TBT_ms": 1338,
+      "CLS": 0,
+      "SpeedIndex_ms": 14387,
+      "TTI_ms": 28162
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 884
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 165
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 154
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 161
+      },
+      {
+        "step": "open_settings",
+        "ms": 317
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 502
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
+      "timestamp_utc": "2026-07-18T21:01:27.253Z",
+      "git_sha": "a0bcfc05f4fceed6f12e59fc00f2dfcb0533f68b",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "29660749746",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 7810,
+      "LCP_ms": 25139,
+      "TBT_ms": 2366,
+      "CLS": 0.0796,
+      "SpeedIndex_ms": 11667,
+      "TTI_ms": 28201
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 1061
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 174
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 179
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 158
+      },
+      {
+        "step": "open_settings",
+        "ms": 222
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 443
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
+      "timestamp_utc": "2026-07-18T20:43:49.875Z",
+      "git_sha": "69d1dd2d9f1e558e12b24263c92ad3e420fb5401",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "29660192882",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 11816,
+      "LCP_ms": 25124,
+      "TBT_ms": 1729,
+      "CLS": 0,
+      "SpeedIndex_ms": 14135,
+      "TTI_ms": 28152
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 1006
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 203
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 237
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 158
+      },
+      {
+        "step": "open_settings",
+        "ms": 173
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 531
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
+      "timestamp_utc": "2026-07-18T20:19:50.363Z",
+      "git_sha": "9d01bbc17b03d2f901aa3a38a59e376ff1d584be",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "29659426188",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 11786,
+      "LCP_ms": 25162,
+      "TBT_ms": 1639,
+      "CLS": 0,
+      "SpeedIndex_ms": 14030,
+      "TTI_ms": 28111
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 935
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 215
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 175
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 172
+      },
+      {
+        "step": "open_settings",
+        "ms": 158
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 641
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
+      "timestamp_utc": "2026-07-18T19:41:24.305Z",
+      "git_sha": "58de51cf49024db6abfa7adb6737b1ee583a0b7c",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "29658208882",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 11781,
+      "LCP_ms": 25092,
+      "TBT_ms": 1166,
+      "CLS": 0,
+      "SpeedIndex_ms": 13878,
+      "TTI_ms": 28144
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 967
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 166
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 222
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 156
+      },
+      {
+        "step": "open_settings",
+        "ms": 179
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 510
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
+      "timestamp_utc": "2026-07-18T19:09:22.719Z",
+      "git_sha": "84c41b6cc5dd2ba5b75d6a0ced6ae8a790381b40",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "29657192225",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 7811,
+      "LCP_ms": 22152,
+      "TBT_ms": 687,
+      "CLS": 0,
+      "SpeedIndex_ms": 11531,
+      "TTI_ms": 26748
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 611
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 169
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 171
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 153
+      },
+      {
+        "step": "open_settings",
+        "ms": 118
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 327
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
+      "timestamp_utc": "2026-07-18T17:21:08.530Z",
+      "git_sha": "6b835af6f07af8e45fabcb2746d6dbff9d12dd8f",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "29653660920",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 7810,
+      "LCP_ms": 25215,
+      "TBT_ms": 2414,
+      "CLS": 0.093,
+      "SpeedIndex_ms": 12631,
+      "TTI_ms": 28259
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 784
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 172
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 152
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 154
+      },
+      {
+        "step": "open_settings",
+        "ms": 145
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 478
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
       "timestamp_utc": "2026-07-18T14:30:21.126Z",
       "git_sha": "30c2c644eef4c460c1d394c1732f20d7e274f9bb",
       "runner": "linux",
@@ -6860,342 +7196,6 @@
       {
         "step": "warm_reload_to_main",
         "ms": 906
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "web-pwa",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-04-12T10:02:35.259Z",
-      "git_sha": "bf7d465bbb33a7ecbd18fda9ee48cc423c390a3e",
-      "runner": "linux",
-      "node": "v22.22.2",
-      "github_run_id": "24304047351",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10120,
-      "LCP_ms": 11691,
-      "TBT_ms": 39,
-      "CLS": 0.0214,
-      "SpeedIndex_ms": 10120,
-      "TTI_ms": 11691
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 2241
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 170
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 152
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 153
-      },
-      {
-        "step": "open_settings",
-        "ms": 20
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 891
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "web-pwa",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-03-29T20:59:43.545Z",
-      "git_sha": "a728c40e43ada9047ea5e3b6a0d00f33434a3aac",
-      "runner": "linux",
-      "node": "v22.22.1",
-      "github_run_id": "23718893763",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10213,
-      "LCP_ms": 11716,
-      "TBT_ms": 62,
-      "CLS": 0.0213,
-      "SpeedIndex_ms": 10213,
-      "TTI_ms": 11716
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 2173
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 169
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 152
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 154
-      },
-      {
-        "step": "open_settings",
-        "ms": 7
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 943
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "web-pwa",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-03-29T19:49:55.166Z",
-      "git_sha": "37034e2af8161dda08e7f0aecd6ff7cef2b6a64e",
-      "runner": "linux",
-      "node": "v22.22.1",
-      "github_run_id": "23717325744",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10200,
-      "LCP_ms": 11698,
-      "TBT_ms": 46,
-      "CLS": 0.0213,
-      "SpeedIndex_ms": 10200,
-      "TTI_ms": 11698
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 2176
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 170
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 153
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 154
-      },
-      {
-        "step": "open_settings",
-        "ms": 8
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 915
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "web-pwa",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-03-29T19:34:14.696Z",
-      "git_sha": "00595d4ae55bb595049549796e26265400fd4b74",
-      "runner": "linux",
-      "node": "v22.22.1",
-      "github_run_id": "23717238946",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10139,
-      "LCP_ms": 11566,
-      "TBT_ms": 63,
-      "CLS": 0.0216,
-      "SpeedIndex_ms": 10139,
-      "TTI_ms": 11566
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 2246
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 166
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 152
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 154
-      },
-      {
-        "step": "open_settings",
-        "ms": 7
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 908
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "web-pwa",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-03-29T18:35:41.380Z",
-      "git_sha": "0e5a7e30f8980698a2cfbfd69ff543a52dfcec3b",
-      "runner": "linux",
-      "node": "v22.22.1",
-      "github_run_id": "23716096346",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10145,
-      "LCP_ms": 11571,
-      "TBT_ms": 53,
-      "CLS": 0.0215,
-      "SpeedIndex_ms": 10145,
-      "TTI_ms": 11571
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 2240
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 167
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 152
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 153
-      },
-      {
-        "step": "open_settings",
-        "ms": 23
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 985
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "web-pwa",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-03-29T18:24:37.683Z",
-      "git_sha": "00535b041b6c373ace9746862d4ae60765888cf5",
-      "runner": "linux",
-      "node": "v22.22.1",
-      "github_run_id": "23715875249",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10124,
-      "LCP_ms": 11711,
-      "TBT_ms": 60,
-      "CLS": 0.0216,
-      "SpeedIndex_ms": 10124,
-      "TTI_ms": 11711
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 2160
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 166
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 153
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 153
-      },
-      {
-        "step": "open_settings",
-        "ms": 12
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 894
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "web-pwa",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-03-29T18:05:11.032Z",
-      "git_sha": "c27c51e6c8b64df4e735ffe7686a4a528ce8518b",
-      "runner": "linux",
-      "node": "v22.22.1",
-      "github_run_id": "23715480357",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10125,
-      "LCP_ms": 11699,
-      "TBT_ms": 68,
-      "CLS": 0.0215,
-      "SpeedIndex_ms": 10125,
-      "TTI_ms": 11699
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 2115
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 167
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 153
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 153
-      },
-      {
-        "step": "open_settings",
-        "ms": 11
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 899
       }
     ]
   }
