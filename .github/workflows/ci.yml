@@ -816,6 +816,14 @@ jobs:
           console.log('LLM vendor OK:', wasm, fs.statSync(wasm).size, 'bytes');
           "
 
+      # Phased progress: the probe streams collapsible ::group:: sections per
+      # phase (navigate → boot-clickthrough → grant-consent → wait-preload-fn →
+      # download-poll) plus a 10s LLM_HEARTBEAT and LLM_NET/LLM_PROGRESS lines.
+      # The still-open (bottom) group in this step's log is the phase it is on,
+      # so a stall is immediately visible (e.g. weights transferred but ONNX
+      # compile pending). CI runners have no WebGPU and no cross-origin isolation,
+      # so ONNX runs single-threaded WASM; this job verifies the *download* and
+      # short-circuits once weights are fully fetched (grace window below).
       - name: Live HF model download probe (Pages bundle, local)
         env:
           PROBE_URL: http://127.0.0.1:9876/
@@ -824,6 +832,10 @@ jobs:
           PROBE_GPU_AVAILABLE: "0"
           PROBE_ATTEMPTS: "3"
           PROBE_ATTEMPT_DELAY_MS: "120000"
+          # Once the onnx weights are fully transferred and the app enters ONNX
+          # prep, wait this long for "ready" before accepting the verified
+          # download (avoids sitting in single-threaded WASM compile for 150s+).
+          PROBE_WEIGHTS_VERIFY_GRACE_MS: "30000"
           # Soft-pass when Hugging Face 403s GHA IPs on large ONNX files (metadata path still verified).
           PROBE_SOFT_HF_FORBIDDEN: "1"
         run: node scripts/ci/probe-llm-download-live.mjs
