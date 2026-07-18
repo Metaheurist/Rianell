@@ -4,6 +4,14 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.2.25 documentation sync (SEO landing pages + og-card + Ollama Tier-C + RepoMapper)
+
+- **SEO:** New crawlable content pages (`features/`, `symptom-tracking/`, `mental-health-check/`, `ai-insights/`, `community/`, `conditions/`) with canonical + `hreflang` + JSON-LD; `npm run seo:sitemap` (`scripts/build/generate-sitemap.mjs` → `apps/pwa-webapp/sitemap.xml`) and `npm run seo:og-card` (`scripts/build/generate-og-card.mjs` → `Icons/og-card.png`, 1200x630). CI regenerates the sitemap against the built site and asserts sitemap + og-card presence.
+- **i18n:** Ollama Tier-C gap-fill scaffold (`npm run i18n:ollama` / `i18n:merge-tier-c`; `scripts/lib/ollama-tier-c-overrides.mjs` for `ga`/`ar`/`he`) merged by `generate-locale-overrides.mjs`.
+- **Tooling:** Local RepoMapper MCP (`.cursor/rules/codebase-mapping.mdc`) → `docs/codebase_interaction_map.md`.
+- **Tests:** `tests/unit/seo/` (meta-tags, sitemap, assets).
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.25]`.
+
 ### v2.2.18 documentation sync (achievements IA + Home chrome)
 
 - **PWA:** Home Trophy Room removed; achievements only in Goals modal; log wizard `--log-wizard-dock-offset` clearance; larger mood deck icons; header bug report left / Goals+Settings right.
