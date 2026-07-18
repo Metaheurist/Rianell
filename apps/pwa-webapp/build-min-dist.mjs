@@ -1,7 +1,6 @@
 /**
- * Produces apps/pwa-webapp/.android-dist/ — a full copy with first-party JS/CSS minified
- * and index.html pointing at content-hashed app + styles bundles. Used by
- * apps/capacitor-app/copy-webapp.js --min for Capacitor Android/iOS.
+ * Produces apps/pwa-webapp/.web-dist/ — a full copy with first-party JS/CSS minified
+ * and index.html pointing at content-hashed app + styles bundles.
  *
  * Run after build-site.mjs --skip-trace (writes asset-manifest.json + app.<hash>.min.js).
  */
@@ -23,9 +22,9 @@ function mkdirp(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-const SKIP_DIRS = new Set(['.trace-build', '.android-dist', 'build-plugins', 'node_modules']);
+const SKIP_DIRS = new Set(['.trace-build', '.web-dist', 'build-plugins', 'node_modules']);
 /** Build tooling at web root — not part of the shipped app */
-const SKIP_FILES = new Set(['build-site.mjs', 'build-android-dist.mjs', 'fingerprint-assets.mjs']);
+const SKIP_FILES = new Set(['build-site.mjs', 'build-min-dist.mjs', 'fingerprint-assets.mjs']);
 
 /** Already minified / special — copy as-is */
 function isPreMinifiedJs(name) {
@@ -44,8 +43,8 @@ function loadManifestMainJs(webRoot) {
   return 'app.min.js';
 }
 
-export async function buildAndroidDistBundle(webRoot) {
-  const outRoot = path.join(webRoot, '.android-dist');
+export async function buildMinDistBundle(webRoot) {
+  const outRoot = path.join(webRoot, '.web-dist');
   rmrf(outRoot);
   mkdirp(outRoot);
 
@@ -140,5 +139,5 @@ export async function buildAndroidDistBundle(webRoot) {
   }
 
   await walk('');
-  console.log('[build-android-dist] wrote', path.relative(repoRoot, outRoot));
+  console.log('[build-min-dist] wrote', path.relative(repoRoot, outRoot));
 }

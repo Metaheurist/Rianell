@@ -9,30 +9,27 @@
 
   /**
    * Returns device performance tier: 'low' | 'medium' | 'high'.
-   * Prefer more resources: relaxed thresholds so mobile/desktop/compiled app use more processing.
-   * Compiled app (Capacitor) is treated as at least 'medium'.
+   * Prefer more resources: relaxed thresholds so mobile/desktop use more processing.
    */
   function getDevicePerformanceClass() {
     var nav = typeof navigator !== 'undefined' ? navigator : {};
     var deviceMemory = nav.deviceMemory;
     var cores = nav.hardwareConcurrency;
     var isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
-    var cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
-    var isNativeApp = cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform();
 
     if (isSecure && typeof deviceMemory === 'number' && deviceMemory > 0) {
-      if (deviceMemory <= 2) return isNativeApp ? 'medium' : 'low';
+      if (deviceMemory <= 2) return 'low';
       if (deviceMemory >= 4) return 'high';
       return 'medium';
     }
     if (typeof cores === 'number' && cores > 0) {
-      if (cores <= 2) return isNativeApp ? 'medium' : 'low';
+      if (cores <= 2) return 'low';
       if (cores >= 4) return 'high';
       return 'medium';
     }
     var ua = nav.userAgent || '';
     var mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (nav.maxTouchPoints && nav.maxTouchPoints > 1);
-    if (mobile || isNativeApp) return 'medium';
+    if (mobile) return 'medium';
     return 'medium';
   }
 

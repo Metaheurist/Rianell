@@ -357,10 +357,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=159" as="style">
+  <link rel="preload" href="styles.css?v=160" as="style">
   <link rel="modulepreload" href="app.js?v=72" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=159" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=159&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=160" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=160&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=3">
   <style>
@@ -1171,8 +1171,6 @@
     <symbol id="icon-cloud-up" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/><path d="M12 11v6"/><path d="m9.5 14.5 2.5-3.5 2.5 3.5"/></symbol>
     <symbol id="icon-import-arrow" viewBox="0 0 24 24"><path d="M12 4v10"/><path d="m8.5 11.5 3.5 3.5 3.5-3.5"/><path d="M5 20h14"/></symbol>
     <symbol id="icon-reload" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M21 21v-5h-5"/></symbol>
-    <symbol id="icon-android" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M17.523 15.341c-.551 0-.999-.449-.999-.999s.448-.999.999-.999.999.448.999.999-.448.999-.999.999m-11.046 0c-.551 0-.999-.449-.999-.999s.448-.999.999-.999c.55 0 .999.448.999.999 0 .55-.449.999-.999.999m11.312-6.02 1.977-3.422c.097-.096.097-.252 0-.348a.246.246 0 0 0-.348 0l-2.012 3.484C14.858 8.342 13.47 7.877 12 7.877c-1.47 0-2.858.465-4.058 1.174L5.929 5.567a.246.246 0 0 0-.348 0 .245.245 0 0 0 0 .348l1.977 3.422C3.677 10.225 2 12.587 2 15.306h20c0-2.719-1.677-5.081-4.212-5.984Z"/></symbol>
-    <symbol id="icon-apple" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M16.365 20.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C2.905 17 1.595 12.45 3.355 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M12.655 4.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></symbol>
     <symbol id="icon-life-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
     <symbol id="icon-run" viewBox="0 0 24 24"><circle cx="14.5" cy="4.5" r="2.2"/><path d="M12 8 9 12 7.5 19"/><path d="M12 8 15.5 10.5 19.5 9"/><path d="M9 12 13.5 14"/><path d="M13.5 14 17 20"/></symbol>
     <symbol id="icon-footprint" viewBox="0 0 24 24"><ellipse cx="12" cy="16.5" rx="4.2" ry="5.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="9.5" r="1.7" fill="currentColor" stroke="none"/><circle cx="11.5" cy="7.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="14.8" cy="9.2" r="1.6" fill="currentColor" stroke="none"/><circle cx="16.8" cy="12.2" r="1.4" fill="currentColor" stroke="none"/></symbol>
@@ -1893,12 +1891,6 @@
             <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
           </div>
           <div class="data-management-buttons data-management-buttons--install">
-            <div class="data-management-buttons__cell" id="androidRnCliDownloadOption">
-              <a id="downloadRnCliApkLink" class="settings-data-btn install-android-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon ui-svg-icon--brand" aria-hidden="true"><use href="#icon-android"></use></svg></span><span class="app-install-store-link__text"><span id="downloadRnCliAndroidLabel" data-i18n="common.download.android.react.native.cli">Download Android (React Native CLI)</span></span><span class="android-version app-install-build-meta" aria-hidden="true"></span></a>
-            </div>
-            <div class="data-management-buttons__cell" id="iosDownloadOption">
-              <a id="downloadIosLink" class="settings-data-btn install-ios-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon ui-svg-icon--brand" aria-hidden="true"><use href="#icon-apple"></use></svg></span><span class="app-install-store-link__text"><span id="downloadIosLabel" data-i18n="common.download.for.ios">Download for iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span></span><span class="ios-version app-install-build-meta" aria-hidden="true"></span></a>
-            </div>
             <div class="data-management-buttons__cell" id="installWebAppOption">
               <button type="button" class="settings-data-btn install-app-btn app-install-store-link" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span class="app-install-store-link__text"><span id="installWebAppLabel" data-i18n="common.install.web.app">Install web app</span></span><span class="app-install-build-meta app-install-build-meta--spacer" aria-hidden="true"></span></button>
             </div>
@@ -2416,9 +2408,14 @@
         <path class="nav-icon-mood-smile" d="M8.75 14.35c.95 1.35 2.05 2.05 3.25 2.05s2.3-.7 3.25-2.05" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
       </symbol>
       <symbol id="rianell-nav-ai" viewBox="0 0 24 24">
-        <path class="nav-icon-ai-brain nav-icon-ai-brain--left" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-        <path class="nav-icon-ai-brain nav-icon-ai-brain--right" d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-        <path class="nav-icon-ai-brain-fold" d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="nav-icon-ai-brain nav-icon-ai-brain--left" transform="translate(-0.7 0)" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="nav-icon-ai-brain nav-icon-ai-brain--right" transform="translate(0.7 0)" d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <g class="nav-icon-ai-brain-fold" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.9 8.3c-1.6.1-2.5 1-2.6 2.4"/>
+          <path d="M9.1 12.9c-1.8.1-2.9-.7-3-2.1"/>
+          <path d="M15.1 8.3c1.6.1 2.5 1 2.6 2.4"/>
+          <path d="M14.9 12.9c1.8.1 2.9-.7 3-2.1"/>
+        </g>
       </symbol>
     </svg>
     <!-- Sibling of .container (not inside scroll/transform) so fixed top-right matches FAB behavior -->
@@ -4640,12 +4637,6 @@
           <div class="settings-option">
             <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-solid fa-globe"></i></span> Install web app</button>
           </div>
-          <div class="settings-option">
-            <a id="installModalRnCliApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-android"></i></span> Install on Android (React Native CLI) <span class="android-version" aria-hidden="true"></span></a>
-          </div>
-          <div class="settings-option">
-            <a id="installModalIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosLinkLabel" data-i18n="common.install.on.ios">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
-          </div>
         </div>
       </div>
     </div>
@@ -5175,16 +5166,11 @@
   <script defer src="appointment-pdf.js?v=2"></script>
   <script defer src="qr-handoff.js?v=1"></script>
   <script defer src="background-loader.js"></script>
-  <script defer src="android-update-check.js?v=1"></script>
   <script>
     (function() {
       var Perf = window.PerformanceUtils;
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
-      try {
-        var cap = window.Capacitor;
-        if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform() && cap.getPlatform && cap.getPlatform() === 'android') return;
-      } catch (e) {}
       function loadSummaryLlm() {
         Perf.lazyLoadScript('summary-llm.js?v=2').catch(function () {});
       }
@@ -5251,7 +5237,6 @@
   </script>
   <script>
     (function() {
-      if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
       var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIosDevice) {
         var block = document.getElementById('installOnIosDevice');

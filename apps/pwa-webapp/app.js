@@ -1,4 +1,3 @@
-import { getBuildBaseUrls, shouldFetchAppBuildManifests } from './src/buildDownloads.js';
 import { installSettingsEarlyPlaceholder, installSettingsModule } from './modules/settings.js';
 
 installSettingsEarlyPlaceholder({});
@@ -50,7 +49,7 @@ function isRianellServiceWorkerHost() {
   }
 }
 
-/** True when the optional static SW should register: prod PWA hosts, ?sw=1, or localStorage opt-in. Not Capacitor native. */
+/** True when the optional static SW should register: prod PWA hosts, ?sw=1, or localStorage opt-in. */
 function shouldEnableRianellServiceWorker() {
   try {
     if (typeof isRianellNativeApp === 'function' && isRianellNativeApp()) return false;
@@ -67,14 +66,8 @@ function rianellSwManagesCaches() {
   return shouldEnableRianellServiceWorker();
 }
 
-/** True when UI runs in the Capacitor shell (APK / iOS): top-level WebView or legacy iframe inside React shell (web preview). */
+/** Rianell ships as a PWA only. Retained as a no-op so legacy guards keep working. */
 function isRianellNativeApp() {
-  try {
-    var c = window.Capacitor;
-    if (c && typeof c.isNativePlatform === 'function' && c.isNativePlatform()) return true;
-    if (window.__rianellCapacitorNative) return true;
-    if (window.parent && window.parent !== window && window.parent.__rianellCapacitorNative) return true;
-  } catch (e) {}
   return false;
 }
 window.isRianellNativeApp = isRianellNativeApp;
@@ -639,42 +632,6 @@ function clearVoiceActiveState() {
 
 async function ensureVoiceInputPermission() {
   try {
-    // Capacitor/community speech plugins (if present) should handle native permission prompts.
-    var cap = (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins) ? window.Capacitor.Plugins : null;
-    var speechPlugin = cap && cap.SpeechRecognition ? cap.SpeechRecognition : null;
-    if (speechPlugin) {
-      try {
-        if (typeof speechPlugin.checkPermissions === 'function') {
-          var perms = await speechPlugin.checkPermissions();
-          if (perms && (perms.speechRecognition === 'granted' || perms.microphone === 'granted')) {
-            _voiceInputPermissionState = 'granted';
-            return true;
-          }
-          if (typeof speechPlugin.requestPermissions === 'function') {
-            var requested = await speechPlugin.requestPermissions();
-            var granted = requested && (
-              requested.speechRecognition === 'granted' ||
-              requested.microphone === 'granted'
-            );
-            _voiceInputPermissionState = granted ? 'granted' : 'denied';
-            if (granted) return true;
-          }
-        } else if (typeof speechPlugin.hasPermission === 'function') {
-          var hasPerm = await speechPlugin.hasPermission();
-          if (hasPerm === true || (hasPerm && hasPerm.value === true)) {
-            _voiceInputPermissionState = 'granted';
-            return true;
-          }
-          if (typeof speechPlugin.requestPermission === 'function') {
-            var reqPerm = await speechPlugin.requestPermission();
-            var ok = reqPerm === true || (reqPerm && reqPerm.value === true);
-            _voiceInputPermissionState = ok ? 'granted' : 'denied';
-            if (ok) return true;
-          }
-        }
-      } catch (e) {}
-    }
-
     if (typeof navigator === 'undefined') return false;
     var mediaDevices = navigator.mediaDevices;
     if (!mediaDevices || typeof mediaDevices.getUserMedia !== 'function') {
@@ -2561,94 +2518,8 @@ function maybeShowInstallModalOnce() {
   } catch (err) {}
 }
 
-function refreshBuildDownloadLinks() {
-  var bases = getBuildBaseUrls();
-  var androidRnCliBase = bases.androidRnCli;
-  var iosBase = bases.ios;
-  var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  var apkElRnCli = document.getElementById('downloadRnCliApkLink');
-  var iosEl = document.getElementById('downloadIosLink');
-  var apkModalRnCli = document.getElementById('installModalRnCliApkLink');
-  var iosModal = document.getElementById('installModalIosLink');
-  var iosLabel = document.getElementById('downloadIosLabel');
-  var iosLabelModal = document.getElementById('installModalIosLinkLabel');
-
-  function setAndroidRnCli(href, versionText) {
-    if (apkElRnCli) {
-      apkElRnCli.href = href;
-      var v = apkElRnCli.querySelector('.android-version');
-      if (v) v.textContent = versionText || '';
-    }
-    if (apkModalRnCli) {
-      apkModalRnCli.href = href;
-      var vM = apkModalRnCli.querySelector('.android-version');
-      if (vM) vM.textContent = versionText || '';
-    }
-  }
-  function setIos(href, versionText, labelText) {
-    if (iosEl) {
-      iosEl.href = href;
-      var v = iosEl.querySelector('.ios-version');
-      if (v) v.textContent = versionText || '';
-      if (iosLabel && labelText) iosLabel.textContent = labelText;
-    }
-    if (iosModal) {
-      iosModal.href = href;
-      var vM = iosModal.querySelector('.ios-version');
-      if (vM) vM.textContent = versionText || '';
-      if (iosLabelModal && labelText) iosLabelModal.textContent = labelText;
-    }
-  }
-
-  // RN CLI APK is not always hosted under GitHub Pages (it can exceed repo push limits).
-  // Default to GitHub Releases (latest) to avoid 404s; override with manifest `downloadUrl` when present.
-  var rnCliFallbackUrl = 'https://github.com/Metaheurist/Rianell/releases/latest/download/app-debug-beta.apk';
-  setAndroidRnCli(rnCliFallbackUrl, '');
-  setIos(iosBase + 'Health-Tracker-ios-alpha-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
-
-  if (shouldFetchAppBuildManifests()) {
-    fetch(androidRnCliBase + 'latest.json', { cache: 'no-store' })
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(data) {
-        if (data) {
-          var href = data.downloadUrl || (data.file ? (androidRnCliBase + encodeURIComponent(data.file)) : rnCliFallbackUrl);
-          var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
-          setAndroidRnCli(href, versionText);
-        }
-      })
-      .catch(function() {});
-
-    fetch(iosBase + 'latest.json', { cache: 'no-store' })
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(data) {
-        if (data && data.file) {
-          var href = data.installUrl || (iosBase + encodeURIComponent(data.file));
-          var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
-          var label = data.installUrl && isIosDevice ? 'Install native app (one tap)' : (isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
-          setIos(href, versionText, label);
-        }
-      })
-      .catch(function() {});
-  }
-}
-
-window.refreshBuildDownloadLinks = refreshBuildDownloadLinks;
-
 function refreshAppInstallSection() {
   var appSection = document.getElementById('appInstallSection');
-  if (isRianellNativeApp()) {
-    if (appSection) appSection.style.display = 'none';
-    var installWebEarly = document.getElementById('installWebAppOption');
-    if (installWebEarly) installWebEarly.style.display = 'none';
-    var installIosEarly = document.getElementById('installOnIosDevice');
-    if (installIosEarly) installIosEarly.style.display = 'none';
-    var androidRnCliEarly = document.getElementById('androidRnCliDownloadOption');
-    var iosEarly = document.getElementById('iosDownloadOption');
-    if (androidRnCliEarly) androidRnCliEarly.style.display = 'none';
-    if (iosEarly) iosEarly.style.display = 'none';
-    if (typeof hideInstallButton === 'function') hideInstallButton();
-    return;
-  }
   if (appSection) appSection.style.display = '';
   var platform = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform && window.DeviceModule.platform.platform)
     ? window.DeviceModule.platform.platform
@@ -2657,10 +2528,6 @@ function refreshAppInstallSection() {
   var installIosDevice = document.getElementById('installOnIosDevice');
   var installWebAppOption = document.getElementById('installWebAppOption');
   var installWebAppLabel = document.getElementById('installWebAppLabel');
-  var androidRnCliOption = document.getElementById('androidRnCliDownloadOption');
-  var iosOption = document.getElementById('iosDownloadOption');
-  var androidRnCliLabel = document.getElementById('downloadRnCliAndroidLabel');
-  var iosLabel = document.getElementById('downloadIosLabel');
 
   if (titleEl) {
     var titleTextEl = titleEl.querySelector('[data-i18n="settings.data.install.title"]') || titleEl.querySelector('span');
@@ -2675,28 +2542,13 @@ function refreshAppInstallSection() {
     else if (platform === 'android') installWebAppLabel.textContent = tUi('common.add.to.home.screen');
     else installWebAppLabel.textContent = tUi('common.install.web.app');
   }
-  if (platform === 'ios') {
-    if (installIosDevice) installIosDevice.style.display = '';
-    if (installWebAppOption) installWebAppOption.style.display = '';
-    if (androidRnCliOption) androidRnCliOption.style.display = 'none';
-    if (iosOption) iosOption.style.display = 'none';
-  } else if (platform === 'android') {
-    if (installIosDevice) installIosDevice.style.display = 'none';
-    if (installWebAppOption) installWebAppOption.style.display = '';
-    if (androidRnCliOption) { androidRnCliOption.style.display = ''; if (androidRnCliLabel) androidRnCliLabel.textContent = tUi('common.install.on.android'); }
-    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = tUi('common.download.for.ios'); }
-  } else {
-    if (installIosDevice) installIosDevice.style.display = 'none';
-    if (installWebAppOption) installWebAppOption.style.display = '';
-    if (androidRnCliOption) androidRnCliOption.style.display = '';
-    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = tUi('common.download.for.ios'); }
-  }
+  if (installWebAppOption) installWebAppOption.style.display = '';
+  if (installIosDevice) installIosDevice.style.display = platform === 'ios' ? '' : 'none';
 }
 
 window.refreshAppInstallSection = refreshAppInstallSection;
 
 function openInstallModal(force) {
-  if (isRianellNativeApp()) return;
   if (!force && typeof window !== 'undefined' && window.RianellFirstRunWizard) {
     if (window.RianellFirstRunWizard.isActive && window.RianellFirstRunWizard.isActive()) return;
     if (typeof window.RianellFirstRunWizard.isComplete === 'function' && !window.RianellFirstRunWizard.isComplete()) return;
@@ -2711,18 +2563,6 @@ function openInstallModal(force) {
   var overlay = document.getElementById('installModalOverlay');
   if (!overlay) return;
   closeSettingsModalIfOpen();
-  if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
-  var iosMain = document.getElementById('downloadIosLink');
-  var iosModal = document.getElementById('installModalIosLink');
-  var iosLabelModal = document.getElementById('installModalIosLinkLabel');
-  if (iosMain && iosModal) {
-    iosModal.href = iosMain.href || 'javascript:void(0)';
-    var labelMain = document.getElementById('downloadIosLabel');
-    if (iosLabelModal && labelMain) iosLabelModal.textContent = labelMain.textContent || tUi('common.install.on.ios');
-    var vMainIos = iosMain.querySelector('.ios-version');
-    var vModalIos = iosModal.querySelector('.ios-version');
-    if (vMainIos && vModalIos) vModalIos.textContent = vMainIos.textContent || '';
-  }
   var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
   var block = document.getElementById('installModalIosDevice');
   var label = document.getElementById('installModalIosDeviceLabel');
@@ -21080,7 +20920,6 @@ var settingsCarouselStep;
 var _settingsModule = installSettingsModule({
   svgIcon: svgIcon,
   loadSettingsState: loadSettingsState,
-  refreshBuildDownloadLinks: refreshBuildDownloadLinks,
   refreshLlmModelSettingsHints: refreshLlmModelSettingsHints,
   ensureSummaryLlmLoadedForSettings: ensureSummaryLlmLoadedForSettings,
 });
@@ -25977,7 +25816,6 @@ async function refreshAllTabsForLocaleChange() {
     var paneIdx = parseInt(settingsTrack.getAttribute('data-settings-index') || '0', 10);
     settingsCarouselGo(paneIdx);
   }
-  if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
   if (typeof refreshAppInstallSection === 'function') refreshAppInstallSection();
   if (typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
   if (typeof applySettings === 'function') applySettings();

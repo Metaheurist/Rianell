@@ -60,7 +60,6 @@ export function installSettingsEarlyPlaceholder(deps) {
     if (isVisible) {
       settingsOverlaySetOpen(overlay, false, deps);
     } else {
-      if (deps.refreshBuildDownloadLinks) deps.refreshBuildDownloadLinks();
       if (typeof window.RianellPrivacy !== 'undefined' && typeof window.RianellPrivacy.renderSettingsPane === 'function') {
         window.RianellPrivacy.renderSettingsPane();
       }
@@ -398,7 +397,6 @@ function updateSettingsCarouselDots(activeIdx) {
 export function installSettingsModule(deps) {
   const svgIcon = deps.svgIcon;
   const loadSettingsState = deps.loadSettingsState;
-  const refreshBuildDownloadLinks = deps.refreshBuildDownloadLinks;
   const refreshLlmModelSettingsHints = deps.refreshLlmModelSettingsHints;
   const ensureSummaryLlmLoadedForSettings = deps.ensureSummaryLlmLoadedForSettings;
 
@@ -682,7 +680,6 @@ export function installSettingsModule(deps) {
   installSettingsEarlyPlaceholder({
     loadSettingsState,
     initSettingsCarouselUI,
-    refreshBuildDownloadLinks,
   });
 
   function filterSettingsPanes(query) {

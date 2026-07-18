@@ -18,7 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { transformFileIfNeeded } from './build-plugins/function-trace-plugin.mjs';
-import { buildAndroidDistBundle } from './build-android-dist.mjs';
+import { buildMinDistBundle } from './build-min-dist.mjs';
 import {
   fingerprintAppJs,
   fingerprintStylesheet,
@@ -197,8 +197,8 @@ if (siteDir) {
   writeAssetManifest(webRoot, { mainJs });
   console.log('[build-site] wrote', mainJs, '→', path.relative(root, webRoot));
   if (skipTrace) {
-    await buildAndroidDistBundle(webRoot);
+    await buildMinDistBundle(webRoot);
   } else {
-    rmrf(path.join(webRoot, '.android-dist'));
+    rmrf(path.join(webRoot, '.web-dist'));
   }
 }

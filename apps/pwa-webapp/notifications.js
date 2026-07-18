@@ -1,12 +1,8 @@
 // ============================================
 // NOTIFICATIONS & REMINDERS
-// Safari Web App notifications and daily reminders
-// Android: when running in Capacitor, uses native LocalNotifications for compatibility (permissions, background)
+// Web App notifications and daily reminders (Notification API + service worker)
 // Sound: respects "Enable sound notifications" and plays heartbeat when app is in foreground.
 // ============================================
-
-const isCapacitor = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform?.();
-const LocalNotifications = isCapacitor && window.Capacitor?.Plugins?.LocalNotifications;
 
 function isSoundEnabled() {
   try {
@@ -68,7 +64,6 @@ const NotificationManager = {
   reminderTime: null,
   fallbackReminderTime: '20:00',
   reminderInterval: null,
-  nativeNotificationId: 9001,
   initialized: false,
   
   // Initialize notification system
@@ -84,12 +79,6 @@ const NotificationManager = {
       }
     }
 
-    if (LocalNotifications) {
-      try {
-        const { display } = await LocalNotifications.checkPermissions();
-        this.permission = display === 'granted' ? 'granted' : (display === 'denied' ? 'denied' : 'default');
-      } catch (e) { /* ignore */ }
-    }
     await this.requestPermission();
 
     // Load saved reminder time
@@ -152,15 +141,6 @@ const NotificationManager = {
   
   // Request notification permission
   async requestPermission() {
-    if (LocalNotifications) {
-      try {
-        const { display } = await LocalNotifications.requestPermissions();
-        this.permission = display === 'granted' ? 'granted' : (display === 'denied' ? 'denied' : 'default');
-        if (this.permission === 'granted') return true;
-      } catch (e) {
-        console.warn('Capacitor LocalNotifications permission request failed:', e);
-      }
-    }
     if (!('Notification' in window)) {
       console.warn('This browser does not support notifications');
       return false;
@@ -246,11 +226,6 @@ const NotificationManager = {
       this.reminderInterval = null;
     }
 
-    if (LocalNotifications) {
-      await this.scheduleNativeReminder();
-      return;
-    }
-
     // Web/PWA fallback: check every minute if it's time for reminder.
     this.reminderInterval = setInterval(() => {
       this.checkReminderTime();
@@ -258,48 +233,6 @@ const NotificationManager = {
     this.checkReminderTime();
   },
 
-  getNextReminderDate() {
-    const effective = this.getEffectiveReminderTime();
-    const [hours, minutes] = String(effective || '20:00').split(':').map(Number);
-    const now = new Date();
-    const next = new Date();
-    next.setHours(Number.isFinite(hours) ? hours : 20, Number.isFinite(minutes) ? minutes : 0, 0, 0);
-    if (next <= now) {
-      next.setDate(next.getDate() + 1);
-    }
-    return next;
-  },
-
-  async scheduleNativeReminder() {
-    if (!LocalNotifications) return;
-    try {
-      if (this.permission !== 'granted') {
-        await this.requestPermission();
-      }
-      if (this.permission !== 'granted') return;
-      await LocalNotifications.cancel({ notifications: [{ id: this.nativeNotificationId }] });
-      const at = this.getNextReminderDate();
-      await LocalNotifications.schedule({
-        notifications: [{
-          id: this.nativeNotificationId,
-          title: 'Time to log your health data! 📊',
-          body: 'Don\'t forget to record today\'s health metrics.',
-          schedule: {
-            on: {
-              hour: at.getHours(),
-              minute: at.getMinutes()
-            },
-            allowWhileIdle: true
-          },
-          actionTypeId: '',
-          extra: { url: '/?quick=true' }
-        }]
-      });
-    } catch (error) {
-      console.warn('Failed to schedule native reminder:', error);
-    }
-  },
-  
   // Check if it's time for reminder
   checkReminderTime() {
     if (!this.isReminderEnabled()) return;
@@ -605,11 +538,6 @@ const NotificationManager = {
       if (enabled) {
         await this.scheduleReminders();
       } else {
-        if (LocalNotifications) {
-          try {
-            await LocalNotifications.cancel({ notifications: [{ id: this.nativeNotificationId }] });
-          } catch (e) { /* ignore */ }
-        }
         if (this.reminderInterval) {
           clearInterval(this.reminderInterval);
           this.reminderInterval = null;

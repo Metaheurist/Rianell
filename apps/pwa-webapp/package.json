@@ -4,7 +4,7 @@
   "version": "2.1.7",
   "scripts": {
     "build": "node build-site.mjs",
-    "build:apk": "node build-site.mjs --skip-trace",
+    "build:min": "node build-site.mjs --skip-trace",
     "typecheck": "node --check app.js"
   }
 }

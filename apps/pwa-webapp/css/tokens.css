@@ -37,7 +37,7 @@
   --surface-modal-backdrop: rgba(0,0,0,0.5);
   /* Avatar graphics portfolio — search: @rianell/avatar-theme-tokens */
   --avatar-primary: var(--primary-color);
-  --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
+  --avatar-secondary: var(--secondary-color);
   --avatar-glow: var(--oasis-blob-a, var(--primary-color));
   --avatar-dark: var(--bg-secondary);
   --avatar-health-state: 2;

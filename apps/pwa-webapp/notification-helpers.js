@@ -4,7 +4,7 @@
 // ============================================
 
 function isNativeNotificationCapable() {
-  return !!(window.Capacitor && window.Capacitor.isNativePlatform?.() && window.Capacitor?.Plugins?.LocalNotifications);
+  return false;
 }
 
 function getNotificationPermissionState() {
