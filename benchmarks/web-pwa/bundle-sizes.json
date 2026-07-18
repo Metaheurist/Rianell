@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-17T19:36:38.402Z",
+  "generatedAt": "2026-07-18T14:30:21.927Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5530863,
-    "cssBytes": 860987,
-    "jsGzipBytes": 1310223,
-    "cssGzipBytes": 145042
+    "jsBytes": 5538771,
+    "cssBytes": 864799,
+    "jsGzipBytes": 1313104,
+    "cssGzipBytes": 145786
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1196942,
-      "gzipBytes": 259472
+      "bytes": 1197325,
+      "gzipBytes": 259753
     },
     {
-      "file": "ci-minified/site/app.db67b3835d48.min.js",
-      "bytes": 886939,
-      "gzipBytes": 205255
+      "file": "ci-minified/site/app.4e2f983f553e.min.js",
+      "bytes": 886848,
+      "gzipBytes": 205258
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.121e0b0c08aa.css",
-      "bytes": 785809,
-      "gzipBytes": 129744
+      "file": "ci-minified/site/styles.5c4dcfb8c907.css",
+      "bytes": 789621,
+      "gzipBytes": 130488
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -54,14 +54,14 @@
       "gzipBytes": 22855
     },
     {
+      "file": "ci-minified/site/summary-llm.js",
+      "bytes": 87081,
+      "gzipBytes": 20176
+    },
+    {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
       "bytes": 81185,
       "gzipBytes": 17364
-    },
-    {
-      "file": "ci-minified/site/summary-llm.js",
-      "bytes": 81130,
-      "gzipBytes": 18117
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -85,8 +85,8 @@
     },
     {
       "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 44088,
-      "gzipBytes": 9482
+      "bytes": 45450,
+      "gzipBytes": 9885
     },
     {
       "file": "ci-minified/site/css/graphics-portfolio.css",
@@ -129,14 +129,14 @@
       "gzipBytes": 5888
     },
     {
+      "file": "ci-minified/site/ui-feedback.js",
+      "bytes": 23883,
+      "gzipBytes": 5718
+    },
+    {
       "file": "ci-minified/site/modules/cycle-tracking-ui.js",
       "bytes": 23728,
       "gzipBytes": 5376
-    },
-    {
-      "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 23580,
-      "gzipBytes": 5583
     },
     {
       "file": "ci-minified/site/modules/ai-chat.js",
