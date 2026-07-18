@@ -13,10 +13,10 @@
 
 ## Architecture
 
-- **Single cloud:** One URL/key in PWA and RN; no `getSupabaseClientForResidency` routing.
+- **Single cloud:** One URL/key in the PWA; no `getSupabaseClientForResidency` routing.
 - **Region → locale:** `i18n-packs/policy-packs/v1.json` `defaultLocale` / `supportedLocales` per region.
 - **Prefs:** `uiLocale`, `uiLocaleSource`; Supabase `user_privacy_profile.ui_locale` overwrites local on login.
-- **i18n:** `packages/shared/src/i18n/` + `i18n-packs/locale-packs/v1/*.json`; PWA `RianellI18n`; RN `I18nProvider` + `useT()`.
+- **i18n:** `packages/shared/src/i18n/` + `i18n-packs/locale-packs/v1/*.json`; PWA `RianellI18n`.
 
 See [`single-project-residency.md`](single-project-residency.md) for operator notes.
 
@@ -43,12 +43,10 @@ node scripts/verify/verify-locale-packs.mjs
 node scripts/verify/verify-privacy-docs.mjs
 node scripts/verify/verify-supabase-schema-parity.mjs
 npm run test:unit
-npm run test:mobile
-npm run parity:inventory:check
 ```
 
 ## Operator actions
 
 1. Apply `user_privacy_profile` DDL including `ui_locale` from [`supabase/Schema.sql`](../../supabase/Schema.sql).
-2. Configure one Supabase project in PWA/RN env.
+2. Configure one Supabase project in the PWA env.
 3. Manual smoke: gate default region/locale; Settings language override; login restores account locale.

@@ -1,4 +1,4 @@
-# STRIDE threat model - Rianell PWA / React Native / Supabase
+# STRIDE threat model - Rianell PWA / Supabase
 
 **Product:** Rianell personal health dashboard  
 **Version baseline:** v1.49.x  
@@ -13,7 +13,6 @@
 This document applies STRIDE (Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege) to Rianell across:
 
 - **PWA** (`apps/pwa-webapp/`) - static assets on GitHub Pages behind Cloudflare
-- **React Native** (`apps/rn-app/`) - Expo / RN CLI builds for Android and iOS
 - **Supabase** - Auth, Postgres (RLS), PostgREST API
 - **Optional Python dev server** (`server/`) - local operator tooling only
 - **Third-party edges** - Hugging Face (model weights), jsDelivr/CDNs, PayPal (donations)
@@ -28,13 +27,10 @@ Out of scope: clinical regulated deployments (HIPAA BAA not in place today), ent
 flowchart TB
   subgraph user_device [User device - trust boundary TB1]
     PWA[PWA browser]
-    RN[RN app]
-    LocalStore[(localStorage / AsyncStorage / IDB)]
-    OnDeviceAI[Transformers.js / native LLM path]
+    LocalStore[(localStorage / IDB)]
+    OnDeviceAI[Transformers.js]
     PWA --> LocalStore
-    RN --> LocalStore
     PWA --> OnDeviceAI
-    RN --> OnDeviceAI
   end
 
   subgraph edge [Cloudflare - trust boundary TB2]
@@ -64,11 +60,8 @@ flowchart TB
   end
 
   PWA --> CF --> Static
-  RN --> CF
   PWA --> Auth
-  RN --> Auth
   PWA --> PG
-  RN --> PG
   PWA --> HF
   PWA --> CDN
   PWA --> PayPal
@@ -116,7 +109,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
   participant U as User
-  participant C as PWA / RN client
+  participant C as PWA client
   participant S as Supabase Auth
   participant DB as Postgres RLS
 
@@ -240,7 +233,7 @@ sequenceDiagram
 | Opportunistic attacker | Network, public anon key | RLS bypass attempts, bug_report spam |
 | Malicious insider (operator) | Supabase dashboard, service role | `user_keys`, all backups |
 | Compromised dependency | Supply chain | npm/CDN/HF payloads |
-| Physical device thief | Device access | localStorage / AsyncStorage plaintext |
+| Physical device thief | Device access | localStorage plaintext |
 | Curious researcher | Valid account | Own data only unless RLS fails |
 
 ---
@@ -278,7 +271,6 @@ sequenceDiagram
 | 4 - Compliance | Regulatory misrepresentation | `docs/compliance/*` |
 | 5 - Performance | DoS via heavy boot | `docs/performance-budget.md` |
 | 6 - Accessibility | Exclusion, focus escape | `verify-a11y-tokens.mjs`, app lock trap |
-| 7 - RN hardening | Device extraction | `logsAesGcm.ts`, [android-hardening.md](compliance/android-hardening.md) |
 | 8 - Ops docs | Incident handling gaps | [launch-checklist.md](compliance/launch-checklist.md) |
 
 ---

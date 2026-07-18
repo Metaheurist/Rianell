@@ -69,7 +69,7 @@ Sources: user report, Gitleaks/OSV CI failure, Supabase Security Advisor, Cloudf
 | Asset | Containment action |
 |-------|-------------------|
 | Supabase service role | Rotate immediately - [rotation-runbook.md](../security/rotation-runbook.md) |
-| Supabase anon key | Rotate; redeploy PWA/RN with new publishable key |
+| Supabase anon key | Rotate; redeploy PWA with new publishable key |
 | Compromised user session | Force password reset via Supabase Auth admin |
 | Malicious release | Revert GitHub Pages deploy; invalidate Cloudflare cache |
 | Python dev server exposure | Stop process; bind `127.0.0.1` only |
@@ -253,4 +253,3 @@ Use [compliance/launch-checklist.md](compliance/launch-checklist.md) before publ
 | Cloudflare WAF on `bug_reports` | P2 spam → rate-limit rule in [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md) |
 | Smartlook opt-in | P3 misconfiguration → revoke SDK init; Art. 6 consent basis in [smartlook-session-recording.md](privacy/smartlook-session-recording.md) |
 | pg_cron retention | Data minimization evidence for erasure audits - `Schema.sql` §6 |
-| RN encrypted logs | Stolen-device scenario - [android-hardening.md](compliance/android-hardening.md) |

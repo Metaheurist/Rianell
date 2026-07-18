@@ -45,12 +45,4 @@ Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdel
 
 ## Manual CI
 
-- WebGPU tier 5: `.github/workflows/llm-webgpu-manual.yml`  
-- RN GPU: `.github/workflows/llm-rn-gpu-manual.yml`
-
-## RN parity
-
-```bash
-npm run agentic:gpu-v1 -- --track rn-static
-RN_DEVICE=1 npm run test:gpu-rn-matrix
-```
+- WebGPU tier 5: `.github/workflows/llm-webgpu-manual.yml`

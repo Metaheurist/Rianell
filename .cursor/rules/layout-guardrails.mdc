@@ -38,7 +38,6 @@ Enforce high-fidelity, human-like design variance over robotic AI structures.
 | Surface | Primary paths |
 |---------|---------------|
 | PWA | `apps/pwa-webapp/`, `apps/pwa-webapp/styles.css` |
-| React Native | `apps/rn-app/src/components/` |
 | Shared UI | `packages/` |
 
 Cross-reference `.cursor/rules/ui-motion.mdc` for animation constraints on Rianell health surfaces.

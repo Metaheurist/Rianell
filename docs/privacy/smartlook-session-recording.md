@@ -58,7 +58,6 @@ Shared helper: `shouldActivateSessionRecording()` in `packages/shared/src/analyt
 | Platform | SDK / module | Init |
 |----------|--------------|------|
 | **PWA (web)** | Smartlook Web SDK (`https://web-sdk.smartlook.com/recorder.js`) | `apps/pwa-webapp/smartlook.js` - gated by `shouldActivateSessionRecording` |
-| **React Native** | `react-native-smartlook-analytics` | `apps/rn-app/src/analytics/sessionRecording.ts` - requires dev build / prebuild (not Expo Go) |
 
 **Shared consent model:** `sessionRecording`, `sessionRecordingAt`, `sessionRecordingDisclosureAt`; policy feature key `sessionRecording`; consent dashboard row `sessionRecording`.
 
@@ -81,9 +80,8 @@ If Cloudflare adds a narrower HTTP CSP, mirror these hosts in edge headers - see
 
 ## 6. Operator notes
 
-- Project key: `packages/shared/src/analytics/smartlookConfig.mjs` (PWA `smartlook-config.js`, RN `app.config.js` + env `EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY`). GitHub Actions secret `SMARTLOOK_PROJECT_KEY` overrides on Pages deploy when set.
+- Project key: `packages/shared/src/analytics/smartlookConfig.mjs` (PWA `smartlook-config.js`). GitHub Actions secret `SMARTLOOK_PROJECT_KEY` overrides on Pages deploy when set.
 - Web init: `smartlook('init', projectKey, { region: 'eu' })` in `apps/pwa-webapp/smartlook.js`.
-- Mobile: EU region is bound to the Smartlook project; RN uses `react-native-smartlook-analytics` with the same project key.
 - Rotate in Smartlook dashboard if compromised.
 - Smartlook free tier is listed in [FREE-TIER-POLICY.md](../plans/FREE-TIER-POLICY.md).
 - Subprocessor register: [subprocessors.md](subprocessors.md). RoPA activity: **PA-10** in [ropa.json](ropa.json).
@@ -97,9 +95,6 @@ packages/shared/src/analytics/sessionRecordingPrefs.mjs
 apps/pwa-webapp/smartlook.js
 apps/pwa-webapp/guided-onboarding.js
 apps/pwa-webapp/app.js                    # toggle, consent dashboard, loadSettings hook
-apps/rn-app/src/analytics/sessionRecording.ts
-apps/rn-app/src/components/FirstRunWizard.tsx
-apps/rn-app/src/settings/SettingsPrivacyTrustPane.tsx
 packages/shared/src/onboarding/firstRunSteps.mjs
 packages/shared/src/privacy/getFeatureAvailability.mjs
 packages/shared/src/settings/consentDashboard.mjs

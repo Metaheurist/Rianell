@@ -2,7 +2,7 @@
 
 ## Internal
 
-- [`docs/platform-parity.json`](../../platform-parity.json)
+- `docs/platform-parity.json`
 - [`docs/privacy/global-baseline.md`](../../privacy/global-baseline.md)
 
 ## Firecrawl research (local cache)

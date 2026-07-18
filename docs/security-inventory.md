@@ -5,7 +5,6 @@ Schema version: **1** · Generated for Rianell security program.
 | Package | Version |
 |---------|---------|
 | `rianell` (root) | 2.2.6 |
-| `apps/rn-app` | 2.1.7 |
 ## Python
 See `requirements.txt` (scanned by pip-audit in CI).
 ## PWA CDN URLs (index.html)

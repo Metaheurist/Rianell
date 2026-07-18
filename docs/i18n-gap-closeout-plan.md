@@ -54,7 +54,7 @@ Food tiles, exercise tiles, meal categories, metric labels in log review - **har
 
 - Extract food/exercise display names to `i18n-packs/content-packs/v1/food-{locale}.json` (or nested keys `content.food.oatmeal`)
 - Resolve via `tUi()` when rendering tiles; keep internal IDs English for data model
-- RN parity: shared content pack or duplicate resolver in `packages/shared`
+- Shared content pack or resolver in `packages/shared`
 
 ### E. MOTD gaps
 
@@ -83,7 +83,7 @@ Tier A + ar/he have translated LLM system strings. **ga** ships `llmCapability: 
 | `sync-i18n-assets.mjs` | Done |
 | Full UI MT | Run `USE_MYMEMORY_MT=1 node scripts/i18n/auto-translate-ui-strings.mjs --translate` (or DeepL `GA`) |
 | Privacy policy strings | `node scripts/i18n/auto-translate-policy-strings.mjs` after ga pack exists |
-| RN Settings language picker | Auto via shared `localeLabel('ga')` |
+| Settings language picker | Auto via shared `localeLabel('ga')` |
 
 ## Segmented delivery (versions)
 

@@ -1,7 +1,7 @@
 # Security hardening execution log
 
 **Product:** Rianell  
-**Purpose:** Track security, privacy, and platform-parity hardening milestones with dates and evidence.  
+**Purpose:** Track security and privacy hardening milestones with dates and evidence.  
 **Last updated:** 2026-07-06
 
 ---
@@ -17,20 +17,6 @@
 | **Owner** | Responsible party |
 
 Update this file when a milestone completes or slips. Do not edit [next-phase-development-plan.md](next-phase-development-plan.md) from this process unless explicitly tasked.
-
----
-
-## 2. Platform parity close - v1.50 track
-
-| ID | Milestone | Target | Status | Evidence | Notes |
-|----|-----------|--------|--------|----------|-------|
-| P50-01 | Parity inventory green on all settings keys | 2026-06-20 | planned | `npm run parity:inventory:check` | Baseline v1.49.1 |
-| P50-02 | RN native ONNX LLM path spike (or documented defer) | 2026-06-27 | **done** | `apps/rn-app/src/ai/llmNative.ts`, `apps/rn-app/src/ai/llmJs.ts`, `apps/rn-app/src/ai/llmRuntime.ts` | Dual runtime: Expo Go WASM + dev/prod ORT wrapper |
-| P50-03 | Notifications delivery semantics parity sign-off | 2026-07-04 | planned | [platform-parity.md](platform-parity.md) | Phase E close |
-| P50-04 | Charts prediction-overlay parity | 2026-07-11 | planned | RN Charts screen | Phase B |
-| P50-05 | View Logs virtualization final strategy | 2026-07-18 | planned | `LogsScreen.tsx` | Large-list perf |
-| P50-06 | **Parity close gate** - all P50-01…05 `done` or waived | 2026-07-25 | planned | CI parity jobs | Tag **v1.50.0** candidate |
-| P50-07 | Release v1.50.0 + CHANGELOG | 2026-07-31 | planned | [CHANGELOG.md](CHANGELOG.md) | Platform parity milestone |
 
 ---
 
@@ -56,7 +42,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | ID | Item | Target | Status | Evidence |
 |----|------|--------|--------|----------|
 | DOC-01 | AI security doc ↔ Transformers.js reality | 2026-06-13 | **done** | [ai-security.md](ai-security.md) |
-| DOC-02 | Data subject rights ↔ PWA/RN settings | 2026-06-13 | **done** | [data-subject-rights.md](privacy/data-subject-rights.md) |
+| DOC-02 | Data subject rights ↔ PWA settings | 2026-06-13 | **done** | [data-subject-rights.md](privacy/data-subject-rights.md) |
 | DOC-03 | SECURITY.md cross-links to new pack | 2026-06-13 | **done** | [SECURITY.md](SECURITY.md) | v1.51 privacy region + execution plan link |
 | DOC-04 | README security section links privacy pack | 2026-06-13 | **done** | [README.md](../README.md) | region-policy-execution-plan.md |
 
@@ -67,7 +53,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | ID | Milestone | Target | Status | Evidence | Notes |
 |----|-----------|--------|--------|----------|-------|
 | RP-GATE-1 | Shared policy engine + verify-policy-packs CI | 2026-06-13 | **done** | `policy-packs/v1.json`, `packages/shared/src/privacy/` | `npm run verify:policy-packs` |
-| RP-GATE-2 | Region gate + Settings pane (web + RN) | 2026-06-13 | **done** | `privacy-region.js`, `RegionGateScreen.tsx` | Blocks app before init |
+| RP-GATE-2 | Region gate + Settings pane | 2026-06-13 | **done** | `privacy-region.js` | Blocks app before init |
 | RP-GATE-3 | `user_privacy_profile` + login overwrite | 2026-06-13 | **done** | `supabase/Schema.sql`, `cloud-sync.js`, `privacyProfile.ts` | Erasure includes profile |
 | RP-GATE-4 | Policy drift + manifest hosting | 2026-06-13 | **done** | `policy-manifest.json`, `checkPolicyDrift.mjs` | |
 | RP-GATE-5 | Multi-residency prep (Phase 5 partial) | 2026-06-13 | **partial** | [multi-residency.md](privacy/multi-residency.md) | Migration wizard deferred |
@@ -79,8 +65,6 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | `node scripts/verify/verify-policy-packs.mjs` | pass |
 | `node scripts/verify/verify-privacy-docs.mjs` | pass |
 | `npm run test:unit` | pass |
-| `npm run test:mobile` | pass |
-| `npm run parity:inventory:check` | pass |
 
 **Legal trigger:** New privacy region gate and RoPA PA-09 - review on next RoPA cycle (2026-12-01).
 
@@ -90,9 +74,9 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 
 | Date | ID | Summary |
 |------|-----|---------|
-| 2026-06-01 | - | v1.49.0 Capacitor sunset; shared `@rianell/*` packages |
+| 2026-06-01 | - | v1.49.0 shared `@rianell/*` packages |
 | 2026-06-13 | SH-01…04 | Security/privacy documentation pack created |
-| 2026-06-13 | - | v1.49.1 parity follow-up per CHANGELOG |
+| 2026-06-13 | - | v1.49.1 follow-up per CHANGELOG |
 | 2026-06-13 | RP-GATE-1…4 | v1.51 privacy region policy engine shipped |
 | 2026-07-06 | SH-11 | Safe hardening pass: SW push URL same-origin guard, `verify-no-unsafe-sinks.mjs` in CI, live CSP drift job on `security-audit-scheduled.yml`, XSS sink invariants documented in `app.js` |
 

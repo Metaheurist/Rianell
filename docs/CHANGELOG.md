@@ -1362,7 +1362,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 **Stage 4 - React Native & docs**
 - **`HomeMotdHeartbeat`** wired; charts default **7d** range + skeleton loading; log wizard quick save + **`expo-haptics`**; export button uses Ionicons.
-- [data-model.md](data-model.md), [server-api.md](server-api.md), [react-native-setup.md](react-native-setup.md); stale Capacitor/web paths fixed; broken anchors and placeholder email fixed.
+- [data-model.md](data-model.md), [server-api.md](server-api.md), `react-native-setup.md`; stale Capacitor/web paths fixed; broken anchors and placeholder email fixed.
 - **`sw.js`** **`CACHE_NAME`** bumped for PWA cache reset after deploy.
 
 ### v1.46.31 - 2026-06-12 - RN TypeScript monorepo; PWA LLM queue; debug off
@@ -1411,7 +1411,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **Dependencies / CI:** Root **`overrides`** pin **`@capacitor/assets`** to **`@capacitor/cli@7.6.1`** (drops nested **CLI 5.x** and **`tar@6.2.1`**); **`@trapezedev/project`** and **`mergexml`** pin **`@xmldom/xmldom@0.8.12`**. **`package-lock.json`** regenerated so **OSV-Scanner** no longer flags dev-only **`tar`** / **`@xmldom/xmldom`** advisories from those chains. `npm ls` may still report **`invalid`** for **`@xmldom/xmldom`** where upstream manifests request **`^0.7.x`**; the installed **0.8.12** is intentional.
 - **Docs automation:** [`scripts/ci/generate-dependencies-doc.mjs`](../scripts/ci/generate-dependencies-doc.mjs) + **`npm run docs:dependencies`** regenerate **[dependencies.md](dependencies.md)**. **CI** verifies the file on **pull requests** and may commit updates on pushes to **main** / **master** (see **`commit-dependencies-doc`** in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
 - **Web / PWA (`apps/pwa-webapp/`):** Bug report modal - close control, scroll wrapper, optional fields under **More detail**, bug icon asset, **`styles.css?v=84`** cache bust; console log note clarified for dev/local server.
-- **React Native (`apps/rn-app/`):** **`installBugReportConsoleCapture`** ([`src/utils/bugReportLogs.ts`](../apps/rn-app/src/utils/bugReportLogs.ts)) attaches recent **`console`** output for bug reports on launch.
+- **React Native (`apps/rn-app/`):** **`installBugReportConsoleCapture`** (`src/utils/bugReportLogs.ts`) attaches recent **`console`** output for bug reports on launch.
 - **Python server (`server/main.py`):** Bug report ingest accepts **`page_url`** from either **`url`** or **`page_url`** in the JSON payload (client naming parity).
 
 ### v1.46.23 - 2026-04-12 - Docs: toolchain and audit wording

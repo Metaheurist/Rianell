@@ -11,7 +11,6 @@
 ### v1.70.2 documentation sync (summary LLM model host)
 
 - **PWA `summary-llm.js`:** Uses Hugging Face Hub only (onnx-community `*-ONNX` repos). Load order: WebGPU (q4f16→q4) → WASM q4 last resort. Transformers.js devices are **webgpu** and **wasm** only (no WebGL). Self-hosted Transformers `@3.3.2` at `/vendor/transformers/` with jsDelivr fallback flag. Presets from `packages/llm` (`load-ladder.mjs`, `runtime-profiles.mjs`).
-- **RN `llmNative.ts`:** ORT via `react-native-transformers`; Android NNAPI→CPU, iOS CoreML→CPU; `externalData` for Llama weights. Expo Go: `llmJs.ts` WASM q4.
 - **Chunk assembly:** Supabase chunk paths are legacy only; HF serves full ONNX files.
 - **Deploy:** `SUPABASE_CONFIG` is auth/sync only (no model bucket).
 
@@ -22,14 +21,14 @@
 
 ### B2 locale contract (LLM prompts)
 
-- **Client locale is authoritative:** PWA and React Native pass the active UI locale (`resolveActiveLocale` / `RianellI18n.getLocale()`) into every LLM path. RN remote calls include `"locale"` in the POST body (`apps/rn-app/src/ai/llm.ts`); invalid ids fall back to `en-GB` via `isValidLocaleId`.
+- **Client locale is authoritative:** The PWA passes the active UI locale (`resolveActiveLocale` / `RianellI18n.getLocale()`) into every LLM path; invalid ids fall back to `en-GB` via `isValidLocaleId`.
 - **Prompt packs:** System prompts live in `i18n-packs/prompt-packs/v1/*.json`, loaded by `packages/shared/src/i18n/promptPack.mjs` (Node/tests) and `apps/pwa-webapp/summary-llm.js` (fetch or `window.__rianellPromptPack`). Keys: `motd.system`, `summary.system`, `suggest.system`, plus optional `context.*` strings for summary context building.
 - **No server-side language detection:** Proxies and future server LLM endpoints must not override `locale` from headers or log content.
-- **Rule-based fallbacks:** `@rianell/ai-engine` and RN `analyzeLogs` / `summarizeCharts` accept optional `translate(key, params)` and use `ai.template.*` / `charts.metric.*` keys with English fallback when omitted.
+- **Rule-based fallbacks:** `@rianell/ai-engine` `analyzeLogs` / `summarizeCharts` accept optional `translate(key, params)` and use `ai.template.*` / `charts.metric.*` keys with English fallback when omitted.
 
 ### v1.44.2 documentation sync
 
-- AI slide presentation now sits within a broader UI theme parity pass so AI surfaces remain visually consistent with selected global themes on web/mobile shells.
+- AI slide presentation now sits within a broader UI theme parity pass so AI surfaces remain visually consistent with selected global themes in the web shell.
 - Summary-note reliability and fallback behaviour remain governed by the resilient timeout + rule-based fallback path documented in the changelog.
 
 The AI analysis engine runs as a **neural-style pipeline**: each layer applies existing logic (regression, correlation, prediction, etc.) as activator functions. The design aims to **use as much of your collected data as possible** to deliver **meaningful health insights** (trends, early signals, correlations, and actionable advice). A detailed expansion and optimisation plan is in [NEURAL_NETWORK_PLAN.md](NEURAL_NETWORK_PLAN.md).

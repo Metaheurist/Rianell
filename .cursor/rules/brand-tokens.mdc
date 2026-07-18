@@ -12,7 +12,7 @@ Use reverse-engineered typography scales and absolute color vectors mapped insid
 
 - Canonical brand reference: root `DESIGN.md` (installed via `npx getdesign@latest add <brand>`).
 - Before writing new theme variables, read `DESIGN.md` sections: `colors`, `typography`, `spacing`, `radii`, `shadows`.
-- Map tokens to existing Rianell surfaces — PWA CSS custom properties in `apps/pwa-webapp/styles.css`, RN theme in `apps/rn-app/`.
+- Map tokens to existing Rianell surfaces — PWA CSS custom properties in `apps/pwa-webapp/styles.css`.
 - When refreshing brand direction, re-run `npx getdesign@latest add <brand>` and merge deltas; do not overwrite committed Rianell health-brand overrides without review.
 
 ## SkillUI (Visual Production Crawler)

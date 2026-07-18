@@ -2,7 +2,7 @@
 
 ## Internal
 
-- [`apps/rn-app/src/screens/ChartsScreen.tsx`](../../../apps/rn-app/src/screens/ChartsScreen.tsx)
+- `apps/rn-app/src/screens/ChartsScreen.tsx`
 - [`apps/pwa-webapp/styles-charts.css`](../../../apps/pwa-webapp/styles-charts.css)
 
 ## Firecrawl research (local cache)

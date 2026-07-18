@@ -56,11 +56,9 @@ Native `<details>` accordion, **closed by default** for optional blocks. Flat ca
 - **Direction:** `apps/pwa-webapp/i18n-pwa.js` sets **`document.documentElement.dir`** to `rtl` for Arabic and Hebrew via `@rianell/shared` **`textDirection()`**.
 - **CSS:** Base overrides in **`styles.css`** under **`[dir="rtl"]`** - bottom nav, settings carousel dots, wizard progress, tab bar (`flex-direction: row-reverse` where needed). Prefer **logical properties** (`margin-inline-start`, `padding-inline-end`) in new rules.
 - **Charts:** Do **not** mirror time-series axes; wrap embedded LTR user content (notes, numbers) in **bidi isolates** when displayed inside RTL chrome.
-- **RN:** `I18nManager.allowRTL(true)` and **`forceRTL(isRtlLocale(locale))`** on locale change in `App.tsx`.
 
-## v2.0.9 motion polish (RN + PWA)
+## v2.0.9 motion polish (PWA)
 
-- **RN:** Spring press feedback on primary buttons; toast scale + opacity; empty/welcome card icon scale-pop; staggered AI stat rows and insight list; mood ring SVG draw; log wizard direction-aware step slide; spring settings chapter expand. All loops respect `useReduceMotionFlag`.
 - **PWA:** Tab translate distance 38px with `--ease-out-expo`; AI summary/advice/list `:nth-child` stagger (55ms steps); `aiSlideInFade` 0.42s; shimmer `ease-in-out`; boot skeleton bar delays; active bottom-nav icon `translateY(-1px)` lift.
 - **Tokens:** Motion scale unchanged (`--dur-*`, `--ease-spring`, `--ease-out-expo` in `css/tokens.css` and `@rianell/tokens`).
 - **Reduced motion:** Existing `@media (prefers-reduced-motion: reduce)` and `.reduce-motion` guards cover new PWA animations.
@@ -68,14 +66,9 @@ Native `<details>` accordion, **closed by default** for optional blocks. Flat ca
 ## v1.47.0 UI feedback and motion
 
 - **`ui-feedback.js`:** Shared **`showToast`**, haptics, ripple, scroll-reveal, offline banner, theme crossfade helpers, and modal open/close utilities. **`app.js`** wraps success paths with **`notifySuccess`** / **`notifyUser`**.
-- **Motion scale:** **`--ease-spring`**, **`--dur-*`**, semantic status colors, elevation tokens in **`styles.css`**; mirrored in **`@rianell/tokens`** for React Native.
+- **Motion scale:** **`--ease-spring`**, **`--dur-*`**, semantic status colors, elevation tokens in **`styles.css`**; mirrored in **`@rianell/tokens`**.
 - **Surfaces:** Home hero card + quick actions, goals SVG progress rings, direction-aware tab transitions, wizard step slides + morphing dots, chart skeleton fade, cloud sync **`.status-syncing`** pulse.
 - **Reduced motion:** Decorative motion (toasts, tab/chart crossfades, wizard slides) respects **`prefers-reduced-motion: reduce`**.
-
-## v1.46.3 React Native settings parity notes
-
-- **Eight-pane titles:** The Expo settings screen (`apps/rn-app/src/screens/SettingsScreen.tsx`) follows the same **section order and naming** as the web carousel pane titles in `apps/pwa-webapp/index.html` (`data-settings-pane-title`), so documentation that refers to “Settings → Data management” or “Display options” maps to the same labelled step on mobile.
-- **App installation vs PWA tiles:** On web, install/download tiles use **`settings-data-btn`** (see **App Installation** below). On React Native, the **Data management** pane uses `SettingsAppInstallSection` for text and link-style actions instead of PWA install prompts.
 
 ## v1.44.2 style alignment notes
 
@@ -198,4 +191,4 @@ The **Export / Import / Install web app** tiles and the **Clear all data** actio
 
 ## Build
 
-CSS-only edits do not require **`npm run build:web`**. Changes to **`apps/pwa-webapp/app.js`** that ship a production minified bundle should run **`npm run build:web`** (or **`npm run build:web:apk`** for the APK / **`.android-dist`** tree) before release; output filenames are content-hashed (**`app.<hash>.min.js`**, **`asset-manifest.json`** - see **[setup-and-usage.md](setup-and-usage.md)**).
+CSS-only edits do not require **`npm run build:web`**. Changes to **`apps/pwa-webapp/app.js`** that ship a production minified bundle should run **`npm run build:web`** (or **`npm run build:web:min`** for the minified **`.web-dist`** tree) before release; output filenames are content-hashed (**`app.<hash>.min.js`**, **`asset-manifest.json`** - see **[setup-and-usage.md](setup-and-usage.md)**).

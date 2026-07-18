@@ -13,7 +13,6 @@
 | **Deterministic analysis** | `@rianell/ai-engine` (regression, correlation, flare prediction) | No | Always on when user runs AI Analysis |
 | **On-device LLM (PWA)** | Transformers.js `@3.3.2` (self-hosted `/vendor/` or jsDelivr fallback) + **Hugging Face Hub** weights only | Weights downloaded from HF; **prompts stay on device** | Consent modal + download UI; **WebGPU** tried before WASM (`webgl` is not a valid Transformers device) |
 | **Ephemeral health chat (PWA Home)** | `modules/ai-chat.js` + `buildChatContext` (`@rianell/shared`) | **No persistence** - in-memory only, cleared on close/`beforeunload` | Opens from Home discovery; 5-turn limit; on-device `generateHealthChatWithLLM` (`healthChat.system`); generic/offline fallback when model unavailable |
-| **On-device LLM (RN)** | `@rianell/llm` + `llmNative.ts` (ORT) or `llmJs.ts` (Expo Go WASM) | HF Hub download to app documents; prompts on device | `AiModelDownloadGate`; Android NNAPI / iOS CoreML before CPU |
 | **Rule-based fallbacks** | Shared MOTD / summary templates | No | Automatic when LLM unavailable or times out |
 | **Anonymized training pool** | Encrypted blobs in `anonymized_data` | Yes (opt-in) | Separate consent in settings |
 
@@ -62,9 +61,9 @@ flowchart TB
   Fallback --> UI
 ```
 
-**Package references:** `packages/llm` (`runtime-profiles.mjs`, `load-ladder.mjs`, `tier-benchmark.mjs`), PWA `summary-llm.js`, RN `llmNative.ts` / `llmJs.ts`.
+**Package references:** `packages/llm` (`runtime-profiles.mjs`, `load-ladder.mjs`, `tier-benchmark.mjs`), PWA `summary-llm.js`.
 
-**Load order (GPU-first):** WebGPU (q4f16→q4) → WASM q4 on PWA (all platforms); NNAPI/CoreML then CPU on RN native; WASM q4 last resort on Expo Go. Transformers.js browser devices are **webgpu** and **wasm** only.
+**Load order (GPU-first):** WebGPU (q4f16→q4) → WASM q4 in the browser. Transformers.js browser devices are **webgpu** and **wasm** only.
 
 ---
 
@@ -114,7 +113,6 @@ See [threat-model.md](threat-model.md) M-08.
 | Artifact | Source | Integrity |
 |----------|--------|-----------|
 | Transformers.js | `cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2` | Pinned; not `@latest`; CSP `connect-src` |
-| onnxruntime-react-native | npm lockfile `^1.22.0` | CI OSV + npm audit |
 | Model weights | `huggingface.co` / Xet bridge hosts only | Model ID whitelist in `@rianell/llm` |
 | Tokenizers / configs | Bundled with model repo | HF commit hash implicit in cache |
 
@@ -139,14 +137,13 @@ Run `npm audit --omit=dev` and OSV-Scanner in CI ([`security-audit.yml`](../.git
 
 | Package | Pin | Notes |
 |---------|-----|-------|
-| `@huggingface/transformers` | 3.3.2 | PWA CDN + RN override; upgrade only with parity tests |
-| `onnxruntime-react-native` | ^1.22.0 | Android Gradle patch via `patch-onnxruntime-gradle.mjs` |
+| `@huggingface/transformers` | 3.3.2 | PWA CDN; upgrade only with regression tests |
 
 High/critical production CVEs must be fixed or documented with accepted risk before release.
 
 ### 4.4 Update policy
 
-- Model tier changes require CHANGELOG entry, parity check, and DPIA delta if new data processing occurs.
+- Model tier changes require CHANGELOG entry, regression check, and DPIA delta if new data processing occurs.
 - Do not auto-pull `latest` from HF; pin revision in code or config.
 
 ---
@@ -207,7 +204,7 @@ If future features introduce **automated triage**, **insurer reporting**, or **c
 
 ## 9. Testing and assurance
 
-- Parity gates: `parity:web`, `parity:android`, `parity:ios` include LLM consent paths.
+- Verification: LLM consent paths covered by the web gate.
 - Manual: verify LLM disabled → fallback strings only.
 - Regression: suggest-note cap, timeout fallback, CSP allows HF fetch on production host.
 
@@ -217,4 +214,3 @@ If future features introduce **automated triage**, **insurer reporting**, or **c
 
 - Transformers.js - https://huggingface.co/docs/transformers.js
 - ICO guidance on AI and data protection - https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/artificial-intelligence/
-- Rianell platform parity - [platform-parity.md](platform-parity.md)
