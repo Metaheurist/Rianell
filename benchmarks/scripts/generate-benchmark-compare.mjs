@@ -10,14 +10,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_CONFIG = {
   window: 10,
   detail_windows: [5, 20],
-  platforms: ['web-pwa', 'github-pages', 'capacitor-web', 'expo-rn'],
+  platforms: ['web-pwa', 'github-pages'],
 };
 
 const SLUG_LABELS = {
   'web-pwa': 'Web / PWA',
   'github-pages': 'GitHub Pages',
-  'capacitor-web': 'Capacitor (legacy)',
-  'expo-rn': 'Expo / RN bundles',
 };
 
 function loadConfig(repoRoot) {
@@ -56,11 +54,6 @@ function shortSha(sha) {
 function formatMs(v) {
   if (v == null || Number.isNaN(v)) return '—';
   return String(Math.round(v));
-}
-
-function formatNum(v) {
-  if (v == null || Number.isNaN(v)) return '—';
-  return String(v);
 }
 
 /**
@@ -139,57 +132,7 @@ function buildWebSection(slug, runs, windowSize) {
   return [md];
 }
 
-function buildExpoSection(runs, windowSize) {
-  const slug = 'expo-rn';
-  const slice = sliceRuns(runs, windowSize);
-  if (!slice.length) {
-    return [`### ${SLUG_LABELS[slug]}\n`, '_No history yet._\n', ''];
-  }
-  const rows = slice.map((r) => {
-    const m = r.meta || {};
-    const h = r.hermes || {};
-    const st = r.status === 'skipped' ? 'skipped' : r.status || 'ok';
-    return {
-      date: (m.timestamp_utc || '').slice(0, 19).replace('T', ' '),
-      sha: shortSha(m.git_sha),
-      status: st,
-      android_gzip: formatNum(h.android_gzip_bytes),
-      ios_gzip: formatNum(h.ios_gzip_bytes),
-      run: m.github_run_id || '—',
-    };
-  });
-  const keys = Object.keys(rows[0]);
-  let md = `### ${SLUG_LABELS[slug]}\n\n`;
-  md += `Aggregates: **sum of gzip bytes** across all \`.hbc\` files per platform (stable for trends when chunk hashes change).\n\n`;
-  md += `| ${keys.join(' | ')} |\n| ${keys.map(() => '---').join(' | ')} |\n`;
-  for (const row of rows) {
-    md += `| ${keys.map((k) => row[k]).join(' | ')} |\n`;
-  }
-  md += '\n';
-
-  const okRuns = slice.filter((r) => r.status === 'ok' && r.hermes);
-  if (okRuns.length >= 2) {
-    const labels = okRuns.map((r) => shortSha(r.meta?.git_sha));
-    md += mermaidLineChart(
-      'Expo — Android Hermes gzip total (bytes)',
-      labels,
-      okRuns.map((r) => r.hermes.android_gzip_bytes ?? 0),
-      'bytes',
-    );
-    md += mermaidLineChart(
-      'Expo — iOS Hermes gzip total (bytes)',
-      labels,
-      okRuns.map((r) => r.hermes.ios_gzip_bytes ?? 0),
-      'bytes',
-    );
-  } else if (okRuns.length === 1) {
-    md += '_Chart needs at least two successful runs._\n\n';
-  }
-  return [md];
-}
-
 function sectionForSlug(slug, runs, windowSize) {
-  if (slug === 'expo-rn') return buildExpoSection(runs, windowSize);
   return buildWebSection(slug, runs, windowSize);
 }
 

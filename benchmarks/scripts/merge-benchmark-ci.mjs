@@ -1,6 +1,6 @@
 /**
  * Merge downloaded benchmark artifacts into benchmarks/ (CI commit job).
- * Usage: node merge-benchmark-ci.mjs <webArtifactDir> <expoArtifactDir> [repoRoot]
+ * Usage: node merge-benchmark-ci.mjs <webArtifactDir> [repoRoot]
  */
 import fs from 'fs';
 import path from 'path';
@@ -9,9 +9,8 @@ import { generateBenchmarkCompare } from './generate-benchmark-compare.mjs';
 import { updateBenchmarksReadme } from './update-benchmarks-readme.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = process.argv[4] || path.resolve(__dirname, '..', '..');
+const repoRoot = process.argv[3] || path.resolve(__dirname, '..', '..');
 const webRoot = path.resolve(process.argv[2] || '');
-const expoRoot = path.resolve(process.argv[3] || '');
 const out = path.join(repoRoot, 'benchmarks');
 
 const HISTORY_MAX = 150;
@@ -59,40 +58,14 @@ function copyDir(src, dest) {
 
 fs.mkdirSync(out, { recursive: true });
 
-for (const name of ['web-pwa', 'github-pages', 'capacitor-web']) {
+for (const name of ['web-pwa', 'github-pages']) {
   const s = path.join(webRoot, name);
   if (fs.existsSync(s)) {
     copyDir(s, path.join(out, name));
   }
 }
 
-const expoCandidates = [
-  path.join(expoRoot, 'expo-rn'),
-  path.join(expoRoot, 'benchmarks', 'expo-rn'),
-  expoRoot,
-];
-let mergedExpo = false;
-for (const c of expoCandidates) {
-  if (fs.existsSync(path.join(c, 'latest.md'))) {
-    fs.mkdirSync(path.join(out, 'expo-rn'), { recursive: true });
-    if (c === expoRoot && !c.endsWith('expo-rn')) {
-      fs.copyFileSync(path.join(c, 'latest.md'), path.join(out, 'expo-rn', 'latest.md'));
-      const runJson = path.join(c, 'latest.run.json');
-      if (fs.existsSync(runJson)) {
-        fs.copyFileSync(runJson, path.join(out, 'expo-rn', 'latest.run.json'));
-      }
-    } else {
-      copyDir(c, path.join(out, 'expo-rn'));
-    }
-    mergedExpo = true;
-    break;
-  }
-}
-if (!mergedExpo) {
-  console.warn('merge-benchmark-ci: no expo-rn/latest.md found under', expoRoot);
-}
-
-const SLUGS = ['web-pwa', 'github-pages', 'capacitor-web', 'expo-rn'];
+const SLUGS = ['web-pwa', 'github-pages'];
 for (const slug of SLUGS) {
   const latestRun = path.join(out, slug, 'latest.run.json');
   if (!fs.existsSync(latestRun)) {

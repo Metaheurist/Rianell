@@ -12,8 +12,6 @@ export function updateBenchmarksReadme() {
   const platforms = [
     { dir: 'web-pwa', label: 'Web / PWA' },
     { dir: 'github-pages', label: 'GitHub Pages (equivalent build)' },
-    { dir: 'capacitor-web', label: 'Capacitor (legacy web bundle)' },
-    { dir: 'expo-rn', label: 'Expo / React Native (bundle stats)' },
     { dir: 'server', label: 'Python server (optional / local)' },
   ];
 
@@ -36,7 +34,7 @@ export function updateBenchmarksReadme() {
   md += `\n## Run locally\n\n`;
   md += `From the repository root:\n\n`;
   md += `1. \`npm ci\`\n`;
-  md += `2. \`npm run build:web:apk\` (minified PWA) and \`npm run build:react\` (Capacitor \`dist/\`) as needed.\n`;
+  md += `2. \`npm run build:web:min\` (minified PWA) as needed.\n`;
   md += `3. \`npx playwright install chromium\` once (from repo root after \`npm ci\`).\n`;
   md += `4. \`npm run benchmark\` — writes Markdown under \`benchmarks/\`.\n`;
 

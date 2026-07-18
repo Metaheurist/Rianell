@@ -22,5 +22,4 @@ function runWithEnv(script, extraEnv = {}) {
 }
 
 runWithEnv('run-web-benchmarks.mjs', { BENCHMARK_SKIP_README: '1' });
-runWithEnv('expo-bundle-stats.mjs', { BENCHMARK_SKIP_README: '1' });
 run('update-benchmarks-readme.mjs');

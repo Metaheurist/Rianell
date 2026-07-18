@@ -1,8 +1,8 @@
 /**
- * Serves PWA / Capacitor dist folders, runs Lighthouse (median of N) + navigation timings, writes Markdown.
+ * Serves PWA dist folders, runs Lighthouse (median of N) + navigation timings, writes Markdown.
  *
  * Env:
- *   BENCHMARK_PWA_ROOT   — static site root (default: apps/pwa-webapp/.android-dist or apps/pwa-webapp)
+ *   BENCHMARK_PWA_ROOT   — static site root (default: apps/pwa-webapp/.web-dist or apps/pwa-webapp)
  *   BENCHMARK_REPO_ROOT  — repo root (default: ../.. from this file)
  *   BENCHMARK_LH_RUNS    — Lighthouse iterations (default 3; CI should use 2)
  *   BENCHMARK_SKIP_README — set 1 to skip README rewrite
@@ -26,7 +26,7 @@ const REPO_ROOT = process.env.BENCHMARK_REPO_ROOT || path.resolve(__dirname, '..
 function pickPwaRootSync() {
   const env = process.env.BENCHMARK_PWA_ROOT;
   if (env) return path.resolve(env);
-  const min = path.join(REPO_ROOT, 'apps', 'pwa-webapp', '.android-dist');
+  const min = path.join(REPO_ROOT, 'apps', 'pwa-webapp', '.web-dist');
   if (fs.existsSync(path.join(min, 'index.html'))) return min;
   return path.join(REPO_ROOT, 'apps', 'pwa-webapp');
 }
@@ -120,7 +120,7 @@ async function main() {
   writeProfile({
     slug: 'web-pwa',
     title: 'Web / PWA (static minified or dev tree)',
-    note: 'Uses minified tree from `apps/pwa-webapp/.android-dist` when present (run `npm run build:web:apk`).',
+    note: 'Uses minified tree from `apps/pwa-webapp/.web-dist` when present (run `npm run build:web:min`).',
     lh,
     nav,
   });

@@ -1,6 +1,6 @@
 # Benchmark comparison (history)
 
-Generated at **2026-07-18T14:32:18.732Z**.
+Generated at **2026-07-18T16:55:34.857Z**.
 
 To change the default number of runs in the primary sections below, edit **[compare.config.json](./compare.config.json)** (`window`). GitHub does not support interactive dropdowns in Markdown; optional **collapsed sections** list alternate window sizes.
 
@@ -66,41 +66,6 @@ xychart-beta
     line [1137, 1417, 1173, 1703, 1749, 1497, 1240, 1647, 1279, 1784]
 ```
 
-### Capacitor (legacy)
-_No history yet._
-
-### Expo / RN bundles
-
-Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable for trends when chunk hashes change).
-
-| date | sha | status | android_gzip | ios_gzip | run |
-| --- | --- | --- | --- | --- | --- |
-| 2026-07-18 14:31:55 | 30c2c64 | ok | 4098021 | 4096293 | 29648074587 |
-| 2026-07-17 19:38:43 | 9ab5b6a | ok | 4098155 | 4096048 | 29608013937 |
-| 2026-07-16 23:36:47 | 82c96a7 | ok | 4098085 | 4091134 | 29542392416 |
-| 2026-07-16 22:28:24 | bb75ee2 | ok | 4098255 | 4090855 | 29539414426 |
-| 2026-07-16 21:44:03 | 7691a39 | ok | 4098083 | 4091134 | 29536835656 |
-| 2026-07-16 16:16:27 | 1cdec4f | ok | 4099120 | 4091052 | 29514595695 |
-| 2026-07-16 13:18:53 | 9f297f6 | ok | 4099121 | 4091052 | 29501373326 |
-| 2026-07-16 12:36:49 | 2ffa0f6 | ok | 4099124 | 4091051 | 29498560447 |
-| 2026-07-15 21:50:33 | 657e0de | ok | 4098083 | 4090884 | 29453124783 |
-| 2026-07-13 23:58:43 | 1e27fcd | ok | 4094465 | 4087417 | 29293876957 |
-
-```mermaid
-xychart-beta
-    title "Expo — Android Hermes gzip total (bytes)"
-    x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39", "1cdec4f", "9f297f6", "2ffa0f6", "657e0de", "1e27fcd"]
-    y-axis "bytes" 0 --> 4509037
-    line [4098021, 4098155, 4098085, 4098255, 4098083, 4099120, 4099121, 4099124, 4098083, 4094465]
-```
-```mermaid
-xychart-beta
-    title "Expo — iOS Hermes gzip total (bytes)"
-    x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39", "1cdec4f", "9f297f6", "2ffa0f6", "657e0de", "1e27fcd"]
-    y-axis "bytes" 0 --> 4505923
-    line [4096293, 4096048, 4091134, 4090855, 4091134, 4091052, 4091052, 4091051, 4090884, 4087417]
-```
-
 <details>
 <summary>Last <strong>5</strong> runs (all platforms)</summary>
 
@@ -152,36 +117,6 @@ xychart-beta
     x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39"]
     y-axis "ms" 0 --> 1924
     line [1137, 1417, 1173, 1703, 1749]
-```
-
-### Capacitor (legacy)
-_No history yet._
-
-### Expo / RN bundles
-
-Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable for trends when chunk hashes change).
-
-| date | sha | status | android_gzip | ios_gzip | run |
-| --- | --- | --- | --- | --- | --- |
-| 2026-07-18 14:31:55 | 30c2c64 | ok | 4098021 | 4096293 | 29648074587 |
-| 2026-07-17 19:38:43 | 9ab5b6a | ok | 4098155 | 4096048 | 29608013937 |
-| 2026-07-16 23:36:47 | 82c96a7 | ok | 4098085 | 4091134 | 29542392416 |
-| 2026-07-16 22:28:24 | bb75ee2 | ok | 4098255 | 4090855 | 29539414426 |
-| 2026-07-16 21:44:03 | 7691a39 | ok | 4098083 | 4091134 | 29536835656 |
-
-```mermaid
-xychart-beta
-    title "Expo — Android Hermes gzip total (bytes)"
-    x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39"]
-    y-axis "bytes" 0 --> 4508081
-    line [4098021, 4098155, 4098085, 4098255, 4098083]
-```
-```mermaid
-xychart-beta
-    title "Expo — iOS Hermes gzip total (bytes)"
-    x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39"]
-    y-axis "bytes" 0 --> 4505923
-    line [4096293, 4096048, 4091134, 4090855, 4091134]
 ```
 
 </details>
@@ -267,51 +202,6 @@ xychart-beta
     x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39", "1cdec4f", "9f297f6", "2ffa0f6", "657e0de", "1e27fcd", "cc3e106", "5d91329", "782a519", "54b5b9a", "95c674d", "1035b91", "c0d5c84", "a0abe91", "f776321", "894d90a"]
     y-axis "ms" 0 --> 3101
     line [1137, 1417, 1173, 1703, 1749, 1497, 1240, 1647, 1279, 1784, 1630, 1186, 2090, 2819, 1235, 859, 0, 0, 0, 0]
-```
-
-### Capacitor (legacy)
-_No history yet._
-
-### Expo / RN bundles
-
-Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable for trends when chunk hashes change).
-
-| date | sha | status | android_gzip | ios_gzip | run |
-| --- | --- | --- | --- | --- | --- |
-| 2026-07-18 14:31:55 | 30c2c64 | ok | 4098021 | 4096293 | 29648074587 |
-| 2026-07-17 19:38:43 | 9ab5b6a | ok | 4098155 | 4096048 | 29608013937 |
-| 2026-07-16 23:36:47 | 82c96a7 | ok | 4098085 | 4091134 | 29542392416 |
-| 2026-07-16 22:28:24 | bb75ee2 | ok | 4098255 | 4090855 | 29539414426 |
-| 2026-07-16 21:44:03 | 7691a39 | ok | 4098083 | 4091134 | 29536835656 |
-| 2026-07-16 16:16:27 | 1cdec4f | ok | 4099120 | 4091052 | 29514595695 |
-| 2026-07-16 13:18:53 | 9f297f6 | ok | 4099121 | 4091052 | 29501373326 |
-| 2026-07-16 12:36:49 | 2ffa0f6 | ok | 4099124 | 4091051 | 29498560447 |
-| 2026-07-15 21:50:33 | 657e0de | ok | 4098083 | 4090884 | 29453124783 |
-| 2026-07-13 23:58:43 | 1e27fcd | ok | 4094465 | 4087417 | 29293876957 |
-| 2026-07-13 23:03:27 | cc3e106 | ok | 4094465 | 4087412 | 29291578240 |
-| 2026-07-13 22:57:51 | fda11c1 | ok | 4090789 | 4084812 | 29291285600 |
-| 2026-07-13 22:22:13 | 5d91329 | ok | 4090787 | 4084805 | 29289400686 |
-| 2026-07-13 21:31:43 | 782a519 | ok | 4090360 | 4084677 | 29286354034 |
-| 2026-07-13 20:41:25 | 54b5b9a | ok | 4089313 | 4082348 | 29282111300 |
-| 2026-07-13 20:06:03 | 95c674d | ok | 4088814 | 4083105 | 29280775524 |
-| 2026-07-13 19:31:58 | 1035b91 | ok | 4088813 | 4083108 | 29278561731 |
-| 2026-07-08 21:53:45 | c0d5c84 | ok | 4088813 | 4083106 | 28978196267 |
-| 2026-07-08 20:50:52 | a0abe91 | ok | 4088812 | 4083107 | 28974575590 |
-| 2026-07-07 22:43:47 | f776321 | ok | 4085830 | 4079675 | 28903623662 |
-
-```mermaid
-xychart-beta
-    title "Expo — Android Hermes gzip total (bytes)"
-    x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39", "1cdec4f", "9f297f6", "2ffa0f6", "657e0de", "1e27fcd", "cc3e106", "fda11c1", "5d91329", "782a519", "54b5b9a", "95c674d", "1035b91", "c0d5c84", "a0abe91", "f776321"]
-    y-axis "bytes" 0 --> 4509037
-    line [4098021, 4098155, 4098085, 4098255, 4098083, 4099120, 4099121, 4099124, 4098083, 4094465, 4094465, 4090789, 4090787, 4090360, 4089313, 4088814, 4088813, 4088813, 4088812, 4085830]
-```
-```mermaid
-xychart-beta
-    title "Expo — iOS Hermes gzip total (bytes)"
-    x-axis ["30c2c64", "9ab5b6a", "82c96a7", "bb75ee2", "7691a39", "1cdec4f", "9f297f6", "2ffa0f6", "657e0de", "1e27fcd", "cc3e106", "fda11c1", "5d91329", "782a519", "54b5b9a", "95c674d", "1035b91", "c0d5c84", "a0abe91", "f776321"]
-    y-axis "bytes" 0 --> 4505923
-    line [4096293, 4096048, 4091134, 4090855, 4091134, 4091052, 4091052, 4091051, 4090884, 4087417, 4087412, 4084812, 4084805, 4084677, 4082348, 4083105, 4083108, 4083106, 4083107, 4079675]
 ```
 
 </details>
