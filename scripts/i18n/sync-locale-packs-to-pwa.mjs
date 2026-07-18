@@ -7,7 +7,6 @@ const root = process.cwd();
 const src = canonicalLocalePacksDir(root);
 const destinations = [
   path.join(root, 'apps', 'pwa-webapp', I18N_PACKS_DIR, 'locale-packs', 'v1'),
-  path.join(root, 'apps', 'rn-app', I18N_PACKS_DIR, 'locale-packs', 'v1'),
 ];
 
 for (const dest of destinations) {
@@ -20,5 +19,5 @@ for (const dest of destinations) {
 }
 
 console.log(
-  `sync-locale-packs-to-pwa: copied to apps/pwa-webapp/${I18N_PACKS_DIR}/locale-packs/v1/ and apps/rn-app/${I18N_PACKS_DIR}/locale-packs/v1/`,
+  `sync-locale-packs-to-pwa: copied to apps/pwa-webapp/${I18N_PACKS_DIR}/locale-packs/v1/`,
 );

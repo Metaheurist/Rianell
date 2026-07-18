@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Idempotent root postinstall — react-native-transformers re-invokes via yarn on CI. */
+/** Idempotent root postinstall — syncs LLM tier/ladder/runtime data into the PWA. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
@@ -27,8 +27,6 @@ if (alreadyRan()) {
 }
 
 const steps = [
-  'node scripts/build/patch-onnxruntime-gradle.mjs',
-  'node scripts/build/patch-smartlook-kotlin.mjs',
   'node scripts/build/sync-llm-tier-benchmark.mjs',
   'node scripts/build/sync-llm-load-ladder.mjs',
   'node scripts/build/sync-llm-runtime-profiles.mjs',

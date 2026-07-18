@@ -9,7 +9,6 @@ import { fileURLToPath } from 'node:url';
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 const workspaceRoots = [
-  path.join(root, 'apps', 'rn-app'),
   path.join(root, 'apps', 'pwa-webapp'),
   path.join(root, 'benchmarks'),
   ...fs

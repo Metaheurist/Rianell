@@ -38,7 +38,6 @@ function extractStorageKeys(source, pattern) {
 
 function generate() {
   const rootPkg = readJson('package.json');
-  const rnPkg = readJson('apps/rn-app/package.json');
   const indexHtml = readText('apps/pwa-webapp/index.html');
   const schemaSql = readText('supabase/Schema.sql');
   const appJs = readText('apps/pwa-webapp/app.js');
@@ -69,7 +68,6 @@ function generate() {
     `| Package | Version |`,
     `|---------|---------|`,
     `| \`rianell\` (root) | ${rootPkg.version} |`,
-    `| \`apps/rn-app\` | ${rnPkg.version} |`,
     '',
     '## Python',
     '',

@@ -32,7 +32,7 @@ const STAGES = [
     runNode('scripts/ci/deploy-probe-loop.mjs');
   }},
   { id: 'artifacts_manifests', label: 'Manifest JSON valid', run: () => {
-    for (const rel of ['artifacts/RNCLI-Android/latest.json', 'artifacts/iOS/latest.json']) {
+    for (const rel of ['artifacts/Server/latest.json']) {
       const fp = path.join(root, rel);
       if (!fs.existsSync(fp)) throw new Error(`missing ${rel}`);
       JSON.parse(fs.readFileSync(fp, 'utf8'));

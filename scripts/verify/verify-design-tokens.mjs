@@ -9,22 +9,6 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-const RN_SCREEN_GLOBS = [
-  'apps/rn-app/src/screens/HomeScreen.tsx',
-  'apps/rn-app/src/screens/LogWizardScreen.tsx',
-  'apps/rn-app/src/screens/LogsScreen.tsx',
-  'apps/rn-app/src/screens/AiScreen.tsx',
-  'apps/rn-app/src/screens/ChartsScreen.tsx',
-  'apps/rn-app/src/screens/SettingsScreen.tsx',
-  'apps/rn-app/src/screens/MoodScreen.tsx',
-  'apps/rn-app/src/screens/WeeklyReviewScreen.tsx',
-];
-
-const RN_FORBIDDEN = [
-  { re: /backgroundColor:\s*['"]rgba\(0,0,0,0\.18\)['"]/, msg: 'hardcoded dark card rgba — use ScreenCard or surfaceCard()' },
-  { re: /theme\.tokens\.color\.background\s*===\s*['"]linear-gradient/, msg: 'inline gradient bg check — use resolveScreenBackground()' },
-];
-
 const PWA_JS_FORBIDDEN = [
   { re: /\.style\.width\s*=\s*[^;]+%/, msg: 'width % assignment — use setProgressScale() with --progress' },
 ];
@@ -56,10 +40,6 @@ function checkFile(rel, rules) {
       failures.push(`${rel}:${idx + 1}: ${msg}`);
     }
   }
-}
-
-for (const rel of RN_SCREEN_GLOBS) {
-  checkFile(rel, RN_FORBIDDEN);
 }
 
 checkFile('apps/pwa-webapp/app.js', PWA_JS_FORBIDDEN);

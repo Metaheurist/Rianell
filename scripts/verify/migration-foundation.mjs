@@ -20,8 +20,7 @@ function run(label, cmd, args = []) {
 }
 
 run('test:unit', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'test:unit']);
-run('parity:inventory:check', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'parity:inventory:check']);
-run('build:web:apk', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build:web:apk']);
+run('build:web:min', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build:web:min']);
 run('doc-links', process.execPath, ['scripts/verify/doc-links.mjs', '--strict']);
 run('wiki:verify', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'wiki:verify']);
 

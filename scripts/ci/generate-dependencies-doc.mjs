@@ -87,7 +87,6 @@ function extractCdnUrl(html, re) {
 }
 
 const pkgRoot = readJson('package.json');
-const pkgRn = readJson('apps/rn-app/package.json');
 const pkgBench = readJson('benchmarks/package.json');
 
 const nvmrc = fs.existsSync(path.join(root, '.nvmrc'))
@@ -123,7 +122,7 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 
 **Runtime expectations:** Node **${enginesNode}** ([\`package.json\`](../package.json) \`engines\`; [\`.nvmrc\`](../.nvmrc) pins **${nvmrc}** for local tooling). **Python 3.8+** for the server ([\`requirements.txt\`](../requirements.txt)).
 
-**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI).
+**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), Python server EXE (PyInstaller + optional PyArmor in CI).
 
 ## Authoritative sources
 
@@ -131,12 +130,11 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 |------|------|
 | npm lockfile (all workspaces) | [\`package-lock.json\`](../package-lock.json) |
 | Root workspace + overrides | [\`package.json\`](../package.json) |
-| React Native (Expo) | [\`apps/rn-app/package.json\`](../apps/rn-app/package.json) |
 | Shared libraries | [\`packages/shared/package.json\`](../packages/shared/package.json), [\`packages/tokens/package.json\`](../packages/tokens/package.json) |
 | Benchmarks | [\`benchmarks/package.json\`](../benchmarks/package.json) |
 | Python server | [\`requirements.txt\`](../requirements.txt) |
 
-The PWA under \`apps/pwa-webapp/\` has **no** \`package.json\`; it is bundled with **esbuild** from the root devDependencies via [\`apps/pwa-webapp/build-site.mjs\`](../apps/pwa-webapp/build-site.mjs) and [\`apps/pwa-webapp/fingerprint-assets.mjs\`](../apps/pwa-webapp/fingerprint-assets.mjs). Production output uses **content-hashed** filenames (\`app.<hash>.min.js\`; \`styles.<hash>.css\` for \`--site\` and \`.android-dist\`) and \`asset-manifest.json\` (\`mainJs\`, optional \`mainCss\`).
+The PWA under \`apps/pwa-webapp/\` has **no** \`package.json\`; it is bundled with **esbuild** from the root devDependencies via [\`apps/pwa-webapp/build-site.mjs\`](../apps/pwa-webapp/build-site.mjs) and [\`apps/pwa-webapp/fingerprint-assets.mjs\`](../apps/pwa-webapp/fingerprint-assets.mjs). Production output uses **content-hashed** filenames (\`app.<hash>.min.js\`; \`styles.<hash>.css\` for \`--site\` and \`.web-dist\`) and \`asset-manifest.json\` (\`mainJs\`, optional \`mainCss\`).
 
 ---
 
@@ -148,7 +146,7 @@ ${depTable(pkgRoot.devDependencies)}
 
 ${overridesNote}
 
-**Workspaces:** \`apps/*\`, \`packages/*\`, \`benchmarks\`.
+**Workspaces:** \`apps/pwa-webapp\`, \`packages/*\`, \`benchmarks\`.
 
 ---
 
@@ -172,18 +170,6 @@ Uses root **esbuild**, Babel packages (\`@babel/generator\`, \`@babel/parser\`, 
 | Google Fonts | Plus Jakarta Sans via \`fonts.googleapis.com\` / \`fonts.gstatic.com\` |
 
 CSP and additional script hosts (e.g. ML/PayPal-related \`connect-src\` entries) are described in the same \`index.html\` meta **Content-Security-Policy** and related comments.
-
----
-
-## React Native / Expo ([\`apps/rn-app/package.json\`](../apps/rn-app/package.json))
-
-**\`dependencies\`**
-
-${depTable(pkgRn.dependencies)}
-
-**\`devDependencies\`**
-
-${depTable(pkgRn.devDependencies)}
 
 ---
 
@@ -219,9 +205,7 @@ These are installed or invoked in workflows **to build or test**; they are not n
 
 | Tool / command | Role |
 |----------------|------|
-| \`npm install --no-save @rollup/rollup-linux-x64-gnu\` | Linux native Rollup binding for Expo/RN bundle steps on Ubuntu |
 | \`npx playwright install chromium --with-deps\` | Browser for web benchmarks / automation |
-| \`npx expo export\` / \`npx expo prebuild\` | React Native production bundles and native project prep |
 | \`pip install pyinstaller\` | Build Windows server \`.exe\` |
 | \`pip install pyarmor\` | Optional obfuscation step for server sources in CI (see workflow) |
 

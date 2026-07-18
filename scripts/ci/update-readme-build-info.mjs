@@ -4,8 +4,7 @@
  * <!-- RIANELL_BUILD_INFO_END --> in README.md with current CI + artifacts numbers.
  *
  * Tables:
- * - CI builds: **RN** Alpha rows read `version` from RN CLI `latest.json` (sequential RN
- *   build from CI `rn-build-version`). **Server** uses workflow run number. **Web / PWA**
+ * - CI builds: **Server** uses workflow run number. **Web / PWA**
  *   row shows **GITHUB_RUN_NUMBER** (Pages deploy).
  *
  * Env: GITHUB_RUN_NUMBER, GITHUB_SHA, GITHUB_RUN_ID, GITHUB_REPOSITORY
@@ -32,59 +31,42 @@ function readJson(rel) {
   }
 }
 
-function v(j) {
-  if (!j || typeof j.version === 'undefined' || j.version === null) return '—';
-  return String(j.version);
-}
-
 const run = process.env.GITHUB_RUN_NUMBER || 'local';
 const sha = (process.env.GITHUB_SHA || 'local').slice(0, 7);
 const repo = process.env.GITHUB_REPOSITORY || 'Metaheurist/Rianell';
 const runId = process.env.GITHUB_RUN_ID || '';
 const runUrl = runId ? `https://github.com/${repo}/actions/runs/${runId}` : `https://github.com/${repo}/actions`;
 
-const rnAndroid = readJson(path.join('artifacts', 'RNCLI-Android', 'latest.json'));
-const rnIos = readJson(path.join('artifacts', 'iOS', 'latest.json'));
-
 const server = readJson(path.join('artifacts', 'Server', 'latest.json'));
 const serverX64 = readJson(path.join('artifacts', 'Server', 'latest-x64.json'));
 const serverX86 = readJson(path.join('artifacts', 'Server', 'latest-x86.json'));
 
-const rnAndroidV = v(rnAndroid);
-const rnIosV = v(rnIos);
-
 const serverV = server && typeof server.version !== 'undefined' ? String(server.version) : '-';
 const serverX64V = serverX64 && typeof serverX64.version !== 'undefined' ? String(serverX64.version) : serverV;
 const serverX86V = serverX86 && typeof serverX86.version !== 'undefined' ? String(serverX86.version) : serverV;
-
-const rnAndroidFile = rnAndroid && rnAndroid.file ? String(rnAndroid.file) : 'latest.json';
-const rnIosFile = rnIos && rnIos.file ? String(rnIos.file) : 'latest.json';
 
 const serverFile = server && server.file ? String(server.file) : 'latest.json';
 const serverX64File = serverX64 && serverX64.file ? String(serverX64.file) : 'rianell-server-x64.exe';
 const serverX86File = serverX86 && serverX86.file ? String(serverX86.file) : 'rianell-server-x86.exe';
 
 const badgeHref = runId ? runUrl : `https://github.com/${repo}/actions`;
-const summaryBadgeUrl = `https://img.shields.io/badge/build-RN%20${encodeURIComponent(rnAndroidV)}%20%7C%20RN%20iOS%20${encodeURIComponent(rnIosV)}%20%7C%20Server%20${encodeURIComponent(serverV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
+const summaryBadgeUrl = `https://img.shields.io/badge/build-Server%20${encodeURIComponent(serverV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
 const BETA_BADGE = 'https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white';
-const ALPHA_BADGE = 'https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white';
 
 const block = [
   START,
   '',
   `[![CI builds](${summaryBadgeUrl})](${badgeHref})`,
   '',
-  '**CI builds** (React Native CLI + server + web)',
+  '**CI builds** (server + web)',
   '',
   '| Channel | Build |',
   '| :--- | :---: |',
-  `| ![Alpha](${ALPHA_BADGE}) **Android** APK (React Native CLI) | **${rnAndroidV}** |`,
-  `| ![Alpha](${ALPHA_BADGE}) **iOS** (Xcode project zip, RN CLI) | **${rnIosV}** |`,
   `| ![Beta](${BETA_BADGE}) **Server** EXE (x64) | **${serverX64V}** |`,
   `| ![Beta](${BETA_BADGE}) **Server** EXE (x86) | **${serverX86V}** |`,
   `| ![Beta](${BETA_BADGE}) **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
   '',
-  `Latest: [\`artifacts/RNCLI-Android/${rnAndroidFile}\`](artifacts/RNCLI-Android/latest.json) · [\`artifacts/iOS/${rnIosFile}\`](artifacts/iOS/latest.json) · [\`artifacts/Server/${serverFile}\`](artifacts/Server/latest.json) · [\`artifacts/Server/${serverX64File}\`](artifacts/Server/latest-x64.json) · [\`artifacts/Server/${serverX86File}\`](artifacts/Server/latest-x86.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
+  `Latest: [\`artifacts/Server/${serverFile}\`](artifacts/Server/latest.json) · [\`artifacts/Server/${serverX64File}\`](artifacts/Server/latest-x64.json) · [\`artifacts/Server/${serverX86File}\`](artifacts/Server/latest-x86.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
   '',
   END,
 ].join('\n');

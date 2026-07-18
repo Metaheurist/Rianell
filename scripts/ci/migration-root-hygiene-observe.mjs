@@ -27,7 +27,6 @@ const STAGES = [
       runNpm('verify:csp');
       runNpm('verify:migration:foundation');
       runNpm('verify:migration');
-      runNpm('parity');
       runNpm('wiki:verify');
     },
   },

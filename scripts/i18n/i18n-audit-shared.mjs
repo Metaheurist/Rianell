@@ -15,13 +15,6 @@ export const SCAN_FILES = [
   'apps/pwa-webapp/device-benchmark.js',
 ];
 
-export const RN_GLOBS = [
-  'apps/rn-app/src/screens',
-  'apps/rn-app/src/settings',
-  'apps/rn-app/src/privacy',
-  'apps/rn-app/src/navigation/RootNavigator.tsx',
-];
-
 export const STRING_PATTERNS = [
   /(?:innerHTML|textContent|title|placeholder|aria-label)\s*[=:]\s*['"]([^'"]{3,120})['"]/g,
   /(?:showAlertModal|showConfirmModal|alert)\(\s*['"]([^'"]{3,200})['"]/g,
@@ -79,22 +72,6 @@ export function loadCatalog(root) {
     if (!valueToKey.has(trimmed)) valueToKey.set(trimmed, key);
   }
   return { keys, values, valueToKey };
-}
-
-export function listRnFiles(root) {
-  const files = [];
-  for (const rel of RN_GLOBS) {
-    const abs = path.join(root, rel);
-    if (!fs.existsSync(abs)) continue;
-    if (fs.statSync(abs).isFile()) {
-      files.push(abs);
-      continue;
-    }
-    for (const name of fs.readdirSync(abs)) {
-      if (/\.(tsx|ts|jsx|js)$/.test(name)) files.push(path.join(abs, name));
-    }
-  }
-  return files;
 }
 
 export function suggestKey(text, file) {
@@ -170,8 +147,5 @@ export function scanAll(root) {
   const allowlist = loadAllowlist(root);
   const results = [];
   for (const f of SCAN_FILES) results.push(...scanFile(root, f, allowlist));
-  for (const abs of listRnFiles(root)) {
-    results.push(...scanFile(root, path.relative(root, abs), allowlist));
-  }
   return results;
 }
