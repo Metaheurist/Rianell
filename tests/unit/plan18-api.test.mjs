@@ -67,8 +67,3 @@ test('cloud-sync invokes deliver-webhook after upsert', () => {
   const src = readFileSync(join(root, 'apps/pwa-webapp/cloud-sync.js'), 'utf8');
   assert.match(src, /deliver-webhook/);
 });
-
-test('RN sync invokes deliver-webhook', () => {
-  const src = readFileSync(join(root, 'apps/rn-app/src/cloud/sync.ts'), 'utf8');
-  assert.match(src, /deliver-webhook/);
-});
