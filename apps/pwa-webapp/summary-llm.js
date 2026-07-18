@@ -22,6 +22,10 @@
   var lastDownloadError = null;
   var loadGeneration = 0;
   var loadInFlight = null;
+  // Per-file byte tallies for the active download so overall progress reflects the
+  // whole model (all shards/files), not each file cycling 0→100 independently.
+  var downloadFileBytes = {};
+  var finalizeWatchdog = null;
   var webGpuAdapterProbePromise = null;
   var WEBGPU_CACHE_KEY = 'rianell.webgpu.adapterOk';
   var WEBGPU_CACHE_TTL_MS = 86400000;
@@ -36,6 +40,14 @@
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 45000;
   var LOAD_TIMEOUT_MS = 180000;
+  // Max time to wait for ONNX/engine compile + warmup after bytes are downloaded
+  // before giving up (prevents a permanent "stuck near 100%").
+  var FINALIZE_TIMEOUT_MS = 150000;
+  // Per-attempt guard: if a backend produces no download progress for this long
+  // (e.g. a WebGPU pipeline that hangs during shader compile instead of throwing),
+  // abandon it so the next plan (WASM) can run. Reset on every progress event, so
+  // slow-but-advancing downloads are never killed.
+  var COMPILE_STALL_MS = 60000;
   var TIMEOUT_SUGGEST_MS = 20000;
   var TIMEOUT_SUGGEST_TOTAL_MS = 120000;
   var TIMEOUT_MOTD_MS = 25000;
@@ -692,7 +704,7 @@
       reportDownloadProgress({ status: 'progress', progress: 0, file: '' });
       try {
         applyHuggingFaceRemote(mod);
-        var pipe = await runChatGenerationPipeline(mod, loadModelId, plan);
+        var pipe = await runChatGenerationPipelineGuarded(mod, loadModelId, plan);
         if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
         cachedActiveBackend = plan.device || 'wasm';
         cachedActiveDtype = plan.dtype || 'q4';
@@ -816,6 +828,8 @@
 
   function failDownloadProgress(errorMsg) {
     if (downloadCancelled) return;
+    clearFinalizeWatchdog();
+    downloadFileBytes = {};
     downloadProgressState.active = false;
     lastDownloadError = errorMsg ? formatDownloadError(errorMsg) : 'Download failed';
     if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
@@ -861,6 +875,8 @@
     cachedModelId = null;
     llmWorkQueue = Promise.resolve();
     lastDownloadError = null;
+    clearFinalizeWatchdog();
+    downloadFileBytes = {};
     downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
     if (typeof window !== 'undefined') {
       try {
@@ -872,24 +888,101 @@
     }
   }
 
+  function clearFinalizeWatchdog() {
+    if (finalizeWatchdog) {
+      clearTimeout(finalizeWatchdog);
+      finalizeWatchdog = null;
+    }
+  }
+
   function reportDownloadProgress(data) {
     if (downloadCancelled) return;
     if (!data) return;
-    var pct = downloadProgressState.pct;
-    if (data.status === 'progress' && data.total) {
-      pct = Math.min(100, Math.round((data.loaded / data.total) * 100));
-    } else if (data.progress != null) {
-      pct = Math.min(100, Math.round(Number(data.progress) * 100));
-    } else if (data.status === 'done') {
-      pct = 100;
+    var prevPct = downloadProgressState.pct || 0;
+    var isFinal = data.active === false || (data.status === 'done' && Number(data.progress) === 1);
+
+    // Accumulate bytes per file so a multi-file model (tokenizer + config + ONNX
+    // graph + external weights) shows one continuous bar instead of each file
+    // resetting the bar to 0 (the "reaches 100% then restarts" symptom).
+    if (data.file && data.total) {
+      var entry = downloadFileBytes[data.file] || { loaded: 0, total: 0 };
+      entry.total = Number(data.total) || entry.total;
+      if (data.status === 'done') entry.loaded = entry.total;
+      else if (data.loaded != null) entry.loaded = Number(data.loaded) || 0;
+      downloadFileBytes[data.file] = entry;
     }
-    // Per-file 'done'/'ready' from transformers.js must not hide the modal mid-download.
+
+    var pct = prevPct;
+    // Headline progress tracks the single largest file. The model weights file is
+    // ~99% of the download time, while tokenizer/config files are a few KB. Summing
+    // every file makes a tiny file finishing first peg the bar to ~100%; tracking the
+    // dominant file gives one smooth 0→100 pass over the download that matters.
+    var maxTotal = 0, maxLoaded = 0;
+    for (var k in downloadFileBytes) {
+      if (!Object.prototype.hasOwnProperty.call(downloadFileBytes, k)) continue;
+      var e = downloadFileBytes[k];
+      if (e.total > maxTotal) { maxTotal = e.total; maxLoaded = e.loaded; }
+    }
+    var BIG_FILE_MIN = 2 * 1024 * 1024;
+    var weightsDone = false;
+    if (maxTotal > 0) {
+      var frac = maxLoaded / maxTotal;
+      if (maxTotal < BIG_FILE_MIN) {
+        // Only small metadata files seen so far — keep the bar in an early range
+        // instead of jumping to 100% before the weights download begins.
+        pct = Math.min(10, Math.round(frac * 10));
+      } else {
+        pct = Math.round(frac * 99);
+        if (maxLoaded >= maxTotal) weightsDone = true;
+      }
+    } else if (data.status === 'progress' && data.total) {
+      pct = Math.round((data.loaded / data.total) * 100);
+    } else if (data.progress != null) {
+      // transformers.js reports `progress` as a percentage (0–100); older builds use
+      // a 0–1 fraction. Normalise both without double-scaling.
+      var p = Number(data.progress);
+      pct = Math.round(p > 1 ? p : p * 100);
+    }
+
+    var status;
+    if (isFinal) {
+      pct = 100;
+      status = 'done';
+      clearFinalizeWatchdog();
+    } else {
+      pct = Math.max(0, Math.min(99, pct));
+      // "Finalizing" = weights fully fetched and the engine is compiling/warming up
+      // (transformers.js emits no events during that phase).
+      var finalizing = weightsDone || pct >= 99;
+      status = finalizing ? 'finalizing' : (data.status || downloadProgressState.status);
+      if (finalizing && !finalizeWatchdog) {
+        // Guard against a hung compile/warmup so the UI can never sit at ~100%
+        // forever — fail with a retry instead.
+        var watchGen = loadGeneration;
+        finalizeWatchdog = setTimeout(function () {
+          finalizeWatchdog = null;
+          if (downloadProgressState.active && !downloadCancelled && loadGeneration === watchGen) {
+            // Abandon this attempt and free the in-flight slot so the user's next
+            // try starts a clean load.
+            bumpLoadGeneration();
+            loadInFlight = null;
+            cachedPipeline = null;
+            cachedModelId = null;
+            failDownloadProgress('Model preparation timed out. Please retry.');
+          }
+        }, FINALIZE_TIMEOUT_MS);
+      } else if (!finalizing && finalizeWatchdog) {
+        // More download work resumed (e.g. a second shard) — cancel the finalize guard.
+        clearFinalizeWatchdog();
+      }
+    }
+
     var active = data.active === false
       ? false
       : (!!loadInFlight || downloadProgressState.active);
     downloadProgressState = {
       pct: pct,
-      status: data.status || downloadProgressState.status,
+      status: status,
       file: sanitizeDownloadFileLabel(data.file || ''),
       active: active
     };
@@ -905,7 +998,9 @@
   }
 
   function finishDownloadProgress() {
+    clearFinalizeWatchdog();
     reportDownloadProgress({ status: 'done', progress: 1, active: false });
+    downloadFileBytes = {};
     if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
       window.hideAiModelDownloadProgressUI();
     }
@@ -975,6 +1070,43 @@
     }
   }
 
+  /**
+   * Load a pipeline with a stall guard. The timer resets on every download-progress
+   * event, so an actively-downloading model is never interrupted; but if a backend
+   * hangs (typically WebGPU/ONNX session compile that never resolves or rejects),
+   * the guard rejects so the caller can fall through to the next plan (WASM).
+   */
+  function runChatGenerationPipelineGuarded(mod, pipelineModelId, opts, stallMs) {
+    return new Promise(function (resolve, reject) {
+      var settled = false;
+      var timer = null;
+      function done(fn, arg) {
+        if (settled) return;
+        settled = true;
+        if (timer) { clearTimeout(timer); timer = null; }
+        if (typeof window !== 'undefined') {
+          window.removeEventListener('rianell-llm-download-progress', arm);
+        }
+        fn(arg);
+      }
+      function arm() {
+        if (settled) return;
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(function () {
+          done(reject, new Error('Model engine load stalled'));
+        }, stallMs || COMPILE_STALL_MS);
+      }
+      if (typeof window !== 'undefined') {
+        window.addEventListener('rianell-llm-download-progress', arm);
+      }
+      arm();
+      runChatGenerationPipeline(mod, pipelineModelId, opts).then(
+        function (pipe) { done(resolve, pipe); },
+        function (err) { done(reject, err); }
+      );
+    });
+  }
+
   function bumpLoadGeneration() {
     loadGeneration += 1;
     return loadGeneration;
@@ -1010,6 +1142,8 @@
       downloadProgressState.active = true;
       downloadCancelled = false;
       lastDownloadError = null;
+      clearFinalizeWatchdog();
+      downloadFileBytes = {};
       var myGen = loadGeneration;
       var platformKind = getPlatformKindForLoad();
       maybeWarnMemoryCap(platformKind);
@@ -1117,7 +1251,7 @@
           applyHuggingFaceRemote(modWasm);
           await resolveModelsRemote(modWasm, { useBrowserCache: false });
           var wasmModelId = resolveWasmFallbackModelId(loadModelId);
-          cachedPipeline = await runChatGenerationPipeline(modWasm, wasmModelId, wasmPlan);
+          cachedPipeline = await runChatGenerationPipelineGuarded(modWasm, wasmModelId, wasmPlan);
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
           loadModelId = wasmModelId;
           cachedActiveEngine = 'onnx';
@@ -1137,7 +1271,7 @@
             try {
               applyHuggingFaceRemote(modWasm);
               await resolveModelsRemote(modWasm, { useBrowserCache: false });
-              cachedPipeline = await runChatGenerationPipeline(modWasm, MODEL_SMALL, wasmPlan);
+              cachedPipeline = await runChatGenerationPipelineGuarded(modWasm, MODEL_SMALL, wasmPlan);
               if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
               loadModelId = MODEL_SMALL;
               cachedActiveBackend = 'wasm';
@@ -1188,6 +1322,7 @@
         throw warmErr;
       }
 
+      if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
       lastDownloadError = null;
       persistLastStablePreset(cachedModelId, cachedActiveBackend, cachedActiveDtype);
       finishDownloadProgress();
@@ -1918,6 +2053,8 @@
     options = options || {};
     clearSummaryLLMCache();
     lastDownloadError = null;
+    clearFinalizeWatchdog();
+    downloadFileBytes = {};
     downloadProgressState = { pct: 0, status: '', file: '', active: false };
     try {
       if (typeof caches !== 'undefined') {
@@ -2005,6 +2142,8 @@
     bumpLoadGeneration();
     downloadCancelled = false;
     lastDownloadError = null;
+    clearFinalizeWatchdog();
+    downloadFileBytes = {};
     downloadProgressState = { pct: 0, status: '', file: '', active: false };
     llmWorkQueue = Promise.resolve();
   };

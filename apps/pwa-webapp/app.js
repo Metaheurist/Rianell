@@ -5443,7 +5443,7 @@ if (notesField) notesField.addEventListener('input', updateNotesCounter);
       if (contextStr && contextStr.length >= 30 && typeof window.generateSuggestNoteWithLLM !== 'function'
           && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
         try {
-          await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=2');
         } catch (e) {}
       }
 
@@ -8225,7 +8225,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
     if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
       try {
-        await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=2');
       } catch (e) {}
     }
   }
@@ -18740,7 +18740,7 @@ function ensureSummaryLlmLoadedForSettings() {
     return Promise.resolve();
   }
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-    return window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=2');
   }
   return Promise.resolve();
 }
@@ -25457,29 +25457,30 @@ function renderHomeAskSetupGate() {
     ? (typeof tUi === 'function' ? tUi(modelState === 'downloading' ? 'home.chat.needAi.downloading' : 'home.chat.needAi.preparing') : 'Preparing on-device AI…')
     : (typeof tUi === 'function' ? tUi('home.chat.needAi.body') : 'Turn on AI features and download the on-device model before chatting.');
   var confirmText = typeof tUi === 'function' ? tUi('home.chat.needAi.confirm') : 'Enable and download';
-  var pct = null;
-  try {
-    if (typeof window.getAiModelStatus === 'function') {
-      var st = window.getAiModelStatus();
-      if (st && typeof st.pct === 'number') pct = st.pct;
-    }
-  } catch (e) { /* ignore */ }
+  // The gate re-renders on every download-progress event (many per second). Its
+  // content only depends on whether we're downloading (not the live percent —
+  // that's shown by the shared corner/modal overlay), so skip rebuilding the DOM
+  // when nothing visible changed. Otherwise the animated pill flashes as the node
+  // is destroyed and recreated each tick.
+  var sig = state.mode + '|' + (downloading ? 'dl' : 'idle') + '|' + title + '|' + body + '|' + confirmText;
+  if (gate.getAttribute('data-render-sig') === sig && !gate.hidden) {
+    return;
+  }
+  // Progress is shown by the shared model-download overlay (corner banner on
+  // desktop / modal on mobile), so we don't render a second progress bar here.
   var html = '<div class="home-ask-setup__inner">';
   html += '<p class="home-ask-setup__title">' + escapeHTML(title) + '</p>';
   html += '<p class="home-ask-setup__body">' + escapeHTML(body) + '</p>';
-  if (downloading && pct != null) {
-    html += '<div class="home-ask-setup__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pct) + '">';
-    html += '<div class="home-ask-setup__progress-fill" style="width:' + Math.max(0, Math.min(100, pct)) + '%"></div>';
-    html += '</div>';
-  }
   if (!downloading) {
     html += '<button type="button" class="home-ask-setup__cta" id="homeAskSetupCta">' + escapeHTML(confirmText) + '</button>';
   } else {
+    var busyLabel = typeof tUi === 'function' ? tUi('common.downloading.ai.model') : 'Downloading AI model';
     html += '<button type="button" class="home-ask-setup__cta home-ask-setup__cta--busy" id="homeAskSetupCta" disabled>' +
-      escapeHTML(typeof tUi === 'function' ? tUi('home.chat.needAi.downloading') : 'Downloading…') + '</button>';
+      '<span class="home-ask-setup__spinner" aria-hidden="true"></span>' + escapeHTML(busyLabel) + '</button>';
   }
   html += '</div>';
   gate.innerHTML = html;
+  gate.setAttribute('data-render-sig', sig);
   gate.hidden = false;
   var cta = document.getElementById('homeAskSetupCta');
   if (cta && !cta.disabled) {
