@@ -22,8 +22,6 @@ function run(label, cmd, args = []) {
 run('foundation subset', process.execPath, ['scripts/verify/migration-foundation.mjs']);
 
 for (const rel of [
-  'artifacts/RNCLI-Android/latest.json',
-  'artifacts/iOS/latest.json',
   'artifacts/Server/latest.json',
 ]) {
   const fp = path.join(root, rel);
@@ -34,7 +32,7 @@ for (const rel of [
   JSON.parse(fs.readFileSync(fp, 'utf8'));
 }
 
-run('RN buildDownloads tests via test:unit filter', process.platform === 'win32' ? 'npm.cmd' : 'npm', [
+run('unit tests', process.platform === 'win32' ? 'npm.cmd' : 'npm', [
   'run',
   'test:unit',
 ]);

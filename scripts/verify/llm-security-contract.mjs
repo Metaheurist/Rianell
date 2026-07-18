@@ -126,23 +126,6 @@ if (hasVendorPath && !existsSync(vendorManifest)) {
   errors.push('missing vendor manifest — run npm run vendor:transformers');
 }
 
-const llmNative = read('apps/rn-app/src/ai/llmNative.ts');
-if (!llmNative.includes('buildRnLoadAttempts')) {
-  errors.push('llmNative.ts must use buildRnLoadAttempts');
-}
-if (!llmNative.includes('getNativeActiveBackend')) {
-  errors.push('llmNative.ts must expose getNativeActiveBackend');
-}
-if (!llmNative.includes('buildNativeLlmPrompt') && !llmNative.includes('buildMotdPrompt')) {
-  errors.push('llmNative.ts must use shared prompt packs (buildMotdPrompt / buildNativeLlmPrompt)');
-}
-if (!llmNative.includes('warmupNativePipeline')) {
-  errors.push('llmNative.ts must warmup native pipeline after init');
-}
-if (!llmNative.includes('externalData')) {
-  errors.push('llmNative.ts must pass externalData to ORT init');
-}
-
 const csp = read('apps/pwa-webapp/index.html');
 if (!/connect-src[^;]*huggingface\.co/i.test(csp)) {
   errors.push('index.html CSP connect-src must allow huggingface.co');

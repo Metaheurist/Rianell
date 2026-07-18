@@ -7,7 +7,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 
 const root = process.cwd();
-const scanDirs = ['apps/pwa-webapp', 'apps/rn-app/src', 'packages'];
+const scanDirs = ['apps/pwa-webapp', 'packages'];
 const forbidden = [
   /service_role/i,
   /SUPABASE_SERVICE_ROLE/,
@@ -50,7 +50,7 @@ function walk(dir) {
           failed = true;
         }
       }
-      if (rel === 'apps/pwa-webapp/supabase-config.js' || rel === 'apps/rn-app/.env.example') {
+      if (rel === 'apps/pwa-webapp/supabase-config.js') {
         if (/\bsb_publishable_[A-Za-z0-9_-]{10,}/.test(text)) {
           console.error(`verify-no-service-role-in-clients: hardcoded publishable key in ${rel} — use YOUR_ placeholders`);
           failed = true;

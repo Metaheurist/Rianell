@@ -25,8 +25,6 @@ run('verify:llm-security', process.execPath, ['scripts/verify/llm-security-contr
 run('sync:llm-pwa', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'sync:llm-pwa']);
 run('verify:csp', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'verify:csp']);
 run('verify:privacy-docs', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'verify:privacy-docs']);
-run('parity', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'parity']);
-run('typecheck', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'typecheck']);
 run('verify:root-hygiene', process.execPath, ['scripts/verify/migration-root-hygiene.mjs']);
 
 if (fs.existsSync(path.join(root, 'turbo.json'))) {

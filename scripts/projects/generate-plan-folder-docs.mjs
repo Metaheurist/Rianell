@@ -74,7 +74,7 @@ const PLANS = [
     verify: ['npm run parity:inventory:check', 'npm run test:unit'],
     extraEnv: 'parity:inventory:check',
     firecrawl: ['.firecrawl/projects/owasp-masvs.md — MASVS-STORAGE, AUTH'],
-    docs: ['docs/platform-parity.json', 'docs/privacy/global-baseline.md'],
+    docs: ['docs/privacy/global-baseline.md'],
     scope: 'S5 simple mode hides AI/pool — test with plan 14 X14.3.',
   },
   {
@@ -163,7 +163,7 @@ const PLANS = [
     title: 'On-device LLM & NLP',
     ids: 'N1–N11 (excl N8 NR)',
     cve: [
-      'CVE baseline: @huggingface/transformers 3.3.2, onnxruntime-react-native — audit before bump.',
+      'CVE baseline: @huggingface/transformers 3.3.2 — audit before bump.',
       'N1 chat: max 5 turns limits injection blast radius; no tool calling.',
       'N11: on-device parity only — no user-supplied commercial LLM URL (FREE-TIER-POLICY).',
       'N10 GGUF WASM: memory safety — cap model size tier.',
@@ -198,7 +198,7 @@ const PLANS = [
     verify: ['npm run test:unit', 'Manual chart smoke PWA + RN'],
     extraEnv: '',
     firecrawl: ['Chart.js/ApexCharts performance docs — debounce resize handlers'],
-    docs: ['apps/rn-app/src/screens/ChartsScreen.tsx', 'apps/pwa-webapp/styles-charts.css'],
+    docs: ['apps/pwa-webapp/styles-charts.css'],
     scope: 'C6 feeds CL1 appointment PDF.',
   },
   {
@@ -251,7 +251,7 @@ const PLANS = [
       'CL1 PDF: metadata scrub (author/title); user confirms before share.',
       'CL5 LLM questions: wellness framing; not diagnosis.',
     ],
-    perf: ['PDF generation off main thread where possible (RN expo-print async).', 'CL4 timeline: virtualize long med histories.'],
+    perf: ['PDF generation off main thread where possible.', 'CL4 timeline: virtualize long med histories.'],
     mitigations: ['P4 crypto for CL2', 'Disclaimers on all clinician outputs', 'CL3 NR'],
     verify: ['npm run test:unit', 'PDF smoke mobile'],
     extraEnv: '',

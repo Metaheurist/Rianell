@@ -28,7 +28,7 @@ function walk(dir, cb) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, ent.name);
     if (ent.isDirectory()) {
-      if (['node_modules', '.git', 'ci-minified', '.server-dist', 'artifacts', '.trace-build', '.android-dist'].includes(ent.name)) continue;
+      if (['node_modules', '.git', 'ci-minified', '.server-dist', 'artifacts', '.trace-build', '.web-dist'].includes(ent.name)) continue;
       walk(p, cb);
     } else cb(p);
   }

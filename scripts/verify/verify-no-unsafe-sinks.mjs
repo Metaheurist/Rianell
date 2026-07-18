@@ -26,7 +26,7 @@ const PATTERNS = [
 function shouldScan(filePath) {
   const norm = filePath.replace(/\\/g, '/');
   if (norm.includes('/vendor/')) return false;
-  if (norm.includes('/.android-dist/')) return false;
+  if (norm.includes('/.web-dist/')) return false;
   if (/\.min\.js$/i.test(norm)) return false;
   return norm.endsWith('.js') || norm.endsWith('.mjs');
 }

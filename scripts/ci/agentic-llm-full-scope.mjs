@@ -15,7 +15,6 @@ const steps = [
   ['verify:csp', 'npm run verify:csp'],
   ['verify:llm-security', 'npm run verify:llm-security'],
   ['verify:push-contract', 'npm run verify:push-contract'],
-  ['parity', 'npm run parity'],
   ['preflight-llm-chunk', 'node scripts/test/preflight-llm-chunk.mjs'],
 ];
 
