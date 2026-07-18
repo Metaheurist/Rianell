@@ -5314,18 +5314,12 @@ ${hist}`);
   }
 
   // packages/shared/src/notifications/notificationParity.mjs
-  function buildNotificationContent(platform, content) {
-    const base = {
+  function buildNotificationContent(content) {
+    return {
       title: content?.title || "",
-      body: content?.body || ""
+      body: content?.body || "",
+      data: content?.data || {}
     };
-    if (platform === "ios") {
-      return { ...base, sound: true, badge: typeof content?.badge === "number" ? content.badge : 1 };
-    }
-    if (platform === "android") {
-      return { ...base, channelId: content?.channelId || "health-reminders" };
-    }
-    return { ...base, data: content?.data || {} };
   }
 
   // packages/shared/src/home/homeAppointment.mjs

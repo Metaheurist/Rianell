@@ -39,9 +39,6 @@
   function getPlatformType() {
     var nav = typeof navigator !== 'undefined' ? navigator : {};
     var ua = nav.userAgent || '';
-    var cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
-    var isNative = cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform();
-    if (isNative) return 'mobile';
     var mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (nav.maxTouchPoints && nav.maxTouchPoints > 1);
     if (mobile) return 'mobile';
     if (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform && window.DeviceModule.platform.isTablet) {
@@ -86,8 +83,7 @@
     var nav = typeof navigator !== 'undefined' ? navigator : {};
     var deviceMemory = (typeof window !== 'undefined' && window.isSecureContext === true && typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) ? nav.deviceMemory : null;
     var cores = (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0) ? nav.hardwareConcurrency : null;
-    var cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
-    var isNative = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    var isNative = false;
     var dm = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) ? window.DeviceModule.platform : null;
     var platformName = (dm && dm.platform) ? String(dm.platform) : null;
     var isTablet = !!(dm && dm.isTablet);
@@ -640,8 +636,7 @@
     var cores = (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0) ? nav.hardwareConcurrency : 0;
     var deviceMemory = (typeof window !== 'undefined' && window.isSecureContext === true && typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) ? nav.deviceMemory : 0;
     var estimatedMemoryBucket = (dm && dm.estimatedMemoryBucket) ? dm.estimatedMemoryBucket : null;
-    var cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
-    var isNative = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    var isNative = false;
     var flags = { platform: platformName, isTablet: isTablet, cores: cores, deviceMemory: deviceMemory, estimatedMemoryBucket: estimatedMemoryBucket, isNative: isNative };
     if (dm) {
       if (dm.osName != null && dm.osName !== '') flags.osName = dm.osName;
@@ -703,10 +698,7 @@
   }
 
   function isNativeApp() {
-    try {
-      var cap = typeof window !== 'undefined' && window.Capacitor;
-      return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
-    } catch (e) { return false; }
+    return false;
   }
 
   function isHeuristicOnlyResult(data) {
