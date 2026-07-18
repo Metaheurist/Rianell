@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v2.2.20** - Value-reactive metric animations, region severity pills, AI download reliability, darker cloud icon.
+**Latest: v2.2.21** - AI Analysis nav icon is now a line-art brain.
+
+### v2.2.21 - 2026-07-18 - Brain nav icon
+
+- **AI Analysis tab icon:** Replaced the robot/stethoscope glyph with a two-hemisphere **brain** outline drawn in the same 1.75px stroke, `currentColor`, and rounded-cap style as the Home/Logs/Charts/Mood icons. The active-tab pulse now animates the brain's central fold (`nav-icon-ai-brain-fold`).
+- **Cache bust:** `styles.css?v=157`.
+
+**Previous: v2.2.20** - Value-reactive metric animations, region severity pills, AI download reliability, darker cloud icon.
 
 ### v2.2.20 - 2026-07-18 - Metric motion + AI download reliability
 

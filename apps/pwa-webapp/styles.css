@@ -6385,30 +6385,17 @@ body.theme-rainbow .app-bottom-nav-btn.active {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .main-nav-tab.active[data-tab="ai"] .nav-icon-ai-scope-diaphragm-inner,
-  .main-nav-tab[aria-current="page"][data-tab="ai"] .nav-icon-ai-scope-diaphragm-inner {
-    animation: navIconAiStethoscopePulse 2.2s ease-in-out infinite;
-    transform-origin: 12px 20.85px;
-    transform-box: fill-box;
-  }
-
-  .main-nav-tab.active[data-tab="ai"] .nav-icon-ai-eye,
-  .main-nav-tab[aria-current="page"][data-tab="ai"] .nav-icon-ai-eye {
-    animation: navIconAiEyeBlink 4.8s ease-in-out infinite;
+  .main-nav-tab.active[data-tab="ai"] .nav-icon-ai-brain-fold,
+  .main-nav-tab[aria-current="page"][data-tab="ai"] .nav-icon-ai-brain-fold {
+    animation: navIconAiBrainFold 2.2s ease-in-out infinite;
     transform-origin: center;
     transform-box: fill-box;
   }
 }
 
-@keyframes navIconAiStethoscopePulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.18); opacity: 0.82; }
-}
-
-@keyframes navIconAiEyeBlink {
-  0%, 42%, 100% { transform: scaleY(1); }
-  45% { transform: scaleY(0.12); }
-  48% { transform: scaleY(1); }
+@keyframes navIconAiBrainFold {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
 
 .tab-text {
