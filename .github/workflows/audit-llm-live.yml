@@ -2,15 +2,13 @@
 name: Audit LLM live
 
 on:
+  # Manual-only. Cloudflare bot mitigation 403/503-blocks GitHub Actions runner
+  # IPs on rianell.com, so this live probe fails for reasons unrelated to deploy
+  # health — and bypassing it would mean weakening bot protection. Deploy health
+  # is already gated by the CI workflow (local-bundle LLM download job + post-
+  # deploy boot audit + Playwright E2E + Lighthouse). Run on demand from the
+  # Actions tab when you specifically want to check the live Cloudflare path.
   workflow_dispatch:
-  push:
-    branches: [main, master]
-    paths:
-      - '.github/workflows/audit-llm-live.yml'
-      - 'scripts/ci/probe-llm-download-live.mjs'
-      - 'scripts/ci/deploy-probe-loop.mjs'
-      - 'scripts/audit/verify-deploy-html.mjs'
-      - 'packages/build-tools/src/probe-llm-assertions.mjs'
 
 permissions:
   contents: read
