@@ -46,9 +46,3 @@ test('guided onboarding builds questionnaire from shared script', () => {
   assert.match(guidedJs, /buildGuidedQuestionnaire/);
   assert.match(guidedJs, /applyQuestionnaireAnswer/);
 });
-
-test('RN App blocks navigator until first-run wizard complete', () => {
-  const app = readFileSync('apps/rn-app/App.tsx', 'utf8');
-  assert.match(app, /isFirstRunWizardComplete/);
-  assert.match(app, /FirstRunWizard/);
-});

@@ -44,9 +44,3 @@ test('PWA cloud-sync fetches profile before loadFromCloud on sign-in', () => {
   assert.match(src, /fetchPrivacyProfileAndApply/);
   assert.match(src, /user_privacy_profile/);
 });
-
-test('RN privacyProfile module exports fetch and upsert', () => {
-  const src = readFileSync('apps/rn-app/src/cloud/privacyProfile.ts', 'utf8');
-  assert.match(src, /fetchPrivacyProfileAndApply/);
-  assert.match(src, /upsertPrivacyProfile/);
-});

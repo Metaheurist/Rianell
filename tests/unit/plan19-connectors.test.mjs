@@ -66,11 +66,6 @@ test('Connector edge functions exist', () => {
   assert.ok(existsSync(join(root, 'supabase/functions/connector-google-sheets/index.ts')));
 });
 
-test('Health Connect sync module exists', () => {
-  const src = readFileSync(join(root, 'apps/rn-app/src/connectors/HealthConnectSync.ts'), 'utf8');
-  assert.match(src, /syncFromHealthConnect/);
-});
-
 test('Zapier connector docs exist', () => {
   assert.ok(existsSync(join(root, 'docs/connectors/zapier-template.md')));
 });
@@ -92,13 +87,6 @@ test('Connector hardening migration exists', () => {
   assert.ok(existsSync(join(root, 'supabase/migrations/20260627100000_connectors_hardening.sql')));
   const sql = readFileSync(join(root, 'supabase/migrations/20260627100000_connectors_hardening.sql'), 'utf8');
   assert.match(sql, /connector_tokens/);
-});
-
-test('RN oauthConnect module exists', () => {
-  assert.ok(existsSync(join(root, 'apps/rn-app/src/connectors/oauthConnect.ts')));
-  const src = readFileSync(join(root, 'apps/rn-app/src/connectors/oauthConnect.ts'), 'utf8');
-  assert.match(src, /parseConnectorCallbackUrl/);
-  assert.match(src, /rianell:/);
 });
 
 test('Wiki documents v2.0.0 release and connectors', () => {

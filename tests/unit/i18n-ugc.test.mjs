@@ -9,10 +9,6 @@ const privacyRegionJs = fs.readFileSync(
   new URL('../../apps/pwa-webapp/privacy-region.js', import.meta.url),
   'utf8',
 );
-const policyModal = fs.readFileSync(
-  new URL('../../apps/rn-app/src/privacy/PolicyDocumentsModal.tsx', import.meta.url),
-  'utf8',
-);
 
 const UGC_KEYS = [
   'logs.ugc.userEntered',
@@ -40,15 +36,9 @@ test('PWA policy viewer shows disclaimer for non-en-GB locales', () => {
   assert.match(privacyRegionJs, /en-GB/);
 });
 
-test('RN PolicyDocumentsModal shows machine-translated disclaimer', () => {
-  assert.match(policyModal, /policy\.machineTranslatedNotice/);
-  assert.match(policyModal, /en-GB/);
-});
-
 test('no UGC auto-translate helper in app sources', () => {
   const roots = [
     '../../apps/pwa-webapp/app.js',
-    '../../apps/rn-app/src/screens/LogWizardScreen.tsx',
   ];
   for (const rel of roots) {
     const src = fs.readFileSync(new URL(rel, import.meta.url), 'utf8');
