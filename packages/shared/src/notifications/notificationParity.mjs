@@ -1,19 +1,12 @@
-/** Platform-specific notification content (Plan 15 FC7). */
+/** Web (PWA) notification content. */
 
 /**
- * @param {'ios'|'android'|'web'} platform
- * @param {{ title?: string, body?: string, channelId?: string, badge?: number }} content
+ * @param {{ title?: string, body?: string, data?: object }} content
  */
-export function buildNotificationContent(platform, content) {
-  const base = {
+export function buildNotificationContent(content) {
+  return {
     title: content?.title || '',
     body: content?.body || '',
+    data: content?.data || {},
   };
-  if (platform === 'ios') {
-    return { ...base, sound: true, badge: typeof content?.badge === 'number' ? content.badge : 1 };
-  }
-  if (platform === 'android') {
-    return { ...base, channelId: content?.channelId || 'health-reminders' };
-  }
-  return { ...base, data: content?.data || {} };
 }

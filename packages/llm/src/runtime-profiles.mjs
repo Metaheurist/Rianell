@@ -3,9 +3,6 @@ import { tierToLlmModelSize } from './tier-benchmark.mjs';
 export const PLATFORM_KINDS = [
   'pwa_desktop',
   'pwa_mobile',
-  'rn_android',
-  'rn_ios',
-  'rn_expo_go',
 ];
 
 const LLAMA_ID = 'onnx-community/Llama-3.2-1B-Instruct-ONNX';
@@ -16,19 +13,8 @@ function modelIdFromTierKey(tierKey) {
   return LLAMA_ID;
 }
 
-/** Llama ONNX uses external .onnx_data; SmolLM q4 is self-contained in manifest. */
-export function modelNeedsExternalData(modelId) {
-  return modelId === LLAMA_ID;
-}
-
 export function resolvePlatformKind(options = {}) {
-  const { surface, os, isExpoGo, isMobile } = options;
-  if (isExpoGo) return 'rn_expo_go';
-  if (surface === 'rn' || surface === 'native') {
-    if (os === 'ios') return 'rn_ios';
-    if (os === 'android') return 'rn_android';
-    return 'rn_android';
-  }
+  const { isMobile } = options;
   if (isMobile) return 'pwa_mobile';
   return 'pwa_desktop';
 }
@@ -59,7 +45,7 @@ export function resolveLlmPreset(options = {}) {
 
 export function shouldCapTierForMemory({ platformKind, tier, deviceMemory }) {
   const tierKey = /^tier[1-5]$/.test(tier) ? tier : tierToLlmModelSize(tier);
-  const isMobile = platformKind === 'pwa_mobile' || platformKind === 'rn_android' || platformKind === 'rn_ios' || platformKind === 'rn_expo_go';
+  const isMobile = platformKind === 'pwa_mobile';
 
   if (deviceMemory != null && deviceMemory > 0) {
     if (!isMobile && deviceMemory < 4 && (tierKey === 'tier5' || tierKey === 'tier4')) {
@@ -122,15 +108,6 @@ export function resolveWasmOnlyCap(options = {}) {
     capped: true,
     warning: 'No GPU acceleration available; using smaller AI model for stability.',
   };
-}
-
-/** ONNX relative paths per quant attempt (RN / manifest). */
-export function modelOnnxAttempts(modelId) {
-  const external = modelNeedsExternalData(modelId);
-  return [
-    { onnxPath: 'onnx/model_q4f16.onnx', quant: 'q4f16', externalData: external },
-    { onnxPath: 'onnx/model_q4.onnx', quant: 'q4', externalData: external },
-  ];
 }
 
 export const LAST_STABLE_PRESET_KEY = 'rianell.llm.lastStablePreset';
