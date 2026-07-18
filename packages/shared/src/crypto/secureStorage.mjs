@@ -1,5 +1,6 @@
 /**
- * Plan 21 SEC8 — secure storage wrapper (RN uses encrypted storage; PWA falls back to localStorage).
+ * Plan 21 SEC8 — secure storage wrapper. Uses an injected encrypted backend when configured;
+ * PWA falls back to localStorage.
  * Sensitive keys: userKeys, supabaseSession, vapidSubscription, encryptionPassphrase.
  */
 
@@ -14,7 +15,7 @@ function isSensitiveKey(key) {
   return SENSITIVE_STORAGE_KEYS.includes(key);
 }
 
-/** @type {import('react-native-encrypted-storage') | null} */
+/** @type {{ getItem?: Function, setItem?: Function, removeItem?: Function } | null} */
 let encryptedBackend = null;
 
 export function configureSecureStorageBackend(backend) {

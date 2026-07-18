@@ -114,8 +114,6 @@ export {
   resolveLlmPreset,
   shouldCapTierForMemory,
   resolveWasmOnlyCap,
-  modelNeedsExternalData,
-  modelOnnxAttempts,
   LAST_STABLE_PRESET_KEY,
   parseOomError,
 } from './runtime-profiles.mjs';
@@ -124,8 +122,6 @@ export {
   buildPwaLoadAttempts,
   buildPwaWebNnAttempts,
   buildPwaWasmAttempt,
-  buildExpoGoLoadAttempts,
-  buildRnLoadAttempts,
   backendLabelFromAttempt,
 } from './load-ladder.mjs';
 
