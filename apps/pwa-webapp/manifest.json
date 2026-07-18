@@ -5,7 +5,7 @@
   "start_url": "./",
   "display": "standalone",
   "background_color": "#1a1d1e",
-  "theme_color": "#0a0a0a",
+  "theme_color": "#070807",
   "orientation": "portrait-primary",
   "scope": "./",
   "lang": "en",
@@ -105,7 +105,7 @@
       "name": "Export Data",
       "short_name": "Export",
       "description": "Export health data to CSV",
-      "url": "/?export=true",
+      "url": "./?export=true",
       "icons": [
         {
           "src": "Icons/Icon-96.png",

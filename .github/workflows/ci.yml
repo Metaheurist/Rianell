@@ -199,6 +199,9 @@ jobs:
           fi
           node apps/pwa-webapp/build-site.mjs --site "ci-minified/site" --skip-trace
 
+          # Regenerate sitemap.xml against the built site so it reflects exactly what ships
+          node scripts/build/generate-sitemap.mjs --site "ci-minified/site"
+
           node -e "
           const fs = require('fs');
           function assertBundle(root, label) {
@@ -217,6 +220,8 @@ jobs:
           if (!fs.existsSync('ci-minified/site/vendor/transformers/transformers.min.js')) throw new Error('missing vendor/transformers/transformers.min.js');
           if (!fs.existsSync('ci-minified/site/.well-known/security.txt')) throw new Error('missing .well-known/security.txt in Pages site build');
           if (!fs.existsSync('ci-minified/site/.nojekyll')) throw new Error('missing .nojekyll in Pages site build');
+          if (!fs.existsSync('ci-minified/site/sitemap.xml')) throw new Error('missing sitemap.xml in Pages site build');
+          if (!fs.existsSync('ci-minified/site/Icons/og-card.png')) throw new Error('missing Icons/og-card.png (social card) in Pages site build');
           "
 
       - name: Upload minified temp artifact
