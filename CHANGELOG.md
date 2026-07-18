@@ -6,6 +6,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.2.26] - 2026-07-18
+
+### Docs
+- **README tech stack:** Reorganised the Tech stack section into a compact two-column table (category label + badges per row) so it reads horizontally and uses page width instead of a tall stacked list. All badges, versions, and links preserved.
+- **Next-phase roadmap:** `docs/next-phase-development-plan.md` promoted from "No active roadmap" to an active, prioritised roadmap (SEO depth, i18n Tier-C backfill, privacy-safe observability, Core Web Vitals, accessibility, on-device AI acceleration, developer experience), each gated on a passing local check and green CI.
+
+---
+
 ## [2.2.25] - 2026-07-18
 
 ### Added
