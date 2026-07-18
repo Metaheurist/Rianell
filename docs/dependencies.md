@@ -31,6 +31,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/parser` | ^7.26.7 |
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
+| `@huggingface/transformers` | 3.3.2 |
 | `@opentelemetry/core` | ^2.9.0 |
 | `@sentry/node` | ^10.65.0 |
 | `esbuild` | 0.28.1 |
