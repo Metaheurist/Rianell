@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-18T14:30:21.927Z",
+  "generatedAt": "2026-07-18T17:21:09.286Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5538771,
-    "cssBytes": 864799,
-    "jsGzipBytes": 1313104,
-    "cssGzipBytes": 145786
+    "jsBytes": 5512692,
+    "cssBytes": 861809,
+    "jsGzipBytes": 1306512,
+    "cssGzipBytes": 145406
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1197325,
-      "gzipBytes": 259753
+      "bytes": 1189056,
+      "gzipBytes": 258019
     },
     {
-      "file": "ci-minified/site/app.4e2f983f553e.min.js",
-      "bytes": 886848,
-      "gzipBytes": 205258
+      "file": "ci-minified/site/app.83720c37d74a.min.js",
+      "bytes": 879973,
+      "gzipBytes": 203687
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.5c4dcfb8c907.css",
-      "bytes": 789621,
-      "gzipBytes": 130488
+      "file": "ci-minified/site/styles.456a569502c2.css",
+      "bytes": 786631,
+      "gzipBytes": 130108
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 404731,
-      "gzipBytes": 90689
+      "bytes": 404440,
+      "gzipBytes": 90602
     },
     {
       "file": "ci-minified/site/vendor/three/three.module.min.js",
@@ -70,8 +70,8 @@
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 53243,
-      "gzipBytes": 11589
+      "bytes": 52339,
+      "gzipBytes": 11482
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -110,13 +110,13 @@
     },
     {
       "file": "ci-minified/site/modules/settings.js",
-      "bytes": 29708,
-      "gzipBytes": 6072
+      "bytes": 29533,
+      "gzipBytes": 6037
     },
     {
       "file": "ci-minified/site/performance-utils.js",
-      "bytes": 29184,
-      "gzipBytes": 7146
+      "bytes": 27605,
+      "gzipBytes": 6795
     },
     {
       "file": "ci-minified/site/modules/advanced-vitals-widgets.js",
@@ -124,19 +124,19 @@
       "gzipBytes": 5406
     },
     {
-      "file": "ci-minified/site/notifications.js",
-      "bytes": 24210,
-      "gzipBytes": 5888
-    },
-    {
       "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 23883,
-      "gzipBytes": 5718
+      "bytes": 23797,
+      "gzipBytes": 5671
     },
     {
       "file": "ci-minified/site/modules/cycle-tracking-ui.js",
       "bytes": 23728,
       "gzipBytes": 5376
+    },
+    {
+      "file": "ci-minified/site/notifications.js",
+      "bytes": 21570,
+      "gzipBytes": 5337
     },
     {
       "file": "ci-minified/site/modules/ai-chat.js",
@@ -235,8 +235,8 @@
     },
     {
       "file": "ci-minified/site/device-module.js",
-      "bytes": 7306,
-      "gzipBytes": 2118
+      "bytes": 6920,
+      "gzipBytes": 2015
     },
     {
       "file": "ci-minified/site/print-utils.js",
@@ -259,14 +259,14 @@
       "gzipBytes": 1667
     },
     {
-      "file": "ci-minified/site/notification-helpers.js",
-      "bytes": 5786,
-      "gzipBytes": 1475
-    },
-    {
       "file": "ci-minified/site/qr-handoff.js",
       "bytes": 5705,
       "gzipBytes": 1631
+    },
+    {
+      "file": "ci-minified/site/notification-helpers.js",
+      "bytes": 5681,
+      "gzipBytes": 1436
     },
     {
       "file": "ci-minified/site/background-loader.js",
@@ -292,11 +292,6 @@
       "file": "ci-minified/site/modules/segmented-scale-input.js",
       "bytes": 4154,
       "gzipBytes": 1462
-    },
-    {
-      "file": "ci-minified/site/android-update-check.js",
-      "bytes": 3731,
-      "gzipBytes": 1412
     },
     {
       "file": "ci-minified/site/logs-idb.js",
@@ -357,11 +352,6 @@
       "file": "ci-minified/site/trace-runtime.js",
       "bytes": 1803,
       "gzipBytes": 685
-    },
-    {
-      "file": "ci-minified/site/src/buildDownloads.js",
-      "bytes": 1038,
-      "gzipBytes": 555
     },
     {
       "file": "ci-minified/site/workers/io-worker.js",
