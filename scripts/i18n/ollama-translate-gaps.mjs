@@ -86,6 +86,23 @@ function placeholderMultiset(text) {
   return list.join('\u0001');
 }
 
+/** Mask {curly} placeholders so the model cannot translate the token names. */
+function protectPlaceholders(text) {
+  const map = [];
+  const out = text.replace(PLACEHOLDER_RE, (m) => {
+    const ph = `__PH${map.length}__`;
+    map.push({ ph, val: m });
+    return ph;
+  });
+  return { text: out, map };
+}
+
+function restorePlaceholders(text, map) {
+  let out = text;
+  for (const { ph, val } of map) out = out.split(ph).join(val);
+  return out;
+}
+
 function stripWrappingQuotes(src, out) {
   const pairs = [['"', '"'], ["'", "'"], ['`', '`'], ['«', '»'], ['“', '”']];
   let s = out.trim();
@@ -98,11 +115,42 @@ function stripWrappingQuotes(src, out) {
   return s;
 }
 
+/**
+ * TranslateGemma often returns several options for a short/ambiguous UI label
+ * (e.g. "Nourriture / Alimentation" or "Remarques ; Notes"). For UI microcopy we
+ * keep the first option — but only when the English source has no such separator.
+ */
+function pickFirstAlternative(src, out) {
+  const sep = /\s[/;|]\s/;
+  if (sep.test(out) && !sep.test(src)) {
+    const first = out.split(sep)[0].trim();
+    if (first) return first;
+  }
+  return out;
+}
+
+/** Drop a trailing sentence punctuation the model added when the source had none. */
+function stripAddedTrailingPunct(src, out) {
+  const s = src.trim();
+  const o = out.trim();
+  if (!/[.!?…]$/.test(s) && /[.!?]+$/.test(o)) {
+    return o.replace(/\s*[.!?]+$/, '').trim();
+  }
+  return o;
+}
+
 function cleanOutput(src, raw) {
   let s = String(raw || '').trim();
+  // Keep only the first line if the model added commentary on later lines
+  // (but preserve intentional multi-line source such as settings.benchmark.result).
+  if (!/\n/.test(src) && /\n/.test(s)) {
+    s = s.split('\n').map((l) => l.trim()).filter(Boolean)[0] || s;
+  }
   // Drop a leading "Translation:" / language-label prefix if the model added one.
-  s = s.replace(/^(translation|traducción|traduction|übersetzung|tradução|traduzione)\s*[:：]\s*/i, '');
+  s = s.replace(/^(translation|traducción|traduction|übersetzung|tradução|traduzione|vertaling|tłumaczenie|aistriúchán)\s*[:：]\s*/i, '');
   s = stripWrappingQuotes(src, s);
+  s = pickFirstAlternative(src, s);
+  s = stripAddedTrailingPunct(src, s);
   return s.trim();
 }
 
@@ -156,29 +204,39 @@ function hasEnglishFragment(locale, candidate) {
 }
 
 async function translateOne(locale, meta, src) {
-  const { text: protectedText, placeholders } = protectGlossary(src);
+  const { text: gText, placeholders: gloss } = protectGlossary(src);
+  const { text: maskedSrc, map: phMap } = protectPlaceholders(gText);
   let best = null;
+  let lastReason = 'unknown';
   for (let attempt = 0; attempt < 2; attempt += 1) {
     let raw;
     try {
-      raw = await ollamaGenerate(buildPrompt(protectedText, meta));
+      raw = await ollamaGenerate(buildPrompt(maskedSrc, meta));
     } catch (err) {
       if (attempt === 1) throw err;
       await new Promise((r) => setTimeout(r, 500));
       continue;
     }
-    // Restore glossary terms; if a protected placeholder was mangled, fall back to raw source terms.
-    let candidate = cleanOutput(protectedText, raw);
-    const lostGloss = placeholders.some((p) => !candidate.includes(p.ph));
-    candidate = restoreGlossary(candidate, placeholders);
+    let candidate = cleanOutput(src, raw);
+    const lostGloss = gloss.some((p) => !candidate.includes(p.ph));
+    const lostPh = phMap.some((p) => !candidate.includes(p.ph));
+    candidate = restorePlaceholders(candidate, phMap);
+    candidate = restoreGlossary(candidate, gloss);
     const check = validate(locale, src, candidate);
-    if (check.ok && !hasEnglishFragment(locale, candidate) && !lostGloss) {
-      return { value: candidate, status: 'ok' };
+    if (check.ok && !hasEnglishFragment(locale, candidate) && !lostGloss && !lostPh) {
+      return { value: candidate, status: 'ok', reason: '' };
     }
-    if (check.ok && !best) best = candidate; // keep first structurally-valid candidate
+    lastReason = lostPh
+      ? 'placeholder-lost'
+      : lostGloss
+        ? 'glossary-lost'
+        : !check.ok
+          ? check.reason
+          : 'english-fragment';
+    if (check.ok && !lostPh && !lostGloss && !best) best = candidate; // keep first structurally-valid candidate
   }
-  if (best) return { value: best, status: 'kept-soft' };
-  return { value: null, status: 'failed' };
+  if (best) return { value: best, status: 'kept-soft', reason: lastReason };
+  return { value: null, status: 'failed', reason: lastReason };
 }
 
 function loadPack(locale) {
@@ -241,6 +299,7 @@ async function main() {
       }
       if (result.status === 'failed' || !result.value) {
         failed += 1;
+        console.warn(`  x ${key} [${result.reason}] en: ${enVal.slice(0, 70)}`);
         continue;
       }
       if (result.status === 'kept-soft') soft += 1;
