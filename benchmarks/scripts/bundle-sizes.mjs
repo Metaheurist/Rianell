@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..', '..');
-const distDir = path.resolve(process.argv[2] || path.join(root, 'apps', 'pwa-webapp', '.android-dist'));
+const distDir = path.resolve(process.argv[2] || path.join(root, 'apps', 'pwa-webapp', '.web-dist'));
 const enforceBudget = process.argv.includes('--enforce-budget');
 const MAIN_JS_GZIP_MAX = Number(process.env.BUNDLE_MAIN_JS_GZIP_MAX || 2 * 1024 * 1024);
 const VENDOR_JS_GZIP_MAX = Number(process.env.BUNDLE_VENDOR_JS_GZIP_MAX || 15 * 1024 * 1024);
