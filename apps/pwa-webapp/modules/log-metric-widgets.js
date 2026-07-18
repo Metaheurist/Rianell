@@ -180,18 +180,25 @@
           '<path class="metric-balloon-neck" d="M33.5 67.5 Q36 71.5 38.5 67.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.7"/>' +
           '</g></g></g></svg>';
       case 'fatigue':
-        return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
-          '<rect class="metric-battery-cap" x="28" y="14" width="8" height="4" rx="1" fill="rgba(255,255,255,0.35)"/>' +
-          '<rect class="metric-battery-body" x="18" y="18" width="28" height="40" rx="5" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="2"/>' +
-          '<rect class="metric-battery-fill" x="22" y="22" width="20" height="32" rx="3" fill="currentColor"/></svg>';
+        return '<svg class="metric-svg metric-svg--fatigue" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
+          '<rect class="metric-battery-cap" x="27" y="12" width="10" height="5" rx="2"/>' +
+          '<rect class="metric-battery-body" x="17" y="17" width="30" height="42" rx="6" fill="none" stroke-width="3"/>' +
+          '<rect class="metric-battery-fill" x="21.5" y="21.5" width="21" height="33" rx="3.5" fill="currentColor"/></svg>';
       case 'sleep':
-        return '<svg class="metric-svg" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
+        /* Moon waxes from a thin crescent (low) to full (high) by sliding the mask shadow off. */
+        return '<svg class="metric-svg metric-svg--sleep" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
+          '<defs>' +
+          '<mask id="metricSleepMoonMask" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">' +
+          '<circle cx="32" cy="32" r="15" fill="#fff"/>' +
+          '<circle class="metric-sleep-shadow" cx="34" cy="30" r="15" fill="#000"/>' +
+          '</mask>' +
+          '</defs>' +
           '<rect class="metric-sleep-sky" x="8" y="8" width="48" height="48" rx="12" fill="rgba(255,255,255,0.04)"/>' +
-          '<path class="metric-sleep-moon" d="M38 18a16 16 0 1 0 8 26a12 12 0 1 1 0-26" fill="currentColor" opacity="0.85"/>' +
-          '<circle class="metric-sleep-star metric-sleep-star--1" cx="20" cy="22" r="1.8" fill="currentColor"/>' +
-          '<circle class="metric-sleep-star metric-sleep-star--2" cx="26" cy="14" r="1.2" fill="currentColor"/>' +
-          '<circle class="metric-sleep-star metric-sleep-star--3" cx="16" cy="32" r="1.4" fill="currentColor"/>' +
-          '<circle class="metric-sleep-star metric-sleep-star--4" cx="22" cy="40" r="1" fill="currentColor"/></svg>';
+          '<circle class="metric-sleep-moon" cx="32" cy="32" r="15" fill="currentColor" opacity="0.9" mask="url(#metricSleepMoonMask)"/>' +
+          '<circle class="metric-sleep-star metric-sleep-star--1" cx="18" cy="20" r="1.8" fill="currentColor"/>' +
+          '<circle class="metric-sleep-star metric-sleep-star--2" cx="24" cy="13" r="1.2" fill="currentColor"/>' +
+          '<circle class="metric-sleep-star metric-sleep-star--3" cx="14" cy="32" r="1.4" fill="currentColor"/>' +
+          '<circle class="metric-sleep-star metric-sleep-star--4" cx="19" cy="43" r="1" fill="currentColor"/></svg>';
       case 'mood':
         return '<svg class="metric-svg metric-svg--mood" viewBox="0 0 64 64" focusable="false" aria-hidden="true">' +
           '<defs>' +
@@ -407,6 +414,9 @@
     widget.style.setProperty('--metric-balloon-pulse-dur', (2.6 - r * 1.2).toFixed(2) + 's');
     widget.style.setProperty('--metric-balloon-glow', (0.15 + r * 0.85).toFixed(2));
     widget.style.setProperty('--metric-balloon-strain', (clamp((r - 0.55) / 0.45, 0, 1)).toFixed(2));
+    // Balloon always drifts/floats; bigger swelling bobs higher and a touch faster.
+    widget.style.setProperty('--metric-balloon-float-dur', (3.4 - r * 1.1).toFixed(2) + 's');
+    widget.style.setProperty('--metric-balloon-float-amp', r.toFixed(3));
   }
 
   function lerp(a, b, t) {
@@ -534,12 +544,18 @@
     if (kind === 'stiffness') {
       var gear = visual.querySelector('.metric-stiffness-gear');
       if (gear) {
-        var dur = (0.6 + r * 2.8).toFixed(2);
-        gear.style.animationDuration = dur + 's';
-        widget.style.setProperty('--metric-stiffness-speed', dur + 's');
+        // Higher stiffness → faster spin (2.6s idle → 0.5s at max) and a stronger, quicker pulse.
+        var spinDur = (2.6 - r * 2.1).toFixed(2);
+        var pulseDur = (1.5 - r * 0.95).toFixed(2);
+        gear.style.animationDuration = '';
+        widget.style.setProperty('--metric-stiffness-speed', spinDur + 's');
+        widget.style.setProperty('--metric-stiffness-pulse-dur', pulseDur + 's');
+        widget.style.setProperty('--metric-stiffness-pulse', r.toFixed(3));
       }
     } else if (kind === 'jointPain') {
       var sev = r;
+      // Higher pain → faster, more urgent pulse.
+      widget.style.setProperty('--metric-pain-pulse-dur', (1.8 - sev * 1.0).toFixed(2) + 's');
       visual.querySelectorAll('.metric-pain-ring').forEach(function (ring, i) {
         ring.style.opacity = String(clamp(sev * 1.2 - i * 0.25, 0, 1));
       });
@@ -552,13 +568,16 @@
     } else if (kind === 'fatigue') {
       var fill = visual.querySelector('.metric-battery-fill');
       if (fill) {
-        var h = Math.max(2, (1 - r) * 32);
-        fill.setAttribute('y', String(54 - h));
+        var h = Math.max(2, (1 - r) * 33);
+        fill.setAttribute('y', String(54.5 - h));
         fill.setAttribute('height', String(h));
       }
     } else if (kind === 'sleep') {
+      // Slide the mask shadow off the disk: thin crescent (low) → full moon (high).
+      var moonShadow = visual.querySelector('.metric-sleep-shadow');
+      if (moonShadow) moonShadow.setAttribute('cx', (34 + r * 32).toFixed(1));
       var moon = visual.querySelector('.metric-sleep-moon');
-      if (moon) moon.setAttribute('opacity', String(0.35 + r * 0.65));
+      if (moon) moon.setAttribute('opacity', String(0.7 + r * 0.3));
       visual.querySelectorAll('.metric-sleep-star').forEach(function (star, i) {
         star.style.opacity = r >= (i + 1) * 0.22 ? '1' : '0.15';
       });

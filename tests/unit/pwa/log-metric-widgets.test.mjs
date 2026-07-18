@@ -121,3 +121,70 @@ test('weather sun shine animations use glow and ray keyframes', () => {
   assert.match(css, /@keyframes metricWeatherSunRays/);
   assert.match(css, /\[data-weather-sun="on"\] \.metric-weather-sun-rays/);
 });
+
+test('stiffness gear spins faster and pulses harder as value climbs', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  // Higher ratio -> shorter spin/pulse duration (faster).
+  assert.match(js, /var spinDur = \(2\.6 - r \* 2\.1\)/);
+  assert.match(js, /var pulseDur = \(1\.5 - r \* 0\.95\)/);
+  assert.match(js, /--metric-stiffness-pulse-dur/);
+  assert.match(js, /--metric-stiffness-pulse/);
+  assert.match(css, /@keyframes metricStiffnessPulse/);
+  assert.match(
+    css,
+    /\.metric-widget--stiffness\[data-metric-active="true"\] \.metric-svg[\s\S]*metricStiffnessPulse/,
+  );
+});
+
+test('joint pain pulses rings and core with value-scaled cadence', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(js, /--metric-pain-pulse-dur[\s\S]*\(1\.8 - sev \* 1\.0\)/);
+  assert.match(css, /@keyframes metricPainCore/);
+  assert.match(
+    css,
+    /\.metric-pain-core[\s\S]*metricPainCore var\(--metric-pain-pulse-dur/,
+  );
+  assert.match(
+    css,
+    /\.metric-pain-ring--1[\s\S]*metricPainPulse var\(--metric-pain-pulse-dur/,
+  );
+});
+
+test('swelling balloon always floats with value-scaled amplitude', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(js, /--metric-balloon-float-dur/);
+  assert.match(js, /--metric-balloon-float-amp/);
+  // Float is no longer gated to the low swelling level only.
+  assert.match(
+    css,
+    /\.metric-widget--swelling \.metric-balloon-float[\s\S]*metricBalloonFloat var\(--metric-balloon-float-dur/,
+  );
+  assert.match(css, /--metric-balloon-float-amp/);
+  assert.doesNotMatch(
+    css,
+    /\.metric-widget--swelling\[data-swelling-level="low"\] \.metric-balloon-float/,
+  );
+});
+
+test('fatigue battery uses a defined tinted shell', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(js, /metric-svg--fatigue/);
+  assert.match(js, /metric-battery-body[\s\S]*stroke-width="3"/);
+  assert.match(css, /\.metric-battery-body[\s\S]*stroke: color-mix/);
+  assert.match(css, /\.metric-battery-cap[\s\S]*fill: color-mix/);
+});
+
+test('sleep moon waxes from crescent to full via mask shadow slide', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  assert.match(js, /metricSleepMoonMask/);
+  assert.match(js, /metric-sleep-shadow/);
+  // Low value keeps the shadow over the disk; high value slides it off (waxes to full).
+  assert.match(js, /moonShadow\.setAttribute\('cx', \(34 \+ r \* 32\)/);
+  assert.match(css, /\.metric-sleep-shadow[\s\S]*transition: cx/);
+  assert.doesNotMatch(js, /metric-sleep-moon" d="M38 18a16/);
+});

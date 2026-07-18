@@ -12003,10 +12003,15 @@ body.light-mode .character-counter {
   margin-top: 0;
 }
 
-/* Stiffness: gear spins slower when stiff (high value) */
+/* Stiffness: gear spins faster + pulses harder as stiffness climbs */
 .metric-widget--stiffness[data-metric-active="true"] .metric-stiffness-gear {
   animation: metricGearSpin var(--metric-stiffness-speed, 2s) linear infinite;
   transform-origin: 32px 32px;
+}
+
+.metric-widget--stiffness[data-metric-active="true"] .metric-svg {
+  animation: metricStiffnessPulse var(--metric-stiffness-pulse-dur, 1.3s) ease-in-out infinite;
+  transform-origin: center;
 }
 
 @keyframes metricGearSpin {
@@ -12014,13 +12019,22 @@ body.light-mode .character-counter {
   to { transform: rotate(360deg); }
 }
 
-/* Joint pain: pulsing rings */
+@keyframes metricStiffnessPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(calc(1 + 0.16 * var(--metric-stiffness-pulse, 0.4))); }
+}
+
+/* Joint pain: pulsing rings + core; cadence scales with pain */
 .metric-widget--jointPain[data-metric-active="true"] .metric-pain-ring--1 {
-  animation: metricPainPulse 1.4s ease-out infinite;
+  animation: metricPainPulse var(--metric-pain-pulse-dur, 1.4s) ease-out infinite;
 }
 
 .metric-widget--jointPain[data-metric-active="true"] .metric-pain-ring--2 {
-  animation: metricPainPulse 1.4s ease-out infinite 0.35s;
+  animation: metricPainPulse var(--metric-pain-pulse-dur, 1.4s) ease-out infinite calc(var(--metric-pain-pulse-dur, 1.4s) * 0.25);
+}
+
+.metric-widget--jointPain[data-metric-active="true"] .metric-pain-core {
+  animation: metricPainCore var(--metric-pain-pulse-dur, 1.4s) ease-in-out infinite;
 }
 
 @keyframes metricPainPulse {
@@ -12223,8 +12237,13 @@ body.light-mode .metric-mobility-shadow {
   transition: opacity 0.35s ease;
 }
 
-.metric-widget--swelling[data-swelling-level="low"] .metric-balloon-float {
-  animation: metricBalloonFloat 3.4s ease-in-out infinite;
+.metric-widget--swelling .metric-balloon-float {
+  animation: metricBalloonFloat var(--metric-balloon-float-dur, 3.4s) ease-in-out infinite;
+}
+
+/* Low swelling: gentle float only, no glow/strain on the body */
+.metric-widget--swelling[data-swelling-level="low"] .metric-balloon-body {
+  filter: none;
 }
 
 .metric-widget--swelling[data-swelling-level="mid"] .metric-balloon-breathe,
@@ -12248,7 +12267,7 @@ body.light-mode .metric-mobility-shadow {
 
 @keyframes metricBalloonFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2.5px); }
+  50% { transform: translateY(calc(-2px - 3.5px * var(--metric-balloon-float-amp, 0.3))); }
 }
 
 @keyframes metricBalloonBreathe {
@@ -12287,6 +12306,24 @@ body.light-mode .metric-widget--swelling .metric-balloon-body {
   transition: y 0.35s ease, height 0.35s ease, fill 0.3s ease;
 }
 
+/* Defined battery shell: crisp casing tinted by the metric color */
+.metric-battery-body {
+  stroke: color-mix(in srgb, var(--metric-color) 78%, var(--text-light) 22%);
+  stroke-linejoin: round;
+}
+
+.metric-battery-cap {
+  fill: color-mix(in srgb, var(--metric-color) 78%, var(--text-light) 22%);
+}
+
+body.light-mode .metric-battery-body {
+  stroke: color-mix(in srgb, var(--metric-color) 70%, #1c2a20 30%);
+}
+
+body.light-mode .metric-battery-cap {
+  fill: color-mix(in srgb, var(--metric-color) 70%, #1c2a20 30%);
+}
+
 .metric-widget--fatigue[data-metric-zone="bad"] .metric-battery-fill {
   animation: metricBatteryDrain 2s ease-in-out infinite alternate;
 }
@@ -12294,6 +12331,15 @@ body.light-mode .metric-widget--swelling .metric-balloon-body {
 @keyframes metricBatteryDrain {
   from { opacity: 0.85; }
   to { opacity: 1; }
+}
+
+/* Moon waxes smoothly toward full as sleep quality rises */
+.metric-sleep-shadow {
+  transition: cx 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.metric-sleep-moon {
+  transition: opacity 0.35s ease;
 }
 
 /* Sleep stars twinkle */
@@ -12650,7 +12696,9 @@ body.light-mode .metric-widget--weatherSensitivity[data-weather-sun="on"] .metri
 
 @media (prefers-reduced-motion: reduce) {
   .metric-widget[data-metric-active="true"] .metric-stiffness-gear,
+  .metric-widget--stiffness[data-metric-active="true"] .metric-svg,
   .metric-widget[data-metric-active="true"] .metric-pain-ring,
+  .metric-widget[data-metric-active="true"] .metric-pain-core,
   .metric-widget[data-metric-active="true"] .metric-sleep-star,
   .metric-widget[data-metric-active="true"] .metric-mood-spark,
   .metric-widget[data-metric-active="true"] .metric-mood-tear,
