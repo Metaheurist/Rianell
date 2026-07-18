@@ -75,7 +75,6 @@ export const PL_PL_EXACT_OVERRIDES = {
   'common.install.on.this.iphone': 'Zainstaluj na tym iPhonie',
   'common.install.on.this.ipad': 'Zainstaluj na tym iPadzie',
   'common.install.on.this.device': 'Zainstaluj na tym urządzeniu',
-  'common.download.for.ios': 'Pobierz na iOS',
   'common.export.data': 'Eksportuj dane',
   'common.import.data': 'Importuj dane',
   'common.export.data.2': 'Eksportuj dane',
