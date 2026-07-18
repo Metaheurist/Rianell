@@ -18,6 +18,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **AI Analysis nav icon:** Redesigned the brain glyph with a small central gap between the two hemispheres and simplified gyrus fold lines for clearer legibility at nav sizes.
 - **Ask Rianell chat panel:** Rounds all four corners (previously a bottom-flat sheet); cache-bust `styles.css?v=160`.
 
+### Fixed
+- **CI vendor step:** Restored `@huggingface/transformers` (pinned 3.3.2) as an explicit root devDependency — it was previously provided transitively by the removed RN app, breaking `vendor:transformers` on a clean `npm ci`.
+- **CI live boot probe:** `deploy-probe-loop.mjs` could wedge in browser launch/navigation against the live Cloudflare site and consume the entire 45-min job; added a per-probe watchdog, launch timeout, retries with backoff, and heartbeat logging.
+- **CI live LLM download:** Extended the `PROBE_SOFT_HF_FORBIDDEN` soft-pass to also cover Hugging Face throttling the large ONNX weights past the app model-prep timeout (metadata + weight request + vendor bundle verified, zero failed requests / JS errors) — previously only a hard 403 soft-passed.
+
 ---
 
 ## [2.2.17] - 2026-07-16
