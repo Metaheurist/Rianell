@@ -8,12 +8,11 @@ High-level view of how Rianell components fit together. For layer-by-layer AI de
 
 ```mermaid
 flowchart TB
-  subgraph clients [Clients]
+  subgraph clients [Client]
     PWA[PWA apps/pwa-webapp]
-    RN[React Native apps/rn-app]
   end
   subgraph local [Local storage]
-    LS[localStorage / AsyncStorage]
+    LS[localStorage]
     IDB[IndexedDB optional PWA]
   end
   subgraph packages [Shared packages]
@@ -26,16 +25,11 @@ flowchart TB
     SB[(Supabase Auth + Postgres + Storage)]
   end
   PWA --> Shared
-  RN --> Shared
   PWA --> LS
-  RN --> LS
   PWA --> IDB
   PWA --> AI
-  RN --> AI
   PWA --> LLM
-  RN --> LLM
   PWA --> CloudPkg
-  RN --> CloudPkg
   CloudPkg --> SB
   LLM --> SB
 ```
@@ -45,10 +39,10 @@ flowchart TB
 ## Data flow
 
 1. User logs via **log wizard** → entry normalised by `@rianell/shared`.
-2. Stored locally (plaintext in browser/RN storage).
+2. Stored locally (plaintext in browser storage).
 3. **Charts** and **AI Analysis** read local logs.
 4. If cloud sync enabled → encrypt with per-user AES key → upload ciphertext to `health_data`.
-5. Optional LLM → download chunked ONNX from Supabase Storage → cache locally → generate summaries on device.
+5. Optional LLM → download ONNX weights from Hugging Face → cache locally → generate summaries on device.
 
 ---
 
@@ -66,20 +60,9 @@ flowchart TB
 
 ---
 
-## React Native key areas
-
-| Path | Role |
-|------|------|
-| `src/screens/*` | Home, Logs, Charts, AI, Settings, Log wizard |
-| `src/ai/` | Engine, LLM native, analyzeLogs |
-| `src/cloud/` | Supabase client, sync, privacy profile |
-| `src/i18n/` | I18nProvider, useT() |
-
----
-
 ## i18n pipeline
 
-Canonical strings: `i18n-packs/` → `scripts/i18n/sync-i18n-assets.mjs` → PWA, RN, and `packages/shared`.
+Canonical strings: `i18n-packs/` → `scripts/i18n/sync-i18n-assets.mjs` → PWA and `packages/shared`.
 
 Verify before PR: `npm run verify:i18n`.
 

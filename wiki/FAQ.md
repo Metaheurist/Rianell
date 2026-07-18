@@ -13,7 +13,7 @@ No. Local logging works without sign-in. An account is only needed for optional 
 No. Data stays on your device until you sign in, consent, and sync.
 
 **Which platforms are supported?**  
-Web/PWA ([rianell.com](https://rianell.com)), Android (APK alpha), iOS (Xcode zip alpha), and local Windows server EXE. See [[Downloads]].
+Web/PWA ([rianell.com](https://rianell.com)) and an optional local Windows server EXE. See [[Downloads]].
 
 **Is Rianell medical advice?**  
 No. Insights and AI text are informational only. Consult a healthcare professional for medical decisions.
@@ -61,13 +61,7 @@ Those locales use rule-based insights and localized MOTD quotes instead of on-de
 
 ---
 
-## Mobile and installs
-
-**Where is the Android APK?**  
-[[Downloads]] or [GitHub Releases](https://github.com/Metaheurist/Rianell/releases).
-
-**Why is iOS a zip, not App Store?**  
-Current iOS builds are alpha CI artifacts for testers with Xcode.
+## Installs
 
 **Can I install the PWA offline?**  
 After first visit and install, cached assets work offline; sync and model download need network.

@@ -1,6 +1,6 @@
 # Getting Started
 
-Rianell runs as a **web app (PWA)**, **Android/iOS native app**, or via a **local development server**. No account is required for local-only use.
+Rianell runs as a **web app (PWA)** or via a **local development server**. No account is required for local-only use.
 
 ---
 
@@ -15,23 +15,7 @@ Cloud sync and AI model download are optional - you can use the app entirely off
 
 ---
 
-## Option 2 - Android (alpha)
-
-1. Download the latest APK from [[Downloads]] or [GitHub Releases](https://github.com/Metaheurist/Rianell/releases).
-2. Enable “Install unknown apps” for your browser or file manager if prompted.
-3. Install and open **Rianell**. Sign in only if you want cloud backup.
-
----
-
-## Option 3 - iOS (alpha)
-
-1. Download the latest Xcode project zip from [[Downloads]] or GitHub Releases.
-2. Open in Xcode, select your team, and run on a device or simulator.
-3. Alpha builds are for testers comfortable with sideloading or Xcode installs.
-
----
-
-## Option 4 - Local development server
+## Option 2 - Local development server
 
 For contributors or self-hosting:
 
@@ -42,7 +26,7 @@ pip install -r requirements.txt
 python -m server
 ```
 
-Open `http://localhost:8080`. See [[Developer-Setup]] for Node, Supabase, and React Native setup.
+Open `http://localhost:8080`. See [[Developer-Setup]] for Node and Supabase setup.
 
 ---
 

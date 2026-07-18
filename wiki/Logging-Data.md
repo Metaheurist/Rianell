@@ -75,7 +75,6 @@ When you pick a date, cycle day and phase may be **suggested** from your last lo
 | Platform | Storage |
 |----------|---------|
 | Web / PWA | `localStorage` (+ optional IndexedDB mirror) |
-| React Native | AsyncStorage |
 
 Optional encrypted cloud copy: [[Cloud-Sync-and-Backup]].
 

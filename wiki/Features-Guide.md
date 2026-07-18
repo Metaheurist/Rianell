@@ -145,14 +145,13 @@ Optional reminders and a message-of-the-day on Home. MOTD quotes are localised; 
 
 ---
 
-## Platforms
+## Platform
 
 | Platform | Notes |
 |----------|-------|
-| **Web / PWA** | Primary surface at [rianell.com](https://rianell.com); installable |
-| **Android / iOS** | React Native (Expo) apps; CI alpha builds in [[Downloads]] |
+| **Web / PWA** | The app runs at [rianell.com](https://rianell.com); installable |
 
-Feature parity between web and native is tracked in [[Platforms-and-Parity]].
+See [[Platforms-and-Parity]].
 
 ---
 

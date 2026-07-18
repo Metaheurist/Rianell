@@ -9,14 +9,11 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | Script | Purpose |
 |--------|---------|
 | `npm run build:web` | Sync tokens/i18n → vendor bundle → minified hashed PWA |
-| `npm run build:web:apk` | Smaller PWA build (`--skip-trace`) for Android dist |
-| `npm run bundle:mobile:prod` | Expo export for Android + iOS |
 | `npm run test:unit` | Node unit tests (`tests/unit/`) |
 | `npm run verify:i18n` | Full locale/prompt/MOTD gate suite |
 | `npm run verify:a11y-tokens` | WCAG contrast gate for `@rianell/tokens` theme pairs |
-| `npm run verify:design-tokens` | Guardrail: no hardcoded RN card scaffolds or width-based progress in critical UI |
+| `npm run verify:design-tokens` | Guardrail: no hardcoded card scaffolds or width-based progress in critical UI |
 | `npm run sync:tokens` | Regenerate `apps/pwa-webapp/css/tokens.css` from `@rianell/tokens` |
-| `npm run parity:*` | Platform parity checks |
 | `npm run benchmark` | Performance benchmarks workspace |
 | `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
 | `npm run audit:boot:strict` | Playwright strict boot gate (local / CI parity) |
@@ -48,32 +45,28 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 ### Phase 1 - Foundation (max 3 parallel)
 
-- **unit-tests** - `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, parity, `verify:i18n`
-- **prepare-minified-assets** - minified PWA + Capacitor dist → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
+- **unit-tests** - `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, `verify:i18n`
+- **prepare-minified-assets** - minified PWA → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** - Gitleaks, OSV, npm/pip audit (reusable workflow)
 
 ### Phase 2 - Build lanes (max 7 parallel)
 
 - **benchmarks-web** - starts when minify finishes (does not wait for unit tests)
 - **deploy-pages** - GitHub Pages → [rianell.com](https://rianell.com) (push only; gated on Phase 1)
-- **expo-bundle-prod** - Hermes production bundles (gate)
 - **server-exe** - Windows x64/x86 (starts after unit tests + audit, not minify)
-- **rn-build-version** - sequential RN build number (parallel with Expo export on mobile pushes)
 - **commit-dependencies-doc** / **sync-wiki-to-github** - main push bots (after unit tests)
 
 ### Phase 3 - Downstream
 
-- **benchmarks-expo** - Hermes bundle stats (non-blocking)
 - **playwright-e2e** - PWA smoke + oasis particle specs against local probe (`workers: 1` on CI - see `benchmarks/playwright.config.ts`)
 - **benchmarks-web** - Lighthouse + nav timings on minified PWA (`timeout-minutes: 25`; shared measure for `web-pwa` / `github-pages`; `BENCHMARK_LH_RUNS=2`)
-- **rncli-android-apk** / **rncli-ios-zip** - native artifacts (parallel)
 - **audit-boot-post-deploy** - boot audit on exact Pages `site/` (see below)
 
 ### Phase 4 - Bots and release
 
 - **commit-benchmarks** - merge benchmark Markdown on main
-- **commit-app-build** / **publish-release** - mobile push only (parallel; release uses artifacts API)
-- **readme-build-info** - **web-only** main pushes (`mobile_release` false); mobile README updated in `commit-app-build`
+- **publish-release** - release uses artifacts API
+- **readme-build-info** - main pushes
 - **security-headers-report** - securityheaders.com → `security/*.md` (after post-deploy audit)
 
 ### Bot push queue
@@ -82,7 +75,7 @@ Jobs that `git push` share concurrency group `ci-bot-push-${{ github.ref }}` so 
 
 ### Cancel on gate failure
 
-When a **gate** job fails (unit tests, minified assets, Expo bundle, deploy, post-deploy audit), the workflow is **cancelled** so Android APK, server EXE, and release jobs do not keep running. **Benchmark** jobs are not cancelled - they can finish independently.
+When a **gate** job fails (unit tests, minified assets, deploy, post-deploy audit), the workflow is **cancelled** so server EXE and release jobs do not keep running. **Benchmark** jobs are not cancelled - they can finish independently.
 
 ### Post-deploy boot audit (v1.89.2)
 
@@ -101,18 +94,13 @@ Caches miss only when lockfiles or pinned tool versions change:
 | npm store + node_modules | `package-lock.json` changes |
 | pip | `requirements.txt` or `.github/ci-pip-*.txt` changes |
 | Playwright browsers | `package-lock.json` changes |
-| Expo / Metro | lockfiles change |
-| Gradle (Android) | root lockfile or `apps/rn-app/package.json` changes |
-| Android SDK | same as Gradle key (API 36 / NDK 27) |
-
-**Android native build (v1.96.1):** Root `package.json` `overrides` pin `expo-modules-core@55.0.25` so `apps/rn-app` does not resolve SDK 56 Kotlin Promise stubs against RN 0.83. The Android APK job sets `RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM=1` for Gradle Metro bundling (same as `run-mobile-export.mjs`).
-
-**Live Cloudflare probe (v1.96.1):** `scripts/ci/deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and `PROBE_GOTO_TIMEOUT_MS` / `PROBE_PASS_MS` env vars - `waitUntil: load` often times out on `rianell.com` from GitHub Actions.
 | PyInstaller (Windows) | Python requirements / pip extras change |
 | UPX (Chocolatey) | server-exe matrix (cached install path) |
 | Gitleaks / OSV binaries | workflow pin version bumped |
 
-Reusable actions: `.github/actions/setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`, `prepare-pages-site`, `cache-expo`, `cache-android-sdk`.
+**Live Cloudflare probe (v1.96.1):** `scripts/ci/deploy-probe-loop.mjs` uses `domcontentloaded`, goto retries, and `PROBE_GOTO_TIMEOUT_MS` / `PROBE_PASS_MS` env vars - `waitUntil: load` often times out on `rianell.com` from GitHub Actions.
+
+Reusable actions: `.github/actions/setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`, `prepare-pages-site`.
 
 ### Node 24 (job runtime vs action runtime)
 
@@ -146,7 +134,7 @@ Reports committed on `main` via CI when changed.
 | Bundle `--enforce-budget` | 3/5 | `app.*.min.js` gzip ≤ 2 MB, vendor ≤ 15 MB |
 | `verify-boot-warm-budget` | 3/5 | Progressive warm boot gate (`BOOT_WARM_CI_MAX_MS`) |
 
-Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo root). Ignores Expo `>=56`, Babel `>=8`, and `@testing-library/react-native` `>=14` until coordinated upgrades. Secret scanning path ignores for vendored Transformers.js: `.github/secret_scanning.yml`.
+Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo root). Secret scanning path ignores for vendored Transformers.js: `.github/secret_scanning.yml`.
 
 ---
 
@@ -154,7 +142,6 @@ Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo r
 
 - [ ] `npm run test:unit` passes
 - [ ] `npm run verify:i18n` if strings/locales changed
-- [ ] `npm run parity:web` (and mobile if RN touched)
 - [ ] `npm run docs:dependencies` if manifests/deps changed
 - [ ] No secrets in client code (`verify-no-service-role-in-clients` in CI)
 - [ ] Optional: local `audit:boot:strict` via `launch-server.ps1` before large PWA boot changes
