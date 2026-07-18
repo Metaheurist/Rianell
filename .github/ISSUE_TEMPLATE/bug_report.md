@@ -3,7 +3,7 @@ name: Bug report
 about: Create a report to help us improve
 labels: bug
 ---
-**Platform:** PWA / RN-Android / RN-iOS
+**Platform:** PWA (web)
 **Version:** (check Settings → About)
 **Steps to reproduce:**
 **Expected behavior:**

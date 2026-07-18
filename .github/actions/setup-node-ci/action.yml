@@ -19,7 +19,6 @@ runs:
       with:
         path: |
           node_modules
-          apps/rn-app/node_modules
         key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
         restore-keys: |
           node-modules-${{ runner.os }}-
@@ -44,13 +43,3 @@ runs:
       run: |
         corepack enable
         test -d node_modules || npm ci
-
-    - name: Patch onnxruntime Gradle (Gradle 9)
-      if: inputs.install == 'true'
-      shell: bash
-      run: node scripts/build/patch-onnxruntime-gradle.mjs
-
-    - name: Patch Smartlook Kotlin (RN 0.83 nullability)
-      if: inputs.install == 'true'
-      shell: bash
-      run: node scripts/build/patch-smartlook-kotlin.mjs

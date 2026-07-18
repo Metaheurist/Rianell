@@ -9,41 +9,21 @@ updates:
       patch-updates:
         update-types: ["patch"]
     ignore:
-      # Keep transformers / RN tooling on the pinned matrix.
+      # Keep transformers on the pinned matrix.
       - dependency-name: "@huggingface/transformers"
         versions: [">=3.3.3"]
       - dependency-name: "jest"
         versions: [">=30.0.0"]
-      - dependency-name: "@react-native/babel-preset"
-        versions: [">=0.84.0"]
-      - dependency-name: "expo-modules-core"
-        versions: [">=56.0.0"]
-      # Stay on Expo SDK 55 until an intentional SDK upgrade.
-      - dependency-name: "expo"
-        versions: [">=56.0.0"]
-      - dependency-name: "expo-*"
-        versions: [">=56.0.0"]
-      - dependency-name: "babel-preset-expo"
-        versions: [">=56.0.0"]
-      # react-native-screens 4.26 needs RN >=0.84; stay pinned on 4.25.2 with RN 0.83.
-      - dependency-name: "react-native-screens"
-        versions: [">=4.26.0"]
-      # Babel 8 is a separate toolchain upgrade (with RN/Metro).
+      # Babel 8 is a separate toolchain upgrade.
       - dependency-name: "@babel/core"
         versions: [">=8.0.0"]
       - dependency-name: "@babel/traverse"
         versions: [">=8.0.0"]
       - dependency-name: "@babel/*"
         versions: [">=8.0.0"]
-      # RTL 14 needs a coordinated RN test-stack bump.
-      - dependency-name: "@testing-library/react-native"
-        versions: [">=14.0.0"]
       # TypeScript 6+/7 is a separate toolchain upgrade.
       - dependency-name: "typescript"
         versions: [">=6.0.0"]
-      # jest-expo follows Expo SDK; stay on 55 with SDK 55.
-      - dependency-name: "jest-expo"
-        versions: [">=56.0.0"]
   - package-ecosystem: pip
     # Python server deps live at repo root (requirements.txt), not under server/
     directory: "/"
