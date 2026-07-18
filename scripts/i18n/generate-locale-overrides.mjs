@@ -27,6 +27,7 @@ import { V205_BP_TIER_A_OVERRIDES } from '../lib/v205-bp-tier-a-overrides.mjs';
 import { V207_ONBOARDING_TIER_A_OVERRIDES } from '../lib/v207-onboarding-tier-a-overrides.mjs';
 import { GRAPHICS_PORTFOLIO_TIER_A_OVERRIDES } from '../lib/graphics-portfolio-tier-a-overrides.mjs';
 import { V213_LOG_WIZARD_TIER_A_OVERRIDES } from '../lib/v213-log-wizard-tier-a-overrides.mjs';
+import { OLLAMA_TIER_C_OVERRIDES } from '../lib/ollama-tier-c-overrides.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -311,6 +312,10 @@ for (const [locale, meta] of Object.entries(OVERRIDES)) {
   for (const [key, val] of Object.entries(mixed)) {
     if (typeof val === 'string' && val.trim()) strings[key] = val;
   }
+  const tierC = OLLAMA_TIER_C_OVERRIDES[locale] || {};
+  for (const [key, val] of Object.entries(tierC)) {
+    if (typeof val === 'string' && val.trim()) strings[key] = val;
+  }
   const out = {
     locale,
     label: meta.label,
@@ -335,6 +340,10 @@ for (const [locale, meta] of Object.entries(RTL_LOCALES)) {
   const strings = { ...canonical.strings, ...(existing.strings || {}) };
   for (const [key, val] of Object.entries(canonical.strings || {})) {
     if (strings[key] === undefined || strings[key] === '') strings[key] = val;
+  }
+  const tierC = OLLAMA_TIER_C_OVERRIDES[locale] || {};
+  for (const [key, val] of Object.entries(tierC)) {
+    if (typeof val === 'string' && val.trim()) strings[key] = val;
   }
   const out = {
     locale,
