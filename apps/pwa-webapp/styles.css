@@ -29048,11 +29048,15 @@ body.guided-onboarding-active #appShell {
   }
 
   .ai-chat-panel {
-    width: min(34rem, 92vw);
-    max-height: min(90vh, 48rem);
+    width: min(42rem, 92vw);
+    max-height: min(90vh, 52rem);
     margin: 0;
     border-radius: var(--radius-lg, 12px);
     transform: translateY(14px) scale(0.98);
+  }
+
+  .ai-chat-messages {
+    min-height: 18rem;
   }
 
   .ai-chat-overlay--open .ai-chat-panel {
@@ -29388,14 +29392,16 @@ body.light-mode .ai-chat-bubble--assistant {
   40% { opacity: 1; transform: translateY(-3px); }
 }
 
-.ai-chat-followups {
+.ai-chat-followups,
+.ai-chat-starters {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   padding: 0 0.85rem 0.55rem;
 }
 
-.ai-chat-followups--visible .ai-chat-followup-chip {
+.ai-chat-followups--visible .ai-chat-followup-chip,
+.ai-chat-starters--visible .ai-chat-followup-chip {
   opacity: 0;
   transform: translateY(6px);
   animation: aiChatChipIn 0.35s var(--ease-out-expo, ease-out) forwards;
@@ -29410,19 +29416,48 @@ body.light-mode .ai-chat-bubble--assistant {
 }
 
 .ai-chat-followup-chip {
-  min-height: 36px;
-  padding: 0.35rem 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 1 auto;
+  min-height: 44px;
+  padding: 0.3rem 0.7rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--primary-color) 35%, transparent);
   background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-card-solid, var(--card-bg)) 86%);
   color: inherit;
-  font-size: 0.74rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
   box-shadow: 0 1px 4px color-mix(in srgb, var(--primary-color) 12%, transparent);
+  transition: background var(--dur-fast, 0.15s) var(--ease-out-expo, ease-out),
+    transform var(--dur-fast, 0.15s) var(--ease-out-expo, ease-out);
+}
+
+.ai-chat-chip-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--primary-color);
+}
+
+.ai-chat-chip-label {
+  min-width: 0;
 }
 
 .ai-chat-followup-chip:hover {
   background: color-mix(in srgb, var(--primary-color) 22%, var(--surface-card-solid, var(--card-bg)) 78%);
+}
+
+.ai-chat-followup-chip:active {
+  transform: scale(0.97);
+}
+
+.ai-chat-followup-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--surface-card-solid, var(--card-bg)),
+    0 0 0 4px color-mix(in srgb, var(--primary-color) 60%, transparent);
 }
 
 .ai-chat-recovery {
