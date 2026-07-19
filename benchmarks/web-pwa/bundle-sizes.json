@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-19T10:46:20.203Z",
+  "generatedAt": "2026-07-19T18:51:11.561Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5908496,
-    "cssBytes": 865888,
-    "jsGzipBytes": 1413554,
-    "cssGzipBytes": 146484
+    "jsBytes": 5918276,
+    "cssBytes": 866682,
+    "jsGzipBytes": 1416634,
+    "cssGzipBytes": 146586
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1191592,
-      "gzipBytes": 258716
+      "bytes": 1193331,
+      "gzipBytes": 259435
     },
     {
-      "file": "ci-minified/site/app.98ea486fdbd7.min.js",
-      "bytes": 881036,
-      "gzipBytes": 203832
+      "file": "ci-minified/site/app.13c77f863525.min.js",
+      "bytes": 881564,
+      "gzipBytes": 204005
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.85e42789d387.css",
-      "bytes": 790710,
-      "gzipBytes": 131186
+      "file": "ci-minified/site/styles.ecbdd8d430b3.css",
+      "bytes": 791504,
+      "gzipBytes": 131288
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -75,8 +75,8 @@
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 52339,
-      "gzipBytes": 11482
+      "bytes": 55979,
+      "gzipBytes": 12741
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -114,6 +114,11 @@
       "gzipBytes": 6405
     },
     {
+      "file": "ci-minified/site/modules/ai-chat.js",
+      "bytes": 29755,
+      "gzipBytes": 7605
+    },
+    {
       "file": "ci-minified/site/modules/settings.js",
       "bytes": 29533,
       "gzipBytes": 6037
@@ -127,11 +132,6 @@
       "file": "ci-minified/site/modules/advanced-vitals-widgets.js",
       "bytes": 26235,
       "gzipBytes": 5406
-    },
-    {
-      "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 25882,
-      "gzipBytes": 6676
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
