@@ -93,8 +93,10 @@ export {
 export {
   NSFW_RE,
   HEALTH_SCOPE_RE,
+  GREETING_RE,
   isNsfwText,
   isHealthInScope,
+  isGreeting,
   classifyHealthChatMessage,
   enforceHealthChatReply,
 } from '../ai/chatGuardrails.mjs';
