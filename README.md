@@ -88,17 +88,17 @@ Optional **session recording** (Smartlook, EU region) helps improve usability on
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-Server%20723%20%7C%20Web%20723-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/29663952972)
+[![CI builds](https://img.shields.io/badge/build-Server%20725%20%7C%20Web%20725-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/29670057411)
 
 **CI builds** (server + web)
 
 | Channel | Build |
 | :--- | :---: |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **723** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **723** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **723** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **725** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **725** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **725** |
 
-Latest: [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #723](https://github.com/Metaheurist/Rianell/actions/runs/29663952972) · `886c0bf`
+Latest: [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #725](https://github.com/Metaheurist/Rianell/actions/runs/29670057411) · `2353f7e`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
