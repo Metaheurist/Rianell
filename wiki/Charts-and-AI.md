@@ -61,6 +61,12 @@ When AI is enabled and you have enough recent logs, Home may show **0-3 suggesti
 
 ---
 
+## Ask Rianell chat
+
+**Ask Rianell** is a short, on-device Q&A about your own logs. When you open it with no question yet, it shows a compact row of **starter chips** with icons - _Sleep trend_, _Mood factors_, and _Patterns_ (plus any contextual suggestions based on your recent logs). Tapping a starter **fills the question into the input so you can edit it before sending** - it does not send automatically. After Rianell answers, follow-up chips continue the same thread and send on tap. Each session is limited to a few turns and answers include a wellness-only disclaimer; nothing is sent to third-party AI services.
+
+---
+
 ## Privacy note
 
 LLM prompts include your **UI locale** explicitly. User notes in prompts are wrapped in delimiters; logs are not sent to third-party AI APIs by default.

@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp",
   "workspaces": [
     "apps/pwa-webapp",

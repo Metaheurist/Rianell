@@ -1,6 +1,12 @@
 # Release Notes
 
-## Latest release (v2.2.25)
+## Latest release (v2.5.0)
+
+**Freeze-free first launch** - Fixed a rare freeze that could happen the very first time you opened Rianell on a brand-new device or browser profile, where the app got stuck on the "Measuring performance…" screen until the tab timed out. The app now always shows its screen first and measures graphics performance quietly in the background, so the first launch is smooth.
+
+**Cleaner Ask Rianell suggestions** - The starter prompts in the Ask Rianell chat are now compact, tappable chips with icons (Sleep trend, Mood factors, Patterns) instead of big full-width buttons. Tapping one now **fills in the question so you can tweak it before sending** rather than sending immediately. On larger screens the chat window is bigger and easier to read.
+
+## Previous (v2.2.25)
 
 **Easier to find and share** - Rianell now has dedicated public info pages you can link to and search for - covering features, symptom tracking, mental-health check-ins, on-device AI insights, the community, and the conditions people track. Each page is search-engine friendly (clear titles, descriptions, and structured data) and there's a fresh sitemap so search engines can discover everything.
 

@@ -59,6 +59,8 @@ Boot runs a short device benchmark **behind the loading overlay** (before conten
 
 **v2.2.15+:** CPU/array work uses **one adaptive batch per timer tick** (no while-packed batches) and a lighter first-boot suite, so cold Chrome should stay responsive through “Measuring performance… · CPU arithmetic”.
 
+**v2.5.0+:** the **graphics (GPU) check no longer runs on the boot path.** On a brand-new device or browser profile the first-ever WebGL/WebGPU call can stall the main thread for several seconds while the GPU driver initialises, which previously froze the tab on “Measuring performance…” (the orbit animation kept moving but the page was unresponsive and even DevTools would not open). The app now reveals its screen first and runs the GPU check quietly in the background after first paint, so the first launch no longer freezes.
+
 1. **Wait up to ~20 seconds** - the boot watchdog should reveal the app automatically.
 2. **Hard refresh** after updating to the latest build (cache-bust `device-benchmark.js?v=9` or newer).
 3. **Clear benchmark cache** (God mode → clear benchmark cache) only if the screen still never finishes after a refresh on v2.2.15+.
