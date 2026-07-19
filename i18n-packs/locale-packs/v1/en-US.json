@@ -70,6 +70,8 @@
     "ai.chapter.overview": "Overview",
     "ai.chapter.trends": "Trends & vitals",
     "ai.chapter.trendsIntro": "Each card compares your recent average to your latest entry. Labels describe direction - not a medical judgement.",
+    "ai.chat.blockedOffTopic": "I can only help with your own health log data - try asking about your sleep, mood, symptoms or patterns.",
+    "ai.chat.blockedUnsafe": "I can only help with your health and wellbeing data.",
     "ai.clinicianBrief.action": "Clinician visit prep brief",
     "ai.clinicianBrief.loading": "Preparing visit brief…",
     "ai.clinicianBrief.section": "Visit prep brief",
