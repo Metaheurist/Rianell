@@ -95,7 +95,10 @@ function injectCluster(html) {
   const block = clusterLinksHtml('home', '  ').split('\n').join(eol);
   const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   if (html.includes(HREFLANG_START) && html.includes(HREFLANG_END)) {
-    const re = new RegExp(`${esc(HREFLANG_START)}[\\s\\S]*?${esc(HREFLANG_END)}`);
+    // Consume any leading horizontal whitespace on the start-marker line so the
+    // block's own indent replaces it (otherwise indentation accumulates on every
+    // run and the injection is never idempotent).
+    const re = new RegExp(`[ \\t]*${esc(HREFLANG_START)}[\\s\\S]*?${esc(HREFLANG_END)}`);
     return html.replace(re, block);
   }
   const runRe = /(?:[ \t]*<link rel="alternate" hreflang="[^"]*" href="[^"]*"\s*\/?>[ \t]*\r?\n)+/;

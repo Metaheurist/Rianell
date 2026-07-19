@@ -104,19 +104,25 @@ export function cleanOutput(src, raw) {
   return s.trim();
 }
 
-export function buildPrompt(src, meta) {
+export function buildPrompt(src, meta, { strictScript = false } = {}) {
   const { name, code } = meta;
+  const scriptHint = strictScript
+    ? `Write the entire translation using the native ${name} script. `
+      + `Keep only product/brand names (such as Rianell) and clinical instrument codes `
+      + `(such as PHQ-9, GAD-7) in their original Latin spelling; translate everything else.\n`
+    : '';
   return (
     `You are a professional English (en) to ${name} (${code}) translator. ` +
     `Your goal is to accurately convey the meaning and nuances of the original English text ` +
     `while adhering to ${name} grammar, vocabulary, and cultural sensitivities.\n` +
     `Produce only the ${name} translation, without any additional explanations or commentary. ` +
+    scriptHint +
     `Please translate the following English text into ${name}:\n\n\n` +
     `${src}\n`
   );
 }
 
-export async function ollamaGenerate({ host, model, prompt }) {
+export async function ollamaGenerate({ host, model, prompt, temperature = 0, numPredict = 512 }) {
   const res = await fetch(`${host}/api/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -125,7 +131,7 @@ export async function ollamaGenerate({ host, model, prompt }) {
       prompt,
       stream: false,
       keep_alive: '30m',
-      options: { temperature: 0, num_predict: 512 },
+      options: { temperature, num_predict: numPredict },
     }),
   });
   if (!res.ok) throw new Error(`Ollama HTTP ${res.status}: ${await res.text().catch(() => '')}`);
@@ -154,20 +160,40 @@ export function hasEnglishFragment(locale, candidate) {
 
 /**
  * Translate one English string into `locale`, protecting glossary terms and
- * {placeholders}, cleaning and validating output. Retries once on soft signals.
+ * {placeholders}, cleaning and validating output. Retries with escalating
+ * temperature and a script-forcing prompt when early attempts fail validation.
  * @returns {Promise<{value: string|null, status: 'ok'|'kept-soft'|'failed', reason: string}>}
  */
+const RTL_LOCALES = new Set(['ar', 'he']);
+// Escalating temperatures: attempt 0 stays deterministic (temp 0) to preserve
+// prior behavior; later attempts add entropy so a stuck string can break loose.
+const RETRY_TEMPERATURES = [0, 0.4, 0.8];
+
 export async function translateOne(locale, meta, src, { host, model }) {
   const { text: gText, placeholders: gloss } = protectGlossary(src);
   const { text: maskedSrc, map: phMap } = protectPlaceholders(gText);
   let best = null;
   let lastReason = 'unknown';
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  const attempts = RETRY_TEMPERATURES.length;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    // After a failed first pass, force the native script (helps brand-heavy
+    // titles in RTL locales that otherwise come back in Latin text).
+    const strictScript = attempt > 0
+      && (RTL_LOCALES.has(locale)
+        || lastReason === 'not-arabic-script'
+        || lastReason === 'not-hebrew-script'
+        || lastReason === 'english-fragment'
+        || lastReason === 'identical-to-en');
     let raw;
     try {
-      raw = await ollamaGenerate({ host, model, prompt: buildPrompt(maskedSrc, meta) });
+      raw = await ollamaGenerate({
+        host,
+        model,
+        prompt: buildPrompt(maskedSrc, meta, { strictScript }),
+        temperature: RETRY_TEMPERATURES[attempt],
+      });
     } catch (err) {
-      if (attempt === 1) throw err;
+      if (attempt === attempts - 1) throw err;
       await new Promise((r) => setTimeout(r, 500));
       continue;
     }
