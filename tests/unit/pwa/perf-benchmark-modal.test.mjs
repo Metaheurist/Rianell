@@ -71,6 +71,41 @@ test('boot watchdog aborts an in-flight benchmark before force reveal', () => {
   assert.match(appJs, /bootWatchdog:forceReveal/);
 });
 
+test('GPU probe never blocks first paint (revealed before probe, off critical path)', () => {
+  const src = readFileSync('apps/pwa-webapp/device-benchmark.js', 'utf8');
+  // A dedicated deferral helper must exist and guarantee a macrotask yield + idle wait.
+  assert.match(src, /function scheduleGpuProbeOffCriticalPath/);
+  assert.match(src, /scheduleGpuProbeOffCriticalPath[\s\S]*setTimeout\(run,/);
+  assert.match(src, /scheduleGpuProbeOffCriticalPath[\s\S]*requestIdleCallback/);
+  // The probe must wait until the loading overlay is hidden + body.loaded so a cold
+  // GPU getContext() can never delay first paint / the overlay hide.
+  assert.match(src, /function shellRevealed[\s\S]*loadingOverlay[\s\S]*classList\.contains\('hidden'\)/);
+  assert.match(src, /classList\.contains\('loaded'\)/);
+  // The no-cache suite finish must reveal the shell (onDone) BEFORE probing the GPU,
+  // and the probe must run inside the off-critical-path scheduler.
+  assert.match(
+    src,
+    /onDone\(result\);\s*scheduleGpuProbeOffCriticalPath\(function \(\) \{\s*runGpuBenchmarkAsync/,
+  );
+  // The GPU probe must not be awaited before onDone on the boot path anymore.
+  assert.doesNotMatch(src, /runGpuBenchmarkAsync\(function \(gpu\) \{[\s\S]*?onDone\(result\);\s*\}\);/);
+  // The heuristic boot path also probes the GPU off the critical path.
+  assert.match(
+    src,
+    /onComplete\(tier, platformType, result, \{ cached: true, heuristic: true \}\);\s*scheduleGpuProbeOffCriticalPath/,
+  );
+});
+
+test('3D/WebGL capability probes are gated on shell reveal (never block boot)', () => {
+  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  // Shared gate that waits for body.loaded before any GPU/WebGL work.
+  assert.match(appJs, /function __rianellRunAfterShellRevealed/);
+  assert.match(appJs, /__rianellRunAfterShellRevealed[\s\S]*classList\.contains\('loaded'\)/);
+  // Both schedulers that lead to synchronous getContext('webgl') must be gated.
+  assert.match(appJs, /function scheduleHome3DEnhancement\(run\) \{\s*__rianellRunAfterShellRevealed/);
+  assert.match(appJs, /function initWebGLSurfacesForTab[\s\S]*__rianellRunAfterShellRevealed\(startWhenSafe\)/);
+});
+
 test('in-app daily reminder respects first-run suppression', () => {
   const js = readFileSync('apps/pwa-webapp/notifications.js', 'utf8');
   assert.match(js, /checkTodayReminder\(\)[\s\S]*shouldSuppressFirstRunLoggingPrompt/);

@@ -19455,10 +19455,19 @@ function initWebGLSurfacesForTab(tabId) {
       }
     }).catch(function () {});
   };
-  if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(start, { timeout: 6500 });
+  // canUseWebGL() creates a WebGL context synchronously; never let it run before the
+  // shell is revealed (cold GPU init can block the main thread and freeze boot).
+  var startWhenSafe = function () {
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(start, { timeout: 6500 });
+    } else {
+      setTimeout(start, 4000);
+    }
+  };
+  if (typeof __rianellRunAfterShellRevealed === 'function') {
+    __rianellRunAfterShellRevealed(startWhenSafe);
   } else {
-    setTimeout(start, 4000);
+    startWhenSafe();
   }
 }
 if (typeof window !== 'undefined') window.initWebGLSurfacesForTab = initWebGLSurfacesForTab;
@@ -24653,12 +24662,46 @@ var _goalsProgress3DPromise = null;
 var _goalsProgressSvgPromise = null;
 var _discoveryOrb3DPromise = null;
 
-/** Defers 3D work until idle so boot stays lean. */
+/**
+ * Run `fn` only after the app shell is revealed (body.loaded).
+ *
+ * WebGL capability probes (canUse3D / canUseWebGL) call getContext('webgl2'|'webgl')
+ * synchronously, which can stall the main thread for many seconds on the first-ever
+ * GPU-process/driver init (fresh device / fresh profile). If that runs during boot
+ * (e.g. a requestIdleCallback firing between the sliced device-benchmark steps, while
+ * "Measuring performance…" is still shown) it freezes the tab before first paint.
+ * Gating all GPU/3D work on shell reveal guarantees getContext never blocks boot, and
+ * has the bonus that the benchmark tier is known by then (low-end devices skip WebGL).
+ */
+function __rianellRunAfterShellRevealed(fn) {
+  if (typeof fn !== 'function') return;
+  function revealed() {
+    try {
+      return !!(document && document.body && document.body.classList.contains('loaded'));
+    } catch (e) {
+      return true;
+    }
+  }
+  var attempts = 0;
+  function tick() {
+    // Cap (~12s) so work still runs even if reveal never flips; the boot watchdog
+    // force-reveals well before this and sets body.loaded.
+    if (revealed() || attempts >= 200) { fn(); return; }
+    attempts += 1;
+    setTimeout(tick, 60);
+  }
+  if (revealed()) { fn(); return; }
+  setTimeout(tick, 60);
+}
+
+/** Defers 3D work until the shell is revealed + idle so boot stays lean. */
 function scheduleHome3DEnhancement(run) {
-  var idle = typeof window.requestIdleCallback === 'function'
-    ? window.requestIdleCallback
-    : function (cb) { return setTimeout(cb, 350); };
-  idle(function () { run(); });
+  __rianellRunAfterShellRevealed(function () {
+    var idle = typeof window.requestIdleCallback === 'function'
+      ? window.requestIdleCallback
+      : function (cb) { return setTimeout(cb, 350); };
+    idle(function () { run(); });
+  });
 }
 
 /** Lazy-loads the three.js weather orb chunk (same pattern as lazy-webgl). */

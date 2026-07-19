@@ -208,6 +208,74 @@
     runNext();
   }
 
+  /**
+   * Run a GPU probe AFTER first paint + browser idle, never on the boot critical path.
+   *
+   * getContext('webgl2'|'webgl') and navigator.gpu.requestAdapter() are *synchronous*
+   * entry points that can stall the main thread for many seconds on the first-ever
+   * GPU-process/driver init (fresh device / fresh profile). When that ran before the
+   * loading overlay was hidden, the tab froze on "Measuring performance…": the CSS
+   * orbit kept animating (compositor) but the main thread was blocked, so DevTools
+   * would not open and the boot watchdog setTimeout could not fire.
+   *
+   * This helper guarantees at least one macrotask yield (so the watchdog can fire and
+   * the shell can paint) and prefers to wait for requestAnimationFrame + a bounded
+   * requestIdleCallback before invoking the probe, with a hard fallback so the score
+   * is still collected on busy pages.
+   */
+  function scheduleGpuProbeOffCriticalPath(fn) {
+    if (typeof fn !== 'function') return;
+    var ran = false;
+    function run() {
+      if (ran) return;
+      ran = true;
+      try { fn(); } catch (e) {}
+    }
+    var startedAt = (typeof Date !== 'undefined' && Date.now) ? Date.now() : 0;
+    // Do not probe until the app shell is actually revealed (loading overlay hidden +
+    // body.loaded). A synchronous getContext() that stalls on cold GPU init must never
+    // run while the "Measuring performance…" overlay is still up, otherwise it delays
+    // the overlay hide / first paint. Bounded so the score is still collected.
+    var MAX_WAIT_MS = 4000;
+    function shellRevealed() {
+      try {
+        if (typeof document === 'undefined') return true;
+        var b = document.body;
+        if (!b || !b.classList || !b.classList.contains('loaded')) return false;
+        var lo = document.getElementById('loadingOverlay');
+        return !lo || lo.classList.contains('hidden');
+      } catch (e) {
+        return true;
+      }
+    }
+    function probeAfterPaint() {
+      var raf = (typeof requestAnimationFrame !== 'undefined')
+        ? requestAnimationFrame
+        : function (cb) { return setTimeout(cb, 16); };
+      // rAF => shell has painted; then wait for idle (bounded) before the sync probe.
+      raf(function () {
+        if (ran) return;
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(function () { run(); }, { timeout: 800 });
+        } else {
+          setTimeout(run, 100);
+        }
+      });
+    }
+    function poll() {
+      if (ran) return;
+      var waited = ((typeof Date !== 'undefined' && Date.now) ? Date.now() : 0) - startedAt;
+      if (shellRevealed() || waited >= MAX_WAIT_MS) {
+        probeAfterPaint();
+        return;
+      }
+      setTimeout(poll, 60);
+    }
+    // Always yield at least one macrotask first so the reveal burst and the boot
+    // watchdog setTimeout can run before any potentially-blocking GPU call.
+    setTimeout(poll, 0);
+  }
+
   function cpuArith(iterations) {
     var total = 0;
     for (var i = 0; i < iterations; i++) {
@@ -1228,12 +1296,21 @@
         onDone(result);
         return;
       }
-      runGpuBenchmarkAsync(function (gpu) {
-        result.gpu = gpu;
-        if (typeof console !== 'undefined' && console.log) {
-          console.log('[Benchmark] GPU', gpu.backend, gpu.available, gpu.good, gpu.scoreMs);
-        }
-        onDone(result);
+      // Reveal the app shell BEFORE probing the GPU. The GPU probe uses synchronous
+      // getContext()/requestAdapter() calls that can stall the main thread on a cold
+      // GPU stack (fresh device/profile); gating the boot reveal on it froze the tab
+      // on "Measuring performance…". Reveal with a provisional gpu result, then run
+      // the probe off the boot critical path and persist the score when it settles.
+      result.gpu = { available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [], pending: true };
+      onDone(result);
+      scheduleGpuProbeOffCriticalPath(function () {
+        runGpuBenchmarkAsync(function (gpu) {
+          result.gpu = gpu;
+          if (typeof console !== 'undefined' && console.log) {
+            console.log('[Benchmark] GPU', gpu.backend, gpu.available, gpu.good, gpu.scoreMs);
+          }
+          try { saveBenchmarkResult(result); } catch (e) {}
+        });
       });
     }
 
@@ -1295,12 +1372,12 @@
       _lastPlatformType = platformType;
       if (typeof onProgress === 'function') onProgress(100, { phase: 'heuristic', label: 'Device tier' });
       if (typeof onComplete === 'function') onComplete(tier, platformType, result, { cached: true, heuristic: true });
-      setTimeout(function () {
+      scheduleGpuProbeOffCriticalPath(function () {
         runGpuBenchmarkAsync(function (gpu) {
           result.gpu = gpu;
           saveBenchmarkResultMinimal(result);
         });
-      }, 0);
+      });
       return;
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');

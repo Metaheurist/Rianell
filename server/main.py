@@ -436,7 +436,12 @@ def main():
     
     # Create and start dashboard in separate thread
     dashboard = None
-    if TKINTER_AVAILABLE:
+    # Headless/automation guard: skip the Tk dashboard when running in a
+    # non-interactive shell (no GUI main loop => tkinter var access crashes).
+    dashboard_disabled = os.environ.get('RIANELL_NO_DASHBOARD') == '1'
+    if dashboard_disabled:
+        logger.info("Server dashboard disabled (RIANELL_NO_DASHBOARD=1)")
+    if TKINTER_AVAILABLE and not dashboard_disabled:
         def run_dashboard():
             global dashboard
             dashboard = create_server_dashboard()
@@ -481,7 +486,7 @@ def main():
     print(f"Log file: {LOG_FILE}")
     print(f"Supabase: {'CONNECTED' if supabase_client.supabase_client else 'NOT AVAILABLE (install: pip install supabase)'}")
     print("=" * 60)
-    if TKINTER_AVAILABLE:
+    if TKINTER_AVAILABLE and not dashboard_disabled:
         print("Server Dashboard window opened - use it to control the server")
     print("\nPress Ctrl+C to stop the server\n")
     
