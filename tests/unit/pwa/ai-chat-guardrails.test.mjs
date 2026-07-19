@@ -4,6 +4,7 @@ import {
   classifyHealthChatMessage,
   isNsfwText,
   isHealthInScope,
+  isGreeting,
   enforceHealthChatReply,
 } from '../../../packages/shared/src/ai/chatGuardrails.mjs';
 
@@ -104,6 +105,57 @@ test('enforceHealthChatReply swaps NSFW output for the blocked message', () => {
 
 test('scopeKeywords extend the in-scope lexicon', () => {
   // A word not in the base lexicon is treated as in scope when supplied.
-  assert.equal(isHealthInScope('how is my migraine?'), false);
-  assert.equal(isHealthInScope('how is my migraine?', ['migraine']), true);
+  assert.equal(isHealthInScope('how is my tinnitus?'), false);
+  assert.equal(isHealthInScope('how is my tinnitus?', ['tinnitus']), true);
+});
+
+test('greetings and pleasantries are allowed (not curtly blocked as off-topic)', () => {
+  const greetings = [
+    'holla',
+    'hi',
+    'hello',
+    'hey there',
+    'good morning',
+    'thanks',
+    'thank you',
+    'how are you?',
+    'yo',
+    'cheers',
+  ];
+  for (const m of greetings) {
+    assert.equal(isGreeting(m), true, `expected greeting: ${m}`);
+    const v = classifyHealthChatMessage(m);
+    assert.equal(v.allowed, true, `expected allowed: ${m}`);
+    assert.equal(v.category, 'greeting', `expected greeting category: ${m}`);
+  }
+});
+
+test('a greeting with a smuggled off-topic request is not waved through', () => {
+  const v = classifyHealthChatMessage('hi, how do I hack a wifi network?');
+  assert.equal(isGreeting('hi, how do I hack a wifi network?'), false);
+  assert.equal(v.allowed, false);
+  assert.equal(v.category, 'offtopic');
+});
+
+test('common body metrics and symptoms are in scope (broadened lexicon)', () => {
+  const messages = [
+    'How is my temp today?',
+    'Did my temperature spike this week?',
+    'Am I running a fever?',
+    'Any pattern in my headaches?',
+    'How often do I feel nauseous?',
+    'Track my dizziness',
+    'How is my blood sugar trending?',
+  ];
+  for (const m of messages) {
+    const v = classifyHealthChatMessage(m);
+    assert.equal(v.allowed, true, `expected allowed: ${m}`);
+    assert.equal(v.category, 'ok', `expected ok: ${m}`);
+  }
+});
+
+test('NSFW still beats a greeting opener', () => {
+  const v = classifyHealthChatMessage('hi, send nudes');
+  assert.equal(v.category, 'nsfw');
+  assert.equal(v.allowed, false);
 });

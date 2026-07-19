@@ -68,6 +68,7 @@ var RianellShared = (() => {
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
     GOLDEN_LLM_INTENTS: () => GOLDEN_LLM_INTENTS,
     GOLDEN_LLM_LOCALES: () => GOLDEN_LLM_LOCALES,
+    GREETING_RE: () => GREETING_RE,
     GUIDED_CARD_META: () => GUIDED_CARD_META,
     GUIDED_QUESTIONNAIRE_CARD_IDS: () => GUIDED_QUESTIONNAIRE_CARD_IDS,
     HEALTH_SCOPE_RE: () => HEALTH_SCOPE_RE,
@@ -410,6 +411,7 @@ var RianellShared = (() => {
     isFirstRunWizardComplete: () => isFirstRunWizardComplete,
     isGeneratedProfileAvatar: () => isGeneratedProfileAvatar,
     isGoodDayLog: () => isGoodDayLog,
+    isGreeting: () => isGreeting,
     isGuidedOnboardingAuthenticated: () => isGuidedOnboardingAuthenticated,
     isHealthInScope: () => isHealthInScope,
     isHealthLoggingUnlocked: () => isHealthLoggingUnlocked,
@@ -4185,7 +4187,8 @@ ${hist}`);
   // packages/shared/src/ai/chatGuardrails.mjs
   var NSFW_RE = /\b(?:n[s\s]*f[s\s]*w|porn\w*|hardcore|x[\s-]?rated|xxx|erotica?|erotic|eroti(?:k|que|co|smo|sch)\w*|sexual|sexually|sexo|sexe|sesso|seks|sexting|dirty\s*talk|nude|nudes|nudity|naked|desnud[oa]|nackt|nu(?:e|es)|blowjob|handjob|cum(?:shot|ming)?|orgasm|masturbat(?:e|ion|ing)|fuck(?:ing|ed)?|f[\*u]ck|dick|penis|pene|vagina|vulva|clit(?:oris)?|boobs?|breasts?|tits?|nipples?|anal|anus|butt[\s-]?plug|dildo|fetish|fetichis|bdsm|bondage|hentai|incest|bestiality|zoophil|rape|raping|molest|pedophil|paedophil|child\s*porn|cp\b|lolic?on|shota|onlyfans|camgirl|escort\s*service|prostitut|whore|slut|milf|gangbang|threesome|deepthroat|creampie|coom)\b/iu;
   var NSFW_INTENT_RE = /\b(?:(?:write|tell|generate|make|create|describe|roleplay|role[\s-]?play|act\s+as|pretend\s+you|imagine\s+you)\b[\s\S]{0,40}\b(?:sex|sexual|erotic|erotica|steamy|naughty|kinky|nsfw|adult|explicit|lewd|dirty\s+talk|intimate\s+scene|smut))|(?:\b(?:steamy|explicit|erotic|sexual|kinky|naughty)\b[\s\S]{0,20}\b(?:story|scene|fanfic|fantasy|roleplay))/iu;
-  var HEALTH_SCOPE_RE = /\b(?:health|healthy|wellbeing|well[\s-]?being|wellness|symptom|symptoms|pain|ache|aches|aching|hurt|sore|flare|flares|flare[\s-]?up|fatigue|tired|tiredness|exhaust|energy|energ|sleep|slept|insomnia|rest|rested|nap|mood|moods|feeling|feelings|emotion|emotional|anxious|anxiety|stress|stressed|stressor|depress|mental|mind|calm|steps|walk|walking|exercise|workout|activ|movement|move|hydrat|water|drink|drinking|diet|food|eat|eating|meal|meals|nutrition|weight|bmi|medication|medicine|meds|dose|dosage|pill|treatment|therapy|therap|flareday|swelling|stiffness|mobility|joint|joints|heart|bpm|pulse|blood\s*pressure|vitals?|cycle|period|menstru|hormone|breath|breathing|log|logs|logged|logging|track|tracked|tracking|entry|entries|journal|diary|pattern|patterns|trend|trends|correlat|average|my\s+(?:data|logs?|health|sleep|mood|energy|symptoms?|week|day|days|entries|numbers?)|good\s+days?|bad\s+days?|goal|goals|habit|habits|recovery|recover|wearable|fitbit|apple\s*health)\b/iu;
+  var HEALTH_SCOPE_RE = /\b(?:health|healthy|wellbeing|well[\s-]?being|wellness|symptom|symptoms|pain|ache|aches|aching|hurt|sore|flare|flares|flare[\s-]?up|fatigue|tired|tiredness|exhaust|energy|energ|sleep|slept|insomnia|rest|rested|nap|mood|moods|feeling|feelings|emotion|emotional|anxious|anxiety|stress|stressed|stressor|depress|mental|mind|calm|steps|walk|walking|exercise|workout|activ|movement|move|hydrat|water|drink|drinking|diet|food|eat|eating|meal|meals|nutrition|weight|bmi|medication|medicine|meds|dose|dosage|pill|treatment|therapy|therap|flareday|swelling|stiffness|mobility|joint|joints|heart|bpm|pulse|blood\s*pressure|vitals?|temperature|temp|fever|feverish|chills|nausea|nauseous|nauseated|dizzy|dizziness|lightheaded|vertigo|headache|headaches|migraine|migraines|cramp|cramps|cramping|bloat|bloated|bloating|appetite|sick|unwell|illness|cough|coughing|congestion|congested|rash|rashes|itch|itchy|itching|glucose|sugar|oxygen|spo2|numb|numbness|tingling|tingle|inflammation|inflamed|dehydrat|cycle|period|menstru|hormone|breath|breathing|log|logs|logged|logging|track|tracked|tracking|entry|entries|journal|diary|pattern|patterns|trend|trends|correlat|average|my\s+(?:data|logs?|health|sleep|mood|energy|symptoms?|week|day|days|entries|numbers?)|how\s+(?:am|do)\s+i\s+(?:feel|do|doing)|good\s+days?|bad\s+days?|goal|goals|habit|habits|recovery|recover|wearable|fitbit|apple\s*health)\b/iu;
+  var GREETING_RE = /^[\s,.!?~-]*(?:(?:hi+|hii+|hiya|hey+|heya|hello+|helo|hallo|holla|hola|ola|ciao|salut|bonjour|yo+|sup|wass?up|what'?s\s*up|howdy|greetings|good\s*(?:morning|afternoon|evening|day|night)|morning|evening|night|gm|gn|thanks?|thank\s*you|thankyou|thx|ty|cheers|gracias|danke|merci|grazie|okay?|kk?|cool|nice|great|awesome|how\s*(?:are|r)\s*(?:you|u|ya)|how'?s\s*it\s*going|hru|bye+|goodbye|see\s*(?:you|ya)|later|take\s*care|there|friend|again|everyone|all|rianell)\b[\s,.!?~-]*)+$/iu;
   function normalize(text) {
     return String(text == null ? "" : text).toLowerCase().replace(/\s+/g, " ").trim();
   }
@@ -4206,11 +4209,17 @@ ${hist}`);
     }
     return false;
   }
+  function isGreeting(message) {
+    const t2 = normalize(message);
+    if (!t2) return false;
+    return GREETING_RE.test(t2);
+  }
   function classifyHealthChatMessage(message, options = {}) {
     const { scopeKeywords } = options || {};
     const raw = String(message == null ? "" : message).trim();
     if (!raw) return { allowed: false, category: "offtopic" };
     if (isNsfwText(raw)) return { allowed: false, category: "nsfw" };
+    if (isGreeting(raw)) return { allowed: true, category: "greeting" };
     if (!isHealthInScope(raw, scopeKeywords)) {
       return { allowed: false, category: "offtopic" };
     }
