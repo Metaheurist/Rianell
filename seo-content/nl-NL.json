@@ -258,6 +258,554 @@
           ]
         }
       ]
+    },
+    "symptom-tracking": {
+      "type": "marketing",
+      "title": "Het volgen van symptomen en vitale functies – Rianell",
+      "description": "Registreer symptomen, pijn, vermoeidheid, gewicht, hartslag, bloeddruk, slaap en meer met Rianell. Een snelle, gebruiksvriendelijke dagelijkse registratie die omgezet wordt in overzichtelijke trends voor u en uw behandelaars. Gratis.",
+      "ogTitle": "Het volgen van symptomen en vitale functies – Rianell",
+      "ogDescription": "Registreer dagelijks symptomen, pijn, vermoeidheid en vitale functies in een handig overzicht, zodat u en uw behandelaars duidelijke patronen kunnen herkennen.",
+      "twTitle": "Het volgen van symptomen en vitale functies – Rianell",
+      "twDescription": "Een snelle dagelijkse registratie van symptomen, pijn, vermoeidheid en vitale functies, waarmee duidelijke patronen zichtbaar worden.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Het monitoren van symptomen en vitale functies met behulp van Rianell",
+      "jsonldDescription": "Hoe kunt u symptomen, pijn, vermoeidheid en vitale functies bijhouden met behulp van Rianell?",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Homepagina"
+        },
+        {
+          "page": "features",
+          "name": "Kenmerken"
+        },
+        {
+          "page": "symptom-tracking",
+          "name": "Het bijhouden van symptomen"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Dagelijks gezondheidsdagboek",
+        "h1": "Registreer symptomen en vitale functies binnen enkele seconden",
+        "lede": "Met de begeleide dagboekfunctie van Rianell kun je eenvoudig bijhouden hoe je je elke dag voelt – en vervolgens worden de patronen hierachter inzichtelijk gemaakt. Het is ontwikkeld voor mensen met chronische aandoeningen die op lange termijn een overzichtelijke, persoonlijke registratie willen bijhouden.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Begin nu met het gratis bijhouden van uw gegevens।",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Bekijk alle functies",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Wat u kunt volgen/registren",
+          "cards": [
+            {
+              "h3": "Symptomen en pijn",
+              "p": "Geef de mate van pijn en vermoeidheid aan, noteer de ernst van de symptomen en lokaliseer de pijngebieden op een lichaamsdiagram."
+            },
+            {
+              "h3": "Vitale functies",
+              "p": "Gewicht, hartslag, bloeddruk en bloedsuikerspiegel, weergegeven in overzichtelijke grafieken over de tijd."
+            },
+            {
+              "h3": "Levensstijl",
+              "p": "Slaapgegevens, stappenteller, hydratatie-informatie, oefeningen en voedingsinformatie (inclusief de mogelijkheid om barcodes te scannen), allemaal op één plek."
+            },
+            {
+              "h3": "Medicijnen en afspraken",
+              "p": "Bewaar medicijnen en afspraken samen met uw aantekeningen, zodat u niets kwijtraakt."
+            },
+            {
+              "h3": "Menstruatiecyclus bijhouden/registreren",
+              "p": "Optionele functie om je menstruatiecyclus bij te houden, zodat je een beter beeld krijgt van hoe je je dagelijks voelt."
+            },
+            {
+              "h3": "Notities",
+              "p": "Voeg vrije tekstnotities toe aan elk item om de achtergrondinformatie vast te leggen die een getal niet kan overbrengen."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Van dagelijkse notities tot waardevolle inzichten",
+          "paragraphs": [
+            "Afzonderlijke gegevens zijn nuttig, maar de waarde zit hem in de trends die eruit naar voren komen. Rianell zet uw historische gegevens om in overzichtelijke grafieken, markeert wat er is veranderd en helpt u bij het opstellen van een beknopte samenvatting die u kunt meenemen naar afspraken."
+          ],
+          "list": [
+            "Let goed op welke dagen, activiteiten of behandelingen samenvallen met een verbetering of verergering van de symptomen.",
+            "Exporteer een overzichtelijk rapport om te delen met uw huisarts, specialist of zorgteam.",
+            "Bewaar alles op één centrale, persoonlijke plek in plaats van dat je het verspreidt over verschillende notities en apps."
+          ],
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Begin gratis – geen account nodig",
+              "style": "primary"
+            },
+            {
+              "page": "ai-insights",
+              "label": "Ontdek de mogelijkheden van kunstmatige intelligentie",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "mental-health-check": {
+      "type": "marketing",
+      "title": "Regelmatige evaluatie van stemming en geestelijke gezondheid (met behulp van de PHQ-9 en GAD-7) – Rianell",
+      "description": "Houd uw stemming bij en controleer hoe het gaat met eventuele angstgevoelens of een sombere stemming met behulp van persoonlijke vragenlijsten, vergelijkbaar met de PHQ-9 en GAD-7, in Rianell. De antwoorden worden nooit opgeslagen of geüpload. Gratis en gericht op privacy – geen diagnose.",
+      "ogTitle": "Regelmatige evaluatie van stemming en geestelijke gezondheid (met behulp van de PHQ-9 en GAD-7) – Rianell",
+      "ogDescription": "Persoonlijke vragenlijsten in de stijl van de PHQ-9 en GAD-7, waarmee u uw stemming kunt volgen. De antwoorden worden nooit opgeslagen of geüpload. Dit is geen diagnostische test.",
+      "twTitle": "Regelmatige gesprekken over je stemming en geestelijke gezondheid – Rianell",
+      "twDescription": "Persoonlijke vragenlijsten in de stijl van de PHQ-9 en GAD-7, waarbij uw stemming wordt gecontroleerd. De antwoorden worden nooit opgeslagen.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Regelmatige gesprekken over je stemming en geestelijke gezondheid met Rianell",
+      "jsonldDescription": "Persoonlijke stemmingregistratie en vragenlijsten in de stijl van de PHQ-9/GAD-7, waarbij de gegevens nooit worden opgeslagen of geüpload.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Homepagina"
+        },
+        {
+          "page": "features",
+          "name": "Kenmerken"
+        },
+        {
+          "page": "mental-health-check",
+          "name": "Geestelijke gezondheid"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Geestelijke gesteldheid en stemming",
+        "h1": "Persoonlijke gesprekken om de stemming en het mentale welzijn te evalueren।",
+        "lede": "Het leven met een chronische aandoening heeft invloed op hoe je je voelt, en niet alleen op hoe goed je functioneert. Met Rianell kun je je stemming volgen en, indien gewenst, vragenlijsten beantwoorden die vergelijkbaar zijn met de PHQ-9 en GAD-7 – in alle privacy, op je eigen apparaat.",
+        "note": "Rianell is geen medisch hulpmiddel en biedt geen diagnose of behandeling. Als u zich in een crisissituatie bevindt of mogelijk een risico loopt om zichzelf schade toe te brengen, neem dan onmiddellijk contact op met de lokale hulpdiensten of een crisislijn.",
+        "ctas": [
+          {
+            "href": "/#mood",
+            "label": "Gratis inchecken",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Bekijk alle functies",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Hoe het werkt",
+          "cards": [
+            {
+              "h3": "Snelle stemmingstracker/dagboek",
+              "p": "Leg met een tik vast hoe je je voelt en bekijk de veranderingen in je stemming in relatie tot je symptomen en slaappatroon."
+            },
+            {
+              "h3": "Optionele incheckmomenten",
+              "p": "Begin met een korte screening die indien nodig kan worden uitgebreid tot een volledige vragenlijst in de stijl van de PHQ-9 of GAD-7."
+            },
+            {
+              "h3": "Nooit opgeslagen",
+              "p": "De resultaten van de screening worden direct op het apparaat verwerkt en nooit opgeslagen in logbestanden, lokale opslag of in de cloud."
+            }
+          ]
+        },
+        {
+          "kind": "faq",
+          "h2": "Veelgestelde vragen",
+          "items": [
+            {
+              "summary": "Wat zijn de PHQ-9 en de GAD-7?",
+              "body": "Het zijn veelgebruikte vragenlijsten waarin u zelf aangeeft hoe vaak u de afgelopen twee weken bepaalde gevoelens heeft ervaren. Rianell biedt deze aan als optionele, persoonlijke check-ins om u te helpen veranderingen in de loop van de tijd op te merken. Het zijn screeningsinstrumenten, geen diagnostische hulpmiddelen."
+            },
+            {
+              "summary": "Worden mijn antwoorden opgeslagen of geüpload door Rianell?",
+              "body": "Nee. De antwoorden op de individuele vragenlijsten worden op uw apparaat verwerkt en nooit opgeslagen in logbestanden, lokale databases of in de cloud."
+            },
+            {
+              "summary": "Is een controleonderzoek hetzelfde als een diagnose stellen?",
+              "body": "Nee. Een gesprek kan u helpen om even stil te staan en een openhartig gesprek aan te gaan met een gekwalificeerde hulpverlener. Als u denkt dat u in gevaar bent, neem dan onmiddellijk contact op met een lokale gezondheidsdienst of de noodlijn."
+            },
+            {
+              "summary": "Moet ik een account aanmaken?",
+              "body": "Nee. Het bijhouden van je stemming en de periodieke controles zijn gratis en werken zonder dat je een account hoeft aan te maken. Je kunt desgewenst wel later een account aanmaken om je gegevens versleuteld te synchroniseren."
+            }
+          ],
+          "ctas": [
+            {
+              "href": "/#mood",
+              "label": "Begin gratis – geen account nodig",
+              "style": "primary"
+            },
+            {
+              "page": "community",
+              "label": "Maak contact met anderen",
+              "style": "ghost"
+            }
+          ]
+        }
+      ],
+      "faqSchema": [
+        {
+          "q": "Wat zijn de PHQ-9 en de GAD-7?",
+          "a": "De PHQ-9 en GAD-7 zijn veelgebruikte vragenlijsten die u zelf kunt invullen. Ze vragen hoe vaak u in de afgelopen twee weken bepaalde gevoelens heeft ervaren. Rianell biedt ze aan als optionele, persoonlijke check-ins om u te helpen veranderingen in de loop van de tijd op te merken. Het zijn screeningsinstrumenten, geen diagnostische hulpmiddelen."
+        },
+        {
+          "q": "Worden mijn antwoorden opgeslagen of geüpload door Rianell?",
+          "a": "Nee. De antwoorden die u geeft tijdens de individuele controle worden op uw apparaat verwerkt en nooit opgeslagen in logbestanden, lokale databases of in de cloud. Alleen u kunt ze bekijken, direct nadat u de controle heeft afgerond."
+        },
+        {
+          "q": "Is een controleonderzoek hetzelfde als een diagnose stellen?",
+          "a": "Nee, Rianell is geen medisch hulpmiddel en dient niet voor het stellen van een diagnose. Een gesprek kan u helpen om na te denken over uw situatie en een gesprek aan te gaan met een gekwalificeerde professional. Als u denkt dat u risico loopt, neem dan onmiddellijk contact op met een lokale gezondheidsdienst of de noodlijn."
+        },
+        {
+          "q": "Moet ik een account aanmaken om de stemmingstracker te kunnen gebruiken?",
+          "a": "Nee. Het bijhouden van je stemming en de periodieke controles zijn gratis en werken zonder dat je een account hoeft aan te maken. Je kunt later desgewenst wel een account aanmaken om je gegevens versleuteld tussen al je apparaten te synchroniseren."
+        }
+      ]
+    },
+    "ai-insights": {
+      "type": "marketing",
+      "title": "Gepersonaliseerde gezondheidsinformatie op uw apparaat – Rianell",
+      "description": "Rianell maakt gebruik van kunstmatige intelligentie op uw apparaat om wekelijks overzichten te genereren, uw grafieken uit te leggen en samenvattingen voor artsen voor te bereiden – zonder dat uw gezondheidsgegevens naar een server worden verzonden. Gratis en privé.",
+      "ogTitle": "Gepersonaliseerde gezondheidsinformatie op uw apparaat – Rianell",
+      "ogDescription": "Wekelijkse overzichten, grafische uitleg en samenvattingen voor zorgverleners worden lokaal op uw apparaat gegenereerd – er worden geen gezondheidsgegevens naar een server verzonden.",
+      "twTitle": "Gepersonaliseerde gezondheidsinformatie op uw apparaat – Rianell",
+      "twDescription": "Wekelijkse overzichten en samenvattingen voor zorgverleners worden lokaal op uw apparaat gegenereerd.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Gepersonaliseerde gezondheidsinzichten dankzij kunstmatige intelligentie, direct op uw apparaat, met behulp van Rianell",
+      "jsonldDescription": "Hoe gebruikt Rianell kunstmatige intelligentie op het apparaat zelf om trends samen te vatten en informatievoorziening voor artsen voor te bereiden, zonder dat er gezondheidsgegevens naar een server worden verzonden?",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Homepagina"
+        },
+        {
+          "page": "features",
+          "name": "Kenmerken"
+        },
+        {
+          "page": "ai-insights",
+          "name": "Inzichten op basis van kunstmatige intelligentie"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Geïntegreerde intelligentie in het apparaat",
+        "h1": "AI-inzichten die uw gegevens nooit naar buiten sturen",
+        "lede": "Rianell kan een taalmodel rechtstreeks op uw apparaat uitvoeren om een samenvatting van uw week te geven, uit te leggen wat een grafiek laat zien en een beknopte beschrijving op te stellen die u aan uw arts kunt overhandigen – allemaal zonder dat uw gezondheidsgegevens ergens worden geüpload.",
+        "ctas": [
+          {
+            "href": "/#ai",
+            "label": "Probeer de AI-inzichten gratis uit",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Bekijk alle functies",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Wat de kunstmatige intelligentie kan doen",
+          "cards": [
+            {
+              "h3": "Wekelijkse evaluatie",
+              "p": "Een begrijpelijke samenvatting van hoe uw symptomen, stemming en vitale functies de afgelopen week zijn veranderd."
+            },
+            {
+              "h3": "Leg deze grafiek uit",
+              "p": "Vraag wat een bepaalde trend inhoudt en ontvang een heldere uitleg die is gebaseerd op uw eigen gegevens."
+            },
+            {
+              "h3": "Beknopte informatie voor de behandelaar",
+              "p": "Stel een beknopte en overzichtelijke samenvatting op om het meeste uit een kort gesprek te halen."
+            },
+            {
+              "h3": "Gezondheidschat",
+              "p": "Stel vragen over je logbestanden in natuurlijke taal, waarbij het model lokaal wordt uitgevoerd."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Van nature privé",
+          "paragraphs": [
+            "De meeste gezondheidsapps sturen uw gegevens naar een server om kunstmatige intelligentie (AI) te kunnen gebruiken. Rianell hanteert echter een andere aanpak: het model wordt op uw browser of apparaat uitgevoerd, waardoor de analyse plaatsvindt waar uw gegevens zich al bevinden. Er worden geen gegevens over uw gezondheid verzonden om deze functies uit te voeren."
+          ],
+          "list": [
+            "Werkt lokaal op het apparaat met behulp van efficiënte modellen en schakelt indien nodig soepel over naar minder krachtige hardware.",
+            "Werkt samen met versleutelde, optionele cloudsynchronisatie – u bepaalt zelf welke gegevens uw apparaat verlaten.",
+            "Inzicht biedt richting, maar geen medisch advies."
+          ],
+          "note": "De informatie die door de AI wordt gegenereerd, is uitsluitend bedoeld als leidraad en kan onvolledig zijn. Raadpleeg altijd een gekwalificeerde zorgverlener voor belangrijke beslissingen.",
+          "ctas": [
+            {
+              "href": "/#ai",
+              "label": "Begin gratis – geen account nodig",
+              "style": "primary"
+            },
+            {
+              "page": "symptom-tracking",
+              "label": "Begin eerst met het volgen van de gegevens",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "community": {
+      "type": "marketing",
+      "title": "Geanonimiseerde inzichten uit de gemeenschap – Rianell",
+      "description": "Meld je aan voor de geanonimiseerde community van Rianell om te zien hoe het gaat met andere mensen die dezelfde chronische aandoening hebben als jij, en draag bij door gegevens te delen die je privacy beschermen en waarmee je anderen kunt helpen. Meld je altijd aan en zorg ervoor dat je gegevens altijd worden geanonimiseerd.",
+      "ogTitle": "Geanonimiseerde inzichten uit de gemeenschap – Rianell",
+      "ogDescription": "Kijk hoe het met andere mensen gaat die dezelfde aandoening hebben en draag bij door gegevens te delen, waarbij je privacy wordt gewaarborgd. Doe dit altijd vrijwillig.",
+      "twTitle": "Geanonimiseerde inzichten uit de gemeenschap – Rianell",
+      "twDescription": "Kijk hoe het met andere mensen gaat die dezelfde aandoening hebben en draag bij door gegevens te delen, waarbij je privacy wordt gewaarborgd. Geef altijd expliciet toestemming.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell geanonimiseerde inzichten uit de gemeenschap",
+      "jsonldDescription": "Een gemeenschap waarin mensen vrijwillig deelnemen, waarbij de anonimiteit en privacy worden gewaarborgd, zodat mensen met dezelfde aandoening van elkaar kunnen leren.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Homepagina"
+        },
+        {
+          "page": "features",
+          "name": "Kenmerken"
+        },
+        {
+          "page": "community",
+          "name": "Gemeenschap"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Samen staan we sterker",
+        "h1": "Help anderen die aan dezelfde aandoening lijden – en leer van hen",
+        "lede": "Een chronische ziekte kan het gevoel geven dat je geïsoleerd bent. De vrijwillige gemeenschap van Rianell zet individuele gegevens om in geanonimiseerde informatie die de privacy waarborgt, zodat u kunt zien hoe het met andere mensen met dezelfde aandoening gaat en kunt bijdragen aan kennis die anderen kan helpen.",
+        "ctas": [
+          {
+            "href": "/#home",
+            "label": "Meld je aan om deel te nemen",
+            "style": "primary"
+          },
+          {
+            "href": "/#log",
+            "label": "Of begin direct met het bijhouden van je voortgang",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Hoe de gemeenschap functioneert",
+          "cards": [
+            {
+              "h3": "Standaard geanonimiseerd",
+              "p": "Bij het delen van inzichten wordt gebruikgemaakt van een methode voor gegevensverzameling die de privacy waarborgt, waardoor geen enkele persoon aan de hand van de resultaten kan worden geïdentificeerd."
+            },
+            {
+              "h3": "Kies altijd voor deelname",
+              "p": "Er wordt niets gedeeld tenzij u expliciet de functie voor het delen van gegevens activeert. U kunt deze functie op elk moment weer uitschakelen."
+            },
+            {
+              "h3": "Ontmoet mensen zoals jij",
+              "p": "Vergelijk de ontwikkelingen bij anderen die dezelfde aandoening hebben en ontdek wat over het algemeen helpt."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Uw bijdrage is belangrijk",
+          "paragraphs": [
+            "Als u besluit om bij te dragen, worden uw geanonimiseerde gegevens toegevoegd aan een gezamenlijke database, waardoor inzicht ontstaat in hoe mensen met uw aandoening deze in de loop van de tijd ervaren. Het is een manier om iets terug te doen: onderzoekers, artsen en andere patiënten kunnen hierdoor beter begrijpen welke aandoeningen vaak onvoldoende onderzocht worden."
+          ],
+          "list": [
+            "Draag bij door geanonimiseerde gegevens te verstrekken, zodat we een beter beeld kunnen krijgen van uw aandoening en de behandeling ervan kunnen verbeteren.",
+            "Profiteer van gezamenlijke kennis zonder dat de privacy van individuen in het gedrang komt.",
+            "Behoud de controle: het delen van informatie gebeurt alleen met expliciete toestemming en kan op elk moment worden ingetrokken."
+          ],
+          "note": "De informatie die in de community wordt gedeeld is bedoeld als algemene informatie en vervangt geen professioneel medisch advies.",
+          "ctas": [
+            {
+              "href": "/#home",
+              "label": "Maak een gratis account aan।",
+              "style": "primary"
+            },
+            {
+              "href": "/privacy.html",
+              "label": "Lees het privacybeleid",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "conditions": {
+      "type": "marketing",
+      "title": "Handleidingen voor het volgen van chronische aandoeningen – Rianell",
+      "description": "Ontdek welke gegevens u moet bijhouden voor uw chronische aandoening en hoe u dagelijkse notities kunt gebruiken om betere gesprekken te voeren met uw zorgteam. Praktische tips voor langdurige aandoeningen, gratis beschikbaar via Rianell.",
+      "ogTitle": "Handleidingen voor het volgen van chronische aandoeningen – Rianell",
+      "ogDescription": "Ontdek welke gegevens u moet bijhouden met betrekking tot uw aandoening en hoe u van dagelijkse notities waardevolle gesprekken kunt voeren met uw zorgteam.",
+      "twTitle": "Handleidingen voor het volgen van chronische aandoeningen – Rianell",
+      "twDescription": "Ontdek welke gegevens u moet bijhouden met betrekking tot uw aandoening en hoe u deze gegevens kunt gebruiken om de communicatie met uw behandelaar te verbeteren.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Handleidingen voor het volgen van chronische aandoeningen",
+      "jsonldDescription": "Advies over welke gegevens u moet bijhouden met betrekking tot veelvoorkomende chronische aandoeningen en hoe u zich kunt voorbereiden op afspraken.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Homepagina"
+        },
+        {
+          "page": "features",
+          "name": "Kenmerken"
+        },
+        {
+          "page": "conditions",
+          "name": "Voorwaarden"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Leer meer over uw aandoening",
+        "h1": "Leer uw chronische aandoening beter begrijpen en houd de ontwikkeling ervan in de gaten。",
+        "lede": "Elke aandoening heeft zijn eigen specifieke signalen die het waard zijn om in de gaten te houden. Deze handleidingen helpen u bij het bepalen welke gegevens u moet registreren, hoe vaak en hoe u maanden aan data kunt omzetten in een helder overzicht waarop uw artsen actie kunnen ondernemen.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Begin nu met het volgen van de resultaten (zonder kosten)",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Bekijk alle functies",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Wat is het waard om in de gaten te houden",
+          "cards": [
+            {
+              "h3": "Aandoeningen die pijn en vermoeidheid veroorzaken।",
+              "p": "Noteer dagelijks de mate van pijn, vermoeidheid en factoren die een opflakkering veroorzaken, zodat je patronen kunt ontdekken die verklaren waarom sommige dagen beter of slechter zijn dan andere."
+            },
+            {
+              "h3": "Cardiovasculaire en metabole gezondheid",
+              "p": "Houd gedurende weken en maanden de veranderingen in uw gewicht, bloeddruk, hartslag en bloedsuikerspiegel bij."
+            },
+            {
+              "h3": "Psychische aandoeningen en stemmingsstoornissen",
+              "p": "Combine regelmatige stemmingstoetsen met gegevens over slaap en activiteit om te begrijpen wat je basisniveau beïnvloedt."
+            },
+            {
+              "h3": "Auto-immuun en ontstekingsgerelateerd",
+              "p": "Registreer symptomen, medicatie en levensstijl om verbanden te leggen met periodes waarin de aandoening verergert en periodes waarin deze in remissie is."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Maak van het volgen van gegevens een middel om de zorg te verbeteren",
+          "paragraphs": [
+            "Een consistente registratie van gegevens is slechts de helft van het verhaal. Het doel is om bij een afspraak een duidelijk en eerlijk beeld te hebben van de afgelopen weken – niet slechts een vage herinnering. Rianell helpt u daarbij:"
+          ],
+          "list": [
+            "Kies een beperkt aantal relevante en duurzame indicatoren om de ontwikkeling van uw aandoening te volgen.",
+            "Let op de algemene trends in plaats van je te concentreren op individuele gegevenspunten, zodat je niet wordt misleid door willekeurige fluctuaties.",
+            "Exporteer een beknopt rapport en, indien gewenst, een door kunstmatige intelligentie opgestelde samenvatting voor uw behandelaar."
+          ],
+          "note": "Deze handleidingen bevatten algemene informatie en zijn geen medisch advies. Uw zorgteam kent uw situatie het beste; gebruik de aantekeningen die u heeft gemaakt om dit gesprek te verduidelijken.",
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Begin gratis – geen account nodig",
+              "style": "primary"
+            },
+            {
+              "page": "community",
+              "label": "Vergelijk met anderen",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "about": {
+      "type": "about",
+      "title": "Over Rianell: een persoonlijke app voor het bijhouden van uw gezondheid en chronische aandoeningen",
+      "description": "Rianell is een gratis, open source persoonlijke gezondheidsapp waarmee u chronische aandoeningen kunt volgen en beheren. Noteer symptomen, medicatie, gewicht, hartslag en meer.",
+      "ogTitle": "Over Rianell: een persoonlijke app voor het bijhouden van uw gezondheid en chronische aandoeningen",
+      "ogDescription": "Rianell is een gratis, open source persoonlijke gezondheidsapp waarmee u chronische aandoeningen kunt volgen en beheren. Noteer symptomen, medicatie, gewicht, hartslag en meer.",
+      "twTitle": "Over Rianell: een persoonlijke app voor het bijhouden van uw gezondheid en chronische aandoeningen",
+      "twDescription": "Gratis, open source persoonlijke gezondheidsapp voor het volgen en beheren van chronische aandoeningen.",
+      "jsonldType": "AboutPage",
+      "jsonldName": "Over Rianell",
+      "jsonldDescription": "Rianell is een gratis, open source persoonlijke gezondheidsapp waarmee je chronische aandoeningen kunt volgen en beheren.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Homepagina"
+        },
+        {
+          "page": "about",
+          "name": "Over ons"
+        }
+      ],
+      "tagline": "Persoonlijke gezondheids- en chronische aandoeningenmonitor",
+      "intro": "Rianell is een gratis, open source persoonlijke gezondheidsapp die is ontworpen om mensen met chronische aandoeningen te helpen bij het volgen van symptomen, het monitoren van belangrijke gezondheidsparameters en het verzamelen van waardevolle informatie die ze kunnen delen met hun zorgteam.",
+      "blocks": [
+        {
+          "h2": "Wat doet Rianell",
+          "list": [
+            "Dagelijks gezondheidsoverzicht – symptomen, pijnscore, vermoeidheid, stemming, mobiliteit en meer",
+            "Het monitoren van vitale functies – gewicht, hartslag, bloeddruk",
+            "Medicatie- en afsprakenbeheer",
+            "Trendanalyse en informatie over de staat van zaken, ondersteund door kunstmatige intelligentie",
+            "Exporteer rapporten om deze met artsen te delen",
+            "Optionele synchronisatie met de cloud op verschillende apparaten (eind-tot-eind versleuteld)",
+            "Verbind uw fitness- en gezondheidsapparaten met Strava, Withings en Google Spreadsheets"
+          ]
+        },
+        {
+          "h2": "Integratie met Google Spreadsheets",
+          "paragraphs": [
+            "Gebruikers kunnen desgewenst een Google Sheet-spreadsheet koppelen om bestaande gezondheidsgegevens te importeren of hun gegevenslogboek te exporteren voor back-up en analyse. De app heeft alleen toegang tot de specifieke spreadsheet die de gebruiker expliciet aangeeft. Er worden geen andere bestanden of gegevens opgevraagd."
+          ]
+        },
+        {
+          "h2": "Privacy en beveiliging",
+          "paragraphs": [
+            "Alle gegevens in de cloud worden versleuteld opgeslagen. OAuth-tokens worden versleuteld met AES-256-GCM. Dankzij rijgerichte beveiliging heeft elke gebruiker alleen toegang tot zijn eigen gegevens. De app verkoopt of deelt uw gegevens nooit."
+          ]
+        },
+        {
+          "h2": "Open source",
+          "paragraphs": [
+            "Rianell is volledig opensource. De broncode is beschikbaar op GitHub."
+          ]
+        }
+      ],
+      "aboutLinks": {
+        "privacy": "Privacybeleid",
+        "tos": "Gebruiksvoorwaarden",
+        "github": "GitHub"
+      }
     }
   }
 }
