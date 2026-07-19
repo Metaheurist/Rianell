@@ -8,7 +8,7 @@
   <!-- Primary + social / link previews (og:* stops crawlers from using random headings e.g. privacy copy) -->
   <meta name="description" content="Rianell - personal health dashboard (web & Android). Track symptoms, medications, and wellness; optional AI-assisted insights; encryption and privacy-first design. Share metrics with your care team.">
   <link rel="canonical" href="https://rianell.com/">
-      <!-- hreflang:start -->
+  <!-- hreflang:start -->
   <link rel="alternate" hreflang="en" href="https://rianell.com/" />
   <link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
   <link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
@@ -5257,7 +5257,7 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=9"></script>
+  <script defer src="vendor/rianell-shared.js?v=10"></script>
   <script defer src="modules/graphics-portfolio.js?v=7"></script>
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
@@ -5435,8 +5435,14 @@
         overlay.id = 'rianellBootRecoveryOverlay';
         overlay.className = 'rianell-recovery-overlay';
         overlay.setAttribute('role', 'alert');
+        /* Only iOS gets the update-specific note; every other platform sees a neutral hint. */
+        var ua = (navigator.userAgent || '');
+        var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var hintHtml = isIOS
+          ? '<p class="rianell-recovery-overlay__hint" data-i18n="common.this.can.happen.after.an.update.on.iphon">This can happen after an update on iPhone. Try reloading once.</p>'
+          : '<p class="rianell-recovery-overlay__hint" data-i18n="common.boot.recovery.hint.generic">Reloading usually fixes this. If it keeps happening, clear the site cache.</p>';
         overlay.innerHTML = '<p class="rianell-recovery-overlay__lead" data-i18n="common.rianell.is.taking.longer.than.expected.t">Rianell is taking longer than expected to start.</p>' +
-          '<p class="rianell-recovery-overlay__hint" data-i18n="common.this.can.happen.after.an.update.on.iphon">This can happen after an update on iPhone. Try reloading once.</p>' +
+          hintHtml +
           (typeof window.__rianellRecoveryReloadBtnHtml === 'function'
             ? window.__rianellRecoveryReloadBtnHtml('rianellBootRecoveryBtn')
             : '<button type="button" id="rianellBootRecoveryBtn" class="rianell-recovery-reload-btn"><span data-i18n="common.reload">Reload</span></button>');
