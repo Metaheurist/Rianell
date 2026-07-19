@@ -6,6 +6,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.5.0] - 2026-07-19
+
+### Fixed
+- **First-run boot freeze on a fresh device / fresh profile:** on the very first cold boot the tab could hang on the "Measuring performance…" loading overlay - the CSS orbit kept animating (compositor thread) while the main thread was fully blocked, so DevTools would not open and the boot watchdog `setTimeout` could never fire, until Chromium killed the tab. Root cause: synchronous WebGL/WebGPU probes (`getContext('webgl2'|'webgl')`, `navigator.gpu.requestAdapter()`) can stall the main thread for many seconds on the first-ever GPU-process/driver init, and they were running on the boot critical path (the device benchmark's GPU score, and 3D capability probes fired from a `requestIdleCallback` that landed between the sliced benchmark steps). Two coordinated fixes:
+  - **Device benchmark (`apps/pwa-webapp/device-benchmark.js`):** a new `scheduleGpuProbeOffCriticalPath()` helper guarantees at least one macrotask yield, then waits for shell reveal (`body.loaded` + loading overlay hidden), `requestAnimationFrame`, and a bounded `requestIdleCallback` before the synchronous GPU probe (hard 4s fallback so the score is still collected on busy pages). Both the no-cache suite finish and the cached/heuristic path now call `onDone`/`onComplete` with a provisional `gpu` result to reveal the shell first, then persist the real GPU score when it settles.
+  - **App shell (`apps/pwa-webapp/app.js`):** a shared `__rianellRunAfterShellRevealed()` gate defers every remaining GPU/WebGL entry point (`scheduleHome3DEnhancement`, `initWebGLSurfacesForTab`) until `body.loaded`, so `getContext('webgl')` can never block first paint (bonus: the benchmark tier is known by then, so low-end devices skip WebGL entirely).
+- **Local server crashed in headless/automation shells:** `server/main.py` attempted to spawn the Tkinter dashboard even with no GUI main loop, crashing on tkinter var access. Added an opt-in `RIANELL_NO_DASHBOARD=1` guard that skips the dashboard, enabling the boot-freeze reproduction/audit harness to run the Python server headlessly.
+
+### Changed
+- **Ask Rianell chat hints redesign - compact icon-led starter chips:** the empty-state prompt hints were full-sentence pill buttons that spanned the modal width. `apps/pwa-webapp/modules/ai-chat.js` now renders a compact, icon-led starter row above the input (`Sleep trend`, `Mood factors`, `Patterns`), ranked contextual-first and capped at 5. Tapping a starter **pre-fills the editable input and focuses it (caret at end) - it no longer auto-sends**, so users can tweak the question first (grounded in NN/g "Prompt Controls" + Shape of AI "Suggestions" guidance, validated via Firecrawl). Post-answer follow-up chips keep their send-on-tap behaviour (they continue an existing thread). Chips are restyled in `styles.css` with a >=44px WCAG target size, `:focus-visible` ring, and light/dark variants.
+- **Larger desktop Ask Rianell modal:** the desktop panel grows from `min(34rem, 92vw)` to `min(42rem, 92vw)` with a taller message area, keeping the tested four-corner `--radius-lg`.
+
+### Added
+- **Short starter-label i18n keys:** `home.chat.starter.sleep|mood|patterns` added to the canonical `en-GB`/`en-US`/`en-AU` packs, propagated to all shipped locales for key parity and machine-translated via the local Ollama `translategemma:27b` model (root canonical + PWA mirror synced).
+
+### Tests
+- `tests/unit/pwa/perf-benchmark-modal.test.mjs`: asserts the GPU probe never blocks first paint (shell revealed via `onDone`/`onComplete` before the probe; probe runs inside `scheduleGpuProbeOffCriticalPath` gated on `body.loaded` + hidden overlay) and that both 3D/WebGL schedulers (`scheduleHome3DEnhancement`, `initWebGLSurfacesForTab`) are gated on `__rianellRunAfterShellRevealed`.
+- `tests/unit/pwa/ai-chat-starters.test.mjs`: asserts the `STARTERS` model is icon-led + reuses the full-question prompt keys, the set caps at 5, chips emit sprite-icon markup + a short label, the starter click path pre-fills/focuses **without** calling `submitUserMessage`, the first-run empty state uses starters (not full-sentence followups), en-GB packs (root + mirror) define the labels with no em dash, and the chips keep a >=44px tap target + focus-visible ring while the desktop modal enlarges yet keeps all four rounded corners.
+
+---
+
 ## [2.4.0] - 2026-07-19
 
 ### Changed
