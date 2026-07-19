@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-18T22:45:17.735Z",
+  "generatedAt": "2026-07-19T02:23:15.909Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5512692,
-    "cssBytes": 861809,
-    "jsGzipBytes": 1306512,
-    "cssGzipBytes": 145406
+    "jsBytes": 5900951,
+    "cssBytes": 863978,
+    "jsGzipBytes": 1411406,
+    "cssGzipBytes": 146225
   },
   "files": [
     {
@@ -24,9 +24,9 @@
       "gzipBytes": 207733
     },
     {
-      "file": "ci-minified/site/styles.456a569502c2.css",
-      "bytes": 786631,
-      "gzipBytes": 130108
+      "file": "ci-minified/site/styles.22c8975b65a9.css",
+      "bytes": 788800,
+      "gzipBytes": 130927
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,13 +35,18 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 404440,
-      "gzipBytes": 90602
+      "bytes": 408393,
+      "gzipBytes": 92360
+    },
+    {
+      "file": "ci-minified/site/vendor/three/three.core.min.js",
+      "bytes": 381124,
+      "gzipBytes": 101305
     },
     {
       "file": "ci-minified/site/vendor/three/three.module.min.js",
-      "bytes": 355116,
-      "gzipBytes": 84757
+      "bytes": 338908,
+      "gzipBytes": 79328
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -55,8 +60,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 87081,
-      "gzipBytes": 20176
+      "bytes": 92266,
+      "gzipBytes": 22078
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
@@ -124,6 +129,11 @@
       "gzipBytes": 5406
     },
     {
+      "file": "ci-minified/site/modules/ai-chat.js",
+      "bytes": 23884,
+      "gzipBytes": 6227
+    },
+    {
       "file": "ci-minified/site/ui-feedback.js",
       "bytes": 23797,
       "gzipBytes": 5671
@@ -134,24 +144,19 @@
       "gzipBytes": 5376
     },
     {
+      "file": "ci-minified/site/modules/weather-orb-3d.js",
+      "bytes": 22204,
+      "gzipBytes": 6661
+    },
+    {
       "file": "ci-minified/site/notifications.js",
       "bytes": 21570,
       "gzipBytes": 5337
     },
     {
-      "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 21070,
-      "gzipBytes": 5223
-    },
-    {
       "file": "ci-minified/site/import-utils.js",
       "bytes": 19843,
       "gzipBytes": 5151
-    },
-    {
-      "file": "ci-minified/site/modules/weather-orb-3d.js",
-      "bytes": 19808,
-      "gzipBytes": 5967
     },
     {
       "file": "ci-minified/site/event-handlers.js",
@@ -234,6 +239,11 @@
       "gzipBytes": 2074
     },
     {
+      "file": "ci-minified/site/lang-suggest.js",
+      "bytes": 7441,
+      "gzipBytes": 3075
+    },
+    {
       "file": "ci-minified/site/device-module.js",
       "bytes": 6920,
       "gzipBytes": 2015
@@ -279,6 +289,11 @@
       "gzipBytes": 1462
     },
     {
+      "file": "ci-minified/site/summary-llm-mlc.js",
+      "bytes": 5084,
+      "gzipBytes": 1889
+    },
+    {
       "file": "ci-minified/site/push-subscribe.js",
       "bytes": 4964,
       "gzipBytes": 1572
@@ -304,11 +319,6 @@
       "gzipBytes": 1197
     },
     {
-      "file": "ci-minified/site/summary-llm-mlc.js",
-      "bytes": 3530,
-      "gzipBytes": 1306
-    },
-    {
       "file": "ci-minified/site/modules/hold-repeat.js",
       "bytes": 3524,
       "gzipBytes": 1079
@@ -321,7 +331,7 @@
     {
       "file": "ci-minified/site/summary-llm-gguf.js",
       "bytes": 2902,
-      "gzipBytes": 984
+      "gzipBytes": 986
     },
     {
       "file": "ci-minified/site/supabase-config.js",
