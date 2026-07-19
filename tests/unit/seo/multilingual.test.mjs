@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import {
   hreflangCluster, renderPage, pageUrl, LOCALES, PAGE_ORDER, PAGE_META,
 } from '../../../scripts/build/seo-page-template.mjs';
-import { buildOutputs } from '../../../scripts/build/generate-localized-pages.mjs';
+import { buildOutputs, injectCluster } from '../../../scripts/build/generate-localized-pages.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..', '..', '..');
@@ -92,6 +92,40 @@ test('generated localized pages exist with correct canonical + hreflang', () => 
   }
   const ar = fs.readFileSync(path.join(webRoot, 'ar/mental-health-check/index.html'), 'utf8');
   assert.match(ar, /<html lang="ar" dir="rtl">/, 'Arabic page must be RTL');
+});
+
+// ---- index.html cluster injection is idempotent --------------------------
+test('injectCluster replaces an existing marked block idempotently (no indent drift)', () => {
+  // Anomalous leading whitespace on the start-marker line used to accumulate
+  // 2 spaces on every run, so the injection never converged.
+  const sample = [
+    '<head>',
+    '  <link rel="canonical" href="https://rianell.com/">',
+    '          <!-- hreflang:start -->',
+    '  <link rel="alternate" hreflang="en" href="https://rianell.com/" />',
+    '  <!-- hreflang:end -->',
+    '</head>',
+  ].join('\n');
+  const once = injectCluster(sample);
+  const twice = injectCluster(once);
+  assert.equal(once, twice, 'injectCluster must be idempotent');
+  // Start marker is normalized to a single 2-space indent (no drift).
+  assert.match(once, /\n {2}<!-- hreflang:start -->/);
+  assert.ok(!/\n {3,}<!-- hreflang:start -->/.test(once), 'no over-indented start marker');
+  // The full reciprocal cluster is present after injection.
+  assert.match(once, /hreflang="x-default"/);
+  assert.match(once, /hreflang="ar"/);
+});
+
+test('injectCluster inserts after canonical when no markers exist, then is stable', () => {
+  const noMarkers = [
+    '<head>',
+    '  <link rel="canonical" href="https://rianell.com/">',
+    '</head>',
+  ].join('\n');
+  const first = injectCluster(noMarkers);
+  assert.match(first, /<!-- hreflang:start -->[\s\S]*<!-- hreflang:end -->/);
+  assert.equal(injectCluster(first), first, 'second pass must not change the file');
 });
 
 // ---- language-suggestion banner (evaluated in a Node vm sandbox) ----------
