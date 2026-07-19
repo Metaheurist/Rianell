@@ -104,6 +104,14 @@ If Ollama is not running the command exits early — **English still ships** and
 localized bodies fall back to English until a later `seo:translate` run
 (hreflang structure is unaffected).
 
+Each string is validated (placeholder parity, no HTML, and — for `ar`/`he` —
+native script). The first attempt is deterministic (`temperature: 0`); on
+failure the helper **retries with escalating temperature and a script-forcing
+prompt** (`buildPrompt(..., { strictScript })`) that keeps only brand/clinical
+tokens (Rianell, PHQ-9, GAD-7) in Latin. Re-running `seo:translate` without
+`--force` retries only the strings that are still identical to English, so a
+resumed/interrupted run cheaply fills just the gaps.
+
 ## "View in your language" banner
 
 `apps/pwa-webapp/lang-suggest.js` (loaded on the static pages only) reads the
