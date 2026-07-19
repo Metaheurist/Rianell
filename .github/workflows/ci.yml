@@ -147,6 +147,14 @@ jobs:
           node scripts/verify/verify-no-service-role-in-clients.mjs
           node scripts/models/verify-no-model-weights-in-git.mjs
 
+      - name: AI chat guardrails (health-scope + NSFW enforcement)
+        run: |
+          node --test tests/unit/pwa/ai-chat-guardrails.test.mjs
+          npm run verify:llm-security
+
+      - name: LLM model language coverage (all offered locales supported)
+        run: node --test tests/unit/llm-model-language-coverage.test.mjs
+
       - name: Cancel workflow on failure
         if: failure()
         uses: ./.github/actions/cancel-workflow-on-failure
@@ -199,6 +207,9 @@ jobs:
           fi
           node apps/pwa-webapp/build-site.mjs --site "ci-minified/site" --skip-trace
 
+          # Regenerate the localized SEO trees + hreflang cluster against the built site
+          node scripts/build/generate-localized-pages.mjs --site "ci-minified/site"
+
           # Regenerate sitemap.xml against the built site so it reflects exactly what ships
           node scripts/build/generate-sitemap.mjs --site "ci-minified/site"
 
@@ -222,6 +233,10 @@ jobs:
           if (!fs.existsSync('ci-minified/site/.nojekyll')) throw new Error('missing .nojekyll in Pages site build');
           if (!fs.existsSync('ci-minified/site/sitemap.xml')) throw new Error('missing sitemap.xml in Pages site build');
           if (!fs.existsSync('ci-minified/site/Icons/og-card.png')) throw new Error('missing Icons/og-card.png (social card) in Pages site build');
+          if (!fs.existsSync('ci-minified/site/de/features/index.html')) throw new Error('missing localized page de/features/index.html in Pages site build');
+          const deFeatures = fs.readFileSync('ci-minified/site/de/features/index.html', 'utf8');
+          if (!deFeatures.includes('hreflang=\"x-default\"')) throw new Error('localized page missing hreflang x-default cluster');
+          if (!fs.existsSync('ci-minified/site/lang-suggest.js')) throw new Error('missing lang-suggest.js in Pages site build');
           "
 
       - name: Upload minified temp artifact
