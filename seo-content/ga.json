@@ -1,0 +1,811 @@
+{
+  "_comment": "Machine-translated (translategemma:27b) SEO copy for ga. Regenerate with: npm run seo:translate -- --locales=ga. Structure mirrors seo-content/en.json.",
+  "site": {
+    "brand": "Rianell",
+    "logoAlt": "Rianell logo",
+    "skipToContent": "Léim chun an ábhar",
+    "primaryNavLabel": "Bunscoile",
+    "ogImageAlt": "Rianell - rianaitheoir do chásanna fadtéarmacha agus cuardaigh faisnéis faoi do shláinte féin",
+    "openApp": "Oscail an aip",
+    "nav": [
+      {
+        "page": "features",
+        "label": "Gnéithe"
+      },
+      {
+        "page": "symptom-tracking",
+        "label": "Siomptóim"
+      },
+      {
+        "page": "mental-health-check",
+        "label": "Sláinte mhionspioradúil"
+      },
+      {
+        "page": "ai-insights",
+        "label": "Feasachtaí ó AI"
+      },
+      {
+        "page": "community",
+        "label": "An phobal"
+      },
+      {
+        "page": "conditions",
+        "label": "Coinníollacha"
+      }
+    ],
+    "footer": {
+      "links": [
+        {
+          "page": "features",
+          "label": "Gnéithe"
+        },
+        {
+          "page": "symptom-tracking",
+          "label": "Monatóireacht siomptóm"
+        },
+        {
+          "page": "mental-health-check",
+          "label": "Sláinte mhionspioradúil"
+        },
+        {
+          "page": "ai-insights",
+          "label": "Feasachtaí ó AI"
+        },
+        {
+          "page": "community",
+          "label": "An phobal"
+        },
+        {
+          "page": "conditions",
+          "label": "Coinníollacha"
+        },
+        {
+          "page": "about",
+          "label": "Faoi"
+        },
+        {
+          "href": "/privacy.html",
+          "label": "Príobháideacht"
+        },
+        {
+          "href": "/tos.html",
+          "label": "Téarmaí"
+        }
+      ],
+      "tagline": "Rianell – rianú pearsanta sláinte, saor in aisce agus bunaithe ar fhoinse oscailte."
+    }
+  },
+  "pages": {
+    "home": {
+      "type": "marketing",
+      "title": "Rianell - coinnigh rian ar do chás síorchronúil agus bain úsáid as do shonraí féin",
+      "description": "Is app saor in aisce é Rianell, atá oscailte freisin, agus is féidir leat é a úsáid chun faisnéis faoi do shláinte phearsanta a stóráil. Cláraigh siomptóim agus sonraí riachtanacha, aimsigh treochtaí le cabhair ón AI atá sa ghléas, agus roinn tuairiscí shoiléir le do fhoireann cúram – go príobháideach agus i bhfothalach.",
+      "ogTitle": "Rianell - clár le haghaidh rianú sonraí pearsanta faoi shláinte agus faoi chás síoróiseach",
+      "ogDescription": "Clárigh siomptóim agus sonraí riachtanacha, aimsigh treochtaí le cabhair ó intleacht shaorga atá suite sa ghléas, agus ullmhaigh tuairiscí do chliniciúir. Saor in aisce, oscailte, criptithe agus príobháideach.",
+      "twTitle": "Rianell - clár le haghaidh rianú sonraí pearsanta faoi shláinte agus faoi chás síoróiseach",
+      "twDescription": "Clárigh siomptóim agus sonraí riachtanacha, aimsigh treochtaí le cuidiú ó theicneolaíocht ealaín saorga atá suite isteach sa ghléas, agus ullmhaigh tuairiscí do chlinicián. Saor in aisce agus príobháideach.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell - clár le haghaidh rianú sonraí pearsanta faoi shláinte agus faoi chás síoróiseach",
+      "jsonldDescription": "Aip shaoir, oscailte agus inrochtana don úsáideoir le haghaidh rianú coinníocht chrónach, lena n-áirítear faisnéis shaothraithe trí AI ar an ngléas féin, agus comhoiriúnacht roghnach leis na scéalta i gcloud, faoi rún.",
+      "hero": {
+        "eyebrow": "Bain úsáid as do shonraí sláinte féin",
+        "h1": "Coinnigh súil ar do chás síorchronúil, de réir do rogha féin",
+        "lede": "Is é Rianell aip saor in aisce, oscailte, chun siúbháin agus sonraí riachtanacha a thaifeadadh, treochtaí a aimsiú le cuidiú ó AI atá suite ar an ngléas, agus tuairiscí shoilsiúla a roinnt le do fhoireann cúram – go príobháideach, agus i gcodaithe nuair a shinc tú.",
+        "ctas": [
+          {
+            "href": "/",
+            "label": "Oscail an aip saor in aisce",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Fíoraigh na gnéithe",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Déan iniúchadh ar Rianell",
+          "cards": [
+            {
+              "page": "symptom-tracking",
+              "h3": "Monatóireacht ar siúbháin agus sonraí riachtanacha",
+              "p": "Clárigh pian, tuirse, siomptóim agus sonraí riachtanacha i bhfoirm shimplí, le treorú, ionas go dtaispeánfar na patrúin shoilsiúil."
+            },
+            {
+              "page": "mental-health-check",
+              "h3": "Seiceálacha sláinte mhíochaine",
+              "p": "Rialú príobháideach ar do mheon agus seicliosta roghnach de chineál PHQ-9/GAD-7, nach ndéantar cóip di riamh ná ní stóráítear é."
+            },
+            {
+              "page": "ai-insights",
+              "h3": "Eolas faoi cheallaí déanta ar an ngléas féin",
+              "p": "Aithrisí seachtainiúla agus achoimreachtaí do chlinicians a ghineadh go háitiúil – ní bhfágann sonraí sláinte tú ar bith an fheiste."
+            },
+            {
+              "page": "community",
+              "h3": "Pobal faoi ainm iargúlta",
+              "p": "Roghnaigh an rogha sin chun comparáid a dhéanamh le daoine eile atá sa bhreis agus cabhraigh le daoine cosúil leat."
+            },
+            {
+              "page": "conditions",
+              "h3": "Treoracha maidir le coinníoll an táirge",
+              "p": "Faigh amach cad ba cheart duit a fhaighte amach maidir le do chás agus conas tú féin a ullmhú roimh na ceapairí."
+            },
+            {
+              "page": "about",
+              "h3": "Príobháideach agus foinse oscailte",
+              "p": "Córas criptithe, comhoiriúnacht le scéalta néidí (roghnach). Cód oscailte. Is féidir gach rud a onnmhú nó a scriosadh in am ar bith."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Saor le tosú, príobháideach de réir an dearadh",
+          "paragraphs": [
+            "Is saor in aisce an príomh-aip agus níl aon chuntas riachtanach. Cruthaigh cuntas ach amháin má theastaíonn uait comhréiteas criptithe ar do ghléasanna. Tá do shonraí sláinte criptithe, agus tá siad óstáilte san AE nuair a chomhréitítear iad, agus ní dhíoltar riamh iad."
+          ],
+          "ctas": [
+            {
+              "href": "/",
+              "label": "Oscail an aip saor in aisce",
+              "style": "primary"
+            }
+          ]
+        }
+      ]
+    },
+    "features": {
+      "type": "marketing",
+      "title": "Gnéithe – Rianell rianaitheoir sláinte agus rianaitheoir coinníoll síorchronúil",
+      "description": "Gach rud a dhéanann Rianell: logáil siomptóm agus pian, sonraí riachtanacha, seiceálacha ar gháire agus sláinte mhionspioradúil, léargais AI ar an ngléas, tuairiscí ón gcliniansach, agus pobal gan ainm. Saor in aisce agus príobháideach.",
+      "ogTitle": "Gnéithe – Rianell rianaitheoir sláinte agus rianaitheoir coinníoll síorchronúil",
+      "ogDescription": "Clárú siomptóm agus pian, sonraí riachtanacha, meabhrúchán, faisnéis faoi theicneolaíocht ealaíne saorga atá suite ar an ngléas, tuairiscí ó dhochtúirí, agus pobal anaon. Saor in aisce agus príobháideach.",
+      "twTitle": "Gnéithe – Rianell rianaitheoir sláinte agus rianaitheoir coinníoll síorchronúil",
+      "twDescription": "Logáil siombailí, sonraí riachtanacha, meabhrúchán, léargais AI ar an ngléas, tuairiscí ó chlinicióirí, agus pobal faoi ainm iomána.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell – na príomhghnéithe",
+      "jsonldDescription": "Forléimniú iomlán ar ghnéithe rianaithe sláinte agus rianaithe coinníollacha fadtéarmacha an t-aip Rianell.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Baile"
+        },
+        {
+          "page": "features",
+          "name": "Gnéithe"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Gach rud in aon áit",
+        "h1": "Aip amháin chun do chónaí a rianú, tuiscint a fháil air agus eolas a roinnt faoi",
+        "lede": "Is aip shláinte phearsanta saor in aisce, oscailte é Rianell. Cláraigh siomptóim agus sonraí riachtanacha laethúla i nóiméad, aimsigh treochtaí le cuidiú ó AI atá suite ar an ngléas, agus cuir réidh le tuairiscí shoiléir do d’fhoireann cúram – agus mar sin go mbeidh do shonraí criptithe agus príobháideach.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Tosaigh saor in aisce – níl cuntas de dhíth",
+            "style": "primary"
+          },
+          {
+            "href": "/#home",
+            "label": "Cláraigh chun do chuid sonraí a shincronú agus cabhair a thabhairt d’eile",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "ariaLabel": "Réimsanna tábhachtacha",
+          "cards": [
+            {
+              "page": "symptom-tracking",
+              "h3": "Monatóireacht ar siúbháin agus sonraí riachtanacha",
+              "p": "Clárigh pian, tuirse, siomptóim, meáchan, ráta croí, brú fola, codladh, líon na gcéimeanna, hidritriocht agus eile i bhfeidhmchlár tapa le treoracha."
+            },
+            {
+              "page": "mental-health-check",
+              "h3": "Seiceálacha sláinte mhíochaine",
+              "p": "Rialú príobháideach ar do chuid mothúchán le roghnú chun ceisteanna den chineál PHQ-9 agus GAD-7 a líonadh. Ní stórálfar nó ní luchtófar na freagraí riamh."
+            },
+            {
+              "page": "ai-insights",
+              "h3": "Eolas faoi cheallaí déanta ar an ngléas féin",
+              "p": "Aithrisí seachtainiúla, míniúcháin ar na treochtaí agus achoimre do dhochtúirí a ghineann an gléas tú féin – ní sheoltar aon sonraí sláinte chuig freastalaí."
+            },
+            {
+              "page": "community",
+              "h3": "Pobal faoi ainm iargúlta",
+              "p": "Roghnaigh an rogha sin chun comparáid a dhéanamh le daoine eile atá ag fulaingt ó chomhshaol díreach mar tú, agus cuir sonraí gan ainm ar fáil chun cabhrú le daoine cosúil leat."
+            },
+            {
+              "page": "conditions",
+              "h3": "Treoracha maidir le coinníoll an táirge",
+              "p": "Faigh amach cad ba cheart duit a thaobh do chás agus conas is féidir leat do nótaí a úsáid chun comhrá níos fearr a bheith agat le heilbhéirí."
+            },
+            {
+              "page": "about",
+              "h3": "Príobháideach agus foinse oscailte",
+              "p": "Is rogha é comhréiteach ardaithe faoi rún. Tá an cód oscailte. Is féidir leat gach rud a onnmhú nó a scrios ar bith tráth."
+            }
+          ]
+        },
+        {
+          "kind": "grid",
+          "h2": "Cén fáth a roghnaíonn daoine Rianell",
+          "cards": [
+            {
+              "h3": "Saor go deo",
+              "p": "Tá an príomh-aip saor in aisce agus níl aon chuntas riachtanach. Cláraigh ach más mian leat comhaontas criptithe ar fud na bhfeistí."
+            },
+            {
+              "h3": "Ar dtús, príobháideacht",
+              "p": "Tá sonraí sláinte criptithe, agus maireann siad ar sheirbhísí an AE nuair a shincrítear iad, agus ní dhíoltar riamh iad. Níl freagraí na scrúdaithe ag fágáil do ghléas riamh."
+            },
+            {
+              "h3": "Oibríonn gan nasc le líonra",
+              "p": "Suiteáil é mar aip ar do ghuthán nó ríomhaire agus lean ort ag taifeadadh, fiú mura bhfuil tú nasctha le líonra."
+            }
+          ],
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Tástáil saor in aisce é anois",
+              "style": "primary"
+            }
+          ]
+        }
+      ]
+    },
+    "symptom-tracking": {
+      "type": "marketing",
+      "title": "Monatóireacht ar siúbháin agus sonraí riachtanacha – Rianell",
+      "description": "Cláraigh siomptóim, pian, tuirse, meáchan, ráta croí, brú fola, codladh agus eile le cabhair ó Rianell. Is éard atá ann ná laethantacht thapa a chuireann cúnamh ar do thíocht, rud a chruthaíonn treochtaí soiléire duit féin agus d’easpair. Saor in aisce.",
+      "ogTitle": "Monatóireacht ar siúbháin agus sonraí riachtanacha – Rianell",
+      "ogDescription": "Cláraigh siomptóim, pian, tuirse agus na sonraí riachtanacha le taifead laethúil tapa a thabharfaidh treochtaí soiléire duit féin agus do dhochtúirí.",
+      "twTitle": "Monatóireacht ar siúbháin agus sonraí riachtanacha – Rianell",
+      "twDescription": "Loga laethúil tapa le haghaidh comharthaí, pian, tuirse agus sonraí riachtanacha, a athraíonn ina dtreochaí soiléire.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Rianú siomptóm agus comharthaí vital le Rianell",
+      "jsonldDescription": "Conas siúbhair a rianú, pian, tuirse agus comharthaí vital le cabhair ó Rianell.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Baile"
+        },
+        {
+          "page": "features",
+          "name": "Gnéithe"
+        },
+        {
+          "page": "symptom-tracking",
+          "name": "Monatóireacht siomptóm"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Láithreán laethúil sláinte",
+        "h1": "Cláraigh siomptóim agus sonraí riachtanacha laethúla i nóiméad",
+        "lede": "Cabhraíonn an leabhar láidir a thairgeann Rianell duit do chuid mothúchán laethúil a thaifead go héasca – agus ina dhiaidh sin taispeántar na patrún atá taobh thiar de. Tá sé deartha d’údaraí atá ag déileáil le coinnéala fadtéarmacha agus cronaithe, agus ar mhaith leo taifead soiléir, príobháideach a choinneáil thar thréimhse ama.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Tosaigh ag clárú saor in aisce",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Féach ar na gnéithe uile",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Cad is féidir leat a rianú",
+          "cards": [
+            {
+              "h3": "Siomptóimí agus pian",
+              "p": "Rátáil an pian agus an tuirse, marcúigh tromchúis na n-airíonna, agus sonraigh réigiúin na ndruidhe ar léarscáile den chorp."
+            },
+            {
+              "h3": "Na sonraí riachtanacha",
+              "p": "Meáchan, ráta croí, brú na fola agus siúcair sa bhfola, le taobhchairteanna glan thar thréimhse ama."
+            },
+            {
+              "h3": "Stíl mhaith bheatha",
+              "p": "Codladh, céimeanna, hidritriocht, cleasanna coirp agus bia (lena n-áirítear cód barra a scanadh) – faigh gach rud in aon áit."
+            },
+            {
+              "h3": "Leigheas agus coinneanna",
+              "p": "Coinnigh do leigheasanna agus do chuid sceideil ar aon áit le do nótaí ionas nach gcailltear rud ar bith."
+            },
+            {
+              "h3": "Rianú an fhaoi-bhreise",
+              "p": "Is féidir leat rian a choinneáil ar do thréimhse, más mian leat, agus an fhaisnéis sin a úsáid chun tuairisc a thabhairt ar conas atá tú gach lá."
+            },
+            {
+              "h3": "Nótaí",
+              "p": "Cuir nótaí saor ó thíre le chéile le haon eintrí chun an chomhthéacs a chur in iúl nach féidir le huimhir a thabhairt."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Ó na nótaí laethúla go dtí tuiscint fhíor",
+          "paragraphs": [
+            "Tá úsáid ann i gcás na n-eintiris aonair, ach is ó na treochtaí a thagann an luach. Rianell athraíonn sé do stair ina chartaí ar féidir leat iad a léamh, cuireann sé béim ar na hathruithe a rinneadh, agus cabhraíonn sé leat achoimre ghairid a ullmhú chun í a thabhairt leat chuig ceannairí."
+          ],
+          "list": [
+            "Aimsigh na laethanta, na gníomhaíochtaí nó na cóireachtaí a chuireann de bharr ar na siomptóim is fearr nó is measa.",
+            "Onnóir tuairisc ghlan chun é a roinnt le do dhochtúir, le speisialtóir nó le foireann cúram.",
+            "Coinnigh gach rud in áit ar leith, ina ionad sin é a scaipeadh i nótaí agus aipeanna éagsúla."
+          ],
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Tosaigh saor in aisce – níl cuntas de dhíth",
+              "style": "primary"
+            },
+            {
+              "page": "ai-insights",
+              "label": "Féach ar na léargais a chuireann an intleacht artificial (AI) ar fáil",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "mental-health-check": {
+      "type": "marketing",
+      "title": "Seiceálacha ar an gciúineas agus ar shláinte mhíochaine – PHQ-9, GAD-7 – Rianell",
+      "description": "Riannaigh do chiall agus déan seiceáil ar d’eagla agus do bhrón le ceisteanna príobháideacha den chineál PHQ-9 agus GAD-7 in Rianell. Ní stóráltar nó ní luchtánntear na freagraí riamh. Saor in aisce agus cosaint ar phríobháideachas – níl sé de bhunús diagnóstach.",
+      "ogTitle": "Seiceálacha ar an gciúineas agus ar shláinte mhíochaine – PHQ-9, GAD-7 – Rianell",
+      "ogDescription": "Seiceálacha agus monatóireacht ar chiall, cosúil le PHQ-9 agus GAD-7, atá ar fáil do dhaoine ar leith. Ní stórálfar nó uaslódhfar na freagraí riamh. Ní dhéanfar diagnóis.",
+      "twTitle": "Seiceáil ar an gciúineas agus ar shláinte mhíochaine – Rianell",
+      "twDescription": "Seiceálacha agus monatóireacht ar chiall an phribhléid, cosúil le PHQ-9 agus GAD-7. Ní stórálfar na freagraí riamh.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Seiceáil ar do mheon agus do shláinte mhíochaine le Rianell",
+      "jsonldDescription": "Córais phríobháideach chun do chuid mothúchán a rianú, agus seiclistí de chineál PHQ-9 / GAD-7 nach ndéantar iad a stóráil ná a uaslódáil.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Baile"
+        },
+        {
+          "page": "features",
+          "name": "Gnéithe"
+        },
+        {
+          "page": "mental-health-check",
+          "name": "Sláinte mhionspioradúil"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Meabhair agus dearcadh",
+        "h1": "Seiceálacha príobháideacha ar d’imshrutha agus do shláinte mhíochaine",
+        "lede": "Tá tionchar ag dúlagh chrónach ar an gcaoi a mhothaíonn tú, ní hamháin ar an gcaoi a oibríonn tú. Ligeann Rianell duit do mheon a rianú, agus nuair is mian leat, líon isteach ceisteanna den chineál PHQ-9 agus GAD-7 – go príobháideach, ar do ghléas féin.",
+        "note": "Ní gléas leighis é Rianell, níl sé deartha chun diagnóisc nó cóireáil a sholáthar. Má tá tú i gcruachás nó má d’fhéadfadh go mbeidh tú faoi bhagairt díobháil a dhéanamh duit féin, déan teagmháil le seirbhísí éigeantúla áitiúla nó líne cúbóireachta láithreach.",
+        "ctas": [
+          {
+            "href": "/#mood",
+            "label": "Seiceáil isteach saor in aisce",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Féach ar na gnéithe uile",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Conas a oibríonn sé",
+          "cards": [
+            {
+              "h3": "Clár tapa do ghiúmar laethúil",
+              "p": "Gabh síos iomhá d’do chuid mothúchán le cliceáil amháin, agus féach ar na treochtaí meabhracha ina gcomhair le do shiobháin agus do chodladh."
+            },
+            {
+              "h3": "Seiceáil isteach roghnach",
+              "p": "Tosaigh le seiceáil ghairid agus, má tá sé ábhartha, is féidir leat ansin fanacht ar cheisteanna níos faide de chineál PHQ-9 nó GAD-7."
+            },
+            {
+              "h3": "Níor cuireadh i stóir riamh",
+              "p": "Próiseáiltear na freagraí a fhaightear ó na scrúduithe ar an ngléas féin agus ní shábháiltear iad riamh sna logaí, sa stóras áitiúil nó sa scéime."
+            }
+          ]
+        },
+        {
+          "kind": "faq",
+          "h2": "Ceisteanna coitianta",
+          "items": [
+            {
+              "summary": "Cad iad an PHQ-9 agus an GAD-7?",
+              "body": "Is ceisteannaíocht fhéinmheastóireachta iad agus úsáidtear go forleathan chun fiosrú faoi chomh minic is a d’éirigh leat braistint brathlaí áirithe le linn na ndaon seachtaine seo caite. Cuireann Rianell ar fáil mar rogha, mar shealbhphríobháideach chun cabhrú leat aird a thabhairt ar athruithe thar thréimhse ama. Is uirlisí scrúdaithe iad, ní diagnóisc."
+            },
+            {
+              "summary": "An ndéanann Rianell stór ar mo fhreagraí nó an uaslódh sé iad?",
+              "body": "Níl. Próiseáiltear na freagraí ar an scrúdú aonair ar do ghléas agus ní úsáidtear iad riamh chun logaí, bunachair shuntasacha nó córais ríomhaireachta a nuashonrú."
+            },
+            {
+              "summary": "An bhfuil diagnóisc á déanamh le linn seiceála?",
+              "body": "Níl. Is féidir le seisiún cheistíochta cabhrú leat smaoineamh agus comhrá a thosú le duine oilte. Má tá tú faoi bhagairt, déan teagmháil le seirbhís sláinte áitiúil nó líne éigeandála láithreach."
+            },
+            {
+              "summary": "An bhfuil cuntas de dhíth orm?",
+              "body": "Níl. Tá rianú brabús agus seiceáil isteach saor in aisce, agus oibríonn siad gan cuntas. Is féidir leat cuntas a chruthú níos déanaí, más mian leat, chun comhaid a shincronú go slán."
+            }
+          ],
+          "ctas": [
+            {
+              "href": "/#mood",
+              "label": "Tosaigh saor in aisce – níl cuntas de dhíth",
+              "style": "primary"
+            },
+            {
+              "page": "community",
+              "label": "Déan teagmháil le daoine eile",
+              "style": "ghost"
+            }
+          ]
+        }
+      ],
+      "faqSchema": [
+        {
+          "q": "Cad iad an PHQ-9 agus an GAD-7?",
+          "a": "Is ceisteannaíocht fhéinmheastóireachta iad an PHQ-9 agus an GAD-7, agus úsáidtear go forleathan é chun amharc cé chomh minic a bhraitheann tú mothúcháin áirithe le linn na ndaon seachtaine seo caite. Cuireann Rianell ar fáil mar rogha, mar sheiceáil phríobháideach chun cabhrú leat aird a thabhairt ar athruithe thar thréimhse ama. Is uirlisí scrúdaithe iad, ní diagnóisc."
+        },
+        {
+          "q": "An ndéanann Rianell stór ar mo fhreagraí nó an uaslódh sé iad?",
+          "a": "Níl. Próiseáiltear na freagraí ar an scrúdú pearsantach atá tú ag déanamh ar do ghléas agus ní úsáidtear iad riamh chun taifeadtaí, bunachar sonraí áitiúil nó córas ríomhaireachta a chruthú. Níl aon duine eile ach tú féin a bhfeiceann na freagraí sin, ag an am a gcríochaíonn tú an scrúdú."
+        },
+        {
+          "q": "An bhfuil diagnóisc á déanamh le linn seiceála?",
+          "a": "No. Rianell is not a medical device and does not diagnose. A check-in can help you reflect and start a conversation with a qualified professional. If you may be at risk, contact a local health service or emergency line right away."
+        },
+        {
+          "q": "An gá atá liom cuntas a bheith agam chun úsáid a bhaint as córas rianaithe bróid.",
+          "a": "Níl. Tá rianú brabús agus seiceáil isteach saor in aisce, agus oibríonn siad gan cuntas. Is féidir leat cuntas a chruthú níos déanaí, más mian leat, chun do chuid sonraí a shincronú go sábháilte ar na feistí uile atá agat."
+        }
+      ]
+    },
+    "ai-insights": {
+      "type": "marketing",
+      "title": "Eolas faoi shláinte a fhaigheann tú ar an ngléas – Rianell",
+      "description": "Rithíonn Rianell an t-eolas artúfach ar do ghléas chun tuairiscí seachtúil a ghiniúint, míníonn sé do chartaí, agus ullmhaíonn sé achoimre don chlinician – gan do shonraí sláinte a sheoladh chuig freastalaí. Saor in aisce agus príobháideach.",
+      "ogTitle": "Eolas faoi shláinte a fhaigheann tú ar an ngléas – Rianell",
+      "ogDescription": "Aithrisí seachtainiúla, míníocháin ar na graif agus achoimre do dhochtúir a ghineann tú go háitiúil ar do ghléas – ní sheoltar aon sonraí sláinte chuig freastalaí.",
+      "twTitle": "Eolas faoi shláinte a fhaigheann tú ar an ngléas – Rianell",
+      "twDescription": "Aithrisí seachtainiúla agus achoimreachtaí do chlinicióirí a ghineann tú go háitiúil ar do ghléas.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Anailísí faisnéise sláinte trí chleasanna ealaíneachta saorga ar an ngléas, le Rianell",
+      "jsonldDescription": "Conas a úsáideann Rianell an intleacht artificial atá suite ar an ngléas chun treochtaí a achoimsiú agus sonraíochtaí a ullmhú do chlinicióirí, gan sonraí sláinte a sheoladh chuig freastalaí.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Baile"
+        },
+        {
+          "page": "features",
+          "name": "Gnéithe"
+        },
+        {
+          "page": "ai-insights",
+          "name": "Feasachtaí ó AI"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Intleacht ar an ngléas féin",
+        "h1": "Feidhmiú AI a choinníonn do shonraí sábháilte agus nach ndéanann iad a sheoladh ar shiúl",
+        "lede": "Is féidir le Rianell samhail teanga a rith go díreach ar do ghléas chun achoimre a dhéanamh ar an seachtain, míniú a thabhairt faoi rud é graf agus dréacht ghearr a chur le chéile is féidir leat a thabhairt do d’othaire – gan aon cheann de na sonraí sláinte a uaslódáil chuig áit ar bith.",
+        "ctas": [
+          {
+            "href": "/#ai",
+            "label": "Trialaigh na n-eolasachtaí a chuireann an intleacht shaorga ar fáil saor in aisce",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Féach ar na gnéithe uile",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Cad is féidir leis an intleacht artificial a dhéanamh",
+          "cards": [
+            {
+              "h3": "Athbhreithniú seachtúil",
+              "p": "Achoimre simplí ar an gcaoi a d’athraigh do shiomptóimí, do mheon agus do shliochtaí riachtanacha le linn na seachtaine seo caite."
+            },
+            {
+              "h3": "Mínígh an tsreathchártha seo",
+              "p": "Fiafraigh cad is brí leis an gcoincheap ‘treocht’ agus faigh míniú soiléir atá bunaithe ar do shonraí féin."
+            },
+            {
+              "h3": "Aisling ghairid do chlinicián",
+              "p": "Cuir tús le hachadh gearr agus struchtúrach chun an leas is fearr a bhaint as ceannairc ghearr."
+            },
+            {
+              "h3": "Comhrá faoi shláinte",
+              "p": "Cuir ceisteanna faoi do logáil isteach i dteanga nádúrtha, agus rith an samhail go háitiúil."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Dírithe ar phríobháideacht",
+          "paragraphs": [
+            "Is é an nós coitianta le go leor appanna sláinte ná do shonraí a sheoladh chuig freastalaí chun feidhmeanna AI a chur i bhfeidhm. Tá cur chuige eile ag Rianell: rithtear an samhail sa bhrabhsálaí nó sa ghléas, ionas go ndéantar an anailís san áit ina bhfuil do shonraí cheana féin. Níl aon rud faoi do shláinte á sheoladh chun na feidhmeanna seo a chur i bhfeidhm."
+          ],
+          "list": [
+            "Oibríonn sé go díreach ar an ngléas ag úsáid samhlacha éifeachtacha, agus tá córas maith ann chun filleadh ar shiombháil níos lú cumhachta.",
+            "Oibríonn sé in éineacht le córas sionachaithe ar líne atá criptithe agus is roghnach é – is tú a chinntíonn cad a fágann do ghléas.",
+            "Is treoir é an t-eolas, ní comhairle leighis."
+          ],
+          "note": "Is é cuspóir an t-eochair AI eolas a chur ar fáil amháin, agus féadfaidh sé a bheith mícheart. I gcónaí, déan comhrá le duine cáilithe sa réimse sláinte roimh chinntí tábhachtacha a dhéanamh.",
+          "ctas": [
+            {
+              "href": "/#ai",
+              "label": "Tosaigh saor in aisce – níl cuntas de dhíth",
+              "style": "primary"
+            },
+            {
+              "page": "symptom-tracking",
+              "label": "Tosaigh ag rianú ar dtús",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "community": {
+      "type": "marketing",
+      "title": "Eolas pobail a baineadh an t-eolas pearsanta as – Rianell",
+      "description": "Roghnaigh dul isteach i gcomhphobal neamhsainithe Rianell chun a fháil amach conas atá daoine eile le do chás síorchronúil ag déanamh, agus cuir rudaí ar fáil a chosaint do phríobháideacht agus a chabhróidh le daoine cosúil leat. Roghnaigh dul isteach i gcónaí, bí neamhsainithe i gcónaí.",
+      "ogTitle": "Eolas pobail a baineadh an t-eolas pearsanta as – Rianell",
+      "ogDescription": "Féach conas atá daoine eile a bhfuil an dáileadh céanna orthu, agus cuir rannpháirt ar fhaill, ag cur sonraí ar fáil a chosnaíonn a bpribhéideacht agus a chabhróidh le daoine cosúil leat. Roghnaigh i gcónaí an rogha sin.",
+      "twTitle": "Eolas pobail a baineadh an t-eolas pearsanta as – Rianell",
+      "twDescription": "Féach conas atá daoine eile a bhfuil an dáileadh céanna orthu ag déanamh, agus cuir rudaí le fiosrúchán ar shlí nach ndéantar ionraith ar phríobháideacht. Roghnaigh i gcónaí go n-úsáidfear do chuid sonraí.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell anonymised community insights",
+      "jsonldDescription": "Comhphobal ina gcuirtear roghnú ar fáil do dhaoine a bheith páirteach, comhphobal faoi rún, a chosnaíonn a bpribhéideacht, agus a chuireann ar chumas daoine atá buartha faoin gcéanna foghlaim óna chéile.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Baile"
+        },
+        {
+          "page": "features",
+          "name": "Gnéithe"
+        },
+        {
+          "page": "community",
+          "name": "An phobal"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Is fearr nuair a bhíonn muid le chéile",
+        "h1": "Cabhraigh daoine eile atá ag fulaingt ó chomhshaol díomha – agus foghlaim uathu",
+        "lede": "Is féidir le galair chrónacha a bheith ina chúis le hiúlú. Athraíonn an grúpa de dhearthóirí ó Rianell sonraí aonair ina sonraí neamhchomhbheartaithe, atá cosanta ar nós na príobháideachta, ionas gur féidir leat a fheiceáil conas atá daoine leis an gcoinnéalas céanna ag déanamh agus gur féidir leat rannpháirt a bheith ina chur chun cinn eolais a chabhróidh le duine eile.",
+        "ctas": [
+          {
+            "href": "/#home",
+            "label": "Cláraigh chun páirt a ghlacadh",
+            "style": "primary"
+          },
+          {
+            "href": "/#log",
+            "label": "Nó tosú ag rianú earraí saor in aisce",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Conas a oibríonn an pobal",
+          "cards": [
+            {
+              "h3": "Féadfar a fhíor-ainm a cheilt go réidh nó a dhíchlúdach de réir mar is cóir",
+              "p": "Úsáidtear modh comhdhála a chosnaíonn príobháideachas chun na heolas roinnte a phróiseáil, ionas nach féidir duine ar leith a aimsiú de réir na dtorthaí."
+            },
+            {
+              "h3": "Roghnaigh an rogha sin i gcónaí",
+              "p": "Ní roinntear aon rud mura gcuireann tú roinnt sonraí ar siúl go sonrach. Is féidir leat é a dhíchumas arís ag am ar bith."
+            },
+            {
+              "h3": "Féach ar dhaoine cosúil leat",
+              "p": "Déan comparáid idir na treochtaí agus na treochtaí a bhaineann le daoine eile atá sa chás céanna leat, agus faigh amach cad is féidir a dhéanamh chun cabhrú."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Tá tábhacht ag do rannpháirtíocht",
+          "paragraphs": [
+            "Nuair a roghnaíonn tú páirt a ghlacadh, cuirtear do shonraí neamhaitheantacha le chéile agus déantar iad a chur ar fáil mar chothrom le comhionannais, rud a léiríonn na taithí a bhíonn ag daoine atá faoi an dáileach céanna thar thréimhse ama. Is bealach é seo chun cuidiú – chun cabhrú le taighdeoirí, leighis agus othar eile a thuiscint ar na dálaí sin nach ndearna mórán staidéir orthu."
+          ],
+          "list": [
+            "Cuir sonraí gan ainm ar fáil chun cabhrú le tuiscint níos fearr a bhaint amach maidir le do chás.",
+            "Bain úsáid as an eolas comhchoiteanta gan aon taobh a chur in iúl faoi na sonraí pearsanta.",
+            "Coinneáil faoi ríom: is roghnach an comhaid agus is féidir é a athrú."
+          ],
+          "note": "Is eolas iad na tuairimí ón bpobal, agus níorthaíonn siad ábhar comhairle leighis ó dhochtúir.",
+          "ctas": [
+            {
+              "href": "/#home",
+              "label": "Cruthaigh cuntas saor in aisce",
+              "style": "primary"
+            },
+            {
+              "href": "/privacy.html",
+              "label": "Léigh an polasaí príobháideachta",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "conditions": {
+      "type": "marketing",
+      "title": "Treoracha maidir le rianú coinníoll cronach – Rianell",
+      "description": "Faigh amach cad ba cheart duit a thabhairt faoi bhur súil maidir le do chás fadtéarmach agus conas is féidir leat loganna laethúla a úsáid chun comhrá níos fearr a bheith agat le foireann cúram. Treoir phraiticiúil maidir le coinníollacha fadtéarmacha, saor in aisce Rianell.",
+      "ogTitle": "Treoracha maidir le rianú coinníoll cronach – Rianell",
+      "ogDescription": "Faigh amach cad ba cheart duit a thaobh d’ainmhithe agus conas is féidir leat loganna laethúla a úsáid chun comhrá níos fearr a bheith agat le do fhoireann cúram.",
+      "twTitle": "Treoracha maidir le rianú coinníoll cronach – Rianell",
+      "twDescription": "Faigh amach cad ba cheart duit a thaobh do chás agus conas is féidir leat sonraí a úsáid chun comhrá níos fearr a bheith agat le do dhochtúir.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Treoracha maidir le rianú coinníoll cronúil",
+      "jsonldDescription": "Treoir maidir le conas a rianú na sonraí a bhaineann le coinnéalaí síorchronacha coitianta agus conas ullmhú do chruinnithe.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Baile"
+        },
+        {
+          "page": "features",
+          "name": "Gnéithe"
+        },
+        {
+          "page": "conditions",
+          "name": "Coinníollacha"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Faigh amach cad atá tú faoi",
+        "h1": "Tuig agus déan riamh-mheastóireacht ar do chás síorchronúil",
+        "lede": "Tá comharthaí ar leith ag gach coinníoll agus is fiú iad a fhaighneamh. Cuidíonn na treoracha seo leat cinniúint a dhéanamh cad a thaifead, chomh minic, agus conas míonna de shonraí a athrú ina scéal soiléir ar féidir le do dhochtúirí gníomhú uirthi.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Tosaigh ag rianú saor in aisce",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Féach ar na gnéithe uile",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Cad is fiú a rianú",
+          "cards": [
+            {
+              "h3": "Coinníollacha a bhíonn gortú agus tuirse mar chuid de na hairitheanna",
+              "p": "Clárigh an pian, an tuirse agus na cúiseanna a spreagann na hathruithe laethúla chun sonraí faoi na laethanta maithe agus na laethanta dona a nochtadh."
+            },
+            {
+              "h3": "Sláinte chardaimh-mheabhrach",
+              "p": "Coinnigh súil ar an meáchan, brú na fola, ráta croí agus treochtaí glúcóis thar na míosanna agus na seachtainí."
+            },
+            {
+              "h3": "Coinníollacha síoraíochta agus coinníollacha a bhain le brabús an chloinne",
+              "p": "Déan comparáid idir an t-atmaisféar agus na nósanna a bhíonn agat nuair a bhíonn tú brónach, le do chleasanna codlaithe agus gníomhaíochta, chun tuiscint a fháil ar na nithe a chuireann deacair ort."
+            },
+            {
+              "h3": "Diauthaimeach agus díbhlaíoch",
+              "p": "Tabhair faoi deara na siomptóim, na drugaí agus an stíl mhaith sláinte chun a bhaint amach comhghairm idir iad agus na hathruithe sa chóireáil nó na tréimhsí nuair a éascaíonn na siomptóim."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Athraigh an fhaireachas ina chúram níos fearr",
+          "paragraphs": [
+            "Níl sé ach cuid den scéal é logáil choinbhneach. Is é an cuspóir ná dul isteach i gcruinniú le tuairisc shoilsiúil agus ionestach ar na seachtaineanna a chuaigh thart – ní cuimhnechán doiléir. Cuidíonn Rianell leat:"
+          ],
+          "list": [
+            "Roghnaigh cóimheas beag de ghníomhartha inbhuanaithe le haghaidh monatóir do chás.",
+            "Tabhair aird ar na treochtaí seachas ar na sonraí aonair, ionas nach ndéanann an torann tú a chur amú.",
+            "Onnsúigh tuairisc ghiorra agus, más mian leat, achoimre a d’fhaighidh tú ó chóras ealaíne saorga chun a chur ar fáil do do chlinician."
+          ],
+          "note": "Is eolais ghinearálta iad na treoracha seo, ní comhairle leighis. Tá a fhios ag do chumann cúram cad is fearr duit – bain úsáid as do thaifeadtaí chun an chomhrá sin a threorú.",
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Tosaigh saor in aisce – níl cuntas de dhíth",
+              "style": "primary"
+            },
+            {
+              "page": "community",
+              "label": "Déan comparáid le daoine eile",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "about": {
+      "type": "about",
+      "title": "Faoin Rianell – Clár le haghaidh rianú sonraí pearsanta faoi shláinte agus faoi chásanna síorchronacha",
+      "description": "Is aip shláinte phearsanta saor in aisce, oscailte é Rianell, le haghaidh rianú agus bainistiú coinníocht chrónach. Cláraigh siomptóim, drugaí, meáchan, ráta croí, agus eile.",
+      "ogTitle": "Faoin Rianell – Clár le haghaidh rianú sonraí pearsanta faoi shláinte agus faoi chásanna síorchronacha",
+      "ogDescription": "Is aip shláinte phearsanta saor in aisce, oscailte é Rianell, le haghaidh rianú agus bainistiú coinníocht chrónach. Cláraigh siomptóim, drugaí, meáchan, ráta croí, agus eile.",
+      "twTitle": "Faoin Rianell – Clár le haghaidh rianú sonraí pearsanta faoi shláinte agus faoi chásanna síorchronacha",
+      "twDescription": "Aip shléachtúil, saor in aisce agus oscailte chun cabhrú leat rian a choinneáil ar do shláinte phearsanta agus do chásanna fadtéarmacha a bhainistiú.",
+      "jsonldType": "AboutPage",
+      "jsonldName": "Faoin Rianell",
+      "jsonldDescription": "Is é Rianell aip shaoir, oscailte, atá deartha le haghaidh riarachán pearsanta sláinte chun coinnibh agus bainistíocht a dhéanamh ar chásanna fadtéarmacha.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Baile"
+        },
+        {
+          "page": "about",
+          "name": "Faoi"
+        }
+      ],
+      "tagline": "Clár le haghaidh rianú sonraí pearsanta faoi shláinte agus faoi chás síoróiseach",
+      "intro": "Is iad Rianell aip shláchta, oscailte, atá deartha chun cabhrú le daoine atá ag maireachtáil le coinníollacha síora a rianú ar na siomptóim, faire a dhéanamh ar tháscairí tábhachtacha sláinte, agus faisnéis luachmhar a chur in iúl chun a roinnt lena bhfoireann cúram sláinte.",
+      "blocks": [
+        {
+          "h2": "Cad a dhéanann an Rianell",
+          "list": [
+            "Láithreán sláinte laethúil – siomptóim, leibhéil pian, tuirse, brionglóid, soghluaisteacht, agus eile",
+            "Monatóireacht ar na sonraí riachtanacha – meáchan, ráta croí, brú fola",
+            "Bainistíocht leigheas agus ceapachán",
+            "Anailís treochtanna le cúnamh AI agus léargais faoi na coinníollacha",
+            "Onnmhú tuairiscí chun iad a roinnt le clinicióirí",
+            "Sincronú ar líne roghnach idir na feistí (idirbhealaíonn sé ó cheann go ceann)",
+            "Ceangail feistí oiriúnachta agus sláinte trí Strava, Withings agus Google Sheets"
+          ]
+        },
+        {
+          "h2": "Comhtháthú le Google Sheets",
+          "paragraphs": [
+            "Is féidir le húsáirí, más mian leo, bileog ríomháire Google a nascadh chun sonraí sláinte atá ann cheana a allmhairiú nó a loga a onnmhú chun cóip bhacais agus anailís a dhéanamh. Níl ach an billeog ríomháire amháin a shonraíonn an t-úsáir ina lán, a bheidh inrochtana ag an app. Ní bheidh rochtain ar aon chomhaid nó sonraí eile."
+          ]
+        },
+        {
+          "h2": "Príobháideacht agus slándáil",
+          "paragraphs": [
+            "Tá gach sonraí atá stórtáilte sa scéideanna criptithe. Tá tascairí OAuth criptithe le AES-256-GCM. Cinntíonn Slándáil ar Leibhéal an Róin nach féidir le gach úsáideoir ach rochtain a fháil ar a sonraí féin. Níl sé de nós ar an app do shonraí a dhíol nó a roinnt."
+          ]
+        },
+        {
+          "h2": "Foinse oscailte",
+          "paragraphs": [
+            "Tá Rianell ar fáil mar chód oscailte iomlán. Tá an cód foinse ar fáil ar GitHub."
+          ]
+        }
+      ],
+      "aboutLinks": {
+        "privacy": "Beartas Príobháideachta",
+        "tos": "Téarmaí na Seirbhíse",
+        "github": "GitHub"
+      }
+    }
+  }
+}
