@@ -50,6 +50,22 @@ test('goals progress day chips and slots react to target vs result', () => {
   assert.match(portfolio, /trail\.remove\(\)/);
 });
 
+test('weather orb resolves its palette from theme tokens', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/weather-orb-3d.js', 'utf8');
+  const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
+  // Orb reads a theme palette rather than hardcoding sky/cloud/sun hex.
+  assert.match(js, /weatherPalette/);
+  assert.match(js, /resolveThemeColor/);
+  for (const token of ['--weather-sky-day', '--weather-cloud', '--weather-cloud-overcast', '--weather-sun', '--weather-moon', '--weather-rain']) {
+    assert.match(js, new RegExp(token), `orb should read ${token}`);
+    assert.match(css, new RegExp(`${token}\\s*:`), `styles.css should define ${token}`);
+  }
+  // Legacy hardcoded cloud/sky literals must be gone from the material colours.
+  assert.doesNotMatch(js, /color:\s*0xdfe5ea/);
+  assert.doesNotMatch(js, /color:\s*0x9aa3ad/);
+  assert.doesNotMatch(js, /new THREE\.AmbientLight\(night \? 0x/);
+});
+
 test('goals progress styles include 3D slot depth', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   assert.match(css, /\.goals-3d-slot/);
