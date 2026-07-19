@@ -20,7 +20,7 @@ When a client POSTs to a configured LLM endpoint, the JSON body **must** include
 | Field | Type | Notes |
 | :--- | :--- | :--- |
 | `feature` | string | `summary` · `suggestNote` · `motd` |
-| `model` | string | Resolved model id (e.g. `Llama-3.2-1B-Instruct`) |
+| `model` | string | Resolved model id (e.g. `Qwen2.5-1.5B-Instruct`) |
 | `modelSize` | string | Tier hint (`tier1`-`tier5`) |
 | `context` | string | JSON-serialized feature context (no raw UGC beyond what the feature needs) |
 | `locale` | string | **B2 contract:** client UI locale from `resolveActiveLocale(prefs)` - server must **not** infer language from `Accept-Language`, geo-IP, or log text |

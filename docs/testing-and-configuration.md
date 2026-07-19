@@ -222,7 +222,7 @@ Gate jobs (**unit-tests**, **prepare-minified-assets**, **deploy-pages**, **audi
 | `scripts/models/verify-llm-models.mjs` | `npm run models:verify` | Verify manifest; checks local files (and optional remote HEAD checks) |
 | `scripts/models/verify-no-model-weights-in-git.mjs` | `npm run verify:no-model-weights-in-git` | Fail if git tracks ONNX/chunks under `models/` (only manifest + README allowed) |
 
-**Llama 3.2 download** requires `HF_TOKEN` and accepted license on huggingface.co. **Never commit** service role key or weight files.
+**Qwen2.5 downloads** are Apache-2.0 (no `HF_TOKEN` or license acceptance required). **Never commit** service role key or weight files.
 
 ### Security verification scripts (v1.50.0+)
 
