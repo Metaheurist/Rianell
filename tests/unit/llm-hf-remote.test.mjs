@@ -17,13 +17,13 @@ test('resolveModelsRemoteHost defaults to Hugging Face', () => {
 
 test('buildHuggingFaceModelFileUrl builds resolve/main URL', () => {
   const url = buildHuggingFaceModelFileUrl(
-    'onnx-community/SmolLM2-360M-Instruct-ONNX',
+    'onnx-community/Qwen2.5-0.5B-Instruct',
     'main',
     'config.json'
   );
   assert.equal(
     url,
-    'https://huggingface.co/onnx-community/SmolLM2-360M-Instruct-ONNX/resolve/main/config.json'
+    'https://huggingface.co/onnx-community/Qwen2.5-0.5B-Instruct/resolve/main/config.json'
   );
 });
 

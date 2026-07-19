@@ -90,3 +90,11 @@ export {
   auditGoldenPrompt,
   runGoldenPromptAudit,
 } from '../ai/llmGoldenPrompts.mjs';
+export {
+  NSFW_RE,
+  HEALTH_SCOPE_RE,
+  isNsfwText,
+  isHealthInScope,
+  classifyHealthChatMessage,
+  enforceHealthChatReply,
+} from '../ai/chatGuardrails.mjs';

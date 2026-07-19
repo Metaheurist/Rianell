@@ -12,13 +12,13 @@ import {
 test('buildLlmRequestPayload includes validated locale', () => {
   const payload = buildLlmRequestPayload({
     feature: 'summary',
-    model: 'Llama-3.2-1B-Instruct',
+    model: 'Qwen2.5-1.5B-Instruct',
     modelSize: 'tier3',
     context: '{"totalLogs":3}',
     locale: 'de-DE',
   });
   assert.equal(payload.feature, 'summary');
-  assert.equal(payload.model, 'Llama-3.2-1B-Instruct');
+  assert.equal(payload.model, 'Qwen2.5-1.5B-Instruct');
   assert.equal(payload.modelSize, 'tier3');
   assert.equal(payload.context, '{"totalLogs":3}');
   assert.equal(payload.locale, 'de-DE');
@@ -27,7 +27,7 @@ test('buildLlmRequestPayload includes validated locale', () => {
 test('buildLlmRequestPayload falls back to en-GB for invalid locale', () => {
   const payload = buildLlmRequestPayload({
     feature: 'motd',
-    model: 'SmolLM2-360M-Instruct',
+    model: 'Qwen2.5-0.5B-Instruct',
     modelSize: 'tier1',
     context: '{}',
     locale: 'not-a-locale',
@@ -66,7 +66,7 @@ test('buildHomeQuestionPrompt and payload support homeQuestion feature', () => {
   assert.ok(user.includes('Question:'));
   const payload = buildLlmRequestPayload({
     feature: 'homeQuestion',
-    model: 'Llama-3.2-1B-Instruct',
+    model: 'Qwen2.5-1.5B-Instruct',
     modelSize: 'tier3',
     context: user,
     locale: 'en-GB',
