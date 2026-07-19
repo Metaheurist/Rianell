@@ -71,14 +71,8 @@ dist/
 /build/
 .firecrawl/
 .wiki-sync/
-# Cursor — commit team rules/skills; ignore local caches
-.cursor/*
-!.cursor/rules/
-!.cursor/rules/**
-!.cursor/skills/
-!.cursor/skills/**
-!.cursor/hooks.json
-!.cursor/MCP-AND-CLI-GUIDE.md
+# Cursor — ignore entirely (local-only)
+.cursor/
 ci-probe-test/
 apps/pwa-webapp/app.min.js
 .server-dist/
