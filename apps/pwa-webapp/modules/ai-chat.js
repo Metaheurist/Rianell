@@ -176,6 +176,7 @@
       '  </header>' +
       '  <div class="ai-chat-supercharge" id="aiChatSupercharge" hidden></div>' +
       '  <div class="ai-chat-messages" id="aiChatMessages" aria-live="polite"></div>' +
+      '  <div class="ai-chat-starters" id="aiChatStarters" hidden></div>' +
       '  <div class="ai-chat-followups" id="aiChatFollowups" hidden></div>' +
       '  <footer class="ai-chat-footer">' +
       '    <p class="ai-chat-turns" id="aiChatTurns"></p>' +
@@ -393,6 +394,87 @@
     return out.slice(0, 5);
   }
 
+  // First-run starter chips: compact, icon-led prompts shown above the input.
+  // Short visible label + full question as the prompt. `promptKey` reuses the
+  // existing full-question keys so no new prompt copy is introduced.
+  var STARTERS = [
+    { icon: 'sleep', labelKey: 'home.chat.starter.sleep', labelFallback: 'Sleep trend', promptKey: 'home.chat.followup.sleep' },
+    { icon: 'discover-mood', labelKey: 'home.chat.starter.mood', labelFallback: 'Mood factors', promptKey: 'home.chat.followup.mood' },
+    { icon: 'activity', labelKey: 'home.chat.starter.patterns', labelFallback: 'Patterns', promptKey: 'home.chat.followup.patterns' },
+  ];
+
+  // Build the ranked starter set (max 5). Contextual clues rank first per Shape
+  // of AI guidance, but only when a *short* label exists - full-sentence chips
+  // would recreate the wide-pill problem this redesign removes.
+  function starterItems() {
+    var items = [];
+    var seen = {};
+    function add(icon, label, prompt) {
+      var key = String(prompt || '').toLowerCase();
+      if (!label || !prompt || seen[key]) return;
+      seen[key] = true;
+      items.push({ icon: icon, label: label, prompt: prompt });
+    }
+    var chips = global._homeAiSuggestionChips;
+    if (Array.isArray(chips)) {
+      chips.forEach(function (chip) {
+        if (!chip || !chip.labelKey || !chip.shortLabelKey) return;
+        var short = tOr(chip.shortLabelKey, '', chip.labelParams || {});
+        var prompt = t(chip.labelKey, chip.labelParams || {});
+        if (!short || short === chip.shortLabelKey || !prompt || prompt === chip.labelKey) return;
+        add(chip.icon || 'sparkle-ring', short, prompt);
+      });
+    }
+    STARTERS.forEach(function (s) {
+      add(s.icon, tOr(s.labelKey, s.labelFallback), t(s.promptKey));
+    });
+    return items.slice(0, 5);
+  }
+
+  // Render the starter chips. Tapping a chip *pre-fills* the editable input and
+  // focuses it (caret at end) - it does NOT auto-send, so users can tweak the
+  // question first (NN/g + Shape of AI: suggestions are an editable starting point).
+  function renderStarters() {
+    var wrap = document.getElementById('aiChatStarters');
+    if (!wrap) return;
+    var items = (_turns.length || _sendInFlight) ? [] : starterItems();
+    if (!items.length) {
+      wrap.hidden = true;
+      wrap.innerHTML = '';
+      wrap.classList.remove('ai-chat-starters--visible');
+      return;
+    }
+    wrap.hidden = false;
+    wrap.classList.add('ai-chat-starters--visible');
+    wrap.innerHTML = items.map(function (it, i) {
+      return '<button type="button" class="ai-chat-followup-chip ai-chat-starter-chip" style="--chip-delay:' + (i * 45) + 'ms" data-prompt="' + escapeAttr(it.prompt) + '">' +
+        svgIcon(it.icon, 'ai-chat-chip-icon') +
+        '<span class="ai-chat-chip-label">' + escapeHTML(it.label) + '</span>' +
+        '</button>';
+    }).join('');
+    wrap.querySelectorAll('[data-prompt]').forEach(function (btn) {
+      btn.onclick = function () {
+        var prompt = btn.getAttribute('data-prompt') || '';
+        var input = document.getElementById('aiChatInput');
+        if (!input) return;
+        input.value = prompt;
+        input.focus();
+        try {
+          var len = input.value.length;
+          input.setSelectionRange(len, len);
+        } catch (_) { /* setSelectionRange unsupported */ }
+      };
+    });
+  }
+
+  function hideStarters() {
+    var wrap = document.getElementById('aiChatStarters');
+    if (!wrap) return;
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    wrap.classList.remove('ai-chat-starters--visible');
+  }
+
   function assemblePayload(userMessage) {
     var S = getShared();
     var history = '';
@@ -505,6 +587,7 @@
     _turns.push({ user: message, assistant: '' });
     renderMessages();
     renderFollowups(null);
+    hideStarters();
     setInputEnabled(false);
     updateTurnsLabel();
     var answer = await runInference(message);
@@ -572,6 +655,8 @@
     if (box) box.innerHTML = '';
     var follow = document.getElementById('aiChatFollowups');
     if (follow) { follow.innerHTML = ''; follow.hidden = true; follow.classList.remove('ai-chat-followups--visible'); }
+    var starters = document.getElementById('aiChatStarters');
+    if (starters) { starters.innerHTML = ''; starters.hidden = true; starters.classList.remove('ai-chat-starters--visible'); }
     var input = document.getElementById('aiChatInput');
     if (input) input.value = '';
   }
@@ -682,7 +767,8 @@
       if (input) input.value = seed;
       submitUserMessage();
     } else {
-      renderFollowups(contextualFollowups());
+      renderFollowups(null);
+      renderStarters();
       var inp = document.getElementById('aiChatInput');
       if (inp) inp.focus();
     }
