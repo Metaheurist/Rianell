@@ -1,0 +1,263 @@
+{
+  "_comment": "Machine-translated (translategemma:27b) SEO copy for nl-NL. Regenerate with: npm run seo:translate -- --locales=nl-NL. Structure mirrors seo-content/en.json.",
+  "site": {
+    "brand": "Rianell",
+    "logoAlt": "logo van Rianell",
+    "skipToContent": "Ga direct naar de inhoud",
+    "primaryNavLabel": "Primair",
+    "ogImageAlt": "Rianell – houd chronische aandoeningen bij en beheer uw eigen gezondheidsgegevens",
+    "openApp": "Open de app",
+    "nav": [
+      {
+        "page": "features",
+        "label": "Kenmerken"
+      },
+      {
+        "page": "symptom-tracking",
+        "label": "Symptomen"
+      },
+      {
+        "page": "mental-health-check",
+        "label": "Geestelijke gezondheid"
+      },
+      {
+        "page": "ai-insights",
+        "label": "Inzichten op basis van kunstmatige intelligentie"
+      },
+      {
+        "page": "community",
+        "label": "Gemeenschap"
+      },
+      {
+        "page": "conditions",
+        "label": "Voorwaarden"
+      }
+    ],
+    "footer": {
+      "links": [
+        {
+          "page": "features",
+          "label": "Kenmerken"
+        },
+        {
+          "page": "symptom-tracking",
+          "label": "Het bijhouden van symptomen"
+        },
+        {
+          "page": "mental-health-check",
+          "label": "Geestelijke gezondheid"
+        },
+        {
+          "page": "ai-insights",
+          "label": "Inzichten op basis van kunstmatige intelligentie"
+        },
+        {
+          "page": "community",
+          "label": "Gemeenschap"
+        },
+        {
+          "page": "conditions",
+          "label": "Voorwaarden"
+        },
+        {
+          "page": "about",
+          "label": "Over ons"
+        },
+        {
+          "href": "/privacy.html",
+          "label": "Privacy"
+        },
+        {
+          "href": "/tos.html",
+          "label": "Voorwaarden"
+        }
+      ],
+      "tagline": "Rianell – een gratis, opensource-applicatie voor het bijhouden van persoonlijke gezondheidsgegevens."
+    }
+  },
+  "pages": {
+    "home": {
+      "type": "marketing",
+      "title": "Rianell – houd uw chronische aandoening in de gaten en beheer uw eigen gegevens",
+      "description": "Rianell is een gratis, open source persoonlijke gezondheidsapp. Noteer symptomen en vitale functies, ontdek patronen met behulp van kunstmatige intelligentie op het apparaat zelf en deel duidelijke rapporten met uw zorgteam – op een veilige en versleutelde manier.",
+      "ogTitle": "Rianell – persoonlijke gezondheids- en chronische aandoeningenmonitor",
+      "ogDescription": "Registreer symptomen en vitale functies, identificeer patronen met behulp van kunstmatige intelligentie op het apparaat zelf, en stel rapporten samen voor zorgverleners. Gratis, open source, versleuteld en privacyvriendelijk.",
+      "twTitle": "Rianell – persoonlijke gezondheids- en chronische aandoeningenmonitor",
+      "twDescription": "Registreer symptomen en vitale functies, identificeer patronen met behulp van kunstmatige intelligentie op het apparaat zelf, en stel rapporten samen voor de behandelaar. Gratis en vertrouwelijk.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell – persoonlijke gezondheids- en chronische aandoeningenmonitor",
+      "jsonldDescription": "Een gratis, open source persoonlijke gezondheidsapp voor het volgen van chronische aandoeningen, met geïntegreerde kunstmatige intelligentie die inzichten biedt en optionele, versleutelde synchronisatie met de cloud.",
+      "hero": {
+        "eyebrow": "Beheer uw eigen gezondheidsgegevens।",
+        "h1": "Houd uw chronische aandoening in de gaten, op een manier die bij u past",
+        "lede": "Rianell is een gratis applicatie met opensourcecode waarmee u symptomen en vitale functies kunt registreren, trends kunt herkennen met behulp van kunstmatige intelligentie op uw apparaat en duidelijke rapporten kunt delen met uw zorgteam – op een veilige en vertrouwelijke manier, waarbij de gegevens versleuteld worden tijdens het synchroniseren.",
+        "ctas": [
+          {
+            "href": "/",
+            "label": "Open de app gratis",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Ontdek de functies",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Verken Rianell",
+          "cards": [
+            {
+              "page": "symptom-tracking",
+              "h3": "Registratie van symptomen en vitale functies",
+              "p": "Registreer snel en overzichtelijk pijnklachten, vermoeidheid, symptomen en vitale functies, zodat duidelijke patronen zichtbaar worden."
+            },
+            {
+              "page": "mental-health-check",
+              "h3": "Regelmatige gesprekken over het geestelijk welzijn",
+              "p": "Persoonlijke stemmingregistratie en optionele vragenlijsten in de stijl van de PHQ-9/GAD-7, waarbij de gegevens nooit worden opgeslagen."
+            },
+            {
+              "page": "ai-insights",
+              "h3": "AI-inzichten op het apparaat zelf",
+              "p": "Wekelijkse overzichten en samenvattingen voor zorgverleners worden lokaal gegenereerd – uw gezondheidsgegevens blijven altijd op uw apparaat."
+            },
+            {
+              "page": "community",
+              "h3": "Geanonimiseerde gemeenschap",
+              "p": "Meld je aan om ervaringen uit te wisselen met anderen die dezelfde aandoening hebben en om mensen zoals jij te helpen."
+            },
+            {
+              "page": "conditions",
+              "h3": "Richtlijnen voor de staat van het product",
+              "p": "Ontdek welke gegevens u moet bijhouden met betrekking tot uw aandoening en hoe u zich het beste kunt voorbereiden op afspraken."
+            },
+            {
+              "page": "about",
+              "h3": "Privé en open source",
+              "p": "Versleutelde, optionele synchronisatie met de cloud. Open sourcecode. U kunt op elk moment alles exporteren of verwijderen."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Gratis te gebruiken en van nature privacygericht",
+          "paragraphs": [
+            "De basisfuncties van de app zijn gratis en er is geen account nodig. Maak alleen een account aan als u versleutelde synchronisatie tussen uw apparaten wilt gebruiken. Uw gezondheidsgegevens worden versleuteld en, wanneer gesynchroniseerd, opgeslagen op servers binnen de EU; ze worden nooit verkocht."
+          ],
+          "ctas": [
+            {
+              "href": "/",
+              "label": "Open de app gratis",
+              "style": "primary"
+            }
+          ]
+        }
+      ]
+    },
+    "features": {
+      "type": "marketing",
+      "title": "Features - Rianell health & chronic condition tracker",
+      "description": "Alles wat Rianell biedt: het registreren van symptomen en pijn, het bijhouden van vitale functies, het monitoren van de stemming en geestelijke gezondheid, analyses door kunstmatige intelligentie op het apparaat zelf, rapporten voor zorgverleners en een geanonimiseerde community. Gratis en met respect voor de privacy.",
+      "ogTitle": "Features - Rianell health & chronic condition tracker",
+      "ogDescription": "Registratie van symptomen en pijn, vitale functies, stemming, analyses door kunstmatige intelligentie op het apparaat zelf, rapporten voor zorgverleners en een geanonimiseerde community. Gratis en met de nadruk op privacy.",
+      "twTitle": "Features - Rianell health & chronic condition tracker",
+      "twDescription": "Het registreren van symptomen, het bijhouden van vitale functies, de stemming, analyses door kunstmatige intelligentie op het apparaat zelf, rapporten voor zorgverleners en een geanonimiseerde community.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell kenmerken",
+      "jsonldDescription": "Een volledig overzicht van de functies van Rianell voor het volgen van gezondheidsgegevens en chronische aandoeningen.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Homepagina"
+        },
+        {
+          "page": "features",
+          "name": "Kenmerken"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Alles op één plek",
+        "h1": "Met één app kunt u uw chronische aandoening volgen, er meer over te weten komen en informatie ermee delen",
+        "lede": "Rianell is een gratis, open source persoonlijke gezondheidsapp. Noteer uw symptomen en vitale functies binnen enkele seconden, ontdek trends met behulp van kunstmatige intelligentie op het apparaat zelf en stel duidelijke rapporten samen voor uw zorgteam – terwijl uw gegevens versleuteld en privé blijven.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Begin gratis – geen account nodig",
+            "style": "primary"
+          },
+          {
+            "href": "/#home",
+            "label": "Meld je aan om gegevens te synchroniseren en anderen te helpen",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "ariaLabel": "Belangrijkste kenmerken/functionaliteiten",
+          "cards": [
+            {
+              "page": "symptom-tracking",
+              "h3": "Registratie van symptomen en vitale functies",
+              "p": "Registreer snel en eenvoudig informatie over pijn, vermoeidheid, symptomen, gewicht, hartslag, bloeddruk, slaap, aantal stappen, hydratatie en meer met behulp van een gestructureerde procedure."
+            },
+            {
+              "page": "mental-health-check",
+              "h3": "Regelmatige gesprekken over het geestelijk welzijn",
+              "p": "Persoonlijke stemmingregistratie met de mogelijkheid om optioneel vragenlijsten in de stijl van de PHQ-9 en GAD-7 in te vullen. De antwoorden worden nooit opgeslagen of geüpload."
+            },
+            {
+              "page": "ai-insights",
+              "h3": "AI-inzichten op het apparaat zelf",
+              "p": "Wekelijkse overzichten, uitleg van trends en samenvattingen voor zorgverleners worden lokaal op uw apparaat gegenereerd – er worden geen gezondheidsgegevens naar een server verzonden."
+            },
+            {
+              "page": "community",
+              "h3": "Geanonimiseerde gemeenschap",
+              "p": "Meld je aan om je ervaringen te vergelijken met anderen die dezelfde aandoening hebben en draag anonieme gegevens bij om mensen zoals jij te helpen."
+            },
+            {
+              "page": "conditions",
+              "h3": "Richtlijnen voor de staat van het product",
+              "p": "Ontdek welke gegevens u moet bijhouden met betrekking tot uw aandoening en hoe u deze gegevens kunt gebruiken om betere gesprekken te voeren met uw behandelaars."
+            },
+            {
+              "page": "about",
+              "h3": "Privé en open source",
+              "p": "Versleutelde synchronisatie met de cloud is optioneel. De broncode is open source. U kunt op elk moment alles exporteren of verwijderen."
+            }
+          ]
+        },
+        {
+          "kind": "grid",
+          "h2": "Waarom kiezen mensen voor Rianell",
+          "cards": [
+            {
+              "h3": "Voor altijd gratis",
+              "p": "De basisfuncties van de app zijn gratis en er is geen account nodig. Meld u alleen aan als u versleutelde synchronisatie tussen apparaten wilt gebruiken."
+            },
+            {
+              "h3": "Privacy staat voorop",
+              "p": "Gezondheidsgegevens worden versleuteld en opgeslagen op servers binnen de Europese Unie wanneer ze worden gesynchroniseerd; ze worden nooit verkocht. De antwoorden die u bij het invullen van vragenlijsten geeft, blijven altijd op uw apparaat staan."
+            },
+            {
+              "h3": "Werkt ook zonder internetverbinding।",
+              "p": "Installeer het als een app op je telefoon of computer en blijf gegevens registreren, zelfs zonder internetverbinding."
+            }
+          ],
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Probeer het nu gratis uit",
+              "style": "primary"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

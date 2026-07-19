@@ -38,11 +38,25 @@ test('collectRoutes excludes non-content and noindex pages', () => {
 test('buildSitemap emits valid urlset with absolute rianell.com URLs', () => {
   const xml = buildSitemap(webRoot, '2026-01-01');
   assert.match(xml, /<\?xml version="1\.0" encoding="UTF-8"\?>/);
-  assert.match(xml, /<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
+  // urlset now declares the xhtml namespace for hreflang alternates.
+  assert.match(xml, /<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9" xmlns:xhtml="http:\/\/www\.w3\.org\/1999\/xhtml">/);
   assert.match(xml, /<loc>https:\/\/rianell\.com\/<\/loc>/);
   assert.match(xml, /<loc>https:\/\/rianell\.com\/features\/<\/loc>/);
   // Home page has top priority
   assert.match(xml, /<loc>https:\/\/rianell\.com\/<\/loc>\s*<lastmod>2026-01-01<\/lastmod>\s*<changefreq>weekly<\/changefreq>\s*<priority>1\.0<\/priority>/);
+});
+
+test('buildSitemap includes localized routes with reciprocal hreflang alternates', () => {
+  const xml = buildSitemap(webRoot, '2026-01-01');
+  // Localized landing + section pages exist.
+  assert.match(xml, /<loc>https:\/\/rianell\.com\/de\/<\/loc>/);
+  assert.match(xml, /<loc>https:\/\/rianell\.com\/pt-br\/features\/<\/loc>/);
+  assert.match(xml, /<loc>https:\/\/rianell\.com\/ar\/mental-health-check\/<\/loc>/);
+  // Every clustered <url> carries the full alternate set incl. x-default.
+  assert.match(xml, /<xhtml:link rel="alternate" hreflang="x-default" href="https:\/\/rianell\.com\/features\/" \/>/);
+  assert.match(xml, /<xhtml:link rel="alternate" hreflang="de" href="https:\/\/rianell\.com\/de\/features\/" \/>/);
+  // The English home url references localized alternates too.
+  assert.match(xml, /<loc>https:\/\/rianell\.com\/<\/loc>[\s\S]*?<xhtml:link rel="alternate" hreflang="he" href="https:\/\/rianell\.com\/he\/" \/>/);
 });
 
 test('committed sitemap.xml is up to date (ignoring lastmod dates)', () => {

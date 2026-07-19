@@ -16,15 +16,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  PAGE_ORDER, PAGE_META, LOCALES, SLUG, hreflangCluster, pageUrl,
+} from './seo-page-template.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(scriptDir, '..', '..');
 const WEB_ROOT = path.join(root, 'apps', 'pwa-webapp');
 const BASE_URL = 'https://rianell.com/';
 
-// Files/dirs that must never appear in the sitemap.
+// Map an English base route (as returned by collectRoutes) to its SEO page key,
+// so its <url> can carry the reciprocal hreflang cluster.
+const SLUG_TO_PAGE = new Map(PAGE_ORDER.map((k) => [PAGE_META[k].slug, k]));
+
+// Files/dirs that must never appear in the sitemap. Localized subtrees (de/, ar/, …)
+// are enumerated deterministically from the SEO template, not by directory scan,
+// so they are excluded here to avoid duplicate / alternate-less entries.
 const EXCLUDE_FILES = new Set(['404.html', 'connector-success.html']);
-const EXCLUDE_DIRS = new Set(['node_modules', '.trace-build', '.android-dist', 'design-catalog', 'Icons', 'models', 'i18n-packs', 'partials']);
+const EXCLUDE_DIRS = new Set([
+  'node_modules', '.trace-build', '.android-dist', 'design-catalog', 'Icons',
+  'models', 'i18n-packs', 'partials', ...Object.values(SLUG),
+]);
 
 function parseArgs(argv) {
   let siteDir = '';
@@ -69,22 +81,47 @@ export function collectRoutes(webRoot) {
   return [...new Set(routes)].sort((a, b) => a.localeCompare(b));
 }
 
+/** <xhtml:link> alternate lines for a page's reciprocal hreflang cluster. */
+function altLinks(pageKey) {
+  return hreflangCluster(pageKey)
+    .map(([hl, href]) => `    <xhtml:link rel="alternate" hreflang="${hl}" href="${href}" />`)
+    .join('\n');
+}
+
+function urlBlock(loc, date, changefreq, priority, alt) {
+  const altBlock = alt ? `\n${alt}` : '';
+  return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>${altBlock}\n  </url>`;
+}
+
 export function buildSitemap(webRoot, lastmod) {
   const date = lastmod || new Date().toISOString().slice(0, 10);
-  const routes = collectRoutes(webRoot);
-  const urls = routes
-    .map((r) => {
-      // Home page gets top priority; folder section pages next; legal pages lower.
-      let priority = '0.6';
-      if (r === '') priority = '1.0';
-      else if (r.endsWith('/')) priority = '0.8';
-      else if (r === 'about.html') priority = '0.7';
-      else if (r === 'privacy.html' || r === 'tos.html') priority = '0.3';
-      const changefreq = r === '' ? 'weekly' : 'monthly';
-      return `  <url>\n    <loc>${BASE_URL}${r}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
-    })
-    .join('\n');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
+  const blocks = [];
+
+  // English base routes (scanned). Clustered pages carry hreflang alternates.
+  for (const r of collectRoutes(webRoot)) {
+    let priority = '0.6';
+    if (r === '') priority = '1.0';
+    else if (r.endsWith('/')) priority = '0.8';
+    else if (r === 'about.html') priority = '0.7';
+    else if (r === 'privacy.html' || r === 'tos.html') priority = '0.3';
+    const changefreq = r === '' ? 'weekly' : 'monthly';
+    const pageKey = SLUG_TO_PAGE.get(r);
+    blocks.push(urlBlock(`${BASE_URL}${r}`, date, changefreq, priority, pageKey ? altLinks(pageKey) : ''));
+  }
+
+  // Localized subtrees (deterministic: locale × page), each with the full cluster.
+  for (const locale of LOCALES) {
+    for (const pageKey of PAGE_ORDER) {
+      let priority = '0.7';
+      if (pageKey === 'home') priority = '0.9';
+      else if (pageKey === 'about') priority = '0.6';
+      const changefreq = pageKey === 'home' ? 'weekly' : 'monthly';
+      blocks.push(urlBlock(pageUrl(pageKey, locale), date, changefreq, priority, altLinks(pageKey)));
+    }
+  }
+
+  const urls = blocks.join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`;
 }
 
 function main() {
@@ -101,12 +138,12 @@ function main() {
       console.error('[sitemap] stale: run "npm run seo:sitemap" and commit apps/pwa-webapp/sitemap.xml');
       process.exit(1);
     }
-    console.log('[sitemap] up to date:', collectRoutes(webRoot).length, 'urls');
+    console.log('[sitemap] up to date:', (xml.match(/<url>/g) || []).length, 'urls');
     return;
   }
 
   fs.writeFileSync(outPath, xml, 'utf8');
-  console.log('[sitemap] wrote', path.relative(root, outPath), '-', collectRoutes(webRoot).length, 'urls');
+  console.log('[sitemap] wrote', path.relative(root, outPath), '-', (xml.match(/<url>/g) || []).length, 'urls');
 }
 
 const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;

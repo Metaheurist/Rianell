@@ -1,0 +1,811 @@
+{
+  "_comment": "Machine-translated (translategemma:27b) SEO copy for es-ES. Regenerate with: npm run seo:translate -- --locales=es-ES. Structure mirrors seo-content/en.json.",
+  "site": {
+    "brand": "Rianell",
+    "logoAlt": "Logotipo de Rianell",
+    "skipToContent": "Ir al contenido principal",
+    "primaryNavLabel": "Primario/a",
+    "ogImageAlt": "Rianell: registre sus enfermedades crónicas y controle sus datos de salud",
+    "openApp": "Abrir la aplicación",
+    "nav": [
+      {
+        "page": "features",
+        "label": "Características"
+      },
+      {
+        "page": "symptom-tracking",
+        "label": "Síntomas"
+      },
+      {
+        "page": "mental-health-check",
+        "label": "Salud mental"
+      },
+      {
+        "page": "ai-insights",
+        "label": "Información obtenida mediante inteligencia artificial"
+      },
+      {
+        "page": "community",
+        "label": "Comunidad"
+      },
+      {
+        "page": "conditions",
+        "label": "Condiciones"
+      }
+    ],
+    "footer": {
+      "links": [
+        {
+          "page": "features",
+          "label": "Características"
+        },
+        {
+          "page": "symptom-tracking",
+          "label": "Registro de síntomas"
+        },
+        {
+          "page": "mental-health-check",
+          "label": "Salud mental"
+        },
+        {
+          "page": "ai-insights",
+          "label": "Información obtenida mediante inteligencia artificial"
+        },
+        {
+          "page": "community",
+          "label": "Comunidad"
+        },
+        {
+          "page": "conditions",
+          "label": "Condiciones"
+        },
+        {
+          "page": "about",
+          "label": "Acerca de"
+        },
+        {
+          "href": "/privacy.html",
+          "label": "Privacidad"
+        },
+        {
+          "href": "/tos.html",
+          "label": "Términos y condiciones"
+        }
+      ],
+      "tagline": "Rianell: aplicación gratuita y de código abierto para el seguimiento personalizado de la salud."
+    }
+  },
+  "pages": {
+    "home": {
+      "type": "marketing",
+      "title": "Rianell: controla tu enfermedad crónica y gestiona tus propios datos",
+      "description": "Rianell es una aplicación gratuita y de código abierto para el seguimiento de la salud personal. Registre sus síntomas y constantes vitales, identifique patrones con la ayuda de la inteligencia artificial integrada en el dispositivo y comparta informes claros con su equipo médico, todo ello de forma privada y segura.",
+      "ogTitle": "Rianell: aplicación para el seguimiento de la salud personal y las enfermedades crónicas",
+      "ogDescription": "Registre los síntomas y los signos vitales, identifique patrones con la inteligencia artificial integrada en el dispositivo y genere informes para los profesionales de la salud. Es gratuito, de código abierto, está cifrado y garantiza la privacidad.",
+      "twTitle": "Rianell: aplicación para el seguimiento de la salud personal y las enfermedades crónicas",
+      "twDescription": "Registre los síntomas y los signos vitales, identifique patrones con la inteligencia artificial integrada en el dispositivo y genere informes para los profesionales de la salud. Es gratuito y protege su privacidad.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell: aplicación para el seguimiento de la salud personal y las enfermedades crónicas",
+      "jsonldDescription": "Una aplicación gratuita y de código abierto para el seguimiento de la salud personal, diseñada para controlar enfermedades crónicas, que ofrece información basada en inteligencia artificial directamente en el dispositivo y sincronización opcional con la nube mediante cifrado.",
+      "hero": {
+        "eyebrow": "Tenga el control de sus datos de salud",
+        "h1": "Haz un seguimiento de tu enfermedad crónica a tu manera",
+        "lede": "Rianell es una aplicación gratuita y de código abierto que permite registrar los síntomas y las constantes vitales, identificar patrones mediante inteligencia artificial integrada en el dispositivo y compartir informes claros con su equipo médico, de forma privada y cifrada al sincronizar los datos.",
+        "ctas": [
+          {
+            "href": "/",
+            "label": "Descarga la aplicación gratis",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Descubre las funciones",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Explora Rianell",
+          "cards": [
+            {
+              "page": "symptom-tracking",
+              "h3": "Registro de síntomas y signos vitales",
+              "p": "Registre el dolor, la fatiga, los síntomas y las constantes vitales de forma rápida y sencilla, gracias a un proceso guiado que le permitirá identificar patrones claros."
+            },
+            {
+              "page": "mental-health-check",
+              "h3": "Consultas para evaluar la salud mental",
+              "p": "Registro privado del estado de ánimo y cuestionarios opcionales al estilo PHQ-9/GAD-7 que no se guardan."
+            },
+            {
+              "page": "ai-insights",
+              "h3": "Análisis de inteligencia artificial integrados en el dispositivo",
+              "p": "Informes semanales y resúmenes para profesionales de la salud generados localmente: sus datos de salud nunca abandonan su dispositivo."
+            },
+            {
+              "page": "community",
+              "h3": "Comunidad anónima",
+              "p": "Si lo desea, puede participar para comparar su caso con el de otras personas que padecen la misma condición y ayudar a quienes se encuentran en una situación similar."
+            },
+            {
+              "page": "conditions",
+              "h3": "Guías sobre el estado de los productos",
+              "p": "Descubra qué datos debe registrar sobre su enfermedad y cómo prepararse para las citas médicas."
+            },
+            {
+              "page": "about",
+              "h3": "Privado y de código abierto",
+              "p": "Cifrado y sincronización opcional con la nube. Código abierto. Puede exportar o eliminar todos los datos en cualquier momento."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Gratuito para empezar, con privacidad integrada desde el diseño",
+          "paragraphs": [
+            "La aplicación principal es gratuita y no requiere registro. Solo cree una cuenta si desea sincronizar sus datos de forma segura en todos sus dispositivos. Sus datos de salud están cifrados, se almacenan en servidores ubicados en la Unión Europea cuando se sincronizan y nunca se venden."
+          ],
+          "ctas": [
+            {
+              "href": "/",
+              "label": "Descarga la aplicación gratis",
+              "style": "primary"
+            }
+          ]
+        }
+      ]
+    },
+    "features": {
+      "type": "marketing",
+      "title": "Features - Rianell health & chronic condition tracker",
+      "description": "Todo lo que ofrece Rianell: registro de síntomas y del nivel de dolor, control de constantes vitales, seguimiento del estado de ánimo y la salud mental, análisis con inteligencia artificial integrados en el dispositivo, informes para los profesionales sanitarios y una comunidad anónima. Es gratuito y prioriza la privacidad.",
+      "ogTitle": "Features - Rianell health & chronic condition tracker",
+      "ogDescription": "Registro de síntomas y dolor, datos vitales, estado de ánimo, información generada por inteligencia artificial integrada en el dispositivo, informes para profesionales sanitarios y una comunidad anónima. Gratuito y con total privacidad.",
+      "twTitle": "Features - Rianell health & chronic condition tracker",
+      "twDescription": "Registro de síntomas, datos vitales, estado de ánimo, análisis basados en inteligencia artificial integrados en el dispositivo, informes clínicos y una comunidad anónima.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell features",
+      "jsonldDescription": "Una descripción completa de las funciones de seguimiento de la salud y de enfermedades crónicas que ofrece Rianell.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Inicio"
+        },
+        {
+          "page": "features",
+          "name": "Características"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Todo en un solo lugar",
+        "h1": "Una sola aplicación para registrar, comprender y compartir información sobre su enfermedad crónica",
+        "lede": "Rianell es una aplicación gratuita y de código abierto para el seguimiento de la salud personal. Registre sus síntomas y constantes vitales en cuestión de segundos, identifique patrones gracias a la inteligencia artificial integrada en el dispositivo y genere informes claros para su equipo médico; todo ello mientras sus datos permanecen cifrados y protegidos.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Comience gratis, no necesita crear una cuenta",
+            "style": "primary"
+          },
+          {
+            "href": "/#home",
+            "label": "Regístrese para sincronizar datos y ayudar a otros",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "ariaLabel": "Características principales",
+          "cards": [
+            {
+              "page": "symptom-tracking",
+              "h3": "Registro de síntomas y signos vitales",
+              "p": "Registre el dolor, la fatiga, los síntomas, el peso, la frecuencia cardíaca, la presión arterial, las horas de sueño, la cantidad de pasos dados, el nivel de hidratación y otros datos importantes en un proceso rápido y guiado."
+            },
+            {
+              "page": "mental-health-check",
+              "h3": "Consultas para evaluar la salud mental",
+              "p": "Registro privado del estado de ánimo con la opción de realizar evaluaciones periódicas similares a las del cuestionario PHQ-9 y al GAD-7. Las respuestas no se almacenan ni se suben a ningún servidor."
+            },
+            {
+              "page": "ai-insights",
+              "h3": "Análisis de inteligencia artificial integrados en el dispositivo",
+              "p": "Informes semanales, análisis de tendencias y resúmenes para profesionales sanitarios generados localmente en su dispositivo; no se envían datos de salud a ningún servidor."
+            },
+            {
+              "page": "community",
+              "h3": "Comunidad anónima",
+              "p": "Si lo desea, puede participar en un programa de comparación con otras personas que padecen la misma afección y contribuir con datos anónimos para ayudar a personas como usted."
+            },
+            {
+              "page": "conditions",
+              "h3": "Guías sobre el estado de los productos",
+              "p": "Descubra qué datos debe registrar sobre su enfermedad y cómo puede utilizar esos registros para mantener conversaciones más productivas con sus médicos."
+            },
+            {
+              "page": "about",
+              "h3": "Privado y de código abierto",
+              "p": "La sincronización en la nube con cifrado es opcional. El código es de acceso abierto. Puede exportar o eliminar todo el contenido en cualquier momento."
+            }
+          ]
+        },
+        {
+          "kind": "grid",
+          "h2": "Why people choose Rianell",
+          "cards": [
+            {
+              "h3": "Gratis para siempre",
+              "p": "La aplicación principal es gratuita y no requiere registro. Solo debe registrarse si desea sincronizar sus datos de forma segura entre dispositivos."
+            },
+            {
+              "h3": "La privacidad es lo primero",
+              "p": "Los datos de salud están encriptados y se almacenan en servidores ubicados en la Unión Europea cuando se sincronizan; nunca se venden. Las respuestas obtenidas durante las evaluaciones no abandonan su dispositivo."
+            },
+            {
+              "h3": "Funciona sin conexión a Internet",
+              "p": "Instálalo como una aplicación en tu teléfono o computadora y sigue registrando tus datos incluso sin conexión a Internet."
+            }
+          ],
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Pruébalo gratis ahora",
+              "style": "primary"
+            }
+          ]
+        }
+      ]
+    },
+    "symptom-tracking": {
+      "type": "marketing",
+      "title": "Seguimiento de los síntomas y de las constantes vitales — Rianell",
+      "description": "Registre sus síntomas, el dolor, la fatiga, el peso, la frecuencia cardíaca, la presión arterial, las horas de sueño y otros datos con Rianell. Se trata de un registro diario rápido y fácil de usar que le permite identificar patrones claros para usted y sus médicos. Es gratuito.",
+      "ogTitle": "Registro de síntomas y signos vitales — Rianell",
+      "ogDescription": "Registre sus síntomas, el dolor, la fatiga y los signos vitales en un registro diario rápido que le permitirá identificar patrones claros para usted y sus médicos.",
+      "twTitle": "Registro de síntomas y signos vitales — Rianell",
+      "twDescription": "Un registro diario rápido y sencillo para anotar los síntomas, el dolor, la fatiga y las constantes vitales, que permite identificar patrones claros.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Seguimiento de los síntomas y de las constantes vitales con Rianell",
+      "jsonldDescription": "Cómo registrar los síntomas, el dolor, la fatiga y las constantes vitales con Rianell.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Inicio"
+        },
+        {
+          "page": "features",
+          "name": "Características"
+        },
+        {
+          "page": "symptom-tracking",
+          "name": "Registro de síntomas"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Registro diario de salud",
+        "h1": "Registre los síntomas y las constantes vitales en cuestión de segundos",
+        "lede": "El registro guiado de Rianell facilita que anotes cómo te sientes cada día y luego te muestra los patrones subyacentes. Está diseñado para personas que padecen enfermedades crónicas o de larga duración y desean llevar un registro claro y privado a lo largo del tiempo.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Comience a registrar sus datos de forma gratuita",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Ver todas las funciones",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Qué puedes controlar o supervisar",
+          "cards": [
+            {
+              "h3": "Síntomas y dolor",
+              "p": "Evalúe el nivel de dolor y la fatiga, indique la intensidad de los síntomas y señale las zonas del cuerpo donde se localiza el dolor en un diagrama corporal."
+            },
+            {
+              "h3": "Signos vitales",
+              "p": "Peso, frecuencia cardíaca, presión arterial y nivel de glucosa en sangre, con gráficos claros que muestran la evolución a lo largo del tiempo."
+            },
+            {
+              "h3": "Estilo de vida",
+              "p": "Controla tu sueño, el número de pasos que das, la hidratación, el ejercicio y la alimentación (incluida la posibilidad de escanear códigos de barras) en un solo lugar."
+            },
+            {
+              "h3": "Medicamentos y citas médicas",
+              "p": "Guarde los medicamentos y anote las citas junto con sus registros para que no se pierda nada."
+            },
+            {
+              "h3": "Seguimiento del ciclo menstrual",
+              "p": "Función opcional para registrar el ciclo menstrual y relacionarlo con tu estado de ánimo diario."
+            },
+            {
+              "h3": "Notas",
+              "p": "Puede añadir notas en formato de texto libre a cualquier entrada para incluir información adicional que un simple número no puede transmitir."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "De simples registros diarios a información valiosa y relevante",
+          "paragraphs": [
+            "Los registros individuales son útiles, pero el verdadero valor reside en las tendencias. Rianell convierte su historial en gráficos fáciles de leer, destaca los cambios y le ayuda a preparar un resumen conciso para llevar a sus citas."
+          ],
+          "list": [
+            "Identifique qué días, actividades o tratamientos coinciden con una mejora o un empeoramiento de los síntomas.",
+            "Exporte un informe completo para compartirlo con su médico de cabecera, especialista o equipo de atención médica.",
+            "Guarda toda la información en un solo lugar privado en lugar de tenerla dispersa en diferentes notas y aplicaciones."
+          ],
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Comience gratis, no necesita crear una cuenta",
+              "style": "primary"
+            },
+            {
+              "page": "ai-insights",
+              "label": "Descubre las ventajas de la inteligencia artificial",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "mental-health-check": {
+      "type": "marketing",
+      "title": "Mood & mental-health check-ins (PHQ-9, GAD-7) - Rianell",
+      "description": "Registre su estado de ánimo y controle sus niveles de ansiedad y depresión mediante cuestionarios privados, similares al PHQ-9 y al GAD-7, en Rianell. Las respuestas no se almacenan ni se suben a ningún servidor. Es gratuito y prioriza la privacidad; no es un diagnóstico.",
+      "ogTitle": "Mood & mental-health check-ins (PHQ-9, GAD-7) - Rianell",
+      "ogDescription": "Cuestionarios confidenciales tipo PHQ-9 y GAD-7 para evaluar el estado de ánimo y realizar un seguimiento. Las respuestas no se almacenan ni se suben a internet. No constituye un diagnóstico.",
+      "twTitle": "Evaluación del estado de ánimo y la salud mental — Rianell",
+      "twDescription": "Cuestionarios privados tipo PHQ-9 y GAD-7 para evaluar el estado de ánimo y realizar un seguimiento. Las respuestas no se guardan.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Evaluación del estado de ánimo y la salud mental con Rianell",
+      "jsonldDescription": "Registro privado del estado de ánimo y cuestionarios tipo PHQ-9/GAD-7 que no se guardan ni se suben a ninguna plataforma.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Inicio"
+        },
+        {
+          "page": "features",
+          "name": "Características"
+        },
+        {
+          "page": "mental-health-check",
+          "name": "Salud mental"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Salud mental y estado de ánimo",
+        "h1": "Consultas privadas para evaluar el estado de ánimo y la salud mental",
+        "lede": "Vivir con una enfermedad crónica afecta a cómo te sientes, y no solo a cómo funcionas. Rianell te permite registrar tu estado de ánimo y, cuando quieras, realizar evaluaciones tipo PHQ-9 y GAD-7, de forma privada, en tu propio dispositivo.",
+        "note": "Rianell no es un dispositivo médico y no proporciona diagnóstico ni tratamiento. Si está pasando por una crisis o corre el riesgo de hacerse daño, póngase en contacto inmediatamente con los servicios de emergencia locales o con una línea de ayuda para situaciones de crisis.",
+        "ctas": [
+          {
+            "href": "/#mood",
+            "label": "Registro gratuito",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Ver todas las funciones",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Cómo funciona",
+          "cards": [
+            {
+              "h3": "Registro rápido del estado de ánimo",
+              "p": "Registra cómo te sientes con un solo toque y observa las tendencias de tu estado de ánimo junto con tus síntomas y patrones de sueño."
+            },
+            {
+              "h3": "Opcionales registros de llegada",
+              "p": "Comience con una evaluación breve que pueda ampliarse hasta incluir preguntas más completas, similares a las del cuestionario PHQ-9 o GAD-7, pero solo si es pertinente."
+            },
+            {
+              "h3": "Nunca se guardó",
+              "p": "Las respuestas obtenidas durante el proceso de selección se procesan directamente en el dispositivo y nunca se guardan en archivos de registro, almacenamiento local ni en la nube."
+            }
+          ]
+        },
+        {
+          "kind": "faq",
+          "h2": "Preguntas frecuentes",
+          "items": [
+            {
+              "summary": "¿Qué son el PHQ-9 y el GAD-7?",
+              "body": "Son cuestionarios de autoevaluación ampliamente utilizados que permiten determinar con qué frecuencia ha experimentado ciertos sentimientos en las últimas dos semanas. Rianell los ofrece como herramientas opcionales y confidenciales para ayudarle a identificar cambios a lo largo del tiempo. Son instrumentos de detección, no un diagnóstico."
+            },
+            {
+              "summary": "¿Almacena o sube Rianell mis respuestas?",
+              "body": "No. Las respuestas obtenidas en cada evaluación individual se procesan directamente en su dispositivo y nunca se guardan en archivos de registro, bases de datos locales ni en la nube."
+            },
+            {
+              "summary": "¿Un examen médico de rutina equivale a un diagnóstico?",
+              "body": "No. Una consulta puede ayudarle a reflexionar e iniciar una conversación con un profesional cualificado. Si cree que podría estar en riesgo, póngase en contacto de inmediato con un servicio de salud local o con el número de emergencias."
+            },
+            {
+              "summary": "¿Necesito crear una cuenta?",
+              "body": "No. El seguimiento del estado de ánimo y las sesiones de registro son gratuitas y funcionan sin necesidad de crear una cuenta. Si lo desea, puede crear una cuenta más adelante para sincronizar los datos de forma segura."
+            }
+          ],
+          "ctas": [
+            {
+              "href": "/#mood",
+              "label": "Comience gratis, no necesita crear una cuenta",
+              "style": "primary"
+            },
+            {
+              "page": "community",
+              "label": "Conéctate con otras personas",
+              "style": "ghost"
+            }
+          ]
+        }
+      ],
+      "faqSchema": [
+        {
+          "q": "¿Qué son el PHQ-9 y el GAD-7?",
+          "a": "El PHQ-9 y el GAD-7 son cuestionarios de autoevaluación ampliamente utilizados que preguntan con qué frecuencia ha experimentado ciertos sentimientos en las últimas dos semanas. Rianell los ofrece como herramientas opcionales y confidenciales para ayudarle a detectar cambios a lo largo del tiempo. Son instrumentos de detección, no un diagnóstico."
+        },
+        {
+          "q": "¿Almacena o sube Rianell mis respuestas?",
+          "a": "No. Las respuestas que usted proporciona durante el cuestionario se procesan en su dispositivo y nunca se guardan en archivos de registro, bases de datos locales ni en la nube. Solo usted puede verlas, en el momento en que completa el proceso de registro."
+        },
+        {
+          "q": "¿Un examen médico de rutina equivale a un diagnóstico?",
+          "a": "No. Rianell no es un dispositivo médico ni sirve para realizar diagnósticos. Un cuestionario puede ayudarle a reflexionar e iniciar una conversación con un profesional cualificado. Si cree que podría estar en riesgo, póngase en contacto de inmediato con un servicio de salud local o con el número de emergencias."
+        },
+        {
+          "q": "¿Necesito crear una cuenta para poder utilizar la función de seguimiento del estado de ánimo?",
+          "a": "No. El seguimiento del estado de ánimo y las sesiones de registro son gratuitas y funcionan sin necesidad de crear una cuenta. Opcionalmente, puede crear una cuenta más adelante para sincronizar sus datos de forma segura en todos sus dispositivos."
+        }
+      ]
+    },
+    "ai-insights": {
+      "type": "marketing",
+      "title": "Información sobre la salud obtenida mediante inteligencia artificial directamente en el dispositivo — Rianell",
+      "description": "Rianell utiliza la inteligencia artificial directamente en su dispositivo para generar informes semanales, explicar sus gráficos y preparar resúmenes informativos para los profesionales de la salud, sin necesidad de enviar sus datos médicos a un servidor. Es gratuito y protege su privacidad.",
+      "ogTitle": "Información sobre la salud obtenida mediante inteligencia artificial directamente en el dispositivo — Rianell",
+      "ogDescription": "Informes semanales, explicaciones de gráficos y resúmenes para profesionales sanitarios generados localmente en su dispositivo; no se envían datos de salud a ningún servidor.",
+      "twTitle": "Información sobre la salud obtenida mediante inteligencia artificial directamente en el dispositivo — Rianell",
+      "twDescription": "Informes semanales y resúmenes para los profesionales sanitarios que se generan localmente en su dispositivo.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Análisis de salud basados en inteligencia artificial, directamente en el dispositivo, con Rianell",
+      "jsonldDescription": "¿Cómo utiliza Rianell la inteligencia artificial integrada en el dispositivo para resumir las tendencias y preparar informes concisos para los médicos, sin necesidad de enviar datos sanitarios a un servidor?",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Inicio"
+        },
+        {
+          "page": "features",
+          "name": "Características"
+        },
+        {
+          "page": "ai-insights",
+          "name": "Información obtenida mediante inteligencia artificial"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Inteligencia integrada en el dispositivo",
+        "h1": "Información valiosa obtenida mediante inteligencia artificial que no requiere el envío de sus datos a terceros",
+        "lede": "Rianell puede ejecutar un modelo de lenguaje directamente en su dispositivo para resumir su semana, explicar lo que muestra un gráfico y redactar un resumen que pueda entregar a su médico, todo ello sin necesidad de subir sus datos de salud a ninguna plataforma.",
+        "ctas": [
+          {
+            "href": "/#ai",
+            "label": "Prueba las funciones de análisis basadas en inteligencia artificial de forma gratuita",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Ver todas las funciones",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Qué puede hacer la IA",
+          "cards": [
+            {
+              "h3": "Revisión semanal",
+              "p": "Un resumen en lenguaje sencillo de cómo han evolucionado sus síntomas, su estado de ánimo y sus constantes vitales durante la última semana."
+            },
+            {
+              "h3": "Explique este gráfico",
+              "p": "Pregunte qué significa una tendencia y obtenga una explicación clara basada en sus propios datos."
+            },
+            {
+              "h3": "Resumen para el personal clínico",
+              "p": "Elabore un resumen conciso y bien estructurado para aprovechar al máximo una consulta breve."
+            },
+            {
+              "h3": "Charla sobre salud",
+              "p": "Haz preguntas sobre tus registros utilizando lenguaje natural, y el modelo se ejecutará localmente."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Diseñado para garantizar la privacidad",
+          "paragraphs": [
+            "La mayoría de las aplicaciones de salud envían sus datos a un servidor para que funcionen las funciones basadas en inteligencia artificial. Rianell adopta un enfoque diferente: el modelo se ejecuta en su navegador o dispositivo, por lo que el análisis se realiza donde ya se encuentran sus datos. Ninguna información sobre su salud se transmite para ejecutar estas funciones."
+          ],
+          "list": [
+            "Funciona directamente en el dispositivo utilizando modelos eficientes y ofrece una alternativa fluida para dispositivos con menor capacidad de procesamiento.",
+            "Funciona en conjunto con una sincronización opcional y cifrada en la nube; usted decide qué datos se guardan fuera de su dispositivo.",
+            "La información que ofrecemos es orientativa y no constituye un consejo médico."
+          ],
+          "note": "La información proporcionada por la inteligencia artificial es solo orientativa y puede no ser perfecta. Siempre confirme las decisiones importantes con un profesional de la salud cualificado.",
+          "ctas": [
+            {
+              "href": "/#ai",
+              "label": "Comience gratis, no necesita crear una cuenta",
+              "style": "primary"
+            },
+            {
+              "page": "symptom-tracking",
+              "label": "Comienza a realizar el seguimiento de inmediato",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "community": {
+      "type": "marketing",
+      "title": "Información anónima obtenida de la comunidad — Rianell",
+      "description": "Únase a la comunidad anónima de Rianell para ver cómo están otros usuarios que padecen su misma enfermedad crónica y contribuya con datos que protejan su privacidad y ayuden a personas como usted. Siempre participe y siempre mantenga el anonimato.",
+      "ogTitle": "Información anónima obtenida de la comunidad — Rianell",
+      "ogDescription": "Observe cómo están otros pacientes con la misma condición y comparte datos que protejan tu privacidad y ayuden a personas como tú. Siempre elige participar activamente.",
+      "twTitle": "Información anónima obtenida de la comunidad — Rianell",
+      "twDescription": "Observe cómo están otros pacientes con la misma condición y contribuya compartiendo datos respetando su privacidad. Siempre dé su consentimiento expreso.",
+      "jsonldType": "WebPage",
+      "jsonldName": "Rianell información anónima obtenida de la comunidad",
+      "jsonldDescription": "Una comunidad en la que los usuarios pueden participar voluntariamente, donde se garantiza el anonimato y la privacidad, y que permite a las personas con la misma condición compartir conocimientos y aprender unos de otros.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Inicio"
+        },
+        {
+          "page": "features",
+          "name": "Características"
+        },
+        {
+          "page": "community",
+          "name": "Comunidad"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Juntos somos más fuertes",
+        "h1": "Ayuda a otras personas que padecen la misma enfermedad y aprende de sus experiencias",
+        "lede": "Una enfermedad crónica puede generar una sensación de aislamiento. La comunidad a la que se puede unirse voluntariamente en Rianell transforma los registros individuales en información anónima y confidencial, lo que le permite ver cómo están las personas con la misma condición y contribuir al conocimiento que ayudará a otros pacientes.",
+        "ctas": [
+          {
+            "href": "/#home",
+            "label": "Regístrese para participar",
+            "style": "primary"
+          },
+          {
+            "href": "/#log",
+            "label": "O empieza a registrar tus actividades de forma gratuita",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "Cómo funciona la comunidad",
+          "cards": [
+            {
+              "h3": "Anonimizado por defecto",
+              "p": "Los datos compartidos se procesan mediante técnicas de agregación que protegen la privacidad, por lo que no es posible identificar a ningún individuo a partir de los resultados."
+            },
+            {
+              "h3": "Siempre debe darse el consentimiento expreso",
+              "p": "No se comparte información a menos que active explícitamente la opción de compartir datos. Puede desactivarla en cualquier momento."
+            },
+            {
+              "h3": "Conoce a personas como tú",
+              "p": "Compara las tendencias con otras personas que padecen la misma afección y descubre qué suele ser útil."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Su contribución es importante",
+          "paragraphs": [
+            "Cuando decide participar, los datos anonimizados que proporciona se incorporan a una base de datos compartida que permite conocer la evolución de las experiencias de personas con su misma condición médica. Es una forma de contribuir y ayudar a investigadores, médicos y otros pacientes a comprender mejor enfermedades o trastornos que a menudo no reciben suficiente atención."
+          ],
+          "list": [
+            "Comparta datos anonimizados para contribuir a mejorar la comprensión de su enfermedad.",
+            "Aproveche las ventajas de la información compartida sin revelar los datos personales de nadie.",
+            "Mantén el control: la opción de compartir es voluntaria y se puede desactivar en cualquier momento."
+          ],
+          "note": "La información que se comparte en la comunidad es meramente informativa y no sustituye el consejo médico profesional.",
+          "ctas": [
+            {
+              "href": "/#home",
+              "label": "Cree una cuenta gratuita",
+              "style": "primary"
+            },
+            {
+              "href": "/privacy.html",
+              "label": "Lea la política de privacidad",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "conditions": {
+      "type": "marketing",
+      "title": "Guías para el seguimiento de enfermedades crónicas — Rianell",
+      "description": "Descubra qué datos debe registrar sobre su enfermedad crónica y cómo transformar esos registros diarios en conversaciones más productivas con su equipo de atención médica. Consejos prácticos para el manejo de enfermedades crónicas, disponibles gratuitamente con Rianell.",
+      "ogTitle": "Guías para el seguimiento de enfermedades crónicas — Rianell",
+      "ogDescription": "Descubra qué datos debe registrar sobre su enfermedad y cómo transformar esos registros diarios en conversaciones más productivas con su equipo de atención médica.",
+      "twTitle": "Guías para el seguimiento de enfermedades crónicas — Rianell",
+      "twDescription": "Descubra qué datos debe registrar sobre su enfermedad y cómo puede utilizar esos registros para mejorar la comunicación con sus médicos.",
+      "jsonldType": "MedicalWebPage",
+      "jsonldName": "Guías para el seguimiento de enfermedades crónicas",
+      "jsonldDescription": "Consejos sobre qué datos registrar para controlar las enfermedades crónicas más comunes y cómo prepararse para las citas médicas.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Inicio"
+        },
+        {
+          "page": "features",
+          "name": "Características"
+        },
+        {
+          "page": "conditions",
+          "name": "Condiciones"
+        }
+      ],
+      "hero": {
+        "eyebrow": "Infórmese sobre su enfermedad/afección",
+        "h1": "Comprenda y controle su enfermedad crónica",
+        "lede": "Cada condición presenta sus propios indicadores que conviene observar. Estas guías le ayudarán a determinar qué datos registrar, con qué frecuencia y cómo transformar meses de información en una descripción clara y concisa que permita a los médicos tomar decisiones informadas.",
+        "ctas": [
+          {
+            "href": "/#log",
+            "label": "Comienza a realizar un seguimiento gratuito",
+            "style": "primary"
+          },
+          {
+            "page": "features",
+            "label": "Ver todas las funciones",
+            "style": "ghost"
+          }
+        ]
+      },
+      "sections": [
+        {
+          "kind": "grid",
+          "h2": "¿Qué merece la pena monitorizar",
+          "cards": [
+            {
+              "h3": "Afecciones que causan dolor y fatiga",
+              "p": "Registre diariamente el nivel de dolor, la fatiga y los factores desencadenantes de las crisis para identificar patrones que expliquen por qué algunos días se siente mejor o peor."
+            },
+            {
+              "h3": "Salud cardiometabólica",
+              "p": "Realice un seguimiento de la evolución del peso, la presión arterial, el ritmo cardíaco y los niveles de glucosa a lo largo de varias semanas y meses."
+            },
+            {
+              "h3": "Trastornos del estado de ánimo y afecciones mentales",
+              "p": "Combina el registro de tu estado de ánimo con el seguimiento del sueño y la actividad física para comprender qué factores influyen en tu bienestar general."
+            },
+            {
+              "h3": "Autoinmune e inflamatorio",
+              "p": "Registre los síntomas, los medicamentos y el estilo de vida para poder relacionarlos con las exacerbaciones y las fases de remisión."
+            }
+          ]
+        },
+        {
+          "kind": "prose",
+          "h2": "Convierta el seguimiento en una mejor atención al paciente",
+          "paragraphs": [
+            "Llevar un registro constante es solo la mitad del proceso. El objetivo es acudir a una cita con una idea clara y precisa de cómo han ido las últimas semanas, y no simplemente basarse en recuerdos vagos. Rianell te ayuda a:"
+          ],
+          "list": [
+            "Seleccione un conjunto pequeño y sostenible de elementos que pueda controlar para evaluar su estado de salud.",
+            "Preste atención a las tendencias en lugar de fijarse en datos aislados, para que el ruido no lo induzca a error.",
+            "Exporte un informe conciso y, opcionalmente, un resumen redactado por inteligencia artificial para su médico."
+          ],
+          "note": "Estas guías ofrecen información general y no constituyen un consejo médico. Su equipo de atención médica conoce mejor su situación; utilice sus registros para facilitar la conversación.",
+          "ctas": [
+            {
+              "href": "/#log",
+              "label": "Comience gratis, no necesita crear una cuenta",
+              "style": "primary"
+            },
+            {
+              "page": "community",
+              "label": "Compáralo con otros",
+              "style": "ghost"
+            }
+          ]
+        }
+      ]
+    },
+    "about": {
+      "type": "about",
+      "title": "Acerca de Rianell: aplicación para el seguimiento de la salud personal y las enfermedades crónicas",
+      "description": "Rianell es una aplicación gratuita y de código abierto para el seguimiento y la gestión de enfermedades crónicas. Permite registrar los síntomas, los medicamentos, el peso, la frecuencia cardíaca y otros datos relevantes.",
+      "ogTitle": "Acerca de Rianell: aplicación para el seguimiento de la salud personal y las enfermedades crónicas",
+      "ogDescription": "Rianell es una aplicación gratuita y de código abierto para el seguimiento y la gestión de enfermedades crónicas. Permite registrar los síntomas, los medicamentos, el peso, la frecuencia cardíaca y otros datos relevantes.",
+      "twTitle": "Acerca de Rianell: aplicación para el seguimiento de la salud personal y las enfermedades crónicas",
+      "twDescription": "Aplicación gratuita y de código abierto para el seguimiento y la gestión de enfermedades crónicas.",
+      "jsonldType": "AboutPage",
+      "jsonldName": "Acerca de Rianell",
+      "jsonldDescription": "Rianell es una aplicación gratuita y de código abierto para el seguimiento y la gestión de enfermedades crónicas.",
+      "breadcrumb": [
+        {
+          "page": "home",
+          "name": "Inicio"
+        },
+        {
+          "page": "about",
+          "name": "Acerca de"
+        }
+      ],
+      "tagline": "Aplicación para el seguimiento de la salud personal y las enfermedades crónicas",
+      "intro": "Rianell es una aplicación gratuita y de código abierto para el cuidado personal de la salud, diseñada para ayudar a las personas que padecen enfermedades crónicas a registrar sus síntomas, controlar los principales indicadores de salud y obtener información relevante que puedan compartir con su equipo médico.",
+      "blocks": [
+        {
+          "h2": "¿Qué hace Rianell",
+          "list": [
+            "Registro diario de salud: síntomas, nivel de dolor, fatiga, estado de ánimo, movilidad y otros datos",
+            "Monitoreo de signos vitales: peso, frecuencia cardíaca, presión arterial",
+            "Gestión de medicamentos y citas médicas",
+            "Análisis de tendencias y evaluación del estado con asistencia de inteligencia artificial",
+            "Exporte los informes para compartirlos con los médicos",
+            "Sincronización opcional con la nube entre dispositivos (cifrado de extremo a extremo)",
+            "Conecta tus dispositivos de seguimiento de actividad física y salud a través de Strava, Withings y Hojas de cálculo de Google"
+          ]
+        },
+        {
+          "h2": "Integración con Hojas de cálculo de Google",
+          "paragraphs": [
+            "Los usuarios pueden, de forma opcional, conectar una hoja de cálculo de Google Sheets para importar datos de salud existentes o exportar su registro con el fin de realizar copias de seguridad y análisis. La aplicación solo accede a la hoja de cálculo específica que el usuario proporciona. No se accede a ningún otro archivo ni dato."
+          ]
+        },
+        {
+          "h2": "Privacidad y seguridad",
+          "paragraphs": [
+            "Todos los datos almacenados en la nube están cifrados. Los tokens de OAuth se cifran con AES-256-GCM. La seguridad a nivel de fila garantiza que cada usuario solo pueda acceder a sus propios datos. La aplicación nunca vende ni comparte sus datos."
+          ]
+        },
+        {
+          "h2": "Código abierto",
+          "paragraphs": [
+            "Rianell es un proyecto de código abierto. El código fuente está disponible en GitHub."
+          ]
+        }
+      ],
+      "aboutLinks": {
+        "privacy": "Política de privacidad",
+        "tos": "Términos de servicio",
+        "github": "GitHub"
+      }
+    }
+  }
+}
