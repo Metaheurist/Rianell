@@ -19,6 +19,7 @@
 - [[Platforms-and-Parity]]
 - [[API-and-Integrations]]
 - [[Build-Test-and-CI]]
+- [[Multilingual-SEO]]
 - [[Contributing]]
 
 ### Meta

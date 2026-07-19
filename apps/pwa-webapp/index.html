@@ -8,8 +8,24 @@
   <!-- Primary + social / link previews (og:* stops crawlers from using random headings e.g. privacy copy) -->
   <meta name="description" content="Rianell - personal health dashboard (web & Android). Track symptoms, medications, and wellness; optional AI-assisted insights; encryption and privacy-first design. Share metrics with your care team.">
   <link rel="canonical" href="https://rianell.com/">
-  <link rel="alternate" hreflang="en" href="https://rianell.com/">
-  <link rel="alternate" hreflang="x-default" href="https://rianell.com/">
+      <!-- hreflang:start -->
+  <link rel="alternate" hreflang="en" href="https://rianell.com/" />
+  <link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+  <link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+  <link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+  <link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+  <link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+  <link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+  <link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+  <link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+  <link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+  <link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+  <link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+  <link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+  <link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+  <link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+  <link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  <!-- hreflang:end -->
 
   <meta property="og:title" content="Rianell - Personal health dashboard">
   <meta property="og:description" content="Track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics - your data stays yours.">
@@ -396,10 +412,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=160" as="style">
+  <link rel="preload" href="styles.css?v=161" as="style">
   <link rel="modulepreload" href="app.js?v=72" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=160" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=160&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=161" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=161&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=3">
   <style>
@@ -2460,13 +2476,10 @@
         <path class="nav-icon-mood-smile" d="M8.75 14.35c.95 1.35 2.05 2.05 3.25 2.05s2.3-.7 3.25-2.05" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
       </symbol>
       <symbol id="rianell-nav-ai" viewBox="0 0 24 24">
-        <path class="nav-icon-ai-brain nav-icon-ai-brain--left" transform="translate(-0.7 0)" d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-        <path class="nav-icon-ai-brain nav-icon-ai-brain--right" transform="translate(0.7 0)" d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="nav-icon-ai-brain nav-icon-ai-brain--left" d="M9 4.2A3.2 3.2 0 0 0 5.8 7.4v.1A3.5 3.5 0 0 0 5 14a4 4 0 0 0 4 4h1V4.2Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="nav-icon-ai-brain nav-icon-ai-brain--right" d="M15 4.2a3.2 3.2 0 0 1 3.2 3.2v.1A3.5 3.5 0 0 1 19 14a4 4 0 0 1-4 4h-1V4.2Z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
         <g class="nav-icon-ai-brain-fold" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8.9 8.3c-1.6.1-2.5 1-2.6 2.4"/>
-          <path d="M9.1 12.9c-1.8.1-2.9-.7-3-2.1"/>
-          <path d="M15.1 8.3c1.6.1 2.5 1 2.6 2.4"/>
-          <path d="M14.9 12.9c1.8.1 2.9-.7 3-2.1"/>
+          <path d="M10 9H7.5M14 9h2.5M10 14H7.5M14 14h2.5"/>
         </g>
       </symbol>
     </svg>

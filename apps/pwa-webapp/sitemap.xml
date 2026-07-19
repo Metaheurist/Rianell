@@ -1,63 +1,2127 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://rianell.com/</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
   </url>
   <url>
     <loc>https://rianell.com/about.html</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
   </url>
   <url>
     <loc>https://rianell.com/ai-insights/</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
   </url>
   <url>
     <loc>https://rianell.com/community/</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
   </url>
   <url>
     <loc>https://rianell.com/conditions/</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
   </url>
   <url>
     <loc>https://rianell.com/features/</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
   </url>
   <url>
     <loc>https://rianell.com/mental-health-check/</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
   </url>
   <url>
     <loc>https://rianell.com/privacy.html</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://rianell.com/symptom-tracking/</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
   </url>
   <url>
     <loc>https://rianell.com/tos.html</loc>
-    <lastmod>2026-07-18</lastmod>
+    <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://rianell.com/de/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/de/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/de/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/de/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/de/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/de/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/de/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/de/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/fr/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/es/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/it/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pl/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/nl/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-br/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/pt-pt/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ga/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/ar/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/features/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/features/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/features/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/features/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/features/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/features/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/features/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/features/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/features/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/features/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/features/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/features/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/features/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/symptom-tracking/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/symptom-tracking/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/symptom-tracking/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/mental-health-check/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/mental-health-check/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/mental-health-check/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/ai-insights/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/ai-insights/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/ai-insights/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/community/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/community/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/community/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/community/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/community/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/community/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/community/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/community/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/community/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/community/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/community/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/community/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/community/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/conditions/</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/conditions/" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/conditions/" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/conditions/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/conditions/" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/conditions/" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/conditions/" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/conditions/" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/conditions/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/conditions/" />
+  </url>
+  <url>
+    <loc>https://rianell.com/he/about.html</loc>
+    <lastmod>2026-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-GB" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="en-AU" href="https://rianell.com/about.html" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://rianell.com/de/about.html" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rianell.com/fr/about.html" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://rianell.com/es/about.html" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://rianell.com/it/about.html" />
+    <xhtml:link rel="alternate" hreflang="pl" href="https://rianell.com/pl/about.html" />
+    <xhtml:link rel="alternate" hreflang="nl" href="https://rianell.com/nl/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://rianell.com/pt-br/about.html" />
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://rianell.com/pt-pt/about.html" />
+    <xhtml:link rel="alternate" hreflang="ga" href="https://rianell.com/ga/about.html" />
+    <xhtml:link rel="alternate" hreflang="ar" href="https://rianell.com/ar/about.html" />
+    <xhtml:link rel="alternate" hreflang="he" href="https://rianell.com/he/about.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rianell.com/about.html" />
   </url>
 </urlset>
