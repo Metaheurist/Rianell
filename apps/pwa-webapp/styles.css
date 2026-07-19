@@ -14,6 +14,30 @@
   --secondary-color: color-mix(in srgb, var(--primary-color) 55%, #0a1a10 45%);
   --primary-gradient: linear-gradient(135deg, #52b85f 0%, #7bdf8c 50%, #9ae8a4 100%);
   --primary-glow: 0 0 18px color-mix(in srgb, var(--primary-color) 18%, transparent);
+
+  /* 3D weather-orb palette (modules/weather-orb-3d.js reads these via getComputedStyle).
+     Neutrals carry a light wash of the theme accent so the orb reads on-brand across
+     teams; sun/moon/precip keep weather-semantic hues but stay overridable per theme. */
+  --weather-sky-day: color-mix(in srgb, var(--primary-color) 16%, #eaf6ee);
+  --weather-sky-night: color-mix(in srgb, var(--primary-color) 12%, #8aa3c8);
+  --weather-key-light: #ffffff;
+  --weather-sun: #ffd27a;
+  --weather-sun-emissive: #ffb347;
+  --weather-sun-light: #ffc76b;
+  --weather-moon: #dde4f0;
+  --weather-moon-emissive: #9db4d8;
+  --weather-moon-light: #a9c2e8;
+  --weather-cloud: color-mix(in srgb, var(--primary-color) 6%, #ffffff);
+  --weather-cloud-overcast: color-mix(in srgb, var(--primary-color) 14%, #dfe5ea);
+  --weather-cloud-storm: color-mix(in srgb, var(--primary-color) 12%, #9aa3ad);
+  --weather-fog: color-mix(in srgb, var(--primary-color) 10%, #e8eef2);
+  --weather-rain: #9ecbff;
+  --weather-snow: #ffffff;
+  --weather-star: #f3f7ff;
+  --weather-lightning: #eef3ff;
+  --weather-storm-glow: #39414d;
+  --weather-desat: #8a8f94;
+
   --background-dark: #070807;
   --background-gradient: linear-gradient(135deg, #050505 0%, #0d1012 50%, #080a08 100%);
   --text-light: #e8eeec;
@@ -1542,8 +1566,13 @@ body.light-mode .motd-sway-wrap {
 
 .container {
   background: var(--surface-main);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  /* NOTE: backdrop-filter is intentionally NOT set here. On dark themes
+     --surface-main is ~96% opaque, so the blur is imperceptible, yet it
+     creates a backdrop-root that some GPUs/compositors repaint as an opaque
+     white layer when a tab switch promotes/animates .tab-content — showing
+     the "white square" behind the cards. Light mode re-adds the blur in the
+     body.light-mode .container rule, where the panel is translucent enough
+     for the glass effect to read (and the artifact does not surface). */
   padding: 25px 25px 10px 25px;
   border-radius: var(--radius-xl);
   max-width: 1000px;
@@ -29032,6 +29061,27 @@ body.guided-onboarding-active #appShell {
 
   .ai-chat-drag-handle {
     display: none;
+  }
+}
+
+/* Mobile: Ask Rianell fills the screen; only the fixed bottom nav stays visible.
+   The bottom nav (.app-mobile-bottom-chrome, z-index 5000) already layers above
+   this overlay (z-index 1200); reserve its height so the input clears it. */
+@media (max-width: 767.98px) {
+  .ai-chat-overlay {
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0 0 calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .ai-chat-panel {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
   }
 }
 
