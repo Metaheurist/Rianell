@@ -174,6 +174,7 @@
       '    </div>' +
       '    <button type="button" class="ai-chat-close modal-close" aria-label="">&times;</button>' +
       '  </header>' +
+      '  <div class="ai-chat-supercharge" id="aiChatSupercharge" hidden></div>' +
       '  <div class="ai-chat-messages" id="aiChatMessages" aria-live="polite"></div>' +
       '  <div class="ai-chat-followups" id="aiChatFollowups" hidden></div>' +
       '  <footer class="ai-chat-footer">' +
@@ -234,7 +235,51 @@
     if (disc) disc.textContent = t('home.chat.disclaimer');
     var closeBtn = overlay.querySelector('.ai-chat-close');
     if (closeBtn) closeBtn.setAttribute('aria-label', t('common.close'));
+    renderSuperchargePromo();
     updateTurnsLabel();
+  }
+
+  function canShowSuperchargePromo() {
+    if (!_forceGeneric) return false;
+    return typeof global.canOfferOnDeviceLlmUpgrade === 'function'
+      ? !!global.canOfferOnDeviceLlmUpgrade()
+      : false;
+  }
+
+  // In guided-tips mode (no on-device model), nudge capable devices to unlock
+  // real AI answers grounded in their own logs. The CTA reuses the shared
+  // enable-AI + download pipeline; once the model is ready the next open runs
+  // in full mode.
+  function renderSuperchargePromo() {
+    var wrap = document.getElementById('aiChatSupercharge');
+    if (!wrap) return;
+    if (!canShowSuperchargePromo()) {
+      wrap.hidden = true;
+      wrap.innerHTML = '';
+      return;
+    }
+    var title = tOr('home.chat.supercharge.title', 'Supercharge this chat');
+    var body = tOr('home.chat.supercharge.body', 'Enable on-device AI to get answers from your own logs. It runs privately on this device - nothing leaves it.');
+    var cta = tOr('home.chat.supercharge.cta', 'Enable and download');
+    wrap.innerHTML =
+      '<div class="ai-chat-supercharge__inner">' +
+      '<span class="ai-chat-supercharge__glyph" aria-hidden="true">' + svgIcon('zap', 'ai-chat-supercharge__glyph-svg') + '</span>' +
+      '<div class="ai-chat-supercharge__text">' +
+      '<p class="ai-chat-supercharge__title">' + escapeHTML(title) + '</p>' +
+      '<p class="ai-chat-supercharge__body">' + escapeHTML(body) + '</p>' +
+      '</div>' +
+      '<button type="button" class="ai-chat-supercharge__cta" id="aiChatSuperchargeCta">' + escapeHTML(cta) + '</button>' +
+      '</div>';
+    wrap.hidden = false;
+    var btn = document.getElementById('aiChatSuperchargeCta');
+    if (btn) {
+      btn.onclick = function () {
+        if (typeof global.superchargeOnDeviceChat === 'function') {
+          closeAiHealthChat();
+          global.superchargeOnDeviceChat(null);
+        }
+      };
+    }
   }
 
   function updateTurnsLabel() {

@@ -639,6 +639,10 @@
     var max = parseInt(slider.max, 10) || 10;
     var display = displayValueFromSlider(id, slider.value);
     var nextDisplay = clamp(display + delta, min, max);
+    // Guard the drum's snap feedback so it can't overwrite this authoritative value
+    // while we programmatically scroll it into place (covers the delayed snap too).
+    var drum = document.getElementById(id + 'Drum');
+    if (drum) drum.__metricNudgeGuardUntil = Date.now() + 320;
     slider.value = String(sliderValueFromDisplay(id, nextDisplay));
     slider.dispatchEvent(new Event('input', { bubbles: true }));
     if (typeof global.updateSliderColor === 'function') global.updateSliderColor(slider);
@@ -687,6 +691,12 @@
     var max = parseInt(slider.max, 10) || 10;
     buildMetricDrum(drum, min, max);
     function applyFromDrum(commit) {
+      // A +/- nudge programmatically scrolls the drum to the new value, which fires
+      // the drum's own scroll/snap callbacks. Those would read the pre-scroll centre
+      // and write the OLD value straight back, so the number appears stuck. Ignore
+      // drum-driven writes briefly after a nudge - the nudge already set the
+      // authoritative value and centred the drum.
+      if (drum.__metricNudgeGuardUntil && Date.now() < drum.__metricNudgeGuardUntil) return;
       var displayVal = null;
       if (global.RianellDrumPicker && typeof global.RianellDrumPicker.valueAtCenter === 'function') {
         displayVal = global.RianellDrumPicker.valueAtCenter(drum);

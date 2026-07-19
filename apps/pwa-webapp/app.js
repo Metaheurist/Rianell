@@ -17880,6 +17880,7 @@ let appSettings = {
   contributeAnonData: false, // Contribute anonymised data to pool
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
+  forceOnDeviceAi: false, // User explicitly opted into on-device AI chat, overriding the perf deferAI heuristic
   preferredLlmModelSize: 'recommended', // 'recommended' | 'tier1'..'tier5' for on-device AI model
   llmCoachPersona: 'encouraging', // encouraging | clinical | minimal
   preferredLlmForceLargeOnWasm: false,
@@ -25072,13 +25073,58 @@ function deviceSupportsOnDeviceLlmChat() {
   if (S && typeof S.isLlmInferenceAllowed === 'function' && !S.isLlmInferenceAllowed(locale)) {
     return false;
   }
-  if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function') {
+  // The perf heuristic defers AI on modest hardware, but the user can explicitly
+  // opt in ("Supercharge chat"). An informed, deliberate choice overrides the
+  // automatic deferral - same as manually enabling AI from Settings.
+  var forced = typeof appSettings !== 'undefined' && appSettings && appSettings.forceOnDeviceAi === true;
+  if (!forced && typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function') {
     var opts = window.PerformanceUtils.getDeviceOpts();
     if (opts && opts.deferAI) return false;
   }
   return true;
 }
 if (typeof window !== 'undefined') window.deviceSupportsOnDeviceLlmChat = deviceSupportsOnDeviceLlmChat;
+
+/**
+ * Whether we can offer the "Supercharge chat" on-device AI upgrade from the
+ * guided-tips chat. True only when the device could technically run the model
+ * (WebAssembly present, locale has an allowed model) but the perf heuristic is
+ * currently deferring it - i.e. an explicit opt-in would unlock real AI answers.
+ * Locale-blocked or WASM-less devices never see the promo (the model can't help).
+ * @returns {boolean}
+ */
+function canOfferOnDeviceLlmUpgrade() {
+  if (typeof WebAssembly === 'undefined') return false;
+  if (typeof appSettings !== 'undefined' && appSettings && appSettings.simpleMode === true) return false;
+  var locale = (typeof appSettings !== 'undefined' && appSettings && (appSettings.uiLocale || appSettings.locale)) || 'en-GB';
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.isLlmInferenceAllowed === 'function' && !S.isLlmInferenceAllowed(locale)) {
+    return false;
+  }
+  // Only meaningful while the device is NOT yet treated as capable; once the
+  // user opts in (forceOnDeviceAi) the chat leaves guided mode and the promo
+  // is no longer relevant.
+  return !deviceSupportsOnDeviceLlmChat();
+}
+if (typeof window !== 'undefined') window.canOfferOnDeviceLlmUpgrade = canOfferOnDeviceLlmUpgrade;
+
+/**
+ * Explicit user opt-in from the guided chat: remember the choice, then run the
+ * standard enable-AI + model-download flow. After the model is ready the chat
+ * upgrades out of guided-tips mode automatically.
+ */
+function superchargeOnDeviceChat(pendingOpenOptions) {
+  if (typeof appSettings !== 'undefined' && appSettings) {
+    appSettings.forceOnDeviceAi = true;
+    if (typeof saveSettings === 'function') saveSettings();
+  }
+  if (typeof runEnableAiAndDownloadForChat === 'function') {
+    runEnableAiAndDownloadForChat(pendingOpenOptions || null);
+  } else if (typeof promptEnableAiAndDownloadForChat === 'function') {
+    promptEnableAiAndDownloadForChat(pendingOpenOptions || null);
+  }
+}
+if (typeof window !== 'undefined') window.superchargeOnDeviceChat = superchargeOnDeviceChat;
 
 function getHealthChatAiModelState() {
   if (typeof window === 'undefined' || typeof window.getAiModelStatus !== 'function') return 'unknown';

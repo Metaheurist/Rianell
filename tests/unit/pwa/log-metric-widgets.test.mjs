@@ -16,6 +16,23 @@ test('severity metric drums sync to displayed raw values, not inverted wellness'
   );
 });
 
+test('+/- nudge is authoritative: drum snap cannot overwrite it (stuck-value regression)', () => {
+  const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
+  // nudgeSlider arms a short guard on the drum before the value change propagates.
+  assert.match(
+    js,
+    /function nudgeSlider[\s\S]*?drum\.__metricNudgeGuardUntil = Date\.now\(\) \+ \d+;[\s\S]*?slider\.dispatchEvent/,
+    'nudgeSlider must set __metricNudgeGuardUntil before dispatching input',
+  );
+  // applyFromDrum bails out while the guard is active so the programmatic sync
+  // scroll cannot snap the old centre value back onto the slider.
+  assert.match(
+    js,
+    /function applyFromDrum[\s\S]*?if \(drum\.__metricNudgeGuardUntil && Date\.now\(\) < drum\.__metricNudgeGuardUntil\) return;/,
+    'applyFromDrum must ignore drum-driven writes while the nudge guard is active',
+  );
+});
+
 test('metric widgets mount compact drums instead of segmented scales', () => {
   const js = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
   assert.match(js, /function bindMetricDrum/);

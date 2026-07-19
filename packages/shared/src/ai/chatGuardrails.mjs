@@ -37,7 +37,16 @@ const NSFW_INTENT_RE =
  * may pass additional locale keywords via `scopeKeywords`.
  */
 export const HEALTH_SCOPE_RE =
-  /\b(?:health|healthy|wellbeing|well[\s-]?being|wellness|symptom|symptoms|pain|ache|aches|aching|hurt|sore|flare|flares|flare[\s-]?up|fatigue|tired|tiredness|exhaust|energy|energ|sleep|slept|insomnia|rest|rested|nap|mood|moods|feeling|feelings|emotion|emotional|anxious|anxiety|stress|stressed|stressor|depress|mental|mind|calm|steps|walk|walking|exercise|workout|activ|movement|move|hydrat|water|drink|drinking|diet|food|eat|eating|meal|meals|nutrition|weight|bmi|medication|medicine|meds|dose|dosage|pill|treatment|therapy|therap|flareday|swelling|stiffness|mobility|joint|joints|heart|bpm|pulse|blood\s*pressure|vitals?|cycle|period|menstru|hormone|breath|breathing|log|logs|logged|logging|track|tracked|tracking|entry|entries|journal|diary|pattern|patterns|trend|trends|correlat|average|my\s+(?:data|logs?|health|sleep|mood|energy|symptoms?|week|day|days|entries|numbers?)|good\s+days?|bad\s+days?|goal|goals|habit|habits|recovery|recover|wearable|fitbit|apple\s*health)\b/iu;
+  /\b(?:health|healthy|wellbeing|well[\s-]?being|wellness|symptom|symptoms|pain|ache|aches|aching|hurt|sore|flare|flares|flare[\s-]?up|fatigue|tired|tiredness|exhaust|energy|energ|sleep|slept|insomnia|rest|rested|nap|mood|moods|feeling|feelings|emotion|emotional|anxious|anxiety|stress|stressed|stressor|depress|mental|mind|calm|steps|walk|walking|exercise|workout|activ|movement|move|hydrat|water|drink|drinking|diet|food|eat|eating|meal|meals|nutrition|weight|bmi|medication|medicine|meds|dose|dosage|pill|treatment|therapy|therap|flareday|swelling|stiffness|mobility|joint|joints|heart|bpm|pulse|blood\s*pressure|vitals?|temperature|temp|fever|feverish|chills|nausea|nauseous|nauseated|dizzy|dizziness|lightheaded|vertigo|headache|headaches|migraine|migraines|cramp|cramps|cramping|bloat|bloated|bloating|appetite|sick|unwell|illness|cough|coughing|congestion|congested|rash|rashes|itch|itchy|itching|glucose|sugar|oxygen|spo2|numb|numbness|tingling|tingle|inflammation|inflamed|dehydrat|cycle|period|menstru|hormone|breath|breathing|log|logs|logged|logging|track|tracked|tracking|entry|entries|journal|diary|pattern|patterns|trend|trends|correlat|average|my\s+(?:data|logs?|health|sleep|mood|energy|symptoms?|week|day|days|entries|numbers?)|how\s+(?:am|do)\s+i\s+(?:feel|do|doing)|good\s+days?|bad\s+days?|goal|goals|habit|habits|recovery|recover|wearable|fitbit|apple\s*health)\b/iu;
+
+/**
+ * Short social openers / pleasantries (greetings, thanks, sign-offs) across the
+ * shipped locales. A message made up entirely of these is allowed through so the
+ * assistant can greet back and invite a health question, instead of curtly
+ * blocking "hi" or "thanks" as off-topic.
+ */
+export const GREETING_RE =
+  /^[\s,.!?~-]*(?:(?:hi+|hii+|hiya|hey+|heya|hello+|helo|hallo|holla|hola|ola|ciao|salut|bonjour|yo+|sup|wass?up|what'?s\s*up|howdy|greetings|good\s*(?:morning|afternoon|evening|day|night)|morning|evening|night|gm|gn|thanks?|thank\s*you|thankyou|thx|ty|cheers|gracias|danke|merci|grazie|okay?|kk?|cool|nice|great|awesome|how\s*(?:are|r)\s*(?:you|u|ya)|how'?s\s*it\s*going|hru|bye+|goodbye|see\s*(?:you|ya)|later|take\s*care|there|friend|again|everyone|all|rianell)\b[\s,.!?~-]*)+$/iu;
 
 function normalize(text) {
   return String(text == null ? '' : text)
@@ -78,19 +87,35 @@ export function isHealthInScope(message, scopeKeywords) {
 }
 
 /**
+ * True when the whole message is just a greeting / pleasantry (e.g. "hi",
+ * "holla", "thanks", "good morning"). Never true for NSFW (checked earlier) and
+ * intentionally requires a full match so "hi, how do I hack this" is not waved
+ * through on the strength of a leading "hi".
+ * @param {string} message
+ * @returns {boolean}
+ */
+export function isGreeting(message) {
+  const t = normalize(message);
+  if (!t) return false;
+  return GREETING_RE.test(t);
+}
+
+/**
  * Classify a user message for the health chat gate.
  * NSFW is checked first (so an off-topic NSFW request is reported as NSFW), then
- * health-scope. A message with no health-scope signal is treated as off-topic.
+ * greetings and health-scope are allowed. A message with no greeting or
+ * health-scope signal is treated as off-topic.
  *
  * @param {string} message
  * @param {{ locale?: string, scopeKeywords?: string[] }} [options]
- * @returns {{ allowed: boolean, category: 'ok' | 'nsfw' | 'offtopic' }}
+ * @returns {{ allowed: boolean, category: 'ok' | 'nsfw' | 'offtopic' | 'greeting' }}
  */
 export function classifyHealthChatMessage(message, options = {}) {
   const { scopeKeywords } = options || {};
   const raw = String(message == null ? '' : message).trim();
   if (!raw) return { allowed: false, category: 'offtopic' };
   if (isNsfwText(raw)) return { allowed: false, category: 'nsfw' };
+  if (isGreeting(raw)) return { allowed: true, category: 'greeting' };
   if (!isHealthInScope(raw, scopeKeywords)) {
     return { allowed: false, category: 'offtopic' };
   }
