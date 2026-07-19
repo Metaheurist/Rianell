@@ -6,6 +6,11 @@ import {
   buildPwaWasmAttempt,
   backendLabelFromAttempt,
   classifyGpuLoadError,
+  MLC_BASE_MODEL_ID,
+  MLC_SMALL_MODEL_ID,
+  ALLOWED_MLC_MODEL_IDS,
+  isAllowedMlcModelId,
+  resolveMlcModelForTier,
 } from '../../packages/llm/src/index.mjs';
 
 test('buildPwaLoadAttempts orders webgpu dtypes only', () => {
@@ -61,4 +66,23 @@ test('classifyGpuLoadError detects 557856688', () => {
   const c = classifyGpuLoadError(new Error('WebGPU failed with code 557856688'));
   assert.equal(c.class, 'ort_webgpu_pipeline_fail');
   assert.equal(c.retryPath, 'mlc');
+});
+
+test('MLC allowlist accepts small + base models, rejects others', () => {
+  assert.equal(MLC_SMALL_MODEL_ID, 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC');
+  assert.equal(MLC_BASE_MODEL_ID, 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC');
+  assert.equal(ALLOWED_MLC_MODEL_IDS.length, 2);
+  assert.equal(isAllowedMlcModelId(MLC_SMALL_MODEL_ID), true);
+  assert.equal(isAllowedMlcModelId(MLC_BASE_MODEL_ID), true);
+  assert.equal(isAllowedMlcModelId('evil/model'), false);
+  assert.equal(isAllowedMlcModelId(''), false);
+});
+
+test('resolveMlcModelForTier maps low tiers to the small model', () => {
+  assert.equal(resolveMlcModelForTier('tier1'), MLC_SMALL_MODEL_ID);
+  assert.equal(resolveMlcModelForTier('tier2'), MLC_SMALL_MODEL_ID);
+  assert.equal(resolveMlcModelForTier('small'), MLC_SMALL_MODEL_ID);
+  assert.equal(resolveMlcModelForTier('tier3'), MLC_BASE_MODEL_ID);
+  assert.equal(resolveMlcModelForTier('tier5'), MLC_BASE_MODEL_ID);
+  assert.equal(resolveMlcModelForTier(''), MLC_BASE_MODEL_ID);
 });

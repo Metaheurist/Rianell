@@ -1,9 +1,9 @@
-export const LLM_MODEL_SMALL = 'SmolLM2-360M-Instruct';
-export const LLM_MODEL_BASE = 'Llama-3.2-1B-Instruct';
+export const LLM_MODEL_SMALL = 'Qwen2.5-0.5B-Instruct';
+export const LLM_MODEL_BASE = 'Qwen2.5-1.5B-Instruct';
 
-/** Canonical Hugging Face repo ids (onnx-community *-ONNX mirrors). */
-export const LLM_MODEL_SMALL_ID = 'onnx-community/SmolLM2-360M-Instruct-ONNX';
-export const LLM_MODEL_BASE_ID = 'onnx-community/Llama-3.2-1B-Instruct-ONNX';
+/** Canonical Hugging Face repo ids (onnx-community Transformers.js mirrors). */
+export const LLM_MODEL_SMALL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
+export const LLM_MODEL_BASE_ID = 'onnx-community/Qwen2.5-1.5B-Instruct';
 
 export const HF_REMOTE_HOST = 'https://huggingface.co/';
 export const HF_REMOTE_PATH_TEMPLATE = '{model}/resolve/{revision}/';
@@ -126,8 +126,22 @@ export {
 } from './load-ladder.mjs';
 
 export { classifyGpuLoadError, GPU_PIPELINE_FAIL_KEY } from './gpu-errors.mjs';
-export { MLC_LLAMA_MODEL_ID, ALLOWED_MLC_MODEL_IDS, isAllowedMlcModelId } from './mlc-config.mjs';
-export { GGUF_LLAMA_MODEL_ID, ALLOWED_GGUF_MODEL_IDS, isAllowedGgufModelId } from './gguf-config.mjs';
+export {
+  MLC_BASE_MODEL_ID,
+  MLC_SMALL_MODEL_ID,
+  ALLOWED_MLC_MODEL_IDS,
+  isAllowedMlcModelId,
+  resolveMlcModelForTier,
+} from './mlc-config.mjs';
+export { GGUF_BASE_MODEL_ID, ALLOWED_GGUF_MODEL_IDS, isAllowedGgufModelId } from './gguf-config.mjs';
+export {
+  QWEN25_LANGUAGES,
+  MODEL_LANGUAGE_SUPPORT,
+  downloadModelIds,
+  languageSubtag,
+  requiredLlmLanguages,
+  findLanguageCoverageGaps,
+} from './modelLanguageSupport.mjs';
 
 /** Shared LLM request shape for web and RN adapters. */
 export function buildLlmContext(intent, payload) {

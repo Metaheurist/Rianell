@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * Mirror Transformers.js ONNX weights into apps/pwa-webapp/models/ for same-origin hosting.
- * Requires network access to huggingface.co. Llama 3.2 needs HF_TOKEN + accepted license.
+ * Requires network access to huggingface.co. Qwen2.5 repos are Apache-2.0 (no HF_TOKEN needed).
  *
  * Usage:
  *   node scripts/models/download-llm-models.mjs
- *   node scripts/models/download-llm-models.mjs --model smollm|llama
+ *   node scripts/models/download-llm-models.mjs --model small|base
  *   HF_TOKEN=hf_... node scripts/models/download-llm-models.mjs
  */
 import crypto from 'crypto';
@@ -84,13 +84,13 @@ function sha256File(filePath) {
 
 function filterModels(models, arg) {
   if (arg === 'all') return models;
-  if (arg === 'smollm') {
-    return models.filter((m) => m.id.includes('SmolLM2'));
+  if (arg === 'small') {
+    return models.filter((m) => m.id.includes('Qwen2.5-0.5B'));
   }
-  if (arg === 'llama') {
-    return models.filter((m) => m.id.includes('Llama'));
+  if (arg === 'base') {
+    return models.filter((m) => m.id.includes('Qwen2.5-1.5B'));
   }
-  throw new Error(`Unknown --model ${arg} (use smollm, llama, or omit for all)`);
+  throw new Error(`Unknown --model ${arg} (use small, base, or omit for all)`);
 }
 
 async function main() {

@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  var ALLOWED_MODEL_ID = 'bartowski/Llama-3.2-1B-Instruct-GGUF';
+  var ALLOWED_MODEL_ID = 'bartowski/Qwen2.5-1.5B-Instruct-GGUF';
   var ggufEngine = null;
   var ggufReady = false;
 

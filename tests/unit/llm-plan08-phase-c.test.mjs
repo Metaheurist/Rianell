@@ -11,7 +11,7 @@ import {
   runGoldenPromptAudit,
   auditGoldenPrompt,
 } from '../../packages/shared/src/ai/llmGoldenPrompts.mjs';
-import { isAllowedGgufModelId, GGUF_LLAMA_MODEL_ID } from '../../packages/llm/src/gguf-config.mjs';
+import { isAllowedGgufModelId, GGUF_BASE_MODEL_ID } from '../../packages/llm/src/gguf-config.mjs';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,7 +43,7 @@ test('auditGoldenPrompt rejects empty system prompt', () => {
 });
 
 test('gguf allowlist matches Path 3 model id', () => {
-  assert.equal(isAllowedGgufModelId(GGUF_LLAMA_MODEL_ID), true);
+  assert.equal(isAllowedGgufModelId(GGUF_BASE_MODEL_ID), true);
   assert.equal(isAllowedGgufModelId('evil/model'), false);
 });
 

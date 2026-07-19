@@ -1,12 +1,19 @@
 # On-device LLM weights (HF-only)
 
-Rianell downloads ONNX weights directly from **Hugging Face Hub** (onnx-community `*-ONNX` repos). Clients cache weights locally (browser cache/IndexedDB on web; filesystem on RN).
+Rianell downloads ONNX weights directly from **Hugging Face Hub** (onnx-community Qwen2.5 Transformers.js repos). Clients cache weights locally (browser cache/IndexedDB on web; filesystem on RN).
 
 Download source: **Hugging Face only**.
 
+Shipped models (Apache-2.0, multilingual - 29 languages incl. all offered UI locales):
+
+| Tier | Repo | q4f16 (WebGPU) | q4 (WASM) |
+|------|------|----------------|-----------|
+| 1-2 (small) | `onnx-community/Qwen2.5-0.5B-Instruct` | ~483 MB | ~786 MB |
+| 3-5 (base) | `onnx-community/Qwen2.5-1.5B-Instruct` | ~1.2 GB | ~1.8 GB |
+
 ## Local weight files are gitignored
 
-`apps/pwa-webapp/models/onnx-community/` is **not committed**. Only `manifest.json` (with chunk metadata) and this README are tracked.
+`apps/pwa-webapp/models/onnx-community/` is **not committed**. Only `manifest.json` and this README are tracked.
 
 ## Manifest catalog
 

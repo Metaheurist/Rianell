@@ -7,9 +7,23 @@
 
   var MLC_VERSION = '0.2.84';
   var MLC_ESM = 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@' + MLC_VERSION + '/+esm';
-  var ALLOWED_MODEL = 'Llama-3.2-1B-Instruct-q4f16_1-MLC';
+  // Allowlisted models (mirrors packages/llm/src/mlc-config.mjs). Both ship in the
+  // pinned @mlc-ai/web-llm prebuilt config. Small model powers device tiers 1-2.
+  var MLC_BASE_MODEL = 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC';
+  var MLC_SMALL_MODEL = 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
+  var ALLOWED_MODELS = [MLC_SMALL_MODEL, MLC_BASE_MODEL];
   var enginePromise = null;
   var activeModelId = null;
+
+  function isAllowedModel(id) {
+    return ALLOWED_MODELS.indexOf(String(id || '').trim()) !== -1;
+  }
+
+  function resolveModelForTier(tier) {
+    var t = String(tier || '').trim();
+    if (t === 'tier1' || t === 'tier2' || t === 'small') return MLC_SMALL_MODEL;
+    return MLC_BASE_MODEL;
+  }
 
   function getWorkerUrl() {
     var base = '/';
@@ -35,12 +49,21 @@
   }
 
   async function ensureMlcEngine(modelId, progressCallback) {
-    var mid = modelId || ALLOWED_MODEL;
-    if (mid !== ALLOWED_MODEL) {
+    var mid = modelId || MLC_BASE_MODEL;
+    if (!isAllowedModel(mid)) {
       throw new Error('MLC model not allowlisted');
     }
+    // Dedup by the *requested* model. activeModelId is claimed up-front (before the
+    // ~30s reload) so a second call arriving mid-download returns the SAME in-flight
+    // promise instead of spawning a duplicate Worker + duplicate download (the cause
+    // of the "reaches 100% then restarts" loop).
     if (enginePromise && activeModelId === mid) return enginePromise;
-    enginePromise = (async function () {
+    // A different model is being switched to: tear the old engine down first.
+    if (enginePromise && activeModelId && activeModelId !== mid) {
+      try { await disposeMlcEngine(); } catch (e) { /* fall through to fresh load */ }
+    }
+    activeModelId = mid;
+    var thisPromise = (async function () {
       try {
         var webllm = await loadWebLlmModule();
         var worker = new Worker(getWorkerUrl(), { type: 'module' });
@@ -59,14 +82,18 @@
           engine.setInitProgressCallback(initProgress);
         }
         await engine.reload(mid);
-        activeModelId = mid;
         return engine;
       } catch (e) {
-        enginePromise = null;
-        activeModelId = null;
+        // Only clear shared state if we still own the in-flight slot (a newer call
+        // for a different model may have already taken over).
+        if (enginePromise === thisPromise) {
+          enginePromise = null;
+          activeModelId = null;
+        }
         throw e;
       }
     })();
+    enginePromise = thisPromise;
     return enginePromise;
   }
 
@@ -100,7 +127,12 @@
 
   global.RianellLlmMlc = {
     version: MLC_VERSION,
-    allowedModel: ALLOWED_MODEL,
+    allowedModel: MLC_BASE_MODEL,
+    baseModel: MLC_BASE_MODEL,
+    smallModel: MLC_SMALL_MODEL,
+    allowedModels: ALLOWED_MODELS.slice(),
+    isAllowedModel: isAllowedModel,
+    resolveModelForTier: resolveModelForTier,
     ensureMlcEngine: ensureMlcEngine,
     runMlcChat: runMlcChat,
     disposeMlcEngine: disposeMlcEngine,

@@ -364,9 +364,67 @@
     return userMessage;
   }
 
+  // Pure factual/stat phrasing that AIEngine's grounded reply answers directly.
+  var FASTPATH_STAT_RE = /\b(average|avg|mean|typical|how many|how much|number of|count|total|trend|trending|going up|going down|getting (?:better|worse)|flare days?|flares?)\b/;
+  // Advice / how-to / reasoning phrasing that benefits from the LLM rephrasing.
+  var FASTPATH_ADVICE_RE = /\b(how (?:can|do|should)|should i|what (?:can|should)|tips?|help me|advice|recommend|why (?:do|is|am|are|does)|improve|suggest)\b/;
+
+  function isFactualStatQuestion(message) {
+    var m = String(message || '').toLowerCase();
+    if (FASTPATH_ADVICE_RE.test(m)) return false;
+    return FASTPATH_STAT_RE.test(m);
+  }
+
+  function fastPathDataReady() {
+    var S = getShared();
+    var snap = _analysis;
+    if (!snap && S && typeof S.computeHomeAnalysisSnapshot === 'function') {
+      snap = S.computeHomeAnalysisSnapshot(getLogs());
+    }
+    return !!(snap && (snap.totalLogs || 0) >= 3);
+  }
+
+  function chatLocale() {
+    try {
+      if (global.__rianellPromptPack && global.__rianellPromptPack.locale) {
+        return global.__rianellPromptPack.locale;
+      }
+      if (typeof document !== 'undefined' && document.documentElement) {
+        return document.documentElement.lang || undefined;
+      }
+    } catch (_) {}
+    return undefined;
+  }
+
+  function blockedGuardrailMessage(category) {
+    if (category === 'nsfw') {
+      return tOr('ai.chat.blockedUnsafe', 'I can only help with your health and wellbeing data.');
+    }
+    return tOr(
+      'ai.chat.blockedOffTopic',
+      'I can only help with your own health log data - try asking about your sleep, mood, symptoms or patterns.'
+    );
+  }
+
   async function runInference(userMessage) {
+    var S = getShared();
+    // Non-bypassable guardrail: keep the chat scoped to the user's own health data
+    // and block NSFW input before any model call. Runs first so blocked messages
+    // never reach the fast-path, fallback, or the on-device LLM.
+    if (S && typeof S.classifyHealthChatMessage === 'function') {
+      var verdict = S.classifyHealthChatMessage(userMessage, { locale: chatLocale() });
+      if (verdict && verdict.allowed === false) {
+        return blockedGuardrailMessage(verdict.category);
+      }
+    }
     var fallback = buildFallback(userMessage);
     if (_forceGeneric) return fallback;
+    // Deterministic fast-path: simple factual questions (averages, counts, trends,
+    // flare days) are answered directly from the AIEngine snapshot - no LLM needed.
+    // Advice / how-to / "why" questions fall through to the grounded LLM rewriter.
+    if (isFactualStatQuestion(userMessage) && fastPathDataReady()) {
+      return fallback;
+    }
     var payload = assemblePayload(userMessage);
     var fn = global.generateHealthChatWithLLM || global.generateWeekChatWithLLM;
     if (typeof fn !== 'function') return fallback;
@@ -378,7 +436,12 @@
       var modelStatus = typeof global.getAiModelStatus === 'function' ? global.getAiModelStatus() : null;
       var ready = modelStatus && modelStatus.state === 'ready';
       if (!ready) return fallback;
-      return await fn(payload, fallback);
+      var reply = await fn(payload, fallback);
+      // Output gate: never surface NSFW model output, regardless of what the model produced.
+      if (S && typeof S.isNsfwText === 'function' && S.isNsfwText(reply)) {
+        return blockedGuardrailMessage('nsfw');
+      }
+      return reply;
     } catch (_) {
       return fallback;
     }

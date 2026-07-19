@@ -5,12 +5,12 @@ export const PLATFORM_KINDS = [
   'pwa_mobile',
 ];
 
-const LLAMA_ID = 'onnx-community/Llama-3.2-1B-Instruct-ONNX';
-const SMOLLM_ID = 'onnx-community/SmolLM2-360M-Instruct-ONNX';
+const BASE_ID = 'onnx-community/Qwen2.5-1.5B-Instruct';
+const SMALL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
 
 function modelIdFromTierKey(tierKey) {
-  if (tierKey === 'tier1' || tierKey === 'tier2') return SMOLLM_ID;
-  return LLAMA_ID;
+  if (tierKey === 'tier1' || tierKey === 'tier2') return SMALL_ID;
+  return BASE_ID;
 }
 
 export function resolvePlatformKind(options = {}) {
@@ -75,7 +75,7 @@ export function shouldCapTierForMemory({ platformKind, tier, deviceMemory }) {
 }
 
 /**
- * When WebGPU is unavailable, cap tier 3–5 to tier 2 (SmolLM) unless user opts into large-on-WASM.
+ * When WebGPU is unavailable, cap tier 3–5 to tier 2 (small model) unless user opts into large-on-WASM.
  * @param {{ tier: string, webGpuAvailable: boolean, forceLargeOnWasm?: boolean, deviceMemory?: number|null }} options
  */
 export function resolveWasmOnlyCap(options = {}) {

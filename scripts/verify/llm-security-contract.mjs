@@ -57,7 +57,7 @@ if (!existsSync(join(root, 'apps/pwa-webapp/llm-tier-benchmark-sync.js'))) {
 if (!existsSync(join(root, 'apps/pwa-webapp/llm-runtime-profiles-sync.js'))) {
   errors.push('missing apps/pwa-webapp/llm-runtime-profiles-sync.js — run npm run sync:llm-pwa');
 }
-if (!summaryLlmMlc.includes('Llama-3.2-1B-Instruct-q4f16_1-MLC')) {
+if (!summaryLlmMlc.includes('Qwen2.5-1.5B-Instruct-q4f16_1-MLC')) {
   errors.push('summary-llm-mlc.js must allowlist single MLC model id');
 }
 if (!summaryLlmMlc.includes('@mlc-ai/web-llm@0.2.84')) {
@@ -124,6 +124,42 @@ if (!indexHtml.includes('llm-runtime-profiles-sync.js')) {
 const vendorManifest = join(root, 'apps/pwa-webapp/vendor/transformers/vendor-manifest.json');
 if (hasVendorPath && !existsSync(vendorManifest)) {
   errors.push('missing vendor manifest — run npm run vendor:transformers');
+}
+
+// Ask Rianell chat guardrails: deterministic health-scope + NSFW enforcement.
+const guardrailsPath = 'packages/shared/src/ai/chatGuardrails.mjs';
+if (!existsSync(join(root, guardrailsPath))) {
+  errors.push('missing packages/shared/src/ai/chatGuardrails.mjs (health-scope + NSFW gate)');
+} else {
+  const guardrails = read(guardrailsPath);
+  for (const symbol of ['classifyHealthChatMessage', 'isNsfwText', 'enforceHealthChatReply', 'NSFW_RE']) {
+    if (!guardrails.includes(symbol)) {
+      errors.push(`chatGuardrails.mjs must export ${symbol}`);
+    }
+  }
+}
+const sharedI18nIndex = read('packages/shared/src/i18n/index.mjs');
+if (!sharedI18nIndex.includes("../ai/chatGuardrails.mjs")) {
+  errors.push('i18n/index.mjs must re-export ../ai/chatGuardrails.mjs so guardrails reach window.RianellShared');
+}
+if (existsSync(join(root, aiChatPath))) {
+  const aiChatSrc = read(aiChatPath);
+  if (!aiChatSrc.includes('classifyHealthChatMessage')) {
+    errors.push('ai-chat.js must gate input with classifyHealthChatMessage (health-scope + NSFW)');
+  }
+  if (!aiChatSrc.includes('isNsfwText')) {
+    errors.push('ai-chat.js must gate model output with isNsfwText');
+  }
+}
+if (!summaryLlm.includes('enforceHealthChatReply')) {
+  errors.push('summary-llm.js must enforce NSFW output via enforceHealthChatReply (defense-in-depth)');
+}
+const localePack = JSON.parse(read('i18n-packs/locale-packs/v1/en-GB.json'));
+const localeStrings = (localePack && localePack.strings) || {};
+for (const key of ['ai.chat.blockedOffTopic', 'ai.chat.blockedUnsafe']) {
+  if (!localeStrings[key]) {
+    errors.push(`en-GB locale pack missing canned guardrail message ${key}`);
+  }
 }
 
 const csp = read('apps/pwa-webapp/index.html');
