@@ -124,8 +124,8 @@ See [threat-model.md](threat-model.md) M-08.
 
 ### 4.3 Mitigations
 
-1. **Allowlist model IDs** - only `onnx-community/SmolLM2-360M-Instruct-ONNX` and `onnx-community/Llama-3.2-1B-Instruct-ONNX` unless extended in release notes.
-2. **Llama 3.2 gated repo** - user may need accepted HF license + `HF_TOKEN` for tier 3-5 downloads; never commit tokens.
+1. **Allowlist model IDs** - only `onnx-community/Qwen2.5-0.5B-Instruct` and `onnx-community/Qwen2.5-1.5B-Instruct` unless extended in release notes.
+2. **Apache-2.0 repos** - Qwen2.5 weights are openly licensed, so no HF gated-license acceptance or `HF_TOKEN` is required for downloads; never commit tokens regardless.
 3. **CI scanning** - `npm audit`, OSV-Scanner, Gitleaks per [SECURITY.md](SECURITY.md).
 4. **CSP `connect-src`** - limits fetch targets to known HF hosts (see `index.html`).
 5. **Cache inspection** - operators can clear model cache from settings when behaviour is anomalous.

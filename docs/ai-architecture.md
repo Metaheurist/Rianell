@@ -4,7 +4,7 @@
 
 ### v1.92.1 documentation sync (GPU LLM V1 rollout + UX)
 
-- **PWA load ladder (tier 3-5):** Path 1 Transformers.js ONNX (WebGPU → WebNN → WASM) → Path 2 WebLLM MLC (`@mlc-ai/web-llm@0.2.84`, worker + `setInitProgressCallback`) → Path 3 GGUF spike (flag) → WASM SmolLM cap. ORT WebGPU pipeline failure (`557856688`) invalidates adapter cache and skips to Path 2.
+- **PWA load ladder (tier 3-5):** Path 1 Transformers.js ONNX (WebGPU → WebNN → WASM) → Path 2 WebLLM MLC (`@mlc-ai/web-llm@0.2.84`, worker + `setInitProgressCallback`) → Path 3 GGUF spike (flag) → WASM small-model cap (Qwen2.5-0.5B). ORT WebGPU pipeline failure (`557856688`) invalidates adapter cache and skips to Path 2.
 - **Settings UX:** “How summaries run” selector with plain-language options (Automatic, Compatible mode, Fast mode, Experimental); status shows friendly backend labels - not ONNX/MLC/WASM jargon.
 - **CSP:** `connect-src` includes `https://raw.githubusercontent.com` for MLC WASM libs. See `docs/runbooks/llm-rollout.md` and `docs/research/gpu-llama-v1-baseline.md`.
 

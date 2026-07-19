@@ -4,6 +4,11 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v2.4.0 documentation sync (multilingual SEO)
+
+- **Multilingual SEO:** crawlable per-language landing/feature pages under subdirectory prefixes (`/de/`, `/fr/`, `/es/`, `/it/`, `/pl/`, `/nl/`, `/pt-br/`, `/pt-pt/`, `/ga/`, `/ar/`, `/he/`) with a full reciprocal `hreflang` cluster (+ `x-default`), localized meta/OG/JSON-LD, and RTL for `ar`/`he`. Single source of truth: `seo-content/en.json` → `scripts/build/seo-page-template.mjs` → `scripts/build/generate-localized-pages.mjs`. Sitemap emits `xhtml:link` alternates. SEO-safe `lang-suggest.js` banner (no redirect). Commands: `seo:pages`, `seo:pages:check`, `seo:translate`, `seo:content:check`, `seo:sitemap`. Full detail: **[seo-multilingual.md](seo-multilingual.md)**.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.4.0]`.
+
 ### v2.2.25 documentation sync (SEO landing pages + og-card + Ollama Tier-C + RepoMapper)
 
 - **SEO:** New crawlable content pages (`features/`, `symptom-tracking/`, `mental-health-check/`, `ai-insights/`, `community/`, `conditions/`) with canonical + `hreflang` + JSON-LD; `npm run seo:sitemap` (`scripts/build/generate-sitemap.mjs` → `apps/pwa-webapp/sitemap.xml`) and `npm run seo:og-card` (`scripts/build/generate-og-card.mjs` → `Icons/og-card.png`, 1200x630). CI regenerates the sitemap against the built site and asserts sitemap + og-card presence.

@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp",
   "workspaces": [
     "apps/pwa-webapp",
@@ -11,6 +11,8 @@
   "scripts": {
     "dev:web": "node scripts/dev/launch-web.mjs",
     "test:unit": "node --test tests/unit/**/*.test.mjs",
+    "test:chat-guardrails": "node --test tests/unit/pwa/ai-chat-guardrails.test.mjs",
+    "test:llm-language-coverage": "node --test tests/unit/llm-model-language-coverage.test.mjs",
     "test:oasis-particles": "node tests/e2e/oasis-particles.mjs",
     "build:web:min": "node scripts/build/run-web.mjs --skip-trace",
     "build": "npm run build:web",
@@ -20,6 +22,10 @@
     "seo:sitemap": "node scripts/build/generate-sitemap.mjs",
     "seo:sitemap:check": "node scripts/build/generate-sitemap.mjs --check",
     "seo:og-card": "node scripts/build/generate-og-card.mjs",
+    "seo:pages": "node scripts/build/generate-localized-pages.mjs",
+    "seo:pages:check": "node scripts/build/generate-localized-pages.mjs --check",
+    "seo:translate": "node scripts/i18n/translate-seo-pages.mjs",
+    "seo:content:check": "node scripts/verify/verify-seo-content.mjs",
     "smoke:trace": "node scripts/build/smoke-function-trace.mjs",
     "sync:tokens": "node scripts/build/sync-tokens-to-pwa.mjs",
     "benchmark": "npm run all --workspace=@rianell/benchmark-runner",

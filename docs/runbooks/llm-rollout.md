@@ -15,14 +15,14 @@ Optional local GPU matrix (built PWA on port 8080):
 GPU_MATRIX=1 PROBE_URL=http://127.0.0.1:8080/ npm run agentic:gpu-v1 -- --track pwa-gpu
 ```
 
-Tier 5 Llama probes require `HF_TOKEN` in environment.
+Qwen2.5 model probes need no `HF_TOKEN` (Apache-2.0 repos).
 
 ## PWA load order (tier 3-5)
 
 1. **Path 1:** Transformers.js ONNX - WebGPU → WebNN → WASM  
 2. **Path 2:** WebLLM MLC (`@mlc-ai/web-llm@0.2.84`) when Path 1 fails or `557856688` cached  
 3. **Path 3:** GGUF spike (feature flag; not bundled in V1 default)  
-4. **Fallback:** WASM SmolLM cap (`resolveWasmFallbackModelId`)
+4. **Fallback:** WASM small-model cap - Qwen2.5-0.5B (`resolveWasmFallbackModelId`)
 
 ## Settings
 
