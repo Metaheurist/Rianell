@@ -5,6 +5,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### Unreleased
 
 - **Visual pack harness (v2.6.0 tooling):** Qwen gen + Gemma polish + live A/B/C preview (`:8766`) + QA loop; Tk dashboard Visual gallery / Live polish. Product icon **apply deferred** until QA green. See root `CHANGELOG.md` and `docs/development/visual-pack-harness.md`.
+- **CI:** Removed schedule-only MobSF job from `security-dast.yml` (PWA-only; left ZAP + axe).
 
 **Latest: v2.2.23** - Centred Ask Rianell chat, compass discovery icon, readable boot-recovery text, removed Enter hint.
 
