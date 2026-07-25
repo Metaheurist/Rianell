@@ -5,6 +5,54 @@
     "kind": "web",
     "status": "ok",
     "meta": {
+      "timestamp_utc": "2026-07-25T11:59:21.891Z",
+      "git_sha": "cacdd2e09954d4eebfb3f0b0cfb37ca51d424556",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "30157115144",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 7885,
+      "LCP_ms": 26327,
+      "TBT_ms": 3491,
+      "CLS": 0.0041,
+      "SpeedIndex_ms": 12718,
+      "TTI_ms": 29815
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 929
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 171
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 162
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 212
+      },
+      {
+        "step": "open_settings",
+        "ms": 702
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 643
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "github-pages",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
       "timestamp_utc": "2026-07-19T19:04:23.419Z",
       "git_sha": "2388cfd7db8f386a8c7bc15afcc6c778ba51909e",
       "runner": "linux",
@@ -7148,54 +7196,6 @@
       {
         "step": "warm_reload_to_main",
         "ms": 906
-      }
-    ]
-  },
-  {
-    "schema_version": 1,
-    "slug": "github-pages",
-    "kind": "web",
-    "status": "ok",
-    "meta": {
-      "timestamp_utc": "2026-06-12T17:13:54.520Z",
-      "git_sha": "ad35dc359cb0c2e3a81ae19f56f1e5c770fd4e1f",
-      "runner": "linux",
-      "node": "v24.14.1",
-      "github_run_id": "27430856806",
-      "github_run_attempt": "1"
-    },
-    "lighthouse": {
-      "FCP_ms": 10286,
-      "LCP_ms": 11838,
-      "TBT_ms": 39,
-      "CLS": 0.0208,
-      "SpeedIndex_ms": 10286,
-      "TTI_ms": 11838
-    },
-    "nav": [
-      {
-        "step": "cold_dom_ready_to_main",
-        "ms": 1713
-      },
-      {
-        "step": "click_nav-logs",
-        "ms": 171
-      },
-      {
-        "step": "click_nav-charts",
-        "ms": 153
-      },
-      {
-        "step": "click_nav-home",
-        "ms": 154
-      },
-      {
-        "step": "open_settings",
-        "ms": 9
-      },
-      {
-        "step": "warm_reload_to_main",
-        "ms": 872
       }
     ]
   }
