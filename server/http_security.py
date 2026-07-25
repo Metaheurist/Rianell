@@ -4,10 +4,32 @@ HTTP security helpers: loopback checks, CORS, simple rate limiting.
 from __future__ import annotations
 
 import ipaddress
+import re
 import time
 from collections import defaultdict
 from threading import Lock
 from typing import Optional, Tuple
+
+
+# Defensive server-side scrub for automatic client error reports. The client
+# scrubs first; this is a belt-and-suspenders pass so a screening/health value
+# that slipped into an error string is never written to the server log.
+_HEALTH_TERM_RE = re.compile(
+    r'("?\b(?:phq|gad|phq9|gad7|mood|symptom|symptoms|weight|glucose|'
+    r'systolic|diastolic|heartrate|heart_rate|bpm|healthlogs|health_logs|'
+    r'anonymized_logs|score|answers?)\b"?\s*[:=]\s*)("[^"]*"|\'[^\']*\'|[^\s,;}\]]+)',
+    re.IGNORECASE,
+)
+_LONG_NUMBER_RE = re.compile(r'\b\d{4,}\b')
+
+
+def scrub_health_terms(text: str) -> str:
+    """Redact likely health/screening values from a free-text error string."""
+    if not text:
+        return ''
+    scrubbed = _HEALTH_TERM_RE.sub(lambda m: m.group(1) + '[redacted]', text)
+    scrubbed = _LONG_NUMBER_RE.sub('[redacted]', scrubbed)
+    return scrubbed
 
 
 def is_loopback_ip(ip: str) -> bool:
@@ -88,3 +110,6 @@ class SimpleRateLimiter:
 sensitive_api_limiter = SimpleRateLimiter(max_events=60, window_seconds=60.0)
 client_log_limiter = SimpleRateLimiter(max_events=300, window_seconds=60.0)
 bug_report_limiter = SimpleRateLimiter(max_events=5, window_seconds=86400.0)
+# Automatic client error/telemetry reports: allow a modest burst, but cap so a
+# runaway error loop in one tab cannot flood the log or the server.
+client_error_limiter = SimpleRateLimiter(max_events=60, window_seconds=60.0)

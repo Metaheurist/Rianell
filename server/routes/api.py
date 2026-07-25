@@ -60,6 +60,71 @@ class ApiRoutesMixin:
             except Exception as e:
                 logger.exception('Error serving tutorial page')
                 self.send_error(500, str(e))
+
+        def handle_visual_gallery_page(self):
+            """Serve current visual gallery HTML (scripts/dev/visual-current-gallery.html)."""
+            try:
+                from .. import visual_gallery
+                body = visual_gallery.gallery_html_with_skin()
+                if not body:
+                    self.send_error(404, 'visual-current-gallery.html not found')
+                    return
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Cache-Control', 'no-store')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                logger.exception('Error serving visual gallery page')
+                self.send_error(500, str(e))
+
+        def handle_visual_gallery_skin(self):
+            """Serve shared gallery CSS (scripts/dev/visual-gallery-skin.css)."""
+            try:
+                from .. import visual_gallery
+                css_path = visual_gallery.gallery_skin_css_path()
+                if not css_path.is_file():
+                    self.send_error(404, 'visual-gallery-skin.css not found')
+                    return
+                with open(css_path, 'rb') as f:
+                    body = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/css; charset=utf-8')
+                self.send_header('Cache-Control', 'no-store')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                logger.exception('Error serving visual gallery skin')
+                self.send_error(500, str(e))
+
+        def handle_visual_gallery_api(self):
+            """JSON gallery of current register icons/animations (Node dump + Python slice)."""
+            try:
+                from .. import visual_gallery
+                parsed = urlparse(self.path)
+                opts = visual_gallery.parse_gallery_query(parsed.query)
+                data = visual_gallery.slice_gallery(
+                    limit=opts['limit'],
+                    offset=opts['offset'],
+                    id_filter=opts['id_filter'],
+                )
+                body = json.dumps(data).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Cache-Control', 'no-store')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                logger.exception('Error serving visual gallery API')
+                err_body = json.dumps({'error': str(e), 'counts': {}, 'items': []}).encode('utf-8')
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Length', str(len(err_body)))
+                self.end_headers()
+                self.wfile.write(err_body)
     
         def handle_supabase_status(self):
             """Handle Supabase status check endpoint"""
@@ -114,7 +179,7 @@ class ApiRoutesMixin:
                     self.end_headers()
                     detail = (
                         'Encryption key API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 to allow LAN clients '
-                        '(see docs/SECURITY.md). If HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set, send header X-Rianell-LAN-Secret.'
+                        '(see docs/security/SECURITY.md). If HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set, send header X-Rianell-LAN-Secret.'
                     )
                     self.wfile.write(json.dumps({
                         'error': 'Forbidden',
@@ -382,6 +447,114 @@ class ApiRoutesMixin:
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
 
+        def handle_client_error(self):
+            """Receive scrubbed, automatic client-side error reports and log them.
+
+            Companion to the client `error-reporting.js` suite. Unlike /api/bug-report
+            (manual, Supabase-backed, loopback-only), this endpoint only writes to the
+            server log so it can run in local/dev mode without any external dependency.
+            The client already scrubs health data; we defensively re-sanitise here and
+            never persist screening (PHQ-9/GAD-7) or health-log values.
+            """
+            try:
+                client_ip = self.client_address[0]
+                MAX_CONTENT_LENGTH = 1024 * 8  # 8KB max
+                content_length = int(self.headers.get('Content-Length', 0) or 0)
+
+                if content_length <= 0:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Empty request body'}).encode('utf-8'))
+                    return
+
+                if content_length > MAX_CONTENT_LENGTH:
+                    self.send_response(413)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Payload too large'}).encode('utf-8'))
+                    return
+
+                if not http_security.client_error_limiter.allow(client_ip):
+                    self.send_response(429)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Too many error reports'}).encode('utf-8'))
+                    return
+
+                post_data = self.rfile.read(content_length)
+                try:
+                    payload = json.loads(post_data.decode('utf-8'))
+                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                    logger.warning(f"Invalid JSON in client-error request: {e}")
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Invalid JSON'}).encode('utf-8'))
+                    return
+
+                if not isinstance(payload, dict):
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Expected JSON object'}).encode('utf-8'))
+                    return
+
+                def _clean(value, limit, single_line=True):
+                    text = str(value or '')
+                    if single_line:
+                        text = text.replace('\n', ' ').replace('\r', ' ')
+                    return http_security.scrub_health_terms(text)[:limit]
+
+                kind = _clean(payload.get('kind', 'error'), 40)
+                name = _clean(payload.get('name', ''), 120)
+                message = _clean(payload.get('message', ''), 500)
+                source = _clean(payload.get('source', ''), 300)
+                line = _clean(payload.get('line', ''), 12)
+                col = _clean(payload.get('col', ''), 12)
+                url = _clean(payload.get('url', ''), 300)
+                user_agent = _clean(payload.get('user_agent', ''), 300)
+                stack = http_security.scrub_health_terms(str(payload.get('stack', '') or ''))[:2000]
+                count = payload.get('count', 1)
+                try:
+                    count = max(1, min(int(count), 10000))
+                except (ValueError, TypeError):
+                    count = 1
+
+                with connection_lock:
+                    last_activity[client_ip] = time.time()
+
+                location = source or url
+                if line:
+                    location = f"{location}:{line}" + (f":{col}" if col else "")
+                summary = f"CLIENT_ERROR | {kind} | {name}: {message}".strip()
+                if location:
+                    summary += f" | at {location}"
+                if count > 1:
+                    summary += f" | x{count}"
+                summary += f" | IP: {client_ip} | UA: {user_agent[:80]}"
+                logger.error(summary)
+                if stack:
+                    logger.debug(f"CLIENT_ERROR_STACK | {stack}")
+                if config.file_handler:
+                    config.file_handler.flush()
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('X-Content-Type-Options', 'nosniff')
+                self.send_header('X-Frame-Options', 'DENY')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'reported'}).encode('utf-8'))
+            except Exception as e:
+                logger.error(f"Error handling client error report: {e}")
+                try:
+                    self.send_response(500)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Failed to record error'}).encode('utf-8'))
+                except Exception:
+                    pass
+
         def handle_bug_report(self):
             """Handle bug report submissions and insert into Supabase."""
             try:
@@ -486,7 +659,7 @@ class ApiRoutesMixin:
                     self.end_headers()
                     detail = (
                         'anonymized-data API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 for LAN '
-                        '(see docs/SECURITY.md). If HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set, send header X-Rianell-LAN-Secret.'
+                        '(see docs/security/SECURITY.md). If HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set, send header X-Rianell-LAN-Secret.'
                     )
                     self.wfile.write(json.dumps({
                         'error': 'Forbidden',

@@ -14,8 +14,18 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run verify:a11y-tokens` | WCAG contrast gate for `@rianell/tokens` theme pairs |
 | `npm run verify:design-tokens` | Guardrail: no hardcoded card scaffolds or width-based progress in critical UI |
 | `npm run sync:tokens` | Regenerate `apps/pwa-webapp/css/tokens.css` from `@rianell/tokens` |
+| `npm run generate:theme-icons` | Plain + fancy team sprites (prefers Ollama fancy overrides when present) |
+| `npm run brain:ensure` | Ensure Ollama is serving (pull model if missing) |
+| `npm run visual:register` | Rebuild `assets/visual-register.json` (one entry per SVG/anim) |
+| `npm run visual:gen` | Local Ollama generate queue (`qwen3.6:35b`, concurrency 1, resumable) |
+| `npm run visual:polish` | Polish generated artifacts with Gemma 4 31B IT QAT |
+| `npm run visual:polish:live` | Live A/B/C polish preview on http://localhost:8766/ |
+| `npm run visual:polish:screenshot-qa` | Screenshot + heuristic QA gate |
+| `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (Pass N, max 8) |
+| `npm run visual:gallery` | Current-source gallery (standalone) |
+| `npm run visual:apply` | Apply polished-first outputs into PWA (**deferred until QA green**) |
 | `npm run benchmark` | Performance benchmarks workspace |
-| `npm run docs:dependencies` | Regenerate `docs/dependencies.md` |
+| `npm run docs:dependencies` | Regenerate `docs/development/dependencies.md` |
 | `npm run audit:boot:strict` | Playwright strict boot gate (local / CI parity) |
 | `npm run stress:memory` | Playwright memory stress test - Tier 5 + 365-day data, 10 tab-switch cycles, heap growth < 80 MB threshold; writes `benchmarks/memory/stress-latest.json` (gitignored) |
 | `scripts/dev/shutdown-pc.ps1` | Schedule delayed Windows shutdown (default 10 min); cancel with `shutdown /a` |
@@ -150,7 +160,7 @@ Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo r
 
 ## Read more (technical)
 
-- [Testing & configuration](https://github.com/Metaheurist/Rianell/blob/main/docs/testing-and-configuration.md)
+- [Testing & configuration](https://github.com/Metaheurist/Rianell/blob/main/docs/development/testing-and-configuration.md)
 - [Benchmarks README](https://github.com/Metaheurist/Rianell/blob/main/benchmarks/README.md)
-- [Dependencies inventory](https://github.com/Metaheurist/Rianell/blob/main/docs/dependencies.md)
-- [SECURITY.md - CI scanning](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)
+- [Dependencies inventory](https://github.com/Metaheurist/Rianell/blob/main/docs/development/dependencies.md)
+- [SECURITY.md - CI scanning](https://github.com/Metaheurist/Rianell/blob/main/docs/security/SECURITY.md)
