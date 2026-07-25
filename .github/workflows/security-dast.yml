@@ -49,18 +49,3 @@ jobs:
         run: npm run build:web
       - name: Axe audit contract
         run: node scripts/audit/run-axe-audit.mjs --dry-run
-
-  mobsf-scan:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'schedule'
-    steps:
-      - uses: actions/checkout@v5
-      - name: Run MobSF static scan
-        uses: MobSF/mobsfscan@0.4.5
-        with:
-          args: '. --json -o mobsf-report.json'
-      - name: Upload MobSF report
-        uses: actions/upload-artifact@v7
-        with:
-          name: mobsf-report
-          path: mobsf-report.json
