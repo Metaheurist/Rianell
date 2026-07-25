@@ -1,0 +1,47 @@
+# Visual pack harness (local Ollama)
+
+Two-model pipeline to regenerate every discrete SVG/animation in the PWA **without shipping product UI until QA is green**.
+
+## Models (never co-load)
+
+| Stage | Model | npm |
+|-------|--------|-----|
+| A (original) | Existing PWA sources | — |
+| B (generate) | `qwen3.6:35b` | `npm run visual:gen` |
+| C (polish) | `gemma4:31b-it-qat` (`VISUAL_POLISH_MODEL`) | `npm run visual:polish` |
+
+Preflight: `npm run brain:ensure` (serves Ollama / pulls the requested tag).
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run visual:register` / `:check` | Build/verify `apps/pwa-webapp/assets/visual-register.json` |
+| `npm run visual:gen` / `:status` | Qwen Stage 1 queue → `artifacts/visual-gen/` (gitignored) |
+| `npm run visual:polish` / `:status` | Gemma Stage 2 → `artifacts/visual-gen/polished/` |
+| `npm run visual:polish:live` | Live A/B/C preview **http://localhost:8766/** |
+| `npm run visual:polish:screenshot-qa` | Automated screenshot + heuristics (+ optional Gemma vision) |
+| `npm run visual:polish:qa-loop` | Wait pending≈0 → QA → re-polish broken (Pass N, max 8) |
+| `npm run visual:gallery` | Current-source gallery (standalone) |
+| `npm run visual:apply` | **Blocked for product until Phase 3c `broken.length === 0`** |
+
+Checkpoints under `artifacts/visual-gen/` stay local (gitignored). The register JSON is committed so CI/tests can run without regenerating.
+
+## Debug server / Tk dashboard
+
+With `powershell -File .\server\launch-server.ps1 -NoCompile -SkipUnitTests`:
+
+- **Tools → Visual gallery** → Browser / Chromium → `http://localhost:8080/dev/visual-gallery`
+- **Tools → Live polish** → `http://localhost:8766/` (start `visual:polish:live` first)
+
+API: `GET /api/visual-gallery?limit=&offset=` (see `server/visual_gallery.py`).
+
+## Hard rules
+
+- Do **not** run `visual:apply` / wire theme-icon overrides into shipped sprites until screenshot QA reports zero broken.
+- Do **not** wipe `polish-checkpoint.json` / `--reset-polished` casually (multi-day work).
+- Never co-load Qwen + Gemma on one GPU.
+
+## Tests
+
+`tests/unit/pwa/visual-*.test.mjs` — register, gen validate, polish queue/seamless loop, QA status, galleries.

@@ -1,6 +1,12 @@
 # Rianell Visual Inventory
 
-Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgrade` | `retire`. Target phase: P0-P7.
+Living registry for the Visual System Upgrade. Status: `keep` | `unify` | `upgrade` | `retire` | `regen`.
+
+**Harness (local Ollama):** see [`docs/development/visual-pack-harness.md`](development/visual-pack-harness.md).
+
+Rebuild: `npm run visual:register` · Generate: `npm run visual:gen` (`qwen3.6:35b`) · Polish: `npm run visual:polish` (Gemma) · Live preview: `npm run visual:polish:live` · Apply: **deferred** until screenshot QA is green.
+
+**Current gallery (debug server):** Tools → Visual gallery → Browser/Chromium → `/dev/visual-gallery`. Live polish: Tools → Live polish → `:8766`.
 
 ## SVG sprite (PWA `index.html` + runtime inject)
 

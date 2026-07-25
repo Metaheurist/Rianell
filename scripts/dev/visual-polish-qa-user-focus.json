@@ -1,0 +1,52 @@
+{
+  "updatedAt": "2026-07-25T12:00:00.000Z",
+  "note": "User live-review primary QA focus. Append more ids as review continues. screenshot-qa merges these as forced FAIL reasons. Product apply remains blocked until broken.length === 0.",
+  "primaryFocus": true,
+  "items": [
+    {
+      "id": "fa-replace:fa-solid_fa-pizza-slice",
+      "tags": ["subject-mismatch", "primary-focus"],
+      "reason": "Does not look like a pizza slice — redo design/composition"
+    },
+    {
+      "id": "achievement:cycle_tracker",
+      "tags": ["subject-mismatch", "menstrual-cycle", "primary-focus"],
+      "reason": "Icon has nothing to do with menstrual cycle — must read as cycle/period tracking"
+    },
+    {
+      "id": "avatar:ashspiral",
+      "tags": ["unrecognizable", "primary-focus"],
+      "reason": "Does not look like anything — redo silhouette so ashspiral reads clearly"
+    },
+    {
+      "id": "sprite:icon-stethoscope",
+      "tags": ["stethoscope-broken", "primary-focus"],
+      "reason": "Stethoscope must read as one connected instrument (stroke, not fill-blob)"
+    },
+    {
+      "idPrefix": "fancy:icon-stethoscope:",
+      "tags": ["stethoscope-broken", "stem-pack"],
+      "reason": "Fancy stethoscope pack — keep stroke-connected glyph"
+    },
+    {
+      "id": "avatar:moonthread",
+      "tags": ["avatar", "register-stub", "primary-focus"],
+      "reason": "Register JS stub unresolved; needs resolved SVG companion"
+    },
+    {
+      "idPrefix": "fancy:icon-save:",
+      "tags": ["stem-pack", "primary-focus"],
+      "reason": "Q&A batch 2 — save pack review"
+    },
+    {
+      "id": "animation:achPoolWave",
+      "tags": ["animation", "wave-is-hard-translate", "primary-focus"],
+      "reason": "Wave must be infinite seamless fluid — no end-edge slicing the droplet"
+    },
+    {
+      "id": "animation:achPillSpin",
+      "tags": ["animation", "in-place-spin", "primary-focus"],
+      "reason": "Pill must spin in place around its center — not orbit"
+    }
+  ]
+}

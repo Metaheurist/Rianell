@@ -99,15 +99,22 @@ class StaticRoutesMixin:
                 self.send_header('Access-Control-Allow-Origin', cval)
         
             # Cache Transformers.js file aggressively (it's a large library)
-            if getattr(self, '_static_long_cache', False):
+            parsed = urlparse(self.path)
+            p = parsed.path.split('?')[0].lower()
+            # Locale / prompt / motd packs change often in local-dev and deploy; never long-cache.
+            i18n_pack = '/i18n-packs/' in p
+            if i18n_pack:
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                self.send_header('Pragma', 'no-cache')
+                self.send_header('Expires', '0')
+                self._static_long_cache = False
+            elif getattr(self, '_static_long_cache', False):
                 self.send_header('Cache-Control', 'public, max-age=86400, must-revalidate')
                 self._static_long_cache = False
             elif self.path.endswith('transformers.js'):
                 self.send_header('Cache-Control', 'public, max-age=31536000, immutable')
                 self.send_header('Pragma', 'public')
             else:
-                parsed = urlparse(self.path)
-                p = parsed.path.split('?')[0].lower()
                 if p.endswith(('.js', '.mjs', '.css', '.png', '.svg', '.ico', '.webp', '.woff', '.woff2', '.json', '.wasm')) and not p.endswith('index.html'):
                     self.send_header('Cache-Control', 'public, max-age=86400, must-revalidate')
                 else:

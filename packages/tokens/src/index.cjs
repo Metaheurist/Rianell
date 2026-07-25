@@ -274,6 +274,48 @@ module.exports = {
   SPACING_TOKENS,
   SURFACE_TOKENS,
   ON_ACCENT,
+  THEME_FX_TOKENS: {
+    budgets: {
+      plainSpriteGzipMaxKb: 80,
+      fancySpriteGzipMaxKb: 200,
+      particleDurationMs: 900,
+      particleDurationTestCeilingMs: 1500,
+    },
+    intensities: ['off', 'subtle', 'bold'],
+    defaultIntensity: 'subtle',
+    uiIcon: {
+      mint: {
+        color: 'var(--primary-color)',
+        glow: 'color-mix(in srgb, #7bdf8c 35%, transparent)',
+        weight: '0.5px',
+        opacity: '1',
+      },
+      'red-black': {
+        color: 'var(--primary-color)',
+        glow: 'color-mix(in srgb, #ff4d5a 40%, transparent)',
+        weight: '1px',
+        opacity: '1',
+      },
+      mono: {
+        color: 'currentColor',
+        glow: 'rgba(255, 255, 255, 0.18)',
+        weight: '1.5px',
+        opacity: '0.92',
+      },
+      rainbow: {
+        color: 'var(--primary-color)',
+        glow: 'color-mix(in srgb, #ff4fa0 45%, transparent)',
+        weight: '1px',
+        opacity: '1',
+      },
+    },
+    teams: {
+      mint: { particleType: 'leaves', particleColor: '#7bdf8c', particleColorAlt: '#a8e6cf', subtleCount: 8, boldCount: 18, glow: '#7bdf8c' },
+      'red-black': { particleType: 'embers', particleColor: '#ff8d98', particleColorAlt: '#ff4d5a', subtleCount: 10, boldCount: 22, glow: '#ff8d98' },
+      mono: { particleType: 'smoke', particleColor: 'rgba(208,208,208,0.35)', particleColorAlt: 'rgba(120,120,120,0.25)', subtleCount: 6, boldCount: 14, glow: '#d0d0d0' },
+      rainbow: { particleType: 'rain', particleColor: '#ff4fa0', particleColorAlt: '#7bdf8c', subtleCount: 12, boldCount: 28, glow: '#ff4fa0', prism: ['#ff4fa0', '#ff9800', '#ffeb3b', '#7bdf8c', '#2196f3', '#9c27b0'] },
+    },
+  },
   isLightGradientBackground,
   resolveScreenBackground,
   resolveSurfaceTokens,

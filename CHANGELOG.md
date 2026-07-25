@@ -6,6 +6,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [2.6.0] - 2026-07-25
+
+### Added
+- **Full Visual Pack harness (publish tooling only):** machine-readable `apps/pwa-webapp/assets/visual-register.json`, local Ollama generate queue (`npm run visual:register` / `visual:gen`) against `qwen3.6:35b`, and Gemma polish queue (`npm run visual:polish`, default `gemma4:31b-it-qat`) with resume checkpoints under gitignored `artifacts/visual-gen/`.
+- **Live polish preview + QA loop:** `npm run visual:polish:live` (A/B/C gallery on `:8766` with Pass N (max M) HUD), `visual:polish:screenshot-qa`, `visual:polish:qa-loop` / `repolish-qa`, and `visual:gallery` for current-source review.
+- **Tk dashboard Visual gallery card:** open `/dev/visual-gallery` (Browser/Chromium) or Live polish (`:8766`) from the debug server tools panel (`server/visual_gallery.py` + dashboard buttons).
+- **Docs:** [`docs/development/visual-pack-harness.md`](docs/development/visual-pack-harness.md) operator guide; wiki Build/Test commands; agent local-brain harness notes.
+
+### Changed
+- **`visual:apply` / product icon wiring remain deferred** until Phase 3c screenshot QA reports `broken.length === 0`. Polished C artifacts stay local under `artifacts/visual-gen/polished/` and are not written into shipped PWA sprites yet.
+
+### Tests
+- `tests/unit/pwa/visual-register.test.mjs`, `visual-gen-validate.test.mjs`, `visual-polish-queue.test.mjs`, `visual-polish-seamless-loop.test.mjs`, `visual-polish-qa-status.test.mjs`, `visual-polish-screenshot-qa.test.mjs`, `visual-current-gallery.test.mjs`, `resolve-register-payload.test.mjs`.
+
+---
+
 ## [2.5.0] - 2026-07-19
 
 ### Fixed
@@ -81,7 +97,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ### Docs
 - **README tech stack:** Reorganised the Tech stack section into a compact two-column table (category label + badges per row) so it reads horizontally and uses page width instead of a tall stacked list. All badges, versions, and links preserved.
-- **Next-phase roadmap:** `docs/next-phase-development-plan.md` promoted from "No active roadmap" to an active, prioritised roadmap (SEO depth, i18n Tier-C backfill, privacy-safe observability, Core Web Vitals, accessibility, on-device AI acceleration, developer experience), each gated on a passing local check and green CI.
+- **Next-phase roadmap:** `docs/plans/next-phase-development-plan.md` promoted from "No active roadmap" to an active, prioritised roadmap (SEO depth, i18n Tier-C backfill, privacy-safe observability, Core Web Vitals, accessibility, on-device AI acceleration, developer experience), each gated on a passing local check and green CI.
 
 ---
 
@@ -93,7 +109,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **Open Graph social card:** `scripts/build/generate-og-card.mjs` (`npm run seo:og-card`) renders a deterministic on-brand 1200x630 `apps/pwa-webapp/Icons/og-card.png` via `sharp`. CI fails if the card is missing from the Pages build.
 - **Structured data:** `SoftwareApplication` (HealthApplication, free) JSON-LD on the home page and a `FAQPage` block on `/mental-health-check/`.
 - **i18n Ollama Tier-C scaffold:** `scripts/i18n/ollama-translate-gaps.mjs` and `merge-tier-c-overrides-from-packs.mjs` (`npm run i18n:ollama` / `i18n:merge-tier-c`) plus `scripts/lib/ollama-tier-c-overrides.mjs` (`ga`/`ar`/`he`), merged into locale packs by `generate-locale-overrides.mjs` — lets the local TranslateGemma gap-fill rebuild without re-running the model.
-- **Dev tooling:** Local RepoMapper MCP server rule (`.cursor/rules/codebase-mapping.mdc`) and a generated Tree-sitter interaction map at `docs/codebase_interaction_map.md`.
+- **Dev tooling:** Local RepoMapper MCP server rule (`.cursor/rules/codebase-mapping.mdc`) and a generated Tree-sitter interaction map at `docs/architecture/codebase-interaction-map.md`.
 
 ### Changed
 - **Manifest:** `theme_color` `#0a0a0a` → `#070807` to match the `index.html` `theme-color` meta; the Export shortcut URL is now relative (`./?export=true`).
@@ -242,7 +258,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ### Added
 - **UI Phase 1 primitives:** `SegmentedScaleInput` (PWA + RN), `.ui-card` / `.ui-accordion`, RN `Accordion`; log metrics use number pills synced to existing range inputs
-- **Docs:** `DESIGN.md` becomes the UI/UX architectural refactor plan; `docs/styling.md` documents card / scale / accordion rules
+- **Docs:** `DESIGN.md` becomes the UI/UX architectural refactor plan; `docs/style-and-design/styling.md` documents card / scale / accordion rules
 
 ### Changed
 - **Cards:** Flat single-layer surfaces (neutral border + `shadow-sm`); log accordion loses nested mint wash
@@ -268,7 +284,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **Deps (npm):** `@sentry/node` ^10.65.0, `sharp` ^0.35.3, `turbo` ^2.10.5, `@supabase/supabase-js` ^2.110.3, `jest-expo` ~55.0.19; Expo SDK 55 patch group; pin `react-native-screens` 4.25.2 (RN 0.83-compatible; blocks 4.26 peer requiring RN >=0.84)
 - **Deps (pip):** Raise floors for `pydantic` (>=2.13.4), `cryptography` (>=49), `watchdog` (>=6), `psycopg2-binary` (>=2.9.12), `psycopg[binary]` (>=3.3.4), `websockets` (>=15.0.1,<16 for supabase realtime peer)
 - **Dependabot:** Ignore `typescript` >=6, `jest-expo`/`babel-preset-expo` >=56, `react-native-screens` >=4.26, and `websockets` >=16 until coordinated upgrades
-- **CI:** Live LLM HF probe soft-passes when Hugging Face returns Forbidden on ONNX weights from GitHub Actions IPs; regenerate `docs/security-inventory.md` for root package 2.2.6
+- **CI:** Live LLM HF probe soft-passes when Hugging Face returns Forbidden on ONNX weights from GitHub Actions IPs; regenerate `docs/security/security-inventory.md` for root package 2.2.6
 
 ---
 
@@ -465,7 +481,7 @@ Visual System Upgrade (agentic plan P0-P7): unified motion tokens, SVG sprite ch
 
 ### Added
 
-- **docs/visual-inventory.md** - living registry of SVG, motion, and surface upgrade status
+- **docs/style-and-design/visual-inventory.md** - living registry of SVG, motion, and surface upgrade status
 - **audit-history/visual-baseline-manifest.json** - screenshot targets for before/after diffs
 - **apps/pwa-webapp/lazy-webgl.mjs** + **modules/webgl-scene.js** - lazy-loaded WebGL2 particle scenes (home ambient, mood orb, achievement burst)
 - **Sprite icons:** `icon-chevron-left`, `icon-chevron-right`, `icon-close`, `icon-backspace`
@@ -521,7 +537,7 @@ Six-guardrail technical audit remediation: canonical tokens, RN screen primitive
 ### Added
 
 - **Mood Control Deck (PWA Mood tab)** - unified 3D glass panel replacing separate check-in slider and quick-action buttons; daypart orbs with depth, aurora backdrop, parallax tilt, and 3D action tiles (`mood-tab.js`, scoped `.mood-control-deck` CSS). Home check-in card unchanged.
-- **`docs/design-token-contract.md`** - `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only (getdesign Airbnb crawl)
+- **`docs/style-and-design/design-token-contract.md`** - `@rianell/tokens` is runtime authority; root `DESIGN.md` is reference-only (getdesign Airbnb crawl)
 - **`SPACING_TOKENS` / `SURFACE_TOKENS`** in `@rianell/tokens`; synced to PWA via `npm run sync:tokens`
 - **RN primitives:** `ScreenCard`, `ScreenContainer`, `RangeChip`, `themeHelpers.ts`
 - **`scripts/verify/verify-design-tokens.mjs`** + `npm run verify:design-tokens` (CI unit-tests job)

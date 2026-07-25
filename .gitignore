@@ -114,3 +114,6 @@ scripts/.audit/*
 # CI binaries → GitHub Releases only; repo keeps manifest JSON under artifacts/
 artifacts/**/*.exe
 artifacts/**/*.zip
+
+# Local Ollama visual-pack generation checkpoints / raw responses
+artifacts/visual-gen/

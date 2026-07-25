@@ -118,7 +118,7 @@ LOG_FILE = LOG_DIR / f"rianell_{datetime.now().strftime('%Y%m%d')}.log"
 logger = logging.getLogger('Rianell')
 logger.setLevel(logging.DEBUG)
 if not logger.handlers:
-    # Rotate by size so logs/ cannot grow without bound on shared machines (see docs/SECURITY.md).
+    # Rotate by size so logs/ cannot grow without bound on shared machines (see docs/security/SECURITY.md).
     fh = RotatingFileHandler(
         LOG_FILE,
         maxBytes=10 * 1024 * 1024,
@@ -139,7 +139,7 @@ file_handler = logger.handlers[0] if logger.handlers else None
 
 if _loaded_legacy_root_env:
     logger.warning(
-        'Loaded legacy .env from repository root; prefer security/.env (see docs/SECURITY.md).'
+        'Loaded legacy .env from repository root; prefer security/.env (see docs/security/SECURITY.md).'
     )
 
 # Env
@@ -152,7 +152,7 @@ SENSITIVE_APIS_ON_LAN = os.getenv('HEALTH_APP_SENSITIVE_APIS_ON_LAN', '').lower(
 if SENSITIVE_APIS_ON_LAN:
     logger.warning(
         'HEALTH_APP_SENSITIVE_APIS_ON_LAN is enabled: sensitive dev APIs accept non-loopback clients. '
-        'Use only on trusted LANs (see docs/SECURITY.md).'
+        'Use only on trusted LANs (see docs/security/SECURITY.md).'
     )
 SENSITIVE_APIS_LAN_SECRET = os.getenv('HEALTH_APP_SENSITIVE_APIS_LAN_SECRET', '').strip()
 if SENSITIVE_APIS_ON_LAN and not SENSITIVE_APIS_LAN_SECRET:
