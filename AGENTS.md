@@ -33,3 +33,7 @@ Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cur
 - **`audit-history/`** - boot audit JSON (`baseline.json` tracked; `latest-boot-audit.json` gitignored)
 - **`server/`** - Python HTTP (not an npm workspace)
 - **`i18n-packs/`** - canonical locale source at repo root
+
+## Local split-execution harness
+
+When the workspace model is the local Ollama backend (qwen2.5-coder:32b / visual models), see [.agents/local-brain-harness.md](.agents/local-brain-harness.md). Preflight: `npm run brain:ensure`. Visual pack operator guide: [docs/development/visual-pack-harness.md](docs/development/visual-pack-harness.md). Selecting an explicit cloud model bypasses the split protocol.

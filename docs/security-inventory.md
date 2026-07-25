@@ -4,12 +4,23 @@ Schema version: **1** · Generated for Rianell security program.
 ## npm workspaces
 | Package | Version |
 |---------|---------|
-| `rianell` (root) | 2.3.0 |
+| `rianell` (root) | 2.6.0 |
 ## Python
 See `requirements.txt` (scanned by pip-audit in CI).
 ## PWA CDN URLs (index.html)
 - https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js
 - https://rianell.com/
+- https://rianell.com/de/
+- https://rianell.com/fr/
+- https://rianell.com/es/
+- https://rianell.com/it/
+- https://rianell.com/pl/
+- https://rianell.com/nl/
+- https://rianell.com/pt-br/
+- https://rianell.com/pt-pt/
+- https://rianell.com/ga/
+- https://rianell.com/ar/
+- https://rianell.com/he/
 - https://fonts.googleapis.com
 - https://fonts.gstatic.com
 - https://tcoynycktablxankyriw.supabase.co

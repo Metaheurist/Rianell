@@ -190,6 +190,18 @@ class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, FhirRoutesMixin, htt
         if parsed_path.path.rstrip('/') == '/tutorial':
             self.handle_tutorial_page()
             return
+
+        # Current visual gallery (icons / animations) — debug dashboard Tools card
+        if parsed_path.path.rstrip('/') == '/dev/visual-gallery':
+            self.handle_visual_gallery_page()
+            return
+        if parsed_path.path == '/visual-gallery-skin.css':
+            self.handle_visual_gallery_skin()
+            return
+        if parsed_path.path == '/api/visual-gallery':
+            self.handle_visual_gallery_api()
+            return
+
         # Return 204 (No Content) for optional files instead of 404
         optional_files = ['.map', '.well-known', 'devtools']
         if any(opt in self.path.lower() for opt in optional_files):
@@ -211,6 +223,10 @@ class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, FhirRoutesMixin, htt
         
         if parsed_path.path == '/api/sync-log':
             self.handle_sync_log()
+            return
+
+        if parsed_path.path == '/api/client-error':
+            self.handle_client_error()
             return
 
         if parsed_path.path == '/api/bug-report':

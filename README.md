@@ -2,11 +2,11 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](CHANGELOG.md)** (current **v2.0.0** - production release: OAuth connectors, unified cycle timeline, vitals suggestions, log-wizard UX, desktop full benchmark, beta branding removed).
+**Latest changes:** **[CHANGELOG.md](CHANGELOG.md)** (current **v2.6.0** — Full Visual Pack harness + live polish preview + Tk dashboard gallery (tooling only; product icon apply deferred); prior **v2.5.0** first-run boot-freeze fix and Ask Rianell starter chips).
 
 ### Here's what we plan next
 
-**[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)** - active roadmap. Shipped work is in the **[changelog](docs/CHANGELOG.md)** and **[app overview](docs/app-and-features.md)**.
+**[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)** — active roadmap (SEO/i18n depth, observability, CWV, a11y, on-device AI). Shipped work is in the **[changelog](docs/CHANGELOG.md)** and **[app overview](docs/app-and-features.md)**.
 
 ### Tech stack
 
@@ -110,7 +110,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 
 | | |
 | :--- | :--- |
-| <img src="docs/icons/lock.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Security](docs/SECURITY.md)** - threat model, controls, and v1.50 security program |
+| <img src="docs/icons/lock.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Security](docs/SECURITY.md)** - threat model, controls, and security program |
 | <img src="docs/icons/shield.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Privacy program](docs/privacy/global-baseline.md)** - GDPR baseline, RoPA, data-subject rights (`docs/privacy/`) |
 | <img src="docs/icons/shield.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Smartlook session recording](docs/privacy/smartlook-session-recording.md)** - opt-in EU session analytics (PWA), consent and CSP |
 | <img src="docs/icons/clipboard.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Privacy & region execution plan](docs/privacy/region-policy-execution-plan.md)** - Region gate, policy engine, UI localization (single Supabase project) |
@@ -120,6 +120,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | <img src="docs/icons/flask.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Testing & configuration](docs/testing-and-configuration.md)** |
 | <img src="docs/icons/timer.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
 | <img src="docs/icons/brain.svg" width="32" height="32" alt="" aria-hidden="true"> | **[AI architecture](docs/ai-architecture.md)** |
+| <img src="docs/icons/palette.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Visual pack harness](docs/development/visual-pack-harness.md)** - Ollama generate/polish queues, live A/B/C preview, dashboard gallery (apply deferred) |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Architecture standard](docs/architecture-standard.md)** - repo layout, workspaces, scripts, artifacts policy, migration log |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Codebase interaction map](docs/codebase_interaction_map.md)** - generated Tree-sitter map of key modules and their call/import relationships (LocalRepoMapper MCP) |
@@ -127,7 +128,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | <img src="docs/icons/palette.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
 | <img src="docs/icons/user.svg" width="32" height="32" alt="" aria-hidden="true"> | **[About & support](docs/about-and-support.md)** |
 | <img src="docs/icons/scroll.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Changelog](docs/CHANGELOG.md)** - version history and release notes |
-| <img src="docs/icons/rocket.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Next phase development plan](docs/next-phase-development-plan.md)** - upcoming build: theming, accessibility, AI acceleration |
+| <img src="docs/icons/rocket.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Next phase development plan](docs/next-phase-development-plan.md)** - upcoming: SEO/i18n, observability, CWV, a11y, on-device AI |
 | <img src="docs/icons/home.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Wiki](https://github.com/Metaheurist/Rianell/wiki)** - user guides and developer hub (source: `wiki/`) |
 
 Support contact: **jan.andersson@rianell.com**
@@ -166,7 +167,7 @@ Legacy names still work as fallbacks:
 - **`SUPABASE_ANON_KEY`** → publishable
 - **`SUPABASE_SERVICE_KEY`** → secret/service role
 
-For the PyQt6 server dashboard **Wipe Database** flow, rows are deleted in-app; sequence auto-reset needs DB SQL access and may fall back to manual SQL if not available.
+For the Tkinter server dashboard **Wipe Database** flow, rows are deleted in-app; sequence auto-reset needs DB SQL access and may fall back to manual SQL if not available.
 
 ## Security notes
 

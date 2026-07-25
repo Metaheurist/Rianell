@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Current visual gallery</title>
+<style id="visual-gallery-skin">
+/* Shared skin for Live polish preview + Current visual gallery (dev tooling). */
+:root{
+  --bg:#0c100e;--panel:#15201b;--panel-2:#1c2a24;--line:rgba(168,230,207,.14);
+  --mint:#7bdf8c;--mint-soft:#a8e6cf;--qwen:#7eb6ff;--warn:#f0b429;--text:#e8f5ee;
+  --muted:#8aa396;--bad:#ff7b7b;--ink:#e8f5ee;--hud-w:280px;
+  --font:"Segoe UI",system-ui,sans-serif;
+  --stage-h:112px;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar{
+  width:0 !important;
+  height:0 !important;
+  display:none !important;
+  background:transparent;
+}
+body{
+  margin:0;font-family:var(--font);color:var(--text);
+  background:
+    radial-gradient(ellipse 70% 36% at 18% -8%,rgba(123,223,140,.12),transparent 55%),
+    radial-gradient(ellipse 50% 30% at 90% 0%,rgba(126,182,255,.08),transparent 50%),
+    var(--bg);
+  padding:20px 20px 72px;
+  padding-right:calc(20px + var(--hud-w) + 16px);
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+
+.page-head{max-width:64rem;margin:0 0 12px}
+h1{font-size:1.2rem;margin:0 0 4px;letter-spacing:-.01em;font-weight:650}
+.sub{color:var(--muted);margin:0;font-size:.82rem;line-height:1.4;max-width:52ch}
+.sub strong{color:var(--mint-soft);font-weight:600}
+
+.bar{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  margin:0 0 16px;padding:10px 12px;border-radius:14px;
+  background:rgba(21,32,27,.72);border:1px solid var(--line);
+  backdrop-filter:blur(8px);
+}
+.bar .progress{font-size:.78rem;font-weight:600;color:var(--text)}
+.bar .progress em{font-style:normal;color:var(--mint-soft)}
+.pill{font-size:.72rem;padding:4px 9px;border-radius:999px;background:rgba(168,230,207,.1);color:var(--mint-soft)}
+.pill.warn{background:rgba(240,180,41,.14);color:var(--warn)}
+.pill.bad{background:rgba(255,123,123,.14);color:var(--bad)}
+.live{width:8px;height:8px;border-radius:50%;background:var(--mint);flex:0 0 auto}
+body:not(.hud-anim-off) .live{box-shadow:0 0 0 0 rgba(123,223,140,.55);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(123,223,140,.55)}70%{box-shadow:0 0 0 10px rgba(123,223,140,0)}100%{box-shadow:0 0 0 0 rgba(123,223,140,0)}}
+
+.stem-block{margin:0 0 18px}
+.stem-head{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin:0 0 8px;padding:0 2px}
+.stem-head h2{margin:0;font-size:.92rem;font-weight:700;color:var(--mint-soft)}
+.stem-head .hint{font-size:.7rem;color:var(--muted)}
+.pair{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);border-radius:16px;
+  padding:12px 14px 14px;margin-bottom:10px;
+}
+.pair header{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:8px}
+.pair header code{font-size:.82rem;font-weight:600}
+.idx{color:var(--mint-soft);font-size:.7rem;font-weight:700}
+code{font-size:.8rem}
+.tag{font-size:.66rem;padding:2px 8px;border-radius:999px;background:rgba(123,223,140,.12);color:var(--mint-soft)}
+.tag.theme{background:rgba(126,182,255,.14);color:var(--qwen)}
+.tag.quiet{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.flag{font-size:.66rem;padding:2px 8px;border-radius:999px;background:rgba(240,180,41,.16);color:var(--warn)}
+.meta-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+
+h3{margin:0 0 6px;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+.stage{
+  display:flex;align-items:center;justify-content:center;
+  min-height:var(--stage-h);border-radius:12px;background:#101816;margin-bottom:5px;color:var(--ink);
+}
+.stage--light{background:#eef7f1;color:#1a3d2a}
+.stage svg{width:64px;height:64px;overflow:visible}
+.stage.stage--anim{flex-direction:column;gap:5px;padding:8px}
+.stage.stage--anim svg{width:68px;height:68px}
+.anim-caption{font-size:.6rem;color:var(--muted);text-align:center;max-width:11rem;line-height:1.25}
+.stage.empty{color:var(--muted);font-size:.72rem;padding:10px;text-align:center}
+.empty-page{color:var(--muted);padding:28px 12px;text-align:center;line-height:1.45}
+.empty-page strong{color:var(--mint-soft)}
+
+body.hud-anim-off .anim-target,
+body.hud-anim-off .live,
+body.hud-anim-off [class*="_host"] .anim-target{animation:none !important}
+body.hud-hide-light .stage--light{display:none !important}
+body.hud-compact{--stage-h:72px}
+body.hud-compact .stage svg{width:48px;height:48px}
+body.hud-compact .stage.stage--anim svg{width:52px;height:52px}
+
+.hud{
+  position:fixed;top:16px;right:16px;z-index:50;width:var(--hud-w);
+  background:rgba(14,20,17,.92);border:1px solid rgba(168,230,207,.22);
+  border-radius:18px;box-shadow:0 16px 40px rgba(0,0,0,.42);
+  backdrop-filter:blur(14px);color:var(--text);
+  overflow:hidden;
+  transition:box-shadow .2s var(--ease);
+}
+.hud-top{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px 12px;border-bottom:1px solid var(--line);
+}
+.hud-top h2{margin:0;font-size:.78rem;font-weight:700;letter-spacing:.02em}
+.hud-collapse{
+  border:0;background:rgba(168,230,207,.1);color:var(--mint-soft);
+  border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:14px;line-height:1;
+}
+.hud.collapsed .hud-body{display:none}
+.hud-body{padding:10px 12px 12px}
+.hud-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px;
+}
+.hud-stat{
+  background:rgba(168,230,207,.06);border:1px solid rgba(168,230,207,.1);
+  border-radius:10px;padding:7px 8px;
+}
+.hud-stat b{display:block;font-size:.95rem;font-weight:700;color:var(--mint-soft);line-height:1.1}
+.hud-stat span{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.hud-stat.warn b{color:var(--warn)}
+.hud-stat.bad b{color:var(--bad)}
+.hud-meta{font-size:.65rem;color:var(--muted);margin:0 0 10px;line-height:1.35;word-break:break-word}
+.hud-sec{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px}
+.hud-toggles{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}
+.hud-toggles label{
+  display:flex;align-items:center;gap:8px;font-size:.78rem;
+  padding:7px 8px;border-radius:10px;background:rgba(255,255,255,.03);
+  border:1px solid transparent;cursor:pointer;user-select:none;
+}
+.hud-toggles label:hover{border-color:var(--line)}
+.hud-toggles input{accent-color:var(--mint);width:15px;height:15px}
+.hud-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.hud-actions button{
+  border:1px solid var(--line);background:rgba(123,223,140,.1);color:var(--mint-soft);
+  border-radius:10px;padding:8px 6px;font-size:.72rem;cursor:pointer;font-weight:600;
+}
+.hud-actions button:hover{background:rgba(123,223,140,.18)}
+.hud-actions button.ghost{background:transparent;color:var(--muted)}
+.hud-note{margin:8px 0 0;font-size:.62rem;color:var(--muted);line-height:1.35}
+
+.hud-model{
+  margin:0 0 10px;padding:0;border-radius:12px;
+  background:rgba(126,182,255,.06);border:1px solid rgba(126,182,255,.16);
+  overflow:hidden;
+}
+.hud-model > summary{
+  list-style:none;cursor:pointer;padding:8px 9px;
+  font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--qwen);
+  user-select:none;
+}
+.hud-model > summary::-webkit-details-marker{display:none}
+.hud-model > summary .hm-id{
+  display:block;margin-top:4px;font-size:.78rem;font-weight:700;
+  text-transform:none;letter-spacing:0;color:var(--text);word-break:break-word;
+}
+.hud-model > summary .hm-summary-line{
+  display:block;margin-top:2px;font-size:.62rem;text-transform:none;letter-spacing:0;
+  color:var(--muted);line-height:1.35;
+}
+.hud-model[open] > summary{border-bottom:1px solid rgba(126,182,255,.16)}
+.hud-model .hm-body{padding:8px 9px 9px}
+.hud-model .hm-row{
+  margin:0 0 4px;font-size:.62rem;color:var(--muted);line-height:1.4;word-break:break-word;
+}
+.hud-model .hm-row:last-child{margin-bottom:0}
+.hud-model .hm-row b{color:var(--mint-soft);font-weight:600}
+.hud-model .hm-pill{
+  display:inline-block;margin:2px 4px 0 0;padding:1px 6px;border-radius:999px;
+  background:rgba(126,182,255,.12);color:var(--qwen);font-size:.58rem;
+}
+.hud-model .hm-status-on{color:var(--mint-soft)}
+.hud-model .hm-status-off{color:var(--warn)}
+
+@media(max-width:900px){
+  body{padding-right:20px;padding-top:12px}
+  .hud{top:auto;bottom:12px;right:12px;left:12px;width:auto}
+  body.hud-open-mobile{padding-bottom:220px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  body:not(.hud-anim-off) .live{animation:none;box-shadow:none}
+  .hud{transition:none}
+}
+
+</style>
+<style>
+.cols{display:grid;grid-template-columns:minmax(0,420px);gap:8px}
+h3{color:var(--mint-soft)}
+.col-current[data-team="mint"] .stage{color:#7bdf8c}
+.col-current[data-team="red-black"] .stage{color:#ff4d5a}
+.col-current[data-team="mono"] .stage{color:#d0d0d0}
+.col-current[data-team="rainbow"] .stage{color:#ff4fa0}
+</style>
+</head>
+<body class="hud-anim-off">
+<header class="page-head">
+  <h1>Current visual gallery</h1>
+  <p class="sub"><strong>App-runtime current</strong> — overrides, else register · theme variants are separate rows</p>
+</header>
+<div class="bar" id="bar"><span class="live" title="ready"></span><span class="pill">loading…</span></div>
+<div id="gallery" class="empty-page">Loading current visuals…</div>
+
+<aside class="hud" id="hud" aria-label="Gallery controls">
+  <div class="hud-top">
+    <h2>Gallery</h2>
+    <button type="button" class="hud-collapse" id="hudCollapse" title="Collapse">–</button>
+  </div>
+  <div class="hud-body">
+    <div class="hud-stats" id="hudStats">
+      <div class="hud-stat"><b id="hsTotal">–</b><span>total</span></div>
+      <div class="hud-stat"><b id="hsOverrides">–</b><span>overrides</span></div>
+      <div class="hud-stat"><b id="hsLoaded">–</b><span>loaded</span></div>
+      <div class="hud-stat"><b id="hsSkipped">–</b><span>skipped</span></div>
+    </div>
+    <p class="hud-meta" id="hudMeta">—</p>
+    <p class="hud-sec">Display</p>
+    <div class="hud-toggles">
+      <label><input type="checkbox" id="togAnim" /> Animations (GPU)</label>
+      <label><input type="checkbox" id="togLight" checked /> Light stages</label>
+      <label><input type="checkbox" id="togCompact" /> Compact cards</label>
+    </div>
+    <div class="hud-actions">
+      <button type="button" id="btnLoadMore">Load +10</button>
+      <button type="button" id="btnTop" class="ghost">Top</button>
+      <button type="button" id="btnRefresh" class="ghost">Refresh</button>
+      <button type="button" id="btnUnload" class="ghost">Unload all</button>
+    </div>
+    <p class="hud-note">Lazy +10 · Animations default <b>off</b> to spare GPU.</p>
+  </div>
+</aside>
+
+<script>
+const params = new URLSearchParams(location.search);
+const idFilter = params.get('id');
+const BATCH = Math.max(1, Number(params.get('batch') || 10) || 10);
+const gallery = document.getElementById('gallery');
+const bar = document.getElementById('bar');
+const PREF_KEY = 'rianell.visualCurrentGallery.hud.v1';
+
+let loadedItems = [];
+let nextOffset = 0;
+let totalMatching = 0;
+let loadingMore = false;
+let exhausted = false;
+let sentinelObs = null;
+let lastCounts = {};
+let lastData = {};
+
+const prefs = loadPrefs();
+applyPrefs(prefs);
+
+function loadPrefs() {
+  const d = { anim: false, light: true, compact: false, collapsed: false };
+  try {
+    return { ...d, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') };
+  } catch {
+    return d;
+  }
+}
+function savePrefs() {
+  localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+}
+function applyPrefs(p) {
+  document.body.classList.toggle('hud-anim-off', !p.anim);
+  document.body.classList.toggle('hud-hide-light', !p.light);
+  document.body.classList.toggle('hud-compact', !!p.compact);
+  document.getElementById('hud').classList.toggle('collapsed', !!p.collapsed);
+  const map = [
+    ['togAnim', 'anim'],
+    ['togLight', 'light'],
+    ['togCompact', 'compact'],
+  ];
+  for (const [id, key] of map) {
+    const el = document.getElementById(id);
+    if (el) el.checked = !!p[key];
+  }
+  document.getElementById('hudCollapse').textContent = p.collapsed ? '+' : '–';
+}
+
+function card(item, i, total) {
+  const meta = [
+    item.team ? '<span class="tag theme">' + item.team + '</span>' : '',
+    item.kind ? '<span class="tag quiet">' + item.kind + '</span>' : '',
+    item.isAnimPreview ? '<span class="tag theme">anim</span>' : '',
+    item.source === 'override' ? '<span class="flag">override</span>' : '',
+  ].filter(Boolean).join('');
+  const title = item.currentAnim ? 'Current @keyframes' : 'Current';
+  let body;
+  if (item.currentAnim) {
+    const light = String(item.currentAnim).replace(
+      'class="stage stage--anim"',
+      'class="stage stage--anim stage--light"',
+    );
+    body = item.currentAnim + light;
+  } else {
+    let emptyMsg = '(missing / non-SVG)';
+    if (item.missingReason === 'js-stub') emptyMsg = '(register JS stub — unresolved)';
+    if (item.missingReason === 'css-anim') emptyMsg = '(CSS animation — open Browser for motion)';
+    if (item.missingReason === 'fx') emptyMsg = '(canvas FX — not an SVG glyph)';
+    if (item.missingReason === 'empty') emptyMsg = '(empty payload)';
+    body = item.missing || !item.current
+      ? '<div class="stage empty" data-stage-empty="1">'+emptyMsg+'</div>'
+      : '<div class="stage" data-stage="dark">'+item.current+'</div><div class="stage stage--light" data-stage="light">'+item.current+'</div>';
+  }
+  return '<article class="pair" data-id="'+item.id+'" data-stem="'+(item.stem||'')+'" data-team="'+(item.team||'')+'">'
+    + '<header><span class="idx">'+(i+1)+'/'+total+'</span> <code>'+item.id+'</code>'
+    + (meta ? '<span class="meta-row">'+meta+'</span>' : '') + '</header>'
+    + '<div class="cols"><div class="col col-current" data-team="'+(item.team||'')+'"><h3>'+title+'</h3>'+body+'</div></div></article>';
+}
+
+function renderGrouped(items, totalAll) {
+  const total = totalAll || items.length;
+  const groups = new Map();
+  for (const it of items) {
+    const stem = it.stem || it.id;
+    if (!groups.has(stem)) groups.set(stem, []);
+    groups.get(stem).push(it);
+  }
+  let html = '';
+  let globalIdx = 0;
+  for (const [stem, rows] of groups) {
+    const themes = rows.map((r) => r.team || 'plain').join(' · ');
+    html += '<section class="stem-block" data-stem-group="'+stem+'">'
+      + '<div class="stem-head"><h2>'+stem+'</h2>'
+      + '<span class="hint">'+rows.length+' variant'+(rows.length===1?'':'s')+' — '+themes+'</span></div>';
+    for (const it of rows) {
+      html += card(it, globalIdx, total);
+      globalIdx += 1;
+    }
+    html += '</section>';
+  }
+  return html;
+}
+
+function paintHud(c, data, extra) {
+  lastCounts = c || {};
+  lastData = data || {};
+  const loaded = extra?.loaded ?? c.showing ?? 0;
+  const total = c.totalMatching ?? 0;
+  document.getElementById('hsTotal').textContent = String(total);
+  document.getElementById('hsOverrides').textContent = String(c.overrideCount || 0);
+  document.getElementById('hsLoaded').textContent = loaded + '/' + total;
+  document.getElementById('hsSkipped').textContent = String(c.skipped || 0);
+  const at = data.updatedAt ? String(data.updatedAt).replace('T',' ').replace(/\.\d+Z$/,'Z') : '—';
+  document.getElementById('hudMeta').textContent =
+    (extra?.status || (exhausted ? 'all loaded' : 'scroll for more')) + ' · ' + at;
+}
+
+function paintBar(c, data, extra) {
+  paintHud(c, data, extra);
+  if (data.error) {
+    bar.innerHTML = '<span class="pill bad">'+String(data.error)+'</span>';
+    return;
+  }
+  const loaded = extra?.loaded ?? c.showing ?? 0;
+  const total = c.totalMatching || 0;
+  bar.innerHTML = '<span class="live"></span>'
+    + '<span class="progress"><em>'+total+'</em> total · '+loaded+' shown'
+    + (c.overrideCount ? ' · '+c.overrideCount+' overrides' : '')
+    + '</span>';
+}
+
+function observeSentinel() {
+  if (idFilter || exhausted) return;
+  const el = document.getElementById('scroll-sentinel');
+  if (!el) return;
+  if (sentinelObs) sentinelObs.disconnect();
+  sentinelObs = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) loadMore();
+  }, { root: null, rootMargin: '320px 0px', threshold: 0 });
+  sentinelObs.observe(el);
+}
+
+function renderGallery() {
+  if (!loadedItems.length) {
+    gallery.innerHTML = '<div class="empty-page"><strong>No current visuals</strong>'
+      + (lastData.error ? '<br>'+String(lastData.error) : '')
+      + '</div>';
+    return;
+  }
+  const sentinel = (idFilter || exhausted)
+    ? '<div class="empty-page" style="padding:16px">End · '+(exhausted ? 'all '+totalMatching+' loaded' : 'filtered')+'</div>'
+    : '<div id="scroll-sentinel" class="empty-page" style="padding:16px">'
+      + (loadingMore ? 'Loading next '+BATCH+'…' : 'Scroll for next '+BATCH+'…')
+      + '</div>';
+  gallery.innerHTML = renderGrouped(loadedItems, totalMatching) + sentinel;
+  observeSentinel();
+}
+
+async function fetchGallery(offset, limit) {
+  const qs = new URLSearchParams();
+  if (idFilter) {
+    qs.set('id', idFilter);
+    qs.set('limit', '1');
+    qs.set('offset', '0');
+  } else {
+    qs.set('limit', String(limit));
+    qs.set('offset', String(offset));
+  }
+  const res = await fetch('/api/visual-gallery?' + qs.toString() + '&ts=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('gallery HTTP ' + res.status);
+  return res.json();
+}
+
+async function loadMore() {
+  if (idFilter || loadingMore || exhausted) return;
+  loadingMore = true;
+  renderGallery();
+  try {
+    const data = await fetchGallery(nextOffset, BATCH);
+    if (data.error) {
+      lastData = data;
+      paintBar(data.counts || {}, data, { loaded: loadedItems.length, status: 'error' });
+      return;
+    }
+    const c = data.counts || {};
+    totalMatching = Number(c.totalMatching || 0);
+    const batch = data.items || [];
+    if (!batch.length) {
+      exhausted = true;
+    } else {
+      const seen = new Set(loadedItems.map((x) => x.id));
+      for (const it of batch) {
+        if (!seen.has(it.id)) loadedItems.push(it);
+      }
+      nextOffset = Math.min(totalMatching, nextOffset + batch.length);
+      if (nextOffset >= totalMatching || batch.length < BATCH) exhausted = true;
+    }
+    paintBar(c, data, {
+      loaded: loadedItems.length,
+      status: exhausted ? 'all loaded' : 'scroll for more',
+    });
+  } catch (err) {
+    bar.innerHTML = '<span class="pill bad">gallery offline: '+String(err.message||err)+'</span>';
+  } finally {
+    loadingMore = false;
+    renderGallery();
+  }
+}
+
+async function softRefresh() {
+  try {
+    if (idFilter) {
+      const data = await fetchGallery(0, 1);
+      const c = data.counts || {};
+      paintBar(c, data, { loaded: (data.items||[]).length });
+      loadedItems = data.items || [];
+      totalMatching = loadedItems.length;
+      exhausted = true;
+      renderGallery();
+      return;
+    }
+    const want = Math.max(loadedItems.length, BATCH);
+    const data = await fetchGallery(0, want);
+    if (data.error) {
+      lastData = data;
+      paintBar(data.counts || {}, data, { loaded: 0, status: 'error' });
+      loadedItems = [];
+      renderGallery();
+      return;
+    }
+    const c = data.counts || {};
+    const y = window.scrollY;
+    loadedItems = data.items || [];
+    nextOffset = loadedItems.length;
+    totalMatching = Number(c.totalMatching || 0);
+    exhausted = nextOffset >= totalMatching;
+    paintBar(c, data, { loaded: loadedItems.length, status: exhausted ? 'all loaded' : 'scroll for more' });
+    renderGallery();
+    window.scrollTo(0, y);
+  } catch (err) {
+    bar.innerHTML = '<span class="pill bad">gallery offline: '+String(err.message||err)+'</span>';
+  }
+}
+
+async function boot() {
+  try {
+    if (idFilter) {
+      await softRefresh();
+      return;
+    }
+    loadedItems = [];
+    nextOffset = 0;
+    exhausted = false;
+    const data = await fetchGallery(0, BATCH);
+    if (data.error) {
+      lastData = data;
+      paintBar(data.counts || {}, data, { loaded: 0, status: 'error' });
+      gallery.innerHTML = '<div class="empty-page"><strong>Gallery error</strong><br>'+String(data.error)+'</div>';
+      return;
+    }
+    const c = data.counts || {};
+    loadedItems = data.items || [];
+    nextOffset = loadedItems.length;
+    totalMatching = Number(c.totalMatching || 0);
+    exhausted = nextOffset >= totalMatching || !loadedItems.length;
+    paintBar(c, data, { loaded: loadedItems.length, status: exhausted ? 'all loaded' : 'scroll for more' });
+    if (!loadedItems.length) {
+      gallery.innerHTML = '<div class="empty-page"><strong>No current visuals to show</strong></div>';
+      return;
+    }
+    renderGallery();
+  } catch (err) {
+    bar.innerHTML = '<span class="pill bad">gallery offline: '+String(err.message||err)+'</span>';
+  }
+}
+
+function bindHud() {
+  const bind = (id, key) => {
+    document.getElementById(id).addEventListener('change', (e) => {
+      prefs[key] = !!e.target.checked;
+      savePrefs();
+      applyPrefs(prefs);
+    });
+  };
+  bind('togAnim', 'anim');
+  bind('togLight', 'light');
+  bind('togCompact', 'compact');
+  document.getElementById('hudCollapse').addEventListener('click', () => {
+    prefs.collapsed = !prefs.collapsed;
+    savePrefs();
+    applyPrefs(prefs);
+  });
+  document.getElementById('btnLoadMore').addEventListener('click', () => loadMore());
+  document.getElementById('btnTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  document.getElementById('btnRefresh').addEventListener('click', () => softRefresh());
+  document.getElementById('btnUnload').addEventListener('click', () => {
+    loadedItems = loadedItems.slice(0, BATCH);
+    nextOffset = loadedItems.length;
+    exhausted = nextOffset >= totalMatching;
+    renderGallery();
+    paintBar(lastCounts, lastData, { loaded: loadedItems.length, status: 'unloaded to first '+BATCH });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+bindHud();
+boot();
+</script>
+</body>
+</html>
