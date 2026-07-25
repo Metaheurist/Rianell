@@ -436,11 +436,22 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
     chromium_tools_btns.pack(anchor='w')
 
     deps_card = tk.Frame(tools_grid, bg=T.card, highlightbackground=T.border, highlightthickness=1, padx=14, pady=14)
-    deps_card.grid(row=1, column=0, columnspan=2, sticky='nsew')
+    deps_card.grid(row=1, column=0, sticky='nsew', padx=(0, 8), pady=(0, 8))
     tk.Label(deps_card, text='Python dependencies', bg=T.card, fg=T.text, font=('Segoe UI', 10, 'bold')).pack(anchor='w')
-    tk.Label(deps_card, text='Sync requirements.txt (supabase, pydantic, watchdog…).', bg=T.card, fg=T.muted, font=T.font_sm).pack(anchor='w', pady=(6, 10))
+    tk.Label(deps_card, text='Sync requirements.txt (supabase, pydantic, watchdog…).', bg=T.card, fg=T.muted, font=T.font_sm, wraplength=320).pack(anchor='w', pady=(6, 10))
     deps_btns = tk.Frame(deps_card, bg=T.card)
     deps_btns.pack(anchor='w')
+
+    gallery_card = tk.Frame(tools_grid, bg=T.card, highlightbackground=T.border, highlightthickness=1, padx=14, pady=14)
+    gallery_card.grid(row=1, column=1, sticky='nsew', padx=(8, 0), pady=(0, 8))
+    tk.Label(gallery_card, text='Visual gallery', bg=T.card, fg=T.text, font=('Segoe UI', 10, 'bold')).pack(anchor='w')
+    tk.Label(
+        gallery_card,
+        text='Preview icons & live CSS animations in the browser (/dev/visual-gallery).',
+        bg=T.card, fg=T.muted, font=T.font_sm, wraplength=320, justify=tk.LEFT,
+    ).pack(anchor='w', pady=(6, 10))
+    gallery_btns = tk.Frame(gallery_card, bg=T.card)
+    gallery_btns.pack(anchor='w')
 
     # ── Logs panel ───────────────────────────────────────────────────────────
     logs_panel = tk.Frame(content_area, bg=T.bg)
@@ -543,6 +554,38 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
     download_chromium_btn = IconButton(chromium_tools_btns, 'Download', 'download', on_download_chromium, compact=True)
     download_chromium_btn.pack(side=tk.LEFT)
     refresh_chromium_status()
+
+    gallery_url = f'{app_url.rstrip("/")}/dev/visual-gallery'
+    live_polish_url = 'http://localhost:8766/'
+
+    def open_visual_gallery_browser():
+        try:
+            webbrowser.open(gallery_url, new=2)
+            logger.info('Opened visual gallery in browser: %s', gallery_url)
+        except Exception as e:
+            messagebox.showerror('Visual gallery', f'Could not open:\n{gallery_url}\n\n{e}')
+
+    def open_visual_gallery_chromium():
+        ok, msg = chromium_dev.launch_clean_chromium(gallery_url)
+        if ok:
+            logger.info(msg)
+        else:
+            messagebox.showerror('Clean Chromium', msg)
+
+    def open_live_polish_browser():
+        try:
+            webbrowser.open(live_polish_url, new=2)
+            logger.info('Opened live polish preview: %s', live_polish_url)
+        except Exception as e:
+            messagebox.showerror(
+                'Live polish',
+                f'Could not open:\n{live_polish_url}\n\n'
+                f'Start it with: npm run visual:polish:live\n\n{e}',
+            )
+
+    IconButton(gallery_btns, 'Browser', 'globe', open_visual_gallery_browser, compact=True).pack(side=tk.LEFT, padx=(0, 6))
+    IconButton(gallery_btns, 'Chromium', 'chrome', open_visual_gallery_chromium, compact=True).pack(side=tk.LEFT, padx=(0, 6))
+    IconButton(gallery_btns, 'Live polish', 'play', open_live_polish_browser, compact=True).pack(side=tk.LEFT)
 
     def check_connection():
         available = check_supabase_availability()

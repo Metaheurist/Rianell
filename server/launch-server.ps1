@@ -8,12 +8,15 @@
 # Optional: -SkipUnitTests skips local unit tests in -NoCompile mode.
 # Optional: -CleanBrowser opens localhost in isolated Playwright Chromium (server/.playwright-browsers).
 # Optional: -SkipBrowser skips auto-opening any browser on startup.
+# Optional: -Console forces python.exe (shows a CMD window with stdout). Default uses pythonw/pyw
+#   so the Tk dashboard opens without an extra console (logs: dashboard Logs tab + logs/).
 
 param(
     [switch]$NoCompile,
     [switch]$SkipUnitTests,
     [switch]$CleanBrowser,
-    [switch]$SkipBrowser
+    [switch]$SkipBrowser,
+    [switch]$Console
 )
 
 $ErrorActionPreference = "Stop"
@@ -130,6 +133,44 @@ if (-not $pythonExe) {
     exit 1
 }
 
+# Prefer windowed launcher (pythonw / pyw) so the Tk dashboard does not also
+# open a CMD console. Use -Console or RIANELL_SERVER_CONSOLE=1 for console python.
+$wantConsole = $Console -or ($env:RIANELL_NO_DASHBOARD -eq '1') -or ($env:RIANELL_SERVER_CONSOLE -eq '1')
+$serverExe = $pythonExe
+$serverArgs = @('-m', 'server')
+if (-not $wantConsole) {
+    if ($pythonExe -eq 'py') {
+        if (Get-Command pyw -ErrorAction SilentlyContinue) {
+            $serverExe = 'pyw'
+            $serverArgs = @('-3', '-m', 'server')
+            Write-Host "Using pyw (no console window). Pass -Console for python stdout."
+        } else {
+            Write-Host "pyw not found; falling back to py (console window will appear)."
+            $serverArgs = @('-3', '-m', 'server')
+        }
+    } else {
+        $pythonwCandidate = $null
+        $dir = Split-Path -Parent $pythonExe
+        $sibling = Join-Path $dir 'pythonw.exe'
+        if (Test-Path -LiteralPath $sibling) {
+            $pythonwCandidate = $sibling
+        } elseif (Get-Command pythonw -ErrorAction SilentlyContinue) {
+            $pythonwCandidate = (Get-Command pythonw).Source
+        }
+        if ($pythonwCandidate) {
+            $serverExe = $pythonwCandidate
+            Write-Host "Using pythonw (no console window). Pass -Console for python stdout."
+        } else {
+            Write-Host "pythonw not found; falling back to python (console window will appear)."
+        }
+    }
+} else {
+    if ($pythonExe -eq 'py') {
+        $serverArgs = @('-3', '-m', 'server')
+    }
+    Write-Host "Using console Python (stdout visible)."
+}
+
 Write-Host "Starting Rianell server from: $ProjectRoot"
 if ($NoCompile) {
     Write-Host "Serving uncompiled web source: $(Join-Path $ProjectRoot 'apps\pwa-webapp')"
@@ -137,9 +178,5 @@ if ($NoCompile) {
     Write-Host "Serving local minified bundle: $LocalSiteDir"
 }
 
-if ($pythonExe -eq "py") {
-    & $pythonExe -3 -m server @args
-} else {
-    & $pythonExe -m server @args
-}
+& $serverExe @serverArgs @args
 exit $LASTEXITCODE
