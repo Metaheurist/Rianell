@@ -162,20 +162,14 @@ Theme-specific overrides for loading ring/body/sun are applied for `theme-red-bl
 - **Cache bust:** Bump `styles.css?v=` in `index.html` after CSS changes.
 - **Still mint (low traffic):** GDPR modal inline styles, print/export recovery buttons - not part of main app chrome.
 
-## App icon / beta badge styling
+## App icon / optional beta badge styling
 
-`web/Icons/` holds the master icon rasters and `web/Icons/beta/` holds beta variants. The beta badge pipeline now:
+Master rasters live under **`apps/pwa-webapp/Icons/`** (`Icon-*.png`, `logo-source.png`). Production PWA chrome does **not** show a Beta FAB badge.
 
-- Uses **theme-green** badge colors (not orange).
-- Places the badge in the **top-right** corner of app icons.
-- Keeps originals untouched, writing only to `web/Icons/beta/`.
+Optional preview pipeline (not used in production deploy):
 
-Scripts:
-
-- `npm run icons:generate -- --source "C:/path/to/source.png"` regenerates `logo-source.png` and all `Icon-*.png` base sizes.
-- `npm run icons:beta` regenerates the beta set from masters with the top-right green beta badge.
-
-The floating `+` chip (`.app-beta-badge`) uses the same green palette for visual consistency with icon badges.
+- `npm run icons:generate -- --source "C:/path/to/source.png"` regenerates masters and all `Icon-*.png` sizes.
+- `npm run icons:beta` writes badged variants under `apps/pwa-webapp/Icons/beta/` (theme-green badge, top-right; originals untouched).
 
 ## Reduced motion
 
@@ -187,7 +181,7 @@ The **Export / Import / Install web app** tiles and the **Clear all data** actio
 
 ## App Installation (Settings carousel)
 
-**Install on Android**, **Install on iOS** (and the **Install on this iPhone** PWA helper) use **`settings-data-btn`** + **`install-android-btn`**, **`install-ios-btn`**, or **`install-ios-device-btn`** with the same chrome as the rest of Settings (not solid green/grey/blue platform fills). Brand icons use **`var(--neon-lime)`**; Beta/Alpha badges stay distinct.
+**Install on Android**, **Install on iOS** (and the **Install on this iPhone** PWA helper) use **`settings-data-btn`** + **`install-android-btn`**, **`install-ios-btn`**, or **`install-ios-device-btn`** with the same chrome as the rest of Settings (not solid green/grey/blue platform fills). Brand icons use **`var(--neon-lime)`**.
 
 ## Build
 

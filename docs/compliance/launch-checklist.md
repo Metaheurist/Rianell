@@ -7,7 +7,7 @@ owner: maintainer
 
 # Rianell launch checklist
 
-Operator sign-off for public beta / store submission. Not legal advice.
+Operator sign-off for public **PWA** launch (rianell.com / GitHub Pages). Not a native store submission checklist. Not legal advice.
 
 ## Phase 3 - Security baseline
 

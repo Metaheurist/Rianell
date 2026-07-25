@@ -1,8 +1,8 @@
 # Rianell execution plans - MASTER
 
-Single source of truth for required features, execution plans, and progress. **Agents: update `Status` and `Plan status` when starting or finishing work.**
+> **Closed program archive (2026-07-25).** Plans **01–26** shipped (179/179 features) at **v1.133.0**. Current product version is **npm 2.6.0** — see root [`CHANGELOG.md`](../../CHANGELOG.md) and [`next-phase-development-plan.md`](../next-phase-development-plan.md). Do **not** treat open rows below as an active execution queue unless a plan is explicitly reopened.
 
-**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Last updated:** 2026-06-26 (Plans 01-26 complete; v1.133.0)
+**Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Program closed:** 2026-06-26 · **Docs refresh:** 2026-07-25
 
 ---
 
@@ -13,8 +13,8 @@ Single source of truth for required features, execution plans, and progress. **A
 | Execution plans complete | 26 / 26 |
 | Feature IDs done | 179 / 179 |
 | Cross-cutting themes done | 5 / 5 |
-| Last CI run (post-plan) | pending v1.133.1 push |
-| Last local gate | 491/491 unit tests; verify:i18n OK |
+| Last CI run (post-plan) | closed with v1.133.0 program |
+| Current product (npm) | **2.6.0** |
 
 **Status values:** `pending` · `in_progress` · `done` · `deferred`
 
@@ -331,7 +331,7 @@ Single source of truth for required features, execution plans, and progress. **A
 | SEC6 | done | **ONNX SHA-256 integrity** | manifest contract (existing) |
 | SEC7 | done | **RN ProGuard audit** | documented in android-hardening |
 | SEC8 | done | **AsyncStorage encryption** | v1.128.0 `secureStorage.mjs` |
-| SEC9 | done | **MobSF static analysis CI** | v1.128.0 scheduled job |
+| SEC9 | done | **MobSF static analysis CI** | Shipped v1.128.0; **removed 2026-07-25** from `security-dast.yml` (PWA-only; ZAP + axe remain) |
 | SEC10 | done | **SBOM nightly drift** | v1.128.0 `generate-sbom.mjs` |
 | SEC11 | done | **REST API rate limiting** | api-v1 contract |
 | SEC12 | done | **Prompt injection CI test** | v1.128.0 `promptInjection.test.mjs` |

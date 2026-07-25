@@ -16,7 +16,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ### Changed
 - **`visual:apply` / product icon wiring remain deferred** until Phase 3c screenshot QA reports `broken.length === 0`. Polished C artifacts stay local under `artifacts/visual-gen/polished/` and are not written into shipped PWA sprites yet.
-- **CI:** Dropped schedule-only `mobsf-scan` from `security-dast.yml` — product is PWA-only; MobSF targets mobile binaries and only cluttered PR checks as skipped.
+- **CI:** Dropped schedule-only `mobsf-scan` from `security-dast.yml` (PWA-only; MobSF targets mobile binaries and only cluttered PR checks as skipped).
+- **Docs:** Root + `docs/` living docs refreshed for PWA-only / v2.6.0 standing (Smartlook opt-in, closed plan archive banners, Tkinter dashboard, no production Beta badges).
 
 ### Tests
 - `tests/unit/pwa/visual-register.test.mjs`, `visual-gen-validate.test.mjs`, `visual-polish-queue.test.mjs`, `visual-polish-seamless-loop.test.mjs`, `visual-polish-qa-status.test.mjs`, `visual-polish-screenshot-qa.test.mjs`, `visual-current-gallery.test.mjs`, `resolve-register-payload.test.mjs`.

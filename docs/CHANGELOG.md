@@ -1,13 +1,21 @@
 ## 📜 Changelog
 
-Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
+**Canonical version history:** root [`CHANGELOG.md`](../CHANGELOG.md) (Keep a Changelog). This file keeps a short product-facing summary plus older narrative notes.
 
-### Unreleased
+**Latest: v2.6.0** (2026-07-25) — current npm workspace version.
 
-- **Visual pack harness (v2.6.0 tooling):** Qwen gen + Gemma polish + live A/B/C preview (`:8766`) + QA loop; Tk dashboard Visual gallery / Live polish. Product icon **apply deferred** until QA green. See root `CHANGELOG.md` and `docs/development/visual-pack-harness.md`.
-- **CI:** Removed schedule-only MobSF job from `security-dast.yml` (PWA-only; left ZAP + axe).
+### v2.6.0 - 2026-07-25 - Visual pack harness + CI hygiene
 
-**Latest: v2.2.23** - Centred Ask Rianell chat, compass discovery icon, readable boot-recovery text, removed Enter hint.
+- **Visual pack harness (tooling only):** Qwen gen + Gemma polish + live A/B/C preview (`:8766`) + QA loop; Tk dashboard Visual gallery / Live polish. Product icon **apply deferred** until QA green. See [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
+- **CI:** Removed schedule-only MobSF job from `security-dast.yml` (PWA-only; ZAP + axe remain).
+
+### v2.5.0 - 2026-07-19 - Boot freeze + Ask starters
+
+- First-run GPU probe deferred off the critical path; Ask Rianell compact starter chips. Full notes in root `CHANGELOG.md`.
+
+### Earlier narrative (v2.2.x and below)
+
+The entries below are historical narrative from the v2.2 line. For authoritative release notes from **v2.3.0 onward**, use the root changelog.
 
 ### v2.2.23 - 2026-07-18 - Ask Rianell polish
 

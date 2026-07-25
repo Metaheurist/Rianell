@@ -1,6 +1,8 @@
 # PyQt6 server-dashboard migration — agentic runbook
 
-> **Goal:** replace the Tkinter dev-server dashboard (`server/dashboard_ui.py`, `server/dashboard_icons.py`) with a PyQt6 implementation, preserving 100 % of current behaviour, and fixing the latent thread-safety flaw that comes with the current architecture.
+> **Status (2026-07-25): deferred / not current.** The shipped debug dashboard is **Tkinter** (`server/dashboard_ui.py`). Do not start this migration unless explicitly reopened. The body below is preserved as a design runbook only.
+>
+> **Original goal:** replace the Tkinter dev-server dashboard with a PyQt6 implementation, preserving behaviour and fixing thread-safety.
 >
 > **Audience:** an autonomous coding agent. Every phase lists exact files, exact edits, code skeletons, and a verify gate. Do **not** skip gates. Stop on first failing gate, fix, re-run.
 

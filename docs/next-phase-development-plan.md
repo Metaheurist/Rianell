@@ -1,21 +1,20 @@
 # Next phase development plan
 
-**Last updated:** 2026-07-18
+**Last updated:** 2026-07-25
 
-Rianell ships as a **PWA (web) only**, backed by the shared `@rianell/*` packages and the optional Python `server/`. The former native app parity, Capacitor sunset, and platform-parity tracking work is complete and no longer applies.
+Rianell ships as a **PWA (web) only**, backed by the shared `@rianell/*` packages and the optional Python/Tkinter `server/`. Native/Capacitor parity work is complete and no longer applies. Current npm version: **2.6.0**.
 
-**Status:** Active next-phase roadmap below. Shipped feature detail lives in [`app-and-features.md`](app-and-features.md); architecture in [`architecture-standard.md`](architecture-standard.md); the generated module call/import graph is in [`codebase_interaction_map.md`](codebase_interaction_map.md).
+**Status:** Active next-phase roadmap below. Shipped feature detail lives in [`app-and-features.md`](app-and-features.md); architecture in [`architecture-standard.md`](architecture-standard.md); the generated module call/import graph is in [`codebase_interaction_map.md`](codebase_interaction_map.md). Visual pack tooling: [`development/visual-pack-harness.md`](development/visual-pack-harness.md) (product icon apply still deferred).
 
 ## Next-phase roadmap
 
 Candidate workstreams for the upcoming build, ordered roughly by leverage. Each is a proposal until it has a passing local gate and a green CI run (see the repo testing-gates rule and `wiki/Build-Test-and-CI.md`).
 
-### 1. Discoverability & SEO (build on the new content pages)
+### 1. Discoverability & SEO (remaining gaps)
 
-The `v2.2.25` batch added crawlable landing pages (`features/`, `symptom-tracking/`, `mental-health-check/`, `ai-insights/`, `community/`, `conditions/`), a generated `sitemap.xml`, an Open Graph `og-card.png`, and per-page canonical/`hreflang`/JSON-LD. Next:
+**Shipped (through v2.4.x):** crawlable landing pages (`features/`, `symptom-tracking/`, `mental-health-check/`, `ai-insights/`, `community/`, `conditions/`), `sitemap.xml`, Open Graph card, per-locale canonical/`hreflang`/JSON-LD for supported locales. Remaining:
 
-- **Localized meta:** Emit `hreflang` alternates and translated `<title>`/description per supported locale rather than `en` + `x-default` only.
-- **Structured-data breadth:** Add `BreadcrumbList` and `MedicalWebPage`/`FAQPage` blocks to the remaining content pages; validate with the Rich Results test in CI.
+- **Structured-data breadth:** Add `BreadcrumbList` and `MedicalWebPage`/`FAQPage` blocks to remaining content pages; validate with the Rich Results test in CI.
 - **Search Console signal loop:** Track index coverage and CWV field data; wire a lightweight report into `benchmarks/`.
 
 ### 2. Internationalization depth (Ollama Tier-C)

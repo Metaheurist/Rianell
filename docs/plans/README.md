@@ -1,6 +1,8 @@
-# Execution plans - agent workspace
+# Execution plans - archive index
 
-Dependency-ordered rollout of 87 required features across 14 plans (**all shipped**, v1.111.0). Each plan lives in its **own folder** under `docs/plans/`.
+> **Historical.** Plans **01–26** are complete (see [MASTER.md](./MASTER.md)). This folder is an archive, not an open agent queue. Active roadmap: [`../next-phase-development-plan.md`](../next-phase-development-plan.md). Current product: **npm 2.6.0**.
+
+Early index (plans 01–14 / 87 features at v1.111.0) is preserved below; MASTER is authoritative for 15–26 closeout.
 
 ## Root files
 

@@ -4,6 +4,19 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+**Current product:** npm **v2.6.0** · PWA-only (`apps/pwa-webapp`) · optional Python/Tkinter `server/` · living roadmap [`next-phase-development-plan.md`](next-phase-development-plan.md). Feature rollout plans 01–26 are a closed archive ([`plans/MASTER.md`](plans/MASTER.md)).
+
+### v2.6.0 documentation sync (visual pack harness)
+
+- **Tooling:** Full Visual Pack harness (register / Qwen gen / Gemma polish / live A/B/C preview / QA) + Tk dashboard Visual gallery. Product icon **apply deferred**. Operator guide: [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
+- **CI:** MobSF job removed from `security-dast.yml` (ZAP + axe remain).
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.6.0]`.
+
+### v2.5.0 documentation sync (boot freeze + Ask starters)
+
+- First-run GPU probes deferred off critical path; Ask Rianell compact starter chips.
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.5.0]`.
+
 ### v2.4.0 documentation sync (multilingual SEO)
 
 - **Multilingual SEO:** crawlable per-language landing/feature pages under subdirectory prefixes (`/de/`, `/fr/`, `/es/`, `/it/`, `/pl/`, `/nl/`, `/pt-br/`, `/pt-pt/`, `/ga/`, `/ar/`, `/he/`) with a full reciprocal `hreflang` cluster (+ `x-default`), localized meta/OG/JSON-LD, and RTL for `ar`/`he`. Single source of truth: `seo-content/en.json` → `scripts/build/seo-page-template.mjs` → `scripts/build/generate-localized-pages.mjs`. Sitemap emits `xhtml:link` alternates. SEO-safe `lang-suggest.js` banner (no redirect). Commands: `seo:pages`, `seo:pages:check`, `seo:translate`, `seo:content:check`, `seo:sitemap`. Full detail: **[seo-multilingual.md](seo-multilingual.md)**.
@@ -21,7 +34,7 @@
 
 - **PWA:** Home Trophy Room removed; achievements only in Goals modal; log wizard `--log-wizard-dock-offset` clearance; larger mood deck icons; header bug report left / Goals+Settings right.
 - **Cache:** `styles.css?v=150`, `app.js?v=69`.
-- **Wiki:** [[Release-Notes]] §2.2.18; [[Features-Guide]], [[Settings-and-Languages]], [[Platforms-and-Parity]], [[Troubleshooting]].
+- **Wiki:** [[Release-Notes]] §2.2.18; [[Features-Guide]], [[Settings-and-Languages]], [[Architecture-Overview]], [[Troubleshooting]].
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.18]`.
 
 ### v2.2.17 documentation sync (mood icons + AI lifestyle polish)
@@ -39,7 +52,7 @@
 
 - **Date:** 2026-07-16
 - **PWA:** Side-nav wizard; metric/vital drums; Goals from header; Home Ask Enter-only; weather right; larger inlined companions; demo AI download.
-- **Wiki:** [[Release-Notes]] §2.2.14; [[Features-Guide]], [[Settings-and-Languages]], [[Platforms-and-Parity]].
+- **Wiki:** [[Release-Notes]] §2.2.14; [[Features-Guide]], [[Settings-and-Languages]], [[Architecture-Overview]].
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.14]`.
 
 ### v2.2.13 documentation sync (UI architectural Phases 1-4)
@@ -47,7 +60,7 @@
 - **DESIGN.md:** Product UI declutter roadmap (not Airbnb palette). Primitives in `docs/styling.md` and `docs/design-token-contract.md`.
 - **PWA:** Home command center; logs filter + expand panes; Mood check-in + heatmap; vitals accordion; body map split + region severity pills; targets in Goals modal; achievements later moved to Goals modal only (v2.2.18).
 - **Tests:** `segmented-scale-input`, `home-command-center`, `logs-mood-ia`, `wizard-phase4-ia`, `pain-region-severity`.
-- **Wiki:** [[Release-Notes]] §2.2.9-2.2.13; [[Features-Guide]], [[Logging-Data]], [[Settings-and-Languages]], [[Platforms-and-Parity]].
+- **Wiki:** [[Release-Notes]] §2.2.9-2.2.13; [[Features-Guide]], [[Logging-Data]], [[Settings-and-Languages]], [[Architecture-Overview]].
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.2.9]`-`[2.2.13]`.
 
 ### v2.1.9 documentation sync (security hardening, dead-code removal, module extraction)

@@ -29,8 +29,8 @@
 <td><b>🌐&nbsp;Web&nbsp;/&nbsp;PWA</b></td>
 <td>
 
-[![React](https://img.shields.io/badge/React-19.2.4-61DAFB?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
 [![PWA](https://img.shields.io/badge/PWA-Service%20worker%20%26%20manifest-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+[![Vanilla JS](https://img.shields.io/badge/UI-Vanilla%20JS%20modules-F7DF1E?style=flat-square&logo=javascript&logoColor=000)](apps/pwa-webapp/)
 [![esbuild](https://img.shields.io/badge/esbuild-0.28.1-FFCF00?style=flat-square&logo=esbuild&logoColor=000)](https://esbuild.github.io/)
 [![ApexCharts](https://img.shields.io/badge/ApexCharts-charts-008FFB?style=flat-square)](https://apexcharts.com/)
 
@@ -94,9 +94,9 @@ Optional **session recording** (Smartlook, EU region) helps improve usability on
 
 | Channel | Build |
 | :--- | :---: |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **734** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **734** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **734** |
+| ![CI](https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white) **Server** EXE (x64) | **734** |
+| ![CI](https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white) **Server** EXE (x86) | **734** |
+| ![CI](https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **734** |
 
 Latest: [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #734](https://github.com/Metaheurist/Rianell/actions/runs/30157390494) · `5f1eda1`
 

@@ -4,7 +4,7 @@ Read these docs **in order** before making structural changes:
 
 1. **[docs/architecture-standard.md](docs/architecture-standard.md)** - canonical layout, dependency rules, migration log
 2. **[docs/project-reference.md](docs/project-reference.md)** - features, versions, operational detail
-3. **[docs/plans/MASTER.md](docs/plans/MASTER.md)** - feature rollout tracker (plans 01-26 complete, 179/179 features, v1.133.0)
+3. **[docs/plans/MASTER.md](docs/plans/MASTER.md)** - closed feature rollout archive (plans 01-26 complete at v1.133.0). Current product version: **npm 2.6.0** ([CHANGELOG.md](CHANGELOG.md)). Active roadmap: [docs/next-phase-development-plan.md](docs/next-phase-development-plan.md).
 
 ## Execution order (architecture migration)
 
