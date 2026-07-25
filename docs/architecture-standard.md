@@ -40,7 +40,7 @@ scripts/
 audit-history/         boot audit JSON (baseline + phase archives tracked)
 artifacts/             CI binaries + latest.json (was App build/)
 docs/                  developer documentation (authoritative for devs)
-  plans/               execution plans 01-14, MASTER, external setup, rollout gates
+  plans/               closed plans 01-26 + MASTER (archive); see next-phase-development-plan.md
   archive/             deprecated config snapshots (e.g. residency-config.json)
 wiki/                  GitHub Wiki source (user-facing)
 server/                Python HTTP + launch-server.ps1
@@ -165,4 +165,4 @@ Tool: `scripts/verify/doc-links.mjs`
 | 22 | Deploy-observe loop | verified (local stages) | 2026-06-16 |
 | 23 | Root directory hygiene | verified | 2026-06-14 |
 
-**Epic status:** v1.90.1 on `main` - apply Cloudflare 301 for legacy artifact URLs after Pages deploy (see [migration-signoff.md](migration-signoff.md)).
+**Current product:** npm **v2.6.0** on `main` (PWA-only). Architecture migration phases 0–23 are complete; living roadmap is [next-phase-development-plan.md](next-phase-development-plan.md). Legacy artifact URL Cloudflare 301s: [migration-signoff.md](migration-signoff.md).

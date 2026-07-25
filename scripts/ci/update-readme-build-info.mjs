@@ -51,7 +51,7 @@ const serverX86File = serverX86 && serverX86.file ? String(serverX86.file) : 'ri
 
 const badgeHref = runId ? runUrl : `https://github.com/${repo}/actions`;
 const summaryBadgeUrl = `https://img.shields.io/badge/build-Server%20${encodeURIComponent(serverV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
-const BETA_BADGE = 'https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white';
+const CI_BADGE = 'https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white';
 
 const block = [
   START,
@@ -62,9 +62,9 @@ const block = [
   '',
   '| Channel | Build |',
   '| :--- | :---: |',
-  `| ![Beta](${BETA_BADGE}) **Server** EXE (x64) | **${serverX64V}** |`,
-  `| ![Beta](${BETA_BADGE}) **Server** EXE (x86) | **${serverX86V}** |`,
-  `| ![Beta](${BETA_BADGE}) **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
+  `| ![CI](${CI_BADGE}) **Server** EXE (x64) | **${serverX64V}** |`,
+  `| ![CI](${CI_BADGE}) **Server** EXE (x86) | **${serverX86V}** |`,
+  `| ![CI](${CI_BADGE}) **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
   '',
   `Latest: [\`artifacts/Server/${serverFile}\`](artifacts/Server/latest.json) · [\`artifacts/Server/${serverX64File}\`](artifacts/Server/latest-x64.json) · [\`artifacts/Server/${serverX86File}\`](artifacts/Server/latest-x86.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
   '',

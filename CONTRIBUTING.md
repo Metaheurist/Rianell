@@ -46,6 +46,6 @@ Use `@rianell/` scope and add to root `package.json` workspaces.
 
 - [ ] `npm run test:unit` passes
 - [ ] `npm run verify:i18n` passes (if strings changed)
-- [ ] `docs/CHANGELOG.md` updated for user-visible changes
-- [ ] `docs/plans/MASTER.md` updated if shipping a planned feature
-- [ ] Reviewed `security-performance.md` for the affected plan folder
+- [ ] Root [CHANGELOG.md](CHANGELOG.md) updated for user-visible changes (canonical; keep `docs/CHANGELOG.md` in sync for recent releases)
+- [ ] `docs/plans/MASTER.md` only if reopening a closed plan (plans 01-26 are complete)
+- [ ] Security/privacy impact reviewed when touching health data, CSP, or sync

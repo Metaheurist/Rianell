@@ -84,7 +84,9 @@ If `user_id` is still linked, row is **personal data** - delete on erasure reque
 |--------|--------|------------------|
 | JSON export | `packages/shared` `normalizeLogEntry` | Import on PWA via existing import flow |
 
-**Not provided:** HL7 FHIR, Apple Health XML auto-export (backlog if demanded).
+**Provided:** FHIR R4-lite export / Fasten-oriented connector path (see [connectors](../connectors/) and Plan 20 closeout in [MASTER.md](../plans/MASTER.md)).
+
+**Not provided:** Apple Health XML auto-export (backlog if demanded).
 
 ---
 

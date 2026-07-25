@@ -1,5 +1,5 @@
 /**
- * Session recording (Smartlook) — default-on after onboarding disclosure; opt-out in Settings.
+ * Session recording (Smartlook) — off by default; activate only after explicit opt-in + disclosure timestamp.
  */
 
 /**

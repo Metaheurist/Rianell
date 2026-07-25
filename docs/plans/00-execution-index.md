@@ -1,6 +1,8 @@
 # Rianell execution plans - index
 
-Master index for dependency-ordered agentic execution plans. **Do not change a plan's `execution_order` frontmatter without updating this file.**
+> **Closed archive.** Do not treat this as an open “pick next pending plan” queue. Program 01–26 complete; living work is in [`../next-phase-development-plan.md`](../next-phase-development-plan.md).
+
+Master index for the historical dependency-ordered plans. **Do not change a plan's `execution_order` frontmatter without updating this file.**
 
 **Source of truth:** [MASTER.md](./MASTER.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FREE-TIER-POLICY.md`](FREE-TIER-POLICY.md) · [`EXTERNAL-SETUP.md`](EXTERNAL-SETUP.md)
 

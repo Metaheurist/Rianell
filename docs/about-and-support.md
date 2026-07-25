@@ -30,7 +30,7 @@ For issues and questions:
 
 ### Documentation pointers (current)
 
-- **Roadmap:** **[docs/next-phase-development-plan.md](next-phase-development-plan.md)** - current status (no active roadmap); detail in **[app-and-features.md](app-and-features.md)**.
+- **Roadmap:** **[docs/next-phase-development-plan.md](next-phase-development-plan.md)** - active next-phase workstreams; shipped detail in **[app-and-features.md](app-and-features.md)** and root **[CHANGELOG.md](../CHANGELOG.md)** (current **v2.6.0**).
 - **Features:** **[docs/app-and-features.md](app-and-features.md)** - includes the PWA log wizard, Settings, Charts/AI notes.
 - When reporting theme issues, include selected theme name and screenshots for loading overlay, Home pulse/title, navbar active tab, and goals/targets block.
 - For cloud settings sync reports, include whether user was signed in and which setting did not persist across devices.

@@ -10,7 +10,7 @@ People managing a chronic condition (fatigue, flares, joint pain, mood) who log 
 
 ## Product Purpose
 
-Rianell is a privacy-first health tracking PWA (+ React Native app) with on-device AI analysis. It helps users connect lifestyle inputs to how they feel, without their health data leaving the device unless they explicitly opt in. Success = a user logs consistently and can see which factors correlate with good and bad days.
+Rianell is a privacy-first health tracking **PWA** (live at [rianell.com](https://rianell.com/)) with on-device AI analysis and optional cloud sync. An optional local Python/Tkinter debug server supports development; there is **no** shipped React Native / Capacitor / store app. Success = a user logs consistently and can see which factors correlate with good and bad days, without health data leaving the device unless they explicitly opt in.
 
 ## Brand Personality
 

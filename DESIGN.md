@@ -29,7 +29,7 @@ Systematically de-clutter, modernize, and refactor the Rianell interface to cut 
 
 | Phase | Scope | Status |
 |-------|--------|--------|
-| **1** | Design primitives - `SegmentedScaleInput`, `Accordion` / `.ui-accordion`, `.ui-card` standardization | **Done** (docs + PWA + RN) |
+| **1** | Design primitives - `SegmentedScaleInput`, `Accordion` / `.ui-accordion`, `.ui-card` standardization | **Done** (docs + PWA) |
 | **2** | Home command center - compact header, hero CTA + 2×2 bento stats, flattened AI hub | **Done** (PWA) |
 | **3** | Logs filter bar + expand-in-place details; Mood check-in first + 30-day heatmap | **Done** (PWA) |
 | **4** | Wizard scale upgrade, optional vitals accordion, de-modalize goals/achievements, split-screen body map | **Done** (PWA) |
@@ -49,11 +49,10 @@ Do not start the next phase until the current phase is implemented and verified 
 
 - Defaults to **closed** for optional data entry.
 - **PWA:** `.ui-accordion` (BEM) on `<details>`; `.log-accordion` aliases the same flat card chrome.
-- **RN:** `Accordion` (generic, `defaultOpen={false}`) plus existing `SettingsChapter` for settings chapters.
 
 ### Card standardization
 
-- Prefer `.ui-card` / RN `Card` with muted borders - not accent-tinted nested shells.
+- Prefer `.ui-card` with muted borders - not accent-tinted nested shells.
 - Documented in [docs/styling.md](docs/styling.md) § UI architectural primitives.
 
 ## Later phases (summary)
