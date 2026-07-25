@@ -39,7 +39,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `sharp` | ^0.35.3 |
 | `turbo` | ^2.10.5 |
 
-**`overrides`** — 27 pin(s): `@babel/core`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `minimatch`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — 28 pin(s): `@babel/core`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `minimatch`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `sharp`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/pwa-webapp`, `packages/*`, `benchmarks`.
 
