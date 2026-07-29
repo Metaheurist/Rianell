@@ -32,12 +32,12 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
 | `@huggingface/transformers` | 3.3.2 |
-| `@opentelemetry/core` | ^2.9.0 |
-| `@sentry/node` | ^10.65.0 |
+| `@opentelemetry/core` | ^2.10.0 |
+| `@sentry/node` | ^10.68.0 |
 | `esbuild` | 0.28.1 |
 | `jsdom` | ^29.1.1 |
 | `sharp` | ^0.35.3 |
-| `turbo` | ^2.10.5 |
+| `turbo` | ^2.10.7 |
 
 **`overrides`** — 28 pin(s): `@babel/core`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `minimatch`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `sharp`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
@@ -84,7 +84,7 @@ Workspace **`@rianell/benchmark-runner`**.
 |---------|---------|
 | `@playwright/test` | ^1.61.1 |
 | `chrome-launcher` | ^1.1.2 |
-| `lighthouse` | ^13.4.0 |
+| `lighthouse` | ^13.4.1 |
 | `playwright` | ^1.61.1 |
 | `serve-handler` | ^6.1.6 |
 
