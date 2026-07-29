@@ -35,7 +35,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@opentelemetry/core` | ^2.10.0 |
 | `@sentry/node` | ^10.68.0 |
 | `esbuild` | 0.28.1 |
-| `jsdom` | ^29.1.1 |
+| `jsdom` | ^30.0.1 |
 | `sharp` | ^0.35.3 |
 | `turbo` | ^2.10.7 |
 
@@ -85,7 +85,7 @@ Workspace **`@rianell/benchmark-runner`**.
 | `@playwright/test` | ^1.61.1 |
 | `chrome-launcher` | ^1.1.2 |
 | `lighthouse` | ^13.4.1 |
-| `playwright` | ^1.61.1 |
+| `playwright` | ^1.62.0 |
 | `serve-handler` | ^6.1.6 |
 
 ---
