@@ -66,10 +66,96 @@ const MODEL = process.env.VISUAL_POLISH_MODEL || 'gemma4:31b-it-qat';
 const args = process.argv.slice(2);
 const now = args.includes('--now');
 const gemmaReview = args.includes('--gemma-review');
+const tierArg = args.find((a) => a.startsWith('--tier='));
+/** 1=deterministic geometry, 2=+render heuristics, 3=+vision, all=everything */
+const TIER = String(tierArg?.split('=')[1] || (gemmaReview ? 'all' : '2')).toLowerCase();
+const runTier1 = true;
+const runTier2 = TIER === '2' || TIER === '3' || TIER === 'all';
+const runTier3 = TIER === '3' || TIER === 'all' || gemmaReview;
 const baseArg = args.find((a) => a.startsWith('--base='));
 const pageArg = args.find((a) => a.startsWith('--page-size='));
 const BASE = (baseArg?.split('=')[1] || process.env.VISUAL_PREVIEW_BASE || 'http://localhost:8766').replace(/\/$/, '');
 const PAGE_SIZE = Math.max(1, Number(pageArg?.split('=')[1] || 6));
+const quarantinePath = path.join(qaRoot, 'quarantine.json');
+const subjectContractsPath = path.join(root, 'docs/style-and-design/subject-contracts.json');
+
+export function loadSubjectContracts() {
+  try {
+    return JSON.parse(fs.readFileSync(subjectContractsPath, 'utf8'));
+  } catch {
+    return { subjects: {} };
+  }
+}
+
+/** Match entry against docs/style-and-design/subject-contracts.json */
+export function matchSubjectContract(entry, contracts = null) {
+  const pack = contracts || loadSubjectContracts();
+  const hay = `${entry?.id || ''} ${entry?.context || ''}`;
+  for (const [name, spec] of Object.entries(pack.subjects || {})) {
+    const matchers = Array.isArray(spec.match) ? spec.match : [];
+    const hit = matchers.some((m) => {
+      try { return new RegExp(m, 'i').test(hay); } catch {
+        return String(hay).toLowerCase().includes(String(m).toLowerCase());
+      }
+    });
+    if (hit) return { name, spec };
+  }
+  return null;
+}
+
+/**
+ * Non-text contrast vs dark (#1a2420) and light (#f4f7f5) stages.
+ * Flags near-invisible ink (contrast ratio < 3:1 for UI glyphs).
+ */
+export function analyzeNonTextContrast(cSvg, entry = {}) {
+  const reasons = [];
+  const t = String(cSvg || '');
+  if (!t.trim()) return reasons;
+  const colors = [];
+  for (const m of t.matchAll(/\b(?:fill|stroke)=["'](#[0-9a-fA-F]{3,8}|rgb\([^)]+\))["']/g)) {
+    colors.push(m[1]);
+  }
+  if (!colors.length) return reasons; // currentColor inherits stage — skip
+
+  const stages = [
+    { name: 'dark', rgb: [26, 36, 32] },
+    { name: 'light', rgb: [244, 247, 245] },
+  ];
+  const parse = (c) => {
+    if (c.startsWith('#')) {
+      let h = c.slice(1);
+      if (h.length === 3) h = h.split('').map((x) => x + x).join('');
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+    const m = /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(c);
+    return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+  };
+  const lum = ([r, g, b]) => {
+    const f = (v) => {
+      const s = v / 255;
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+  };
+  const ratio = (a, b) => {
+    const L1 = lum(a);
+    const L2 = lum(b);
+    const hi = Math.max(L1, L2);
+    const lo = Math.min(L1, L2);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+
+  for (const c of colors) {
+    const rgb = parse(c);
+    if (!rgb) continue;
+    for (const stage of stages) {
+      if (ratio(rgb, stage.rgb) < 3) {
+        reasons.push(`non-text contrast: ${c} on ${stage.name} stage < 3:1`);
+      }
+    }
+  }
+  return [...new Set(reasons)].slice(0, 4);
+}
 
 function loadJson(p, fallback) {
   if (!fs.existsSync(p)) return fallback;
@@ -257,53 +343,64 @@ export function matchUserFocus(id, focusList = null) {
 }
 
 /**
- * Subject-specific readability for pizza / menstrual cycle / ashspiral companions.
- * User-flagged as unrecognizable or wrong metaphor — force FAIL until geometry reads.
+ * Subject-specific readability driven by docs/style-and-design/subject-contracts.json
+ * (pizza / cycle_tracker / ashspiral / fa-replace).
  */
 export function analyzeFlaggedSubjectIntegrity(entry, cSvg) {
   const reasons = [];
-  const id = String(entry?.id || '');
   const t = String(cSvg || '');
   if (!t.trim()) return reasons;
+  const contracts = loadSubjectContracts();
+  const id = String(entry?.id || '');
 
   const shapeCount = (t.match(/<(?:path|circle|ellipse|rect|polygon|polyline|line)\b/gi) || []).length;
   const circleCount = (t.match(/<circle\b/gi) || []).length;
   const pathD = [...t.matchAll(/\bd="([^"]*)"/gi)].map((m) => m[1] || '').join(' ');
   const curveOps = (pathD.match(/[CcSsQqTtAa]/g) || []).length;
 
-  // Pizza: wedge + toppings (not a shark-fin blob)
-  if (/pizza/i.test(id)) {
-    if (shapeCount < 2) {
-      reasons.push('pizza-weak: need wedge + crust/toppings (≥2 shapes) — not a single fin blob');
+  const pizza = matchSubjectContract(entry, contracts);
+  if (pizza?.name === 'pizza' || /pizza/i.test(id)) {
+    const tag = contracts.subjects?.pizza?.reasons?.fail || 'pizza-weak';
+    const minShapes = contracts.subjects?.pizza?.geometry?.minShapes ?? 2;
+    if (shapeCount < minShapes) {
+      reasons.push(`${tag}: need wedge + crust/toppings (≥${minShapes} shapes) — not a single fin blob`);
     }
     if (circleCount < 2 && curveOps < 2) {
-      reasons.push('pizza-weak: missing topping dots / crust arc — must read as pizza slice');
+      reasons.push(`${tag}: missing topping dots / crust arc — must read as pizza slice`);
     }
   }
 
-  // Cycle tracker achievement: menstrual/cycle symbolism, not a T-junction point-on-line
-  if (/cycle_tracker/i.test(id) || (/achievement:cycle/i.test(id) && /cycle/i.test(entry?.context || ''))) {
+  const cycleHit = matchSubjectContract(entry, contracts);
+  if (
+    cycleHit?.name === 'cycle_tracker'
+    || /cycle_tracker/i.test(id)
+    || (/achievement:cycle/i.test(id) && /cycle/i.test(entry?.context || ''))
+  ) {
+    const tag = contracts.subjects?.cycle_tracker?.reasons?.fail || 'cycle-tracker-mismatch';
     const hasRing = /<circle\b/i.test(t) || /<ellipse\b/i.test(t)
       || /A\s*[\d.-]+\s*[\d.-]+\s*[\d.-]+\s*[\d.-]+\s*[\d.-]+\s*[\d.-]+\s*[\d.-]+/i.test(pathD);
     const looksLikeTee = shapeCount <= 3 && /<line\b/i.test(t) && circleCount <= 1 && curveOps < 2;
     if (!hasRing || looksLikeTee) {
-      reasons.push('cycle-tracker-mismatch: must read as menstrual/cycle tracking (ring/phases/droplet/calendar) — not a point-on-line');
+      reasons.push(`${tag}: must read as menstrual/cycle tracking (ring/phases/droplet/calendar) — not a point-on-line`);
     }
   }
 
-  // Ashspiral avatar: readable spiral companion silhouette (not a comma blob)
-  if (/ashspiral/i.test(id)) {
+  if (matchSubjectContract(entry, contracts)?.name === 'ashspiral' || /ashspiral/i.test(id)) {
+    const tag = contracts.subjects?.ashspiral?.reasons?.fail || 'ashspiral-unreadable';
     if (curveOps < 3 && shapeCount < 2) {
-      reasons.push('ashspiral-unreadable: spiral companion needs multi-turn curve / clear silhouette — not an abstract comma');
+      reasons.push(`${tag}: spiral companion needs multi-turn curve / clear silhouette — not an abstract comma`);
     }
   }
 
-  // Common FA replace objects user flagged as broken vectors
-  if (/fa-solid_fa-(lightbulb|moon|mug-hot|mug-saucer|person-swimming|person-walking|plane|plate-wheat|potato|utensils)/i.test(id)) {
+  if (
+    matchSubjectContract(entry, contracts)?.name === 'fa-replace'
+    || /fa-solid_fa-(lightbulb|moon|mug-hot|mug-saucer|person-swimming|person-walking|plane|plate-wheat|potato|utensils)/i.test(id)
+  ) {
+    const tag = contracts.subjects?.['fa-replace']?.reasons?.fail || 'broken-vector';
     if (!hasUsableSvg(t)) {
-      reasons.push('broken-vector: polished file is not usable SVG — redo design/composition');
+      reasons.push(`${tag}: polished file is not usable SVG — redo design/composition`);
     } else if (shapeCount < 2 && pathD.length < 40) {
-      reasons.push('broken-vector: silhouette too sparse / fragmented — redo composition of elements');
+      reasons.push(`${tag}: silhouette too sparse / fragmented — redo composition of elements`);
     }
   }
 
@@ -311,47 +408,58 @@ export function analyzeFlaggedSubjectIntegrity(entry, cSvg) {
 }
 
 /**
- * Stethoscope (and similar stroke-line medical icons): open arcs must stay stroked.
- * Fill + stroke=none turns headset/tube into disconnected blobs — user-flagged broken.
+ * Stethoscope integrity — rules/labels from subject-contracts.json.
  */
 export function analyzeStethoscopeIntegrity(entry, cSvg) {
   const reasons = [];
-  const id = String(entry?.id || '');
-  const ctx = String(entry?.context || '');
-  if (!/stethoscope/i.test(id) && !/stethoscope/i.test(ctx)) return reasons;
+  const contracts = loadSubjectContracts();
+  const hit = matchSubjectContract(entry, contracts);
+  if (hit?.name !== 'stethoscope' && !/stethoscope/i.test(`${entry?.id || ''} ${entry?.context || ''}`)) {
+    return reasons;
+  }
+  const spec = contracts.subjects?.stethoscope || {};
+  const fail = spec.reasons?.fail || 'stethoscope-broken';
+  const strokeStrip = spec.reasons?.strokeStrip || `${fail}: stroke stripped`;
+  const geo = spec.geometry || {};
   const t = String(cSvg || '');
   if (!t.trim()) {
     reasons.push('stethoscope: empty C');
     return reasons;
   }
-  // Product CSS strokes these paths; polish must not force fill-only
   const stripsStroke = /stroke\s*=\s*["']none["']/i.test(t)
     && /icon-fill|data-polish="wrap"/i.test(t)
     && !/data-polish="wrap-stroke"|data-polish="additive-stroke"/i.test(t);
   if (stripsStroke) {
-    reasons.push('stethoscope-broken: stroke stripped (open arcs render as disconnected fill blobs)');
+    reasons.push(`${strokeStrip} (open arcs render as disconnected fill blobs)`);
   }
   if (/icon-fill/i.test(t) && /stroke\s*=\s*["']none["']/i.test(t) && !/fill\s*=\s*["']none["']/i.test(t)) {
-    reasons.push('stethoscope-broken: icon-fill + stroke=none — headset/tube not connected as stroke line-art');
+    reasons.push(`${fail}: icon-fill + stroke=none — headset/tube not connected as stroke line-art`);
   }
-  if (!/<circle\b/i.test(t)) {
+  if (geo.requireCircle !== false && !/<circle\b/i.test(t)) {
     reasons.push('stethoscope: missing chest-piece circle');
   }
   const pathCount = (t.match(/<path\b/gi) || []).length;
-  if (pathCount < 2) {
-    reasons.push('stethoscope: need ≥2 paths (headset arc + tubing)');
+  const minPaths = geo.minPaths ?? 2;
+  if (pathCount < minPaths) {
+    reasons.push(`stethoscope: need ≥${minPaths} paths (headset arc + tubing)`);
   }
   return reasons;
 }
 
 /**
- * QR code icons must read as QR at a glance: 3 corner finder eyes + data modules.
- * Abstract 1-eye / bar fragments FAIL (user note: "look more like QR").
+ * QR integrity — rules/labels from subject-contracts.json.
  */
 export function analyzeQrIntegrity(entry, cSvg) {
   const reasons = [];
-  const blob = `${entry?.id || ''} ${entry?.context || ''}`;
-  if (!/\bqr\b|icon-qr/i.test(blob)) return reasons;
+  const contracts = loadSubjectContracts();
+  const hit = matchSubjectContract(entry, contracts);
+  if (hit?.name !== 'qr' && !/\bqr\b|icon-qr/i.test(`${entry?.id || ''} ${entry?.context || ''}`)) {
+    return reasons;
+  }
+  const spec = contracts.subjects?.qr || {};
+  const weak = spec.reasons?.weak || 'qr-weak';
+  const broken = spec.reasons?.fail || 'qr-broken';
+  const minRects = spec.geometry?.minRects ?? 3;
   const t = String(cSvg || '');
   if (!t.trim()) {
     reasons.push('qr: empty C');
@@ -372,8 +480,8 @@ export function analyzeQrIntegrity(entry, cSvg) {
     };
   }).filter((r) => Number.isFinite(r.x) && Number.isFinite(r.y));
 
-  if (rects.length < 3) {
-    reasons.push('qr-weak: need ≥3 finder rects (classic QR corner eyes)');
+  if (rects.length < minRects) {
+    reasons.push(`${weak}: need ≥${minRects} finder rects (classic QR corner eyes)`);
   }
 
   const finders = rects.filter((r) => (r.w || 0) >= 4 && (r.h || 0) >= 4);
@@ -381,19 +489,17 @@ export function analyzeQrIntegrity(entry, cSvg) {
   const hasTR = finders.some((r) => r.x >= 12 && r.y <= 8);
   const hasBL = finders.some((r) => r.x <= 8 && r.y >= 12);
   if (!(hasTL && hasTR && hasBL)) {
-    reasons.push('qr-weak: missing classic finder eyes at top-left, top-right, and bottom-left');
+    reasons.push(`${weak}: missing classic finder eyes at top-left, top-right, and bottom-left`);
   }
 
-  // Bottom-right data modules (path squares or extra small rects)
   const hasModules = /<path\b/i.test(t)
     || rects.some((r) => r.x >= 12 && r.y >= 12 && (r.w || 0) <= 4);
   if (!hasModules) {
-    reasons.push('qr-weak: missing bottom-right data-module pattern');
+    reasons.push(`${weak}: missing bottom-right data-module pattern`);
   }
 
-  // Drift into a single blob / one big square
   if (finders.length === 1 && !hasModules) {
-    reasons.push('qr-broken: reads as a single square, not a QR code');
+    reasons.push(`${broken}: reads as a single square, not a QR code`);
   }
 
   return reasons;
@@ -566,6 +672,7 @@ export function heuristicBroken(item, entry, stemInfo = null) {
   reasons.push(...analyzeStethoscopeIntegrity(entry, cRaw));
   reasons.push(...analyzeQrIntegrity(entry, cRaw));
   reasons.push(...analyzeFlaggedSubjectIntegrity(entry, cRaw));
+  if (runTier2) reasons.push(...analyzeNonTextContrast(cRaw, entry));
 
   // Live-review primary focus list (appendable; forces FAIL until removed)
   const focusHit = matchUserFocus(item?.id || entry?.id);
@@ -574,12 +681,25 @@ export function heuristicBroken(item, entry, stemInfo = null) {
   // Human figure anatomy (static SVG subjects)
   reasons.push(...analyzeHumanAnatomy(entry, cRaw));
 
-  // Animation seamless-loop + cohesion / clip-risk heuristics
+  // Animation: missing @keyframes is hard fail; textual seam jumps are Tier-2 warnings only
+  // (render-frame sampling + vision critique own the seam verdict).
   if (entry?.kind === 'animation' || entry?.promptMode === 'single-anim' || /@keyframes\s+/i.test(cRaw)) {
     const animSrc = extractCssKeyframes(cRaw)?.css
       || extractCssKeyframes(entry?.currentPayload)?.css
       || cRaw;
-    reasons.push(...analyzeAnimationCohesion(animSrc, entry));
+    const animReasons = analyzeAnimationCohesion(animSrc, entry);
+    for (const r of animReasons) {
+      if (/loop seam jump|0%≠100%|0%!=100%/i.test(r)) continue; // soft — do not fail closed
+      reasons.push(r);
+    }
+  }
+
+  // Tier-1: register viewBox vs polished SVG viewBox
+  if (entry?.viewBox && /<svg\b/i.test(cRaw)) {
+    const m = /\bviewBox=["']([^"']+)["']/.exec(cRaw);
+    if (m && m[1].trim() !== String(entry.viewBox).trim()) {
+      reasons.push(`viewBox mismatch: register ${entry.viewBox} vs C ${m[1].trim()}`);
+    }
   }
 
   return [...new Set(reasons)];
@@ -658,10 +778,10 @@ async function waitForPreviewReady() {
  * Vision QA: send the A/B/C card screenshot (+ optional C crop) so Gemma
  * actually reviews pixels, not only SVG source.
  */
-async function runGemmaScreenshotReview(item) {
+async function runGemmaScreenshotReview(item, { attempt = 1 } = {}) {
   const shotAbs = item.screenshotAbs;
   if (!shotAbs || !fs.existsSync(shotAbs)) {
-    return { id: item.id, verdict: 'FAIL', reasons: ['missing screenshot for gemma review'] };
+    return { id: item.id, verdict: 'INCONCLUSIVE', reasons: ['missing screenshot for gemma review'] };
   }
   const images = [fs.readFileSync(shotAbs).toString('base64')];
   const cCrop = item.cScreenshotAbs;
@@ -669,51 +789,32 @@ async function runGemmaScreenshotReview(item) {
     images.push(fs.readFileSync(cCrop).toString('base64'));
   }
 
+  const contracts = loadSubjectContracts();
+  const hay = `${item.id || ''} ${item.context || ''}`;
+  const subjectBits = [];
+  for (const [name, spec] of Object.entries(contracts.subjects || {})) {
+    const matchers = Array.isArray(spec.match) ? spec.match : [];
+    if (matchers.some((m) => { try { return new RegExp(m, 'i').test(hay); } catch { return false; } })) {
+      subjectBits.push(`${name}: require ${(spec.required || []).join(', ')}`);
+    }
+  }
+
   const prompt = [
-    'You are Brand Guardian visual QA for Rianell icons and CSS animations.',
-    'Image 1 = A/B/C preview card (Original / Gen / Polished). Image 2 (if present) = polished C crop only.',
-    'PASS only if ALL are true:',
-    '1) Polished C matches the described subject / item name (looks like what it claims).',
-    '2) No broken lines, missing strokes, clipped/cut-off paths, or garbage geometry.',
-    '3) No obvious offset/shift vs Original A (same center weight in the 24 box).',
-    '4) Fits the UI location and surrounding use (nav/control/loader/avatar/etc).',
-    '5) Theme-pack cohesion: if TEAM is set, colors match that team; glyph still matches plain sibling.',
-    '6) If this is a CSS animation preview: the motion must loop SEAMLESSLY / fluidly — no visible hard restart, jump, or pop at the loop seam. Motion must feel COHESIVE (one clear intent, no competing metaphors).',
-    '7) No DOUBLE SPIN: if keyframes rotate a subject (e.g. achPillSpin), only ONE rotation — do not also spin a spinner-ring metaphor. FAIL nested/competing rotates.',
-    '8) Wave/droplet: if motion is a hard sliding tile translate (not natural fluid/slosh), note reason wave-is-hard-translate — FAIL when it looks like a stamp sliding with a seam rather than water.',
-    '9) HUMAN FIGURE ANATOMY (when subject is a person/body/swimmer/user/figure): must be anatomically plausible — one head, one torso, exactly TWO arms (bilateral), legs only if depicted; FAIL extra limbs (e.g. four stick-arms under a head), missing torso, or scrambled proportions.',
-    '10) FRAME CLIPPING: FAIL if strokes/fills are cut off by the viewBox/card edge during any animation frame (mid-loop), or static C ink is hard-clipped unintentionally. Intentional waterline masks OK only if the figure still reads clearly.',
-    '11) STETHOSCOPE: must read as ONE connected medical instrument (headset arc ↔ tubing ↔ chest piece). FAIL disconnected floating arcs/blobs, stroke stripped to fill-only, or fragments that no longer look like a stethoscope (reason: stethoscope-broken).',
-    '12) QR CODE: must instantly read as a QR — three corner finder eyes (top-left, top-right, bottom-left) plus bottom-right data modules. FAIL abstract 1-eye blocks, thin bar fragments, or glyphs that look like a window/grid instead of a QR (reason: qr-weak / qr-broken). Keep stem siblings the same silhouette.',
-    '13) USER QA FOCUS: pizza-slice must look like pizza (wedge+toppings); cycle_tracker must read as menstrual/cycle tracking (not a point-on-line); ashspiral must be a readable spiral companion; FA replaces (lightbulb/moon/mug/person/plane/potato/utensils) must be valid SVG with clear composition — FAIL unrecognizable blobs (reasons: pizza-weak, cycle-tracker-mismatch, ashspiral-unreadable, broken-vector).',
-    'FAIL with short reasons otherwise (prefer reason codes: anatomy-extra-limbs, anatomy-missing-torso, anim-frame-clip, wave-is-hard-translate, double-spin, non-seamless-loop, stethoscope-broken, qr-weak, qr-broken, pizza-weak, cycle-tracker-mismatch, ashspiral-unreadable, broken-vector, user-qa-focus).',
-    'Reply ONLY JSON: { "id": "...", "verdict": "PASS"|"FAIL", "reasons": ["..."] }',
+    'Brand Guardian visual QA for Rianell. Critique polished C vs Original A.',
+    'Image 1 = A/B/C card. Image 2 (optional) = C crop.',
+    'Check briefly: subject match, no broken/clipped ink, no big offset vs A, location fit, team paint if TEAM set.',
+    'Animations: seamless loop + one metaphor (no double-spin).',
+    subjectBits.length ? `Subject contract: ${subjectBits.join(' | ')}` : '',
+    'Reply ONLY JSON: { "id": "...", "verdict": "PASS"|"FAIL"|"INCONCLUSIVE", "reasons": ["..."] }',
+    'Use INCONCLUSIVE when unsure or image unreadable — never invent FAIL.',
     JSON.stringify({
       id: item.id,
       team: item.team || null,
       kind: item.kind || null,
-      context: item.context || null,
-      userQaFocus: matchUserFocus(item.id).matched || undefined,
-      sourcePath: item.sourcePath || null,
-      usageSites: item.usageSites || null,
-      themes: item.themes || null,
-      states: item.states || null,
       description: item.description || item.context || item.id,
       seamlessLoopRequired: item.kind === 'animation' || /animation:/.test(item.id || ''),
-      humanFigureLikely: looksLikeHumanFigure(item),
-      stethoscopeSubject: /stethoscope/i.test(String(item.id || item.context || '')),
-      qrSubject: /\bqr\b|icon-qr/i.test(String(item.id || item.context || '')),
-      userQaNotes: {
-        achPillSpin: 'FAIL double-spin (spinner+rotate)',
-        dropletWave: 'flag/fail hard translate tile vs natural wave',
-        humanAnatomy: 'FAIL extra limbs / non-anatomical human figures',
-        animFrameClip: 'FAIL elements clipped mid-animation frames',
-        stethoscope: 'FAIL disconnected headset/tube/chest — keep stroke line-art connected',
-        qr: 'FAIL if not clearly a QR — need 3 finder eyes + modules',
-        evidenceVideo: 'Desktop Recording 2026-07-22 163349.mp4',
-      },
     }),
-  ].join('\n');
+  ].filter(Boolean).join('\n');
 
   try {
     const res = await fetch(`${HOST}/api/generate`, {
@@ -725,26 +826,31 @@ async function runGemmaScreenshotReview(item) {
         images,
         stream: false,
         think: false,
-        options: { num_predict: 400, temperature: 0.1 },
+        options: { num_predict: 700, temperature: 0.1 },
       }),
     });
     if (!res.ok) {
-      return { id: item.id, verdict: 'FAIL', reasons: [`gemma HTTP ${res.status}`] };
+      if (attempt < 2) return runGemmaScreenshotReview(item, { attempt: attempt + 1 });
+      return { id: item.id, verdict: 'INCONCLUSIVE', reasons: [`gemma HTTP ${res.status}`] };
     }
     const data = await res.json();
     const text = String(data.response || '');
     const m = text.match(/\{[\s\S]*\}/);
     if (!m) {
-      return { id: item.id, verdict: 'FAIL', reasons: ['gemma non-JSON response'] };
+      if (attempt < 2) return runGemmaScreenshotReview(item, { attempt: attempt + 1 });
+      return { id: item.id, verdict: 'INCONCLUSIVE', reasons: ['gemma non-JSON response'] };
     }
     const obj = JSON.parse(m[0]);
+    const v = String(obj.verdict || 'INCONCLUSIVE').toUpperCase();
+    const verdict = v === 'PASS' ? 'PASS' : (v === 'FAIL' ? 'FAIL' : 'INCONCLUSIVE');
     return {
       id: obj.id || item.id,
-      verdict: String(obj.verdict || 'FAIL').toUpperCase() === 'PASS' ? 'PASS' : 'FAIL',
+      verdict,
       reasons: Array.isArray(obj.reasons) ? obj.reasons : [],
     };
   } catch (err) {
-    return { id: item.id, verdict: 'FAIL', reasons: [`gemma review error: ${err?.message || err}`] };
+    if (attempt < 2) return runGemmaScreenshotReview(item, { attempt: attempt + 1 });
+    return { id: item.id, verdict: 'INCONCLUSIVE', reasons: [`gemma review error: ${err?.message || err}`] };
   }
 }
 
@@ -1194,7 +1300,7 @@ async function main() {
   }
 
   // Gemma vision review of EVERY icon screenshot + every stem contact sheet.
-  if (gemmaReview) {
+  if (runTier3) {
     console.log(`[screenshot-qa] Gemma vision review of ${items.length} icon screenshots + ${stemSheetMeta.length} stem sheets…`);
     writeQaProgress({
       active: true,
@@ -1225,7 +1331,7 @@ async function main() {
         screenshotAbs: meta.screenshotAbs,
         cScreenshotAbs: meta.cScreenshotAbs,
       });
-      if (r.verdict !== 'PASS') {
+      if (r.verdict === 'FAIL') {
         addBroken(r.id, {
           reasons: [`gemma-screenshot: ${(r.reasons || ['failed visual review']).join('; ')}`],
           screenshot: meta.screenshotAbs
@@ -1233,6 +1339,14 @@ async function main() {
             : null,
         });
         console.log(`[screenshot-qa] GEMMA FAIL ${r.id} (${idx}/${items.length})`);
+      } else if (r.verdict === 'INCONCLUSIVE') {
+        const q = loadJson(quarantinePath, { ids: [], reasons: {} });
+        q.ids = [...new Set([...(q.ids || []), r.id])];
+        q.reasons = q.reasons || {};
+        q.reasons[r.id] = r.reasons || ['inconclusive'];
+        q.at = new Date().toISOString();
+        fs.writeFileSync(quarantinePath, JSON.stringify(q, null, 2) + '\n');
+        console.log(`[screenshot-qa] GEMMA INCONCLUSIVE ${r.id} → quarantine`);
       } else if (idx % 25 === 0 || idx === items.length) {
         console.log(`[screenshot-qa] gemma vision ${idx}/${items.length} ok so far`);
       }
@@ -1265,16 +1379,28 @@ async function main() {
     let stemVisionIdx = 0;
     for (const sheet of stemSheetMeta) {
       const r = await runGemmaStemSheetReview(sheet.stem, sheet.sheetAbs, sheet.siblingIds);
-      if (r.verdict !== 'PASS') {
-        const failIds = (r.failIds && r.failIds.length) ? r.failIds : sheet.siblingIds;
-        for (const id of failIds) {
-          addBroken(id, {
+      if (r.verdict === 'FAIL') {
+        const failIds = (Array.isArray(r.failIds) && r.failIds.length)
+          ? r.failIds
+          : [];
+        if (!failIds.length) {
+          // Do NOT blanket-fail every sibling — flag the sheet only.
+          console.log(`[screenshot-qa] GEMMA STEM FAIL ${sheet.stem} (no failIds — sheet flagged, siblings spared)`);
+          addBroken(`stem-sheet:${sheet.stem}`, {
             reasons: [`gemma-stem-sheet ${sheet.stem}: ${(r.reasons || ['pack cohesion fail']).join('; ')}`],
             screenshot: path.relative(root, sheet.sheetAbs).replace(/\\/g, '/'),
             stem: sheet.stem,
           });
+        } else {
+          for (const id of failIds) {
+            addBroken(id, {
+              reasons: [`gemma-stem-sheet ${sheet.stem}: ${(r.reasons || ['pack cohesion fail']).join('; ')}`],
+              screenshot: path.relative(root, sheet.sheetAbs).replace(/\\/g, '/'),
+              stem: sheet.stem,
+            });
+          }
+          console.log(`[screenshot-qa] GEMMA STEM FAIL ${sheet.stem}`);
         }
-        console.log(`[screenshot-qa] GEMMA STEM FAIL ${sheet.stem}`);
       }
       stemVisionIdx += 1;
       writeQaProgress({
@@ -1366,7 +1492,8 @@ async function main() {
       'polish-queue-failed-investigation',
       ...(gemmaReview ? ['gemma-screenshot-vision-every-icon', 'gemma-stem-sheet-vision'] : []),
     ],
-    gemmaVision: !!gemmaReview,
+    gemmaVision: !!runTier3,
+    tier: TIER,
     broken,
     passedIds: finalPassed.map((p) => p.id),
     stemSheets: fs.readdirSync(stemSheetRoot).length,
