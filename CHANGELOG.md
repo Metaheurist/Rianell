@@ -6,6 +6,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Icon design system pack** under `docs/style-and-design/` (grid, stroke/fill, size ladder, optical alignment, motion catalogue, theme variants, taxonomy, `subject-contracts.json`).
+- **Durable pipeline pause/resume:** `npm run visual:pause` / `visual:resume` / `visual:state` (`scripts/dev/visual-pipeline-state.mjs`) — banks remaining ids + Pass N; resume uses `--ids-file=` (never re-runs destructive `--repolish-from-qa`; avoids Windows CLI length limits).
+- **A-stage audit:** `npm run audit:icon-a` → `artifacts/audit/icon-a-audit.json` + HTML contact sheet.
+- **`npm run verify:icon-spec`** — specs stay aligned with `THEME_FX_TOKENS` and `--ui-icon-stroke`.
+- **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
+
+### Changed
+- **ICON_CONTRACT** replaces keyword-scraped `PROJECT_STYLING_CONTRACT` (allowlisted specs, ~8k budget).
+- **Polish passes:** `construct → critique → apply → verify` (legacy aliases kept).
+- **Team fancy variants** skipped by default in the polish queue (derived, not LLM-authored).
+- **QA tiers:** `--tier=1|2|3|all`; textual loop-seam soft-fail; non-text contrast on dark/light stages; subject integrity driven by `subject-contracts.json`; vision `PASS|FAIL|INCONCLUSIVE` with quarantine; stem-sheet FAIL without `failIds` no longer condemns all siblings.
+- **QA loop:** `--start-round=N`; early rounds use cheap tiers; per-item quarantine after repeated fails; SIGINT banks state.
+- **`--repolish-from-qa`** preserves ids completed after the broken snapshot / `qaPatched`.
+- Live polish HUD restores accessible **UI Q&A stage** label.
+
+### Tests
+- `tests/unit/pwa/visual-pipeline-state.test.mjs`; updated polish queue / seamless-loop / QA status assertions for ICON_CONTRACT and soft seam policy.
+- `tests/unit/verify-icon-spec.test.mjs` — `verify:icon-spec` + design pack presence + `audit:icon-a --limit=3` smoke.
+- Screenshot QA: subject-contracts match/labels + non-text contrast.
+
 ## [2.6.0] - 2026-07-25
 
 ### Added
