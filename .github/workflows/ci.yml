@@ -109,6 +109,9 @@ jobs:
       - name: Design token guardrails (critical UI files)
         run: npm run verify:design-tokens
 
+      - name: Icon design spec guardrails
+        run: npm run verify:icon-spec
+
       - name: Root directory hygiene (Phase 23)
         run: npm run verify:root-hygiene
 
