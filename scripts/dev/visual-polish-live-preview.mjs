@@ -411,10 +411,17 @@ const server = http.createServer(async (req, res) => {
     if (fs.existsSync(cssPath)) {
       const css = fs.readFileSync(cssPath, 'utf8');
       const style = `<style id="visual-gallery-skin">\n${css}\n</style>`;
-      page = page.replace(
-        /<link\s+rel=["']stylesheet["']\s+href=["']\/visual-gallery-skin\.css["']\s*\/?>/i,
-        style,
-      );
+      if (/<style\s+id=["']visual-gallery-skin["'][\s\S]*?<\/style>/i.test(page)) {
+        page = page.replace(
+          /<style\s+id=["']visual-gallery-skin["'][\s\S]*?<\/style>/i,
+          style,
+        );
+      } else {
+        page = page.replace(
+          /<link\s+rel=["']stylesheet["']\s+href=["']\/visual-gallery-skin\.css["']\s*\/?>/i,
+          style,
+        );
+      }
     }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     res.end(page);
