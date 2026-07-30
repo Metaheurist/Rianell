@@ -1,0 +1,118 @@
+{
+  "$schema": "https://rianell.local/schemas/subject-contracts.json",
+  "version": 1,
+  "description": "Per-subject required features for polish prompts and QA. Replaces hardcoded special cases.",
+  "subjects": {
+    "stethoscope": {
+      "match": ["stethoscope"],
+      "required": [
+        "connected headset arc",
+        "tubing path",
+        "chest-piece circle"
+      ],
+      "forbid": [
+        "fill-only stroke strip",
+        "disconnected floating arcs"
+      ],
+      "reasons": {
+        "fail": "stethoscope-broken",
+        "strokeStrip": "stethoscope-broken: stroke stripped"
+      },
+      "geometry": {
+        "minPaths": 2,
+        "requireCircle": true,
+        "requireStrokeLineArt": true
+      }
+    },
+    "qr": {
+      "match": ["\\bqr\\b", "qr-code", "icon-qr"],
+      "required": [
+        "three corner finder eyes (TL, TR, BL)",
+        "bottom-right data modules"
+      ],
+      "forbid": [
+        "single-eye abstract block",
+        "thin bar fragments that read as a window"
+      ],
+      "reasons": {
+        "fail": "qr-broken",
+        "weak": "qr-weak"
+      },
+      "geometry": {
+        "minRects": 3
+      }
+    },
+    "pizza": {
+      "match": ["pizza"],
+      "required": [
+        "wedge silhouette",
+        "crust or toppings (≥2 shapes)"
+      ],
+      "forbid": [
+        "single fin blob"
+      ],
+      "reasons": {
+        "fail": "pizza-weak"
+      },
+      "geometry": {
+        "minShapes": 2
+      }
+    },
+    "cycle_tracker": {
+      "match": ["cycle_tracker", "menstrual", "follicular", "luteal", "ovulation"],
+      "required": [
+        "circular or phase/droplet geometry that reads as cycle tracking"
+      ],
+      "forbid": [
+        "point-on-line tee marker as the only metaphor"
+      ],
+      "reasons": {
+        "fail": "cycle-tracker-mismatch"
+      },
+      "geometry": {
+        "minCircleOrPath": 1
+      }
+    },
+    "ashspiral": {
+      "match": ["ashspiral"],
+      "required": [
+        "multi-turn spiral / clear companion silhouette"
+      ],
+      "forbid": [
+        "abstract comma blob"
+      ],
+      "reasons": {
+        "fail": "ashspiral-unreadable"
+      }
+    },
+    "fa-replace": {
+      "match": ["fa-replace:", "lightbulb", "moon", "mug", "utensils", "potato", "plane"],
+      "required": [
+        "valid SVG",
+        "clear composition matching the named subject"
+      ],
+      "forbid": [
+        "unrecognizable blobs"
+      ],
+      "reasons": {
+        "fail": "broken-vector"
+      }
+    },
+    "human-figure": {
+      "match": ["swimmer", "person", "user-figure", "human"],
+      "required": [
+        "one head",
+        "one torso",
+        "exactly two arms when arms are depicted"
+      ],
+      "forbid": [
+        "extra limbs",
+        "missing torso"
+      ],
+      "reasons": {
+        "extraLimbs": "anatomy-extra-limbs",
+        "missingTorso": "anatomy-missing-torso"
+      }
+    }
+  }
+}
