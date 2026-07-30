@@ -5,20 +5,94 @@
  *
  * Usage:
  *   node scripts/dev/visual-polish-qa-loop.mjs
- *   node scripts/dev/visual-polish-qa-loop.mjs --now   # skip wait (interim)
+ *   node scripts/dev/visual-polish-qa-loop.mjs --now
  *   node scripts/dev/visual-polish-qa-loop.mjs --max-rounds=5
+ *   node scripts/dev/visual-polish-qa-loop.mjs --start-round=3
  */
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { writeQaProgress } from './visual-polish-qa-status.mjs';
+import { buildState } from './visual-pipeline-state.mjs';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../..');
+const qaRoot = path.join(root, 'artifacts/visual-gen/qa');
+const quarantinePath = path.join(qaRoot, 'quarantine.json');
+const itemRoundsPath = path.join(qaRoot, 'item-rounds.json');
 const args = process.argv.slice(2);
 const now = args.includes('--now');
 const maxArg = args.find((a) => a.startsWith('--max-rounds='));
+const startArg = args.find((a) => a.startsWith('--start-round='));
 const MAX_ROUNDS = Math.max(1, Number(maxArg?.split('=')[1] || 8));
+const START_ROUND = Math.max(1, Math.min(MAX_ROUNDS, Number(startArg?.split('=')[1] || 1)));
+const MAX_ITEM_ROUNDS = Math.max(1, Number(process.env.VISUAL_POLISH_MAX_ITEM_ROUNDS || 3));
+
+let shuttingDown = false;
+
+function loadJson(p, fb) {
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch {
+    return fb;
+  }
+}
+
+function quarantineRepeatOffenders(brokenIds) {
+  const rounds = loadJson(itemRoundsPath, {});
+  const q = loadJson(quarantinePath, { ids: [], reasons: {} });
+  let added = 0;
+  for (const id of brokenIds) {
+    rounds[id] = (rounds[id] || 0) + 1;
+    if (rounds[id] >= MAX_ITEM_ROUNDS) {
+      if (!q.ids.includes(id)) {
+        q.ids.push(id);
+        added += 1;
+      }
+      q.reasons = q.reasons || {};
+      q.reasons[id] = [`quarantine: failed ${rounds[id]} rounds (max ${MAX_ITEM_ROUNDS})`];
+    }
+  }
+  fs.mkdirSync(qaRoot, { recursive: true });
+  fs.writeFileSync(itemRoundsPath, JSON.stringify(rounds, null, 2) + '\n');
+  q.at = new Date().toISOString();
+  fs.writeFileSync(quarantinePath, JSON.stringify(q, null, 2) + '\n');
+  return { quarantined: q.ids, added };
+}
+
+async function flushPauseState(reason) {
+  try {
+    const state = await buildState();
+    state.reason = reason || state.reason;
+    const artRoot = path.join(root, 'artifacts/visual-gen');
+    fs.mkdirSync(artRoot, { recursive: true });
+    fs.writeFileSync(path.join(artRoot, 'pipeline-state.json'), JSON.stringify(state, null, 2) + '\n');
+    writeQaProgress({
+      active: false,
+      stage: 'paused',
+      phase: 'paused',
+      round: state.qa?.round,
+      maxRounds: state.qa?.maxRounds ?? MAX_ROUNDS,
+      detail: `Signal pause · Pass ${state.qa?.round}/${state.qa?.maxRounds}`,
+    });
+    console.log('[qa-loop] flushed pipeline-state.json on signal');
+  } catch (err) {
+    console.error('[qa-loop] flush pause state failed', err.message);
+  }
+}
+
+function installSignalHandlers() {
+  const onSignal = async (sig) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`[qa-loop] ${sig} — banking state then exit`);
+    await flushPauseState(`signal ${sig}`);
+    process.exit(130);
+  };
+  process.on('SIGINT', () => { onSignal('SIGINT'); });
+  process.on('SIGTERM', () => { onSignal('SIGTERM'); });
+}
 
 function run(cmd, cmdArgs, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -35,20 +109,12 @@ function run(cmd, cmdArgs, opts = {}) {
 }
 
 async function status() {
-  const fs = await import('fs');
   const polishCpPath = path.join(root, 'artifacts/visual-gen/polish-checkpoint.json');
   const genCpPath = path.join(root, 'artifacts/visual-gen/checkpoint.json');
   const registerPath = path.join(root, 'apps/pwa-webapp/assets/visual-register.json');
-  const load = (p, fb) => {
-    try {
-      return JSON.parse(fs.readFileSync(p, 'utf8'));
-    } catch {
-      return fb;
-    }
-  };
-  const reg = load(registerPath, { entries: [] });
-  const genCp = load(genCpPath, { completed: {} });
-  const polishCp = load(polishCpPath, { completed: {}, failed: {} });
+  const reg = loadJson(registerPath, { entries: [] });
+  const genCp = loadJson(genCpPath, { completed: {} });
+  const polishCp = loadJson(polishCpPath, { completed: {}, failed: {} });
   const eligible = (reg.entries || []).filter((e) => e.genStatus !== 'skip' && genCp.completed?.[e.id]).length;
   const polished = Object.keys(polishCp.completed || {}).length;
   const failed = Object.keys(polishCp.failed || {}).length;
@@ -67,13 +133,13 @@ async function waitForPolishDone() {
     return;
   }
   for (;;) {
+    if (shuttingDown) return;
     const s = await status();
     console.log(`[qa-loop] waiting polish… polished=${s.polished} pending=${s.pending} failed=${s.failed}`);
     writeQaProgress({
       active: true,
       stage: 'waiting-polish',
       phase: 'polish',
-      // do not set round:null — preserves Pass N across resume waits
       maxRounds: MAX_ROUNDS,
       current: s.polished,
       total: s.eligible || (s.polished + s.pending),
@@ -86,10 +152,16 @@ async function waitForPolishDone() {
 }
 
 async function main() {
+  installSignalHandlers();
   await waitForPolishDone();
+  if (shuttingDown) return;
 
-  for (let round = 1; round <= MAX_ROUNDS; round += 1) {
-    console.log(`[qa-loop] === screenshot QA Pass ${round} (max ${MAX_ROUNDS}) (every icon + cohesion + location + description + offset) ===`);
+  for (let round = START_ROUND; round <= MAX_ROUNDS; round += 1) {
+    if (shuttingDown) return;
+    // Early rounds: cheap tiers only. Spend vision once geometry is cleaner (round ≥ 3).
+    const useVision = round >= 3;
+    const tier = useVision ? 'all' : '2';
+    console.log(`[qa-loop] === screenshot QA Pass ${round} (max ${MAX_ROUNDS}) tier=${tier} vision=${useVision} ===`);
     writeQaProgress({
       active: true,
       stage: 'screenshot-cards',
@@ -99,11 +171,12 @@ async function main() {
       current: 0,
       total: 0,
       unit: 'icons',
-      detail: `Starting Pass ${round} (max ${MAX_ROUNDS})`,
+      detail: `Starting Pass ${round} (max ${MAX_ROUNDS}) · tier ${tier}`,
     });
     const qaArgs = ['run', 'visual:polish:screenshot-qa', '--'];
-    if (now && round === 1) qaArgs.push('--now');
-    qaArgs.push('--gemma-review');
+    if (now && round === START_ROUND) qaArgs.push('--now');
+    qaArgs.push(`--tier=${tier}`);
+    if (useVision) qaArgs.push('--gemma-review');
     const qaCode = await run('npm', qaArgs);
     if (qaCode === 0) {
       writeQaProgress({
@@ -130,6 +203,12 @@ async function main() {
       });
       console.log('[qa-loop] polish still running; exit 2');
       process.exit(2);
+    }
+
+    const broken = loadJson(path.join(qaRoot, 'broken.json'), { ids: [] });
+    const qInfo = quarantineRepeatOffenders(broken.ids || []);
+    if (qInfo.added) {
+      console.log(`[qa-loop] quarantined ${qInfo.added} repeat offenders (total ${qInfo.quarantined.length})`);
     }
 
     console.log('[qa-loop] broken found — Gemma re-polish from qa/broken.json');
@@ -179,11 +258,9 @@ main().catch((err) => {
     writeQaProgress({
       active: false,
       stage: 'needs-fix',
-      detail: `fatal: ${err?.message || err}`,
+      detail: String(err?.message || err),
       exitCode: 1,
     });
-  } catch {
-    /* ignore */
-  }
+  } catch { /* ignore */ }
   process.exit(1);
 });
