@@ -77,6 +77,8 @@ Python package in `server/` serves the PWA, optional Tk dashboard, and dev APIs.
 ## Read more (technical)
 
 - [Design token contract](https://github.com/Metaheurist/Rianell/blob/main/docs/design-token-contract.md) - `@rianell/tokens` runtime authority (v2.1.6+)
+- [Icon / motion design pack](https://github.com/Metaheurist/Rianell/tree/main/docs/style-and-design) - grid, stroke, motion catalogue, subject contracts (`ICON_CONTRACT`)
+- [Visual pack harness](https://github.com/Metaheurist/Rianell/blob/main/docs/development/visual-pack-harness.md) - local Ollama generate/polish/QA operator guide
 - [AI architecture](https://github.com/Metaheurist/Rianell/blob/main/docs/ai-architecture.md)
 - [Data model](https://github.com/Metaheurist/Rianell/blob/main/docs/data-model.md)
 - [Server API](https://github.com/Metaheurist/Rianell/blob/main/docs/server-api.md)

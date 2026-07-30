@@ -18,10 +18,14 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run brain:ensure` | Ensure Ollama is serving (pull model if missing) |
 | `npm run visual:register` | Rebuild `assets/visual-register.json` (one entry per SVG/anim) |
 | `npm run visual:gen` | Local Ollama generate queue (`qwen3.6:35b`, concurrency 1, resumable) |
-| `npm run visual:polish` | Polish generated artifacts with Gemma 4 31B IT QAT |
+| `npm run visual:polish` | Polish generated artifacts with Gemma 4 31B IT QAT (`construct→critique→apply→verify`) |
 | `npm run visual:polish:live` | Live A/B/C polish preview on http://localhost:8766/ |
-| `npm run visual:polish:screenshot-qa` | Screenshot + heuristic QA gate |
-| `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (Pass N, max 8) |
+| `npm run visual:polish:screenshot-qa` | Tiered screenshot QA (`--tier=1\|2\|3\|all`, optional `--gemma-review`) |
+| `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (`--start-round=N`, Pass N, max 8) |
+| `npm run visual:pause` / `visual:resume` / `visual:state` | Durable pause/resume (banks remaining ids + Pass N; resume prints IDE terminal commands by default) |
+| `npm run visual:derive-variants` | Derive fancy team sprites via `generate:theme-icons` (no LLM per variant) |
+| `npm run audit:icon-a` | Stage-A icon corpus audit → `artifacts/audit/icon-a-audit.*` |
+| `npm run verify:icon-spec` | Icon design docs stay aligned with `THEME_FX_TOKENS` / `--ui-icon-stroke` |
 | `npm run visual:gallery` | Current-source gallery (standalone) |
 | `npm run visual:apply` | Apply polished-first outputs into PWA (**deferred until QA green**) |
 | `npm run benchmark` | Performance benchmarks workspace |
@@ -32,6 +36,8 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run verify:cspro` | CI check: live site must not serve `CSPRO: connect-src 'none'` |
 | `npm run supabase:deploy:delete-user-data` | Deploy GDPR Edge Function to Supabase project |
 | `npm run wiki:verify` / `wiki:sync` | Validate and push `wiki/` to GitHub Wiki |
+
+Icon / motion design specs live under `docs/style-and-design/` (grid, stroke, size ladder, optical alignment, motion catalogue, theme variants, taxonomy, `subject-contracts.json`). Operator guide in the monorepo: `docs/development/visual-pack-harness.md`.
 
 ---
 
