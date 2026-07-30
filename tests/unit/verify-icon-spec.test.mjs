@@ -1,5 +1,7 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, mkdtempSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -25,11 +27,17 @@ test('icon design pack files exist under docs/style-and-design', () => {
   assert.ok(contracts.subjects?.qr);
 });
 
-test('icon-a-audit.mjs --limit=3 exits 0', () => {
-  const r = spawnSync(process.execPath, ['scripts/audit/icon-a-audit.mjs', '--limit=3'], {
-    cwd: process.cwd(),
-    encoding: 'utf8',
-    timeout: 60_000,
-  });
+test('icon-a-audit.mjs --limit=3 exits 0 without clobbering baseline', () => {
+  const tmp = mkdtempSync(path.join(os.tmpdir(), 'icon-a-audit-'));
+  const r = spawnSync(
+    process.execPath,
+    ['scripts/audit/icon-a-audit.mjs', '--limit=3', `--out-dir=${tmp}`],
+    {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      timeout: 60_000,
+    },
+  );
   assert.equal(r.status, 0, (r.stderr || r.stdout || 'icon-a-audit failed').trim());
+  assert.ok(existsSync(path.join(tmp, 'icon-a-audit.json')));
 });

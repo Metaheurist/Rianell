@@ -23,11 +23,16 @@ import {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../..');
 const registerPath = path.join(root, 'apps/pwa-webapp/assets/visual-register.json');
-const outDir = path.join(root, 'artifacts/audit');
+const args = process.argv.slice(2);
+const outDirArg = args.find((a) => a.startsWith('--out-dir='));
+const outDir = outDirArg
+  ? (path.isAbsolute(outDirArg.slice('--out-dir='.length))
+    ? outDirArg.slice('--out-dir='.length)
+    : path.join(root, outDirArg.slice('--out-dir='.length)))
+  : path.join(root, 'artifacts/audit');
 const outJson = path.join(outDir, 'icon-a-audit.json');
 const outHtml = path.join(outDir, 'icon-a-audit.html');
 
-const args = process.argv.slice(2);
 const limitArg = args.find((a) => a.startsWith('--limit='));
 const LIMIT = limitArg ? Number(limitArg.split('=')[1]) : Infinity;
 
