@@ -1,0 +1,174 @@
+{
+  "summary": {
+    "at": "2026-07-30T20:40:00.421Z",
+    "scanned": 3,
+    "stems": 1,
+    "byVerdict": {
+      "keep": 1
+    },
+    "byTrack": {
+      "static": 3,
+      "motion": 0
+    },
+    "mergeHints": 0,
+    "authoritativeStroke": 2
+  },
+  "stems": [
+    {
+      "stem": "icon-user",
+      "count": 3,
+      "avg": 1,
+      "verdict": "keep",
+      "issues": [],
+      "ids": [
+        "sprite:icon-user",
+        "fancy:icon-user:mint",
+        "fancy:icon-user:red-black"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "sprite:icon-user",
+      "kind": "sprite",
+      "team": null,
+      "stem": "icon-user",
+      "track": "static",
+      "viewBox": "0 0 24 24",
+      "shapes": {
+        "paths": 0,
+        "circles": 1,
+        "ellipses": 1,
+        "rects": 0,
+        "lines": 0,
+        "groups": 0
+      },
+      "grid": {
+        "score": 1,
+        "issues": [],
+        "outOfLive": 0,
+        "offHalf": 0,
+        "coordCount": 7
+      },
+      "stroke": {
+        "score": 1,
+        "issues": [],
+        "inlineWidths": []
+      },
+      "legibility": {
+        "score": 1,
+        "issues": [],
+        "coverage": 0.542,
+        "cmdCount": 10
+      },
+      "semantic": {
+        "score": 1,
+        "issues": []
+      },
+      "silhouetteHash": "b3ce3fe4fd9f",
+      "complexity": {
+        "score": 1,
+        "issues": [],
+        "nodes": 2,
+        "familyMedian": 2
+      },
+      "avg": 1,
+      "issues": []
+    },
+    {
+      "id": "fancy:icon-user:mint",
+      "kind": "sprite",
+      "team": "mint",
+      "stem": "icon-user",
+      "track": "static",
+      "viewBox": "0 0 24 24",
+      "shapes": {
+        "paths": 0,
+        "circles": 1,
+        "ellipses": 1,
+        "rects": 0,
+        "lines": 0,
+        "groups": 0
+      },
+      "grid": {
+        "score": 1,
+        "issues": [],
+        "outOfLive": 0,
+        "offHalf": 0,
+        "coordCount": 7
+      },
+      "stroke": {
+        "score": 1,
+        "issues": [],
+        "inlineWidths": []
+      },
+      "legibility": {
+        "score": 1,
+        "issues": [],
+        "coverage": 0.542,
+        "cmdCount": 10
+      },
+      "semantic": {
+        "score": 1,
+        "issues": []
+      },
+      "silhouetteHash": "b3ce3fe4fd9f",
+      "complexity": {
+        "score": 1,
+        "issues": [],
+        "nodes": 2,
+        "familyMedian": 2
+      },
+      "avg": 1,
+      "issues": []
+    },
+    {
+      "id": "fancy:icon-user:red-black",
+      "kind": "sprite",
+      "team": "red-black",
+      "stem": "icon-user",
+      "track": "static",
+      "viewBox": "0 0 24 24",
+      "shapes": {
+        "paths": 0,
+        "circles": 1,
+        "ellipses": 1,
+        "rects": 0,
+        "lines": 0,
+        "groups": 0
+      },
+      "grid": {
+        "score": 1,
+        "issues": [],
+        "outOfLive": 0,
+        "offHalf": 0,
+        "coordCount": 7
+      },
+      "stroke": {
+        "score": 1,
+        "issues": [],
+        "inlineWidths": []
+      },
+      "legibility": {
+        "score": 1,
+        "issues": [],
+        "coverage": 0.542,
+        "cmdCount": 10
+      },
+      "semantic": {
+        "score": 1,
+        "issues": []
+      },
+      "silhouetteHash": "b3ce3fe4fd9f",
+      "complexity": {
+        "score": 1,
+        "issues": [],
+        "nodes": 2,
+        "familyMedian": 2
+      },
+      "avg": 1,
+      "issues": []
+    }
+  ],
+  "mergeHints": []
+}
