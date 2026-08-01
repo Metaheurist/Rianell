@@ -20,6 +20,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ### Changed
 - **Agentic pack tabs:** pipeline preview card (header + controls, Gates→LLM→Proposal→Approve rail, cockpit Activity); Planned approve row hidden on visual; Debug drawer always collapsed by default; constrained toolbar icons; model picker in live polish Review HUD; in-app confirm dialog (no `window.confirm`).
+- **Agentic live UI:** soft Activity patches (no full-tab re-render while packs run); scrollbars hidden in scrollable panels.
 - **Agentic Thinking / Planned actions** are codebase-aware via `pack-context.mjs`; Activity shows a repo-context chip.
 - **Agentic safe client:** `localhost` / `127.*` / `::1` all classify as safe (client + `/health.safeClient`); HUD chip shows confirmed safe on loopback.
 - **Agentic rate limits:** skipped for loopback peers (`should_rate_limit_client`); remote clients still limited.
