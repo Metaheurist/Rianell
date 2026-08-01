@@ -587,6 +587,17 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
     IconButton(gallery_btns, 'Chromium', 'chrome', open_visual_gallery_chromium, compact=True).pack(side=tk.LEFT, padx=(0, 6))
     IconButton(gallery_btns, 'Live polish', 'play', open_live_polish_browser, compact=True).pack(side=tk.LEFT)
 
+    agentic_url = f'{app_url}/dev/agentic'
+
+    def open_agentic_harness():
+        try:
+            webbrowser.open(agentic_url, new=2)
+            logger.info('Opened agentic harness: %s', agentic_url)
+        except Exception as e:
+            messagebox.showerror('Agentic harness', f'Could not open:\n{agentic_url}\n\n{e}')
+
+    IconButton(gallery_btns, 'Agentic', 'tools', open_agentic_harness, compact=True).pack(side=tk.LEFT, padx=(6, 0))
+
     def check_connection():
         available = check_supabase_availability()
         cb.set_supabase_available(available)

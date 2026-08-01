@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rianell Agentic Harness</title>
+  <style>
+    :root {
+      --bg: #0a0e0c;
+      --surface: #111714;
+      --card: #0f1411;
+      --border: #1e2e24;
+      --text: #e4f2ec;
+      --muted: #7f968a;
+      --accent: #5dd97a;
+      --warn: #ffb74d;
+      --bad: #ff6b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #15241c, var(--bg));
+      color: var(--text); min-height: 100vh;
+    }
+    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    nav {
+      border-right: 1px solid var(--border); background: var(--surface);
+      padding: 16px 12px; display: flex; flex-direction: column; gap: 4px;
+    }
+    nav h1 { font-size: 0.95rem; margin: 0 0 12px; letter-spacing: 0.02em; }
+    nav button {
+      text-align: left; background: transparent; border: 0; color: var(--muted);
+      padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+    }
+    nav button.active, nav button:hover { background: var(--card); color: var(--text); }
+    main { padding: 24px 28px; }
+    .hero h2 { font-size: 1.6rem; margin: 0 0 8px; }
+    .hero p { color: var(--muted); margin: 0 0 20px; max-width: 52ch; }
+    .hud {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px;
+      background: rgba(15,20,18,.85);
+    }
+    .hud span { font-size: 0.75rem; color: var(--muted); }
+    .hud strong { color: var(--accent); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .actions button, .pack-actions button {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 0.85rem;
+    }
+    .actions button.primary { border-color: rgba(93,217,122,.45); color: var(--accent); }
+    .timeline { display: grid; gap: 6px; margin: 16px 0; }
+    .step {
+      display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center;
+      padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card);
+      font-size: 0.82rem;
+    }
+    .step[data-s="passed"] { border-color: rgba(93,217,122,.35); }
+    .step[data-s="broken"] { border-color: rgba(255,107,107,.4); }
+    .step[data-s="running"] { border-color: rgba(255,183,77,.4); }
+    pre {
+      background: #0a100d; border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px; overflow: auto; max-height: 360px; font-size: 0.72rem; color: var(--muted);
+    }
+    label { font-size: 0.75rem; color: var(--muted); display: block; margin: 8px 0 4px; }
+    select {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 8px;
+    }
+    .embed-frame {
+      width: 100%; min-height: 520px; border: 1px solid var(--border);
+      border-radius: 12px; background: #000; margin-top: 12px;
+    }
+    .warn { color: var(--warn); font-size: 0.85rem; }
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      nav { flex-direction: row; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav id="nav"></nav>
+    <main>
+      <div class="hud" id="hud">Loading…</div>
+      <div id="view"></div>
+      <pre id="log"></pre>
+    </main>
+  </div>
+  <script type="module">
+    import { createAgenticClient } from '/dev/agentic/lib/agentic-api-client.js';
+
+    const client = createAgenticClient();
+    const PACKS = [
+      'design','planning','i18n','rtl','a11y','seo','privacy','security',
+      'deps','migration','changelog','wikisync','image','bootllm','perf','visual'
+    ];
+    const VIEWS = ['overview','run-all', ...PACKS, 'models', 'settings'];
+
+    let catalog = null;
+    let state = { view: 'overview' };
+
+    function log(x) {
+      document.getElementById('log').textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2);
+    }
+
+    function renderNav() {
+      const nav = document.getElementById('nav');
+      nav.innerHTML = '<h1>Rianell Agentic</h1>' + VIEWS.map((v) =>
+        `<button data-v="${v}" class="${state.view===v?'active':''}">${v}</button>`
+      ).join('');
+      nav.querySelectorAll('button').forEach((b) => b.onclick = () => {
+        state.view = b.dataset.v; render();
+      });
+    }
+
+    async function refreshHud() {
+      try {
+        const [health, gpus] = await Promise.all([
+          client.getHealth(),
+          client.getGpus().catch(() => null),
+        ]);
+        const profile = gpus?.profile || 'unknown';
+        document.getElementById('hud').innerHTML =
+          `<span>API <strong>ok</strong></span>` +
+          `<span>packs <strong>${(health.packs||PACKS).length}</strong></span>` +
+          `<span>profile <strong>${profile}</strong></span>` +
+          `<span>safe client</span>`;
+      } catch (e) {
+        document.getElementById('hud').innerHTML = `<span style="color:var(--bad)">API error: ${e.message}</span>`;
+      }
+    }
+
+    function packRecommended(id) {
+      return catalog?.packs?.[id]?.recommended || '—';
+    }
+
+    async function render() {
+      renderNav();
+      await refreshHud();
+      if (!catalog) {
+        try { catalog = await client.getCatalog(); } catch (e) { log(e); }
+      }
+      const view = document.getElementById('view');
+      if (state.view === 'overview') {
+        view.innerHTML = `
+          <section class="hero">
+            <h2>Rianell Agentic Harness</h2>
+            <p>Local loopback control plane for sixteen pipelines. Recommended models load by default. Product apply stays deferred.</p>
+          </section>
+          <div class="actions">
+            <button class="primary" id="btnRunAll">Run all pipelines (dry-run)</button>
+            <button id="btnStatus">Refresh status</button>
+            <button id="btnCatalog">Show catalog</button>
+          </div>`;
+        document.getElementById('btnRunAll').onclick = async () => {
+          try { log(await client.runAll({ dryRun: true, stopOnBroken: true })); }
+          catch (e) { log(e.envelope || e.message); }
+        };
+        document.getElementById('btnStatus').onclick = async () => {
+          try { log(await client.getStatus()); } catch (e) { log(e.message); }
+        };
+        document.getElementById('btnCatalog').onclick = () => log(catalog);
+        return;
+      }
+      if (state.view === 'run-all') {
+        view.innerHTML = `
+          <h2>Run-all</h2>
+          <p style="color:var(--muted)">Chronological: design → … → visual. Always serial; unload between packs.</p>
+          <div class="actions">
+            <button class="primary" id="go">Start dry-run</button>
+            <button id="live" title="Runs real gates; may take a long time">Start live</button>
+            <button id="pause">Pause</button>
+            <button id="resume">Resume</button>
+            <button id="cancel">Cancel</button>
+            <button id="st">Status</button>
+          </div>
+          <div class="timeline" id="tl"></div>`;
+        const tl = document.getElementById('tl');
+        const order = catalog?.runAllOrder || PACKS;
+        tl.innerHTML = order.map((p, i) =>
+          `<div class="step" data-s="pending"><span>${i+1}</span><code>${p}</code><span>${packRecommended(p)}</span></div>`
+        ).join('');
+        document.getElementById('go').onclick = async () => {
+          try { log(await client.runAll({ dryRun: true })); } catch (e) { log(e.envelope || e.message); }
+        };
+        document.getElementById('live').onclick = async () => {
+          if (!confirm('Run live gates for all packs? This can take a long time.')) return;
+          try { log(await client.runAll({ dryRun: false })); } catch (e) { log(e.envelope || e.message); }
+        };
+        document.getElementById('pause').onclick = async () => {
+          try { log(await client.pauseRunAll()); } catch (e) { log(e.message); }
+        };
+        document.getElementById('resume').onclick = async () => {
+          try { log(await client.resumeRunAll()); } catch (e) { log(e.message); }
+        };
+        document.getElementById('cancel').onclick = async () => {
+          try { log(await client.cancelRunAll()); } catch (e) { log(e.message); }
+        };
+        document.getElementById('st').onclick = async () => {
+          try { log(await client.getRunAllStatus()); } catch (e) { log(e.message); }
+        };
+        return;
+      }
+      if (state.view === 'models' || state.view === 'settings') {
+        const mode = await client.getMode().catch(() => ({ mode: 'serial' }));
+        view.innerHTML = `
+          <h2>${state.view}</h2>
+          <p style="color:var(--muted)">Recommended defaults come from model-catalog.json. Parallel mode is guarded by the scheduler; run-all is always serial.</p>
+          <label>Concurrency mode</label>
+          <select id="modeSel">
+            <option value="serial">serial</option>
+            <option value="parallel">parallel</option>
+            <option value="dry-run">dry-run</option>
+          </select>
+          <div class="actions" style="margin-top:12px">
+            <button id="saveMode">Save mode</button>
+            <button id="pauseAll">Pause all packs</button>
+            <button id="resumeAll">Resume all packs</button>
+          </div>`;
+        document.getElementById('modeSel').value = mode.mode || 'serial';
+        document.getElementById('saveMode').onclick = async () => {
+          try { log(await client.setMode(document.getElementById('modeSel').value)); }
+          catch (e) { log(e.message); }
+        };
+        document.getElementById('pauseAll').onclick = async () => {
+          try { log(await client.pauseAll()); } catch (e) { log(e.message); }
+        };
+        document.getElementById('resumeAll').onclick = async () => {
+          try { log(await client.resumeAll()); } catch (e) { log(e.message); }
+        };
+        log(catalog);
+        return;
+      }
+
+      const pack = state.view;
+      const visualExtra = pack === 'visual'
+        ? `<p class="warn">visual:apply is deferred until screenshot QA is green.</p>
+           <div id="visualLive"></div>`
+        : '';
+      view.innerHTML = `
+        <h2>Pack: ${pack}</h2>
+        <label>Model (recommended default)</label>
+        <select id="model"></select>
+        <div class="pack-actions actions" style="margin-top:12px">
+          <button class="primary" id="startDry">Start dry-run</button>
+          <button id="startLive">Start live</button>
+          <button id="pause">Pause</button>
+          <button id="resume">Resume</button>
+          <button id="report">Report</button>
+        </div>
+        ${visualExtra}`;
+      const sel = document.getElementById('model');
+      const allowed = catalog?.packs?.[pack]?.allowed || [packRecommended(pack)];
+      const rec = packRecommended(pack);
+      sel.innerHTML = allowed.map((m) =>
+        `<option value="${m}" ${m===rec?'selected':''}>${m}${m===rec?' (recommended)':''}</option>`
+      ).join('');
+      document.getElementById('startDry').onclick = async () => {
+        try { log(await client.startPack(pack, { dryRun: true, model: sel.value })); }
+        catch (e) { log(e.envelope || e.message); }
+      };
+      document.getElementById('startLive').onclick = async () => {
+        try { log(await client.startPack(pack, { dryRun: false, model: sel.value })); }
+        catch (e) { log(e.envelope || e.message); }
+      };
+      document.getElementById('pause').onclick = async () => {
+        try { log(await client.pausePack(pack)); } catch (e) { log(e.message); }
+      };
+      document.getElementById('resume').onclick = async () => {
+        try { log(await client.resumePack(pack)); } catch (e) { log(e.message); }
+      };
+      document.getElementById('report').onclick = async () => {
+        try { log(await client.getPackReport(pack)); } catch (e) { log(e.message); }
+      };
+
+      if (pack === 'visual') {
+        const box = document.getElementById('visualLive');
+        try {
+          const live = await client.getVisualLive();
+          if (live.reachable) {
+            box.innerHTML = `<p style="color:var(--muted)">Live polish preview (loopback :8766)</p>
+              <iframe class="embed-frame" title="Visual live polish" src="${live.liveUrl}"></iframe>`;
+          } else {
+            box.innerHTML = `<p class="warn">Live polish not running. Start with <code>${live.hint}</code>, then reopen this tab.</p>
+              <p><a href="${live.liveUrl}" target="_blank" rel="noopener">Open ${live.liveUrl}</a></p>`;
+          }
+          log(live);
+        } catch (e) {
+          box.innerHTML = `<p class="warn">Could not probe visual live: ${e.message}</p>`;
+        }
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
