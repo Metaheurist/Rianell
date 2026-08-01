@@ -12,6 +12,7 @@
     "./rule-based-mt": "./src/rule-based-mt.mjs",
     "./tier-a-exact-overrides": "./src/tier-a-exact-overrides.mjs",
     "./lc20-mixed-fixes": "./src/lc20-mixed-fixes.mjs",
-    "./pl-pl-exact-overrides": "./src/pl-pl-exact-overrides.mjs"
+    "./pl-pl-exact-overrides": "./src/pl-pl-exact-overrides.mjs",
+    "./agentic-api-client": "./src/agentic-api-client.mjs"
   }
 }

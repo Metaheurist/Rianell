@@ -6,3 +6,4 @@ export * from './rule-based-mt.mjs';
 export * from './tier-a-exact-overrides.mjs';
 export * from './lc20-mixed-fixes.mjs';
 export * from './pl-pl-exact-overrides.mjs';
+export * from './agentic-api-client.mjs';

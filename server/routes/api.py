@@ -125,6 +125,287 @@ class ApiRoutesMixin:
                 self.send_header('Content-Length', str(len(err_body)))
                 self.end_headers()
                 self.wfile.write(err_body)
+
+        def _agentic_forbidden(self, message='loopback only'):
+            from .. import agentic_console
+            body = json.dumps(agentic_console.envelope(
+                False, None, {'code': 403, 'message': message},
+            )).encode('utf-8')
+            self.send_response(403)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Cache-Control', 'no-store')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _agentic_json(self, status, payload):
+            body = json.dumps(payload).encode('utf-8')
+            self.send_response(status)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Cache-Control', 'no-store')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _agentic_guard(self, method='GET'):
+            client_ip = self.client_address[0] if self.client_address else ''
+            host = self.headers.get('Host', '')
+            if not http_security.client_may_access_agentic_apis(client_ip):
+                self._agentic_forbidden('agentic API is loopback-only')
+                return False
+            if not http_security.host_is_loopback(host):
+                self._agentic_forbidden('Host must be localhost')
+                return False
+            if method == 'POST':
+                origin = self.headers.get('Origin') or ''
+                referer = self.headers.get('Referer') or ''
+                if origin:
+                    allowed = http_security.cors_allow_origin_value(
+                        origin, getattr(config, 'PORT', 8080), host,
+                    )
+                    if allowed in (None, 'null'):
+                        self._agentic_forbidden('Origin must be same-origin loopback')
+                        return False
+                elif referer:
+                    if not (referer.startswith('http://127.0.0.1') or referer.startswith('http://localhost')):
+                        self._agentic_forbidden('Referer must be loopback')
+                        return False
+            if not http_security.agentic_api_limiter.allow(client_ip or 'unknown'):
+                from .. import agentic_console
+                self._agentic_json(429, agentic_console.envelope(
+                    False, None, {'code': 429, 'message': 'rate limited'},
+                ))
+                return False
+            return True
+
+        def handle_agentic_page(self):
+            """Serve AIO console at /dev/agentic."""
+            try:
+                from .. import agentic_console
+                body = agentic_console.console_html()
+                if not body:
+                    self.send_error(404, 'agentic console not found')
+                    return
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Cache-Control', 'no-store')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                logger.exception('Error serving agentic console')
+                self.send_error(500, str(e))
+
+        def handle_agentic_asset(self):
+            """Serve static assets under /dev/agentic/* (safe client, etc.)."""
+            try:
+                from .. import agentic_console
+                parsed = urlparse(self.path)
+                rel = parsed.path[len('/dev/agentic'):].lstrip('/')
+                asset = agentic_console.console_asset(rel)
+                if not asset:
+                    self.send_error(404, 'agentic asset not found')
+                    return
+                body, ctype = asset
+                self.send_response(200)
+                self.send_header('Content-Type', ctype)
+                self.send_header('Cache-Control', 'no-store')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except Exception as e:
+                logger.exception('Error serving agentic asset')
+                self.send_error(500, str(e))
+
+        def handle_agentic_api(self, method='GET'):
+            """Dispatch /api/agentic/* control plane."""
+            if not self._agentic_guard(method=method):
+                return
+            from .. import agentic_console
+            parsed = urlparse(self.path)
+            path = parsed.path.rstrip('/') or '/'
+            prefix = '/api/agentic'
+            rel = path[len(prefix):] if path.startswith(prefix) else path
+            rel = rel or '/'
+
+            try:
+                body_obj = None
+                if method == 'POST':
+                    length = int(self.headers.get('Content-Length') or 0)
+                    if length > 1_000_000:
+                        self._agentic_json(413, agentic_console.envelope(
+                            False, None, {'code': 413, 'message': 'body too large'},
+                        ))
+                        return
+                    raw = self.rfile.read(length) if length else b'{}'
+                    ctype = (self.headers.get('Content-Type') or '').split(';')[0].strip()
+                    if length and ctype != 'application/json':
+                        self._agentic_json(415, agentic_console.envelope(
+                            False, None, {'code': 415, 'message': 'application/json required'},
+                        ))
+                        return
+                    body_obj = json.loads(raw.decode('utf-8') or '{}')
+
+                if method == 'GET' and rel in ('/health', 'health'):
+                    self._agentic_json(200, agentic_console.envelope(True, {
+                        'service': 'agentic',
+                        'packs': list(agentic_console.PACK_IDS),
+                    }))
+                    return
+
+                if method == 'GET' and rel in ('/catalog', 'catalog'):
+                    self._agentic_json(200, agentic_console.envelope(True, agentic_console.load_catalog()))
+                    return
+
+                if method == 'GET' and rel in ('/gpus', 'gpus'):
+                    result = agentic_console.hw_profile()
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'GET' and rel in ('/status', 'status'):
+                    result = agentic_console.global_status()
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'GET' and rel in ('/mode', 'mode'):
+                    self._agentic_json(200, agentic_console.envelope(True, agentic_console.get_mode()))
+                    return
+
+                if method == 'POST' and rel in ('/mode', 'mode'):
+                    mode = (body_obj or {}).get('mode') or 'serial'
+                    result = agentic_console.set_mode(mode)
+                    self._agentic_json(200 if result['ok'] else 400, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/models/load', 'models/load'):
+                    model = (body_obj or {}).get('model') or ''
+                    result = agentic_console.ollama_model_action('load', model)
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/models/unload', 'models/unload'):
+                    model = (body_obj or {}).get('model') or ''
+                    result = agentic_console.ollama_model_action('unload', model)
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/pause-all', 'pause-all'):
+                    result = agentic_console._node([
+                        'scripts/dev/agentic-pipeline/cli-state.mjs', '--pause-all',
+                    ])
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/resume-all', 'resume-all'):
+                    result = agentic_console._node([
+                        'scripts/dev/agentic-pipeline/cli-state.mjs', '--resume-all',
+                    ])
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'GET' and rel in ('/run-all', 'run-all'):
+                    result = agentic_console._node(['scripts/ci/agentic-run-all.mjs', '--status'])
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/run-all', 'run-all'):
+                    dry = bool((body_obj or {}).get('dryRun'))
+                    skip = (body_obj or {}).get('skip') or []
+                    result = agentic_console.run_all(dry_run=dry, skip=skip)
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/run-all/pause', 'run-all/pause'):
+                    result = agentic_console._node(['scripts/ci/agentic-run-all.mjs', '--pause'])
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/run-all/resume', 'run-all/resume'):
+                    result = agentic_console._node(['scripts/ci/agentic-run-all.mjs', '--resume'])
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'POST' and rel in ('/run-all/cancel', 'run-all/cancel'):
+                    result = agentic_console._node(['scripts/ci/agentic-run-all.mjs', '--cancel'])
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                parts = [p for p in rel.split('/') if p]
+                if len(parts) >= 1 and parts[0] in agentic_console.PACK_IDS:
+                    pack = parts[0]
+                    action = parts[1] if len(parts) > 1 else 'status'
+                    if method == 'GET' and pack == 'visual' and action == 'live':
+                        self._agentic_json(200, agentic_console.envelope(
+                            True, agentic_console.visual_live_status(), None, 'visual',
+                        ))
+                        return
+                    if method == 'GET' and action == 'status':
+                        result = agentic_console.pack_status(pack)
+                        self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'GET' and action == 'report':
+                        rp = Path(agentic_console.REPO_ROOT) / 'artifacts' / 'agentic' / pack / 'report.json'
+                        data = json.loads(rp.read_text(encoding='utf-8')) if rp.is_file() else None
+                        self._agentic_json(200, agentic_console.envelope(True, data, None, pack))
+                        return
+                    if method == 'POST' and action == 'start':
+                        dry = bool((body_obj or {}).get('dryRun') or (body_obj or {}).get('mode') == 'dry-run')
+                        result = agentic_console.run_pack(pack, dry_run=dry)
+                        self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'POST' and action in ('pause', 'resume'):
+                        flag = '--pause' if action == 'pause' else '--resume'
+                        result = agentic_console._node([
+                            'scripts/dev/agentic-pipeline/cli-state.mjs', flag, f'--pack={pack}',
+                        ])
+                        self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'POST' and action == 'model':
+                        self._agentic_json(200, agentic_console.envelope(True, {
+                            'pack': pack,
+                            'model': (body_obj or {}).get('model'),
+                            'note': 'selector preference recorded client-side; catalog recommended remains default',
+                        }, None, pack))
+                        return
+
+                self._agentic_json(404, agentic_console.envelope(
+                    False, None, {'code': 404, 'message': f'unknown route {rel}'},
+                ))
+            except Exception as e:
+                logger.exception('agentic API error')
+                self._agentic_json(500, agentic_console.envelope(
+                    False, None, {'code': 500, 'message': str(e)[:300]},
+                ))
     
         def handle_supabase_status(self):
             """Handle Supabase status check endpoint"""
