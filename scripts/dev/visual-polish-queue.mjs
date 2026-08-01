@@ -374,9 +374,11 @@ function validatePolish(entry, raw) {
     if (kf) text = kf.css;
     const seam = analyzeSeamlessLoop(text, entry);
     if (seam.length) {
-      return { ok: false, reason: `non-seamless loop: ${seam[0]}` };
+      // Phase 5: textual seam is a warning — render-frame QA owns the hard verdict.
+      // Hard-failing here burned motion units that look correct when looped.
+      console.warn(`[visual-polish] seam warning ${entry.id}: ${seam[0]}`);
     }
-    return { ok: true, text };
+    return { ok: true, text, seamWarnings: seam };
   }
   if (!/<(?:svg|symbol|g|path|circle|rect|ellipse|polygon|line|polyline)\b/i.test(text)) {
     return { ok: false, reason: 'no svg shapes' };
