@@ -13,12 +13,44 @@
  * Usage:
  *   node scripts/dev/ensure-ollama.mjs                 # uses default model
  *   node scripts/dev/ensure-ollama.mjs qwen3.6:35b
+ *   node scripts/dev/ensure-ollama.mjs --model=qwen2.5-coder:32b
+ *   node scripts/dev/ensure-ollama.mjs --pack=security
  */
 import { spawn, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
-const MODEL = process.argv[2] || process.env.OLLAMA_MODEL || 'qwen3.6:35b';
 const SERVE_TIMEOUT_MS = Number(process.env.OLLAMA_SERVE_TIMEOUT_MS || 30_000);
+
+function resolveModelArg() {
+  const args = process.argv.slice(2);
+  let model = process.env.OLLAMA_MODEL || '';
+  let pack = '';
+  for (const a of args) {
+    if (a.startsWith('--model=')) model = a.slice('--model='.length);
+    else if (a.startsWith('--pack=')) pack = a.slice('--pack='.length);
+    else if (!a.startsWith('--') && !model) model = a;
+  }
+  if (pack) {
+    try {
+      const catalogPath = path.join(
+        path.dirname(fileURLToPath(import.meta.url)),
+        'agentic-pipeline',
+        'model-catalog.json',
+      );
+      const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+      const entry = catalog.packs?.[pack];
+      if (entry?.recommended) model = entry.recommended;
+    } catch {
+      /* fall through */
+    }
+  }
+  return model || 'qwen2.5-coder:32b';
+}
+
+const MODEL = resolveModelArg();
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
