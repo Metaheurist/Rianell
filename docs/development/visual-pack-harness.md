@@ -2,6 +2,8 @@
 
 Two-model pipeline to regenerate every discrete SVG/animation in the PWA **without shipping product UI until QA is green**.
 
+Operators can also drive Visual as the last step of the **Agentic AIO** harness (`/dev/agentic`, `npm run agentic:run-all`) — see [agentic-pipeline-harness.md](agentic-pipeline-harness.md). Dedicated `visual:*` commands below remain the source of truth for gen/polish/QA.
+
 ## Models (never co-load)
 
 | Stage | Model | npm |
