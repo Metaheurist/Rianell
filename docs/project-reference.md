@@ -6,6 +6,11 @@
 
 **Current product:** npm **v2.6.0** · PWA-only (`apps/pwa-webapp`) · optional Python/Tkinter `server/` · living roadmap [`next-phase-development-plan.md`](next-phase-development-plan.md). Feature rollout plans 01–26 are a closed archive ([`plans/MASTER.md`](plans/MASTER.md)).
 
+### Unreleased documentation sync (agentic AIO harness)
+
+- **Tooling:** Local Agentic AIO at `/dev/agentic` + loopback `/api/agentic/*` for 16 packs; `@rianell/build-tools/agentic-api-client`; `npm run agentic:run-all`. Operator guide: [`development/agentic-pipeline-harness.md`](development/agentic-pipeline-harness.md).
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[Unreleased]`.
+
 ### v2.6.0 documentation sync (visual pack harness)
 
 - **Tooling:** Full Visual Pack harness (register / Qwen gen / Gemma polish / live A/B/C preview / QA) + Tk dashboard Visual gallery. Product icon **apply deferred**. Operator guide: [`development/visual-pack-harness.md`](development/visual-pack-harness.md).

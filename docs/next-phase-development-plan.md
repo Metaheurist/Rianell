@@ -45,7 +45,8 @@ The `OLLAMA_TIER_C_OVERRIDES` scaffold (`scripts/lib/ollama-tier-c-overrides.mjs
 
 ### 7. Developer experience
 
-- Keep [`codebase_interaction_map.md`](codebase_interaction_map.md) fresh via the LocalRepoMapper MCP as modules move; use it for onboarding and refactor planning.
+- Keep [`architecture/codebase-interaction-map.md`](architecture/codebase-interaction-map.md) fresh via the LocalRepoMapper MCP as modules move; use it for onboarding and refactor planning.
+- **Agentic AIO harness** (shipped in tooling): [`development/agentic-pipeline-harness.md`](development/agentic-pipeline-harness.md) — extend pack queues / live LLM depth as needed; product apply remains deferred.
 
 ## Shared packages (current)
 
