@@ -48,7 +48,20 @@ const polishedRoot = path.join(artRoot, 'polished');
 const qaBrokenPath = path.join(artRoot, 'qa', 'broken.json');
 
 const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
-const MODEL = process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL || 'gemma4:31b-it-qat';
+const MODEL_PREF_PATH = path.join(artRoot, 'polish-model-preference.json');
+function resolvePolishModel() {
+  if (process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL) {
+    return process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL;
+  }
+  try {
+    const pref = JSON.parse(fs.readFileSync(MODEL_PREF_PATH, 'utf8'));
+    if (pref?.polishModel) return pref.polishModel;
+  } catch {
+    /* ignore */
+  }
+  return 'gemma4:31b-it-qat';
+}
+const MODEL = resolvePolishModel();
 const CONCURRENCY = Math.max(1, Number(process.env.VISUAL_POLISH_CONCURRENCY || 1));
 const NUM_CTX = Number(process.env.VISUAL_POLISH_NUM_CTX || 32768);
 const CONTRACT_MAX = Number(process.env.VISUAL_POLISH_CONTRACT_MAX_CHARS || 8_000);

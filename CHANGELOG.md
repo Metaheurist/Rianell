@@ -9,6 +9,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ## [Unreleased]
 
 ### Added
+- **Agentic Activity + approval cockpit:** Now / Thinking / Done / Planned UI (replaces JSON-primary Technical details), `proposal.json`, approve/reject APIs, streamed LLM Thinking, opt-in git commit on approve, run-all `autoApprove` modes, gated npm bumps, TranslateGemma i18n propose-dir fill (`verify:i18n:check` + `--propose-dir`), visual QA unlock endpoint, Clear all + unload. Docs: `agentic-ui.md` / `agentic-api.md` / pack catalog.
+- **Agentic pack-context gatherer:** `scripts/dev/agentic-pipeline/pack-context.mjs` builds sanitized `## Repo context` (registers, docs, focus inventories, gate excerpts, git digests) for LLM Thinking / Planned actions; artifacts `llm-context.md` + `.meta.json`.
 - **Agentic AIO harness:** loopback `/dev/agentic` + `/api/agentic/*` for 16 packs (design→visual), `@rianell/build-tools/agentic-api-client`, `npm run agentic:*` / `agentic:run-all`, model catalog + VRAM scheduler, sanitize-agent-context, artifacts under `artifacts/agentic/` (gitignored). Docs: `docs/development/agentic-*.md`.
 - **Icon design system pack** under `docs/style-and-design/` (grid, stroke/fill, size ladder, optical alignment, motion catalogue, theme variants, taxonomy, `subject-contracts.json`).
 - **Durable pipeline pause/resume:** `npm run visual:pause` / `visual:resume` / `visual:state` (`scripts/dev/visual-pipeline-state.mjs`) — banks remaining ids + Pass N; resume uses `--ids-file=` (never re-runs destructive `--repolish-from-qa`; avoids Windows CLI length limits).
@@ -17,6 +19,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
 ### Changed
+- **Agentic pack tabs:** pipeline preview card (header + controls, Gates→LLM→Proposal→Approve rail, cockpit Activity); Planned approve row hidden on visual; Debug drawer always collapsed by default; constrained toolbar icons; model picker in live polish Review HUD; in-app confirm dialog (no `window.confirm`).
+- **Agentic Thinking / Planned actions** are codebase-aware via `pack-context.mjs`; Activity shows a repo-context chip.
+- **Agentic safe client:** `localhost` / `127.*` / `::1` all classify as safe (client + `/health.safeClient`); HUD chip shows confirmed safe on loopback.
+- **Agentic rate limits:** skipped for loopback peers (`should_rate_limit_client`); remote clients still limited.
+- **Tk dashboard:** log filter handler no longer crashes when logs fire before Tk mainloop (server+dashboard startup).
 - **ICON_CONTRACT** replaces keyword-scraped `PROJECT_STYLING_CONTRACT` (allowlisted specs, ~8k budget).
 - **Polish passes:** `construct → critique → apply → verify` (legacy aliases kept).
 - **Team fancy variants** skipped by default in the polish queue (derived, not LLM-authored).
@@ -26,6 +33,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - Live polish HUD restores accessible **UI Q&A stage** label.
 
 ### Tests
+- `tests/unit/agentic-proposal.test.mjs`, `agentic-mode-prefs.test.mjs`, `agentic-pack-context.test.mjs`; expanded `agentic-api-client` loopback / `safeClient` coverage.
 - `tests/unit/pwa/visual-pipeline-state.test.mjs`; updated polish queue / seamless-loop / QA status assertions for ICON_CONTRACT and soft seam policy.
 - `tests/unit/verify-icon-spec.test.mjs` — `verify:icon-spec` + design pack presence + `audit:icon-a --limit=3` smoke.
 - Screenshot QA: subject-contracts match/labels + non-text contrast.

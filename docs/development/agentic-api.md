@@ -1,7 +1,8 @@
 # Agentic local API
 
 Base: `http://127.0.0.1:{PORT}/api/agentic`  
-Authz: client IP loopback + `Host` localhost/127.0.0.1 — **never** enabled via `SENSITIVE_APIS_ON_LAN`.
+Authz: client IP loopback + `Host` localhost / `127.*` / `::1` — **never** enabled via `SENSITIVE_APIS_ON_LAN`.  
+Rate limits: **skipped for loopback peers**; remote clients still throttled.
 
 ## Envelope
 
@@ -13,26 +14,40 @@ Authz: client IP loopback + `Host` localhost/127.0.0.1 — **never** enabled via
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/health` | Liveness |
+| GET | `/health` | Liveness + `safeClient` / `loopbackHost` / `loopbackPeer` |
 | GET | `/catalog` | Model catalog |
 | GET | `/gpus` | Hardware profile |
 | GET | `/status` | All pack state |
-| GET | `/mode` | `serial` \| `parallel` \| `dry-run` |
-| POST | `/mode` | `{ mode }` — parallel still VRAM-guarded; run-all always serial |
+| GET | `/mode` | Prefs: `mode`, `autoApprove`, `autoApproveMode`, `confirmProductWrite`, `allowDependencyBump`, `gitCommitOnApprove`, `i18nFillScope` |
+| POST | `/mode` | Prefs patch (or legacy `{ mode }`) |
 | POST | `/models/load` | `{ model }` Ollama warm |
 | POST | `/models/unload` | `{ model }` keep_alive 0 |
 | POST | `/pause-all` / `/resume-all` | All pack checkpoints |
-| POST | `/run-all` | `{ dryRun?, skip?, stopOnBroken? }` |
+| POST | `/clear-all` | Reset pack/run-all runtime state + unload all Ollama models in VRAM (keeps approval-log + `approved/`) |
+| POST | `/run-all` | `{ dryRun?, skip?, background?, autoApprove?, autoApproveMode?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` |
 | GET | `/run-all` | Run-all status |
-| POST | `/run-all/pause` \| `/resume` \| `/cancel` | Control running sequencer |
-| GET | `/visual/live` | Live polish `:8766` reachability + embed URL |
+| GET | `/run-all/activity` | Current pack activity + approval queue |
+| POST | `/run-all/pause` \| `/resume` \| `/cancel` | Control sequencer |
+| GET | `/visual/live` | Live polish `:8766` reachability |
+| GET | `/visual/qa` | Screenshot QA `brokenCount` / `applyAllowed` |
 | GET | `/:pack/status` | Pack checkpoint |
 | GET | `/:pack/report` | Latest report JSON |
+| GET | `/:pack/activity` | Now / Thinking / Done / Planned aggregate |
+| GET | `/:pack/proposal` | `proposal.json` |
+| GET | `/:pack/stream` | LLM partial or i18n fill progress |
+| POST | `/:pack/proposal/select` | `{ itemIds, selected }` |
+| POST | `/:pack/approve` | `{ itemIds?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` |
+| POST | `/:pack/reject` | Archive proposal |
 | POST | `/:pack/start` | `{ dryRun?, model? }` |
-| POST | `/:pack/pause` | Pause |
-| POST | `/:pack/resume` | Resume |
-| POST | `/:pack/model` | Record preferred model (catalog recommended remains default) |
+| POST | `/:pack/pause` \| `/resume` | Pause / resume |
+| POST | `/:pack/model` | Record preferred model |
+
+## Approval rules
+
+- Packs end in `pending_approval` with `artifacts/agentic/<pack>/proposal.json` (async queue; run-all continues).
+- Product adapters (changelog, wiki:sync, i18n fill+merge, visual:apply, deps bump) require `confirmProductWrite` (and bump/QA unlocks as documented).
+- `autoApprove: ack` never product-writes; `product-write` requires confirm.
+- Git commit on approve is opt-in, local only, never pushes.
+- Audit: `artifacts/agentic/approval-log.jsonl`.
 
 Pack ids: `design|planning|i18n|rtl|a11y|seo|privacy|security|deps|migration|changelog|wikisync|image|bootllm|perf|visual`.
-
-Authz: loopback IP + Host allowlist; browser POST requires same-origin Origin/Referer. Never enable via `SENSITIVE_APIS_ON_LAN`.

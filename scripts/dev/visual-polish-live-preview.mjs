@@ -54,6 +54,45 @@ const registerPath = path.join(root, 'apps/pwa-webapp/assets/visual-register.jso
 const OLLAMA_HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
 const POLISH_MODEL_ENV = process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL || null;
 const POLISH_NUM_CTX = Number(process.env.VISUAL_POLISH_NUM_CTX || 32768);
+const MODEL_PREF_PATH = path.join(artRoot, 'polish-model-preference.json');
+const CATALOG_PATH = path.join(root, 'scripts/dev/agentic-pipeline/model-catalog.json');
+const DEFAULT_POLISH_ALLOWED = ['gemma4:31b-it-qat'];
+const DEFAULT_POLISH_RECOMMENDED = 'gemma4:31b-it-qat';
+
+function loadPolishModelCatalog() {
+  try {
+    const cat = JSON.parse(fs.readFileSync(CATALOG_PATH, 'utf8'));
+    const polish = cat?.packs?.visual?.stages?.polish || {};
+    const allowed = Array.isArray(polish.allowed) && polish.allowed.length
+      ? polish.allowed
+      : (cat?.packs?.visual?.allowed || DEFAULT_POLISH_ALLOWED);
+    return {
+      recommended: polish.recommended || cat?.packs?.visual?.recommended || DEFAULT_POLISH_RECOMMENDED,
+      allowed: [...new Set(allowed)],
+    };
+  } catch {
+    return { recommended: DEFAULT_POLISH_RECOMMENDED, allowed: DEFAULT_POLISH_ALLOWED };
+  }
+}
+
+function readModelPreference() {
+  try {
+    if (!fs.existsSync(MODEL_PREF_PATH)) return null;
+    const j = JSON.parse(fs.readFileSync(MODEL_PREF_PATH, 'utf8'));
+    return j?.polishModel || null;
+  } catch {
+    return null;
+  }
+}
+
+function writeModelPreference(polishModel) {
+  fs.mkdirSync(artRoot, { recursive: true });
+  fs.writeFileSync(
+    MODEL_PREF_PATH,
+    JSON.stringify({ polishModel, updatedAt: new Date().toISOString() }, null, 2) + '\n',
+    'utf8',
+  );
+}
 
 const args = process.argv.slice(2);
 const portArg = args.find((a) => a.startsWith('--port='));
@@ -139,7 +178,13 @@ function describeModelTag(name) {
 }
 
 async function buildModelInfo(polishCp, genCp) {
-  const polishModel = polishCp.model || POLISH_MODEL_ENV || 'gemma4:31b-it-qat';
+  const catalog = loadPolishModelCatalog();
+  const preferred = readModelPreference();
+  const polishModel = POLISH_MODEL_ENV
+    || preferred
+    || polishCp.model
+    || catalog.recommended
+    || DEFAULT_POLISH_RECOMMENDED;
   const genModel = genCp.model || null;
   const ollama = await probeOllama(polishModel);
   const active = ollama.activeForPolish;
@@ -148,6 +193,10 @@ async function buildModelInfo(polishCp, genCp) {
     polishModel,
     polishModelHints: describeModelTag(polishModel),
     polishEnvOverride: POLISH_MODEL_ENV || null,
+    polishPreferred: preferred,
+    polishAllowed: catalog.allowed,
+    polishRecommended: catalog.recommended,
+    polishSelectable: !POLISH_MODEL_ENV,
     polishNumCtx: POLISH_NUM_CTX,
     polishPipeline: polishCp.pipeline || 'subject-lock→polish→comparative→final-drift',
     polishUpdatedAt: polishCp.updatedAt || null,
@@ -375,6 +424,45 @@ function parseGalleryOpts(url) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
+  if (url.pathname === '/api/model' && req.method === 'POST') {
+    try {
+      const chunks = [];
+      for await (const c of req) chunks.push(c);
+      const body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+      const catalog = loadPolishModelCatalog();
+      const polishModel = String(body.polishModel || '').trim();
+      if (!polishModel || !catalog.allowed.includes(polishModel)) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          ok: false,
+          error: 'model not allowed',
+          allowed: catalog.allowed,
+          recommended: catalog.recommended,
+        }));
+        return;
+      }
+      if (POLISH_MODEL_ENV) {
+        res.writeHead(409, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({
+          ok: false,
+          error: 'VISUAL_POLISH_MODEL env overrides UI selection',
+          polishEnvOverride: POLISH_MODEL_ENV,
+        }));
+        return;
+      }
+      writeModelPreference(polishModel);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({
+        ok: true,
+        polishModel,
+        note: 'Preference saved. Restart visual:polish queue to use the new model.',
+      }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
+    }
+    return;
+  }
   if (url.pathname === '/api/gallery') {
     try {
       const body = JSON.stringify(await buildGallery(parseGalleryOpts(url)));

@@ -33,6 +33,18 @@ npm run brain:ensure -- --pack=security
 - Run-all is always serial with unload between packs; ad-hoc `parallel` mode is VRAM-guarded separately.
 - UI uses only `@rianell/build-tools/agentic-api-client` (served at `/dev/agentic/lib/`).
 
+## Codebase-aware Thinking / Planned actions
+
+Pack LLM prompts are assembled by [`scripts/dev/agentic-pipeline/pack-context.mjs`](../../scripts/dev/agentic-pipeline/pack-context.mjs):
+
+- Per-pack **manifest** (registers, docs, focus paths, git path filters, hard constraints)
+- **Gate stdout/stderr** excerpts (failures prioritized)
+- **Recent git** digests for pack-relevant paths
+- Short **architecture anchors** (`docs/architecture-standard.md`, `AGENTS.md`)
+- Sanitized via `sanitize-agent-context` before Ollama
+
+Artifacts per pack: `artifacts/agentic/<pack>/llm-context.md` + `llm-context.meta.json`. The Activity cockpit shows a **repo context** chip (file count) above Thinking. System instructions require citing paths from `## Repo context` instead of generic advice.
+
 ## Scheduler / concurrency
 
 - Profile probe: `npm run agentic:hw-profile` (`dual_12_16` on 12+16 GB boxes).

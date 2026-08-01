@@ -170,7 +170,8 @@ class ApiRoutesMixin:
                     if not (referer.startswith('http://127.0.0.1') or referer.startswith('http://localhost')):
                         self._agentic_forbidden('Referer must be loopback')
                         return False
-            if not http_security.agentic_api_limiter.allow(client_ip or 'unknown'):
+            # No rate limit on localhost; only remote clients are throttled.
+            if http_security.should_rate_limit_client(client_ip) and not http_security.agentic_api_limiter.allow(client_ip or 'unknown'):
                 from .. import agentic_console
                 self._agentic_json(429, agentic_console.envelope(
                     False, None, {'code': 429, 'message': 'rate limited'},
@@ -247,9 +248,18 @@ class ApiRoutesMixin:
                     body_obj = json.loads(raw.decode('utf-8') or '{}')
 
                 if method == 'GET' and rel in ('/health', 'health'):
+                    client_ip = self.client_address[0] if self.client_address else ''
+                    host = self.headers.get('Host', '')
                     self._agentic_json(200, agentic_console.envelope(True, {
                         'service': 'agentic',
                         'packs': list(agentic_console.PACK_IDS),
+                        # localhost / 127.* / ::1 page + peer → safe client
+                        'safeClient': bool(
+                            http_security.client_may_access_agentic_apis(client_ip)
+                            and http_security.host_is_loopback(host)
+                        ),
+                        'loopbackHost': http_security.host_is_loopback(host),
+                        'loopbackPeer': http_security.is_loopback_ip(client_ip),
                     }))
                     return
 
@@ -276,8 +286,15 @@ class ApiRoutesMixin:
                     return
 
                 if method == 'POST' and rel in ('/mode', 'mode'):
-                    mode = (body_obj or {}).get('mode') or 'serial'
-                    result = agentic_console.set_mode(mode)
+                    body = body_obj or {}
+                    patch = body if any(k != 'mode' for k in body.keys()) or 'autoApprove' in body else {
+                        'mode': body.get('mode') or 'serial',
+                    }
+                    if 'mode' in body and len(body) == 1:
+                        patch = body.get('mode') or 'serial'
+                    elif isinstance(body, dict) and body:
+                        patch = body
+                    result = agentic_console.set_mode(patch)
                     self._agentic_json(200 if result['ok'] else 400, agentic_console.envelope(
                         result['ok'], result.get('data'), result.get('error'),
                     ))
@@ -317,6 +334,13 @@ class ApiRoutesMixin:
                     ))
                     return
 
+                if method == 'POST' and rel in ('/clear-all', 'clear-all'):
+                    result = agentic_console.clear_all_and_unload()
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
                 if method == 'GET' and rel in ('/run-all', 'run-all'):
                     result = agentic_console._node(['scripts/ci/agentic-run-all.mjs', '--status'])
                     self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
@@ -324,10 +348,37 @@ class ApiRoutesMixin:
                     ))
                     return
 
+                if method == 'GET' and rel in ('/run-all/activity', 'run-all/activity'):
+                    result = agentic_console.approval_action('run-all-activity')
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'),
+                    ))
+                    return
+
+                if method == 'GET' and rel in ('/visual/qa', 'visual/qa'):
+                    result = agentic_console.visual_qa()
+                    self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                        result['ok'], result.get('data'), result.get('error'), 'visual',
+                    ))
+                    return
+
                 if method == 'POST' and rel in ('/run-all', 'run-all'):
                     dry = bool((body_obj or {}).get('dryRun'))
                     skip = (body_obj or {}).get('skip') or []
-                    result = agentic_console.run_all(dry_run=dry, skip=skip)
+                    body = body_obj or {}
+                    background = body.get('background')
+                    if background is None:
+                        background = not dry
+                    result = agentic_console.run_all(
+                        dry_run=dry,
+                        skip=skip,
+                        background=bool(background),
+                        auto_approve=bool(body.get('autoApprove')),
+                        auto_approve_mode=body.get('autoApproveMode') or 'ack',
+                        confirm_product_write=bool(body.get('confirmProductWrite')),
+                        allow_dependency_bump=bool(body.get('allowDependencyBump')),
+                        git_commit_on_approve=bool(body.get('gitCommitOnApprove')),
+                    )
                     self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
                         result['ok'], result.get('data'), result.get('error'),
                     ))
@@ -363,6 +414,12 @@ class ApiRoutesMixin:
                             True, agentic_console.visual_live_status(), None, 'visual',
                         ))
                         return
+                    if method == 'GET' and pack == 'visual' and action == 'qa':
+                        result = agentic_console.visual_qa()
+                        self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
                     if method == 'GET' and action == 'status':
                         result = agentic_console.pack_status(pack)
                         self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
@@ -373,6 +430,42 @@ class ApiRoutesMixin:
                         rp = Path(agentic_console.REPO_ROOT) / 'artifacts' / 'agentic' / pack / 'report.json'
                         data = json.loads(rp.read_text(encoding='utf-8')) if rp.is_file() else None
                         self._agentic_json(200, agentic_console.envelope(True, data, None, pack))
+                        return
+                    if method == 'GET' and action == 'activity':
+                        result = agentic_console.approval_action('activity', pack)
+                        self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'GET' and action == 'proposal':
+                        result = agentic_console.approval_action('proposal', pack)
+                        self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'GET' and action == 'stream':
+                        result = agentic_console.approval_action('stream', pack)
+                        self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'POST' and action == 'approve':
+                        result = agentic_console.approval_action('approve', pack, body_obj or {})
+                        self._agentic_json(200 if result['ok'] else 409, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'POST' and action == 'reject':
+                        result = agentic_console.approval_action('reject', pack, body_obj or {})
+                        self._agentic_json(200 if result['ok'] else 400, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
+                        return
+                    if method == 'POST' and action == 'proposal' and len(parts) >= 3 and parts[2] == 'select':
+                        result = agentic_console.approval_action('select', pack, body_obj or {})
+                        self._agentic_json(200 if result['ok'] else 400, agentic_console.envelope(
+                            result['ok'], result.get('data'), result.get('error'), pack,
+                        ))
                         return
                     if method == 'POST' and action == 'start':
                         dry = bool((body_obj or {}).get('dryRun') or (body_obj or {}).get('mode') == 'dry-run')
@@ -448,7 +541,7 @@ class ApiRoutesMixin:
             """Handle encryption key endpoint for client-server synchronization"""
             try:
                 client_ip = self.client_address[0]
-                if not http_security.sensitive_api_limiter.allow(client_ip):
+                if http_security.should_rate_limit_client(client_ip) and not http_security.sensitive_api_limiter.allow(client_ip):
                     self.send_response(429)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -574,7 +667,7 @@ class ApiRoutesMixin:
                     return
             
                 if content_length > 0:
-                    if not http_security.client_log_limiter.allow(client_ip):
+                    if http_security.should_rate_limit_client(client_ip) and not http_security.client_log_limiter.allow(client_ip):
                         self.send_response(429)
                         self.send_header('Content-Type', 'application/json')
                         self.end_headers()
@@ -756,7 +849,7 @@ class ApiRoutesMixin:
                     self.wfile.write(json.dumps({'error': 'Payload too large'}).encode('utf-8'))
                     return
 
-                if not http_security.client_error_limiter.allow(client_ip):
+                if http_security.should_rate_limit_client(client_ip) and not http_security.client_error_limiter.allow(client_ip):
                     self.send_response(429)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -863,7 +956,7 @@ class ApiRoutesMixin:
                     self.wfile.write(json.dumps({'error': 'Payload too large'}).encode('utf-8'))
                     return
 
-                if not http_security.bug_report_limiter.allow(client_ip):
+                if http_security.should_rate_limit_client(client_ip) and not http_security.bug_report_limiter.allow(client_ip):
                     self.send_response(429)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
@@ -928,7 +1021,7 @@ class ApiRoutesMixin:
             """Handle fetching decrypted anonymized training data"""
             try:
                 client_ip = self.client_address[0]
-                if not http_security.sensitive_api_limiter.allow(client_ip):
+                if http_security.should_rate_limit_client(client_ip) and not http_security.sensitive_api_limiter.allow(client_ip):
                     self.send_response(429)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()

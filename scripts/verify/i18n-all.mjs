@@ -1,18 +1,24 @@
 #!/usr/bin/env node
-/** Orchestrates verify:i18n steps (Phase 11). */
+/** Orchestrates verify:i18n steps (Phase 11).
+ *  --check-only: skip generators/sync that mutate packages/shared + packs (agentic gate).
+ */
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const CHECK_ONLY = process.argv.includes('--check-only') || process.env.AGENTIC_I18N_CHECK === '1';
 
-const steps = [
+const mutateSteps = [
   ['scripts/i18n/build-content-catalog-keys.mjs', []],
   ['scripts/i18n/generate-locale-overrides.mjs', []],
   ['scripts/i18n/auto-translate-ui-strings.mjs', []],
   ['scripts/i18n/auto-translate-policy-strings.mjs', []],
   ['scripts/i18n/translate-motd-packs.mjs', []],
   ['scripts/i18n/sync-i18n-assets.mjs', []],
+];
+
+const checkSteps = [
   ['scripts/verify/verify-locale-packs.mjs', []],
   ['scripts/verify/verify-prompt-packs.mjs', []],
   ['scripts/verify/verify-motd-packs.mjs', []],
@@ -25,6 +31,11 @@ const steps = [
   ['scripts/verify/verify-translation-coverage.mjs', ['--strict', '--max-pct=13']],
   ['scripts/verify/verify-mixed-language-strings.mjs', []],
 ];
+
+const steps = CHECK_ONLY ? checkSteps : [...mutateSteps, ...checkSteps];
+if (CHECK_ONLY) {
+  console.log('verify:i18n --check-only (no sync / generator writes)');
+}
 
 for (const [rel, args] of steps) {
   const script = path.join(root, rel);

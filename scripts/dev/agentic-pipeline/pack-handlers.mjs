@@ -1,11 +1,16 @@
 import { runPack, npmGate, nodeGate } from './pack-runner.mjs';
+import { runI18nFillPropose } from './i18n-fill.mjs';
+import { ADVISORY_SYSTEM } from './pack-context.mjs';
 
-const ADVISORY = 'You are Rianell local agentic reviewer. Output concise markdown findings only. No secrets. No health scores.';
-
-function llm(topic) {
+function llm(topic, extra = {}) {
   return {
-    llmSystem: ADVISORY,
-    llmPrompt: `Review Rianell pack topic: ${topic}. List top risks/gaps and concrete file-level next steps.`,
+    llmSystem: ADVISORY_SYSTEM,
+    llmTopic: topic,
+    // Short handler note merged into Repo context by pack-runner (not a standalone generic prompt).
+    llmPrompt: `Focus: ${topic}`,
+    enrichContext: true,
+    defaultKind: extra.defaultKind || 'ack_only',
+    defaultAdapter: extra.defaultAdapter || 'ack',
   };
 }
 
@@ -13,34 +18,47 @@ export const PACK_HANDLERS = {
   design: (o) => runPack('design', {
     ...o,
     gates: [npmGate('verify:icon-spec'), npmGate('verify:design-tokens')],
-    ...llm('design-tokens and icon contract'),
+    ...llm('design-tokens, ICON_CONTRACT, and icon-spec alignment'),
   }),
   planning: (o) => runPack('planning', {
     ...o,
     gates: [],
     skipLlm: o.dryRun,
-    ...llm('feature planning docs and unit-test proposals (advisory artifacts only)'),
+    ...llm('feature planning docs and unit-test proposals (advisory artifacts only)', {
+      defaultAdapter: 'write-approved-artifact',
+      defaultKind: 'doc_patch',
+    }),
   }),
   i18n: (o) => runPack('i18n', {
     ...o,
-    gates: [npmGate('verify:i18n')],
-    skipLlm: true, // TranslateGemma via dedicated i18n:ollama when not dry-run — gates first
-    ...(o.dryRun ? {} : { skipLlm: true }),
+    stage: 'check',
+    gates: [npmGate('verify:i18n:check')],
+    skipLlm: true,
+    afterGates: async ({ dryRun, model, gateResults }) => {
+      return runI18nFillPropose({ dryRun, model, gateResults });
+    },
   }),
   rtl: (o) => runPack('rtl', {
     ...o,
     gates: [],
-    ...llm('RTL layout risks for ar/he locales in PWA'),
+    ...llm('RTL layout risks for ar/he locales in PWA CSS and shell', {
+      defaultAdapter: 'write-approved-artifact',
+    }),
   }),
   a11y: (o) => runPack('a11y', {
     ...o,
     gates: [npmGate('verify:a11y-tokens'), npmGate('verify:a11y')],
-    ...llm('accessibility failures and fixes'),
+    ...llm('accessibility gate failures → concrete PWA/token fixes', {
+      defaultAdapter: 'write-approved-artifact',
+      defaultKind: 'code_hint',
+    }),
   }),
   seo: (o) => runPack('seo', {
     ...o,
     gates: [npmGate('seo:sitemap:check'), npmGate('seo:content:check'), npmGate('seo:pages:check')],
-    ...llm('SEO structured data gaps FAQ MedicalWebPage'),
+    ...llm('SEO structured data / sitemap / content check gaps', {
+      defaultAdapter: 'write-approved-artifact',
+    }),
   }),
   privacy: (o) => runPack('privacy', {
     ...o,
@@ -48,7 +66,7 @@ export const PACK_HANDLERS = {
       npmGate('verify:privacy-docs'),
       nodeGate('scripts/verify/verify-ropa-drift.mjs'),
     ],
-    ...llm('privacy ROPA consent gaps — never include health data'),
+    ...llm('privacy ROPA / consent doc drift — never include health data'),
   }),
   security: (o) => runPack('security', {
     ...o,
@@ -59,22 +77,27 @@ export const PACK_HANDLERS = {
       npmGate('verify:unsafe-sinks'),
       npmGate('verify:cspro'),
     ],
-    ...llm('security review and STRIDE threat-model deltas vs docs/threat-model.md'),
+    ...llm('security review and STRIDE threat-model deltas vs docs/threat-model.md — do not propose CSP file edits'),
   }),
   deps: (o) => runPack('deps', {
     ...o,
     gates: [npmGate('audit:deps')],
-    ...llm('dependency advisory triage — do not bump packages'),
+    ...llm('dependency advisory triage — list bump candidates; do not instruct silent install'),
+    defaultKind: 'deps_note',
+    defaultAdapter: 'ack',
   }),
   migration: (o) => runPack('migration', {
     ...o,
     gates: [npmGate('verify:migration')],
-    ...llm('architecture migration / packages must not import apps'),
+    ...llm('architecture migration — packages must not import apps'),
   }),
   changelog: (o) => runPack('changelog', {
     ...o,
     gates: [],
-    ...llm('draft changelog bullets from recent work — advisory only'),
+    ...llm('draft Keep-a-Changelog bullets from recent git + Unreleased section', {
+      defaultKind: 'changelog_bullet',
+      defaultAdapter: 'changelog-promote',
+    }),
   }),
   wikisync: (o) => runPack('wikisync', {
     ...o,
@@ -82,27 +105,59 @@ export const PACK_HANDLERS = {
       nodeGate('scripts/verify/doc-links.mjs', ['--strict']),
       npmGate('wiki:verify'),
     ],
-    ...llm('wiki and doc-link drift patches'),
+    ...llm('wiki and doc-link drift patches from gate failures', {
+      defaultKind: 'wiki_patch',
+      defaultAdapter: 'wiki-sync',
+    }),
   }),
   image: (o) => runPack('image', {
     ...o,
     gates: [],
     skipLlm: o.dryRun,
-    ...llm('alt-text drafts for content images — no binary invention'),
+    ...llm('alt-text drafts for content images — no binary invention', {
+      defaultAdapter: 'write-approved-artifact',
+    }),
   }),
   bootllm: (o) => runPack('bootllm', {
     ...o,
     gates: process.env.PROBE_URL ? [npmGate('audit:boot:strict')] : [],
-    ...llm('boot and first-inference latency regressions'),
+    ...llm('boot and first-inference latency regressions from audit artifacts'),
   }),
   perf: (o) => runPack('perf', {
     ...o,
     gates: [npmGate('verify:bundle-split'), npmGate('audit:cwv')],
-    ...llm('CWV and bundle performance triage backlog'),
+    ...llm('CWV and bundle-split performance triage backlog'),
   }),
   visual: (o) => runPack('visual', {
     ...o,
     gates: [npmGate('verify:icon-spec')],
-    skipLlm: true, // visual uses dedicated visual:* queues
+    skipLlm: true,
+    afterGates: async ({ dryRun, gateResults }) => {
+      const { emptyProposal } = await import('./proposal.mjs');
+      const { visualQaStatus } = await import('./activity.mjs');
+      const qa = visualQaStatus();
+      return emptyProposal('visual', {
+        status: dryRun ? 'dry_run' : 'pending_approval',
+        summary: qa.applyAllowed
+          ? 'QA green — visual:apply available after confirm'
+          : `QA broken=${qa.brokenCount} — apply locked`,
+        thinking: 'Visual pack gate finished. Product apply stays deferred until screenshot QA is green and you approve.',
+        items: [{
+          id: 'visual-apply-1',
+          kind: 'visual_apply',
+          title: 'Apply polished visual assets to PWA',
+          detail: qa.applyAllowed
+            ? 'Screenshot QA has zero broken items.'
+            : `Blocked: ${qa.brokenCount} broken QA item(s).`,
+          risk: 'high',
+          selected: qa.applyAllowed && !dryRun,
+          applyAdapter: 'visual-apply',
+          targets: ['apps/pwa-webapp/'],
+        }],
+        gates: (gateResults || []).map((g) => ({
+          label: g.cmd, status: g.status, cmd: g.cmd,
+        })),
+      });
+    },
   }),
 };
