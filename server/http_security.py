@@ -53,6 +53,18 @@ def client_may_access_sensitive_apis(client_ip: str, sensitive_apis_on_lan: bool
     return bool(sensitive_apis_on_lan)
 
 
+def client_may_access_agentic_apis(client_ip: str) -> bool:
+    """Agentic control plane is loopback-only (never LAN-sensitive flag)."""
+    return is_loopback_ip(client_ip)
+
+
+def host_is_loopback(host_header: Optional[str]) -> bool:
+    if not host_header:
+        return False
+    host = host_header.strip().split(':')[0].strip('[]').lower()
+    return host in ('localhost', '127.0.0.1', '::1')
+
+
 def cors_allow_origin_value(
     origin: Optional[str],
     port: int,
@@ -113,3 +125,4 @@ bug_report_limiter = SimpleRateLimiter(max_events=5, window_seconds=86400.0)
 # Automatic client error/telemetry reports: allow a modest burst, but cap so a
 # runaway error loop in one tab cannot flood the log or the server.
 client_error_limiter = SimpleRateLimiter(max_events=60, window_seconds=60.0)
+agentic_api_limiter = SimpleRateLimiter(max_events=30, window_seconds=60.0)
