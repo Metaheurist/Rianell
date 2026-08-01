@@ -49,4 +49,11 @@ node scripts/verify/doc-links.mjs --strict
 
 Fixtures cover catalog validation, sanitize deny-list, scheduler mutexes, 16-step run-all order, and client loopback refusal.
 
+### Epic CI rollup (PR #85)
+
+| Workflow | Run | Result |
+|----------|-----|--------|
+| CI | [30721354482](https://github.com/Metaheurist/Rianell/actions/runs/30721354482) | green |
+| Security DAST | [30721354377](https://github.com/Metaheurist/Rianell/actions/runs/30721354377) | green |
+
 See also: [agentic-api.md](agentic-api.md), [agentic-api-client.md](agentic-api-client.md), [agentic-ui.md](agentic-ui.md), [agentic-pack-catalog.md](agentic-pack-catalog.md), [agentic-run-all.md](agentic-run-all.md), [agentic-model-catalog.md](agentic-model-catalog.md), [visual-pack-harness.md](visual-pack-harness.md).
