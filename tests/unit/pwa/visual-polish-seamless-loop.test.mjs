@@ -35,3 +35,11 @@ test('screenshot-qa soft-skips textual seam jumps in heuristicBroken', async () 
   assert.match(src, /INCONCLUSIVE/);
   assert.match(src, /no failIds — sheet flagged/);
 });
+
+test('polish validatePolish soft-warns seam (does not hard-fail)', async () => {
+  const fs = await import('fs');
+  const src = fs.readFileSync('scripts/dev/visual-polish-queue.mjs', 'utf8');
+  assert.match(src, /seam warning/);
+  assert.match(src, /Phase 5: textual seam is a warning/);
+  assert.doesNotMatch(src, /return \{ ok: false, reason: `non-seamless loop/);
+});
