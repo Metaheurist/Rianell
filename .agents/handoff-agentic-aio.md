@@ -24,3 +24,14 @@ npm run agentic:run-all -- --dry-run
 node --test tests/unit/agentic-*.test.mjs
 node scripts/verify/doc-links.mjs --strict
 ```
+
+## CI (Phase 11 sign-off)
+
+- PR: https://github.com/Metaheurist/Rianell/pull/85
+- CI: https://github.com/Metaheurist/Rianell/actions/runs/30721354482 (unit, security audit, benchmarks, server EXE — green)
+- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30721354377 (axe + zap — green)
+
+## Apply-deferred confirmation
+
+- `visual:apply` still blocked until screenshot QA green
+- No security/planning/i18n/wiki/changelog auto-promote into product trees
