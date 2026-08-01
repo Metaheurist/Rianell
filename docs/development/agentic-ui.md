@@ -22,6 +22,8 @@ Served at `/dev/agentic` from the Python server.
 
 **Debug (raw JSON)** is always a collapsible `<details>` drawer, collapsed by default (and on tab change). `log()` never auto-expands it; only **Debug report** opens it. Hard-refresh if an older expanded drawer is cached.
 
+Live updates use **soft Activity patches** (fingerprint-gated Thinking / rail / Planned) — Dry-run / Live no longer rebuild the whole tab (visual iframe stays mounted). Scrollbars are hidden in scrollable panels while scroll still works.
+
 Nothing product-applies without **Approve** (and `confirmProductWrite` where required), unless run-all `autoApprove` + `product-write` + confirm are explicitly enabled.
 
 Tk dashboard Tools → **Agentic pipelines** opens the same URL.

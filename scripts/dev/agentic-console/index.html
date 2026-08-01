@@ -25,11 +25,18 @@
       --mono: "JetBrains Mono", ui-monospace, monospace;
     }
     * { box-sizing: border-box; }
+    /* Hide scrollbars while keeping scroll (match PWA shell). */
+    *, *::before, *::after {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
     body {
       margin: 0;
       font-family: var(--font);
       color: var(--text);
       min-height: 100vh;
+      overflow-x: hidden;
       background:
         radial-gradient(900px 480px at 8% -8%, rgba(93, 217, 122, 0.12), transparent 55%),
         radial-gradient(700px 420px at 92% 0%, rgba(45, 90, 70, 0.35), transparent 50%),
@@ -350,6 +357,8 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+    .pack-stage.pack-stage-enter {
       animation: fadeUp .35s ease both;
     }
     .pack-stage-card {
@@ -683,7 +692,10 @@
       white-space: pre-wrap;
       max-height: 220px;
       overflow: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
+    .activity-panel .body::-webkit-scrollbar { display: none; }
     .activity-panel .body.md h1,
     .activity-panel .body.md h2,
     .activity-panel .body.md h3 { font-size: 0.95rem; margin: 0.4em 0 0.2em; }
@@ -1117,56 +1129,120 @@
     }
 
     let activityPoll = null;
+    let activityPollPack = null;
+    let lastActivityStructFp = '';
+    let lastThinkingFp = '';
+    let lastRailFp = '';
+    let lastPillFp = '';
+
     function stopActivityPoll() {
       if (activityPoll) { clearInterval(activityPoll); activityPoll = null; }
+      activityPollPack = null;
     }
+
+    function activityStructFingerprint(act) {
+      if (!act) return '';
+      const items = (act.planned?.items || [])
+        .map((i) => `${i.id}:${i.selected !== false}:${i.title}:${i.risk}`)
+        .join('|');
+      const done = (act.done || []).map((d) => `${d.label}:${d.status}`).join('|');
+      const n = act.now || {};
+      return [
+        act.pack, n.status, n.stage, n.model, n.needsApproval, n.dryRun,
+        act.planned?.status, act.planned?.summary, done, items,
+        act.thinking?.context?.filesUsed?.length || 0,
+      ].join('::');
+    }
+
+    function railFingerprint(act) {
+      const n = act?.now || {};
+      const doneN = (act?.done || []).length;
+      const planN = (act?.planned?.items || []).length;
+      return `${n.status}|${n.stage}|${n.model}|${doneN}|${planN}|${n.needsApproval}`;
+    }
+
+    /** Patch pack Activity / rail without rebuilding the whole tab (keeps iframe + controls stable). */
+    async function softRefreshPackActivity(pack, { force = false } = {}) {
+      const act = await client.getPackActivity(pack).catch(() => null);
+      if (!act) return null;
+      const host = document.getElementById('packActivity')
+        || document.getElementById('runAllActivity')
+        || document.getElementById('overviewActivity');
+      if (!host) return act;
+
+      const railFp = railFingerprint(act);
+      if (force || railFp !== lastRailFp) {
+        lastRailFp = railFp;
+        const rail = document.querySelector('.pack-stage .pipe-rail');
+        if (rail) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = pipeRailHtml(act, { pack, hidePlanned: pack === 'visual' });
+          if (tmp.firstElementChild) rail.replaceWith(tmp.firstElementChild);
+        }
+      }
+
+      const pillFp = `${act.now?.status || ''}`;
+      if (force || pillFp !== lastPillFp) {
+        lastPillFp = pillFp;
+        const pill = document.querySelector('.pack-stage .pack-status-pill');
+        if (pill && act.now?.status) {
+          pill.dataset.s = act.now.status;
+          pill.innerHTML = `${icon('dot')} ${escapeHtml(act.now.status)}`;
+        }
+      }
+
+      const structFp = activityStructFingerprint(act);
+      if (force || structFp !== lastActivityStructFp) {
+        lastActivityStructFp = structFp;
+        const hidePlanned = pack === 'visual';
+        const cockpit = Boolean(host.closest('.pack-stage') || host.id === 'packActivity');
+        host.innerHTML = activityHtml(act, {
+          pack,
+          hidePlanned,
+          layout: cockpit ? 'cockpit' : undefined,
+        });
+        if (!hidePlanned) await wireActivityActions(pack);
+        lastThinkingFp = '';
+      }
+
+      const stream = await client.getPackStream(pack).catch(() => null);
+      const thinkEl = document.getElementById('thinkingBody');
+      if (thinkEl) {
+        const fill = stream?.fillProgress || act.thinking?.fillProgress;
+        const text = fill
+          ? `Filling ${fill.locale || '…'} · ${fill.done || 0}/${fill.total || 0}`
+            + (fill.sampleTranslation ? `\n\n${fill.lastKey}: ${fill.sampleTranslation}` : '')
+            + (act.thinking?.text ? `\n\n${act.thinking.text}` : '')
+          : (stream?.text || act.thinking?.text || '—');
+        const tFp = `${fill?.done || 0}/${fill?.total || 0}|${text.length}|${text.slice(-120)}`;
+        if (tFp !== lastThinkingFp) {
+          lastThinkingFp = tFp;
+          thinkEl.innerHTML = renderMd(text);
+        }
+      }
+      return act;
+    }
+
     function startActivityPoll(pack) {
+      if (activityPoll && activityPollPack === pack) return;
       stopActivityPoll();
+      activityPollPack = pack;
       activityPoll = setInterval(async () => {
+        if (activityPollPack !== pack) return;
+        if (state.view !== pack && state.view !== 'run-all' && state.view !== 'overview') return;
         try {
-          const act = await client.getPackActivity(pack);
-          const root = document.getElementById('activityRoot');
-          if (!root) return;
-          const stream = await client.getPackStream(pack).catch(() => null);
-          if (stream && document.getElementById('thinkingBody')) {
-            const fill = stream.fillProgress;
-            const text = fill
-              ? `Filling ${fill.locale || '…'} · ${fill.done || 0}/${fill.total || 0}`
-                + (fill.sampleTranslation ? `\n\n${fill.lastKey}: ${fill.sampleTranslation}` : '')
-              : (stream.text || act.thinking?.text || '');
-            document.getElementById('thinkingBody').innerHTML = renderMd(text);
-          }
-          const rail = document.querySelector('.pack-stage .pipe-rail');
-          if (rail) {
-            const next = pipeRailHtml(act, { pack, hidePlanned: pack === 'visual' });
-            const tmp = document.createElement('div');
-            tmp.innerHTML = next;
-            if (tmp.firstElementChild) rail.replaceWith(tmp.firstElementChild);
-          }
-          const pill = document.querySelector('.pack-stage .pack-status-pill');
-          if (pill && act.now?.status) {
-            pill.dataset.s = act.now.status;
-            pill.innerHTML = `${icon('dot')} ${escapeHtml(act.now.status)}`;
-          }
-          const nowPanel = root.querySelector('.ap-now .now-metrics');
-          if (nowPanel && act.now) {
-            const n = act.now;
-            nowPanel.innerHTML = `
-              <div class="metric"><span>Status</span><strong>${escapeHtml(n.status || 'idle')}</strong></div>
-              <div class="metric"><span>Stage</span><strong>${escapeHtml(n.stage || '—')}</strong></div>
-              <div class="metric"><span>Model</span><strong>${escapeHtml(n.model || 'none')}</strong></div>
-              ${n.needsApproval && pack !== 'visual' ? '<div class="metric"><span>Gate</span><strong style="color:var(--warn)">needs approval</strong></div>' : ''}
-              ${n.dryRun ? '<div class="metric"><span>Mode</span><strong>dry-run</strong></div>' : ''}`;
-          }
-          if (act.now && (act.now.status === 'pending_approval' || act.now.status === 'applied' || act.now.status === 'rejected' || act.now.status === 'passed' || act.now.status === 'broken')) {
-            if (act.now.status !== 'running') {
-              stopActivityPoll();
-              // One full refresh so Planned / Done panels catch up after the run.
-              if (state.view === pack) render();
-            }
+          const act = await softRefreshPackActivity(pack);
+          if (!act?.now) return;
+          const st = act.now.status;
+          if (st === 'pending_approval' || st === 'applied' || st === 'rejected'
+            || st === 'passed' || st === 'broken' || st === 'dry_run') {
+            await softRefreshPackActivity(pack, { force: true });
+            stopActivityPoll();
           }
         } catch { /* quiet */ }
-      }, 400);
+      }, 900);
+      // Kick once immediately so Live/Dry-run feel responsive without a full tab render.
+      softRefreshPackActivity(pack).catch(() => {});
     }
 
     function progressPct(runState) {
@@ -1258,6 +1334,10 @@
         if (fp !== refreshRunAllTimeline._loggedFp) {
           refreshRunAllTimeline._loggedFp = fp;
           log(st);
+        }
+        // Soft-patch current pack Activity on run-all (no full view rewrite).
+        if (st?.currentPack && document.getElementById('runAllActivity')) {
+          await softRefreshPackActivity(st.currentPack);
         }
         if (st && (st.status === 'running' || st.status === 'paused')) {
           setRunAllBusy(true);
@@ -1650,7 +1730,7 @@
         const qa = await client.getVisualQa().catch(() => ({ brokenCount: '?', applyAllowed: false }));
         const st = activity?.now?.status || 'idle';
         view.innerHTML = `
-          <div class="pack-stage visual-shell">
+          <div class="pack-stage pack-stage-enter visual-shell">
             <div class="pack-stage-card">
               <div class="pack-stage-head">
                 <div class="pack-stage-title">
@@ -1680,18 +1760,31 @@
         startActivityPoll(pack);
         const wire = (id, fn) => { document.getElementById(id).onclick = fn; };
         wire('startDry', async () => {
-          try { log(await client.startPack(pack, { dryRun: true })); await render(); }
-          catch (e) { log(e.envelope || e.message); }
+          try {
+            log(await client.startPack(pack, { dryRun: true }));
+            startActivityPoll(pack);
+            await softRefreshPackActivity(pack, { force: true });
+          } catch (e) { log(e.envelope || e.message); }
         });
         wire('startLive', async () => {
-          try { log(await client.startPack(pack, { dryRun: false })); startActivityPoll(pack); await render(); }
-          catch (e) { log(e.envelope || e.message); }
+          try {
+            log(await client.startPack(pack, { dryRun: false }));
+            startActivityPoll(pack);
+            await softRefreshPackActivity(pack, { force: true });
+          } catch (e) { log(e.envelope || e.message); }
         });
         wire('pause', async () => {
-          try { log(await client.pausePack(pack)); } catch (e) { log(e.message); }
+          try {
+            log(await client.pausePack(pack));
+            await softRefreshPackActivity(pack, { force: true });
+          } catch (e) { log(e.message); }
         });
         wire('resume', async () => {
-          try { log(await client.resumePack(pack)); } catch (e) { log(e.message); }
+          try {
+            log(await client.resumePack(pack));
+            startActivityPoll(pack);
+            await softRefreshPackActivity(pack, { force: true });
+          } catch (e) { log(e.message); }
         });
         wire('report', async () => {
           try { log(await client.getPackReport(pack)); openDebugDrawer(); }
@@ -1713,7 +1806,7 @@
 
       const st = activity?.now?.status || 'idle';
       view.innerHTML = `
-        <div class="pack-stage">
+        <div class="pack-stage pack-stage-enter">
           <div class="pack-stage-card">
             <div class="pack-stage-head">
               <div class="pack-stage-title">
@@ -1731,11 +1824,11 @@
                   <select id="model"></select>
                 </div>
                 <div class="pack-actions">
-                  <button class="primary" id="startDry">${icon('play')} Dry-run</button>
-                  <button id="startLive">${icon('run-all')} Live</button>
-                  <button id="pause">${icon('pause')} Pause</button>
-                  <button id="resume">${icon('play')} Resume</button>
-                  <button id="report">${icon('planning')} Debug report</button>
+                  <button type="button" class="primary" id="startDry">${icon('play')} Dry-run</button>
+                  <button type="button" id="startLive">${icon('run-all')} Live</button>
+                  <button type="button" id="pause">${icon('pause')} Pause</button>
+                  <button type="button" id="resume">${icon('play')} Resume</button>
+                  <button type="button" id="report">${icon('planning')} Debug report</button>
                 </div>
               </div>
             </div>
@@ -1745,6 +1838,9 @@
         </div>`;
 
       await wireActivityActions(pack);
+      lastActivityStructFp = activityStructFingerprint(activity);
+      lastRailFp = railFingerprint(activity);
+      lastPillFp = activity?.now?.status || '';
       startActivityPoll(pack);
       const sel = document.getElementById('model');
       const allowed = catalog?.packs?.[pack]?.allowed || [packRecommended(pack)];
@@ -1755,21 +1851,29 @@
       document.getElementById('startDry').onclick = async () => {
         try {
           log(await client.startPack(pack, { dryRun: true, model: sel.value }));
-          await render();
+          startActivityPoll(pack);
+          await softRefreshPackActivity(pack, { force: true });
         } catch (e) { log(e.envelope || e.message); }
       };
       document.getElementById('startLive').onclick = async () => {
         try {
           log(await client.startPack(pack, { dryRun: false, model: sel.value }));
           startActivityPoll(pack);
-          await render();
+          await softRefreshPackActivity(pack, { force: true });
         } catch (e) { log(e.envelope || e.message); }
       };
       document.getElementById('pause').onclick = async () => {
-        try { log(await client.pausePack(pack)); } catch (e) { log(e.message); }
+        try {
+          log(await client.pausePack(pack));
+          await softRefreshPackActivity(pack, { force: true });
+        } catch (e) { log(e.message); }
       };
       document.getElementById('resume').onclick = async () => {
-        try { log(await client.resumePack(pack)); } catch (e) { log(e.message); }
+        try {
+          log(await client.resumePack(pack));
+          startActivityPoll(pack);
+          await softRefreshPackActivity(pack, { force: true });
+        } catch (e) { log(e.message); }
       };
       document.getElementById('report').onclick = async () => {
         try { log(await client.getPackReport(pack)); openDebugDrawer(); }
