@@ -8,6 +8,7 @@ import json
 import subprocess
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -68,21 +69,48 @@ def load_catalog() -> dict:
 
 
 def get_mode() -> dict[str, Any]:
+    """Return extended mode prefs (serial + approval defaults)."""
+    result = _node(['scripts/dev/agentic-pipeline/mode-prefs-cli.mjs', '--get'])
+    inner = result.get('data')
+    if isinstance(inner, dict) and inner.get('ok') and isinstance(inner.get('data'), dict):
+        return inner['data']
+    if isinstance(inner, dict) and 'mode' in inner:
+        return inner
     if MODE_PATH.is_file():
         try:
             return json.loads(MODE_PATH.read_text(encoding='utf-8'))
         except json.JSONDecodeError:
             pass
-    return {'mode': 'serial'}
+    return {
+        'mode': 'serial',
+        'autoApprove': False,
+        'autoApproveMode': 'ack',
+        'confirmProductWrite': False,
+        'allowDependencyBump': False,
+        'gitCommitOnApprove': False,
+        'i18nFillScope': 'full',
+    }
 
 
-def set_mode(mode: str) -> dict[str, Any]:
-    if mode not in ('serial', 'parallel', 'dry-run'):
-        return {'ok': False, 'error': {'code': 'bad_mode', 'message': mode}, 'data': None}
-    MODE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    payload = {'mode': mode}
-    MODE_PATH.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
-    return {'ok': True, 'error': None, 'data': payload}
+def set_mode(mode_or_patch) -> dict[str, Any]:
+    """Accept legacy string mode or a prefs patch object."""
+    if isinstance(mode_or_patch, str):
+        patch = {'mode': mode_or_patch}
+    elif isinstance(mode_or_patch, dict):
+        patch = mode_or_patch
+    else:
+        return {'ok': False, 'error': {'code': 'bad_mode', 'message': 'invalid'}, 'data': None}
+    args = ['scripts/dev/agentic-pipeline/mode-prefs-cli.mjs', '--set']
+    args.append('--json=' + json.dumps(patch))
+    result = _node(args)
+    inner = result.get('data')
+    if isinstance(inner, dict) and 'ok' in inner:
+        return {
+            'ok': bool(inner.get('ok')),
+            'data': inner.get('data'),
+            'error': inner.get('error') or result.get('error'),
+        }
+    return result
 
 
 def visual_live_status() -> dict[str, Any]:
@@ -140,13 +168,93 @@ def run_pack(pack_id: str, dry_run: bool = False) -> dict[str, Any]:
     return _node(args, timeout=600)
 
 
-def run_all(dry_run: bool = False, skip: Optional[list[str]] = None) -> dict[str, Any]:
+def run_all_state_path() -> Path:
+    return REPO_ROOT / 'artifacts' / 'agentic' / 'run-all-state.json'
+
+
+def read_run_all_state() -> dict[str, Any]:
+    path = run_all_state_path()
+    if not path.is_file():
+        return {'status': 'idle', 'order': list(PACK_IDS), 'results': {}}
+    try:
+        return json.loads(path.read_text(encoding='utf-8'))
+    except json.JSONDecodeError:
+        return {'status': 'idle', 'order': list(PACK_IDS), 'results': {}, 'error': 'corrupt state'}
+
+
+def run_all(
+    dry_run: bool = False,
+    skip: Optional[list[str]] = None,
+    background: Optional[bool] = None,
+    auto_approve: bool = False,
+    auto_approve_mode: str = 'ack',
+    confirm_product_write: bool = False,
+    allow_dependency_bump: bool = False,
+    git_commit_on_approve: bool = False,
+) -> dict[str, Any]:
+    """Run chronological pack sequence. Live runs default to background so UI can poll."""
+    if background is None:
+        background = not dry_run
     args = ['scripts/ci/agentic-run-all.mjs']
     if dry_run:
         args.append('--dry-run')
     if skip:
         args.append('--skip=' + ','.join(skip))
-    return _node(args, timeout=3600)
+    if auto_approve:
+        args.append('--auto-approve')
+        args.append(f'--auto-approve-mode={auto_approve_mode or "ack"}')
+    if confirm_product_write:
+        args.append('--confirm-product-write')
+    if allow_dependency_bump:
+        args.append('--allow-dependency-bump')
+    if git_commit_on_approve:
+        args.append('--git-commit-on-approve')
+
+    if not background:
+        return _node(args, timeout=3600)
+
+    current = read_run_all_state()
+    if current.get('status') in ('running', 'paused'):
+        return {
+            'ok': False,
+            'error': {
+                'code': 'busy',
+                'message': f"run-all already {current.get('status')}",
+            },
+            'data': current,
+        }
+
+    # Seed optimistic state so GET /run-all shows progress immediately.
+    seed = {
+        'status': 'running',
+        'stepIndex': 0,
+        'order': [p for p in PACK_IDS if p not in (skip or [])],
+        'skip': list(skip or []),
+        'currentPack': None,
+        'results': {},
+        'dryRun': dry_run,
+        'startedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z',
+        'background': True,
+    }
+    run_all_state_path().parent.mkdir(parents=True, exist_ok=True)
+    run_all_state_path().write_text(json.dumps(seed, indent=2) + '\n', encoding='utf-8')
+
+    log_path = REPO_ROOT / 'artifacts' / 'agentic' / 'run-all-worker.log'
+    try:
+        log_f = open(log_path, 'a', encoding='utf-8')
+    except OSError:
+        log_f = subprocess.DEVNULL
+    try:
+        subprocess.Popen(
+            ['node', *args],
+            cwd=str(REPO_ROOT),
+            stdout=log_f,
+            stderr=subprocess.STDOUT,
+            shell=False,
+        )
+    except Exception as e:
+        return {'ok': False, 'error': {'code': 'spawn', 'message': str(e)}, 'data': seed}
+    return {'ok': True, 'error': None, 'data': seed}
 
 
 def pack_status(pack_id: str) -> dict[str, Any]:
@@ -179,3 +287,50 @@ def envelope(ok: bool, data: Any = None, error: Any = None, pack: str | None = N
         'data': data,
         'error': error,
     }
+
+
+def approval_action(action: str, pack: str | None = None, body: Optional[dict] = None) -> dict[str, Any]:
+    """Bridge to approval-cli.mjs / activity helpers."""
+    body = body or {}
+    args = ['scripts/dev/agentic-pipeline/approval-cli.mjs', f'--action={action}']
+    if pack:
+        args.append(f'--pack={pack}')
+    if body.get('itemIds') is not None:
+        args.append('--itemIds=' + json.dumps(body.get('itemIds')))
+    if 'selected' in body:
+        args.append(f"--selected={'true' if body.get('selected') else 'false'}")
+    if body.get('confirmProductWrite'):
+        args.append('--confirmProductWrite')
+    if body.get('allowDependencyBump'):
+        args.append('--allowDependencyBump')
+    if body.get('gitCommitOnApprove'):
+        args.append('--gitCommitOnApprove')
+    if body.get('by'):
+        args.append(f"--by={body.get('by')}")
+    result = _node(args, timeout=600)
+    # approval-cli prints { ok, data, error } — unwrap for envelope helpers
+    inner = result.get('data')
+    if isinstance(inner, dict) and 'ok' in inner and ('data' in inner or 'error' in inner):
+        return {
+            'ok': bool(inner.get('ok')),
+            'data': inner.get('data'),
+            'error': inner.get('error') or result.get('error'),
+        }
+    return result
+
+
+def visual_qa() -> dict[str, Any]:
+    return approval_action('visual-qa')
+
+
+def clear_all_and_unload() -> dict[str, Any]:
+    """Reset pack/run-all runtime state and unload Ollama models in VRAM."""
+    result = _node(['scripts/dev/agentic-pipeline/clear-all.mjs'], timeout=180)
+    inner = result.get('data')
+    if isinstance(inner, dict) and 'ok' in inner and ('data' in inner or 'error' in inner):
+        return {
+            'ok': bool(inner.get('ok')),
+            'data': inner.get('data'),
+            'error': inner.get('error') or result.get('error'),
+        }
+    return result

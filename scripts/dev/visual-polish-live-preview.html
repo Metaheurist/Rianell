@@ -237,13 +237,15 @@ body.qa-mode .qa-strip{display:none}
         <p class="hud-note">Queue errors · retry <code>--force-failed</code> after freeing VRAM</p>
       </div>
     </details>
-    <details class="hud-model" id="hudModel" aria-label="Model in use">
+    <details class="hud-model" id="hudModel" open aria-label="Model selection">
       <summary>
         Model
-        <span class="hm-id" id="hmId">—</span>
         <span class="hm-summary-line" id="hmSummaryLine">—</span>
       </summary>
       <div class="hm-body">
+        <label class="hm-select-label" for="hmSelect">Polish model</label>
+        <select id="hmSelect" class="hm-select" aria-label="Polish model"></select>
+        <p class="hm-row hm-select-note" id="hmSelectNote">Applies on next polish queue restart.</p>
         <p class="hm-row" id="hmHints"></p>
         <p class="hm-row" id="hmRole">—</p>
         <p class="hm-row" id="hmPipeline">—</p>
@@ -541,11 +543,35 @@ function paintModel(data) {
   const mi = data?.modelInfo || {};
   const o = mi.ollama || {};
   const d = o.details || {};
-  document.getElementById('hmId').textContent = mi.polishModel || data?.model || '—';
+  const current = mi.polishModel || data?.model || '—';
+  const sel = document.getElementById('hmSelect');
+  const allowed = Array.isArray(mi.polishAllowed) && mi.polishAllowed.length
+    ? mi.polishAllowed
+    : [current];
+  const rec = mi.polishRecommended || current;
+  const prev = sel.value;
+  const focusing = document.activeElement === sel;
+  if (!focusing) {
+    sel.innerHTML = allowed.map((m) => {
+      const tag = m === rec ? ' · recommended' : '';
+      return '<option value="' + escapeHtml(m) + '"'
+        + (m === current ? ' selected' : '') + '>'
+        + escapeHtml(m) + tag + '</option>';
+    }).join('');
+    if (prev && allowed.includes(prev) && prev !== current) {
+      /* keep in-flight user choice until poll overwrites after save */
+    }
+  }
+  sel.disabled = mi.polishSelectable === false;
+  const note = document.getElementById('hmSelectNote');
+  note.textContent = mi.polishEnvOverride
+    ? ('Locked by env VISUAL_POLISH_MODEL=' + mi.polishEnvOverride)
+    : 'Saved preference · restart visual:polish to apply';
   const loadedLabel = !o.reachable
     ? 'Ollama unreachable'
     : (o.polishLoaded ? 'in VRAM' : (o.loadedNow?.length ? ('other: ' + o.loadedNow.join(', ')) : 'not loaded'));
   const summaryBits = [
+    current,
     o.vram || null,
     loadedLabel,
   ].filter(Boolean);
@@ -578,6 +604,26 @@ function paintModel(data) {
   const at = mi.polishUpdatedAt || data?.updatedAt;
   document.getElementById('hmUpdated').innerHTML =
     '<b>Checkpoint</b> · ' + (at ? String(at).replace('T', ' ').replace(/\.\d+Z$/, 'Z') : '—');
+}
+
+async function savePolishModel(model) {
+  const note = document.getElementById('hmSelectNote');
+  note.textContent = 'Saving…';
+  try {
+    const res = await fetch('/api/model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ polishModel: model }),
+    });
+    const json = await res.json();
+    if (!res.ok || json.ok === false) {
+      note.textContent = json.error || ('HTTP ' + res.status);
+      return;
+    }
+    note.textContent = json.note || 'Saved · restart visual:polish to apply';
+  } catch (e) {
+    note.textContent = String(e.message || e);
+  }
 }
 
 function failKindIco(kind) {
@@ -967,6 +1013,9 @@ function bindHud() {
   bind('togCompact', 'compact');
   bind('togCOnly', 'cOnly');
   bind('togRefresh', 'refresh');
+  document.getElementById('hmSelect').addEventListener('change', (e) => {
+    savePolishModel(e.target.value);
+  });
   document.getElementById('hudCollapse').addEventListener('click', () => {
     prefs.collapsed = !prefs.collapsed;
     savePrefs();

@@ -2,6 +2,8 @@ import { runAllOrder, resolvePackModel } from './catalog.mjs';
 import { readRunAllState, writeRunAllState, readPackState } from './state.mjs';
 import { PACK_HANDLERS } from './pack-handlers.mjs';
 import { ollamaUnload } from './ollama-client.mjs';
+import { autoAckPack, approvePack } from './apply-adapters.mjs';
+import { readModePrefs } from './mode-prefs.mjs';
 
 async function waitIfPaused() {
   for (;;) {
@@ -13,13 +15,39 @@ async function waitIfPaused() {
 }
 
 /**
- * @param {{ skip?: string[], stopOnBroken?: boolean, dryRun?: boolean }} opts
+ * @param {{
+ *   skip?: string[],
+ *   stopOnBroken?: boolean,
+ *   dryRun?: boolean,
+ *   autoApprove?: boolean,
+ *   autoApproveMode?: 'ack'|'product-write',
+ *   confirmProductWrite?: boolean,
+ *   allowDependencyBump?: boolean,
+ *   gitCommitOnApprove?: boolean,
+ * }} opts
  */
 export async function executeRunAll(opts = {}) {
+  const prefs = readModePrefs();
   const skip = new Set(opts.skip || []);
   const stopOnBroken = opts.stopOnBroken !== false;
   const dryRun = Boolean(opts.dryRun);
+  const autoApprove = opts.autoApprove != null ? Boolean(opts.autoApprove) : Boolean(prefs.autoApprove);
+  const autoApproveMode = opts.autoApproveMode || prefs.autoApproveMode || 'ack';
+  const confirmProductWrite = Boolean(opts.confirmProductWrite ?? prefs.confirmProductWrite);
+  const allowDependencyBump = Boolean(opts.allowDependencyBump ?? prefs.allowDependencyBump);
+  const gitCommitOnApprove = Boolean(opts.gitCommitOnApprove ?? prefs.gitCommitOnApprove);
   const order = runAllOrder().filter((p) => !skip.has(p));
+
+  if (autoApprove && autoApproveMode === 'product-write' && !confirmProductWrite && !dryRun) {
+    writeRunAllState({
+      status: 'broken',
+      error: 'autoApprove product-write requires confirmProductWrite',
+      order,
+      results: {},
+      finishedAt: new Date().toISOString(),
+    });
+    return readRunAllState();
+  }
 
   let state = {
     status: 'running',
@@ -29,6 +57,8 @@ export async function executeRunAll(opts = {}) {
     currentPack: null,
     results: {},
     dryRun,
+    autoApprove,
+    autoApproveMode,
     startedAt: new Date().toISOString(),
   };
   writeRunAllState(state);
@@ -60,8 +90,31 @@ export async function executeRunAll(opts = {}) {
     }
 
     const result = await handler({ dryRun });
+    const needsApproval = Boolean(result.needsApproval) && !dryRun;
+    let approvalState = needsApproval ? 'pending' : null;
+
+    if (!dryRun && needsApproval && autoApprove) {
+      if (autoApproveMode === 'ack') {
+        const ack = await autoAckPack(packId);
+        approvalState = ack.ok ? 'applied' : 'pending';
+      } else if (autoApproveMode === 'product-write' && confirmProductWrite) {
+        const ap = await approvePack(packId, {
+          confirmProductWrite: true,
+          allowDependencyBump,
+          gitCommitOnApprove,
+          by: 'auto-product',
+        });
+        approvalState = ap.ok ? 'applied' : 'pending';
+      }
+    }
+
     state = readRunAllState();
-    state.results[packId] = { ok: result.ok, error: result.error || null };
+    state.results[packId] = {
+      ok: result.ok,
+      error: result.error || null,
+      needsApproval: needsApproval && approvalState === 'pending',
+      approvalState,
+    };
     writeRunAllState(state);
 
     if (!dryRun) {

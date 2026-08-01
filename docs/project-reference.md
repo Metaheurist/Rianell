@@ -8,7 +8,7 @@
 
 ### Unreleased documentation sync (agentic AIO harness)
 
-- **Tooling:** Local Agentic AIO at `/dev/agentic` + loopback `/api/agentic/*` for 16 packs; `@rianell/build-tools/agentic-api-client`; `npm run agentic:run-all`. Operator guide: [`development/agentic-pipeline-harness.md`](development/agentic-pipeline-harness.md).
+- **Tooling:** Local Agentic AIO at `/dev/agentic` + loopback `/api/agentic/*` for 16 packs; Activity cockpit + approve/reject; codebase-aware `pack-context`; `@rianell/build-tools/agentic-api-client` (`safeClient` on localhost); `npm run agentic:run-all`. Operator guide: [`development/agentic-pipeline-harness.md`](development/agentic-pipeline-harness.md).
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[Unreleased]`.
 
 ### v2.6.0 documentation sync (visual pack harness)

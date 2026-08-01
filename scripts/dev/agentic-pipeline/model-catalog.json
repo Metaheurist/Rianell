@@ -41,7 +41,12 @@
       "recommended": "translategemma:27b",
       "allowed": ["translategemma:27b"],
       "estVramGb": 17,
-      "exclusiveGroups": ["large-on-gpu", "translategemma-large"]
+      "exclusiveGroups": ["large-on-gpu", "translategemma-large"],
+      "stages": {
+        "check": { "gate": "verify:i18n:check" },
+        "fill": { "tool": "i18n:ollama", "mode": "propose-dir" },
+        "merge": { "tool": "i18n:merge-tier-c", "requiresApproval": true }
+      }
     },
     "rtl": {
       "recommended": "qwen2.5-coder:32b",

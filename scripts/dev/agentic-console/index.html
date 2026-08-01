@@ -4,89 +4,767 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rianell Agentic Harness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0a0e0c;
-      --surface: #111714;
-      --card: #0f1411;
-      --border: #1e2e24;
-      --text: #e4f2ec;
+      --bg: #070b09;
+      --surface: #0e1511;
+      --card: #121a15;
+      --border: #1c2a22;
+      --text: #e6f4ec;
       --muted: #7f968a;
       --accent: #5dd97a;
+      --accent-dim: rgba(93, 217, 122, 0.14);
       --warn: #ffb74d;
       --bad: #ff6b6b;
+      --idle: #3d5247;
+      --radius: 14px;
+      --font: "DM Sans", "Segoe UI", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0; font-family: "Segoe UI", system-ui, sans-serif;
-      background: radial-gradient(1200px 600px at 10% -10%, #15241c, var(--bg));
-      color: var(--text); min-height: 100vh;
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 480px at 8% -8%, rgba(93, 217, 122, 0.12), transparent 55%),
+        radial-gradient(700px 420px at 92% 0%, rgba(45, 90, 70, 0.35), transparent 50%),
+        linear-gradient(180deg, #0b120e 0%, var(--bg) 40%);
     }
-    .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .layout {
+      display: grid;
+      grid-template-columns: 248px 1fr;
+      min-height: 100vh;
+    }
     nav {
-      border-right: 1px solid var(--border); background: var(--surface);
-      padding: 16px 12px; display: flex; flex-direction: column; gap: 4px;
+      border-right: 1px solid var(--border);
+      background: rgba(14, 21, 17, 0.92);
+      backdrop-filter: blur(10px);
+      padding: 18px 12px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow-y: auto;
+      max-height: 100vh;
+      position: sticky;
+      top: 0;
     }
-    nav h1 { font-size: 0.95rem; margin: 0 0 12px; letter-spacing: 0.02em; }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 4px 8px 16px; margin-bottom: 6px;
+    }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(93, 217, 122, 0.35);
+      display: grid; place-items: center;
+      color: var(--accent);
+    }
+    .brand-mark svg { width: 18px; height: 18px; }
+    .brand strong { display: block; font-size: 0.92rem; letter-spacing: 0.02em; }
+    .brand span { font-size: 0.68rem; color: var(--muted); }
+    .nav-sec {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--idle); padding: 12px 10px 6px;
+    }
     nav button {
+      display: flex; align-items: center; gap: 10px;
       text-align: left; background: transparent; border: 0; color: var(--muted);
-      padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+      padding: 8px 10px; border-radius: 10px; cursor: pointer; font: inherit; font-size: 0.86rem;
+      transition: background .15s ease, color .15s ease, transform .15s ease;
     }
-    nav button.active, nav button:hover { background: var(--card); color: var(--text); }
-    main { padding: 24px 28px; }
-    .hero h2 { font-size: 1.6rem; margin: 0 0 8px; }
-    .hero p { color: var(--muted); margin: 0 0 20px; max-width: 52ch; }
+    nav button svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.85; }
+    nav button .dot {
+      margin-left: auto; width: 7px; height: 7px; border-radius: 50%;
+      background: var(--idle);
+    }
+    nav button[data-s="passed"] .dot { background: var(--accent); box-shadow: 0 0 8px rgba(93,217,122,.5); }
+    nav button[data-s="broken"] .dot { background: var(--bad); }
+    nav button[data-s="running"] .dot {
+      background: var(--warn);
+      animation: pulse 1.1s ease-in-out infinite;
+    }
+    nav button.active, nav button:hover {
+      background: var(--card); color: var(--text);
+    }
+    nav button.active { box-shadow: inset 2px 0 0 var(--accent); }
+    main { padding: 22px 28px 40px; min-width: 0; }
     .hud {
-      display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px;
-      padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px;
-      background: rgba(15,20,18,.85);
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;
     }
-    .hud span { font-size: 0.75rem; color: var(--muted); }
-    .hud strong { color: var(--accent); }
-    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-    .actions button, .pack-actions button {
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: rgba(18, 26, 21, 0.9);
+      font-size: 0.72rem; color: var(--muted);
+    }
+    .chip strong { color: var(--accent); font-weight: 600; }
+    .chip svg { width: 12px; height: 12px; }
+    .chip.warn-chip { color: var(--warn); border-color: rgba(255,183,77,.4); }
+    .chip.bad-chip { color: var(--bad); border-color: rgba(255,107,107,.4); }
+    .hero {
+      display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 18px;
+      margin-bottom: 18px; align-items: stretch;
+    }
+    .hero-copy, .ring-card, .panel {
+      background: linear-gradient(160deg, rgba(24,36,28,.9), rgba(14,20,17,.95));
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 2px);
+      padding: 20px 22px;
+    }
+    .hero h2 {
+      font-size: clamp(1.5rem, 2.4vw, 2rem);
+      margin: 0 0 8px; letter-spacing: -0.02em;
+    }
+    .hero p { color: var(--muted); margin: 0 0 16px; max-width: 42ch; line-height: 1.45; }
+    .ring-card {
+      display: grid; place-items: center; gap: 10px; text-align: center;
+    }
+    .ring {
+      --pct: 0;
+      width: 132px; height: 132px; border-radius: 50%;
+      background: conic-gradient(var(--accent) calc(var(--pct) * 1%), var(--border) 0);
+      display: grid; place-items: center;
+      position: relative;
+      animation: fadeUp .45s ease both;
+    }
+    .ring::before {
+      content: ""; position: absolute; inset: 10px; border-radius: 50%;
+      background: var(--surface);
+    }
+    .ring-inner {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .ring-inner b { font-size: 1.55rem; letter-spacing: -0.03em; }
+    .ring-inner span { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .actions button, .pack-actions button, .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      flex: 0 0 auto;
       background: var(--card); color: var(--text); border: 1px solid var(--border);
-      border-radius: 10px; padding: 8px 12px; cursor: pointer; font-size: 0.85rem;
+      border-radius: 12px; padding: 9px 13px; cursor: pointer;
+      font: inherit; font-size: 0.85rem; font-weight: 600;
+      white-space: nowrap;
+      line-height: 1.2;
+      max-width: 100%;
+      transition: border-color .15s ease, transform .12s ease, background .15s ease;
     }
-    .actions button.primary { border-color: rgba(93,217,122,.45); color: var(--accent); }
-    .timeline { display: grid; gap: 6px; margin: 16px 0; }
+    .actions button svg, .pack-actions button svg, .btn svg,
+    .pack-status-pill svg, .chip svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 15px;
+      display: block;
+      overflow: visible;
+    }
+    .actions button:hover, .pack-actions button:hover, .btn:hover {
+      border-color: rgba(93,217,122,.35); transform: translateY(-1px);
+    }
+    .actions button.primary, .pack-actions button.primary, .btn.primary {
+      border-color: rgba(93,217,122,.45);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .actions button:disabled, .pack-actions button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .pack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+      gap: 10px;
+    }
+    .pack-tile {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px 12px;
+      cursor: pointer;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      display: grid;
+      gap: 10px;
+      transition: border-color .15s ease, transform .15s ease, background .15s ease;
+      animation: fadeUp .4s ease both;
+    }
+    .pack-tile:hover { border-color: rgba(93,217,122,.4); transform: translateY(-2px); }
+    .pack-tile .ico {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: grid; place-items: center;
+      background: var(--accent-dim); color: var(--accent);
+    }
+    .pack-tile .ico svg { width: 18px; height: 18px; }
+    .pack-tile strong { font-size: 0.88rem; }
+    .pack-tile small { color: var(--muted); font-size: 0.68rem; font-family: var(--mono); }
+    .pack-tile[data-s="passed"] { border-color: rgba(93,217,122,.35); }
+    .pack-tile[data-s="broken"] { border-color: rgba(255,107,107,.4); }
+    .pack-tile[data-s="running"] { border-color: rgba(255,183,77,.45); }
+    .status-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .badge svg { width: 11px; height: 11px; }
+    [data-s="passed"] .badge { color: var(--accent); }
+    [data-s="broken"] .badge { color: var(--bad); }
+    [data-s="running"] .badge { color: var(--warn); }
+    .progress {
+      margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--card);
+    }
+    .progress-top {
+      display: flex; justify-content: space-between; gap: 12px; align-items: baseline;
+      margin-bottom: 10px; font-size: 0.85rem;
+    }
+    .progress-top strong { color: var(--accent); }
+    .bar {
+      height: 8px; border-radius: 999px; background: var(--border); overflow: hidden;
+    }
+    .bar > i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, #3aa85a, var(--accent));
+      transition: width .35s ease;
+    }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px;
+      margin: 8px 0 16px;
+    }
     .step {
-      display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center;
-      padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card);
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 10px; align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
       font-size: 0.82rem;
     }
+    .step.step-enter { animation: fadeUp .35s ease both; }
+    .step .n {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: grid; place-items: center;
+      background: rgba(255,255,255,.03); color: var(--muted);
+      font-family: var(--mono); font-size: 0.7rem;
+    }
+    .step .meta { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .step .meta svg { width: 15px; height: 15px; color: var(--accent); flex-shrink: 0; }
+    .step code { font-family: var(--mono); font-size: 0.78rem; }
     .step[data-s="passed"] { border-color: rgba(93,217,122,.35); }
     .step[data-s="broken"] { border-color: rgba(255,107,107,.4); }
-    .step[data-s="running"] { border-color: rgba(255,183,77,.4); }
+    .step[data-s="running"] {
+      border-color: rgba(255,183,77,.45);
+      background: rgba(255,183,77,.06);
+    }
+    .step[data-s="skipped"] { opacity: 0.5; }
+    .step[data-s="running"] .n { color: var(--warn); }
+    .step[data-s="passed"] .n { color: var(--accent); }
+    details.drawer {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #0a100d;
+      margin-top: 8px;
+    }
+    details.drawer summary {
+      cursor: pointer; padding: 10px 14px; color: var(--muted); font-size: 0.8rem;
+      list-style: none;
+      display: flex; align-items: center; gap: 8px;
+      user-select: none;
+    }
+    details.drawer summary::-webkit-details-marker { display: none; }
+    details.drawer summary::before {
+      content: '▸';
+      display: inline-block;
+      width: 1em;
+      color: var(--accent);
+      transition: transform 0.15s ease;
+    }
+    details.drawer[open] summary::before { content: '▾'; }
+    details.drawer summary .dbg-hint {
+      margin-left: auto;
+      font-size: 0.68rem;
+      opacity: 0.7;
+      font-family: var(--mono);
+    }
+    details.drawer:not([open]) #log { display: none; }
     pre {
-      background: #0a100d; border: 1px solid var(--border); border-radius: 12px;
-      padding: 12px; overflow: auto; max-height: 360px; font-size: 0.72rem; color: var(--muted);
+      margin: 0; padding: 0 14px 14px;
+      overflow: auto; max-height: 280px;
+      font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
     }
     label { font-size: 0.75rem; color: var(--muted); display: block; margin: 8px 0 4px; }
     select {
       background: var(--card); color: var(--text); border: 1px solid var(--border);
-      border-radius: 8px; padding: 6px 8px;
+      border-radius: 10px; padding: 8px 10px; font: inherit;
     }
     .embed-frame {
       width: 100%; min-height: 520px; border: 1px solid var(--border);
-      border-radius: 12px; background: #000; margin-top: 12px;
+      border-radius: var(--radius); background: #000; margin-top: 12px;
+    }
+    .visual-shell {
+      display: flex; flex-direction: column; gap: 10px;
+      min-height: calc(100vh - 120px);
+    }
+    .visual-shell .pack-stage-card {
+      flex: 0 0 auto;
+    }
+    .visual-shell .pack-control-bar {
+      flex: 0 1 auto;
+      width: auto;
+      max-width: 100%;
+      justify-content: flex-start;
+    }
+    .visual-shell .pack-control-bar .pack-actions {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .visual-shell .embed-frame {
+      flex: 1 1 auto;
+      min-height: min(72vh, 820px);
+      margin-top: 0;
+      border-radius: 12px;
     }
     .warn { color: var(--warn); font-size: 0.85rem; }
-    @media (max-width: 800px) {
+    .pack-head {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+    }
+    .pack-head .ico {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center;
+      background: var(--accent-dim); color: var(--accent);
+    }
+    .pack-head .ico svg { width: 22px; height: 22px; }
+
+    /* Per-pack pipeline preview shell */
+    .pack-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: fadeUp .35s ease both;
+    }
+    .pack-stage-card {
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 2px);
+      background: linear-gradient(165deg, rgba(24, 36, 28, 0.95), rgba(10, 16, 13, 0.98));
+      overflow: hidden;
+    }
+    .pack-stage-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .pack-stage-title {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      min-width: min(100%, 240px);
+      flex: 1 1 220px;
+    }
+    .pack-stage-title > .ico {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-dim);
+      color: var(--accent);
+      flex: 0 0 44px;
+    }
+    .pack-stage-title > .ico svg {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 22px;
+    }
+    .pack-stage-title h2 {
+      margin: 0;
+      font-size: clamp(1.25rem, 2vw, 1.55rem);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+    .pack-stage-title .meta {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-family: var(--mono);
+    }
+    .pack-stage-title .insight {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      max-width: 52ch;
+    }
+    .pack-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .pack-status-pill[data-s="running"] {
+      color: var(--warn);
+      border-color: rgba(255,183,77,.4);
+      background: rgba(255,183,77,.08);
+    }
+    .pack-status-pill[data-s="pending_approval"] {
+      color: var(--warn);
+      border-color: rgba(255,183,77,.4);
+    }
+    .pack-status-pill[data-s="passed"],
+    .pack-status-pill[data-s="applied"] {
+      color: var(--accent);
+      border-color: rgba(93,217,122,.35);
+      background: var(--accent-dim);
+    }
+    .pack-status-pill[data-s="broken"],
+    .pack-status-pill[data-s="rejected"] {
+      color: var(--bad);
+      border-color: rgba(255,107,107,.4);
+    }
+    .pack-control-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 10px;
+      flex: 1 1 320px;
+      justify-content: flex-end;
+      min-width: 0;
+    }
+    .pack-control-bar .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 180px;
+      flex: 1 1 180px;
+      max-width: 280px;
+    }
+    .pack-control-bar .field label {
+      margin: 0;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .pack-control-bar select {
+      width: 100%;
+      padding: 9px 11px;
+    }
+    .pack-control-bar .pack-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+    }
+    .pipe-rail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      list-style: none;
+      margin: 0;
+      padding: 0 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .pipe-rail li {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px 6px;
+      flex: 1 1 100px;
+      min-width: 0;
+      color: var(--idle);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pipe-rail li .n {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .pipe-rail li .lbl { min-width: 0; }
+    .pipe-rail li .lbl b {
+      display: block;
+      color: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .pipe-rail li .lbl span {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.65rem;
+      opacity: 0.85;
+      text-transform: none;
+      letter-spacing: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pipe-rail li[data-s="done"] { color: var(--accent); }
+    .pipe-rail li[data-s="done"] .n {
+      border-color: rgba(93,217,122,.4);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .pipe-rail li[data-s="active"] { color: var(--warn); }
+    .pipe-rail li[data-s="active"] .n {
+      border-color: rgba(255,183,77,.45);
+      background: rgba(255,183,77,.1);
+      color: var(--warn);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .pipe-rail li[data-s="fail"] { color: var(--bad); }
+    .pipe-rail li[data-s="fail"] .n {
+      border-color: rgba(255,107,107,.45);
+      color: var(--bad);
+    }
+    .pack-stage-body {
+      padding: 12px 14px 14px;
+    }
+    .activity.cockpit {
+      grid-template-columns: 1.55fr 1fr;
+      grid-template-areas:
+        "now now"
+        "think plan"
+        "done plan";
+      gap: 10px;
+      margin: 0;
+    }
+    .activity.cockpit[data-no-planned="1"] {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "now done"
+        "think think";
+    }
+    .activity.cockpit .ap-now { grid-area: now; min-height: 0; }
+    .activity.cockpit .ap-think { grid-area: think; min-height: 200px; }
+    .activity.cockpit .ap-done { grid-area: done; min-height: 0; }
+    .activity.cockpit .ap-plan { grid-area: plan; min-height: 200px; }
+    .activity.cockpit .ap-think .body {
+      max-height: min(42vh, 360px);
+    }
+    .activity.cockpit .ap-plan .body {
+      max-height: min(32vh, 280px);
+    }
+    .activity.cockpit .now-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      white-space: normal;
+    }
+    .activity.cockpit .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      min-width: 110px;
+    }
+    .activity.cockpit .metric span {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    .activity.cockpit .metric strong {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .done-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      white-space: normal;
+    }
+    .done-chips .chip {
+      max-width: 100%;
+    }
+    .spin { animation: spin 0.9s linear infinite; transform-origin: center; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+    dialog.confirm-dlg {
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 4px);
+      padding: 0;
+      max-width: min(420px, calc(100vw - 32px));
+      width: 100%;
+      color: var(--text);
+      background: linear-gradient(160deg, rgba(24, 36, 28, 0.98), rgba(10, 16, 13, 0.98));
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(93, 217, 122, 0.08);
+    }
+    dialog.confirm-dlg::backdrop {
+      background: rgba(4, 8, 6, 0.72);
+      backdrop-filter: blur(4px);
+    }
+    dialog.confirm-dlg[open] {
+      animation: fadeUp 0.18s ease-out;
+    }
+    .confirm-dlg .cd-body { padding: 22px 22px 8px; }
+    .confirm-dlg .cd-ico {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: grid; place-items: center; margin-bottom: 12px;
+      background: rgba(255, 183, 77, 0.12);
+      color: var(--warn);
+      border: 1px solid rgba(255, 183, 77, 0.35);
+    }
+    .confirm-dlg .cd-ico svg { width: 20px; height: 20px; }
+    .confirm-dlg h3 {
+      margin: 0 0 8px; font-size: 1.1rem; letter-spacing: -0.02em;
+    }
+    .confirm-dlg p {
+      margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.45;
+    }
+    .confirm-dlg .cd-actions {
+      display: flex; justify-content: flex-end; gap: 8px;
+      padding: 16px 22px 20px;
+    }
+    .confirm-dlg .cd-actions button { min-width: 96px; }
+    .activity {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 12px 0 16px;
+    }
+    .activity-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+      padding: 12px 14px;
+      min-height: 120px;
+    }
+    .activity-panel h3 {
+      margin: 0 0 8px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .activity-panel .body {
+      font-size: 0.85rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      max-height: 220px;
+      overflow: auto;
+    }
+    .activity-panel .body.md h1,
+    .activity-panel .body.md h2,
+    .activity-panel .body.md h3 { font-size: 0.95rem; margin: 0.4em 0 0.2em; }
+    .activity-panel .body.md ul { margin: 0.3em 0; padding-left: 1.2em; }
+    .plan-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: start;
+      padding: 8px 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .plan-item:first-of-type { border-top: 0; }
+    .plan-item .risk-high { color: var(--bad); }
+    .plan-item .risk-medium { color: var(--warn); }
+    .activity-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .approval-queue {
+      border: 1px solid rgba(255,183,77,.35);
+      background: rgba(255,183,77,.06);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 10px 0;
+      font-size: 0.82rem;
+    }
+    .cursor-blink::after {
+      content: '▍';
+      animation: pulse 1s step-end infinite;
+      color: var(--accent);
+    }
+    @media (max-width: 960px) {
+      .activity { grid-template-columns: 1fr; }
+      .activity.cockpit,
+      .activity.cockpit[data-no-planned="1"] {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "now"
+          "think"
+          "done"
+          "plan";
+      }
+      .pack-control-bar { justify-content: flex-start; }
+      .pipe-rail li { flex: 1 1 45%; }
+    }
+    @media (max-width: 960px) {
       .layout { grid-template-columns: 1fr; }
-      nav { flex-direction: row; flex-wrap: wrap; }
+      nav {
+        position: static; max-height: none;
+        flex-direction: row; flex-wrap: wrap;
+      }
+      .hero { grid-template-columns: 1fr; }
+      .nav-sec { width: 100%; }
     }
   </style>
 </head>
 <body>
+  <div id="icon-host" hidden></div>
   <div class="layout">
     <nav id="nav"></nav>
     <main>
       <div class="hud" id="hud">Loading…</div>
       <div id="view"></div>
-      <pre id="log"></pre>
+      <details class="drawer" id="drawer">
+        <summary>Debug (raw JSON) <span class="dbg-hint">collapsed · click to expand</span></summary>
+        <pre id="log"></pre>
+      </details>
     </main>
   </div>
+  <dialog id="confirmDlg" class="confirm-dlg" aria-labelledby="confirmTitle" aria-describedby="confirmMsg">
+    <form method="dialog" id="confirmForm">
+      <div class="cd-body">
+        <div class="cd-ico" id="confirmIco" aria-hidden="true"></div>
+        <h3 id="confirmTitle">Confirm</h3>
+        <p id="confirmMsg"></p>
+      </div>
+      <div class="cd-actions">
+        <button type="submit" value="cancel" class="btn" id="confirmCancel">Cancel</button>
+        <button type="submit" value="ok" class="btn primary" id="confirmOk">Continue</button>
+      </div>
+    </form>
+  </dialog>
   <script type="module">
     import { createAgenticClient } from '/dev/agentic/lib/agentic-api-client.js';
 
@@ -95,39 +773,587 @@
       'design','planning','i18n','rtl','a11y','seo','privacy','security',
       'deps','migration','changelog','wikisync','image','bootllm','perf','visual'
     ];
-    const VIEWS = ['overview','run-all', ...PACKS, 'models', 'settings'];
+    const NAV = [
+      { id: 'overview', group: 'Control' },
+      { id: 'run-all', group: 'Control' },
+      ...PACKS.map((id) => ({ id, group: 'Packs' })),
+      { id: 'models', group: 'System' },
+      { id: 'settings', group: 'System' },
+    ];
 
     let catalog = null;
     let state = { view: 'overview' };
+    let lastRunState = null;
+    let runAllPoll = null;
+    let runAllPollMs = 2500;
+    let lastTimelineFp = '';
+    let lastHudOk = '';
+    let lastHudAt = 0;
+    let pollNote = '';
+    let lastDebugCollapseView = null;
 
+    const icon = (name, cls = '') =>
+      `<svg class="ico-svg ${cls}" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-${name}"></use></svg>`;
+
+    function syncDebugHint() {
+      const d = document.getElementById('drawer');
+      const hint = d?.querySelector('.dbg-hint');
+      if (!hint) return;
+      hint.textContent = d.open ? 'click to collapse' : 'collapsed · click to expand';
+    }
+
+    function collapseDebugDrawer() {
+      const d = document.getElementById('drawer');
+      if (d) d.open = false;
+      syncDebugHint();
+    }
+
+    function openDebugDrawer() {
+      const d = document.getElementById('drawer');
+      if (d) d.open = true;
+      syncDebugHint();
+    }
+
+    /** Write raw JSON into the debug drawer without auto-expanding it. */
     function log(x) {
-      document.getElementById('log').textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2);
+      const el = document.getElementById('log');
+      if (el) el.textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2);
+    }
+
+    function runStateFingerprint(runState) {
+      if (!runState) return 'idle';
+      const results = runState.results || {};
+      const keys = Object.keys(results).sort();
+      const resultBits = keys.map((k) => `${k}:${results[k]?.ok ? 1 : 0}`).join(',');
+      return [
+        runState.status || '',
+        runState.dryRun ? 'd' : 'l',
+        runState.currentPack || '',
+        runState.stepIndex ?? '',
+        (runState.order || []).join('|'),
+        (runState.skip || []).join('|'),
+        resultBits,
+      ].join('::');
+    }
+
+    /** In-app confirm (replaces window.confirm). Resolves true/false. */
+    function uiConfirm({
+      title = 'Confirm',
+      message = '',
+      okLabel = 'Continue',
+      cancelLabel = 'Cancel',
+      iconName = 'run-all',
+    } = {}) {
+      const dlg = document.getElementById('confirmDlg');
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMsg').textContent = message;
+      document.getElementById('confirmOk').textContent = okLabel;
+      document.getElementById('confirmCancel').textContent = cancelLabel;
+      document.getElementById('confirmIco').innerHTML = icon(iconName);
+      return new Promise((resolve) => {
+        const onClose = () => {
+          dlg.removeEventListener('close', onClose);
+          resolve(dlg.returnValue === 'ok');
+        };
+        dlg.addEventListener('close', onClose);
+        if (typeof dlg.showModal === 'function') dlg.showModal();
+        else {
+          /* rare fallback */
+          resolve(window.confirm(`${title}\n\n${message}`));
+        }
+        queueMicrotask(() => document.getElementById('confirmOk').focus());
+      });
+    }
+
+    function stopRunAllPoll() {
+      if (runAllPoll) { clearInterval(runAllPoll); runAllPoll = null; }
+    }
+
+    function stepStatus(packId, runState) {
+      if (!runState) return 'pending';
+      const skip = new Set(runState.skip || []);
+      if (skip.has(packId)) return 'skipped';
+      const r = (runState.results || {})[packId];
+      if (r) {
+        if (r.needsApproval || r.approvalState === 'pending') return 'running';
+        return r.ok ? 'passed' : 'broken';
+      }
+      if (runState.currentPack === packId && (runState.status === 'running' || runState.status === 'paused')) {
+        return 'running';
+      }
+      if (runState.status === 'running' || runState.status === 'paused') {
+        const order = runState.order || PACKS;
+        const idx = order.indexOf(packId);
+        if (idx >= 0 && idx < (runState.stepIndex || 0)) return 'passed';
+      }
+      return 'pending';
+    }
+
+    function statusBadge(s) {
+      if (s === 'passed') return `<span class="badge">${icon('check')} passed</span>`;
+      if (s === 'broken') return `<span class="badge">${icon('x')} broken</span>`;
+      if (s === 'running') return `<span class="badge">${icon('spin', 'spin')} running</span>`;
+      if (s === 'skipped') return `<span class="badge">skipped</span>`;
+      if (s === 'pending_approval') return `<span class="badge">${icon('pause')} needs approval</span>`;
+      return `<span class="badge">${icon('dot')} pending</span>`;
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      })[c]);
+    }
+
+    function renderMd(text) {
+      const raw = String(text || '');
+      const escaped = escapeHtml(raw)
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/^\- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`)
+        .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+      return escaped;
+    }
+
+    /** Derive Gates → LLM → Proposal → Approve rail states for a pack. */
+    function pipeRailHtml(act, opts = {}) {
+      const now = act?.now || {};
+      const status = now.status || 'idle';
+      const stage = String(now.stage || '');
+      const doneGates = (act?.done || []).filter((d) => d.status === 'pass' || d.status === 'skipped-dry-run');
+      const plannedItems = act?.planned?.items || [];
+      const hideApprove = opts.hidePlanned === true || act?.pack === 'visual' || opts.pack === 'visual';
+
+      const running = status === 'running';
+      const broken = status === 'broken';
+      const pending = status === 'pending_approval';
+      const finishedOk = status === 'passed' || status === 'applied' || status === 'dry_run';
+      const rejected = status === 'rejected';
+
+      const gateS = broken && /gate/i.test(stage)
+        ? 'fail'
+        : (doneGates.length || stage === 'llm' || pending || finishedOk || rejected)
+          ? 'done'
+          : (running && (!stage || stage === 'gates' || stage === 'check' || stage === 'default'))
+            ? 'active'
+            : 'idle';
+      const llmS = broken && stage === 'llm'
+        ? 'fail'
+        : (stage === 'llm' && running)
+          ? 'active'
+          : (pending || finishedOk || rejected || stage === 'pending_approval' || stage === 'post')
+            ? 'done'
+            : 'idle';
+      const propS = pending
+        ? 'active'
+        : (finishedOk || rejected || (plannedItems.length && !running))
+          ? 'done'
+          : (running && stage === 'post')
+            ? 'active'
+            : 'idle';
+      const apprS = hideApprove
+        ? (finishedOk ? 'done' : 'idle')
+        : status === 'applied'
+          ? 'done'
+          : rejected
+            ? 'fail'
+            : pending
+              ? 'active'
+              : 'idle';
+
+      const steps = [
+        { n: '1', title: 'Gates', sub: gateS === 'done' ? `${doneGates.length || 'ok'}` : (gateS === 'active' ? 'running' : 'wait'), s: gateS },
+        { n: '2', title: 'LLM', sub: now.model || (llmS === 'active' ? 'streaming' : 'advisory'), s: llmS },
+        { n: '3', title: 'Proposal', sub: plannedItems.length ? `${plannedItems.length} item(s)` : (propS === 'active' ? 'building' : '—'), s: propS },
+      ];
+      if (!hideApprove) {
+        steps.push({
+          n: '4',
+          title: 'Approve',
+          sub: pending ? 'needs you' : (status === 'applied' ? 'applied' : (rejected ? 'rejected' : 'gated')),
+          s: apprS,
+        });
+      } else {
+        steps.push({ n: '4', title: 'Live QA', sub: 'polish HUD', s: finishedOk ? 'done' : (running ? 'active' : 'idle') });
+      }
+
+      return `<ol class="pipe-rail" aria-label="Pack pipeline stages">
+        ${steps.map((st) => `
+          <li data-s="${st.s}">
+            <span class="n">${st.n}</span>
+            <span class="lbl"><b>${st.title}</b><span>${escapeHtml(st.sub)}</span></span>
+          </li>`).join('')}
+      </ol>`;
+    }
+
+    function activityHtml(act, opts = {}) {
+      const cockpit = opts.layout === 'cockpit';
+      if (!act) {
+        return `<div class="activity${cockpit ? ' cockpit' : ''}" id="activityRoot"><div class="activity-panel ap-now"><h3>Now</h3><div class="body">No activity yet</div></div></div>`;
+      }
+      const now = act.now || {};
+      const thinking = act.thinking || {};
+      const done = act.done || [];
+      const planned = act.planned || {};
+      const items = planned.items || [];
+      // Visual apply is QA-gated in Live polish — no Planned approve/reject row on that tab.
+      const hidePlanned = opts.hidePlanned === true
+        || act.pack === 'visual'
+        || opts.pack === 'visual';
+      const fill = thinking.fillProgress;
+      const ctx = thinking.context;
+      const ctxChip = ctx?.filesUsed?.length
+        ? `<div class="chip" style="margin-bottom:0.5rem" title="${escapeHtml((ctx.filesUsed || []).join('\n'))}">repo context · ${ctx.filesUsed.length} files · ${ctx.charCount || 0} chars</div>`
+        : '';
+      const thinkText = fill
+        ? `Filling ${fill.locale || '…'} · ${fill.done || 0}/${fill.total || 0}`
+          + (fill.sampleTranslation ? `\n\n${fill.lastKey}: ${fill.sampleTranslation}` : '')
+          + (thinking.text ? `\n\n${thinking.text}` : '')
+        : (thinking.text || '—');
+      const plannedPanel = hidePlanned ? '' : `
+          <div class="activity-panel ap-plan">
+            <h3>Planned · ${escapeHtml(planned.summary || '')}</h3>
+            <div class="body" style="white-space:normal;max-height:280px" id="plannedBody">
+              ${items.length ? items.map((it) => `
+                <label class="plan-item">
+                  <input type="checkbox" data-item="${escapeHtml(it.id)}" ${it.selected !== false ? 'checked' : ''}
+                    ${it.kind === 'deps_bump' ? '' : ''} />
+                  <span>
+                    <strong>${escapeHtml(it.title)}</strong>
+                    <div style="color:var(--muted);font-size:0.75rem">${escapeHtml((it.detail || '').slice(0, 180))}</div>
+                  </span>
+                  <span class="risk-${escapeHtml(it.risk || 'low')}">${escapeHtml(it.risk || 'low')}</span>
+                </label>`).join('') : '<div class="chip">No proposal items yet — run Dry-run or Live</div>'}
+            </div>
+            <div class="activity-actions">
+              <label class="chip"><input type="checkbox" id="optConfirmWrite" /> confirm product write</label>
+              <label class="chip"><input type="checkbox" id="optAllowBump" /> allow dep bump</label>
+              <label class="chip"><input type="checkbox" id="optGitCommit" /> git commit</label>
+              <button class="btn primary" id="btnApprove">${icon('check')} Approve selected</button>
+              <button class="btn" id="btnReject">${icon('x')} Reject</button>
+            </div>
+          </div>`;
+
+      const nowBody = cockpit
+        ? `<div class="body now-metrics">
+            <div class="metric"><span>Status</span><strong>${escapeHtml(now.status || 'idle')}</strong></div>
+            <div class="metric"><span>Stage</span><strong>${escapeHtml(now.stage || '—')}</strong></div>
+            <div class="metric"><span>Model</span><strong>${escapeHtml(now.model || 'none')}</strong></div>
+            ${now.needsApproval && !hidePlanned ? '<div class="metric"><span>Gate</span><strong style="color:var(--warn)">needs approval</strong></div>' : ''}
+            ${now.dryRun ? '<div class="metric"><span>Mode</span><strong>dry-run</strong></div>' : ''}
+          </div>`
+        : `<div class="body">
+              Status <strong>${escapeHtml(now.status || 'idle')}</strong>
+              · stage ${escapeHtml(now.stage || '—')}
+              · ${escapeHtml(now.model || 'no model')}
+              ${now.needsApproval && !hidePlanned ? '<br><span class="chip warn-chip">needs approval</span>' : ''}
+            </div>`;
+
+      const doneBody = cockpit
+        ? `<div class="body done-chips">${done.length
+          ? done.map((d) => `<span class="chip">${escapeHtml(d.label)} · ${escapeHtml(d.status)}</span>`).join('')
+          : '<span class="chip">No gates finished yet</span>'}</div>`
+        : `<div class="body">${done.length
+          ? done.map((d) => `• ${escapeHtml(d.label)} · ${escapeHtml(d.status)}`).join('\n')
+          : '—'}</div>`;
+
+      return `
+        <div class="activity${cockpit ? ' cockpit' : ''}" id="activityRoot"${hidePlanned ? ' data-no-planned="1"' : ''}>
+          <div class="activity-panel ap-now">
+            <h3>Now</h3>
+            ${nowBody}
+          </div>
+          <div class="activity-panel ap-think">
+            <h3>Thinking ${thinking.streaming ? '<span class="cursor-blink"></span>' : ''}</h3>
+            ${ctxChip}
+            <div class="body md" id="thinkingBody">${renderMd(thinkText)}</div>
+          </div>
+          <div class="activity-panel ap-done">
+            <h3>Done</h3>
+            ${doneBody}
+          </div>
+          ${plannedPanel}
+        </div>`;
+    }
+
+    function packInsight(pack) {
+      if (pack === 'i18n') return 'TranslateGemma propose-dir → Approve (+ confirm) → merge Tier-C';
+      if (pack === 'deps') return 'Bumps require allowDependencyBump + confirm — never silent';
+      if (pack === 'security') return 'Ack only — CSP/header edits refused';
+      if (pack === 'visual') return 'Live polish HUD owns model pick + QA-gated apply';
+      if (pack === 'changelog') return 'Draft bullets from git + Unreleased · promote on Approve';
+      return 'Review Thinking + Planned · Approve before product writes';
+    }
+
+    function selectedItemIds() {
+      return [...document.querySelectorAll('#plannedBody input[data-item]:checked')]
+        .map((el) => el.dataset.item);
+    }
+
+    async function wireActivityActions(pack) {
+      const approve = document.getElementById('btnApprove');
+      const reject = document.getElementById('btnReject');
+      if (!approve || !reject) return;
+      approve.onclick = async () => {
+        try {
+          const data = await client.approvePack(pack, {
+            itemIds: selectedItemIds(),
+            confirmProductWrite: document.getElementById('optConfirmWrite')?.checked,
+            allowDependencyBump: document.getElementById('optAllowBump')?.checked,
+            gitCommitOnApprove: document.getElementById('optGitCommit')?.checked,
+          });
+          log(data);
+          await render();
+        } catch (e) { log(e.envelope || e.message); }
+      };
+      reject.onclick = async () => {
+        try {
+          log(await client.rejectPack(pack, {}));
+          await render();
+        } catch (e) { log(e.envelope || e.message); }
+      };
+    }
+
+    let activityPoll = null;
+    function stopActivityPoll() {
+      if (activityPoll) { clearInterval(activityPoll); activityPoll = null; }
+    }
+    function startActivityPoll(pack) {
+      stopActivityPoll();
+      activityPoll = setInterval(async () => {
+        try {
+          const act = await client.getPackActivity(pack);
+          const root = document.getElementById('activityRoot');
+          if (!root) return;
+          const stream = await client.getPackStream(pack).catch(() => null);
+          if (stream && document.getElementById('thinkingBody')) {
+            const fill = stream.fillProgress;
+            const text = fill
+              ? `Filling ${fill.locale || '…'} · ${fill.done || 0}/${fill.total || 0}`
+                + (fill.sampleTranslation ? `\n\n${fill.lastKey}: ${fill.sampleTranslation}` : '')
+              : (stream.text || act.thinking?.text || '');
+            document.getElementById('thinkingBody').innerHTML = renderMd(text);
+          }
+          const rail = document.querySelector('.pack-stage .pipe-rail');
+          if (rail) {
+            const next = pipeRailHtml(act, { pack, hidePlanned: pack === 'visual' });
+            const tmp = document.createElement('div');
+            tmp.innerHTML = next;
+            if (tmp.firstElementChild) rail.replaceWith(tmp.firstElementChild);
+          }
+          const pill = document.querySelector('.pack-stage .pack-status-pill');
+          if (pill && act.now?.status) {
+            pill.dataset.s = act.now.status;
+            pill.innerHTML = `${icon('dot')} ${escapeHtml(act.now.status)}`;
+          }
+          const nowPanel = root.querySelector('.ap-now .now-metrics');
+          if (nowPanel && act.now) {
+            const n = act.now;
+            nowPanel.innerHTML = `
+              <div class="metric"><span>Status</span><strong>${escapeHtml(n.status || 'idle')}</strong></div>
+              <div class="metric"><span>Stage</span><strong>${escapeHtml(n.stage || '—')}</strong></div>
+              <div class="metric"><span>Model</span><strong>${escapeHtml(n.model || 'none')}</strong></div>
+              ${n.needsApproval && pack !== 'visual' ? '<div class="metric"><span>Gate</span><strong style="color:var(--warn)">needs approval</strong></div>' : ''}
+              ${n.dryRun ? '<div class="metric"><span>Mode</span><strong>dry-run</strong></div>' : ''}`;
+          }
+          if (act.now && (act.now.status === 'pending_approval' || act.now.status === 'applied' || act.now.status === 'rejected' || act.now.status === 'passed' || act.now.status === 'broken')) {
+            if (act.now.status !== 'running') {
+              stopActivityPoll();
+              // One full refresh so Planned / Done panels catch up after the run.
+              if (state.view === pack) render();
+            }
+          }
+        } catch { /* quiet */ }
+      }, 400);
+    }
+
+    function progressPct(runState) {
+      if (!runState) return 0;
+      const total = (runState.order || PACKS).length || 16;
+      const done = Object.keys(runState.results || {}).length;
+      return Math.round((done / total) * 100);
+    }
+
+    function paintProgress(runState, order, pct) {
+      const prog = document.getElementById('progress');
+      if (!prog) return;
+      const done = Object.keys(runState?.results || {}).length;
+      const total = order.length;
+      const cur = runState?.currentPack || '—';
+      const mode = runState?.dryRun ? 'dry-run' : (runState ? 'live' : '—');
+      const st = runState?.status || 'idle';
+      const note = pollNote
+        ? `<span class="chip warn-chip" style="margin-left:8px">${icon('x')} ${pollNote}</span>`
+        : '';
+      prog.innerHTML = `
+        <div class="progress-top">
+          <span>Status <strong>${st}</strong> · ${mode}${note}</span>
+          <span><strong>${Math.min(done, total)}</strong> / ${total} · ${cur}</span>
+        </div>
+        <div class="bar"><i style="width:${pct}%"></i></div>`;
+    }
+
+    function paintTimeline(runState, { force = false } = {}) {
+      lastRunState = runState;
+      const tl = document.getElementById('tl');
+      const ring = document.getElementById('ring');
+      const order = (runState && runState.order && runState.order.length)
+        ? runState.order
+        : (catalog?.runAllOrder || PACKS);
+      const pct = progressPct(runState);
+      const fp = runStateFingerprint(runState) + '|' + pollNote;
+      const changed = force || fp !== lastTimelineFp;
+      if (!changed) return;
+      lastTimelineFp = fp;
+
+      paintProgress(runState, order, pct);
+
+      if (tl) {
+        const firstPaint = !tl.querySelector('.step');
+        tl.innerHTML = order.map((p, i) => {
+          const s = stepStatus(p, runState);
+          const enter = firstPaint ? ' step-enter' : '';
+          const delay = firstPaint ? ` style="animation-delay:${i * 18}ms"` : '';
+          return `<div class="step${enter}" data-pack="${p}" data-s="${s}"${delay}>
+            <span class="n">${i + 1}</span>
+            <span class="meta">${icon(p)}<code>${p}</code></span>
+            ${statusBadge(s)}
+          </div>`;
+        }).join('');
+      }
+
+      if (ring) {
+        ring.style.setProperty('--pct', String(pct));
+        const b = ring.querySelector('b');
+        const sub = ring.querySelector('[data-sub]');
+        if (b) b.textContent = `${pct}%`;
+        if (sub) sub.textContent = runState?.status || 'idle';
+      }
+
+      document.querySelectorAll('nav button[data-v]').forEach((b) => {
+        const id = b.dataset.v;
+        if (PACKS.includes(id)) b.dataset.s = stepStatus(id, runState);
+      });
+    }
+
+    function setRunAllBusy(busy) {
+      ['go', 'live'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = busy;
+      });
+    }
+
+    async function refreshRunAllTimeline() {
+      try {
+        const st = await client.getRunAllStatus();
+        if (pollNote) {
+          pollNote = '';
+          runAllPollMs = 2500;
+        }
+        paintTimeline(st);
+        /* avoid rewriting the drawer every tick — only when status changes */
+        const fp = runStateFingerprint(st);
+        if (fp !== refreshRunAllTimeline._loggedFp) {
+          refreshRunAllTimeline._loggedFp = fp;
+          log(st);
+        }
+        if (st && (st.status === 'running' || st.status === 'paused')) {
+          setRunAllBusy(true);
+          return true;
+        }
+        setRunAllBusy(false);
+        stopRunAllPoll();
+        return false;
+      } catch (e) {
+        const code = e.code || e.envelope?.error?.code;
+        const msg = e.message || 'poll failed';
+        if (code === 429 || /rate limited/i.test(msg)) {
+          pollNote = 'polling backed off · rate limited';
+          runAllPollMs = Math.min(12000, Math.max(5000, runAllPollMs * 2));
+          startRunAllPoll();
+          paintTimeline(lastRunState, { force: true });
+        } else {
+          pollNote = msg;
+          paintTimeline(lastRunState, { force: true });
+          log(e.envelope || msg);
+        }
+        return !!(lastRunState && (lastRunState.status === 'running' || lastRunState.status === 'paused'));
+      }
+    }
+
+    function startRunAllPoll() {
+      stopRunAllPoll();
+      runAllPoll = setInterval(() => { refreshRunAllTimeline(); }, runAllPollMs);
     }
 
     function renderNav() {
       const nav = document.getElementById('nav');
-      nav.innerHTML = '<h1>Rianell Agentic</h1>' + VIEWS.map((v) =>
-        `<button data-v="${v}" class="${state.view===v?'active':''}">${v}</button>`
-      ).join('');
-      nav.querySelectorAll('button').forEach((b) => b.onclick = () => {
-        state.view = b.dataset.v; render();
+      let html = `<div class="brand">
+        <div class="brand-mark">${icon('run-all')}</div>
+        <div><strong>Rianell</strong><span>Agentic harness</span></div>
+      </div>`;
+      let group = '';
+      for (const item of NAV) {
+        if (item.group !== group) {
+          group = item.group;
+          html += `<div class="nav-sec">${group}</div>`;
+        }
+        const s = PACKS.includes(item.id) ? stepStatus(item.id, lastRunState) : '';
+        html += `<button data-v="${item.id}" data-s="${s}" class="${state.view === item.id ? 'active' : ''}">
+          ${icon(item.id)}
+          <span>${item.id}</span>
+          ${PACKS.includes(item.id) ? '<span class="dot"></span>' : ''}
+        </button>`;
+      }
+      nav.innerHTML = html;
+      nav.querySelectorAll('button').forEach((b) => {
+        b.onclick = () => { state.view = b.dataset.v; render(); };
       });
     }
 
-    async function refreshHud() {
+    async function refreshHud({ force = false } = {}) {
+      const hud = document.getElementById('hud');
+      const now = Date.now();
+      if (!force && lastHudOk && now - lastHudAt < 15000) {
+        if (pollNote) {
+          hud.innerHTML = lastHudOk +
+            `<span class="chip warn-chip">${icon('x')} ${pollNote}</span>`;
+        } else {
+          hud.innerHTML = lastHudOk;
+        }
+        return;
+      }
       try {
         const [health, gpus] = await Promise.all([
           client.getHealth(),
           client.getGpus().catch(() => null),
         ]);
         const profile = gpus?.profile || 'unknown';
-        document.getElementById('hud').innerHTML =
-          `<span>API <strong>ok</strong></span>` +
-          `<span>packs <strong>${(health.packs||PACKS).length}</strong></span>` +
-          `<span>profile <strong>${profile}</strong></span>` +
-          `<span>safe client</span>`;
+        // localhost / 127.* / ::1 (page + API peer) → safe client
+        const safe = client.safeClient === true && health.safeClient !== false;
+        const safeChip = safe
+          ? `<span class="chip">${icon('check')}<strong>safe client</strong> · localhost</span>`
+          : `<span class="chip bad-chip">${icon('security')} unsafe host</span>`;
+        lastHudOk =
+          `<span class="chip">${icon('check')}<strong>API</strong> ok</span>` +
+          `<span class="chip">${icon('overview')} packs <strong>${(health.packs || PACKS).length}</strong></span>` +
+          `<span class="chip">${icon('models')} <strong>${profile}</strong></span>` +
+          safeChip;
+        lastHudAt = now;
+        hud.innerHTML = lastHudOk + (pollNote
+          ? `<span class="chip warn-chip">${icon('x')} ${pollNote}</span>`
+          : '');
       } catch (e) {
-        document.getElementById('hud').innerHTML = `<span style="color:var(--bad)">API error: ${e.message}</span>`;
+        const msg = e.message || 'API error';
+        if (lastHudOk && (e.code === 429 || /rate limited/i.test(msg))) {
+          hud.innerHTML = lastHudOk +
+            `<span class="chip warn-chip">${icon('x')} rate limited · retrying calmly</span>`;
+          return;
+        }
+        hud.innerHTML =
+          `<span class="chip bad-chip">${icon('x')} ${msg}</span>`;
       }
     }
 
@@ -135,93 +1361,274 @@
       return catalog?.packs?.[id]?.recommended || '—';
     }
 
+    function paintOverviewGrid(runState) {
+      const grid = document.getElementById('packGrid');
+      if (!grid) return;
+      grid.innerHTML = PACKS.map((p, i) => {
+        const s = stepStatus(p, runState);
+        return `<button class="pack-tile" data-s="${s}" data-pack="${p}" style="animation-delay:${i * 20}ms">
+          <div class="ico">${icon(p)}</div>
+          <div class="status-row"><strong>${p}</strong>${statusBadge(s)}</div>
+          <small>${packRecommended(p)}</small>
+        </button>`;
+      }).join('');
+      grid.querySelectorAll('.pack-tile').forEach((el) => {
+        el.onclick = () => { state.view = el.dataset.pack; render(); };
+      });
+    }
+
     async function render() {
       renderNav();
       await refreshHud();
+      // Collapse debug on view change; stay collapsed by default (log never auto-opens).
+      if (lastDebugCollapseView !== state.view) {
+        collapseDebugDrawer();
+        lastDebugCollapseView = state.view;
+      }
       if (!catalog) {
         try { catalog = await client.getCatalog(); } catch (e) { log(e); }
       }
       const view = document.getElementById('view');
+
       if (state.view === 'overview') {
+        stopActivityPoll();
+        const pct = progressPct(lastRunState);
+        let runAct = null;
+        try { runAct = await client.getRunAllActivity(); } catch { /* */ }
+        const queue = runAct?.approvalQueue || [];
         view.innerHTML = `
           <section class="hero">
-            <h2>Rianell Agentic Harness</h2>
-            <p>Local loopback control plane for sixteen pipelines. Recommended models load by default. Product apply stays deferred.</p>
+            <div class="hero-copy">
+              <h2>Pipeline cockpit</h2>
+              <p>Sixteen local packs. Nothing product-applies without Approve (or explicit auto-approve).</p>
+              <div class="actions">
+                <button class="primary" id="btnRunAll">${icon('play')} Dry-run all</button>
+                <button id="btnLive">${icon('run-all')} Open run-all</button>
+                <button id="btnStatus">${icon('spin')} Refresh</button>
+                <button id="btnClearAll">${icon('x')} Clear all + unload</button>
+              </div>
+            </div>
+            <div class="ring-card">
+              <div class="ring" id="ring" style="--pct:${pct}">
+                <div class="ring-inner"><b>${pct}%</b><span data-sub>${lastRunState?.status || 'idle'}</span></div>
+              </div>
+              <div style="color:var(--muted);font-size:0.78rem">Last run-all progress</div>
+            </div>
           </section>
-          <div class="actions">
-            <button class="primary" id="btnRunAll">Run all pipelines (dry-run)</button>
-            <button id="btnStatus">Refresh status</button>
-            <button id="btnCatalog">Show catalog</button>
-          </div>`;
+          ${queue.length ? `<div class="approval-queue"><strong>Approval queue (${queue.length})</strong> · ${queue.map((q) => escapeHtml(q.pack)).join(', ')}</div>` : ''}
+          <div id="overviewActivity">${activityHtml(runAct?.currentActivity)}</div>
+          <div class="pack-grid" id="packGrid"></div>`;
+        paintOverviewGrid(lastRunState);
         document.getElementById('btnRunAll').onclick = async () => {
-          try { log(await client.runAll({ dryRun: true, stopOnBroken: true })); }
-          catch (e) { log(e.envelope || e.message); }
+          try {
+            const result = await client.runAll({ dryRun: true, background: false, stopOnBroken: true });
+            log(result);
+            paintTimeline(result);
+            paintOverviewGrid(result);
+            state.view = 'run-all';
+            await render();
+            paintTimeline(result);
+          } catch (e) { log(e.envelope || e.message); }
         };
+        document.getElementById('btnLive').onclick = () => { state.view = 'run-all'; render(); };
         document.getElementById('btnStatus').onclick = async () => {
-          try { log(await client.getStatus()); } catch (e) { log(e.message); }
+          try {
+            const st = await client.getRunAllStatus();
+            paintTimeline(st);
+            paintOverviewGrid(st);
+            log(st);
+            await render();
+          } catch (e) { log(e.message); }
         };
-        document.getElementById('btnCatalog').onclick = () => log(catalog);
+        document.getElementById('btnClearAll').onclick = async () => {
+          const ok = await uiConfirm({
+            title: 'Clear all + unload models?',
+            message: 'Resets pack/run-all progress and proposals, then unloads every model in Ollama VRAM. Approval log and approved/ archives are kept.',
+            okLabel: 'Clear + unload',
+            cancelLabel: 'Cancel',
+            iconName: 'x',
+          });
+          if (!ok) return;
+          try {
+            stopRunAllPoll();
+            stopActivityPoll();
+            lastRunState = null;
+            const result = await client.clearAll();
+            log(result);
+            await render();
+          } catch (e) { log(e.envelope || e.message); }
+        };
         return;
       }
+
       if (state.view === 'run-all') {
+        let runAct = null;
+        try { runAct = await client.getRunAllActivity(); } catch { /* */ }
+        const queue = runAct?.approvalQueue || [];
         view.innerHTML = `
-          <h2>Run-all</h2>
-          <p style="color:var(--muted)">Chronological: design → … → visual. Always serial; unload between packs.</p>
-          <div class="actions">
-            <button class="primary" id="go">Start dry-run</button>
-            <button id="live" title="Runs real gates; may take a long time">Start live</button>
-            <button id="pause">Pause</button>
-            <button id="resume">Resume</button>
-            <button id="cancel">Cancel</button>
-            <button id="st">Status</button>
+          <div class="pack-head">
+            <div class="ico">${icon('run-all')}</div>
+            <div>
+              <h2 style="margin:0">Run-all</h2>
+              <p style="margin:4px 0 0;color:var(--muted);font-size:0.85rem">Serial chain · unload between packs · async approval queue</p>
+            </div>
           </div>
+          <div class="progress" id="progress"></div>
+          <div class="actions">
+            <button class="primary" id="go">${icon('play')} Dry-run</button>
+            <button id="live">${icon('run-all')} Start live</button>
+            <button id="pause">${icon('pause')} Pause</button>
+            <button id="resume">${icon('play')} Resume</button>
+            <button id="cancel">${icon('x')} Cancel</button>
+            <button id="st">${icon('spin')} Status</button>
+            <button id="clearAll">${icon('x')} Clear all + unload</button>
+          </div>
+          ${queue.length ? `<div class="approval-queue"><strong>Needs approval</strong> · ${queue.map((q) => `<button class="btn" data-goto="${escapeHtml(q.pack)}">${escapeHtml(q.pack)}</button>`).join(' ')}</div>` : ''}
+          <div id="runAllActivity">${activityHtml(runAct?.currentActivity)}</div>
           <div class="timeline" id="tl"></div>`;
-        const tl = document.getElementById('tl');
-        const order = catalog?.runAllOrder || PACKS;
-        tl.innerHTML = order.map((p, i) =>
-          `<div class="step" data-s="pending"><span>${i+1}</span><code>${p}</code><span>${packRecommended(p)}</span></div>`
-        ).join('');
+        paintTimeline(lastRunState);
+        refreshRunAllTimeline();
+        document.querySelectorAll('[data-goto]').forEach((b) => {
+          b.onclick = () => { state.view = b.dataset.goto; render(); };
+        });
+        if (runAct?.currentActivity?.pack) {
+          wireActivityActions(runAct.currentActivity.pack);
+        }
         document.getElementById('go').onclick = async () => {
-          try { log(await client.runAll({ dryRun: true })); } catch (e) { log(e.envelope || e.message); }
+          setRunAllBusy(true);
+          try {
+            const result = await client.runAll({ dryRun: true, background: false });
+            paintTimeline(result);
+            log(result);
+          } catch (e) {
+            log(e.envelope || e.message);
+          } finally {
+            setRunAllBusy(false);
+          }
         };
         document.getElementById('live').onclick = async () => {
-          if (!confirm('Run live gates for all packs? This can take a long time.')) return;
-          try { log(await client.runAll({ dryRun: false })); } catch (e) { log(e.envelope || e.message); }
+          const prefs = await client.getMode().catch(() => ({}));
+          const ok = await uiConfirm({
+            title: 'Start live run-all?',
+            message: `Live gates for all packs. autoApprove=${prefs.autoApprove || false} (${prefs.autoApproveMode || 'ack'}). Product writes stay off unless you enabled product-write + confirm in Settings.`,
+            okLabel: 'Start live',
+            cancelLabel: 'Cancel',
+            iconName: 'run-all',
+          });
+          if (!ok) return;
+          setRunAllBusy(true);
+          try {
+            const result = await client.runAll({
+              dryRun: false,
+              background: true,
+              autoApprove: Boolean(prefs.autoApprove),
+              autoApproveMode: prefs.autoApproveMode || 'ack',
+              confirmProductWrite: Boolean(prefs.confirmProductWrite),
+              allowDependencyBump: Boolean(prefs.allowDependencyBump),
+              gitCommitOnApprove: Boolean(prefs.gitCommitOnApprove),
+            });
+            paintTimeline(result);
+            log(result);
+            startRunAllPoll();
+            await refreshRunAllTimeline();
+          } catch (e) {
+            log(e.envelope || e.message);
+            setRunAllBusy(false);
+          }
         };
         document.getElementById('pause').onclick = async () => {
-          try { log(await client.pauseRunAll()); } catch (e) { log(e.message); }
+          try { log(await client.pauseRunAll()); await refreshRunAllTimeline(); }
+          catch (e) { log(e.message); }
         };
         document.getElementById('resume').onclick = async () => {
-          try { log(await client.resumeRunAll()); } catch (e) { log(e.message); }
+          try {
+            log(await client.resumeRunAll());
+            startRunAllPoll();
+            await refreshRunAllTimeline();
+          } catch (e) { log(e.message); }
         };
         document.getElementById('cancel').onclick = async () => {
-          try { log(await client.cancelRunAll()); } catch (e) { log(e.message); }
+          try {
+            log(await client.cancelRunAll());
+            await refreshRunAllTimeline();
+            stopRunAllPoll();
+            setRunAllBusy(false);
+          } catch (e) { log(e.message); }
         };
-        document.getElementById('st').onclick = async () => {
-          try { log(await client.getRunAllStatus()); } catch (e) { log(e.message); }
+        document.getElementById('st').onclick = () => refreshRunAllTimeline();
+        document.getElementById('clearAll').onclick = async () => {
+          const ok = await uiConfirm({
+            title: 'Clear all + unload models?',
+            message: 'Resets pack/run-all progress and proposals, then unloads every model in Ollama VRAM. Approval log and approved/ archives are kept.',
+            okLabel: 'Clear + unload',
+            cancelLabel: 'Cancel',
+            iconName: 'x',
+          });
+          if (!ok) return;
+          try {
+            stopRunAllPoll();
+            stopActivityPoll();
+            lastRunState = null;
+            setRunAllBusy(false);
+            log(await client.clearAll());
+            await render();
+          } catch (e) { log(e.envelope || e.message); }
         };
         return;
       }
+
       if (state.view === 'models' || state.view === 'settings') {
+        stopActivityPoll();
         const mode = await client.getMode().catch(() => ({ mode: 'serial' }));
         view.innerHTML = `
-          <h2>${state.view}</h2>
-          <p style="color:var(--muted)">Recommended defaults come from model-catalog.json. Parallel mode is guarded by the scheduler; run-all is always serial.</p>
-          <label>Concurrency mode</label>
-          <select id="modeSel">
-            <option value="serial">serial</option>
-            <option value="parallel">parallel</option>
-            <option value="dry-run">dry-run</option>
-          </select>
-          <div class="actions" style="margin-top:12px">
-            <button id="saveMode">Save mode</button>
-            <button id="pauseAll">Pause all packs</button>
-            <button id="resumeAll">Resume all packs</button>
+          <div class="pack-head">
+            <div class="ico">${icon(state.view)}</div>
+            <div><h2 style="margin:0">${state.view}</h2>
+            <p style="margin:4px 0 0;color:var(--muted);font-size:0.85rem">Scheduler · approval defaults (require approval before apply: ON)</p></div>
+          </div>
+          <div class="panel">
+            <label>Concurrency mode</label>
+            <select id="modeSel">
+              <option value="serial">serial</option>
+              <option value="parallel">parallel</option>
+              <option value="dry-run">dry-run</option>
+            </select>
+            <label><input type="checkbox" id="autoApprove" ${mode.autoApprove ? 'checked' : ''}/> autoApprove run-all (no human per pack)</label>
+            <label>autoApprove mode</label>
+            <select id="autoApproveMode">
+              <option value="ack">ack only (no product writes)</option>
+              <option value="product-write">product-write (needs confirm)</option>
+            </select>
+            <label><input type="checkbox" id="confirmProductWrite" ${mode.confirmProductWrite ? 'checked' : ''}/> confirmProductWrite master</label>
+            <label><input type="checkbox" id="allowDependencyBump" ${mode.allowDependencyBump ? 'checked' : ''}/> allowDependencyBump</label>
+            <label><input type="checkbox" id="gitCommitOnApprove" ${mode.gitCommitOnApprove ? 'checked' : ''}/> gitCommitOnApprove default</label>
+            <label>i18n fill scope</label>
+            <select id="i18nFillScope">
+              <option value="full">full (all non-EN)</option>
+              <option value="tier-c">tier-c (ga, ar, he)</option>
+            </select>
+            <p class="warn" style="margin-top:10px">Approval log: artifacts/agentic/approval-log.jsonl · never auto-pushes git</p>
+            <div class="actions" style="margin-top:14px">
+              <button class="primary" id="saveMode">${icon('check')} Save prefs</button>
+              <button id="pauseAll">${icon('pause')} Pause all</button>
+              <button id="resumeAll">${icon('play')} Resume all</button>
+            </div>
           </div>`;
         document.getElementById('modeSel').value = mode.mode || 'serial';
+        document.getElementById('autoApproveMode').value = mode.autoApproveMode || 'ack';
+        document.getElementById('i18nFillScope').value = mode.i18nFillScope || 'full';
         document.getElementById('saveMode').onclick = async () => {
-          try { log(await client.setMode(document.getElementById('modeSel').value)); }
-          catch (e) { log(e.message); }
+          try {
+            log(await client.setMode({
+              mode: document.getElementById('modeSel').value,
+              autoApprove: document.getElementById('autoApprove').checked,
+              autoApproveMode: document.getElementById('autoApproveMode').value,
+              confirmProductWrite: document.getElementById('confirmProductWrite').checked,
+              allowDependencyBump: document.getElementById('allowDependencyBump').checked,
+              gitCommitOnApprove: document.getElementById('gitCommitOnApprove').checked,
+              i18nFillScope: document.getElementById('i18nFillScope').value,
+            }));
+          } catch (e) { log(e.message); }
         };
         document.getElementById('pauseAll').onclick = async () => {
           try { log(await client.pauseAll()); } catch (e) { log(e.message); }
@@ -234,35 +1641,129 @@
       }
 
       const pack = state.view;
-      const visualExtra = pack === 'visual'
-        ? `<p class="warn">visual:apply is deferred until screenshot QA is green.</p>
-           <div id="visualLive"></div>`
-        : '';
+
+      let activity = null;
+      try { activity = await client.getPackActivity(pack); } catch { /* */ }
+
+      // Visual pack: model selection lives inside the live preview Review HUD.
+      if (pack === 'visual') {
+        const qa = await client.getVisualQa().catch(() => ({ brokenCount: '?', applyAllowed: false }));
+        const st = activity?.now?.status || 'idle';
+        view.innerHTML = `
+          <div class="pack-stage visual-shell">
+            <div class="pack-stage-card">
+              <div class="pack-stage-head">
+                <div class="pack-stage-title">
+                  <div class="ico">${icon('visual')}</div>
+                  <div>
+                    <h2>visual</h2>
+                    <p class="meta">QA broken=${escapeHtml(qa.brokenCount)} · apply ${qa.applyAllowed ? 'allowed' : 'locked'}</p>
+                    <p class="insight">${packInsight('visual')}</p>
+                    <div class="pack-status-pill" data-s="${escapeHtml(st)}">${icon('dot')} ${escapeHtml(st)}</div>
+                  </div>
+                </div>
+                <div class="pack-control-bar">
+                  <div class="pack-actions" role="toolbar" aria-label="Visual pack controls">
+                    <button type="button" class="primary" id="startDry">${icon('play')} Dry-run</button>
+                    <button type="button" id="startLive">${icon('run-all')} Live pack</button>
+                    <button type="button" id="pause">${icon('pause')} Pause</button>
+                    <button type="button" id="resume">${icon('play')} Resume</button>
+                    <button type="button" id="report">${icon('planning')} Debug report</button>
+                  </div>
+                </div>
+              </div>
+              ${pipeRailHtml(activity, { pack: 'visual', hidePlanned: true })}
+              <div class="pack-stage-body" id="packActivity">${activityHtml(activity, { pack: 'visual', hidePlanned: true, layout: 'cockpit' })}</div>
+            </div>
+            <div id="visualLive" class="embed-frame" style="display:grid;place-items:center;color:var(--muted)">Loading preview…</div>
+          </div>`;
+        startActivityPoll(pack);
+        const wire = (id, fn) => { document.getElementById(id).onclick = fn; };
+        wire('startDry', async () => {
+          try { log(await client.startPack(pack, { dryRun: true })); await render(); }
+          catch (e) { log(e.envelope || e.message); }
+        });
+        wire('startLive', async () => {
+          try { log(await client.startPack(pack, { dryRun: false })); startActivityPoll(pack); await render(); }
+          catch (e) { log(e.envelope || e.message); }
+        });
+        wire('pause', async () => {
+          try { log(await client.pausePack(pack)); } catch (e) { log(e.message); }
+        });
+        wire('resume', async () => {
+          try { log(await client.resumePack(pack)); } catch (e) { log(e.message); }
+        });
+        wire('report', async () => {
+          try { log(await client.getPackReport(pack)); openDebugDrawer(); }
+          catch (e) { log(e.message); }
+        });
+        const box = document.getElementById('visualLive');
+        try {
+          const live = await client.getVisualLive();
+          if (live.reachable) {
+            box.outerHTML = `<iframe class="embed-frame" title="Visual live polish" src="${live.liveUrl}"></iframe>`;
+          } else {
+            box.innerHTML = `<p class="warn">Live polish offline. Run <code>${live.hint}</code>.</p>`;
+          }
+        } catch (e) {
+          box.innerHTML = `<p class="warn">${e.message}</p>`;
+        }
+        return;
+      }
+
+      const st = activity?.now?.status || 'idle';
       view.innerHTML = `
-        <h2>Pack: ${pack}</h2>
-        <label>Model (recommended default)</label>
-        <select id="model"></select>
-        <div class="pack-actions actions" style="margin-top:12px">
-          <button class="primary" id="startDry">Start dry-run</button>
-          <button id="startLive">Start live</button>
-          <button id="pause">Pause</button>
-          <button id="resume">Resume</button>
-          <button id="report">Report</button>
-        </div>
-        ${visualExtra}`;
+        <div class="pack-stage">
+          <div class="pack-stage-card">
+            <div class="pack-stage-head">
+              <div class="pack-stage-title">
+                <div class="ico">${icon(pack)}</div>
+                <div>
+                  <h2>${escapeHtml(pack)}</h2>
+                  <p class="meta">${escapeHtml(packRecommended(pack))}</p>
+                  <p class="insight">${escapeHtml(packInsight(pack))}</p>
+                  <div class="pack-status-pill" data-s="${escapeHtml(st)}">${icon('dot')} ${escapeHtml(st)}</div>
+                </div>
+              </div>
+              <div class="pack-control-bar">
+                <div class="field">
+                  <label for="model">Model</label>
+                  <select id="model"></select>
+                </div>
+                <div class="pack-actions">
+                  <button class="primary" id="startDry">${icon('play')} Dry-run</button>
+                  <button id="startLive">${icon('run-all')} Live</button>
+                  <button id="pause">${icon('pause')} Pause</button>
+                  <button id="resume">${icon('play')} Resume</button>
+                  <button id="report">${icon('planning')} Debug report</button>
+                </div>
+              </div>
+            </div>
+            ${pipeRailHtml(activity, { pack })}
+            <div class="pack-stage-body" id="packActivity">${activityHtml(activity, { pack, layout: 'cockpit' })}</div>
+          </div>
+        </div>`;
+
+      await wireActivityActions(pack);
+      startActivityPoll(pack);
       const sel = document.getElementById('model');
       const allowed = catalog?.packs?.[pack]?.allowed || [packRecommended(pack)];
       const rec = packRecommended(pack);
       sel.innerHTML = allowed.map((m) =>
-        `<option value="${m}" ${m===rec?'selected':''}>${m}${m===rec?' (recommended)':''}</option>`
+        `<option value="${m}" ${m === rec ? 'selected' : ''}>${m}${m === rec ? ' · recommended' : ''}</option>`
       ).join('');
       document.getElementById('startDry').onclick = async () => {
-        try { log(await client.startPack(pack, { dryRun: true, model: sel.value })); }
-        catch (e) { log(e.envelope || e.message); }
+        try {
+          log(await client.startPack(pack, { dryRun: true, model: sel.value }));
+          await render();
+        } catch (e) { log(e.envelope || e.message); }
       };
       document.getElementById('startLive').onclick = async () => {
-        try { log(await client.startPack(pack, { dryRun: false, model: sel.value })); }
-        catch (e) { log(e.envelope || e.message); }
+        try {
+          log(await client.startPack(pack, { dryRun: false, model: sel.value }));
+          startActivityPoll(pack);
+          await render();
+        } catch (e) { log(e.envelope || e.message); }
       };
       document.getElementById('pause').onclick = async () => {
         try { log(await client.pausePack(pack)); } catch (e) { log(e.message); }
@@ -271,28 +1772,26 @@
         try { log(await client.resumePack(pack)); } catch (e) { log(e.message); }
       };
       document.getElementById('report').onclick = async () => {
-        try { log(await client.getPackReport(pack)); } catch (e) { log(e.message); }
+        try { log(await client.getPackReport(pack)); openDebugDrawer(); }
+        catch (e) { log(e.message); }
       };
-
-      if (pack === 'visual') {
-        const box = document.getElementById('visualLive');
-        try {
-          const live = await client.getVisualLive();
-          if (live.reachable) {
-            box.innerHTML = `<p style="color:var(--muted)">Live polish preview (loopback :8766)</p>
-              <iframe class="embed-frame" title="Visual live polish" src="${live.liveUrl}"></iframe>`;
-          } else {
-            box.innerHTML = `<p class="warn">Live polish not running. Start with <code>${live.hint}</code>, then reopen this tab.</p>
-              <p><a href="${live.liveUrl}" target="_blank" rel="noopener">Open ${live.liveUrl}</a></p>`;
-          }
-          log(live);
-        } catch (e) {
-          box.innerHTML = `<p class="warn">Could not probe visual live: ${e.message}</p>`;
-        }
-      }
     }
 
-    render();
+    document.getElementById('drawer')?.addEventListener('toggle', syncDebugHint);
+    collapseDebugDrawer();
+
+    // Inject icon sprite once, then boot UI
+    fetch('/dev/agentic/icons.svg')
+      .then((r) => r.text())
+      .then((svg) => {
+        document.getElementById('icon-host').innerHTML = svg;
+        return client.getRunAllStatus().catch(() => null);
+      })
+      .then((st) => {
+        if (st) lastRunState = st;
+        return render();
+      })
+      .catch(() => render());
   </script>
 </body>
 </html>

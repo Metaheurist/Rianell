@@ -6,7 +6,7 @@ Registers live under `docs/development/*-register.json`, plus `security/review-r
 |------|-----|---------------------|
 | design | `agentic:design-context` | `verify:icon-spec`, `verify:design-tokens` |
 | planning | `agentic:planning` | advisory artifacts |
-| i18n | `agentic:i18n` | `verify:i18n` (+ `i18n:ollama` / TranslateGemma for fills) |
+| i18n | `agentic:i18n` | `verify:i18n:check` → TranslateGemma `--propose-dir` → Approve → `i18n:merge-tier-c` |
 | rtl | `agentic:rtl` | heuristics + LLM |
 | a11y | `agentic:a11y` | `verify:a11y`, `verify:a11y-tokens` |
 | seo | `agentic:seo` | `seo:sitemap:check`, `seo:content:check`, `seo:pages:check` |
@@ -21,14 +21,14 @@ Registers live under `docs/development/*-register.json`, plus `security/review-r
 | perf | `agentic:perf` | `audit:cwv` / `verify:cwv`, `verify:bundle-split` |
 | visual | `visual:*` via pack | icon-spec + polish QA (**apply deferred**) |
 
-Outputs: `artifacts/agentic/<pack>/report.json`, `broken.json`, optional `llm-advisory.md`.
+Outputs: `artifacts/agentic/<pack>/report.json`, `broken.json`, optional `llm-advisory.md`, plus `llm-context.md` / `llm-context.meta.json` (codebase context fed into Thinking / Proposed actions).
 
 ## Promote rules (all packs)
 
 | Action | Allowed in v1? |
 |--------|----------------|
 | Write advisory under `artifacts/agentic/` | Yes |
-| Auto-merge i18n Tier-C overrides | No |
+| Auto-merge i18n Tier-C overrides | No — only via Approve + `confirmProductWrite` (or run-all product-write + confirm) |
 | Auto-promote wiki / changelog / planning into committed trees | No |
 | Auto `npm` dependency bumps | No |
 | `visual:apply` into PWA sprites | No until QA `broken.length === 0` + unlock |
@@ -42,7 +42,7 @@ Prompt / context expansion for icon contract + design tokens. Register: `docs/st
 Advisory-only docs / unit-test / feature-plan drafts. See [agentic-planning-pack.md](agentic-planning-pack.md). Register: `docs/development/planning-register.json`.
 
 ### i18n
-Deterministic `verify:i18n` first. Live fills use TranslateGemma (`translategemma:27b`) via existing `i18n:ollama` path — never default coder for Tier-C. Register: `docs/development/i18n-register.json`.
+Check-only gate `verify:i18n:check` (no `packages/shared` sync). Live fill uses TranslateGemma (`translategemma:27b`) via `i18n:ollama --propose-dir=artifacts/agentic/i18n/fill-proposals` — never writes `i18n-packs/` until Approve + confirm. Scope: Settings `i18nFillScope` (`full` \| `tier-c`). Merge: `i18n:merge-tier-c` post-approve. Register: `docs/development/i18n-register.json`.
 
 ### rtl
 Post-i18n layout/CSS direction for `ar`/`he`. Register: `docs/development/rtl-register.json`.
@@ -60,7 +60,7 @@ ROPA + privacy docs; strict sanitize (no health scores). Register: `docs/develop
 Deterministic CSP / sinks / cspro, then LLM security review. **Threat-model** is a stage of this pack (not a 17th pack id). Register: `security/review-register.json`.
 
 ### deps
-`audit:deps` + advisory backlog — never auto-bump. Register: `docs/development/deps-register.json`.
+`audit:deps` + advisory backlog. Bumps only via Planned `deps_bump` items + `allowDependencyBump` + `confirmProductWrite` (never silent). Register: `docs/development/deps-register.json`.
 
 ### migration
 `verify:migration` + architecture drift notes (`packages/*` must not import `apps/*`). Register: `docs/development/migration-register.json`.

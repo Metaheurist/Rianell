@@ -81,6 +81,7 @@
     "verify:privacy-docs": "node scripts/verify/verify-privacy-docs.mjs",
     "verify:policy-packs": "node scripts/verify/verify-policy-packs.mjs",
     "verify:i18n": "node scripts/verify/i18n-all.mjs",
+    "verify:i18n:check": "node scripts/verify/i18n-all.mjs --check-only",
     "i18n:ollama": "node scripts/i18n/ollama-translate-gaps.mjs",
     "i18n:merge-tier-c": "node scripts/i18n/merge-tier-c-overrides-from-packs.mjs",
     "verify:a11y-tokens": "node scripts/verify/verify-a11y-tokens.mjs",

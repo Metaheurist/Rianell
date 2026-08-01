@@ -281,16 +281,23 @@ body.hud-c-only{--stage-h:180px;--glyph:112px}
   user-select:none;
 }
 .hud-model > summary::-webkit-details-marker{display:none}
-.hud-model > summary .hm-id{
-  display:block;margin-top:4px;font-size:.78rem;font-weight:700;
-  text-transform:none;letter-spacing:0;color:var(--text);word-break:break-word;
-}
 .hud-model > summary .hm-summary-line{
-  display:block;margin-top:2px;font-size:.62rem;text-transform:none;letter-spacing:0;
-  color:var(--muted);line-height:1.35;
+  display:block;margin-top:4px;font-size:.68rem;text-transform:none;letter-spacing:0;
+  color:var(--text);line-height:1.35;font-weight:650;word-break:break-word;
 }
 .hud-model[open] > summary{border-bottom:1px solid rgba(126,182,255,.16)}
 .hud-model .hm-body{padding:8px 9px 9px}
+.hud-model .hm-select-label{
+  display:block;margin:0 0 4px;font-size:.58rem;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--qwen);
+}
+.hud-model .hm-select{
+  width:100%;margin:0 0 6px;padding:7px 8px;border-radius:8px;
+  border:1px solid rgba(126,182,255,.28);background:rgba(0,0,0,.35);
+  color:var(--text);font:inherit;font-size:.72rem;font-weight:600;
+}
+.hud-model .hm-select:disabled{opacity:.55;cursor:not-allowed}
+.hud-model .hm-select-note{margin:0 0 8px!important;color:var(--warn)!important;font-size:.58rem!important}
 .hud-model .hm-row{
   margin:0 0 4px;font-size:.62rem;color:var(--muted);line-height:1.4;word-break:break-word;
 }
