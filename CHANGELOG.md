@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ## [Unreleased]
 
 ### Added
+- **Agentic AIO harness:** loopback `/dev/agentic` + `/api/agentic/*` for 16 packs (design→visual), `@rianell/build-tools/agentic-api-client`, `npm run agentic:*` / `agentic:run-all`, model catalog + VRAM scheduler, sanitize-agent-context, artifacts under `artifacts/agentic/` (gitignored). Docs: `docs/development/agentic-*.md`.
 - **Icon design system pack** under `docs/style-and-design/` (grid, stroke/fill, size ladder, optical alignment, motion catalogue, theme variants, taxonomy, `subject-contracts.json`).
 - **Durable pipeline pause/resume:** `npm run visual:pause` / `visual:resume` / `visual:state` (`scripts/dev/visual-pipeline-state.mjs`) — banks remaining ids + Pass N; resume uses `--ids-file=` (never re-runs destructive `--repolish-from-qa`; avoids Windows CLI length limits).
 - **A-stage audit:** `npm run audit:icon-a` → `artifacts/audit/icon-a-audit.json` + HTML contact sheet.
