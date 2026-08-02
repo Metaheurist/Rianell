@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "exclusiveGroups": [
+    "visual-gen-polish",
+    "large-on-gpu",
+    "translategemma-large",
+    "security-apply"
+  ],
+  "runAllOrder": [
+    "design",
+    "planning",
+    "rtl",
+    "a11y",
+    "seo",
+    "privacy",
+    "security",
+    "deps",
+    "migration",
+    "bootllm",
+    "perf",
+    "changelog",
+    "wikisync",
+    "image",
+    "i18n",
+    "visual"
+  ],
+  "packs": {
+    "design": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen3.6:35b", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "planning": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5:32b", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "i18n": {
+      "recommended": "translategemma:27b",
+      "allowed": ["translategemma:27b"],
+      "estVramGb": 17,
+      "exclusiveGroups": ["large-on-gpu", "translategemma-large"],
+      "stages": {
+        "check": { "gate": "verify:i18n:check" },
+        "fill": { "tool": "i18n:ollama", "mode": "propose-dir" },
+        "merge": { "tool": "i18n:merge-tier-c", "requiresApproval": true }
+      }
+    },
+    "rtl": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "gemma4:31b-it-qat", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "a11y": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "seo": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5:32b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "privacy": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "security": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5-coder:14b", "qwen2.5:32b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu", "security-apply"]
+    },
+    "deps": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "migration": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "changelog": {
+      "recommended": "qwen2.5-coder:14b",
+      "allowed": ["qwen2.5-coder:14b", "qwen2.5-coder:32b", "qwen2.5-coder:3b"],
+      "estVramGb": 10,
+      "exclusiveGroups": []
+    },
+    "wikisync": {
+      "recommended": "qwen2.5-coder:14b",
+      "allowed": ["qwen2.5-coder:14b", "qwen2.5-coder:32b"],
+      "estVramGb": 10,
+      "exclusiveGroups": []
+    },
+    "image": {
+      "recommended": "qwen2.5-coder:14b",
+      "allowed": ["qwen2.5-coder:14b", "qwen2.5-coder:32b"],
+      "estVramGb": 10,
+      "exclusiveGroups": []
+    },
+    "bootllm": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5-coder:14b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "perf": {
+      "recommended": "qwen2.5-coder:32b",
+      "allowed": ["qwen2.5-coder:32b", "qwen2.5-coder:14b", "qwen2.5-coder:3b"],
+      "estVramGb": 19,
+      "exclusiveGroups": ["large-on-gpu"]
+    },
+    "visual": {
+      "recommended": "gemma4:31b-it-qat",
+      "allowed": ["gemma4:31b-it-qat", "qwen3.6:35b"],
+      "stages": {
+        "gen": { "recommended": "qwen3.6:35b", "allowed": ["qwen3.6:35b", "qwen2.5:32b"], "estVramGb": 22, "exclusiveGroups": ["visual-gen-polish", "large-on-gpu"] },
+        "polish": { "recommended": "gemma4:31b-it-qat", "allowed": ["gemma4:31b-it-qat"], "estVramGb": 18, "exclusiveGroups": ["visual-gen-polish", "large-on-gpu"] }
+      },
+      "estVramGb": 18,
+      "exclusiveGroups": ["visual-gen-polish", "large-on-gpu"]
+    }
+  },
+  "models": {
+    "qwen2.5-coder:1.5b": { "estVramGb": 2 },
+    "qwen2.5-coder:3b": { "estVramGb": 3 },
+    "qwen2.5-coder:14b": { "estVramGb": 10 },
+    "qwen2.5-coder:32b": { "estVramGb": 19 },
+    "qwen2.5:32b": { "estVramGb": 19 },
+    "qwen3.6:35b": { "estVramGb": 22 },
+    "gemma4:31b-it-qat": { "estVramGb": 18 },
+    "translategemma:27b": { "estVramGb": 17 },
+    "qwen2.5:72b-instruct-q3_k_m": { "estVramGb": 32, "rejectedDefault": true }
+  }
+}

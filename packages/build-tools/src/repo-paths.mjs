@@ -8,6 +8,8 @@ export const ARTIFACTS_IOS = `${ARTIFACTS_DIR}/iOS`;
 export const ARTIFACTS_SERVER = `${ARTIFACTS_DIR}/Server`;
 export const ARTIFACTS_ANDROID_LEGACY = `${ARTIFACTS_DIR}/Android`;
 export const ARTIFACTS_LEGACY = `${ARTIFACTS_DIR}/Legacy`;
+export const ARTIFACTS_AGENTIC = `${ARTIFACTS_DIR}/agentic`;
+export const ARTIFACTS_VISUAL_GEN = `${ARTIFACTS_DIR}/visual-gen`;
 
 export function repoRootFromMeta(metaUrl) {
   return path.join(path.dirname(fileURLToPath(metaUrl)), '../../..');

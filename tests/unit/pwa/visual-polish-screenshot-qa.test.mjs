@@ -11,6 +11,9 @@ import {
   analyzeStethoscopeIntegrity,
   analyzeQrIntegrity,
   analyzeFlaggedSubjectIntegrity,
+  analyzeNonTextContrast,
+  matchSubjectContract,
+  loadSubjectContracts,
   matchUserFocus,
   loadUserFocusList,
   looksLikeHumanFigure,
@@ -135,6 +138,19 @@ test('analyzeFlaggedSubjectIntegrity fails ashspiral comma blob', () => {
   const bad = '<path d="M12 8 C14 8 14 12 12 12"/>';
   const r = analyzeFlaggedSubjectIntegrity({ id: 'avatar:ashspiral' }, bad);
   assert.ok(r.some((x) => /ashspiral-unreadable/i.test(x)));
+});
+
+test('subject-contracts.json drives match + reason labels', () => {
+  const pack = loadSubjectContracts();
+  assert.ok(pack.subjects?.stethoscope);
+  const hit = matchSubjectContract({ id: 'sprite:icon-stethoscope' });
+  assert.equal(hit?.name, 'stethoscope');
+  assert.ok(hit.spec.reasons?.fail);
+});
+
+test('analyzeNonTextContrast flags near-invisible ink on dark stage', () => {
+  const r = analyzeNonTextContrast('<path stroke="#1f2a26" fill="none" d="M1 1"/>');
+  assert.ok(r.some((x) => /non-text contrast/i.test(x)));
 });
 
 test('matchUserFocus hits pizza and accessibility prefix', () => {

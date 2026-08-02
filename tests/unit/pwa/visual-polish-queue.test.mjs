@@ -35,7 +35,7 @@ test('visual-polish-queue script exists and --status exits 0', () => {
     env: { ...process.env, VISUAL_POLISH_MODEL: 'gemma4:31b-it-qat' },
   });
   assert.equal(res.status, 0, res.stderr || res.stdout);
-  assert.match(res.stderr || '', /PROJECT_STYLING_CONTRACT ingested/);
+  assert.match(res.stderr || '', /ICON_CONTRACT ingested/);
   const json = JSON.parse(res.stdout);
   assert.ok(typeof json.eligible === 'number');
   assert.ok(typeof json.pending === 'number');
@@ -43,24 +43,24 @@ test('visual-polish-queue script exists and --status exits 0', () => {
   assert.ok(json.contractFiles >= 1);
   assert.ok(json.contractChars > 100);
   assert.ok(Array.isArray(json.contractPaths));
-  assert.ok(json.contractPaths.includes('DESIGN.md'));
   assert.ok(
-    json.contractPaths.some((p) => p.includes('style-and-design') || /styling|visual-inventory|design-token/i.test(p)),
-    'contract should include style docs (style-and-design/ or root styling/visual-inventory)',
+    json.contractPaths.every((p) => p.startsWith('docs/style-and-design/')),
+    'contract should be allowlisted style-and-design specs only',
   );
+  assert.ok(json.contractPaths.some((p) => p.includes('icon-grid')));
 });
 
-test('scanProjectStylingContract hydrates DESIGN.md and style docs', () => {
+test('scanProjectStylingContract hydrates allowlisted icon specs', () => {
   const meta = scanProjectStylingContract(root);
   assert.ok(meta.files.length >= 5);
-  assert.ok(meta.contract.includes('PROJECT_STYLING_CONTRACT'));
-  assert.ok(meta.contract.includes('DESIGN.md'));
-  assert.ok(meta.contract.includes('```markdown'));
+  assert.ok(meta.contract.includes('ICON_CONTRACT'));
+  assert.ok(meta.contract.includes('icon-grid.md'));
+  assert.ok(!meta.contract.includes('## DESIGN.md'));
+  assert.ok(meta.chars <= 20_000, 'ICON_CONTRACT should stay small');
   const system = buildPolishSystemPrompt(meta.contract);
   assert.match(system, /Brand Guardian/);
   assert.match(system, /CORE SUBJECT PRESERVATION/);
-  assert.match(system, /BEGIN PROJECT_STYLING_CONTRACT/);
-  assert.match(system, /stroke-width="1.5"/);
+  assert.match(system, /BEGIN ICON_CONTRACT/);
   assert.match(system, /C is always derived from B/);
   assert.match(system, /SITUATIONAL CONTEXT/);
 });
@@ -104,14 +104,15 @@ test('buildPolishUserPrompt multi-pass modes and driftSuspect close→ring', () 
   const original = '<path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2"/>';
   const qwen = '<svg><path d="M6 6l12 12M18 6 6 18"/></svg>';
   const lock = buildPolishUserPrompt(entry, { originalText: original, qwenText: qwen, mode: 'subject-lock' });
-  assert.match(lock, /SUBJECT-LOCK/);
+  assert.match(lock, /SUBJECT_LOCK:/);
+  assert.match(lock, /CONSTRUCT prep|subject-lock/i);
   const polish = buildPolishUserPrompt(entry, {
     originalText: original,
     qwenText: qwen,
     subjectLock: 'SUBJECT_LOCK: subject=close; core_shapes=path; must_keep=X',
-    mode: 'polish',
+    mode: 'construct',
   });
-  assert.match(polish, /POLISH pass/);
+  assert.match(polish, /CONSTRUCT pass/);
   assert.match(polish, /LOCKED:/);
   const drifted = '<circle cx="12" cy="12" r="8" stroke="#f0f"/><circle cx="12" cy="12" r="6"/>';
   assert.equal(driftSuspect(original, drifted, entry.id), true);
@@ -160,7 +161,7 @@ test('buildPolishUserPrompt multi-pass modes and driftSuspect close→ring', () 
     comparativeDraft: drifted,
     mode: 'final-drift',
   });
-  assert.match(final, /FINAL \+ DRIFT CHECK-IN/);
+  assert.match(final, /APPLY pass|FINAL \+ DRIFT CHECK-IN/);
 });
 
 test('visual-gen-apply prefers polished path when present', () => {

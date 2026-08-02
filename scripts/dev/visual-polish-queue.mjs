@@ -48,10 +48,58 @@ const polishedRoot = path.join(artRoot, 'polished');
 const qaBrokenPath = path.join(artRoot, 'qa', 'broken.json');
 
 const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
-const MODEL = process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL || 'gemma4:31b-it-qat';
+const MODEL_PREF_PATH = path.join(artRoot, 'polish-model-preference.json');
+function resolvePolishModel() {
+  if (process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL) {
+    return process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL;
+  }
+  try {
+    const pref = JSON.parse(fs.readFileSync(MODEL_PREF_PATH, 'utf8'));
+    if (pref?.polishModel) return pref.polishModel;
+  } catch {
+    /* ignore */
+  }
+  return 'gemma4:31b-it-qat';
+}
+const MODEL = resolvePolishModel();
 const CONCURRENCY = Math.max(1, Number(process.env.VISUAL_POLISH_CONCURRENCY || 1));
 const NUM_CTX = Number(process.env.VISUAL_POLISH_NUM_CTX || 32768);
-const CONTRACT_MAX = Number(process.env.VISUAL_POLISH_CONTRACT_MAX_CHARS || 120_000);
+const CONTRACT_MAX = Number(process.env.VISUAL_POLISH_CONTRACT_MAX_CHARS || 8_000);
+const ICON_CONTRACT_ALLOWLIST = [
+  'docs/style-and-design/icon-grid.md',
+  'docs/style-and-design/icon-stroke-and-fill.md',
+  'docs/style-and-design/icon-size-ladder.md',
+  'docs/style-and-design/icon-optical-alignment.md',
+  'docs/style-and-design/motion-catalogue.md',
+  'docs/style-and-design/theme-variants.md',
+  'docs/style-and-design/icon-taxonomy.md',
+];
+const SUBJECT_CONTRACTS_PATH = path.join(root, 'docs/style-and-design/subject-contracts.json');
+
+function loadSubjectContracts() {
+  try {
+    return JSON.parse(fs.readFileSync(SUBJECT_CONTRACTS_PATH, 'utf8'));
+  } catch {
+    return { subjects: {} };
+  }
+}
+
+function subjectRuleCard(entry) {
+  const contracts = loadSubjectContracts();
+  const hay = `${entry?.id || ''} ${entry?.context || ''}`;
+  const lines = [];
+  for (const [name, spec] of Object.entries(contracts.subjects || {})) {
+    const matchers = Array.isArray(spec.match) ? spec.match : [];
+    const hit = matchers.some((m) => {
+      try { return new RegExp(m, 'i').test(hay); } catch { return String(hay).toLowerCase().includes(String(m).toLowerCase()); }
+    });
+    if (!hit) continue;
+    lines.push(`SUBJECT_CONTRACT ${name}:`);
+    if (spec.required?.length) lines.push(`  required: ${spec.required.join('; ')}`);
+    if (spec.forbid?.length) lines.push(`  forbid: ${spec.forbid.join('; ')}`);
+  }
+  return lines.length ? lines.join('\n') : '';
+}
 
 const args = process.argv.slice(2);
 const statusOnly = args.includes('--status');
@@ -62,16 +110,37 @@ const repolishFromQa = args.includes('--repolish-from-qa');
 const limitArg = args.find((a) => a.startsWith('--limit='));
 const LIMIT = limitArg ? Number(limitArg.split('=')[1]) : Infinity;
 const idsArg = args.find((a) => a.startsWith('--ids='));
-const IDS = idsArg
-  ? new Set(idsArg.slice('--ids='.length).split(',').map((s) => s.trim()).filter(Boolean))
-  : null;
+const idsFileArg = args.find((a) => a.startsWith('--ids-file='));
+function loadIdsSet() {
+  if (idsFileArg) {
+    const fp = idsFileArg.slice('--ids-file='.length).trim();
+    const abs = path.isAbsolute(fp) ? fp : path.join(root, fp);
+    try {
+      const raw = fs.readFileSync(abs, 'utf8').trim();
+      if (raw.startsWith('{') || raw.startsWith('[')) {
+        const j = JSON.parse(raw);
+        const list = Array.isArray(j) ? j : (j.ids || []);
+        return new Set(list.map((s) => String(s).trim()).filter(Boolean));
+      }
+      return new Set(raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean));
+    } catch (err) {
+      console.error(`[visual-polish] --ids-file read failed: ${err.message}`);
+      return new Set();
+    }
+  }
+  if (idsArg) {
+    return new Set(idsArg.slice('--ids='.length).split(',').map((s) => s.trim()).filter(Boolean));
+  }
+  return null;
+}
+const IDS = loadIdsSet();
 
 /** Binding Brand Guardian hint list (Stage 2). */
 const POLISH_HINT_LIST = `SYSTEM PROMPT FOR VISUAL POLISHER (Gemma 4 31B IT QAT)
 
 You are an expert SVG optimizer and Brand Guardian. Your job is to polish raw Stage 1 SVGs into production-ready UI assets.
 
-You have been provided with PROJECT_STYLING_CONTRACT (ingested repository docs). Treat it as the absolute SOURCE OF TRUTH for tokens, classes, and theme rules.
+You have been provided with ICON_CONTRACT (allowlisted icon/motion design specs). Treat it as the absolute SOURCE OF TRUTH for grid, stroke, size ladder, optical alignment, theme variants, and loop classes.
 
 1. CORE SUBJECT PRESERVATION (NON-NEGOTIABLE)
 - THE ORIGINAL SUBJECT IS SACROSANCT. You are strictly forbidden from changing the core geometric identity of the icon.
@@ -176,19 +245,18 @@ function walkMdFiles(dir, out = []) {
 }
 
 function keywordMatchesDoc(relPosix) {
+  // Legacy keyword matcher kept for tests/tools that still call it; ICON_CONTRACT uses allowlist.
   const base = path.posix.basename(relPosix).toLowerCase();
   const full = relPosix.toLowerCase();
-  // Match style/styling, design, token, visual, a11y, ux/ui principles, motion catalogues
   return /(^|\/|-)(style|styl|design|token|visual|accessib|ux|ui-|motion|component|screen|wizard|layout)/.test(full)
     || /(style|styl|design|token|visual|accessib|ux|ui-|motion|component|screen|wizard|layout)/.test(base);
 }
 
 /**
- * Pre-flight documentation scanner → PROJECT_STYLING_CONTRACT.
- * Targets: DESIGN.md, all markdown under docs/style-and-design/,
- * and docs/ paths whose names match style|design|token|visual.
+ * ICON_CONTRACT — allowlisted icon/motion specs only (budget ~6–8k chars).
+ * @param {'static'|'motion'|'all'} track
  */
-export function scanProjectStylingContract(repoRoot = root) {
+export function scanProjectStylingContract(repoRoot = root, track = 'all') {
   const seen = new Set();
   const files = [];
 
@@ -202,25 +270,39 @@ export function scanProjectStylingContract(repoRoot = root) {
     files.push({ path: rel, bytes: Buffer.byteLength(text, 'utf8'), text });
   }
 
-  addAbs(path.join(repoRoot, 'DESIGN.md'));
-  for (const abs of walkMdFiles(path.join(repoRoot, 'docs', 'style-and-design'))) {
-    addAbs(abs);
-  }
-  for (const abs of walkMdFiles(path.join(repoRoot, 'docs'))) {
-    const rel = path.relative(repoRoot, abs).replace(/\\/g, '/');
-    if (keywordMatchesDoc(rel)) addAbs(abs);
-  }
+  const staticDocs = [
+    'docs/style-and-design/icon-grid.md',
+    'docs/style-and-design/icon-stroke-and-fill.md',
+    'docs/style-and-design/icon-size-ladder.md',
+    'docs/style-and-design/icon-optical-alignment.md',
+    'docs/style-and-design/theme-variants.md',
+    'docs/style-and-design/icon-taxonomy.md',
+  ];
+  const motionDocs = [
+    'docs/style-and-design/motion-catalogue.md',
+  ];
+  const pick = track === 'motion'
+    ? motionDocs
+    : track === 'static'
+      ? staticDocs
+      : [...staticDocs, ...motionDocs];
+
+  for (const rel of pick) addAbs(path.join(repoRoot, rel));
+  // Always include subject contracts as JSON appendix when present
+  addAbs(path.join(repoRoot, 'docs/style-and-design/subject-contracts.json'));
 
   files.sort((a, b) => a.path.localeCompare(b.path));
 
   const parts = [
-    '# PROJECT_STYLING_CONTRACT',
-    'The following repository documentation is the absolute SOURCE OF TRUTH for polish.',
+    '# ICON_CONTRACT',
+    'Allowlisted icon + motion design specs. Absolute SOURCE OF TRUTH for polish.',
+    'Do not invent grid, stroke, or loop rules outside these docs.',
     '',
   ];
   for (const f of files) {
+    const fence = f.path.endsWith('.json') ? 'json' : 'markdown';
     parts.push(`## ${f.path}`);
-    parts.push('```markdown');
+    parts.push('```' + fence);
     parts.push(f.text.trimEnd());
     parts.push('```');
     parts.push('');
@@ -238,6 +320,8 @@ export function scanProjectStylingContract(repoRoot = root) {
     files: files.map(({ path: p, bytes }) => ({ path: p, bytes })),
     chars: contract.length,
     truncated,
+    track,
+    allowlist: ICON_CONTRACT_ALLOWLIST,
   };
 }
 
@@ -245,17 +329,18 @@ export function buildPolishSystemPrompt(contractText) {
   return [
     POLISH_HINT_LIST,
     '',
-    '--- BEGIN PROJECT_STYLING_CONTRACT ---',
+    '--- BEGIN ICON_CONTRACT ---',
     String(contractText || ''),
-    '--- END PROJECT_STYLING_CONTRACT ---',
+    '--- END ICON_CONTRACT ---',
   ].join('\n');
 }
 
 function logContractIngestion(meta, { quietJson = false } = {}) {
   const paths = (meta.files || []).map((f) => f.path);
   console.error(
-    `[visual-polish] PROJECT_STYLING_CONTRACT ingested ${meta.files.length} files`
-    + ` (${meta.chars} chars${meta.truncated ? ', truncated' : ''})`,
+    `[visual-polish] ICON_CONTRACT ingested ${meta.files.length} files`
+    + ` (${meta.chars} chars${meta.truncated ? ', truncated' : ''}`
+    + `${meta.track ? `, track=${meta.track}` : ''})`,
   );
   if (!quietJson) {
     for (const p of paths) console.error(`[visual-polish]   + ${p}`);
@@ -302,9 +387,11 @@ function validatePolish(entry, raw) {
     if (kf) text = kf.css;
     const seam = analyzeSeamlessLoop(text, entry);
     if (seam.length) {
-      return { ok: false, reason: `non-seamless loop: ${seam[0]}` };
+      // Phase 5: textual seam is a warning — render-frame QA owns the hard verdict.
+      // Hard-failing here burned motion units that look correct when looped.
+      console.warn(`[visual-polish] seam warning ${entry.id}: ${seam[0]}`);
     }
-    return { ok: true, text };
+    return { ok: true, text, seamWarnings: seam };
   }
   if (!/<(?:svg|symbol|g|path|circle|rect|ellipse|polygon|line|polyline)\b/i.test(text)) {
     return { ok: false, reason: 'no svg shapes' };
@@ -1078,8 +1165,10 @@ function entryMetaLine(entry, originalText = '') {
 }
 
 /**
- * Multi-pass Stage-2 user prompts.
- * @param {'subject-lock'|'polish'|'comparative'|'final-drift'|'forced-reelback'} mode
+ * Track-specific Stage-2 user prompts.
+ * Modes: construct | critique | apply | verify
+ * Legacy aliases: subject-lock→construct, polish→construct, comparative→critique,
+ * final-drift→apply, forced-reelback→verify
  */
 export function buildPolishUserPrompt(entry, {
   originalText,
@@ -1087,13 +1176,15 @@ export function buildPolishUserPrompt(entry, {
   gemmaDraft = '',
   comparativeDraft = '',
   subjectLock = '',
-  mode = 'polish',
+  mode = 'construct',
   stemInfo = null,
+  critiqueJson = '',
 } = {}) {
   const isAnim = entry.promptMode === 'single-anim' || entry.kind === 'animation' || entry.kind === 'fx';
   const unit = isAnim ? 'CSS animation/FX unit' : 'SVG graphic';
   const geometryText = stemInfo?.canonicalGlyph || originalText;
   const meta = buildSituationalContext(entry, geometryText, stemInfo);
+  const rules = subjectRuleCard(entry);
   const aBlock = [
     '=== A — ORIGINAL / STEM CANONICAL (subject lock / drift safeguard) ===',
     clipArtifact(geometryText, 2500) || '(none)',
@@ -1103,37 +1194,41 @@ export function buildPolishUserPrompt(entry, {
     clipArtifact(qwenText, 4000),
   ].join('\n');
 
-  if (mode === 'subject-lock') {
+  const normalized = ({
+    'subject-lock': 'construct',
+    polish: 'construct',
+    comparative: 'critique',
+    'final-drift': 'apply',
+    'forced-reelback': 'verify',
+  })[mode] || mode;
+
+  if (normalized === 'construct' && mode === 'subject-lock') {
     return [
-      `SUBJECT-LOCK pass for one ${unit}.`,
+      `CONSTRUCT prep (subject-lock) for one ${unit}.`,
       meta,
-      'Read STEM CANONICAL + situational context carefully. Reply with EXACTLY one line in this form (no SVG):',
-      'SUBJECT_LOCK: subject=<name>; stem=<stem>; core_shapes=<path|circle|...>; must_keep=<short geometry note>; forbidden=<shapes that would be drift>; function=<one-line job>',
+      rules,
+      'Read STEM CANONICAL + ICON_CONTRACT. Reply with EXACTLY one line (no SVG):',
+      'SUBJECT_LOCK: subject=<name>; stem=<stem>; core_shapes=<path|circle|...>; keyline=<circle|square|rect>; must_keep=<short>; forbidden=<drift shapes>; function=<one-line job>',
       aBlock,
-    ].join('\n');
+    ].filter(Boolean).join('\n');
   }
 
-  if (mode === 'polish') {
+  if (normalized === 'construct') {
     return [
-      `POLISH pass: transform B→C for one ${unit}.`,
+      isAnim
+        ? `CONSTRUCT pass: pick one loop class from motion-catalogue (pulse|cyclic-translate|rotate-360|breathe) and emit seamless @keyframes for one ${unit}.`
+        : `CONSTRUCT pass: build polished C geometry for one ${unit} from STEM CANONICAL + ICON_CONTRACT grid/stroke rules.`,
       meta,
+      rules,
       subjectLock ? `LOCKED: ${subjectLock}` : '',
       'CORE SUBJECT PRESERVATION is non-negotiable. Theme accents only — do not morph STEM CANONICAL geometry.',
-      'STEM CONSISTENCY: C glyph must match STEM CANONICAL exactly (same shapes as plain sprite). Fancy siblings differ only by team color/glow.',
-      'COHESION: copy STEM CANONICAL primary shapes into C verbatim as the glyph layer; theme glow/blob only around them.',
-      'THEME COLOR LOCK: if TEAM is set, glyph fill/stroke MUST use team token colors from situational context — never leave glyph as currentColor (that yields mint chrome + wrong-theme halo).',
-      'C MUST visibly polish A: inject rianell-/theme-fx/icon-fill classes, normalize strokes, and add soft glow/rim when TEAM is set. Never return a byte-identical clone of A.',
-      'HARD RULE: polished C must NEVER be identical to original A / STEM CANONICAL — always add polish chrome.',
-      'Respect LOCATION / SURROUNDING / FUNCTION — polish for that UI job, not a generic decoration.',
-      /stethoscope/i.test(String(entry.id || entry.context || ''))
-        ? 'STETHOSCOPE: keep stroke line-art (fill=none + stroke). NEVER wrap with icon-fill stroke=none — that disconnects headset/tube into blobs. Must read as one connected instrument.'
-        : '',
-      /\bqr\b|icon-qr/i.test(String(entry.id || entry.context || ''))
-        ? 'QR: must look like a QR code — keep THREE corner finder eyes (TL/TR/BL) plus bottom-right data modules. Do not collapse into one square or thin bars. Fancy teams recolor only; same silhouette.'
-        : '',
+      'STEM CONSISTENCY: C glyph must match STEM CANONICAL exactly. Fancy siblings differ only by derived team paint.',
+      'THEME COLOR LOCK: if TEAM is set, glyph fill/stroke MUST use team token colors — never leave glyph as currentColor.',
+      'C MUST visibly polish A: inject rianell-/theme-fx/icon-fill classes, normalize strokes (prefer cascade stroke, authoritative width 2 on 24 canvas).',
+      'HARD RULE: polished C must NEVER be identical to original A.',
       isAnim
-        ? 'SEAMLESS LOOP + COHESION: @keyframes must loop fluidly when infinite — 0%/100% closed cycle OR cyclic translate/rotate tile; no hard restart jump; one motion intent; no mid-frame clipping outside viewBox.'
-        : 'ANATOMY: if subject is a human figure, keep bilateral ≤2 arms, one torso, one head — never extra limbs.',
+        ? 'SEAMLESS BY CONSTRUCTION: use a catalogue loop class; comment /* loop: <class> */; 0%/100% matched OR cyclic translate/rotate.'
+        : 'ANATOMY: human figures — bilateral ≤2 arms, one torso, one head.',
       'If B is chatty/broken/drifted, discard B geometry and rebuild from STEM CANONICAL + theme polish.',
       'Output polished SVG/CSS only.',
       aBlock,
@@ -1142,16 +1237,15 @@ export function buildPolishUserPrompt(entry, {
     ].filter(Boolean).join('\n');
   }
 
-  if (mode === 'comparative') {
+  if (normalized === 'critique') {
     return [
-      `COMPARATIVE pass for one ${unit}: review STEM CANONICAL, B, and draft C against situational context.`,
+      `CRITIQUE pass for one ${unit}: compare STEM CANONICAL, B, and draft C against ICON_CONTRACT + subject contract.`,
       meta,
+      rules,
       subjectLock ? `LOCKED: ${subjectLock}` : '',
-      'C must stay the same subject as STEM CANONICAL and match sibling geometry. If C drifted, rewrite C from STEM CANONICAL + keep useful polish.',
-      isAnim
-        ? 'SEAMLESS LOOP + CLIP check: infinite loop has no visible restart jump; no elements hard-clipped mid-frame.'
-        : 'ANATOMY check: human figures must be anatomically plausible (no extra limbs / missing torso).',
-      'Do not pick A or B wholesale unless C is invalid. Output corrected C SVG/CSS only.',
+      'Return ONLY JSON (no markdown): { "deltas": [ { "rule": "<spec rule id>", "severity": "error|warn", "fix": "<short>" } ], "verdict": "ok"|"needs-fix" }.',
+      'If verdict is needs-fix and a geometry rewrite is simpler than deltas, ALSO append a second fence with corrected SVG/CSS after the JSON.',
+      'Prefer named rules: grid.live-area, stroke.width, family.geometry, subject.*, loop.seamless, anatomy.*, theme.paint.',
       aBlock,
       '',
       bBlock,
@@ -1161,36 +1255,39 @@ export function buildPolishUserPrompt(entry, {
     ].filter(Boolean).join('\n');
   }
 
-  if (mode === 'final-drift') {
+  if (normalized === 'apply') {
     return [
-      `FINAL + DRIFT CHECK-IN for one ${unit}.`,
+      `APPLY pass for one ${unit}: apply accepted critique deltas; emit final polished SVG/CSS only.`,
       meta,
+      rules,
       subjectLock ? `LOCKED: ${subjectLock}` : '',
-      'Confirm C matches STEM CANONICAL geometry AND remains appropriate for LOCATION/FUNCTION. If any drift remains, fix it now.',
-      isAnim
-        ? 'SEAMLESS LOOP + COHESION: reject hard seam jumps and mid-frame clipping — rewrite @keyframes so infinite playback is fluid and ink stays in-box.'
-        : 'ANATOMY: reject extra limbs / illegible human figures — rewrite to bilateral silhouette.',
-      'Theme accents ok; geometry identity must match STEM CANONICAL (and thus all style siblings). Output final polished SVG/CSS only.',
+      critiqueJson ? `CRITIQUE:\n${clipArtifact(critiqueJson, 1500)}` : '',
+      'Theme accents ok; geometry identity must match STEM CANONICAL. Output final polished SVG/CSS only.',
       aBlock,
       '',
-      '=== C — AFTER COMPARATIVE ===',
+      '=== C — AFTER CRITIQUE / COMPARATIVE ===',
       clipArtifact(comparativeDraft || gemmaDraft, 4000),
     ].filter(Boolean).join('\n');
   }
 
-  return [
-    `FORCED REELBACK — deterministic drift detected for one ${unit}.`,
-    meta,
-    subjectLock ? `LOCKED: ${subjectLock}` : '',
-    'C failed the drift check vs STEM CANONICAL. Rebuild C using STEM CANONICAL exact core paths/shapes as the skeleton.',
-    'Keep LOCATION/FUNCTION appropriate. Theme glow/gradient/classes ON TOP of canonical geometry only — do NOT replace the subject.',
-    'REQUIRED: wrap canonical glyph in <g class="rianell-polish theme-fx-target">…</g>; if TEAM is set, paint glyph fill/stroke with team tokens (not currentColor) and add soft glow/rim.',
-    'Output corrected SVG/CSS only.',
-    aBlock,
-    '',
-    '=== REJECTED C (do not keep this subject) ===',
-    clipArtifact(gemmaDraft, 2500),
-  ].filter(Boolean).join('\n');
+  if (normalized === 'verify') {
+    return [
+      `VERIFY / REELBACK for one ${unit}: deterministic drift was detected or final check failed.`,
+      meta,
+      rules,
+      subjectLock ? `LOCKED: ${subjectLock}` : '',
+      'Rebuild C from STEM CANONICAL + polish chrome. Output corrected SVG/CSS only.',
+      aBlock,
+      '',
+      '=== REJECTED C ===',
+      clipArtifact(comparativeDraft || gemmaDraft, 4000),
+    ].filter(Boolean).join('\n');
+  }
+
+  // Fallback: treat unknown as construct
+  return buildPolishUserPrompt(entry, {
+    originalText, qwenText, gemmaDraft, comparativeDraft, subjectLock, mode: 'construct', stemInfo,
+  });
 }
 
 async function runSvgPass(entry, prompt, numPredict, chat, label) {
@@ -1257,12 +1354,12 @@ async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
           originalText: geometryLock,
           qwenText,
           subjectLock,
-          mode: 'polish',
+          mode: 'construct',
           stemInfo,
         }),
         numPredict,
         chat,
-        'polish',
+        'construct',
       );
       if (!polishRes.ok) {
         lastErr = polishRes.reason;
@@ -1270,21 +1367,24 @@ async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
       }
 
       let working = polishRes.text;
-      const compRes = await runSvgPass(
-        entry,
-        buildPolishUserPrompt(entry, {
+      let critiqueJson = '';
+      try {
+        const critiquePrompt = buildPolishUserPrompt(entry, {
           originalText: geometryLock,
           qwenText,
           gemmaDraft: working,
           subjectLock,
-          mode: 'comparative',
+          mode: 'critique',
           stemInfo,
-        }),
-        numPredict,
-        chat,
-        'comparative',
-      );
-      if (compRes.ok) working = compRes.text;
+        });
+        const critiqueRaw = await chat.say(critiquePrompt, Math.min(numPredict, 900));
+        critiqueJson = String(critiqueRaw || '').trim();
+        // Prefer an SVG/CSS unit if the model appended a rewrite after JSON.
+        const maybeSvg = validatePolish(entry, critiqueRaw);
+        if (maybeSvg.ok) working = maybeSvg.text;
+      } catch {
+        /* keep working */
+      }
 
       const finalRes = await runSvgPass(
         entry,
@@ -1294,12 +1394,13 @@ async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
           gemmaDraft: working,
           comparativeDraft: working,
           subjectLock,
-          mode: 'final-drift',
+          mode: 'apply',
           stemInfo,
+          critiqueJson,
         }),
         numPredict,
         chat,
-        'final',
+        'apply',
       );
       if (finalRes.ok) working = finalRes.text;
 
@@ -1311,13 +1412,14 @@ async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
             originalText: geometryLock,
             qwenText,
             gemmaDraft: working,
+            comparativeDraft: working,
             subjectLock,
-            mode: 'forced-reelback',
+            mode: 'verify',
             stemInfo,
           }),
           numPredict,
           chat,
-          'reelback',
+          'verify',
         );
         if (reel.ok && !missingOriginalGlyph(geometryLock, reel.text) && hasUsableSvg(reel.text)) {
           working = reel.text;
@@ -1341,14 +1443,17 @@ async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
         outputPath: path.relative(root, outAbs).replace(/\\/g, '/'),
         bytes: Buffer.byteLength(working, 'utf8'),
         attempt,
-        pipeline: 'subject-lock→polish→comparative→final-drift',
+        pipeline: 'subject-lock→construct→critique→apply→verify',
         chatMode: 'per-item',
         stageBSource: stageB.source,
         stem: stemInfo.stem,
         stemPlainId: stemInfo.plainId,
         chatTurns: chat.messages.filter((m) => m.role !== 'system').length,
         subjectLock: subjectLock.slice(0, 400),
-        comparativeOk: compRes.ok,
+        constructOk: polishRes.ok,
+        critiqueChars: critiqueJson.length,
+        applyOk: finalRes.ok,
+        comparativeOk: Boolean(critiqueJson),
         finalOk: finalRes.ok,
         forcedReelback,
         forcedDiffFromOriginal: forcedDiff || polishedEqualsOriginal(geometryLock, beforeDiff),
@@ -1650,7 +1755,7 @@ async function main() {
     polishCp.completed = {};
     polishCp.failed = {};
     polishCp.resetAt = new Date().toISOString();
-    polishCp.pipeline = 'subject-lock→polish→comparative→final-drift';
+    polishCp.pipeline = 'construct→critique→apply→verify';
     savePolishCp(polishCp);
     console.log(`[visual-polish] --reset-polished cleared ${n} completed entries`);
   }
@@ -1664,18 +1769,32 @@ async function main() {
       console.log('[visual-polish] --repolish-from-qa: no broken ids in artifacts/visual-gen/qa/broken.json');
       return;
     }
+    const brokenAt = broken?.at ? Date.parse(broken.at) : 0;
     let cleared = 0;
+    let preserved = 0;
     for (const id of ids) {
-      if (polishCp.completed?.[id]) {
+      const done = polishCp.completed?.[id];
+      if (done) {
+        const doneAt = done.at ? Date.parse(done.at) : 0;
+        // Guard: never wipe work completed after the broken snapshot (or qaPatched).
+        if (done.qaPatched || (brokenAt && doneAt && doneAt > brokenAt)) {
+          preserved += 1;
+          continue;
+        }
         delete polishCp.completed[id];
         cleared += 1;
       }
       if (polishCp.failed?.[id]) delete polishCp.failed[id];
     }
     savePolishCp(polishCp);
-    console.log(`[visual-polish] --repolish-from-qa cleared ${cleared}/${ids.length} ids for Gemma re-polish`);
+    console.log(`[visual-polish] --repolish-from-qa cleared ${cleared}/${ids.length} ids for Gemma re-polish`
+      + (preserved ? ` · preserved ${preserved} already-fixed` : ''));
     if (!runtimeIds) runtimeIds = new Set(ids);
     else for (const id of ids) runtimeIds.add(id);
+    // Drop preserved ids from the runtime queue so we do not re-process them.
+    for (const id of [...runtimeIds]) {
+      if (polishCp.completed?.[id]) runtimeIds.delete(id);
+    }
     const prevProg = loadJson(QA_PROGRESS_PATH, {});
     writeQaProgress({
       active: true,
@@ -1684,9 +1803,9 @@ async function main() {
       round: prevProg.round ?? 1,
       maxRounds: prevProg.maxRounds ?? 8,
       current: 0,
-      total: ids.length,
+      total: runtimeIds.size,
       unit: 'broken',
-      detail: `Re-polish ${ids.length} broken · Pass ${prevProg.round ?? 1} (max ${prevProg.maxRounds ?? 8})`,
+      detail: `Re-polish ${runtimeIds.size} broken · Pass ${prevProg.round ?? 1} (max ${prevProg.maxRounds ?? 8})`,
       brokenSoFar: ids.length,
     });
   }
@@ -1701,6 +1820,10 @@ async function main() {
     if (runtimeIds && !runtimeIds.has(e.id)) return false;
     if (polishCp.completed[e.id]) return false;
     if (polishCp.failed[e.id] && !forceFailed) return false;
+    // Phase 4: team variants are derived via generate-theme-icons — do not LLM-polish them
+    // unless explicitly forced via --ids= / --repolish-from-qa / --force-failed.
+    if (e.team && !runtimeIds && !forceFailed) return false;
+    if (/^fancy:|^fancy-nav:/.test(e.id) && !runtimeIds && !forceFailed) return false;
     return true;
   });
   queue = sortQueueByStem(queue);
@@ -1768,6 +1891,21 @@ function isMainModule() {
   }
 }
 if (isMainModule()) {
+  const flushOnSignal = async (sig) => {
+    try {
+      const { buildState } = await import('./visual-pipeline-state.mjs');
+      const state = await buildState();
+      state.reason = `signal ${sig}`;
+      fs.mkdirSync(artRoot, { recursive: true });
+      fs.writeFileSync(path.join(artRoot, 'pipeline-state.json'), JSON.stringify(state, null, 2) + '\n');
+      console.log(`[visual-polish] ${sig} — banked pipeline-state.json`);
+    } catch (err) {
+      console.error('[visual-polish] signal flush failed', err.message);
+    }
+    process.exit(130);
+  };
+  process.on('SIGINT', () => { flushOnSignal('SIGINT'); });
+  process.on('SIGTERM', () => { flushOnSignal('SIGTERM'); });
   main().catch((err) => {
     console.error('[visual-polish] fatal', err);
     process.exit(1);

@@ -6,7 +6,7 @@
 
 ### v2.6.0 - 2026-07-25 - Visual pack harness + CI hygiene
 
-- **Visual pack harness (tooling only):** Qwen gen + Gemma polish + live A/B/C preview (`:8766`) + QA loop; Tk dashboard Visual gallery / Live polish. Product icon **apply deferred** until QA green. See [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
+- **Visual pack harness (tooling only):** Qwen gen + Gemma polish + live polish preview (`:8766`; agentic C-only) + Q&A → Approve → Polish×8; Tk dashboard Visual gallery / Live polish. Product icon **apply deferred** until QA green. See [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
 - **CI:** Removed schedule-only MobSF job from `security-dast.yml` (PWA-only; ZAP + axe remain).
 
 ### v2.5.0 - 2026-07-19 - Boot freeze + Ask starters

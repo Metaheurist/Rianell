@@ -202,6 +202,16 @@ class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, FhirRoutesMixin, htt
             self.handle_visual_gallery_api()
             return
 
+        if parsed_path.path.rstrip('/') == '/dev/agentic':
+            self.handle_agentic_page()
+            return
+        if parsed_path.path.startswith('/dev/agentic/'):
+            self.handle_agentic_asset()
+            return
+        if parsed_path.path.startswith('/api/agentic'):
+            self.handle_agentic_api(method='GET')
+            return
+
         # Return 204 (No Content) for optional files instead of 404
         optional_files = ['.map', '.well-known', 'devtools']
         if any(opt in self.path.lower() for opt in optional_files):
@@ -235,6 +245,10 @@ class RianellHttpHandler(StaticRoutesMixin, ApiRoutesMixin, FhirRoutesMixin, htt
 
         if parsed_path.path.startswith('/fhir/r4'):
             self.handle_fhir_r4(method='POST')
+            return
+
+        if parsed_path.path.startswith('/api/agentic'):
+            self.handle_agentic_api(method='POST')
             return
         
         # For other POST requests, return 405 Method Not Allowed

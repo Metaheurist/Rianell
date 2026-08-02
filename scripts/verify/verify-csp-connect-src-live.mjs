@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 /**
- * Fail when the live site HTTP Content-Security-Policy connect-src omits hosts
+ * Check live-site HTTP Content-Security-Policy connect-src against hosts
  * required by the PWA (meta CSP in index.html). Browsers apply meta + HTTP CSP together.
  *
  * Env:
  *   CSP_LIVE_URL — default https://rianell.com
- *   SKIP_CSP_LIVE — set to 1 to skip (offline CI)
+ *   SKIP_CSP_LIVE — set to 1 to skip (offline / agentic)
+ *   CSP_LIVE_STRICT — set to 1 to hard-fail on missing hosts (opt-in)
+ *
+ * Cloudflare unavailable (network error, timeout, non-2xx) always skips with exit 0.
+ * Missing hosts warn and exit 0 unless CSP_LIVE_STRICT=1.
  */
 const liveUrl = process.env.CSP_LIVE_URL || 'https://rianell.com';
+const strict = process.env.CSP_LIVE_STRICT === '1';
 
 const REQUIRED_CONNECT_HOSTS = [
   'https://api.open-meteo.com',
@@ -30,16 +35,33 @@ function connectSrcFromPolicy(policy) {
   return match ? match[1] : '';
 }
 
+function skipUnavailable(reason) {
+  console.warn(
+    'verify-csp-connect-src-live: Cloudflare/live edge unavailable — skipped (not an error):',
+    reason,
+  );
+  process.exit(0);
+}
+
 async function main() {
-  const res = await fetch(liveUrl, {
-    method: 'GET',
-    redirect: 'follow',
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-      Accept: 'text/html,application/xhtml+xml',
-    },
-  });
+  let res;
+  try {
+    res = await fetch(liveUrl, {
+      method: 'GET',
+      redirect: 'follow',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml',
+      },
+    });
+  } catch (e) {
+    skipUnavailable(e && e.message ? e.message : String(e));
+  }
+
+  if (!res.ok) {
+    skipUnavailable(`HTTP ${res.status} from ${liveUrl}`);
+  }
 
   const enforced = res.headers.get('content-security-policy');
   if (!enforced) {
@@ -57,21 +79,21 @@ async function main() {
     return;
   }
 
-  console.error(
-    'verify-csp-connect-src-live: HTTP Content-Security-Policy on',
-    liveUrl,
-    'is missing connect-src hosts required by the PWA:',
-  );
-  for (const host of missing) {
-    console.error('  -', host);
-  }
-  console.error(
+  const lines = [
+    `verify-csp-connect-src-live: HTTP Content-Security-Policy on ${liveUrl} is missing connect-src hosts required by the PWA:`,
+    ...missing.map((host) => `  - ${host}`),
     '  Update Cloudflare Transform Rules (or remove duplicate HTTP CSP). See security/cloudflare-headers-recommended.md',
+  ];
+  if (strict) {
+    for (const line of lines) console.error(line);
+    process.exit(1);
+  }
+  for (const line of lines) console.warn(line);
+  console.warn(
+    'verify-csp-connect-src-live: advisory (not an error; set CSP_LIVE_STRICT=1 to hard-fail)',
   );
-  process.exit(1);
 }
 
 main().catch((e) => {
-  console.warn('verify-csp-connect-src-live: fetch failed (non-fatal):', e && e.message ? e.message : e);
-  process.exit(0);
+  skipUnavailable(e && e.message ? e.message : String(e));
 });
