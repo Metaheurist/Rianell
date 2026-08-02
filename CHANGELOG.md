@@ -6,6 +6,51 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Agentic visual pack:** apply-queue + `visual-qa-propose` (Q&A candidates → Approve → qa-loop max 8); C-only live embed (`?agentic=1&cOnly=1`); wizard rail Gates → Q&A → Approve → Polish×8.
+- **Agentic Activity + approval cockpit:** Now / Thinking / Done / Planned UI (replaces JSON-primary Technical details), `proposal.json`, approve/reject APIs, streamed LLM Thinking, opt-in git commit on approve, run-all `autoApprove` modes, gated npm bumps, TranslateGemma i18n propose-dir fill (`verify:i18n:check` + `--propose-dir`), visual QA unlock endpoint, Clear all + unload. Docs: `agentic-ui.md` / `agentic-api.md` / pack catalog.
+- **Agentic pack-context gatherer:** `scripts/dev/agentic-pipeline/pack-context.mjs` builds sanitized `## Repo context` (registers, docs, focus inventories, gate excerpts, git digests) for LLM Thinking / Planned actions; artifacts `llm-context.md` + `.meta.json`.
+- **Agentic AIO harness:** loopback `/dev/agentic` + `/api/agentic/*` for 16 packs (design→visual), `@rianell/build-tools/agentic-api-client`, `npm run agentic:*` / `agentic:run-all`, model catalog + VRAM scheduler, sanitize-agent-context, artifacts under `artifacts/agentic/` (gitignored). Docs: `docs/development/agentic-*.md`.
+- **Icon design system pack** under `docs/style-and-design/` (grid, stroke/fill, size ladder, optical alignment, motion catalogue, theme variants, taxonomy, `subject-contracts.json`).
+- **Durable pipeline pause/resume:** `npm run visual:pause` / `visual:resume` / `visual:state` (`scripts/dev/visual-pipeline-state.mjs`) — banks remaining ids + Pass N; resume uses `--ids-file=` (never re-runs destructive `--repolish-from-qa`; avoids Windows CLI length limits).
+- **A-stage audit:** `npm run audit:icon-a` → `artifacts/audit/icon-a-audit.json` + HTML contact sheet.
+- **`npm run verify:icon-spec`** — specs stay aligned with `THEME_FX_TOKENS` and `--ui-icon-stroke`.
+- **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
+
+### Changed
+- **Agentic harness CI suite:** four Phase‑1 nodes — `Agentic · unit`, `Agentic · catalog`, `Agentic · ollama-load` (`smollm:135m` ≤200 MB via `npm run agentic:smoke`), `Agentic · dry-run` (`npm run agentic:run-all -- --dry-run`). Clear-all worker kill matches `*.mjs` script basenames only (avoids `pkill` matching `agentic-run-all-order.test.mjs` on Linux CI); broad cmdline kill skipped under `node:test`. Unit/i18n clear-all tests isolate via `AGENTIC_ROOT`. `findNpmCliJs` searches setup-node/`lib/node_modules` layouts; unit assertion tolerates PATH-only npm on Actions.
+- **Agentic Overview / Run-all:** primary control is live **Run all** (dry-run and Start live removed from those surfaces).
+- **Agentic visual pack:** C-only live embed; wizard is Gates → Q&A → Approve candidates → Polish×8 (qa-loop max 8). Approve no longer means product `visual:apply` — it starts re-polish on selected Q&A findings. A/B compare toggles hidden in agentic mode.
+- **Agentic pack tabs:** stage wizard UI — one full-width panel per Gates → LLM → Proposal → Approve; clickable rail + auto-follow while running; pack hop footer.
+- **Agentic run-all:** model-grouped pack order (unload only on model switch); never waits for Approve between packs; ends in `awaiting_approvals`. Approve enqueues apply jobs; drain executes by model group. Default continues on broken (`stopOnBroken` opt-in).
+- **Agentic Overview:** pack tiles / ring / approval queue soft-update while run-all polls (no manual Refresh).
+- **Live CSP / Cloudflare:** `verify-csp-*-live` skips when the edge is unavailable (network/non-2xx) and treats connect-src drift as advisory unless `CSP_LIVE_STRICT=1`; agentic gates set `SKIP_CSP_LIVE=1`.
+- **Agentic pack tabs:** pipeline preview card (header + controls, Gates→LLM→Proposal→Approve rail, cockpit Activity); visual uses Gates→Q&A→Approve→Polish×8; Debug drawer always collapsed by default; constrained toolbar icons; model picker in live polish Review HUD; in-app confirm dialog (no `window.confirm`).
+- **Agentic live UI:** soft Activity patches (no full-tab re-render while packs run); scrollbars hidden in scrollable panels.
+- **Agentic Windows gates (silent):** `spawn-silent.mjs` resolves `npm run` to direct `node <script>` (never `cmd.exe` / `npm.cmd`); `windowsHide` on i18n step children; Python uses `CREATE_NO_WINDOW` + hidden STARTUPINFO.
+- **Agentic i18n Planned:** TranslateGemma propose-dir writes the full missing-key list up front; Activity Planned shows pending gaps while `Filling locale · n/total` runs (not only after fill completes).
+- **Agentic overview status:** packs awaiting Approve show **needs approval** (not running); LLM socket drops salvage streamed partials into a proposal instead of hard-breaking when usable.
+- **Agentic Clear all + unload:** cancels run-all, kills stuck pack/i18n workers, wipes pending approvals/proposals/pack tabs to idle, then unloads every Ollama model in VRAM.
+- **Agentic Thinking / Planned actions** are codebase-aware via `pack-context.mjs`; Activity shows a repo-context chip.
+- **Agentic safe client:** `localhost` / `127.*` / `::1` all classify as safe (client + `/health.safeClient`); HUD chip shows confirmed safe on loopback.
+- **Agentic rate limits:** skipped for loopback peers (`should_rate_limit_client`); remote clients still limited.
+- **Tk dashboard:** log filter handler no longer crashes when logs fire before Tk mainloop (server+dashboard startup).
+- **ICON_CONTRACT** replaces keyword-scraped `PROJECT_STYLING_CONTRACT` (allowlisted specs, ~8k budget).
+- **Polish passes:** `construct → critique → apply → verify` (legacy aliases kept).
+- **Team fancy variants** skipped by default in the polish queue (derived, not LLM-authored).
+- **QA tiers:** `--tier=1|2|3|all`; textual loop-seam soft-fail; non-text contrast on dark/light stages; subject integrity driven by `subject-contracts.json`; vision `PASS|FAIL|INCONCLUSIVE` with quarantine; stem-sheet FAIL without `failIds` no longer condemns all siblings.
+- **QA loop:** `--start-round=N`; early rounds use cheap tiers; per-item quarantine after repeated fails; SIGINT banks state.
+- **`--repolish-from-qa`** preserves ids completed after the broken snapshot / `qaPatched`.
+- Live polish HUD restores accessible **UI Q&A stage** label.
+
+### Tests
+- `tests/unit/agentic-proposal.test.mjs`, `agentic-mode-prefs.test.mjs`, `agentic-pack-context.test.mjs`, `agentic-spawn-silent.test.mjs`, `agentic-i18n-planned-live.test.mjs`, `agentic-clear-all.test.mjs`; expanded `agentic-api-client` loopback / `safeClient` coverage.
+- `tests/unit/pwa/visual-pipeline-state.test.mjs`; updated polish queue / seamless-loop / QA status assertions for ICON_CONTRACT and soft seam policy.
+- `tests/unit/verify-icon-spec.test.mjs` — `verify:icon-spec` + design pack presence + `audit:icon-a --limit=3` smoke.
+- Screenshot QA: subject-contracts match/labels + non-text contrast.
+
 ## [2.6.0] - 2026-07-25
 
 ### Added

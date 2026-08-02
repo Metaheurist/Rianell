@@ -6,9 +6,14 @@
 
 **Current product:** npm **v2.6.0** · PWA-only (`apps/pwa-webapp`) · optional Python/Tkinter `server/` · living roadmap [`next-phase-development-plan.md`](next-phase-development-plan.md). Feature rollout plans 01–26 are a closed archive ([`plans/MASTER.md`](plans/MASTER.md)).
 
+### Unreleased documentation sync (agentic AIO harness)
+
+- **Tooling:** Local Agentic AIO at `/dev/agentic` + loopback `/api/agentic/*` for 16 packs; Activity cockpit + approve/reject; codebase-aware `pack-context`; `@rianell/build-tools/agentic-api-client` (`safeClient` on localhost); `npm run agentic:run-all`. CI: four Phase‑1 nodes (`Agentic · unit|catalog|ollama-load|dry-run`). Operator guide: [`development/agentic-pipeline-harness.md`](development/agentic-pipeline-harness.md).
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[Unreleased]`.
+
 ### v2.6.0 documentation sync (visual pack harness)
 
-- **Tooling:** Full Visual Pack harness (register / Qwen gen / Gemma polish / live A/B/C preview / QA) + Tk dashboard Visual gallery. Product icon **apply deferred**. Operator guide: [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
+- **Tooling:** Full Visual Pack harness (register / Qwen gen / Gemma polish / live C preview in agentic · A/B/C standalone / QA → Approve → Polish×8) + Tk dashboard Visual gallery. Product icon **apply deferred**. Operator guide: [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
 - **CI:** MobSF job removed from `security-dast.yml` (ZAP + axe remain).
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.6.0]`.
 

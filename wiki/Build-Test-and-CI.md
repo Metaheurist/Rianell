@@ -18,10 +18,19 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run brain:ensure` | Ensure Ollama is serving (pull model if missing) |
 | `npm run visual:register` | Rebuild `assets/visual-register.json` (one entry per SVG/anim) |
 | `npm run visual:gen` | Local Ollama generate queue (`qwen3.6:35b`, concurrency 1, resumable) |
-| `npm run visual:polish` | Polish generated artifacts with Gemma 4 31B IT QAT |
-| `npm run visual:polish:live` | Live A/B/C polish preview on http://localhost:8766/ |
-| `npm run visual:polish:screenshot-qa` | Screenshot + heuristic QA gate |
-| `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (Pass N, max 8) |
+| `npm run visual:polish` | Polish generated artifacts with Gemma 4 31B IT QAT (`construct→critique→apply→verify`) |
+| `npm run visual:polish:live` | Live polish preview on http://localhost:8766/ (agentic: `?agentic=1&cOnly=1` → C only) |
+| `npm run visual:polish:screenshot-qa` | Tiered screenshot QA (`--tier=1\|2\|3\|all`, optional `--gemma-review`) |
+| `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (`--start-round=N`, Pass N, max 8) |
+| `npm run agentic:run-all -- --dry-run` | Chronological 16-pack agentic harness (loopback API `/api/agentic`) |
+| `npm run agentic:catalog` | Print recommended models / run-all order |
+| `npm run agentic:smoke` | Tiny Ollama load smoke (`smollm:135m` in CI; needs local daemon) |
+| `npm run verify:i18n:check` | i18n gate only (no sync/generators; agentic i18n pack) |
+| Open `/dev/agentic` | AIO console — Activity cockpit + pack pipeline preview (Python server :8080) |
+| `npm run visual:pause` / `visual:resume` / `visual:state` | Durable pause/resume (banks remaining ids + Pass N; resume prints IDE terminal commands by default) |
+| `npm run visual:derive-variants` | Derive fancy team sprites via `generate:theme-icons` (no LLM per variant) |
+| `npm run audit:icon-a` | Stage-A icon corpus audit → `artifacts/audit/icon-a-audit.*` |
+| `npm run verify:icon-spec` | Icon design docs stay aligned with `THEME_FX_TOKENS` / `--ui-icon-stroke` |
 | `npm run visual:gallery` | Current-source gallery (standalone) |
 | `npm run visual:apply` | Apply polished-first outputs into PWA (**deferred until QA green**) |
 | `npm run benchmark` | Performance benchmarks workspace |
@@ -32,6 +41,8 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run verify:cspro` | CI check: live site must not serve `CSPRO: connect-src 'none'` |
 | `npm run supabase:deploy:delete-user-data` | Deploy GDPR Edge Function to Supabase project |
 | `npm run wiki:verify` / `wiki:sync` | Validate and push `wiki/` to GitHub Wiki |
+
+Icon / motion design specs live under `docs/style-and-design/` (grid, stroke, size ladder, optical alignment, motion catalogue, theme variants, taxonomy, `subject-contracts.json`). Operator guide in the monorepo: `docs/development/visual-pack-harness.md`.
 
 ---
 
@@ -53,11 +64,16 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 - **paths-filter** - On push, sets `mobile_release` (skip mobile/release when only `artifacts/` changed).
 
-### Phase 1 - Foundation (max 3 parallel)
+### Phase 1 - Foundation (parallel)
 
 - **unit-tests** - `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, `verify:i18n`
 - **prepare-minified-assets** - minified PWA → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** - Gitleaks, OSV, npm/pip audit (reusable workflow)
+- **Agentic harness suite** (4 parallel nodes):
+  - **1 · Agentic · unit** — `node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs`
+  - **1 · Agentic · catalog** — `npm run agentic:catalog` + catalog/order unit tests
+  - **1 · Agentic · ollama-load** — install Ollama, load `smollm:135m` (≤200 MB), `npm run agentic:smoke`
+  - **1 · Agentic · dry-run** — `npm run agentic:run-all -- --dry-run`
 
 ### Phase 2 - Build lanes (max 7 parallel)
 

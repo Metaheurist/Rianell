@@ -1,0 +1,1 @@
+﻿{"schemaVersion":1,"pack":"bootllm","gates":["audit:boot:strict"],"requiresProbeUrl":true}

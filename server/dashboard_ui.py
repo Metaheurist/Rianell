@@ -453,6 +453,17 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
     gallery_btns = tk.Frame(gallery_card, bg=T.card)
     gallery_btns.pack(anchor='w')
 
+    agentic_card = tk.Frame(tools_grid, bg=T.card, highlightbackground=T.border, highlightthickness=1, padx=14, pady=14)
+    agentic_card.grid(row=2, column=0, columnspan=2, sticky='nsew', pady=(0, 8))
+    tk.Label(agentic_card, text='Agentic pipelines', bg=T.card, fg=T.text, font=('Segoe UI', 10, 'bold')).pack(anchor='w')
+    tk.Label(
+        agentic_card,
+        text='All-in-one harness for 16 local packs (design → visual). Loopback UI at /dev/agentic · run-all · model catalog.',
+        bg=T.card, fg=T.muted, font=T.font_sm, wraplength=640, justify=tk.LEFT,
+    ).pack(anchor='w', pady=(6, 10))
+    agentic_btns = tk.Frame(agentic_card, bg=T.card)
+    agentic_btns.pack(anchor='w')
+
     # ── Logs panel ───────────────────────────────────────────────────────────
     logs_panel = tk.Frame(content_area, bg=T.bg)
     panel_frames['logs'] = logs_panel
@@ -586,6 +597,25 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
     IconButton(gallery_btns, 'Browser', 'globe', open_visual_gallery_browser, compact=True).pack(side=tk.LEFT, padx=(0, 6))
     IconButton(gallery_btns, 'Chromium', 'chrome', open_visual_gallery_chromium, compact=True).pack(side=tk.LEFT, padx=(0, 6))
     IconButton(gallery_btns, 'Live polish', 'play', open_live_polish_browser, compact=True).pack(side=tk.LEFT)
+
+    agentic_url = f'{app_url.rstrip("/")}/dev/agentic'
+
+    def open_agentic_harness_browser():
+        try:
+            webbrowser.open(agentic_url, new=2)
+            logger.info('Opened agentic harness: %s', agentic_url)
+        except Exception as e:
+            messagebox.showerror('Agentic pipelines', f'Could not open:\n{agentic_url}\n\n{e}')
+
+    def open_agentic_harness_chromium():
+        ok, msg = chromium_dev.launch_clean_chromium(agentic_url)
+        if ok:
+            logger.info(msg)
+        else:
+            messagebox.showerror('Clean Chromium', msg)
+
+    IconButton(agentic_btns, 'Open harness', 'brain', open_agentic_harness_browser, compact=True).pack(side=tk.LEFT, padx=(0, 6))
+    IconButton(agentic_btns, 'Chromium', 'chrome', open_agentic_harness_chromium, compact=True).pack(side=tk.LEFT)
 
     def check_connection():
         available = check_supabase_availability()
@@ -920,7 +950,11 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
     LEVEL_RANK = {'DEBUG': 10, 'INFO': 20, 'WARNING': 30, 'WARN': 30, 'ERROR': 40, 'CRITICAL': 50}
 
     def _filter_allows(level: str) -> bool:
-        f = log_filter_var.get()
+        try:
+            f = log_filter_var.get()
+        except Exception:
+            # Logging can fire from non-Tk threads before mainloop is ready.
+            f = 'All'
         rank = LEVEL_RANK.get(str(level).upper(), 20)
         if f == 'All':
             return True
@@ -937,10 +971,10 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
             self.win = win
 
         def emit(self, record):
-            if not _filter_allows(record.levelname):
-                return
-            msg = self.format(record)
             try:
+                if not _filter_allows(record.levelname):
+                    return
+                msg = self.format(record)
                 if self.win.winfo_exists():
                     self.win.after(0, self._append, msg, record.levelname)
             except Exception:

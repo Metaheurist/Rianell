@@ -1,0 +1,57 @@
+{
+  "plainSpriteGzipKb": 5.29,
+  "plainMaxKb": 80,
+  "fancyMaxKb": 200,
+  "plainHash": "bdfc83f0ef",
+  "plainBytes": 30878,
+  "plainSymbolCount": 106,
+  "heroes": [
+    "icon-weather-clear",
+    "icon-weather-cloudy",
+    "icon-weather-rain",
+    "icon-weather-partly-cloudy",
+    "icon-palette",
+    "icon-brain",
+    "icon-heart-pulse",
+    "icon-leaf",
+    "icon-cloud",
+    "icon-star",
+    "icon-check",
+    "icon-user",
+    "icon-activity",
+    "icon-calendar",
+    "icon-chart-bars",
+    "icon-sparkle-ring",
+    "icon-shield-check",
+    "icon-zap",
+    "icon-sleep",
+    "icon-pill"
+  ],
+  "teams": {
+    "mint": {
+      "gzipKb": 11.21,
+      "bytes": 86373,
+      "hash": "41940dac27",
+      "symbolCount": 185
+    },
+    "red-black": {
+      "gzipKb": 10.85,
+      "bytes": 85146,
+      "hash": "6e63901568",
+      "symbolCount": 184
+    },
+    "mono": {
+      "gzipKb": 11.76,
+      "bytes": 98172,
+      "hash": "85a94aa269",
+      "symbolCount": 173
+    },
+    "rainbow": {
+      "gzipKb": 12.27,
+      "bytes": 110528,
+      "hash": "4cb84f98a7",
+      "symbolCount": 191
+    }
+  },
+  "generatedAt": "2026-08-01T20:52:58.126Z"
+}

@@ -117,3 +117,6 @@ artifacts/**/*.zip
 
 # Local Ollama visual-pack generation checkpoints / raw responses
 artifacts/visual-gen/
+
+# Local agentic harness checkpoints / findings / planning drafts
+artifacts/agentic/

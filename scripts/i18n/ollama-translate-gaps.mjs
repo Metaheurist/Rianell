@@ -12,6 +12,9 @@
  * Usage:
  *   node scripts/i18n/ollama-translate-gaps.mjs [--locale=fr-FR[,de-DE]] [--model=translategemma:27b]
  *        [--limit=N] [--skip-content] [--dry-run] [--checkpoint=25] [--host=http://127.0.0.1:11434]
+ *        [--propose-dir=path] [--progress-file=path]
+ *
+ * --propose-dir: write per-locale proposal JSON instead of mutating i18n-packs (agentic).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -36,6 +39,9 @@ const LIMIT = Number(argVal('limit', '0')) || 0;
 const CHECKPOINT = Number(argVal('checkpoint', '25')) || 25;
 const HOST = (argVal('host', process.env.OLLAMA_HOST || 'http://127.0.0.1:11434')).replace(/\/$/, '');
 const localeArg = argVal('locale', '');
+const PROPOSE_DIR = argVal('propose-dir', '');
+const PROGRESS_FILE = argVal('progress-file', '');
+const PROPOSE_ONLY = Boolean(PROPOSE_DIR);
 
 const EN_VARIANTS = new Set(['en-GB', 'en-US', 'en-AU']);
 const TARGET_LOCALES = localeArg
@@ -78,13 +84,33 @@ function writePack(filePath, pack) {
   fs.writeFileSync(filePath, `${JSON.stringify(pack, null, 2)}\n`, 'utf8');
 }
 
+function writeProgress(partial) {
+  if (!PROGRESS_FILE) return;
+  try {
+    fs.mkdirSync(path.dirname(PROGRESS_FILE), { recursive: true });
+    let prev = {};
+    if (fs.existsSync(PROGRESS_FILE)) {
+      try { prev = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8')); } catch { prev = {}; }
+    }
+    fs.writeFileSync(PROGRESS_FILE, `${JSON.stringify({
+      ...prev,
+      ...partial,
+      updatedAt: new Date().toISOString(),
+    }, null, 2)}\n`);
+  } catch {
+    /* ignore progress IO */
+  }
+}
+
 // ---- main -----------------------------------------------------------------
 async function main() {
   const canonical = JSON.parse(fs.readFileSync(path.join(dir, 'en-GB.json'), 'utf8'));
   const en = canonical.strings || {};
 
+  if (PROPOSE_ONLY) fs.mkdirSync(PROPOSE_DIR, { recursive: true });
+
   console.log(`ollama-translate-gaps: model=${MODEL} host=${HOST} locales=${TARGET_LOCALES.join(',')}` +
-    `${DRY_RUN ? ' [dry-run]' : ''}${SKIP_CONTENT ? ' [skip-content]' : ''}${LIMIT ? ` [limit=${LIMIT}]` : ''}`);
+    `${DRY_RUN ? ' [dry-run]' : ''}${PROPOSE_ONLY ? ' [propose-dir]' : ''}${SKIP_CONTENT ? ' [skip-content]' : ''}${LIMIT ? ` [limit=${LIMIT}]` : ''}`);
 
   const summary = [];
   for (const locale of TARGET_LOCALES) {
@@ -122,7 +148,38 @@ async function main() {
     let failed = 0;
     let soft = 0;
     let sinceCheckpoint = 0;
+    /** @type {Map<string, { key: string, sourceEn: string, proposed: string|null, status: string, softAccept?: boolean }>} */
+    const entryByKey = new Map(
+      todo.map(([key, enVal]) => [key, {
+        key,
+        sourceEn: enVal,
+        proposed: null,
+        status: 'pending',
+      }]),
+    );
+    const proposePath = PROPOSE_ONLY ? path.join(PROPOSE_DIR, `${locale}.json`) : null;
+    const flushPropose = () => {
+      if (!proposePath) return;
+      fs.writeFileSync(
+        proposePath,
+        `${JSON.stringify({ locale, entries: [...entryByKey.values()] }, null, 2)}\n`,
+      );
+    };
     const t0 = Date.now();
+    // Publish the full missing-key plan immediately so the agentic Planned panel
+    // can list entries before TranslateGemma finishes each string.
+    if (PROPOSE_ONLY) flushPropose();
+    writeProgress({
+      locale,
+      done: 0,
+      total: todo.length,
+      rate: 0,
+      phase: 'filling',
+      lastKey: null,
+      sampleTranslation: null,
+      pendingKeys: todo.map(([key]) => key).slice(0, 200),
+      gapsTotal: gaps.length,
+    });
     for (const [key, enVal] of todo) {
       let result;
       try {
@@ -130,29 +187,68 @@ async function main() {
       } catch (err) {
         console.warn(`  ! ${key}: ${err.message}`);
         failed += 1;
+        if (PROPOSE_ONLY) {
+          entryByKey.set(key, {
+            key, sourceEn: enVal, proposed: null, status: 'failed', softAccept: false,
+          });
+          flushPropose();
+        }
         continue;
       }
       if (result.status === 'failed' || !result.value) {
         failed += 1;
         console.warn(`  x ${key} [${result.reason}] en: ${enVal.slice(0, 70)}`);
+        if (PROPOSE_ONLY) {
+          entryByKey.set(key, {
+            key, sourceEn: enVal, proposed: null, status: 'failed', softAccept: false,
+          });
+          flushPropose();
+        }
         continue;
       }
       if (result.status === 'kept-soft') soft += 1;
       done += 1;
-      if (DRY_RUN) {
+      const rate = done / Math.max(0.001, (Date.now() - t0) / 1000);
+      writeProgress({
+        locale, done, total: todo.length, rate: Number(rate.toFixed(2)),
+        phase: 'filling', lastKey: key, sampleTranslation: String(result.value).slice(0, 120),
+        pendingKeys: todo.map(([k]) => k).slice(0, 200),
+        gapsTotal: gaps.length,
+      });
+      if (DRY_RUN && !PROPOSE_ONLY) {
         console.log(`  ${key}\n    en: ${enVal}\n    ${locale}: ${result.value}${result.status === 'kept-soft' ? '  [soft]' : ''}`);
+      } else if (PROPOSE_ONLY) {
+        entryByKey.set(key, {
+          key,
+          sourceEn: enVal,
+          proposed: result.value,
+          status: result.status,
+          softAccept: result.status === 'kept-soft',
+        });
+        // Small batches: flush every string so Planned stays live; large: checkpoint.
+        sinceCheckpoint += 1;
+        if (todo.length <= 40 || sinceCheckpoint >= CHECKPOINT) {
+          flushPropose();
+          sinceCheckpoint = 0;
+          if (todo.length > 40) {
+            console.log(`  … propose checkpoint ${done}/${todo.length} (${rate.toFixed(2)}/s)`);
+          }
+        }
       } else {
         strings[key] = result.value;
         sinceCheckpoint += 1;
         if (sinceCheckpoint >= CHECKPOINT) {
           writePack(filePath, pack);
           sinceCheckpoint = 0;
-          const rate = (done / ((Date.now() - t0) / 1000)).toFixed(2);
-          console.log(`  … checkpoint ${done}/${todo.length} (${rate}/s, ${failed} failed, ${soft} soft)`);
+          console.log(`  … checkpoint ${done}/${todo.length} (${rate.toFixed(2)}/s, ${failed} failed, ${soft} soft)`);
         }
       }
     }
-    if (!DRY_RUN && sinceCheckpoint > 0) writePack(filePath, pack);
+    if (PROPOSE_ONLY) {
+      flushPropose();
+    } else if (!DRY_RUN && sinceCheckpoint > 0) {
+      writePack(filePath, pack);
+    }
     const secs = ((Date.now() - t0) / 1000).toFixed(0);
     console.log(`--- ${locale}: filled ${done}, soft ${soft}, failed ${failed} in ${secs}s ---`);
     summary.push({ locale, gaps: gaps.length, filled: done, soft, failed });
