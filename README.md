@@ -88,7 +88,7 @@ Optional **session recording** (Smartlook, EU region) helps improve usability on
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-Server%20787%20%7C%20Web%20787-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/30746671547)
+[![CI builds](https://img.shields.io/badge/build-Server%20787%20%7C%20Web%20790-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/30747387246)
 
 **CI builds** (server + web)
 
@@ -96,9 +96,9 @@ Optional **session recording** (Smartlook, EU region) helps improve usability on
 | :--- | :---: |
 | ![CI](https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white) **Server** EXE (x64) | **787** |
 | ![CI](https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white) **Server** EXE (x86) | **787** |
-| ![CI](https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **787** |
+| ![CI](https://img.shields.io/badge/CI-2e7d32?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **790** |
 
-Latest: [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #787](https://github.com/Metaheurist/Rianell/actions/runs/30746671547) · `62eaf9e`
+Latest: [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #790](https://github.com/Metaheurist/Rianell/actions/runs/30747387246) · `b5f9dff`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
