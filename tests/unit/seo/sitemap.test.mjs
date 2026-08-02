@@ -33,6 +33,7 @@ test('collectRoutes excludes non-content and noindex pages', () => {
   assert.ok(!routes.includes('connector-success.html'), 'connector-success.html must not be in sitemap');
   assert.ok(!routes.some((r) => r.startsWith('design-catalog')), 'design-catalog must not be in sitemap');
   assert.ok(!routes.some((r) => r.startsWith('Icons')), 'asset dirs must not be in sitemap');
+  assert.ok(!routes.some((r) => r.startsWith('.web-dist')), '.web-dist must not be in sitemap');
 });
 
 test('buildSitemap emits valid urlset with absolute rianell.com URLs', () => {

@@ -9,7 +9,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ## [Unreleased]
 
 ### Added
-- **Agentic visual pack:** apply-queue + `visual-qa-propose` (Q&A candidates → Approve → qa-loop max 8); C-only live embed (`?agentic=1&cOnly=1`); wizard rail Gates → Q&A → Approve → Polish×8.
+- **Agentic Research stage (shared):** Firecrawl runs as wizard step **Gates → Research → LLM → Proposal → Approve** on every pack (not a tab). Pack-scoped brief feeds Ollama before Approvals. Key in gitignored `security/.env` (`FIRECRAWL_API_KEY`); Settings UI + `GET/POST /api/agentic/firecrawl` (redacted status). Docs: `agentic-research-pack.md`. Run-all remains **16 packs**.
+- **Agentic hardware profiles:** universal presets (`cpu_only`, `single_8/12/16/24`, `dual_12_16`, `dual_balanced`, `workstation_48`) with auto-detect + Settings override; live packs downshift recommended models to fit VRAM budget. Catalog: `hardware-profiles.json`.
+- **Agentic console UI:** repaired UTF-8 mojibake (`Â·` / `â€¦` separators); merged duplicate **models** + **settings** nav into one **settings** tab.
+- **Agentic visual pack:** apply-queue + `visual-qa-propose` (Q&A candidates → Approve → qa-loop max 8); C-only live embed (`?agentic=1&cOnly=1`); wizard rail Gates → Research → Q&A → Approve → Polish×8.
 - **Agentic Activity + approval cockpit:** Now / Thinking / Done / Planned UI (replaces JSON-primary Technical details), `proposal.json`, approve/reject APIs, streamed LLM Thinking, opt-in git commit on approve, run-all `autoApprove` modes, gated npm bumps, TranslateGemma i18n propose-dir fill (`verify:i18n:check` + `--propose-dir`), visual QA unlock endpoint, Clear all + unload. Docs: `agentic-ui.md` / `agentic-api.md` / pack catalog.
 - **Agentic pack-context gatherer:** `scripts/dev/agentic-pipeline/pack-context.mjs` builds sanitized `## Repo context` (registers, docs, focus inventories, gate excerpts, git digests) for LLM Thinking / Planned actions; artifacts `llm-context.md` + `.meta.json`.
 - **Agentic AIO harness:** loopback `/dev/agentic` + `/api/agentic/*` for 16 packs (design→visual), `@rianell/build-tools/agentic-api-client`, `npm run agentic:*` / `agentic:run-all`, model catalog + VRAM scheduler, sanitize-agent-context, artifacts under `artifacts/agentic/` (gitignored). Docs: `docs/development/agentic-*.md`.
@@ -20,6 +23,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
 ### Changed
+- **Agentic Approve stage:** action chips (confirm write / Approve / Reject) and pack hops sit in a footer below the scrolling item list so they no longer overlay proposals.
+- **Sitemap generator:** exclude `.web-dist` / `.server-dist` from route collection (local build dirs must not appear in `sitemap.xml`).
 - **Agentic harness CI suite:** four Phase‑1 nodes — `Agentic · unit`, `Agentic · catalog`, `Agentic · ollama-load` (`smollm:135m` ≤200 MB via `npm run agentic:smoke`), `Agentic · dry-run` (`npm run agentic:run-all -- --dry-run`). Clear-all worker kill matches `*.mjs` script basenames only (avoids `pkill` matching `agentic-run-all-order.test.mjs` on Linux CI); broad cmdline kill skipped under `node:test`. Unit/i18n clear-all tests isolate via `AGENTIC_ROOT`. `findNpmCliJs` searches setup-node/`lib/node_modules` layouts; unit assertion tolerates PATH-only npm on Actions. CI DAG uses thin fan-in jobs **`1 · Gates · web`** / **`1 · Gates · binaries`** so `deploy-pages` and `server-exe` each take one Phase‑1 edge (Agentic only on the binary gate).
 - **Agentic Overview / Run-all:** primary control is live **Run all** (dry-run and Start live removed from those surfaces).
 - **Agentic visual pack:** C-only live embed; wizard is Gates → Q&A → Approve candidates → Polish×8 (qa-loop max 8). Approve no longer means product `visual:apply` — it starts re-polish on selected Q&A findings. A/B compare toggles hidden in agentic mode.
@@ -46,6 +51,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - Live polish HUD restores accessible **UI Q&A stage** label.
 
 ### Tests
+- `tests/unit/agentic-research-pack.test.mjs`, `agentic-hardware-profiles.test.mjs`; catalog/run-all order locked at 16 packs; Research is a shared stage; sitemap excludes `.web-dist` / `.server-dist`.
 - `tests/unit/agentic-proposal.test.mjs`, `agentic-mode-prefs.test.mjs`, `agentic-pack-context.test.mjs`, `agentic-spawn-silent.test.mjs`, `agentic-i18n-planned-live.test.mjs`, `agentic-clear-all.test.mjs`; expanded `agentic-api-client` loopback / `safeClient` coverage.
 - `tests/unit/pwa/visual-pipeline-state.test.mjs`; updated polish queue / seamless-loop / QA status assertions for ICON_CONTRACT and soft seam policy.
 - `tests/unit/verify-icon-spec.test.mjs` — `verify:icon-spec` + design pack presence + `audit:icon-a --limit=3` smoke.

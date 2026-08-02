@@ -21,6 +21,7 @@
     "agentic:smoke": "node scripts/ci/agentic-ollama-smoke.mjs",
     "agentic:design-context": "node scripts/ci/agentic-design-context.mjs",
     "agentic:planning": "node scripts/ci/agentic-planning.mjs",
+    "agentic:research": "node scripts/ci/agentic-research.mjs",
     "agentic:i18n": "node scripts/ci/agentic-i18n.mjs",
     "agentic:rtl": "node scripts/ci/agentic-rtl.mjs",
     "agentic:a11y": "node scripts/ci/agentic-a11y.mjs",

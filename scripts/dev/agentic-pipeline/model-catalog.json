@@ -24,6 +24,14 @@
     "i18n",
     "visual"
   ],
+  "sharedStages": {
+    "research": {
+      "tool": "firecrawl",
+      "modes": ["search", "scrape"],
+      "position": "after_gates_before_llm",
+      "note": "Runs on every pack (unless skipResearch); feeds llmPromptExtra for grounded Approvals"
+    }
+  },
   "packs": {
     "design": {
       "recommended": "qwen2.5-coder:32b",

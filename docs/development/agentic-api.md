@@ -16,14 +16,16 @@ Rate limits: **skipped for loopback peers**; remote clients still throttled.
 |--------|------|-------|
 | GET | `/health` | Liveness + `safeClient` / `loopbackHost` / `loopbackPeer` |
 | GET | `/catalog` | Model catalog |
-| GET | `/gpus` | Hardware profile |
+| GET | `/gpus` | Hardware profile probe + `profiles[]`, `effectiveProfile`, `override`, `maxModelVramGb` |
 | GET | `/status` | All pack state |
-| GET | `/mode` | Prefs: `mode`, `autoApprove`, `autoApproveMode`, `confirmProductWrite`, `allowDependencyBump`, `gitCommitOnApprove`, `i18nFillScope` |
+| GET | `/mode` | Prefs: `mode`, `autoApprove`, `autoApproveMode`, `confirmProductWrite`, `allowDependencyBump`, `gitCommitOnApprove`, `i18nFillScope`, `hardwareProfile` |
 | POST | `/mode` | Prefs patch (or legacy `{ mode }`) |
 | POST | `/models/load` | `{ model }` Ollama warm |
 | POST | `/models/unload` | `{ model }` keep_alive 0 |
 | POST | `/pause-all` / `/resume-all` | All pack checkpoints |
 | POST | `/clear-all` | Cancel run-all, kill stuck workers (`run-all-worker.pid` + node patterns), wipe pack runtime + pending proposals/approvals, unload all Ollama models in VRAM (keeps approval-log + `approved/`) |
+| GET | `/firecrawl` | `{ configured, source, hint, apiUrl, envPath }` — never returns full API key |
+| POST | `/firecrawl` | `{ apiKey }` save to `security/.env`, or `{ clear: true }` |
 | POST | `/run-all` | `{ dryRun?, skip?, background?, stopOnBroken?, autoApprove?, autoApproveMode?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` — never waits for Approve between packs; default `stopOnBroken=false` |
 
 | GET | `/run-all` | Run-all status |

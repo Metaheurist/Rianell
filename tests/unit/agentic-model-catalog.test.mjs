@@ -11,6 +11,7 @@ test('model-catalog has 16 packs and locked runAllOrder', () => {
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
   const packs = Object.keys(catalog.packs);
   assert.equal(packs.length, 16);
+  assert.equal(catalog.sharedStages?.research?.tool, 'firecrawl');
   assert.deepEqual(catalog.runAllOrder, [
     'design', 'planning', 'rtl', 'a11y', 'seo', 'privacy', 'security',
     'deps', 'migration', 'bootllm', 'perf',

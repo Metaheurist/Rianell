@@ -216,7 +216,9 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
     T = Theme
     search_results: list = []
     portrait_mode = {'value': False}
-    active_panel = {'id': 'overview'}
+    # None until first show_panel — must not start as 'overview' or the initial
+    # show_panel('overview') early-returns and never packs Home into content_area.
+    active_panel = {'id': None}
     nav_items: list[NavItem] = []
     panel_frames: dict[str, tk.Frame] = {}
 
@@ -295,20 +297,23 @@ def create_dashboard(cb: DashboardCallbacks, *, log_formatter: logging.Formatter
 
     # ── Panel switch animation ───────────────────────────────────────────────
     def show_panel(panel_id: str):
-        if panel_id == active_panel['id']:
-            return
-        prev = panel_frames.get(active_panel['id'])
         nxt = panel_frames.get(panel_id)
         if not nxt:
             return
-        active_panel['id'] = panel_id
+        prev_id = active_panel['id']
+        if prev_id != panel_id:
+            prev = panel_frames.get(prev_id) if prev_id else None
+            if prev is not None:
+                prev.pack_forget()
+            active_panel['id'] = panel_id
+            nxt.pack(fill=tk.BOTH, expand=True)
+            nxt.lift()
+        elif not nxt.winfo_manager():
+            # Same panel id but not mapped yet (startup / after relayout rebuild)
+            nxt.pack(fill=tk.BOTH, expand=True)
+            nxt.lift()
         for item in nav_items:
             item.set_active(item.panel_id == panel_id, horizontal=portrait_mode['value'])
-        # quick fade via staggered lift
-        if prev:
-            prev.pack_forget()
-        nxt.pack(fill=tk.BOTH, expand=True)
-        nxt.lift()
 
     def build_nav_item(parent, label, icon, panel_id, *, horizontal=False):
         def on_sel(pid):

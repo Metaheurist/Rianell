@@ -4,8 +4,8 @@ Registers live under `docs/development/*-register.json`, plus `security/review-r
 
 | Pack | npm | Deterministic hooks |
 |------|-----|---------------------|
-| design | `agentic:design-context` | `verify:icon-spec`, `verify:design-tokens` |
-| planning | `agentic:planning` | advisory artifacts |
+| design | `agentic:design-context` | `verify:icon-spec`, `verify:design-tokens` (+ shared Research stage) |
+| planning | `agentic:planning` | advisory artifacts (+ shared Research) |
 | i18n | `agentic:i18n` | `verify:i18n:check` → TranslateGemma `--propose-dir` (Planned lists missing keys live) → Approve → `i18n:merge-tier-c` |
 | rtl | `agentic:rtl` | heuristics + LLM |
 | a11y | `agentic:a11y` | `verify:a11y`, `verify:a11y-tokens` |
@@ -40,6 +40,9 @@ Prompt / context expansion for icon contract + design tokens. Register: `docs/st
 
 ### planning
 Advisory-only docs / unit-test / feature-plan drafts. See [agentic-planning-pack.md](agentic-planning-pack.md). Register: `docs/development/planning-register.json`.
+
+### Research stage (shared, every pack)
+Not a pack tab. After Gates, Firecrawl builds `web-research.*` under the pack’s artifact dir and injects it into the LLM prompt so Approvals are better grounded. Smoke: `npm run agentic:research`. See [agentic-research-pack.md](agentic-research-pack.md). Register: `docs/development/research-register.json`.
 
 ### i18n
 Check-only gate `verify:i18n:check` (no `packages/shared` sync). Live fill uses TranslateGemma (`translategemma:27b`) via `i18n:ollama --propose-dir=artifacts/agentic/i18n/fill-proposals` — never writes `i18n-packs/` until Approve + confirm. Missing keys appear in Planned as soon as each locale plan is written. Scope: Settings `i18nFillScope` (`full` \| `tier-c`). Merge: `i18n:merge-tier-c` post-approve. Register: `docs/development/i18n-register.json`.

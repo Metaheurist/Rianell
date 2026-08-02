@@ -14,12 +14,14 @@ test('run-all order is exactly 16 packs (model-grouped)', () => {
     'i18n',
     'visual',
   ]);
+  assert.equal(order.includes('research'), false);
 });
 
 test('every run-all pack has a handler', () => {
   for (const id of runAllOrder()) {
     assert.equal(typeof PACK_HANDLERS[id], 'function', id);
   }
+  assert.equal(PACK_HANDLERS.research, undefined);
 });
 
 test('run-all order keeps same recommended model contiguous', () => {

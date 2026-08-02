@@ -24,9 +24,11 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (`--start-round=N`, Pass N, max 8) |
 | `npm run agentic:run-all -- --dry-run` | Chronological 16-pack agentic harness (loopback API `/api/agentic`) |
 | `npm run agentic:catalog` | Print recommended models / run-all order |
+| `npm run agentic:hw-profile` | Probe NVIDIA GPUs → hardware profile (`auto` or Settings override) |
+| `npm run agentic:research` | Smoke shared Research stage (Firecrawl; needs `FIRECRAWL_API_KEY`) |
 | `npm run agentic:smoke` | Tiny Ollama load smoke (`smollm:135m` in CI; needs local daemon) |
 | `npm run verify:i18n:check` | i18n gate only (no sync/generators; agentic i18n pack) |
-| Open `/dev/agentic` | AIO console — Activity cockpit + pack pipeline preview (Python server :8080) |
+| Open `/dev/agentic` | AIO console — 16 packs + Research stage on each; Settings (hardware profile, Firecrawl key); Python server :8080 |
 | `npm run visual:pause` / `visual:resume` / `visual:state` | Durable pause/resume (banks remaining ids + Pass N; resume prints IDE terminal commands by default) |
 | `npm run visual:derive-variants` | Derive fancy team sprites via `generate:theme-icons` (no LLM per variant) |
 | `npm run audit:icon-a` | Stage-A icon corpus audit → `artifacts/audit/icon-a-audit.*` |

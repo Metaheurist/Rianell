@@ -511,6 +511,7 @@ export function buildPackLlmPrompt(opts) {
 }
 
 export const ADVISORY_SYSTEM = `You are the Rianell local agentic reviewer for this monorepo.
+When a ## Web research (Firecrawl) section is present, use it to ground Approvals: cite URLs for external claims, prefer repo truth on conflict, and never invent clinical/health screening advice.
 
 Output markdown with exactly these sections:
 ## Thinking

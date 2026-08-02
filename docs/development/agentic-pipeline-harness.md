@@ -14,6 +14,8 @@ Local All-In-One control plane for Rianell developer pipelines.
 
 (Model-grouped: unload only when recommended model changes. Run-all never waits for Approve between packs.)
 
+**Research** is a **shared stage on every pack** (Gates → Research → LLM …): Firecrawl builds a pack-scoped web brief that feeds the LLM before Approvals. See [agentic-research-pack.md](agentic-research-pack.md).
+
 ## Commands
 
 ```bash
@@ -55,7 +57,7 @@ Artifacts per pack: `artifacts/agentic/<pack>/llm-context.md` + `llm-context.met
 
 ## Scheduler / concurrency
 
-- Profile probe: `npm run agentic:hw-profile` (`dual_12_16` on 12+16 GB boxes).
+- Profile probe: `npm run agentic:hw-profile` (universal presets: `cpu_only`, `single_8/12/16/24`, `dual_12_16`, `dual_balanced`, `workstation_48`; Settings can override `auto`).
 - Exclusive groups in `model-catalog.json` (e.g. `visual-gen-polish`, TranslateGemma mutex).
 - Decision log: `artifacts/agentic/scheduler-log.jsonl` when workers consult the scheduler.
 
@@ -84,4 +86,4 @@ Fixtures cover catalog validation, sanitize deny-list, scheduler mutexes, 16-ste
 | CI | [30745574631](https://github.com/Metaheurist/Rianell/actions/runs/30745574631) | green (4-node Agentic suite) |
 | Security DAST | [30745574532](https://github.com/Metaheurist/Rianell/actions/runs/30745574532) | green |
 
-See also: [agentic-api.md](agentic-api.md), [agentic-api-client.md](agentic-api-client.md), [agentic-ui.md](agentic-ui.md), [agentic-pack-catalog.md](agentic-pack-catalog.md), [agentic-run-all.md](agentic-run-all.md), [agentic-model-catalog.md](agentic-model-catalog.md), [visual-pack-harness.md](visual-pack-harness.md).
+See also: [agentic-api.md](agentic-api.md), [agentic-api-client.md](agentic-api-client.md), [agentic-ui.md](agentic-ui.md), [agentic-pack-catalog.md](agentic-pack-catalog.md), [agentic-research-pack.md](agentic-research-pack.md), [agentic-run-all.md](agentic-run-all.md), [agentic-model-catalog.md](agentic-model-catalog.md), [visual-pack-harness.md](visual-pack-harness.md).

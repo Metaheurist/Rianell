@@ -34,7 +34,8 @@ const SLUG_TO_PAGE = new Map(PAGE_ORDER.map((k) => [PAGE_META[k].slug, k]));
 // so they are excluded here to avoid duplicate / alternate-less entries.
 const EXCLUDE_FILES = new Set(['404.html', 'connector-success.html']);
 const EXCLUDE_DIRS = new Set([
-  'node_modules', '.trace-build', '.android-dist', 'design-catalog', 'Icons',
+  'node_modules', '.trace-build', '.android-dist', '.web-dist', '.server-dist',
+  'design-catalog', 'Icons',
   'models', 'i18n-packs', 'partials', ...Object.values(SLUG),
 ]);
 
