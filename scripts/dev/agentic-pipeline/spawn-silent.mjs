@@ -19,10 +19,16 @@ let cachedScripts = undefined;
 /** @returns {string|null} Absolute path to npm-cli.js when found. */
 export function findNpmCliJs() {
   if (cachedNpmCli !== undefined) return cachedNpmCli;
+  const dirname = path.dirname(process.execPath);
   const candidates = [
     process.env.npm_execpath,
-    path.join(path.dirname(process.execPath), 'node_modules', 'npm', 'bin', 'npm-cli.js'),
-    path.join(path.dirname(process.execPath), 'npm', 'bin', 'npm-cli.js'),
+    path.join(dirname, 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    path.join(dirname, 'npm', 'bin', 'npm-cli.js'),
+    // setup-node / linux distro layouts (node binary in bin/, npm under lib/)
+    path.join(dirname, '..', 'lib', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    path.join(dirname, '..', 'lib64', 'node_modules', 'npm', 'bin', 'npm-cli.js'),
+    '/usr/lib/node_modules/npm/bin/npm-cli.js',
+    '/usr/local/lib/node_modules/npm/bin/npm-cli.js',
   ].filter(Boolean);
   for (const c of candidates) {
     try {

@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   findNpmCliJs,
   resolveNodeScriptLine,
@@ -8,10 +9,16 @@ import {
   silentSpawnSync,
 } from '../../scripts/dev/agentic-pipeline/spawn-silent.mjs';
 
-test('findNpmCliJs locates npm-cli.js beside node', () => {
+test('findNpmCliJs locates npm-cli.js when available on this Node install', () => {
   const cli = findNpmCliJs();
-  assert.ok(cli, 'expected npm-cli.js next to node binary');
-  assert.match(cli.replace(/\\/g, '/'), /npm-cli\.js$/);
+  if (cli) {
+    assert.match(cli.replace(/\\/g, '/'), /npm-cli\.js$/);
+    assert.ok(fs.existsSync(cli));
+    return;
+  }
+  // Some CI/corepack layouts omit npm-cli next to node; PATH `npm` must still work.
+  const res = silentSpawnSync('npm', ['--version'], { cwd: process.cwd() });
+  assert.equal(res.status, 0, 'npm on PATH required when npm-cli.js is absent');
 });
 
 test('resolveNodeScriptLine parses node package scripts', () => {
