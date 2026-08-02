@@ -66,11 +66,13 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 ### Phase 1 - Foundation (parallel)
 
 - **unit-tests** - `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, `verify:i18n`
-- **prepare-minified-assets** - minified web artifact for later deploy/probe jobs
-- **security-audit** - gitleaks / osv / dependency audits (reusable workflow)
-- **agentic-harness-smoke** - install Ollama, load `smollm:135m` (≤200 MB), `npm run agentic:smoke`, then `npm run agentic:run-all -- --dry-run`
 - **prepare-minified-assets** - minified PWA → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** - Gitleaks, OSV, npm/pip audit (reusable workflow)
+- **Agentic harness suite** (4 parallel nodes):
+  - **1 · Agentic · unit** — `node --test tests/unit/agentic-*.test.mjs`
+  - **1 · Agentic · catalog** — `npm run agentic:catalog` + catalog/order unit tests
+  - **1 · Agentic · ollama-load** — install Ollama, load `smollm:135m` (≤200 MB), `npm run agentic:smoke`
+  - **1 · Agentic · dry-run** — `npm run agentic:run-all -- --dry-run`
 
 ### Phase 2 - Build lanes (max 7 parallel)
 

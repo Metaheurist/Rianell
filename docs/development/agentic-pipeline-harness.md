@@ -60,8 +60,11 @@ Artifacts per pack: `artifacts/agentic/<pack>/llm-context.md` + `llm-context.met
 
 ## CI / unit notes
 
+CI suite (Phase 1, four parallel nodes): **Agentic · unit** · **Agentic · catalog** · **Agentic · ollama-load** · **Agentic · dry-run**.
+
 ```bash
 node --test tests/unit/agentic-*.test.mjs
+npm run agentic:catalog
 npm run agentic:run-all -- --dry-run
 npm run agentic:smoke          # tiny Ollama load (needs local daemon; CI uses smollm:135m)
 node scripts/verify/doc-links.mjs --strict

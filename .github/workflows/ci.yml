@@ -6,7 +6,7 @@
 #
 # Pipeline phases (job keys — file order matches DAG):
 #   Phase 0 — paths-filter
-#   Phase 1 — unit-tests | prepare-minified-assets | security-audit | agentic-harness-smoke
+#   Phase 1 — unit-tests | prepare-minified-assets | security-audit | agentic suite (unit/catalog/ollama/dry-run)
 #   Phase 2 — benchmarks-web | deploy-pages | server-exe |
 #             commit-dependencies-doc | sync-wiki-to-github  (parallel)
 #   Phase 3 — audit-boot-post-deploy | playwright-e2e | lighthouse-ci | zap-scan |
@@ -162,12 +162,51 @@ jobs:
         if: failure()
         uses: ./.github/actions/cancel-workflow-on-failure
 
-  agentic-harness-smoke:
-    name: "1 · Agentic harness smoke (Ollama)"
+  # ── Agentic harness suite (4 parallel nodes) ───────────────────────────────
+  agentic-harness-unit:
+    name: "1 · Agentic · unit"
     needs: [paths-filter]
     if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node-ci
+      - name: Agentic unit tests
+        run: node --test tests/unit/agentic-*.test.mjs
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
+
+  agentic-harness-catalog:
+    name: "1 · Agentic · catalog"
+    needs: [paths-filter]
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node-ci
+      - name: Validate model catalog + run-all order
+        run: |
+          npm run agentic:catalog
+          node --test tests/unit/agentic-model-catalog.test.mjs tests/unit/agentic-run-all-order.test.mjs
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
+
+  agentic-harness-ollama:
+    name: "1 · Agentic · ollama-load"
+    needs: [paths-filter]
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
       actions: write
@@ -176,14 +215,11 @@ jobs:
       OLLAMA_HOST: http://127.0.0.1:11434
     steps:
       - uses: actions/checkout@v5
-
       - uses: ./.github/actions/setup-node-ci
-
       - name: Install Ollama
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
           ollama --version
-
       - name: Start Ollama daemon
         run: |
           ollama serve > /tmp/ollama-serve.log 2>&1 &
@@ -198,13 +234,26 @@ jobs:
           echo "Ollama failed to start" >&2
           cat /tmp/ollama-serve.log >&2 || true
           exit 1
-
       - name: Pull + load tiny smoke model (≤200MB)
         run: npm run agentic:smoke
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
 
+  agentic-harness-dry-run:
+    name: "1 · Agentic · dry-run"
+    needs: [paths-filter]
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-node-ci
       - name: Agentic pipeline dry-run (16 packs)
         run: npm run agentic:run-all -- --dry-run
-
       - name: Cancel workflow on failure
         if: failure()
         uses: ./.github/actions/cancel-workflow-on-failure
