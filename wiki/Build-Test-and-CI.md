@@ -24,6 +24,7 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (`--start-round=N`, Pass N, max 8) |
 | `npm run agentic:run-all -- --dry-run` | Chronological 16-pack agentic harness (loopback API `/api/agentic`) |
 | `npm run agentic:catalog` | Print recommended models / run-all order |
+| `npm run agentic:smoke` | Tiny Ollama load smoke (`smollm:135m` in CI; needs local daemon) |
 | `npm run verify:i18n:check` | i18n gate only (no sync/generators; agentic i18n pack) |
 | Open `/dev/agentic` | AIO console — Activity cockpit + pack pipeline preview (Python server :8080) |
 | `npm run visual:pause` / `visual:resume` / `visual:state` | Durable pause/resume (banks remaining ids + Pass N; resume prints IDE terminal commands by default) |
@@ -69,7 +70,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 - **prepare-minified-assets** - minified PWA → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** - Gitleaks, OSV, npm/pip audit (reusable workflow)
 - **Agentic harness suite** (4 parallel nodes):
-  - **1 · Agentic · unit** — `node --test tests/unit/agentic-*.test.mjs`
+  - **1 · Agentic · unit** — `node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs`
   - **1 · Agentic · catalog** — `npm run agentic:catalog` + catalog/order unit tests
   - **1 · Agentic · ollama-load** — install Ollama, load `smollm:135m` (≤200 MB), `npm run agentic:smoke`
   - **1 · Agentic · dry-run** — `npm run agentic:run-all -- --dry-run`

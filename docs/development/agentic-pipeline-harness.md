@@ -20,6 +20,7 @@ Local All-In-One control plane for Rianell developer pipelines.
 npm run agentic:catalog
 npm run agentic:hw-profile
 npm run agentic:run-all -- --dry-run
+npm run agentic:smoke
 npm run agentic:security -- --dry-run
 npm run agentic:pause -- --pack=security
 npm run brain:ensure -- --pack=security
@@ -78,7 +79,7 @@ Fixtures cover catalog validation, sanitize deny-list, scheduler mutexes, 16-ste
 
 | Workflow | Run | Result |
 |----------|-----|--------|
-| CI | [30745273249](https://github.com/Metaheurist/Rianell/actions/runs/30745273249) | green (4-node Agentic suite) |
-| Security DAST | [30744152361](https://github.com/Metaheurist/Rianell/actions/runs/30744152361) | green |
+| CI | [30745426020](https://github.com/Metaheurist/Rianell/actions/runs/30745426020) | green (4-node Agentic suite) |
+| Security DAST | [30745425950](https://github.com/Metaheurist/Rianell/actions/runs/30745425950) | green |
 
 See also: [agentic-api.md](agentic-api.md), [agentic-api-client.md](agentic-api-client.md), [agentic-ui.md](agentic-ui.md), [agentic-pack-catalog.md](agentic-pack-catalog.md), [agentic-run-all.md](agentic-run-all.md), [agentic-model-catalog.md](agentic-model-catalog.md), [visual-pack-harness.md](visual-pack-harness.md).

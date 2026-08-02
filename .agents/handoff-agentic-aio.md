@@ -26,7 +26,8 @@ design → planning → rtl → a11y → seo → privacy → security → deps �
 ```bash
 npm run agentic:catalog
 npm run agentic:run-all -- --dry-run
-node --test tests/unit/agentic-*.test.mjs
+npm run agentic:smoke          # tiny Ollama load (local daemon; CI uses smollm:135m)
+node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs
 node scripts/verify/doc-links.mjs --strict
 ```
 
@@ -48,6 +49,8 @@ node scripts/verify/doc-links.mjs --strict
 
 ## CI
 
+Four parallel Phase‑1 nodes: **Agentic · unit** · **Agentic · catalog** · **Agentic · ollama-load** · **Agentic · dry-run**.
+
 - PR: https://github.com/Metaheurist/Rianell/pull/85
-- CI: https://github.com/Metaheurist/Rianell/actions/runs/30740214067 (green)
-- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30740213993 (green)
+- CI: https://github.com/Metaheurist/Rianell/actions/runs/30745426020 (green — 4-node suite)
+- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30745425950 (green)
