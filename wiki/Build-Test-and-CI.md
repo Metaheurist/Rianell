@@ -74,12 +74,14 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
   - **1 · Agentic · catalog** — `npm run agentic:catalog` + catalog/order unit tests
   - **1 · Agentic · ollama-load** — install Ollama, load `smollm:135m` (≤200 MB), `npm run agentic:smoke`
   - **1 · Agentic · dry-run** — `npm run agentic:run-all -- --dry-run`
+- **1 · Gates · web** — thin fan-in of unit + security + minify (feeds deploy)
+- **1 · Gates · binaries** — thin fan-in of unit + security + Agentic suite (feeds `server-exe`)
 
 ### Phase 2 - Build lanes (max 7 parallel)
 
 - **benchmarks-web** - starts when minify finishes (does not wait for unit tests)
-- **deploy-pages** - GitHub Pages → [rianell.com](https://rianell.com) (push only; gated on Phase 1)
-- **server-exe** - Windows x64/x86 (starts after unit tests + security audit + **Agentic harness suite**, not minify)
+- **deploy-pages** - GitHub Pages → [rianell.com](https://rianell.com) (push only; needs **Gates · web**)
+- **server-exe** - Windows x64/x86 (needs **Gates · binaries** — Agentic suite is on this path only)
 - **commit-dependencies-doc** / **sync-wiki-to-github** - main push bots (after unit tests)
 
 ### Phase 3 - Downstream
