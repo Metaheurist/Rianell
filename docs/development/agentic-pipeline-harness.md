@@ -63,6 +63,8 @@ Artifacts per pack: `artifacts/agentic/<pack>/llm-context.md` + `llm-context.met
 
 CI suite (Phase 1, four parallel nodes): **Agentic · unit** · **Agentic · catalog** · **Agentic · ollama-load** · **Agentic · dry-run**.
 
+These four jobs are **required `needs` of `server-exe`**, so the Actions graph draws edges from the Agentic suite directly into the Windows binary builds (x64/x86).
+
 ```bash
 node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs
 npm run agentic:catalog
