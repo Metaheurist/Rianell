@@ -37,6 +37,57 @@ export function readPackStream(packId) {
   };
 }
 
+/**
+ * Live Planned items from TranslateGemma propose-dir checkpoints
+ * (includes pending gaps before a translation exists).
+ */
+export function loadI18nFillPlannedItems(packId = 'i18n') {
+  const proposeDir = path.join(packDir(packId), 'fill-proposals');
+  if (!fs.existsSync(proposeDir)) return [];
+  const items = [];
+  let files;
+  try {
+    files = fs.readdirSync(proposeDir).filter((f) => f.endsWith('.json')).sort();
+  } catch {
+    return [];
+  }
+  for (const file of files) {
+    const locale = file.replace(/\.json$/i, '');
+    const data = readJson(path.join(proposeDir, file), null);
+    if (!data) continue;
+    const entries = Array.isArray(data) ? data : (data.entries || data.strings || []);
+    for (const ent of entries) {
+      const key = ent.key;
+      if (!key) continue;
+      const proposed = ent.proposed ?? ent.value ?? null;
+      const pending = proposed == null || ent.status === 'pending' || ent.status === 'failed';
+      const soft = Boolean(ent.softAccept || ent.status === 'kept-soft');
+      items.push({
+        id: `i18n-${locale}-${key}`.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120),
+        kind: 'i18n_string',
+        title: pending
+          ? `${locale} · ${key} · ${ent.status === 'failed' ? 'failed' : 'missing'}`
+          : `${locale} · ${key}`,
+        detail: pending
+          ? `en: ${String(ent.sourceEn || ent.en || '').slice(0, 160)}\n→ (awaiting translation)`
+          : `en: ${String(ent.sourceEn || ent.en || '').slice(0, 160)}\n→ ${String(proposed).slice(0, 160)}`,
+        risk: soft ? 'medium' : (pending ? 'low' : 'low'),
+        locale,
+        key,
+        sourceEn: ent.sourceEn || ent.en || '',
+        proposed,
+        softAccept: soft,
+        // Only select filled strings for Approve; missing stay visible but unchecked.
+        selected: !pending && !soft,
+        applyAdapter: 'i18n-apply-fill',
+        targets: [`i18n-packs/locale-packs/v1/${locale}.json`],
+        fillStatus: ent.status || (pending ? 'pending' : 'ok'),
+      });
+    }
+  }
+  return items.slice(0, 2000);
+}
+
 export function buildPackActivity(packId) {
   const state = readPackState(packId);
   const report = readJson(path.join(packDir(packId), 'report.json'), null);
@@ -61,17 +112,49 @@ export function buildPackActivity(packId) {
     });
   }
 
+  let plannedItems = proposal?.items || [];
+  let plannedSummary = proposal?.summary || '';
+  let plannedStatus = proposal?.status || null;
+
+  // While TranslateGemma is filling (or just finished writing propose-dir), prefer
+  // the live gap list so Planned shows missing entries immediately — not only after
+  // the blocking fill process exits.
+  if (packId === 'i18n') {
+    const live = loadI18nFillPlannedItems(packId);
+    const fill = stream.fillProgress;
+    const filling = fill && ['filling', 'starting', 'done'].includes(fill.phase);
+    if (live.length && (filling || !plannedItems.length || plannedStatus === 'filling')) {
+      plannedItems = live;
+      const pendingN = live.filter((it) => it.fillStatus === 'pending' || it.proposed == null).length;
+      const filledN = live.length - pendingN;
+      plannedSummary = fill?.locale
+        ? `${fill.locale}: ${filledN}/${live.length} translated · ${pendingN} missing`
+        : `${filledN}/${live.length} translated · ${pendingN} missing`;
+      if (fill?.phase === 'filling' || fill?.phase === 'starting') {
+        plannedStatus = 'filling';
+      }
+    }
+  }
+
+  // If a proposal is waiting, surface pending_approval even when report.ok was
+  // false (e.g. LLM socket dropped after a usable partial was already written).
+  const effectiveStatus = (
+    (proposal?.status === 'pending_approval' || proposal?.approval?.state === 'pending')
+    && Array.isArray(proposal?.items) && proposal.items.length
+    && state.status === 'broken'
+  ) ? 'pending_approval' : state.status;
+
   return {
     pack: packId,
     now: {
-      status: state.status,
+      status: effectiveStatus,
       stage: state.stage || report?.stage || null,
       model: state.model || report?.model || proposal?.model || null,
       startedAt: state.startedAt || null,
       finishedAt: state.finishedAt || null,
       paused: Boolean(state.paused),
       dryRun: Boolean(report?.dryRun),
-      needsApproval: state.status === 'pending_approval'
+      needsApproval: effectiveStatus === 'pending_approval'
         || proposal?.status === 'pending_approval',
     },
     thinking: {
@@ -88,9 +171,9 @@ export function buildPackActivity(packId) {
     },
     done,
     planned: {
-      status: proposal?.status || null,
-      summary: proposal?.summary || '',
-      items: proposal?.items || [],
+      status: plannedStatus,
+      summary: plannedSummary,
+      items: plannedItems,
       approval: proposal?.approval || null,
     },
     stream,

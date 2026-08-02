@@ -32,6 +32,10 @@ npm run brain:ensure -- --pack=security
 - Agentic API is **loopback-only** (never LAN via `SENSITIVE_APIS_ON_LAN`).
 - Run-all is always serial with unload between packs; ad-hoc `parallel` mode is VRAM-guarded separately.
 - UI uses only `@rianell/build-tools/agentic-api-client` (served at `/dev/agentic/lib/`).
+- Gate processes spawn via `spawn-silent.mjs`: `npm run <script>` is resolved to direct `node <file>` (never `cmd.exe` / `npm.cmd`); children use `windowsHide`.
+- **Clear all + unload** cancels pipelines, kills workers, clears pending approvals, resets pack tabs, unloads Ollama VRAM.
+- **i18n Planned** shows missing keys as soon as each locale plan is written (not only after TranslateGemma finishes).
+- Overview / visual tabs omit the Activity cockpit; pack tiles use **needs approval** (not running) when waiting on Approve.
 
 ## Codebase-aware Thinking / Planned actions
 

@@ -145,7 +145,11 @@ class ApiRoutesMixin:
             self.send_header('Cache-Control', 'no-store')
             self.send_header('Content-Length', str(len(body)))
             self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
+                # Client navigated away / aborted fetch — not a server failure.
+                pass
 
         def _agentic_guard(self, method='GET'):
             client_ip = self.client_address[0] if self.client_address else ''
@@ -369,6 +373,9 @@ class ApiRoutesMixin:
                     background = body.get('background')
                     if background is None:
                         background = not dry
+                    stop_on_broken = body.get('stopOnBroken')
+                    if stop_on_broken is None:
+                        stop_on_broken = True
                     result = agentic_console.run_all(
                         dry_run=dry,
                         skip=skip,
@@ -378,6 +385,7 @@ class ApiRoutesMixin:
                         confirm_product_write=bool(body.get('confirmProductWrite')),
                         allow_dependency_bump=bool(body.get('allowDependencyBump')),
                         git_commit_on_approve=bool(body.get('gitCommitOnApprove')),
+                        stop_on_broken=bool(stop_on_broken),
                     )
                     self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
                         result['ok'], result.get('data'), result.get('error'),
@@ -494,11 +502,17 @@ class ApiRoutesMixin:
                 self._agentic_json(404, agentic_console.envelope(
                     False, None, {'code': 404, 'message': f'unknown route {rel}'},
                 ))
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                # Browser aborted mid-response (tab switch, hard refresh, poll cancel).
+                logger.debug('agentic API client disconnected during response')
             except Exception as e:
                 logger.exception('agentic API error')
-                self._agentic_json(500, agentic_console.envelope(
-                    False, None, {'code': 500, 'message': str(e)[:300]},
-                ))
+                try:
+                    self._agentic_json(500, agentic_console.envelope(
+                        False, None, {'code': 500, 'message': str(e)[:300]},
+                    ))
+                except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
+                    pass
     
         def handle_supabase_status(self):
             """Handle Supabase status check endpoint"""

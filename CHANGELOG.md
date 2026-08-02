@@ -21,6 +21,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ### Changed
 - **Agentic pack tabs:** pipeline preview card (header + controls, Gates→LLM→Proposal→Approve rail, cockpit Activity); Planned approve row hidden on visual; Debug drawer always collapsed by default; constrained toolbar icons; model picker in live polish Review HUD; in-app confirm dialog (no `window.confirm`).
 - **Agentic live UI:** soft Activity patches (no full-tab re-render while packs run); scrollbars hidden in scrollable panels.
+- **Agentic Windows gates (silent):** `spawn-silent.mjs` resolves `npm run` to direct `node <script>` (never `cmd.exe` / `npm.cmd`); `windowsHide` on i18n step children; Python uses `CREATE_NO_WINDOW` + hidden STARTUPINFO.
+- **Agentic i18n Planned:** TranslateGemma propose-dir writes the full missing-key list up front; Activity Planned shows pending gaps while `Filling locale · n/total` runs (not only after fill completes).
+- **Agentic overview status:** packs awaiting Approve show **needs approval** (not running); LLM socket drops salvage streamed partials into a proposal instead of hard-breaking when usable.
+- **Agentic Clear all + unload:** cancels run-all, kills stuck pack/i18n workers, wipes pending approvals/proposals/pack tabs to idle, then unloads every Ollama model in VRAM.
 - **Agentic Thinking / Planned actions** are codebase-aware via `pack-context.mjs`; Activity shows a repo-context chip.
 - **Agentic safe client:** `localhost` / `127.*` / `::1` all classify as safe (client + `/health.safeClient`); HUD chip shows confirmed safe on loopback.
 - **Agentic rate limits:** skipped for loopback peers (`should_rate_limit_client`); remote clients still limited.
@@ -34,7 +38,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - Live polish HUD restores accessible **UI Q&A stage** label.
 
 ### Tests
-- `tests/unit/agentic-proposal.test.mjs`, `agentic-mode-prefs.test.mjs`, `agentic-pack-context.test.mjs`; expanded `agentic-api-client` loopback / `safeClient` coverage.
+- `tests/unit/agentic-proposal.test.mjs`, `agentic-mode-prefs.test.mjs`, `agentic-pack-context.test.mjs`, `agentic-spawn-silent.test.mjs`, `agentic-i18n-planned-live.test.mjs`, `agentic-clear-all.test.mjs`; expanded `agentic-api-client` loopback / `safeClient` coverage.
 - `tests/unit/pwa/visual-pipeline-state.test.mjs`; updated polish queue / seamless-loop / QA status assertions for ICON_CONTRACT and soft seam policy.
 - `tests/unit/verify-icon-spec.test.mjs` — `verify:icon-spec` + design pack presence + `audit:icon-a --limit=3` smoke.
 - Screenshot QA: subject-contracts match/labels + non-text contrast.

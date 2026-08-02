@@ -11,4 +11,16 @@ Order (fixed, serial, unload between packs):
 1. design 2. planning 3. i18n 4. rtl 5. a11y 6. seo 7. privacy 8. security  
 9. deps 10. migration 11. changelog 12. wikisync 13. image 14. bootllm 15. perf 16. visual
 
-State: `artifacts/agentic/run-all-state.json`.
+State: `artifacts/agentic/run-all-state.json`.  
+Worker PID (background live): `artifacts/agentic/run-all-worker.pid`.
+
+### Clear all + unload
+
+`POST /api/agentic/clear-all` (UI: **Clear all + unload**):
+
+1. Signals `cancelled` on the sequencer  
+2. Kills stuck `agentic-run-all` / `agentic-pack-cli` / `ollama-translate-gaps` workers  
+3. Wipes pack runtime + pending `proposal.json` / fill plans; resets every pack to `idle`  
+4. Unloads all models reported by `ollama ps`  
+
+Approval log + `approved/` archives are kept.

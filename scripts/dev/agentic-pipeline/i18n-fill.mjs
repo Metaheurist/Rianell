@@ -1,7 +1,6 @@
 /**
  * TranslateGemma propose-dir fill for agentic i18n pack.
  */
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SHIPPED_LOCALES } from '../../../packages/shared/src/i18n/locales.mjs';
@@ -9,6 +8,7 @@ import { emptyProposal, writeProposal } from './proposal.mjs';
 import { ensureDir, packDir, ROOT } from './state.mjs';
 import { readModePrefs } from './mode-prefs.mjs';
 import { buildPackLlmPrompt } from './pack-context.mjs';
+import { silentSpawnSync } from './spawn-silent.mjs';
 
 const EN = new Set(['en-GB', 'en-US', 'en-AU']);
 const TIER_C = ['ga', 'ar', 'he'];
@@ -65,6 +65,19 @@ export async function runI18nFillPropose({ dryRun, model, gateResults }) {
     return proposal;
   }
 
+  // Seed a filling proposal so the cockpit Planned panel is not empty while
+  // TranslateGemma runs (live items come from fill-proposals/*.json).
+  writeProposal('i18n', emptyProposal('i18n', {
+    model,
+    status: 'filling',
+    summary: `Filling gaps · scope=${scope} · locales=${locales.length}`,
+    thinking: `TranslateGemma propose-dir starting for ${locales.join(', ')}. Missing keys appear in Planned as each locale plan is written.`,
+    items: [],
+    gates: (gateResults || []).map((g) => ({
+      label: g.cmd, status: g.status, cmd: g.cmd,
+    })),
+  }));
+
   const args = [
     'scripts/i18n/ollama-translate-gaps.mjs',
     `--model=${model || 'translategemma:27b'}`,
@@ -77,12 +90,12 @@ export async function runI18nFillPropose({ dryRun, model, gateResults }) {
     args.push(`--limit=${process.env.AGENTIC_I18N_LIMIT}`);
   }
 
-  const res = spawnSync(process.execPath, args, {
+  const res = silentSpawnSync(process.execPath, args, {
     cwd: ROOT,
-    encoding: 'utf8',
-    shell: false,
-    env: process.env,
-    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      AGENTIC_HEADLESS: '1',
+    },
   });
 
   fs.writeFileSync(progressPath, `${JSON.stringify({

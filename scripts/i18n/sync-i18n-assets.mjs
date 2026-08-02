@@ -68,6 +68,8 @@ generatePromptPackData();
 const policy = spawnSync(process.execPath, ['scripts/i18n/sync-policy-pack.mjs'], {
   cwd: root,
   stdio: 'inherit',
+  windowsHide: true,
+  shell: false,
 });
 if (policy.status !== 0) process.exit(policy.status || 1);
 

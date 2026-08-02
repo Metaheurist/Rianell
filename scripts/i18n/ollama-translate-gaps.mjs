@@ -148,11 +148,37 @@ async function main() {
     let failed = 0;
     let soft = 0;
     let sinceCheckpoint = 0;
-    const proposedEntries = [];
+    /** @type {Map<string, { key: string, sourceEn: string, proposed: string|null, status: string, softAccept?: boolean }>} */
+    const entryByKey = new Map(
+      todo.map(([key, enVal]) => [key, {
+        key,
+        sourceEn: enVal,
+        proposed: null,
+        status: 'pending',
+      }]),
+    );
+    const proposePath = PROPOSE_ONLY ? path.join(PROPOSE_DIR, `${locale}.json`) : null;
+    const flushPropose = () => {
+      if (!proposePath) return;
+      fs.writeFileSync(
+        proposePath,
+        `${JSON.stringify({ locale, entries: [...entryByKey.values()] }, null, 2)}\n`,
+      );
+    };
     const t0 = Date.now();
+    // Publish the full missing-key plan immediately so the agentic Planned panel
+    // can list entries before TranslateGemma finishes each string.
+    if (PROPOSE_ONLY) flushPropose();
     writeProgress({
-      locale, done: 0, total: todo.length, rate: 0, phase: 'filling',
-      lastKey: null, sampleTranslation: null,
+      locale,
+      done: 0,
+      total: todo.length,
+      rate: 0,
+      phase: 'filling',
+      lastKey: null,
+      sampleTranslation: null,
+      pendingKeys: todo.map(([key]) => key).slice(0, 200),
+      gapsTotal: gaps.length,
     });
     for (const [key, enVal] of todo) {
       let result;
@@ -161,11 +187,23 @@ async function main() {
       } catch (err) {
         console.warn(`  ! ${key}: ${err.message}`);
         failed += 1;
+        if (PROPOSE_ONLY) {
+          entryByKey.set(key, {
+            key, sourceEn: enVal, proposed: null, status: 'failed', softAccept: false,
+          });
+          flushPropose();
+        }
         continue;
       }
       if (result.status === 'failed' || !result.value) {
         failed += 1;
         console.warn(`  x ${key} [${result.reason}] en: ${enVal.slice(0, 70)}`);
+        if (PROPOSE_ONLY) {
+          entryByKey.set(key, {
+            key, sourceEn: enVal, proposed: null, status: 'failed', softAccept: false,
+          });
+          flushPropose();
+        }
         continue;
       }
       if (result.status === 'kept-soft') soft += 1;
@@ -174,25 +212,27 @@ async function main() {
       writeProgress({
         locale, done, total: todo.length, rate: Number(rate.toFixed(2)),
         phase: 'filling', lastKey: key, sampleTranslation: String(result.value).slice(0, 120),
+        pendingKeys: todo.map(([k]) => k).slice(0, 200),
+        gapsTotal: gaps.length,
       });
       if (DRY_RUN && !PROPOSE_ONLY) {
         console.log(`  ${key}\n    en: ${enVal}\n    ${locale}: ${result.value}${result.status === 'kept-soft' ? '  [soft]' : ''}`);
       } else if (PROPOSE_ONLY) {
-        proposedEntries.push({
+        entryByKey.set(key, {
           key,
           sourceEn: enVal,
           proposed: result.value,
           status: result.status,
           softAccept: result.status === 'kept-soft',
         });
+        // Small batches: flush every string so Planned stays live; large: checkpoint.
         sinceCheckpoint += 1;
-        if (sinceCheckpoint >= CHECKPOINT) {
-          fs.writeFileSync(
-            path.join(PROPOSE_DIR, `${locale}.json`),
-            `${JSON.stringify({ locale, entries: proposedEntries }, null, 2)}\n`,
-          );
+        if (todo.length <= 40 || sinceCheckpoint >= CHECKPOINT) {
+          flushPropose();
           sinceCheckpoint = 0;
-          console.log(`  … propose checkpoint ${done}/${todo.length} (${rate.toFixed(2)}/s)`);
+          if (todo.length > 40) {
+            console.log(`  … propose checkpoint ${done}/${todo.length} (${rate.toFixed(2)}/s)`);
+          }
         }
       } else {
         strings[key] = result.value;
@@ -205,10 +245,7 @@ async function main() {
       }
     }
     if (PROPOSE_ONLY) {
-      fs.writeFileSync(
-        path.join(PROPOSE_DIR, `${locale}.json`),
-        `${JSON.stringify({ locale, entries: proposedEntries }, null, 2)}\n`,
-      );
+      flushPropose();
     } else if (!DRY_RUN && sinceCheckpoint > 0) {
       writePack(filePath, pack);
     }

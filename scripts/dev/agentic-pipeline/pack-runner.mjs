@@ -1,7 +1,6 @@
 /**
  * Shared pack runner: gates → optional streamed LLM advisory → proposal → pending_approval.
  */
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { sanitizeAgentContext } from '../sanitize-agent-context.mjs';
@@ -22,6 +21,7 @@ import {
   emptyProposal,
 } from './proposal.mjs';
 import { buildPackLlmPrompt, ADVISORY_SYSTEM } from './pack-context.mjs';
+import { silentSpawnSync } from './spawn-silent.mjs';
 
 /**
  * @param {string} packId
@@ -74,17 +74,16 @@ export async function runPack(packId, opts = {}) {
       gateResults.push({ cmd: [cmd, ...args].join(' '), status: 'skipped-dry-run', code: 0 });
       continue;
     }
-    const res = spawnSync(cmd, args, {
+    const res = silentSpawnSync(cmd, args, {
       cwd: g.cwd || ROOT,
-      encoding: 'utf8',
-      shell: process.platform === 'win32',
       env: process.env,
     });
+    const spawnErr = res.error ? String(res.error.message || res.error) : '';
     gateResults.push({
       cmd: [cmd, ...args].join(' '),
       status: res.status === 0 ? 'pass' : 'fail',
       code: res.status,
-      stderr: String(res.stderr || '').slice(0, 2000),
+      stderr: (spawnErr || String(res.stderr || '')).slice(0, 2000),
       stdout: String(res.stdout || '').slice(0, 2000),
     });
   }
@@ -153,8 +152,28 @@ export async function runPack(packId, opts = {}) {
       fs.writeFileSync(metaPath, `${JSON.stringify({ done: true, model: resolved.model, updatedAt: new Date().toISOString() })}\n`);
       llm = { ok: true, text: finalText };
     } catch (err) {
-      fs.writeFileSync(metaPath, `${JSON.stringify({ done: true, error: true, updatedAt: new Date().toISOString() })}\n`);
-      llm = { ok: false, error: String(err?.message || err) };
+      // Salvage streamed partial when the socket dies mid-generate so the pack
+      // can still open a proposal instead of hard-breaking the run-all.
+      let partial = '';
+      try {
+        if (fs.existsSync(partialPath)) partial = fs.readFileSync(partialPath, 'utf8');
+      } catch { /* ignore */ }
+      const salvaged = sanitizeAgentContext(partial).text.slice(0, 12000);
+      const usable = salvaged.length >= 280 && /##\s*Proposed|^\s*\d+\.\s+/m.test(salvaged);
+      fs.writeFileSync(metaPath, `${JSON.stringify({
+        done: true,
+        error: true,
+        salvaged: usable,
+        updatedAt: new Date().toISOString(),
+      })}\n`);
+      llm = usable
+        ? {
+          ok: true,
+          text: salvaged,
+          degraded: true,
+          error: String(err?.message || err),
+        }
+        : { ok: false, error: String(err?.message || err) };
     } finally {
       await ollamaUnload(resolved.model);
     }
@@ -279,6 +298,10 @@ export async function runPack(packId, opts = {}) {
   };
 }
 
+/**
+ * Gate via package.json script name. `silentSpawnSync` resolves `npm run`
+ * to a direct `node <file>` invocation on Windows so no cmd.exe flashes.
+ */
 export function npmGate(script) {
   return { cmd: 'npm', args: ['run', script] };
 }

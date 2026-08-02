@@ -5,12 +5,12 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
   sanitizeAgentContext,
   filterAllowedContextPaths,
 } from '../sanitize-agent-context.mjs';
+import { silentSpawnSync } from './spawn-silent.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
@@ -341,11 +341,7 @@ function gitDigest(gitPaths = []) {
   const argsStat = ['diff', '--stat', 'HEAD~12', '--', ...paths];
   const argsLog = ['log', '--oneline', '-8', '--', ...paths];
   const run = (args) => {
-    const res = spawnSync('git', args, {
-      cwd: ROOT,
-      encoding: 'utf8',
-      shell: false,
-    });
+    const res = silentSpawnSync('git', args, { cwd: ROOT });
     if (res.status !== 0) return '';
     return String(res.stdout || '').trim();
   };
