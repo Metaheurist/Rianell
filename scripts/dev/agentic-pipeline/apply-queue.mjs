@@ -6,10 +6,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolvePackModel, runAllOrder } from './catalog.mjs';
-import { AGENTIC_ROOT, ensureDir } from './state.mjs';
+import { getAgenticRoot, ensureDir } from './state.mjs';
 import { ollamaUnload } from './ollama-client.mjs';
 
-export const APPLY_QUEUE_PATH = path.join(AGENTIC_ROOT, 'apply-queue.json');
+export function applyQueuePath() {
+  return path.join(getAgenticRoot(), 'apply-queue.json');
+}
+
+/** @deprecated Prefer applyQueuePath() — live when AGENTIC_ROOT env changes. */
+export const APPLY_QUEUE_PATH = path.join(getAgenticRoot(), 'apply-queue.json');
 
 function emptyQueue() {
   return {
@@ -24,8 +29,9 @@ function emptyQueue() {
 
 export function readApplyQueue() {
   try {
-    if (!fs.existsSync(APPLY_QUEUE_PATH)) return emptyQueue();
-    const raw = JSON.parse(fs.readFileSync(APPLY_QUEUE_PATH, 'utf8'));
+    const p = applyQueuePath();
+    if (!fs.existsSync(p)) return emptyQueue();
+    const raw = JSON.parse(fs.readFileSync(p, 'utf8'));
     return {
       ...emptyQueue(),
       ...raw,
@@ -37,13 +43,13 @@ export function readApplyQueue() {
 }
 
 export function writeApplyQueue(queue) {
-  ensureDir(AGENTIC_ROOT);
+  ensureDir(getAgenticRoot());
   const next = {
     ...emptyQueue(),
     ...queue,
     updatedAt: new Date().toISOString(),
   };
-  fs.writeFileSync(APPLY_QUEUE_PATH, `${JSON.stringify(next, null, 2)}\n`);
+  fs.writeFileSync(applyQueuePath(), `${JSON.stringify(next, null, 2)}\n`);
   return next;
 }
 

@@ -63,12 +63,14 @@ Artifacts per pack: `artifacts/agentic/<pack>/llm-context.md` + `llm-context.met
 CI suite (Phase 1, four parallel nodes): **Agentic · unit** · **Agentic · catalog** · **Agentic · ollama-load** · **Agentic · dry-run**.
 
 ```bash
-node --test tests/unit/agentic-*.test.mjs
+node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs
 npm run agentic:catalog
 npm run agentic:run-all -- --dry-run
 npm run agentic:smoke          # tiny Ollama load (needs local daemon; CI uses smollm:135m)
 node scripts/verify/doc-links.mjs --strict
 ```
+
+Clear-all’s cmdline kill uses script basenames (`agentic-run-all.mjs`, …) and skips broad process scans under `node:test` so CI never suicides the suite.
 
 Fixtures cover catalog validation, sanitize deny-list, scheduler mutexes, 16-step run-all order, and client loopback refusal.
 

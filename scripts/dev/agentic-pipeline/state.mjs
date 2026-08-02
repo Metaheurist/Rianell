@@ -4,10 +4,19 @@ import { fileURLToPath } from 'node:url';
 import { ensureDir, readCheckpoint, writeCheckpoint } from './checkpoint.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-export const AGENTIC_ROOT = path.join(ROOT, 'artifacts', 'agentic');
+
+/** Live root — honors `AGENTIC_ROOT` so unit tests can isolate artifacts. */
+export function getAgenticRoot() {
+  return process.env.AGENTIC_ROOT
+    ? path.resolve(process.env.AGENTIC_ROOT)
+    : path.join(ROOT, 'artifacts', 'agentic');
+}
+
+/** Snapshot alias; prefer getAgenticRoot() when env may change between calls. */
+export const AGENTIC_ROOT = getAgenticRoot();
 
 export function packDir(packId) {
-  return path.join(AGENTIC_ROOT, packId);
+  return path.join(getAgenticRoot(), packId);
 }
 
 export function packStatePath(packId) {
@@ -44,7 +53,7 @@ export function resumePack(packId) {
 }
 
 export function runAllStatePath() {
-  return path.join(AGENTIC_ROOT, 'run-all-state.json');
+  return path.join(getAgenticRoot(), 'run-all-state.json');
 }
 
 export function readRunAllState() {
@@ -59,7 +68,7 @@ export function readRunAllState() {
 }
 
 export function writeRunAllState(state) {
-  ensureDir(AGENTIC_ROOT);
+  ensureDir(getAgenticRoot());
   writeCheckpoint(runAllStatePath(), state);
 }
 

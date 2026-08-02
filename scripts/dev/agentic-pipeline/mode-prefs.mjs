@@ -3,9 +3,14 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { AGENTIC_ROOT, ensureDir } from './state.mjs';
+import { getAgenticRoot, ensureDir } from './state.mjs';
 
-export const MODE_PATH = path.join(AGENTIC_ROOT, 'mode.json');
+export function modePrefsPath() {
+  return path.join(getAgenticRoot(), 'mode.json');
+}
+
+/** @deprecated Prefer modePrefsPath() — live when AGENTIC_ROOT env changes. */
+export const MODE_PATH = path.join(getAgenticRoot(), 'mode.json');
 
 export const DEFAULT_MODE_PREFS = {
   mode: 'serial',
@@ -19,8 +24,9 @@ export const DEFAULT_MODE_PREFS = {
 
 export function readModePrefs() {
   try {
-    if (!fs.existsSync(MODE_PATH)) return { ...DEFAULT_MODE_PREFS };
-    const j = JSON.parse(fs.readFileSync(MODE_PATH, 'utf8'));
+    const p = modePrefsPath();
+    if (!fs.existsSync(p)) return { ...DEFAULT_MODE_PREFS };
+    const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     return { ...DEFAULT_MODE_PREFS, ...j };
   } catch {
     return { ...DEFAULT_MODE_PREFS };
@@ -28,7 +34,7 @@ export function readModePrefs() {
 }
 
 export function writeModePrefs(patch = {}) {
-  ensureDir(AGENTIC_ROOT);
+  ensureDir(getAgenticRoot());
   const next = { ...readModePrefs(), ...patch };
   if (!['serial', 'parallel', 'dry-run'].includes(next.mode)) {
     return { ok: false, error: { code: 'bad_mode', message: String(next.mode) }, data: null };
@@ -39,6 +45,6 @@ export function writeModePrefs(patch = {}) {
   if (!['full', 'tier-c'].includes(next.i18nFillScope)) {
     next.i18nFillScope = 'full';
   }
-  fs.writeFileSync(MODE_PATH, `${JSON.stringify(next, null, 2)}\n`);
+  fs.writeFileSync(modePrefsPath(), `${JSON.stringify(next, null, 2)}\n`);
   return { ok: true, error: null, data: next };
 }

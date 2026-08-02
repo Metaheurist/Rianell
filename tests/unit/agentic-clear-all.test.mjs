@@ -1,23 +1,45 @@
-import { test } from 'node:test';
+import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import {
+
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rianell-agentic-clear-'));
+process.env.AGENTIC_ROOT = tmpRoot;
+
+const {
   clearAllAndUnload,
-} from '../../scripts/dev/agentic-pipeline/clear-all.mjs';
-import {
-  AGENTIC_ROOT,
+  WORKER_CMD_PATTERNS,
+} = await import('../../scripts/dev/agentic-pipeline/clear-all.mjs');
+const {
+  getAgenticRoot,
   ensureDir,
   packDir,
   readPackState,
   readRunAllState,
   writePackState,
   writeRunAllState,
-} from '../../scripts/dev/agentic-pipeline/state.mjs';
-import { writeProposal, emptyProposal } from '../../scripts/dev/agentic-pipeline/proposal.mjs';
+} = await import('../../scripts/dev/agentic-pipeline/state.mjs');
+const { writeProposal, emptyProposal } = await import('../../scripts/dev/agentic-pipeline/proposal.mjs');
+
+after(() => {
+  try {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  } catch { /* ignore */ }
+  delete process.env.AGENTIC_ROOT;
+});
+
+test('worker kill patterns match scripts, not agentic-*.test.mjs files', () => {
+  const trap = 'tests/unit/agentic-run-all-order.test.mjs';
+  for (const pat of WORKER_CMD_PATTERNS) {
+    assert.ok(pat.endsWith('.mjs'), `pattern should be a script basename: ${pat}`);
+    assert.equal(trap.includes(pat), false, `pattern ${pat} must not match ${trap}`);
+  }
+});
 
 test('clearAllAndUnload cancels run-all, wipes pending proposal, resets packs to idle', async () => {
-  ensureDir(AGENTIC_ROOT);
+  assert.equal(getAgenticRoot(), tmpRoot);
+  ensureDir(getAgenticRoot());
   writeRunAllState({
     status: 'running',
     stepIndex: 2,
