@@ -63,7 +63,7 @@ Artifacts per pack: `artifacts/agentic/<pack>/llm-context.md` + `llm-context.met
 
 CI suite (Phase 1, four parallel nodes): **Agentic · unit** · **Agentic · catalog** · **Agentic · ollama-load** · **Agentic · dry-run**.
 
-These four jobs are **required `needs` of `server-exe`**, so the Actions graph draws edges from the Agentic suite directly into the Windows binary builds (x64/x86).
+These four jobs fan into **`1 · Gates · binaries`**, which is the sole Phase‑1 `needs` of `server-exe` (direct Actions-graph edge into the Windows binary builds). Web deploy uses a sibling fan-in **`1 · Gates · web`** (unit + security + minify) so Agentic does not clog the Pages lane.
 
 ```bash
 node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs
