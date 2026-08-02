@@ -2386,12 +2386,12 @@
             <label>Profile (auto-detect or manual override)</label>
             <select id="hwProfileSel" style="max-width:28rem"></select>
             <hr style="border:none;border-top:1px solid var(--line);margin:16px 0"/>
-            <h3 style="margin:0 0 8px;font-size:0.95rem">Firecrawl (shared Research stage)</h3>
-            <p id="fcStatus" style="margin:0 0 8px;color:var(--muted);font-size:0.85rem">Checking key…</p>
-            <label>API key (stored in security/.env — never committed)</label>
+            <h3 style="margin:0 0 8px;font-size:0.95rem">Firecrawl</h3>
+            <p id="fcStatus" style="margin:0 0 8px;color:var(--muted);font-size:0.85rem">Checking…</p>
+            <label>API key (security/.env · not committed)</label>
             <input type="password" id="fcKey" placeholder="fc-…" autocomplete="off" style="width:100%;max-width:28rem"/>
             <div class="actions" style="margin-top:10px">
-              <button class="primary" id="fcSave">${icon('check')} Save key</button>
+              <button class="primary" id="fcSave" hidden>${icon('check')} Save key</button>
               <button id="fcClear">${icon('x')} Clear key</button>
             </div>
             <p class="warn" style="margin-top:10px">Approval log: artifacts/agentic/approval-log.jsonl · never auto-pushes git</p>
@@ -2435,24 +2435,36 @@
           const el = document.getElementById('fcStatus');
           if (!el) return;
           if (!st || !st.configured) {
-            el.textContent = 'Not configured — paste your Firecrawl key (shared Research stage on every pack).';
+            el.textContent = 'Not configured — paste a key to enable Research.';
             return;
           }
-          el.textContent = `Configured (${st.hint || '••••'}) via ${st.source || 'local'} · ${st.apiUrl || ''}`;
+          el.textContent = `Configured (${st.hint || '••••'}) · ${st.source || 'local'}`;
+        };
+        const syncFcSaveVisibility = () => {
+          const btn = document.getElementById('fcSave');
+          const input = document.getElementById('fcKey');
+          if (!btn || !input) return;
+          btn.hidden = !input.value.trim();
         };
         client.getFirecrawl().then(paintFc).catch(() => paintFc(null));
+        document.getElementById('fcKey').addEventListener('input', syncFcSaveVisibility);
+        document.getElementById('fcKey').addEventListener('change', syncFcSaveVisibility);
+        syncFcSaveVisibility();
         document.getElementById('fcSave').onclick = async () => {
           try {
             const apiKey = document.getElementById('fcKey').value.trim();
             if (!apiKey) { log('Enter a Firecrawl key first'); return; }
             paintFc(await client.setFirecrawlKey(apiKey));
             document.getElementById('fcKey').value = '';
+            syncFcSaveVisibility();
             log({ ok: true, firecrawl: 'saved' });
           } catch (e) { log(e.message); }
         };
         document.getElementById('fcClear').onclick = async () => {
           try {
             paintFc(await client.clearFirecrawlKey());
+            document.getElementById('fcKey').value = '';
+            syncFcSaveVisibility();
             log({ ok: true, firecrawl: 'cleared' });
           } catch (e) { log(e.message); }
         };
