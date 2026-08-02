@@ -662,8 +662,8 @@ jobs:
 
       - name: Commit and push if changed
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "Metaheurist"
+          git config user.email "Onceuponablock@hotmail.com"
           git add docs/dependencies.md
           git diff --staged --quiet && { echo "No dependency doc changes"; exit 0; }
           git commit -m "chore(docs): refresh dependencies.md from manifests [skip ci]"
@@ -702,8 +702,10 @@ jobs:
         if: steps.wiki_changes.outputs.changed == 'true'
         env:
           WIKI_PUSH_TOKEN: ${{ secrets.WIKI_PUSH_TOKEN }}
-          GIT_AUTHOR_NAME: github-actions[bot]
-          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_AUTHOR_NAME: Metaheurist
+          GIT_AUTHOR_EMAIL: Onceuponablock@hotmail.com
+          GIT_COMMITTER_NAME: Metaheurist
+          GIT_COMMITTER_EMAIL: Onceuponablock@hotmail.com
         run: |
           test -n "$WIKI_PUSH_TOKEN" || { echo "WIKI_PUSH_TOKEN secret required for wiki sync"; exit 1; }
           node scripts/wiki/sync-wiki.mjs --ci-token "$WIKI_PUSH_TOKEN"
@@ -1035,8 +1037,8 @@ jobs:
 
       - name: Commit and push benchmarks
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "Metaheurist"
+          git config user.email "Onceuponablock@hotmail.com"
           git add benchmarks/
           git diff --staged --quiet && { echo "No benchmark changes"; exit 0; }
           git commit -m "chore(benchmarks): update CI benchmark reports [skip ci]"
@@ -1098,8 +1100,8 @@ jobs:
       - name: Commit and push artifact manifests
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "Metaheurist"
+          git config user.email "Onceuponablock@hotmail.com"
           git add README.md
           for f in \
             "artifacts/Server/latest.json" \
@@ -1241,8 +1243,8 @@ jobs:
 
       - name: Commit and push README
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "Metaheurist"
+          git config user.email "Onceuponablock@hotmail.com"
           git add README.md
           git diff --staged --quiet && { echo "No README changes"; exit 0; }
           git commit -m "docs(readme): update beta build info [skip ci]"
@@ -1293,8 +1295,8 @@ jobs:
       - name: Commit and push security reports
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "Metaheurist"
+          git config user.email "Onceuponablock@hotmail.com"
           git add security/securityheaders-rianell.com.md "security/securityheaders-runs/run-${{ github.run_number }}.md"
           git diff --staged --quiet && { echo "No security report changes"; exit 0; }
           git commit -m "chore(security): refresh securityheaders.com report [skip ci]"

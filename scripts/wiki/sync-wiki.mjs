@@ -98,11 +98,11 @@ function configureCiRemote() {
 }
 
 function configureGitIdentity() {
-  const name = process.env.GIT_COMMITTER_NAME || process.env.GIT_AUTHOR_NAME || 'github-actions[bot]';
+  const name = process.env.GIT_COMMITTER_NAME || process.env.GIT_AUTHOR_NAME || 'Metaheurist';
   const email =
     process.env.GIT_COMMITTER_EMAIL ||
     process.env.GIT_AUTHOR_EMAIL ||
-    'github-actions[bot]@users.noreply.github.com';
+    'Onceuponablock@hotmail.com';
   run(`git -C "${wikiClone}" config user.name "${name.replace(/"/g, '\\"')}"`);
   run(`git -C "${wikiClone}" config user.email "${email.replace(/"/g, '\\"')}"`);
 }
