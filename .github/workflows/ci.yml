@@ -6,13 +6,21 @@
 #
 # Pipeline phases (job keys — file order matches DAG):
 #   Phase 0 — paths-filter
-#   Phase 1 — unit-tests | prepare-minified-assets | security-audit | agentic suite (unit/catalog/ollama/dry-run)
-#   Phase 2 — benchmarks-web | deploy-pages | server-exe (needs Agentic suite) |
-#             commit-dependencies-doc | sync-wiki-to-github  (parallel)
+#   Phase 1 — unit-tests | prepare-minified-assets | security-audit | agentic suite
+#   Phase 1 fan-in — phase1-web-gates | phase1-binary-gates  (thin aggregators)
+#   Phase 2 — benchmarks-web | deploy-pages | server-exe |
+#             commit-dependencies-doc | sync-wiki-to-github
 #   Phase 3 — audit-boot-post-deploy | playwright-e2e | lighthouse-ci | zap-scan |
 #             audit-llm-download-live
 #   Phase 4 — commit-benchmarks | commit-app-build | publish-release |
 #             readme-build-info | security-headers-report
+#
+# Topology (desired edges only):
+#   paths-filter → Phase-1 jobs (parallel)
+#   Phase-1 web trio → phase1-web-gates → deploy-pages → Phase-3 → Phase-4 web
+#   Phase-1 unit+audit+agentic → phase1-binary-gates → server-exe → Phase-4 binaries
+#   prepare-minified-assets → benchmarks-web → commit-benchmarks
+#   unit-tests → commit-dependencies-doc | sync-wiki-to-github
 #
 # Gate jobs call cancel-workflow-on-failure on failure. Benchmark jobs do not (reports still upload).
 # Bot jobs that git-push use concurrency group ci-bot-push-${{ github.ref }} to avoid push races.
@@ -376,11 +384,43 @@ jobs:
     secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # Phase 2 — Build lanes (parallel after Phase 1)
+  # Phase 1 fan-in — thin aggregators (one edge into each Phase-2 build lane)
+  # ═══════════════════════════════════════════════════════════════════════════
+  phase1-web-gates:
+    name: "1 · Gates · web"
+    needs: [paths-filter, unit-tests, security-audit, prepare-minified-assets]
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      release_build: ${{ needs.paths-filter.outputs.release_build }}
+    steps:
+      - name: Web gates ready
+        run: echo "unit-tests + security-audit + prepare-minified-assets OK"
+
+  phase1-binary-gates:
+    name: "1 · Gates · binaries"
+    needs:
+      - paths-filter
+      - unit-tests
+      - security-audit
+      - agentic-harness-unit
+      - agentic-harness-catalog
+      - agentic-harness-ollama
+      - agentic-harness-dry-run
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      release_build: ${{ needs.paths-filter.outputs.release_build }}
+    steps:
+      - name: Binary gates ready
+        run: echo "unit-tests + security-audit + agentic suite OK"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Phase 2 — Build lanes (parallel after Phase 1 fan-in)
   # ═══════════════════════════════════════════════════════════════════════════
   benchmarks-web:
     name: "2 · Benchmarks (web / PWA)"
-    needs: [paths-filter, prepare-minified-assets]
+    needs: [prepare-minified-assets]
     if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     # Lighthouse against the PWA can stall on network-quiet; fail the job instead of hanging the workflow.
@@ -422,13 +462,15 @@ jobs:
 
   deploy-pages:
     name: "2 · Deploy GitHub Pages"
-    needs: [prepare-minified-assets, unit-tests, security-audit]
+    needs: [phase1-web-gates]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: pages
     concurrency:
       group: pages
       cancel-in-progress: false
+    outputs:
+      release_build: ${{ needs.phase1-web-gates.outputs.release_build }}
     permissions:
       contents: read
       pages: write
@@ -480,17 +522,10 @@ jobs:
 
   server-exe:
     name: "2 · Server EXE (${{ matrix.arch }})"
-    needs:
-      - paths-filter
-      - unit-tests
-      - security-audit
-      - agentic-harness-unit
-      - agentic-harness-catalog
-      - agentic-harness-ollama
-      - agentic-harness-dry-run
+    needs: [phase1-binary-gates]
     if: |
       github.event_name == 'pull_request' ||
-      ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.paths-filter.outputs.release_build == 'true')
+      ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.phase1-binary-gates.outputs.release_build == 'true')
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -1009,10 +1044,10 @@ jobs:
 
   commit-app-build:
     name: "4 · Commit artifact manifests to repo"
-    needs: [paths-filter, server-exe]
+    needs: [phase1-binary-gates, server-exe]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.release_build == 'true'
+      needs.phase1-binary-gates.outputs.release_build == 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
@@ -1078,10 +1113,10 @@ jobs:
 
   publish-release:
     name: "4 · Publish GitHub Release"
-    needs: [paths-filter, server-exe]
+    needs: [phase1-binary-gates, server-exe]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.release_build == 'true'
+      needs.phase1-binary-gates.outputs.release_build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1170,11 +1205,11 @@ jobs:
 
   readme-build-info:
     name: "4 · Update README beta build info (web-only)"
-    needs: [deploy-pages, paths-filter, audit-boot-post-deploy]
+    needs: [deploy-pages, audit-boot-post-deploy]
     if: |
       success() &&
       github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
-      needs.paths-filter.outputs.release_build != 'true'
+      needs.deploy-pages.outputs.release_build != 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
