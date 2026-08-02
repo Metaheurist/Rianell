@@ -2396,7 +2396,7 @@
             </div>
             <p class="warn" style="margin-top:10px">Approval log: artifacts/agentic/approval-log.jsonl · never auto-pushes git</p>
             <div class="actions" style="margin-top:14px">
-              <button class="primary" id="saveMode">${icon('check')} Save prefs</button>
+              <button class="primary" id="saveMode" hidden>${icon('check')} Save prefs</button>
               <button id="pauseAll">${icon('pause')} Pause all</button>
               <button id="resumeAll">${icon('play')} Resume all</button>
             </div>
@@ -2404,6 +2404,30 @@
         document.getElementById('modeSel').value = mode.mode || 'serial';
         document.getElementById('autoApproveMode').value = mode.autoApproveMode || 'ack';
         document.getElementById('i18nFillScope').value = mode.i18nFillScope || 'full';
+        const readPrefsForm = () => ({
+          mode: document.getElementById('modeSel')?.value || 'serial',
+          autoApprove: Boolean(document.getElementById('autoApprove')?.checked),
+          autoApproveMode: document.getElementById('autoApproveMode')?.value || 'ack',
+          confirmProductWrite: Boolean(document.getElementById('confirmProductWrite')?.checked),
+          allowDependencyBump: Boolean(document.getElementById('allowDependencyBump')?.checked),
+          gitCommitOnApprove: Boolean(document.getElementById('gitCommitOnApprove')?.checked),
+          i18nFillScope: document.getElementById('i18nFillScope')?.value || 'full',
+          hardwareProfile: document.getElementById('hwProfileSel')?.value || 'auto',
+        });
+        let prefsBaseline = null;
+        const syncSavePrefsVisibility = () => {
+          const btn = document.getElementById('saveMode');
+          if (!btn || !prefsBaseline) {
+            if (btn) btn.hidden = true;
+            return;
+          }
+          btn.hidden = JSON.stringify(readPrefsForm()) === JSON.stringify(prefsBaseline);
+        };
+        const capturePrefsBaseline = () => {
+          prefsBaseline = readPrefsForm();
+          syncSavePrefsVisibility();
+        };
+        capturePrefsBaseline();
         const hwSel = document.getElementById('hwProfileSel');
         const hwHint = document.getElementById('hwProfileHint');
         client.getGpus().then((g) => {
@@ -2427,10 +2451,21 @@
           const budget = g?.maxModelVramGb != null ? ` · budget ≤${g.maxModelVramGb} GB` : '';
           const gpuN = (g?.gpus || []).length;
           hwHint.textContent = `Effective: ${eff} (${ovr})${budget} · probed ${gpuN} GPU(s)`;
+          capturePrefsBaseline();
         }).catch(() => {
           hwSel.innerHTML = '<option value="auto">Auto-detect</option>';
           hwHint.textContent = 'Could not probe GPUs — defaulting to auto.';
+          capturePrefsBaseline();
         });
+        for (const id of [
+          'modeSel', 'autoApprove', 'autoApproveMode', 'confirmProductWrite',
+          'allowDependencyBump', 'gitCommitOnApprove', 'i18nFillScope', 'hwProfileSel',
+        ]) {
+          const el = document.getElementById(id);
+          if (!el) continue;
+          el.addEventListener('change', syncSavePrefsVisibility);
+          el.addEventListener('input', syncSavePrefsVisibility);
+        }
         const paintFc = (st) => {
           const el = document.getElementById('fcStatus');
           if (!el) return;
@@ -2470,16 +2505,10 @@
         };
         document.getElementById('saveMode').onclick = async () => {
           try {
-            log(await client.setMode({
-              mode: document.getElementById('modeSel').value,
-              autoApprove: document.getElementById('autoApprove').checked,
-              autoApproveMode: document.getElementById('autoApproveMode').value,
-              confirmProductWrite: document.getElementById('confirmProductWrite').checked,
-              allowDependencyBump: document.getElementById('allowDependencyBump').checked,
-              gitCommitOnApprove: document.getElementById('gitCommitOnApprove').checked,
-              i18nFillScope: document.getElementById('i18nFillScope').value,
-              hardwareProfile: document.getElementById('hwProfileSel')?.value || 'auto',
-            }));
+            const next = readPrefsForm();
+            log(await client.setMode(next));
+            prefsBaseline = next;
+            syncSavePrefsVisibility();
             // Refresh profile chip context after override save
             client.getGpus().then((g) => {
               const hint = document.getElementById('hwProfileHint');
