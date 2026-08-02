@@ -1,5 +1,6 @@
 /**
  * Pack-specific apply adapters. Never called automatically from pack-runner.
+ * Approve enqueues work onto the apply-queue (model-grouped drain).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,6 +13,8 @@ import {
 import { ensureDir, packDir, ROOT, readPackState, writePackState } from './state.mjs';
 import { gitCommitOnApprove } from './git-commit-on-approve.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
+import { drainApplyQueue, enqueueApprovedWork } from './apply-queue.mjs';
+import { applyVisualRepolish } from './visual-qa-propose.mjs';
 
 function npmRun(script, extraArgs = []) {
   const res = silentSpawnSync('npm', ['run', script, ...extraArgs], {
@@ -74,7 +77,6 @@ function applyI18nFill(packId, items) {
     fs.writeFileSync(filePath, `${JSON.stringify(pack, null, 2)}\n`);
     written.push(path.relative(ROOT, filePath).replace(/\\/g, '/'));
   }
-  // Also persist selected proposals for audit
   if (fs.existsSync(proposeDir)) {
     written.push(path.relative(ROOT, proposeDir).replace(/\\/g, '/'));
   }
@@ -159,22 +161,13 @@ function applyDepsBump(items, allow, confirm) {
 }
 
 /**
- * Approve selected proposal items and run adapters.
+ * Execute adapters for selected proposal items (used by apply-queue drain).
  */
-export async function approvePack(packId, opts = {}) {
-  const proposal = readProposal(packId);
-  if (!proposal) return { ok: false, error: { code: 'no_proposal', message: 'no proposal' } };
-
+export async function executeApprovedItems(packId, items, opts = {}) {
   const confirm = Boolean(opts.confirmProductWrite);
   const allowBump = Boolean(opts.allowDependencyBump);
   const doGit = Boolean(opts.gitCommitOnApprove);
-  const selectedIds = opts.itemIds?.length
-    ? new Set(opts.itemIds)
-    : null;
-  const items = (proposal.items || []).filter((it) => {
-    if (selectedIds) return selectedIds.has(it.id);
-    return it.selected !== false;
-  });
+
   if (!items.length) return { ok: false, error: { code: 'empty', message: 'no items selected' } };
 
   const byAdapter = new Map();
@@ -185,6 +178,7 @@ export async function approvePack(packId, opts = {}) {
     if (it.kind === 'changelog_bullet') adapter = 'changelog-promote';
     if (it.kind === 'wiki_patch') adapter = 'wiki-sync';
     if (it.kind === 'visual_apply') adapter = 'visual-apply';
+    if (it.kind === 'visual_repolish') adapter = 'visual-repolish';
     if (packId === 'security' && /csp|header/i.test(it.title)) {
       return { ok: false, error: { code: 409, message: 'refuse CSP/header mutation from harness' } };
     }
@@ -205,6 +199,7 @@ export async function approvePack(packId, opts = {}) {
     } else if (adapter === 'changelog-promote') r = applyChangelog(list, confirm);
     else if (adapter === 'wiki-sync') r = applyWiki(confirm);
     else if (adapter === 'visual-apply') r = applyVisual(confirm);
+    else if (adapter === 'visual-repolish') r = applyVisualRepolish(list);
     else if (adapter === 'deps-bump') r = applyDepsBump(list, allowBump, confirm);
     else if (adapter === 'refuse-bump' || adapter === 'refuse-csp-mutate') {
       r = { ok: false, error: 'adapter refuses this action' };
@@ -232,37 +227,153 @@ export async function approvePack(packId, opts = {}) {
     gitSha = g.sha;
   }
 
-  const next = {
-    ...proposal,
-    status: 'applied',
-    approval: {
-      ...proposal.approval,
-      state: 'applied',
-      at: new Date().toISOString(),
-      by: opts.by || 'operator',
-      confirmProductWrite: confirm,
-      allowDependencyBump: allowBump,
-      gitCommitOnApprove: doGit,
-      gitCommitSha: gitSha,
-    },
-  };
-  writeProposal(packId, next);
+  const proposal = readProposal(packId);
+  const deferredPolish = results.some((r) => r.deferred || r.adapter === 'visual-repolish');
+  if (proposal) {
+    const next = {
+      ...proposal,
+      status: deferredPolish ? 'polish_running' : 'applied',
+      approval: {
+        ...proposal.approval,
+        state: deferredPolish ? 'polish_running' : 'applied',
+        at: new Date().toISOString(),
+        by: opts.by || 'operator',
+        confirmProductWrite: confirm,
+        allowDependencyBump: allowBump,
+        gitCommitOnApprove: doGit,
+        gitCommitSha: gitSha,
+      },
+    };
+    writeProposal(packId, next);
+  }
+
   appendApprovalLog({
     pack: packId,
-    action: 'approve',
+    action: deferredPolish ? 'approve_polish' : 'approve',
     by: opts.by || 'operator',
     adapters: [...byAdapter.keys()],
     gitSha,
     itemIds: items.map((i) => i.id),
   });
 
+  const prevState = readPackState(packId);
   writePackState(packId, {
-    ...readPackState(packId),
-    status: 'applied',
-    finishedAt: new Date().toISOString(),
+    ...prevState,
+    status: deferredPolish ? 'running' : 'applied',
+    stage: deferredPolish ? 'polish' : prevState.stage,
+    finishedAt: deferredPolish ? null : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   });
 
-  return { ok: true, error: null, data: { proposal: next, results, touched, gitSha } };
+  return {
+    ok: true,
+    error: null,
+    data: { results, touched, gitSha, proposal: readProposal(packId) },
+  };
+}
+
+async function runDrain() {
+  return drainApplyQueue({
+    unloadBetweenModels: true,
+    executeJob: async (job) => {
+      const proposal = readProposal(job.packId);
+      if (!proposal) return { ok: false, error: 'no proposal' };
+      const idSet = new Set(job.itemIds || []);
+      const items = (proposal.items || []).filter((it) => idSet.has(it.id));
+      return executeApprovedItems(job.packId, items, {
+        confirmProductWrite: job.confirmProductWrite,
+        allowDependencyBump: job.allowDependencyBump,
+        gitCommitOnApprove: job.gitCommitOnApprove,
+        by: job.by,
+      });
+    },
+  });
+}
+
+/**
+ * Approve selected proposal items → enqueue apply job (model-grouped drain).
+ */
+export async function approvePack(packId, opts = {}) {
+  const proposal = readProposal(packId);
+  if (!proposal) return { ok: false, error: { code: 'no_proposal', message: 'no proposal' } };
+
+  const confirm = Boolean(opts.confirmProductWrite);
+  const allowBump = Boolean(opts.allowDependencyBump);
+  const doGit = Boolean(opts.gitCommitOnApprove);
+  const selectedIds = opts.itemIds?.length
+    ? new Set(opts.itemIds)
+    : null;
+  const items = (proposal.items || []).filter((it) => {
+    if (selectedIds) return selectedIds.has(it.id);
+    return it.selected !== false;
+  });
+  if (!items.length) return { ok: false, error: { code: 'empty', message: 'no items selected' } };
+
+  for (const it of items) {
+    if (packId === 'security' && /csp|header/i.test(it.title)) {
+      return { ok: false, error: { code: 409, message: 'refuse CSP/header mutation from harness' } };
+    }
+  }
+
+  const queuedProposal = {
+    ...proposal,
+    items: (proposal.items || []).map((it) => (
+      items.some((s) => s.id === it.id) ? { ...it, selected: true } : it
+    )),
+    status: 'queued_apply',
+    approval: {
+      ...proposal.approval,
+      state: 'queued',
+      at: new Date().toISOString(),
+      by: opts.by || 'operator',
+      confirmProductWrite: confirm,
+      allowDependencyBump: allowBump,
+      gitCommitOnApprove: doGit,
+      gitCommitSha: null,
+    },
+  };
+  writeProposal(packId, queuedProposal);
+  writePackState(packId, {
+    ...readPackState(packId),
+    status: 'queued_apply',
+    updatedAt: new Date().toISOString(),
+  });
+
+  const job = enqueueApprovedWork({
+    packId,
+    itemIds: items.map((i) => i.id),
+    confirmProductWrite: confirm,
+    allowDependencyBump: allowBump,
+    gitCommitOnApprove: doGit,
+    by: opts.by || 'operator',
+  });
+  appendApprovalLog({
+    pack: packId,
+    action: 'enqueue_apply',
+    by: opts.by || 'operator',
+    jobId: job.id,
+    itemIds: items.map((i) => i.id),
+  });
+
+  const drain = await runDrain();
+  if (!drain.ok && !drain.skipped) {
+    return {
+      ok: false,
+      error: { code: 'drain', message: String(drain.error || 'apply queue drain failed') },
+      data: { job, drain },
+    };
+  }
+
+  return {
+    ok: true,
+    error: null,
+    data: {
+      job,
+      queued: true,
+      proposal: readProposal(packId),
+      drain,
+    },
+  };
 }
 
 export function rejectPack(packId, opts = {}) {
@@ -282,6 +393,11 @@ export function rejectPack(packId, opts = {}) {
   const rejectPath = path.join(packDir(packId), 'proposal.rejected.json');
   fs.writeFileSync(rejectPath, `${JSON.stringify(archived, null, 2)}\n`);
   appendApprovalLog({ pack: packId, action: 'reject', by: opts.by || 'operator' });
+  writePackState(packId, {
+    ...readPackState(packId),
+    status: 'rejected',
+    finishedAt: new Date().toISOString(),
+  });
   return { ok: true, error: null, data: archived };
 }
 
@@ -316,11 +432,15 @@ export async function autoAckPack(packId) {
       },
     };
     writeProposal(packId, next);
+    writePackState(packId, {
+      ...readPackState(packId),
+      status: 'applied',
+      finishedAt: new Date().toISOString(),
+    });
     appendApprovalLog({ pack: packId, action: 'auto-ack', by: 'auto-ack' });
     return { ok: true, data: next };
   }
-  return approvePack(packId, {
-    itemIds: safeItems.map((i) => i.id),
+  return executeApprovedItems(packId, safeItems, {
     confirmProductWrite: false,
     allowDependencyBump: false,
     gitCommitOnApprove: false,

@@ -13,7 +13,7 @@
 
 ### v2.6.0 documentation sync (visual pack harness)
 
-- **Tooling:** Full Visual Pack harness (register / Qwen gen / Gemma polish / live A/B/C preview / QA) + Tk dashboard Visual gallery. Product icon **apply deferred**. Operator guide: [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
+- **Tooling:** Full Visual Pack harness (register / Qwen gen / Gemma polish / live C preview in agentic · A/B/C standalone / QA → Approve → Polish×8) + Tk dashboard Visual gallery. Product icon **apply deferred**. Operator guide: [`development/visual-pack-harness.md`](development/visual-pack-harness.md).
 - **CI:** MobSF job removed from `security-dast.yml` (ZAP + axe remain).
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.6.0]`.
 

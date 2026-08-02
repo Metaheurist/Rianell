@@ -13,7 +13,10 @@ function arg(name) {
 }
 
 const dryRun = process.argv.includes('--dry-run') || process.env.AGENTIC_DRY_RUN === '1';
-const stopOnBroken = !process.argv.includes('--no-stop-on-broken');
+// Default: continue through all packs so proposals accumulate for later Approve.
+// Opt into early abort with --stop-on-broken (legacy: --no-stop-on-broken still means continue).
+const stopOnBroken = process.argv.includes('--stop-on-broken')
+  && !process.argv.includes('--no-stop-on-broken');
 const skipArg = process.argv.find((a) => a.startsWith('--skip='));
 const skip = skipArg ? skipArg.slice('--skip='.length).split(',').filter(Boolean) : [];
 const autoApprove = process.argv.includes('--auto-approve');

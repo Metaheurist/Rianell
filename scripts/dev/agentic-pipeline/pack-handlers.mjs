@@ -132,31 +132,12 @@ export const PACK_HANDLERS = {
     ...o,
     gates: [npmGate('verify:icon-spec')],
     skipLlm: true,
-    afterGates: async ({ dryRun, gateResults }) => {
-      const { emptyProposal } = await import('./proposal.mjs');
-      const { visualQaStatus } = await import('./activity.mjs');
-      const qa = visualQaStatus();
-      return emptyProposal('visual', {
-        status: dryRun ? 'dry_run' : 'pending_approval',
-        summary: qa.applyAllowed
-          ? 'QA green — visual:apply available after confirm'
-          : `QA broken=${qa.brokenCount} — apply locked`,
-        thinking: 'Visual pack gate finished. Product apply stays deferred until screenshot QA is green and you approve.',
-        items: [{
-          id: 'visual-apply-1',
-          kind: 'visual_apply',
-          title: 'Apply polished visual assets to PWA',
-          detail: qa.applyAllowed
-            ? 'Screenshot QA has zero broken items.'
-            : `Blocked: ${qa.brokenCount} broken QA item(s).`,
-          risk: 'high',
-          selected: qa.applyAllowed && !dryRun,
-          applyAdapter: 'visual-apply',
-          targets: ['apps/pwa-webapp/'],
-        }],
-        gates: (gateResults || []).map((g) => ({
-          label: g.cmd, status: g.status, cmd: g.cmd,
-        })),
+    stage: 'qa',
+    afterGates: async (ctx) => {
+      const { visualAfterGates } = await import('./visual-qa-propose.mjs');
+      return visualAfterGates({
+        ...ctx,
+        fromRunAll: Boolean(o.fromRunAll),
       });
     },
   }),

@@ -6,6 +6,7 @@ import path from 'node:path';
 import { humanGateLabel, readProposal } from './proposal.mjs';
 import { runAllOrder } from './catalog.mjs';
 import { packDir, readPackState, readRunAllState, ROOT } from './state.mjs';
+import { readApplyQueue } from './apply-queue.mjs';
 
 function readJson(p, fallback = null) {
   try {
@@ -201,6 +202,8 @@ export function buildRunAllActivity() {
       });
     }
   }
+  const applyQueue = readApplyQueue();
+  const applyQueued = (applyQueue.jobs || []).filter((j) => j.status === 'queued' || j.status === 'running');
   return {
     runAll: {
       status: run.status,
@@ -209,9 +212,20 @@ export function buildRunAllActivity() {
       dryRun: run.dryRun,
       autoApprove: run.autoApprove || false,
       autoApproveMode: run.autoApproveMode || null,
+      modelGrouped: run.modelGrouped !== false,
     },
     currentActivity: current ? buildPackActivity(current) : null,
     approvalQueue,
+    applyQueue: {
+      status: applyQueue.status,
+      pending: applyQueued.length,
+      jobs: applyQueued.map((j) => ({
+        id: j.id,
+        packId: j.packId,
+        model: j.model,
+        status: j.status,
+      })),
+    },
     recentDone: order
       .filter((id) => run.results?.[id])
       .slice(-5)
@@ -226,19 +240,26 @@ export function buildRunAllActivity() {
 
 export function visualQaStatus() {
   const brokenPath = path.join(ROOT, 'artifacts/visual-gen/qa/broken.json');
-  let broken = [];
+  let ids = [];
   if (fs.existsSync(brokenPath)) {
     try {
       const j = JSON.parse(fs.readFileSync(brokenPath, 'utf8'));
-      broken = Array.isArray(j) ? j : (j.broken || []);
+      if (Array.isArray(j)) {
+        ids = j.map((x) => (typeof x === 'string' ? x : x?.id)).filter(Boolean);
+      } else if (Array.isArray(j?.ids)) {
+        ids = j.ids.map((x) => (typeof x === 'string' ? x : x?.id)).filter(Boolean);
+      } else if (Array.isArray(j?.broken)) {
+        ids = j.broken.map((x) => (typeof x === 'string' ? x : x?.id)).filter(Boolean);
+      }
     } catch {
-      broken = [];
+      ids = [];
     }
   }
-  const count = Array.isArray(broken) ? broken.length : 0;
+  const count = ids.length;
   return {
     brokenCount: count,
     brokenPath: 'artifacts/visual-gen/qa/broken.json',
     applyAllowed: count === 0,
+    flow: 'qa→approve→polish×8',
   };
 }

@@ -9,7 +9,6 @@
   "runAllOrder": [
     "design",
     "planning",
-    "i18n",
     "rtl",
     "a11y",
     "seo",
@@ -17,11 +16,12 @@
     "security",
     "deps",
     "migration",
+    "bootllm",
+    "perf",
     "changelog",
     "wikisync",
     "image",
-    "bootllm",
-    "perf",
+    "i18n",
     "visual"
   ],
   "packs": {

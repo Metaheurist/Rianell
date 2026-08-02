@@ -7,12 +7,15 @@
 
 ## Run-all order
 
-design → planning → i18n → rtl → a11y → seo → privacy → security → deps → migration → changelog → wikisync → image → bootllm → perf → visual
+Model-grouped (unload only on model switch):
+
+design → planning → rtl → a11y → seo → privacy → security → deps → migration → bootllm → perf → changelog → wikisync → image → i18n → visual
 
 ## Hard rules
 
 - Recommended models from catalog; TranslateGemma for i18n; Gemma for visual polish.
-- Never co-load visual gen + polish; unload between run-all steps.
+- Never wait for Approve between packs; Approve enqueues apply work drained by model group.
+- Unload only when leaving a model group during run-all (not after every pack).
 - Apply / i18n merge / wiki promote deferred — artifacts only until human unlock.
 - Sanitize context before LLM (`scripts/dev/sanitize-agent-context.mjs`).
 - Pack LLM prompts use `pack-context.mjs` (registers, docs, gates, git digests).
@@ -30,9 +33,10 @@ node scripts/verify/doc-links.mjs --strict
 ## Operator UX
 
 - Activity cockpit: Now / Thinking / Done / Planned; Debug drawer collapsed by default
-- Pack tabs: pipeline preview card + stage rail; visual omits Planned approve (Live QA)
+- Pack tabs: stage wizard (Gates → LLM → Proposal → Approve); **visual** uses Gates → Q&A → Approve → Polish×8 + C-only live embed
 - Clear all + unload resets harness + Ollama VRAM
-- Live polish model picker lives in Review HUD (`:8766`)
+- Live polish model picker lives in Review HUD (`:8766/?agentic=1&cOnly=1`)
+- Visual Approve starts qa-loop (max 8) on selected Q&A candidates — not product `visual:apply`
 
 ## Apply-deferred confirmation
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Live polish · A / B / C</title>
+<title>Live polish · C</title>
 <style id="visual-gallery-skin">/* injected at serve time from visual-gallery-skin.css */</style>
 <style>
 /* Page-specific: QA, A/B/C columns, stroke/fill, failed list */
@@ -70,8 +70,11 @@ body.qa-mode .hud,body.qa-mode .live{display:none}
 
 /* UI Q&A stage strip — icon + meter, minimal prose */
 .qa-strip{
-  display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
-  margin:0 0 12px;padding:8px 12px;border-radius:14px;
+  display:grid;
+  grid-template-columns:auto auto minmax(0,auto) minmax(80px,1fr) auto;
+  align-items:center;
+  gap:8px 10px;
+  margin:0 0 16px;padding:10px 12px;border-radius:14px;
   background:linear-gradient(135deg,rgba(93,217,122,.1),rgba(15,20,18,.92));
   border:1px solid rgba(93,217,122,.28);
 }
@@ -104,19 +107,26 @@ body.qa-mode .hud,body.qa-mode .live{display:none}
 .qa-strip[data-stage="waiting-polish"] .qa-ico{
   background:rgba(255,183,77,.14);color:var(--warn);border-color:rgba(255,183,77,.28);
 }
-.qa-strip .qa-ico svg{width:15px;height:15px}
+.qa-strip .qa-ico svg{width:15px;height:15px;display:block}
 .qa-strip .qa-label{
   font-size:.78rem;font-weight:700;color:var(--text);
   display:inline-flex;align-items:center;gap:6px;
+  min-width:0;white-space:nowrap;
 }
 .qa-strip .qa-meta{
   font-size:.68rem;color:var(--muted);
   font-variant-numeric:tabular-nums;
-  display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;
+  display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;
+  white-space:nowrap;justify-self:end;
 }
 .qa-strip .qa-meta em{font-style:normal;color:var(--mint-soft);font-weight:650}
+.qa-strip .qa-meta .qa-broken{color:var(--bad);font-weight:650}
+.qa-strip .qa-meta .qa-tag{
+  font-size:.58rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);opacity:.9;
+}
 .qa-meter{
-  flex:1 1 120px;min-width:100px;max-width:240px;height:6px;border-radius:999px;
+  height:6px;border-radius:999px;min-width:80px;
   background:rgba(255,255,255,.08);overflow:hidden;
 }
 .qa-meter > i{
@@ -130,28 +140,68 @@ body.qa-mode .hud,body.qa-mode .live{display:none}
   background:rgba(126,182,255,.2);color:#b8d9ff;
 }
 .hud-qa{
-  margin:0 0 10px;padding:8px 9px;border-radius:12px;
+  margin:0 0 10px;padding:10px 10px 9px;border-radius:12px;
   background:rgba(93,217,122,.06);border:1px solid rgba(93,217,122,.22);
 }
 .hud-qa[data-stage="needs-fix"]{border-color:rgba(255,183,77,.3);background:rgba(255,183,77,.07)}
 .hud-qa .qa-head{
-  display:flex;align-items:center;gap:7px;margin:0 0 6px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:8px;
+  margin:0 0 8px;
 }
 .hud-qa .qa-head .qa-ico{
   width:24px;height:24px;border-radius:7px;
   display:grid;place-items:center;
   background:rgba(123,223,140,.12);color:var(--mint-soft);
 }
-.hud-qa .qa-head .qa-ico svg{width:13px;height:13px}
+.hud-qa .qa-head .qa-ico svg{width:13px;height:13px;display:block}
+.hud-qa .qa-head-text{min-width:0}
+.hud-qa .qa-head-text b{
+  display:block;font-size:.78rem;font-weight:700;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.hud-qa .qa-badges{
+  display:inline-flex;align-items:center;gap:6px;flex-wrap:nowrap;
+  justify-self:end;
+}
 .hud-qa .qa-pass{
-  margin:0;padding:2px 8px;border-radius:999px;
+  margin:0;padding:3px 8px;border-radius:999px;
   font-size:.58rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
   background:rgba(126,182,255,.18);color:#9ec8ff;border:1px solid rgba(126,182,255,.35);
+  white-space:nowrap;
 }
 .hud-qa .qa-pass[hidden]{display:none !important}
-.hud-qa .qa-row{margin:0 0 3px;font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.hud-qa .qa-pct{
+  margin:0;padding:3px 8px;border-radius:999px;
+  font-size:.68rem;font-weight:700;font-variant-numeric:tabular-nums;
+  background:rgba(0,0,0,.22);color:var(--mint-soft);border:1px solid var(--line);
+  white-space:nowrap;
+}
+.hud-qa .qa-pct[hidden]{display:none !important}
+.hud-qa .qa-row{
+  margin:0 0 4px;font-size:.68rem;color:var(--muted);
+  font-variant-numeric:tabular-nums;line-height:1.35;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .hud-qa .qa-row b{color:var(--ink);font-weight:650}
-.hud-qa .qa-meter{max-width:none;margin:6px 0 4px}
+.hud-qa .qa-row .qa-tag{
+  font-size:.58rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);
+}
+.hud-qa .qa-row .qa-broken{color:var(--bad);font-weight:650}
+.hud-qa .qa-row.qa-detail{
+  white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
+.hud-qa .qa-meter{max-width:none;margin:0 0 6px}
+@media (max-width:900px){
+  .qa-strip{
+    grid-template-columns:auto auto 1fr;
+  }
+  .qa-strip .qa-meter{grid-column:1 / -1}
+  .qa-strip .qa-meta{grid-column:1 / -1;justify-self:start;flex-wrap:wrap;white-space:normal}
+}
 body.qa-mode .qa-strip{display:none}
 .visually-hidden{
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;
@@ -165,7 +215,7 @@ body.qa-mode .qa-strip{display:none}
     <span class="brand-mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c3-6 5-8 8-8s5 2 8 8"/><path d="M8 14h8"/><circle cx="12" cy="17" r="1.5"/></svg>
     </span>
-    <h1>Live polish · A → B → C</h1>
+    <h1 id="pageTitle">Live polish · C</h1>
   </div>
 </header>
 <div class="qa-strip" id="qaStrip" data-stage="idle" data-active="0" aria-live="polite">
@@ -200,12 +250,17 @@ body.qa-mode .qa-strip{display:none}
         <span class="qa-ico" aria-hidden="true" id="hqIco">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>
         </span>
-        <p class="qa-pass" id="hqPass" hidden>—</p>
+        <div class="qa-head-text">
+          <b id="hqLabel">—</b>
+        </div>
+        <div class="qa-badges">
+          <p class="qa-pass" id="hqPass" hidden>—</p>
+          <span class="qa-pct" id="hqPct" hidden>—</span>
+        </div>
       </div>
-      <p class="qa-row" id="hqLabel"><b>—</b></p>
       <div class="qa-meter" aria-hidden="true"><i id="hqMeterFill"></i></div>
       <p class="qa-row" id="hqProgress">—</p>
-      <p class="qa-row" id="hqDetail">—</p>
+      <p class="qa-row qa-detail" id="hqDetail">—</p>
     </div>
     <div class="hud-stats" id="hudStats">
       <div class="hud-stat">
@@ -266,7 +321,7 @@ body.qa-mode .qa-strip{display:none}
         Animations
         <input type="checkbox" id="togAnim" />
       </label>
-      <label>
+      <label id="togLightWrap">
         <span class="tog-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg></span>
         Light stages
         <input type="checkbox" id="togLight" checked />
@@ -276,7 +331,7 @@ body.qa-mode .qa-strip{display:none}
         Compact
         <input type="checkbox" id="togCompact" />
       </label>
-      <label>
+      <label id="togCOnlyWrap">
         <span class="tog-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
         C only
         <input type="checkbox" id="togCOnly" />
@@ -305,16 +360,18 @@ body.qa-mode .qa-strip{display:none}
         Unload
       </button>
     </div>
-    <p class="hud-note">Lazy +10 · Anim off by default (VRAM)</p>
+    <p class="hud-note" id="hudNote">Lazy +10 · Anim off by default (VRAM)</p>
   </div>
 </aside>
 
 <script>
 const params = new URLSearchParams(location.search);
 const qaMode = params.get('qa') === '1';
+const agenticMode = params.get('agentic') === '1' || params.get('cOnly') === '1';
 const idFilter = params.get('id');
 const BATCH = Math.max(1, Number(params.get('batch') || 10) || 10);
 if (qaMode) document.body.classList.add('qa-mode');
+if (agenticMode) document.body.classList.add('hud-agentic');
 const gallery = document.getElementById('gallery');
 const bar = document.getElementById('bar');
 const PREF_KEY = 'rianell.visualPreview.hud.v1';
@@ -362,15 +419,22 @@ function loadPrefs() {
     collapsed: false,
   };
   try {
-    return { ...d, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') };
+    const stored = { ...d, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') };
+    if (agenticMode) {
+      // Agentic visual tab is C-only; drop A/B compare chrome.
+      return { ...stored, cOnly: true, light: false, compact: true };
+    }
+    return stored;
   } catch {
-    return d;
+    return agenticMode ? { ...d, cOnly: true, light: false, compact: true } : d;
   }
 }
 function savePrefs() {
+  if (agenticMode) prefs.cOnly = true;
   localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
 }
 function applyPrefs(p) {
+  if (agenticMode) p.cOnly = true;
   document.body.classList.toggle('hud-anim-off', !p.anim);
   document.body.classList.toggle('hud-hide-light', !p.light);
   document.body.classList.toggle('hud-compact', !!p.compact);
@@ -388,6 +452,17 @@ function applyPrefs(p) {
     if (el) el.checked = !!p[key];
   }
   document.getElementById('hudCollapse').textContent = p.collapsed ? '+' : '–';
+  if (agenticMode) {
+    const title = document.getElementById('pageTitle');
+    if (title) title.textContent = 'Live polish · C';
+    document.title = 'Live polish · C';
+    const cWrap = document.getElementById('togCOnlyWrap');
+    if (cWrap) cWrap.hidden = true;
+    const lightWrap = document.getElementById('togLightWrap');
+    if (lightWrap) lightWrap.hidden = true;
+    const note = document.getElementById('hudNote');
+    if (note) note.textContent = 'C-only · Approve candidates in Agentic → Polish×8';
+  }
   syncRefreshTimer();
 }
 function syncRefreshTimer() {
@@ -713,6 +788,12 @@ function paintQa(qa) {
     scanning: 'Scan',
     vision: 'Vision',
     polish: 'Polish',
+    repolish: 'Re-polish',
+    'screenshot-cards': 'Screenshots',
+    'stem-sheets': 'Stem sheets',
+    'gemma-vision': 'Vision',
+    'gemma-stem-vision': 'Stem vision',
+    'writing-report': 'Report',
     'needs-fix': 'Fix',
     'waiting-polish': 'Wait',
     passed: 'Pass',
@@ -728,19 +809,42 @@ function paintQa(qa) {
     || 'Q&A';
   document.getElementById('qaLabel').innerHTML = escapeHtml(shortLabel)
     + (passText ? ' <span class="qa-pass-inline">' + escapeHtml(passText) + '</span>' : '');
-  document.getElementById('hqLabel').innerHTML = '<b>' + escapeHtml(shortLabel) + '</b>';
+  document.getElementById('hqLabel').textContent = shortLabel;
   document.getElementById('qaMeterFill').style.width = pct + '%';
   document.getElementById('hqMeterFill').style.width = pct + '%';
+
+  const hqPct = document.getElementById('hqPct');
+  if (q.pct != null) {
+    hqPct.hidden = false;
+    hqPct.textContent = pct + '%';
+  } else {
+    hqPct.hidden = true;
+    hqPct.textContent = '—';
+  }
+
+  const unitRaw = String(q.unit || '').toLowerCase();
+  const unitWord = unitRaw === 'polished' ? 'polished'
+    : unitRaw === 'passed' ? 'passed'
+    : unitRaw === 'cards' ? 'cards'
+    : unitRaw || 'checked';
   const bits = [];
   if (q.total > 0) {
-    bits.push('<em>' + (q.current || 0) + '</em>/' + q.total);
+    bits.push('<span class="qa-tag">QA</span> <em>' + (q.current || 0) + '</em> / ' + q.total + ' ' + escapeHtml(unitWord));
   }
-  if (q.pct != null) bits.push(pct + '%');
-  if (q.brokenSoFar) bits.push('<em>' + q.brokenSoFar + '</em>✗');
+  if (q.brokenSoFar) bits.push('<span class="qa-broken">' + q.brokenSoFar + ' broken</span>');
+  else if (q.passedSoFar) bits.push('<em>' + q.passedSoFar + '</em> ok');
+  // % lives on the meter + HUD badge — keep strip meta to counts only
   document.getElementById('qaMeta').innerHTML = bits.join(' · ') || '—';
-  document.getElementById('hqProgress').innerHTML = bits.length ? bits.join(' · ') : '—';
+  const hudBits = [];
+  if (q.total > 0) {
+    hudBits.push('<span class="qa-tag">QA</span> <em>' + (q.current || 0) + '</em> / ' + q.total + ' ' + escapeHtml(unitWord));
+  }
+  if (q.pct != null) hudBits.push(pct + '%');
+  if (q.brokenSoFar) hudBits.push('<span class="qa-broken">' + q.brokenSoFar + ' broken</span>');
+  else if (q.passedSoFar) hudBits.push('<em>' + q.passedSoFar + '</em> ok');
+  document.getElementById('hqProgress').innerHTML = hudBits.length ? hudBits.join(' · ') : '—';
   const detailRaw = q.detail || '';
-  const detailShort = shortId(detailRaw).slice(0, 36);
+  const detailShort = shortId(detailRaw).slice(0, 48);
   document.getElementById('hqDetail').textContent = detailShort || '—';
   document.getElementById('hqDetail').title = detailRaw || '';
 }
@@ -771,18 +875,24 @@ function paintBar(c, data, extra) {
   const total = c.totalMatching ?? 0;
   const qa = data?.qa || {};
   let html = '<span class="live" title="polling"></span>'
-    + '<span class="progress">'+ICO.check+' <em>'+polished+'</em>/'+eligible
-    + (loaded ? ' · '+loaded+'/'+total : '')
+    + '<span class="progress" title="Polished / eligible">'
+    + ICO.check
+    + '<span class="prog-main"><em>' + polished + '</em> / ' + eligible + '</span>'
+    + '<span class="prog-sub">polish</span>'
     + '</span>';
+  if (loaded || total) {
+    html += '<span class="pill" title="Loaded in gallery">'
+      + ICO.eye + ' ' + loaded + '/' + total + ' loaded</span>';
+  }
   if (qa.label || qa.stage) {
-    html += '<span class="pill'+(qa.stage === 'needs-fix' ? ' bad' : '')+'">'
+    html += '<span class="pill' + (qa.stage === 'needs-fix' ? ' bad' : '') + '" title="Q&A progress">'
       + qaStageIco(qa.stage || 'idle')
-      + (qa.pct != null ? ' '+qa.pct+'%' : '')
+      + (qa.pct != null ? ' QA ' + qa.pct + '%' : ' Q&A')
       + '</span>';
   }
-  if (c.failed) html += '<span class="pill bad">'+ICO.alert+' '+c.failed+'</span>';
+  if (c.failed) html += '<span class="pill bad">' + ICO.alert + ' ' + c.failed + ' failed</span>';
   if (extra?.status === 'offline' || String(extra?.status||'').includes('failed')) {
-    html += '<span class="pill bad">'+escapeHtml(extra.status)+'</span>';
+    html += '<span class="pill bad">' + escapeHtml(extra.status) + '</span>';
   }
   bar.innerHTML = html;
 }

@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ## [Unreleased]
 
 ### Added
+- **Agentic visual pack:** apply-queue + `visual-qa-propose` (Q&A candidates → Approve → qa-loop max 8); C-only live embed (`?agentic=1&cOnly=1`); wizard rail Gates → Q&A → Approve → Polish×8.
 - **Agentic Activity + approval cockpit:** Now / Thinking / Done / Planned UI (replaces JSON-primary Technical details), `proposal.json`, approve/reject APIs, streamed LLM Thinking, opt-in git commit on approve, run-all `autoApprove` modes, gated npm bumps, TranslateGemma i18n propose-dir fill (`verify:i18n:check` + `--propose-dir`), visual QA unlock endpoint, Clear all + unload. Docs: `agentic-ui.md` / `agentic-api.md` / pack catalog.
 - **Agentic pack-context gatherer:** `scripts/dev/agentic-pipeline/pack-context.mjs` builds sanitized `## Repo context` (registers, docs, focus inventories, gate excerpts, git digests) for LLM Thinking / Planned actions; artifacts `llm-context.md` + `.meta.json`.
 - **Agentic AIO harness:** loopback `/dev/agentic` + `/api/agentic/*` for 16 packs (design→visual), `@rianell/build-tools/agentic-api-client`, `npm run agentic:*` / `agentic:run-all`, model catalog + VRAM scheduler, sanitize-agent-context, artifacts under `artifacts/agentic/` (gitignored). Docs: `docs/development/agentic-*.md`.
@@ -19,7 +20,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
 ### Changed
-- **Agentic pack tabs:** pipeline preview card (header + controls, Gates→LLM→Proposal→Approve rail, cockpit Activity); Planned approve row hidden on visual; Debug drawer always collapsed by default; constrained toolbar icons; model picker in live polish Review HUD; in-app confirm dialog (no `window.confirm`).
+- **Agentic visual pack:** C-only live embed; wizard is Gates → Q&A → Approve candidates → Polish×8 (qa-loop max 8). Approve no longer means product `visual:apply` — it starts re-polish on selected Q&A findings. A/B compare toggles hidden in agentic mode.
+- **Agentic pack tabs:** stage wizard UI — one full-width panel per Gates → LLM → Proposal → Approve; clickable rail + auto-follow while running; pack hop footer.
+- **Agentic run-all:** model-grouped pack order (unload only on model switch); never waits for Approve between packs; ends in `awaiting_approvals`. Approve enqueues apply jobs; drain executes by model group. Default continues on broken (`stopOnBroken` opt-in).
+- **Agentic Overview:** pack tiles / ring / approval queue soft-update while run-all polls (no manual Refresh).
+- **Live CSP / Cloudflare:** `verify-csp-*-live` skips when the edge is unavailable (network/non-2xx) and treats connect-src drift as advisory unless `CSP_LIVE_STRICT=1`; agentic gates set `SKIP_CSP_LIVE=1`.
+- **Agentic pack tabs:** pipeline preview card (header + controls, Gates→LLM→Proposal→Approve rail, cockpit Activity); visual uses Gates→Q&A→Approve→Polish×8; Debug drawer always collapsed by default; constrained toolbar icons; model picker in live polish Review HUD; in-app confirm dialog (no `window.confirm`).
 - **Agentic live UI:** soft Activity patches (no full-tab re-render while packs run); scrollbars hidden in scrollable panels.
 - **Agentic Windows gates (silent):** `spawn-silent.mjs` resolves `npm run` to direct `node <script>` (never `cmd.exe` / `npm.cmd`); `windowsHide` on i18n step children; Python uses `CREATE_NO_WINDOW` + hidden STARTUPINFO.
 - **Agentic i18n Planned:** TranslateGemma propose-dir writes the full missing-key list up front; Activity Planned shows pending gaps while `Filling locale · n/total` runs (not only after fill completes).

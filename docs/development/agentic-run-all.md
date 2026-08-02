@@ -3,15 +3,26 @@
 ```bash
 npm run agentic:run-all -- --dry-run
 npm run agentic:run-all -- --skip=image,changelog
-POST /api/agentic/run-all { "dryRun": true, "skip": [], "stopOnBroken": true }
+npm run agentic:run-all -- --stop-on-broken   # optional early abort (default: continue)
+POST /api/agentic/run-all { "dryRun": true, "skip": [], "stopOnBroken": false }
 ```
 
-Order (fixed, serial, unload between packs):
+## Behaviour
 
-1. design 2. planning 3. i18n 4. rtl 5. a11y 6. seo 7. privacy 8. security  
-9. deps 10. migration 11. changelog 12. wikisync 13. image 14. bootllm 15. perf 16. visual
+1. **Proposal sweep** — runs all 16 packs without waiting for human Approve between packs.  
+2. **Model-grouped order** — packs using the same recommended model stay contiguous; Ollama **unload only when the model changes**.  
+3. **Terminal status** — `awaiting_approvals` when any pack still needs Approve; otherwise `passed`.  
+4. **Approve → apply queue** — Approve enqueues selected items; drain executes jobs sorted by model group (then pack order). No skipping mid-group. **visual** Approve starts Polish×8 (qa-loop) on selected Q&A candidates.
+
+Order (model-grouped):
+
+1–11 · `qwen2.5-coder:32b`: design → planning → rtl → a11y → seo → privacy → security → deps → migration → bootllm → perf  
+12–14 · `qwen2.5-coder:14b`: changelog → wikisync → image  
+15 · `translategemma:27b`: i18n  
+16 · `gemma4:31b-it-qat`: visual  
 
 State: `artifacts/agentic/run-all-state.json`.  
+Apply queue: `artifacts/agentic/apply-queue.json`.  
 Worker PID (background live): `artifacts/agentic/run-all-worker.pid`.
 
 ### Clear all + unload
@@ -20,7 +31,7 @@ Worker PID (background live): `artifacts/agentic/run-all-worker.pid`.
 
 1. Signals `cancelled` on the sequencer  
 2. Kills stuck `agentic-run-all` / `agentic-pack-cli` / `ollama-translate-gaps` workers  
-3. Wipes pack runtime + pending `proposal.json` / fill plans; resets every pack to `idle`  
+3. Wipes pack runtime + pending `proposal.json` / fill plans / apply queue; resets every pack to `idle`  
 4. Unloads all models reported by `ollama ps`  
 
 Approval log + `approved/` archives are kept.

@@ -88,6 +88,8 @@ See [docs/privacy/smartlook-session-recording.md](../docs/privacy/smartlook-sess
 
 ```bash
 npm run verify:csp
+# Opt-in hard-fail on live edge drift (default is advisory / skip if Cloudflare unavailable):
+CSP_LIVE_STRICT=1 npm run verify:csp
 ```
 
 ## Report-only CSP noise (Cloudflare challenge / monitoring)

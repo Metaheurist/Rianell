@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { runAllOrder } from './catalog.mjs';
 import { ollamaPs, ollamaUnload } from './ollama-client.mjs';
 import { cancelRunAll } from './run-all.mjs';
+import { clearApplyQueue } from './apply-queue.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
 import {
   AGENTIC_ROOT,
@@ -198,6 +199,7 @@ export async function clearAllAndUnload() {
 
   rmSafe(path.join(AGENTIC_ROOT, 'run-all-worker.log'));
   rmSafe(WORKER_PID_FILE);
+  clearApplyQueue();
 
   // 4) Unload every model currently resident in Ollama VRAM
   const unloaded = [];

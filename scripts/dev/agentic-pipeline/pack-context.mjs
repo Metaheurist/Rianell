@@ -232,7 +232,7 @@ export const PACK_CONTEXT_MANIFEST = {
     constraints: ['Tie actions to bundle-split / CWV gate output when present.'],
   },
   visual: {
-    mission: 'Visual pack status — apply stays QA-gated; cite visual-register and QA artifacts.',
+    mission: 'Visual pack: Gates → Q&A candidates → Approve → Polish×8 (C only). Product apply stays QA-gated separately.',
     docs: ['docs/development/visual-pack-harness.md'],
     focusPaths: [
       'apps/pwa-webapp/assets/visual-register.json',

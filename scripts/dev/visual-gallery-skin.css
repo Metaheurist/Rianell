@@ -55,6 +55,17 @@ h1{font-size:1.05rem;margin:0;letter-spacing:-.02em;font-weight:700}
 .bar .progress{
   display:inline-flex;align-items:center;gap:6px;
   font-size:.78rem;font-weight:650;color:var(--text);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;min-width:0;
+}
+.bar .progress svg{
+  width:14px;height:14px;flex:0 0 14px;
+  display:block;opacity:.9;
+}
+.bar .progress .prog-main{color:var(--text)}
+.bar .progress .prog-sub{
+  color:var(--muted);font-weight:600;font-size:.62rem;
+  letter-spacing:.04em;text-transform:uppercase;
 }
 .bar .progress em{font-style:normal;color:var(--mint-soft)}
 .bar .ico{width:14px;height:14px;flex:0 0 auto;opacity:.9}
@@ -62,8 +73,9 @@ h1{font-size:1.05rem;margin:0;letter-spacing:-.02em;font-weight:700}
   display:inline-flex;align-items:center;gap:5px;
   font-size:.7rem;padding:4px 9px;border-radius:999px;
   background:rgba(168,230,207,.1);color:var(--mint-soft);font-weight:600;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
 }
-.pill svg{width:12px;height:12px}
+.pill svg{width:12px;height:12px;flex:0 0 12px;display:block}
 .pill.warn{background:rgba(240,180,41,.14);color:var(--warn)}
 .pill.bad{background:rgba(255,123,123,.14);color:var(--bad)}
 .live{width:8px;height:8px;border-radius:50%;background:var(--mint);flex:0 0 auto}

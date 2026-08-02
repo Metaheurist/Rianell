@@ -19,7 +19,7 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 | `npm run visual:register` | Rebuild `assets/visual-register.json` (one entry per SVG/anim) |
 | `npm run visual:gen` | Local Ollama generate queue (`qwen3.6:35b`, concurrency 1, resumable) |
 | `npm run visual:polish` | Polish generated artifacts with Gemma 4 31B IT QAT (`construct→critique→apply→verify`) |
-| `npm run visual:polish:live` | Live A/B/C polish preview on http://localhost:8766/ |
+| `npm run visual:polish:live` | Live polish preview on http://localhost:8766/ (agentic: `?agentic=1&cOnly=1` → C only) |
 | `npm run visual:polish:screenshot-qa` | Tiered screenshot QA (`--tier=1\|2\|3\|all`, optional `--gemma-review`) |
 | `npm run visual:polish:qa-loop` | Wait polish done → QA → re-polish broken (`--start-round=N`, Pass N, max 8) |
 | `npm run agentic:run-all -- --dry-run` | Chronological 16-pack agentic harness (loopback API `/api/agentic`) |

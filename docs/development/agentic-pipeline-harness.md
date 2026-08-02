@@ -10,7 +10,9 @@ Local All-In-One control plane for Rianell developer pipelines.
 
 ## Packs (run-all order)
 
-`design` → `planning` → `i18n` → `rtl` → `a11y` → `seo` → `privacy` → `security` → `deps` → `migration` → `changelog` → `wikisync` → `image` → `bootllm` → `perf` → `visual`
+`design` → `planning` → `rtl` → `a11y` → `seo` → `privacy` → `security` → `deps` → `migration` → `bootllm` → `perf` → `changelog` → `wikisync` → `image` → `i18n` → `visual`
+
+(Model-grouped: unload only when recommended model changes. Run-all never waits for Approve between packs.)
 
 ## Commands
 
@@ -30,12 +32,13 @@ npm run brain:ensure -- --pack=security
 - Visual apply stays blocked until screenshot QA is green.
 - Never send health screening data or secrets to Ollama (`sanitize-agent-context`).
 - Agentic API is **loopback-only** (never LAN via `SENSITIVE_APIS_ON_LAN`).
-- Run-all is always serial with unload between packs; ad-hoc `parallel` mode is VRAM-guarded separately.
+- Run-all is serial and **model-grouped** (unload only on model switch); it never waits for Approve between packs. Approve enqueues apply work drained by model group. Ad-hoc `parallel` mode is VRAM-guarded separately.
 - UI uses only `@rianell/build-tools/agentic-api-client` (served at `/dev/agentic/lib/`).
 - Gate processes spawn via `spawn-silent.mjs`: `npm run <script>` is resolved to direct `node <file>` (never `cmd.exe` / `npm.cmd`); children use `windowsHide`.
 - **Clear all + unload** cancels pipelines, kills workers, clears pending approvals, resets pack tabs, unloads Ollama VRAM.
 - **i18n Planned** shows missing keys as soon as each locale plan is written (not only after TranslateGemma finishes).
-- Overview / visual tabs omit the Activity cockpit; pack tiles use **needs approval** (not running) when waiting on Approve.
+- Overview omits the full Activity cockpit; **visual** uses Gates → Q&A → Approve → Polish×8 + C-only iframe. Pack tiles use **needs approval** (not running) when waiting on Approve.
+- Visual Live pack runs screenshot Q&A then lists polish candidates; Approve starts `visual:polish:qa-loop` (max 8). Product `visual:apply` stays QA-green + separate.
 
 ## Codebase-aware Thinking / Planned actions
 

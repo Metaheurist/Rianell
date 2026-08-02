@@ -9,7 +9,7 @@ export const PROPOSAL_SCHEMA_VERSION = 1;
 
 export const ITEM_KINDS = new Set([
   'ack_only', 'code_hint', 'doc_patch', 'i18n_string', 'wiki_patch',
-  'changelog_bullet', 'visual_apply', 'deps_note', 'deps_bump',
+  'changelog_bullet', 'visual_apply', 'visual_repolish', 'deps_note', 'deps_bump',
 ]);
 
 export function proposalPath(packId) {
