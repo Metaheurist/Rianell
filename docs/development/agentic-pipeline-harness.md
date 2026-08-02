@@ -79,7 +79,7 @@ Fixtures cover catalog validation, sanitize deny-list, scheduler mutexes, 16-ste
 
 | Workflow | Run | Result |
 |----------|-----|--------|
-| CI | [30745426020](https://github.com/Metaheurist/Rianell/actions/runs/30745426020) | green (4-node Agentic suite) |
-| Security DAST | [30745425950](https://github.com/Metaheurist/Rianell/actions/runs/30745425950) | green |
+| CI | [30745574631](https://github.com/Metaheurist/Rianell/actions/runs/30745574631) | green (4-node Agentic suite) |
+| Security DAST | [30745574532](https://github.com/Metaheurist/Rianell/actions/runs/30745574532) | green |
 
 See also: [agentic-api.md](agentic-api.md), [agentic-api-client.md](agentic-api-client.md), [agentic-ui.md](agentic-ui.md), [agentic-pack-catalog.md](agentic-pack-catalog.md), [agentic-run-all.md](agentic-run-all.md), [agentic-model-catalog.md](agentic-model-catalog.md), [visual-pack-harness.md](visual-pack-harness.md).

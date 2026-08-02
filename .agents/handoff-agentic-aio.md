@@ -52,5 +52,5 @@ node scripts/verify/doc-links.mjs --strict
 Four parallel Phase‑1 nodes: **Agentic · unit** · **Agentic · catalog** · **Agentic · ollama-load** · **Agentic · dry-run**.
 
 - PR: https://github.com/Metaheurist/Rianell/pull/85
-- CI: https://github.com/Metaheurist/Rianell/actions/runs/30745426020 (green — 4-node suite)
-- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30745425950 (green)
+- CI: https://github.com/Metaheurist/Rianell/actions/runs/30745574631 (green — 4-node suite)
+- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30745574532 (green)
