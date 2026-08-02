@@ -59,7 +59,7 @@ export function redactKey(key) {
   const k = String(key || '');
   if (!k) return null;
   if (k.length <= 8) return '••••';
-  return `${k.slice(0, 3)}…${k.slice(-4)}`;
+  return `${k.slice(0, 3)}...${k.slice(-4)}`;
 }
 
 /** Public status for loopback Settings UI (never includes full key). */
