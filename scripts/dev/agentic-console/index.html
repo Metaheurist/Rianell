@@ -177,6 +177,16 @@
       background: var(--accent-dim);
       color: var(--accent);
     }
+    .actions button.danger, .pack-actions button.danger, .btn.danger {
+      color: var(--bad);
+      border-color: rgba(255, 107, 107, 0.55);
+      background: rgba(255, 107, 107, 0.12);
+    }
+    .actions button.danger:hover, .pack-actions button.danger:hover, .btn.danger:hover {
+      border-color: rgba(255, 107, 107, 0.75);
+      background: rgba(255, 107, 107, 0.22);
+      transform: translateY(-1px);
+    }
     .actions button:disabled, .pack-actions button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
     .pack-grid {
       display: grid;
@@ -825,6 +835,20 @@
       padding: 16px 22px 20px;
     }
     .confirm-dlg .cd-actions button { min-width: 96px; }
+    .confirm-dlg .cd-actions button.danger {
+      color: var(--bad);
+      border-color: rgba(255, 107, 107, 0.55);
+      background: rgba(255, 107, 107, 0.12);
+    }
+    .confirm-dlg .cd-actions button.danger:hover {
+      background: rgba(255, 107, 107, 0.22);
+      border-color: rgba(255, 107, 107, 0.75);
+    }
+    .confirm-dlg.danger .cd-ico {
+      background: rgba(255, 107, 107, 0.12);
+      color: var(--bad);
+      border-color: rgba(255, 107, 107, 0.4);
+    }
     .activity {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1020,11 +1044,16 @@
       okLabel = 'Continue',
       cancelLabel = 'Cancel',
       iconName = 'run-all',
+      danger = false,
     } = {}) {
       const dlg = document.getElementById('confirmDlg');
+      const okBtn = document.getElementById('confirmOk');
       document.getElementById('confirmTitle').textContent = title;
       document.getElementById('confirmMsg').textContent = message;
-      document.getElementById('confirmOk').textContent = okLabel;
+      okBtn.textContent = okLabel;
+      okBtn.classList.toggle('primary', !danger);
+      okBtn.classList.toggle('danger', danger);
+      dlg.classList.toggle('danger', danger);
       document.getElementById('confirmCancel').textContent = cancelLabel;
       document.getElementById('confirmIco').innerHTML = icon(iconName);
       return new Promise((resolve) => {
@@ -1038,7 +1067,7 @@
           /* rare fallback */
           resolve(window.confirm(`${title}\n\n${message}`));
         }
-        queueMicrotask(() => document.getElementById('confirmOk').focus());
+        queueMicrotask(() => okBtn.focus());
       });
     }
 
@@ -1490,7 +1519,7 @@
             <div class="activity-actions">
               <label class="chip"><input type="checkbox" id="optConfirmWrite" /> confirm product write</label>
               <label class="chip"><input type="checkbox" id="optAllowBump" /> allow dep bump</label>
-              <label class="chip"><input type="checkbox" id="optGitCommit" /> git commit</label>
+              <label class="chip"><input type="checkbox" id="optGitCommit" /> git commit+push</label>
               <button class="btn primary" id="btnApprove">${icon('check')} Approve selected</button>
               <button class="btn" id="btnReject">${icon('x')} Reject</button>
             </div>`;
@@ -1574,7 +1603,7 @@
             <div class="activity-actions">
               <label class="chip"><input type="checkbox" id="optConfirmWrite" /> confirm product write</label>
               <label class="chip"><input type="checkbox" id="optAllowBump" /> allow dep bump</label>
-              <label class="chip"><input type="checkbox" id="optGitCommit" /> git commit</label>
+              <label class="chip"><input type="checkbox" id="optGitCommit" /> git commit+push</label>
               <button class="btn primary" id="btnApprove">${icon('check')} Approve selected</button>
               <button class="btn" id="btnReject">${icon('x')} Reject</button>
             </div>
@@ -2115,7 +2144,7 @@
                 <button class="primary" id="btnRunAll">${icon('play')} Run all</button>
                 <button id="btnLive">${icon('run-all')} Open run-all</button>
                 <button id="btnStatus">${icon('spin')} Refresh</button>
-                <button id="btnClearAll">${icon('x')} Clear all + unload</button>
+                <button id="btnClearAll" class="danger">${icon('x')} Clear all</button>
               </div>
             </div>
             <div class="ring-card">
@@ -2189,11 +2218,12 @@
         };
         document.getElementById('btnClearAll').onclick = async () => {
           const ok = await uiConfirm({
-            title: 'Clear all + unload models?',
-            message: 'Stops any running pipeline (run-all / pack / i18n fill), clears every pack tab, wipes pending approvals & proposals, then unloads all Ollama models from VRAM. Approval log and approved/ archives are kept.',
-            okLabel: 'Clear + unload',
+            title: 'Clear all + unload?',
+            message: 'Stops running work, clears packs & pending approvals, unloads Ollama from VRAM.',
+            okLabel: 'Clear',
             cancelLabel: 'Cancel',
             iconName: 'x',
+            danger: true,
           });
           if (!ok) return;
           try {
@@ -2230,7 +2260,7 @@
             <button id="resume">${icon('play')} Resume</button>
             <button id="cancel">${icon('x')} Cancel</button>
             <button id="st">${icon('spin')} Status</button>
-            <button id="clearAll">${icon('x')} Clear all + unload</button>
+            <button id="clearAll" class="danger">${icon('x')} Clear all</button>
           </div>
           ${queue.length ? `<div class="approval-queue"><strong>Needs approval</strong> · ${queue.map((q) => `<button class="btn" data-goto="${escapeHtml(q.pack)}">${escapeHtml(q.pack)}</button>`).join(' ')}</div>` : ''}
           <div id="runAllActivity">${activityHtml(runAct?.currentActivity)}</div>
@@ -2296,11 +2326,12 @@
         document.getElementById('st').onclick = () => refreshRunAllTimeline();
         document.getElementById('clearAll').onclick = async () => {
           const ok = await uiConfirm({
-            title: 'Clear all + unload models?',
-            message: 'Stops any running pipeline (run-all / pack / i18n fill), clears every pack tab, wipes pending approvals & proposals, then unloads all Ollama models from VRAM. Approval log and approved/ archives are kept.',
-            okLabel: 'Clear + unload',
+            title: 'Clear all + unload?',
+            message: 'Stops running work, clears packs & pending approvals, unloads Ollama from VRAM.',
+            okLabel: 'Clear',
             cancelLabel: 'Cancel',
             iconName: 'x',
+            danger: true,
           });
           if (!ok) return;
           try {
@@ -2343,7 +2374,7 @@
             </select>
             <label><input type="checkbox" id="confirmProductWrite" ${mode.confirmProductWrite ? 'checked' : ''}/> confirmProductWrite master</label>
             <label><input type="checkbox" id="allowDependencyBump" ${mode.allowDependencyBump ? 'checked' : ''}/> allowDependencyBump</label>
-            <label><input type="checkbox" id="gitCommitOnApprove" ${mode.gitCommitOnApprove ? 'checked' : ''}/> gitCommitOnApprove default</label>
+            <label><input type="checkbox" id="gitCommitOnApprove" ${mode.gitCommitOnApprove ? 'checked' : ''}/> gitCommitOnApprove (LLM message per item → commit each → push pack)</label>
             <label>i18n fill scope</label>
             <select id="i18nFillScope">
               <option value="full">full (all non-EN)</option>

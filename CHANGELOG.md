@@ -23,6 +23,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
 ### Changed
+- **Agentic git on Approve:** when `gitCommitOnApprove` is checked, each selected item gets its own LLM-authored conventional commit, then the pack Approves with a single `git push` (no force). Falls back to a template message if Ollama is unavailable (`AGENTIC_SKIP_COMMIT_LLM=1` / `AGENTIC_SKIP_GIT_PUSH=1` for offline).
+- **Agentic Clear-all confirm:** shorter copy; destructive **Clear** control uses danger (red) styling.
 - **Agentic Approve stage:** action chips (confirm write / Approve / Reject) and pack hops sit in a footer below the scrolling item list so they no longer overlay proposals.
 - **Sitemap generator:** exclude `.web-dist` / `.server-dist` from route collection (local build dirs must not appear in `sitemap.xml`).
 - **Agentic harness CI suite:** four Phase‑1 nodes — `Agentic · unit`, `Agentic · catalog`, `Agentic · ollama-load` (`smollm:135m` ≤200 MB via `npm run agentic:smoke`), `Agentic · dry-run` (`npm run agentic:run-all -- --dry-run`). Clear-all worker kill matches `*.mjs` script basenames only (avoids `pkill` matching `agentic-run-all-order.test.mjs` on Linux CI); broad cmdline kill skipped under `node:test`. Unit/i18n clear-all tests isolate via `AGENTIC_ROOT`. `findNpmCliJs` searches setup-node/`lib/node_modules` layouts; unit assertion tolerates PATH-only npm on Actions. CI DAG uses thin fan-in jobs **`1 · Gates · web`** / **`1 · Gates · binaries`** so `deploy-pages` and `server-exe` each take one Phase‑1 edge (Agentic only on the binary gate).

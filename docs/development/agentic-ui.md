@@ -8,7 +8,7 @@ Served at `/dev/agentic` from the Python server.
 - **Run-all:** timeline + current Activity + approval queue; **Run all** (live only — no dry-run / Start live) uses Settings prefs (`autoApprove`, etc.)
 - **Per-pack tabs:** stage **wizard** — clickable Gates → Research → LLM → Proposal → Approve rail drives one full-width panel at a time (auto-follows while running; pin a step by clicking). Prev/next pack hop in the wizard footer. Model picker + Dry-run / Live / Pause / Resume stay in the header.
 - **visual:** Gates → Research → Q&A → Approve candidates → Polish×8; C-only live polish iframe (no A/B); model picker in preview Review HUD; Approve starts Gemma qa-loop (max 8), not product apply
-- **Settings:** single System tab (former **models** + **settings** merged) — hardware profile, concurrency mode, `autoApprove` / mode, `confirmProductWrite`, `allowDependencyBump`, `gitCommitOnApprove`, `i18nFillScope`, Firecrawl key (shared Research stage)
+- **Settings:** single System tab (former **models** + **settings** merged) — hardware profile, concurrency mode, `autoApprove` / mode, `confirmProductWrite`, `allowDependencyBump`, `gitCommitOnApprove` (LLM message **per item** → commit each → **push once** per pack Approve), `i18nFillScope`, Firecrawl key (shared Research stage)
 - **Clear all + unload** (Overview + Run-all): cancels run-all, kills stuck pack/i18n workers, wipes pending approvals/proposals, resets every pack tab to idle, unloads all Ollama VRAM models (keeps `approval-log.jsonl` + `approved/`)
 - **Debug (raw JSON):** collapsed drawer only — not the primary UX
 

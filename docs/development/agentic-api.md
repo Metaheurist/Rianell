@@ -39,7 +39,7 @@ Rate limits: **skipped for loopback peers**; remote clients still throttled.
 | GET | `/:pack/proposal` | `proposal.json` |
 | GET | `/:pack/stream` | LLM partial or i18n fill progress |
 | POST | `/:pack/proposal/select` | `{ itemIds, selected }` |
-| POST | `/:pack/approve` | `{ itemIds?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` — enqueues apply job; drain runs model-grouped. **visual** `visual_repolish` items start qa-loop (max 8), not product apply. |
+| POST | `/:pack/approve` | `{ itemIds?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` — enqueues apply job; drain runs model-grouped. With `gitCommitOnApprove`, each item gets an LLM commit message + dedicated commit, then one `git push` for the pack. **visual** `visual_repolish` items start qa-loop (max 8), not product apply. |
 
 | POST | `/:pack/reject` | Archive proposal |
 | POST | `/:pack/start` | `{ dryRun?, model? }` |
