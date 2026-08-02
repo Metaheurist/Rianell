@@ -49,5 +49,5 @@ node scripts/verify/doc-links.mjs --strict
 ## CI
 
 - PR: https://github.com/Metaheurist/Rianell/pull/85
-- CI: https://github.com/Metaheurist/Rianell/actions/runs/30740058454 (green)
-- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30740058430 (green)
+- CI: https://github.com/Metaheurist/Rianell/actions/runs/30740214067 (green)
+- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30740213993 (green)
