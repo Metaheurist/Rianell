@@ -24,11 +24,12 @@ Rate limits: **skipped for loopback peers**; remote clients still throttled.
 | POST | `/models/unload` | `{ model }` keep_alive 0 |
 | POST | `/pause-all` / `/resume-all` | All pack checkpoints |
 | POST | `/clear-all` | Cancel run-all, kill stuck workers (`run-all-worker.pid` + node patterns), wipe pack runtime + pending proposals/approvals, unload all Ollama models in VRAM (keeps approval-log + `approved/`) |
-| POST | `/run-all` | `{ dryRun?, skip?, background?, autoApprove?, autoApproveMode?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` |
+| POST | `/run-all` | `{ dryRun?, skip?, background?, stopOnBroken?, autoApprove?, autoApproveMode?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` — never waits for Approve between packs; default `stopOnBroken=false` |
+
 | GET | `/run-all` | Run-all status |
 | GET | `/run-all/activity` | Current pack activity + approval queue |
 | POST | `/run-all/pause` \| `/resume` \| `/cancel` | Control sequencer |
-| GET | `/visual/live` | Live polish `:8766` reachability |
+| GET | `/visual/live` | Live polish `:8766` reachability (`?agentic=1&cOnly=1` embed) |
 | GET | `/visual/qa` | Screenshot QA `brokenCount` / `applyAllowed` |
 | GET | `/:pack/status` | Pack checkpoint |
 | GET | `/:pack/report` | Latest report JSON |
@@ -36,7 +37,8 @@ Rate limits: **skipped for loopback peers**; remote clients still throttled.
 | GET | `/:pack/proposal` | `proposal.json` |
 | GET | `/:pack/stream` | LLM partial or i18n fill progress |
 | POST | `/:pack/proposal/select` | `{ itemIds, selected }` |
-| POST | `/:pack/approve` | `{ itemIds?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` |
+| POST | `/:pack/approve` | `{ itemIds?, confirmProductWrite?, allowDependencyBump?, gitCommitOnApprove? }` — enqueues apply job; drain runs model-grouped. **visual** `visual_repolish` items start qa-loop (max 8), not product apply. |
+
 | POST | `/:pack/reject` | Archive proposal |
 | POST | `/:pack/start` | `{ dryRun?, model? }` |
 | POST | `/:pack/pause` \| `/resume` | Pause / resume |
@@ -45,7 +47,7 @@ Rate limits: **skipped for loopback peers**; remote clients still throttled.
 ## Approval rules
 
 - Packs end in `pending_approval` with `artifacts/agentic/<pack>/proposal.json` (async queue; run-all continues).
-- Product adapters (changelog, wiki:sync, i18n fill+merge, visual:apply, deps bump) require `confirmProductWrite` (and bump/QA unlocks as documented).
+- Product adapters (changelog, wiki:sync, i18n fill+merge, visual:apply, deps bump) require `confirmProductWrite` (and bump/QA unlocks as documented). Visual **repolish** Approve needs no product-write flag.
 - `autoApprove: ack` never product-writes; `product-write` requires confirm.
 - Git commit on approve is opt-in, local only, never pushes.
 - Audit: `artifacts/agentic/approval-log.jsonl`.
@@ -53,6 +55,6 @@ Rate limits: **skipped for loopback peers**; remote clients still throttled.
 
 ## Windows headless gates
 
-`spawn-silent.mjs` resolves `npm run <script>` to direct `node <file>` (no `cmd.exe` consoles). Python bridge uses `CREATE_NO_WINDOW` + hidden `STARTUPINFO`. Background run-all writes `artifacts/agentic/run-all-worker.pid` for Clear-all kill.
+`spawn-silent.mjs` resolves `npm run <script>` to direct `node <file>` (no `cmd.exe` consoles). Python bridge uses `CREATE_NO_WINDOW` + hidden `STARTUPINFO`. Background run-all writes `artifacts/agentic/run-all-worker.pid` for Clear-all kill. Agentic gate children set `SKIP_CSP_LIVE=1` so Cloudflare edge drift/unavailability does not break the security pack (local meta CSP still runs).
 
 Pack ids: `design|planning|i18n|rtl|a11y|seo|privacy|security|deps|migration|changelog|wikisync|image|bootllm|perf|visual`.

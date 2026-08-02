@@ -208,6 +208,7 @@ export async function runPack(packId, opts = {}) {
         model: resolved.model,
         gateResults,
         llm,
+        fromRunAll: Boolean(opts.fromRunAll),
       });
     } catch (err) {
       return {

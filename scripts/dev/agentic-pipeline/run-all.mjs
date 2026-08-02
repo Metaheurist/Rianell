@@ -15,6 +15,11 @@ async function waitIfPaused() {
 }
 
 /**
+ * Serial proposal sweep for all packs.
+ * Never waits for human Approve between packs — proposals stay in the approval queue.
+ * Packs are ordered by model group; Ollama unload only happens when the next pack
+ * uses a different recommended model.
+ *
  * @param {{
  *   skip?: string[],
  *   stopOnBroken?: boolean,
@@ -29,7 +34,8 @@ async function waitIfPaused() {
 export async function executeRunAll(opts = {}) {
   const prefs = readModePrefs();
   const skip = new Set(opts.skip || []);
-  const stopOnBroken = opts.stopOnBroken !== false;
+  // Default: continue so all 16 packs can produce proposals for later Approve.
+  const stopOnBroken = opts.stopOnBroken === true;
   const dryRun = Boolean(opts.dryRun);
   const autoApprove = opts.autoApprove != null ? Boolean(opts.autoApprove) : Boolean(prefs.autoApprove);
   const autoApproveMode = opts.autoApproveMode || prefs.autoApproveMode || 'ack';
@@ -59,6 +65,8 @@ export async function executeRunAll(opts = {}) {
     dryRun,
     autoApprove,
     autoApproveMode,
+    modelGrouped: true,
+    awaitApprovals: !autoApprove,
     startedAt: new Date().toISOString(),
   };
   writeRunAllState(state);
@@ -89,7 +97,15 @@ export async function executeRunAll(opts = {}) {
       continue;
     }
 
-    const result = await handler({ dryRun });
+    const resolved = resolvePackModel(packId);
+    const model = resolved.ok ? resolved.model : null;
+    const nextId = order[i + 1];
+    const nextModel = nextId && resolvePackModel(nextId).ok
+      ? resolvePackModel(nextId).model
+      : null;
+
+    const result = await handler({ dryRun, fromRunAll: true });
+    // Never block the sequencer on human Approve — continue to the next pack.
     const needsApproval = Boolean(result.needsApproval) && !dryRun;
     let approvalState = needsApproval ? 'pending' : null;
 
@@ -114,14 +130,13 @@ export async function executeRunAll(opts = {}) {
       error: result.error || null,
       needsApproval: needsApproval && approvalState === 'pending',
       approvalState,
+      model: model || null,
     };
     writeRunAllState(state);
 
-    if (!dryRun) {
-      const resolved = resolvePackModel(packId);
-      if (resolved.ok && resolved.model) {
-        await ollamaUnload(resolved.model);
-      }
+    // Unload only when leaving a model group (next pack uses a different model).
+    if (!dryRun && model && model !== nextModel) {
+      await ollamaUnload(model);
     }
 
     if (!result.ok && stopOnBroken) {
@@ -135,9 +150,12 @@ export async function executeRunAll(opts = {}) {
     }
   }
 
+  const final = readRunAllState();
+  const pendingApprovals = Object.values(final.results || {})
+    .some((r) => r && r.needsApproval);
   writeRunAllState({
-    ...readRunAllState(),
-    status: 'passed',
+    ...final,
+    status: pendingApprovals ? 'awaiting_approvals' : 'passed',
     currentPack: null,
     stepIndex: order.length,
     finishedAt: new Date().toISOString(),

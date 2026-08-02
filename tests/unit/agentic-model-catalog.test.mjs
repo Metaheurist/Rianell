@@ -12,8 +12,11 @@ test('model-catalog has 16 packs and locked runAllOrder', () => {
   const packs = Object.keys(catalog.packs);
   assert.equal(packs.length, 16);
   assert.deepEqual(catalog.runAllOrder, [
-    'design', 'planning', 'i18n', 'rtl', 'a11y', 'seo', 'privacy', 'security',
-    'deps', 'migration', 'changelog', 'wikisync', 'image', 'bootllm', 'perf', 'visual',
+    'design', 'planning', 'rtl', 'a11y', 'seo', 'privacy', 'security',
+    'deps', 'migration', 'bootllm', 'perf',
+    'changelog', 'wikisync', 'image',
+    'i18n',
+    'visual',
   ]);
   for (const id of catalog.runAllOrder) {
     assert.ok(catalog.packs[id], `missing pack ${id}`);

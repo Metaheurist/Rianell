@@ -493,21 +493,38 @@
       gap: 0;
       list-style: none;
       margin: 0;
-      padding: 0 10px 12px;
+      padding: 0 10px 0;
       border-bottom: 1px solid var(--border);
     }
     .pipe-rail li {
       position: relative;
+      flex: 1 1 100px;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      color: var(--idle);
+    }
+    .pipe-rail .pipe-step-btn {
+      width: 100%;
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 14px 6px;
-      flex: 1 1 100px;
-      min-width: 0;
-      color: var(--idle);
+      padding: 12px 14px 10px;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: inherit;
+      font: inherit;
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 0;
+    }
+    .pipe-rail .pipe-step-btn:hover {
+      background: rgba(93,217,122,.05);
+      color: var(--text);
     }
     .pipe-rail li .n {
       width: 22px;
@@ -559,8 +576,107 @@
       border-color: rgba(255,107,107,.45);
       color: var(--bad);
     }
+    .pipe-rail li[data-focus="1"] .pipe-step-btn {
+      border-bottom-color: var(--accent);
+      background: rgba(93,217,122,.07);
+      color: var(--text);
+    }
     .pack-stage-body {
       padding: 12px 14px 14px;
+    }
+    /* Stage wizard — one primary panel per Gates → LLM → Proposal → Approve */
+    .activity.wizard {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 0;
+      grid-template-columns: none;
+    }
+    .wizard-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .wizard-panel {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      min-height: min(52vh, 480px);
+      padding: 16px 16px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(0,0,0,.16);
+      animation: fadeUp .28s ease both;
+    }
+    .wizard-panel[data-open="1"] {
+      display: flex;
+    }
+    .wizard-panel > header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .wizard-panel > header h3 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+    .wizard-panel > header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      max-width: 48ch;
+      line-height: 1.4;
+    }
+    .wizard-panel .body {
+      flex: 1 1 auto;
+      max-height: none;
+      min-height: 160px;
+      white-space: pre-wrap;
+    }
+    .wizard-panel .body.md {
+      max-height: min(48vh, 420px);
+      overflow: auto;
+    }
+    .wizard-empty {
+      display: grid;
+      place-items: center;
+      text-align: center;
+      gap: 10px;
+      min-height: 180px;
+      padding: 24px 16px;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.015);
+    }
+    .wizard-empty strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .wizard-empty span {
+      display: block;
+      font-size: 0.8rem;
+      line-height: 1.45;
+      max-width: 36ch;
+    }
+    .wizard-nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 4px;
+      border-top: 1px solid var(--border);
+    }
+    .wizard-nav .pack-hop {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .activity.cockpit {
       grid-template-columns: 1.55fr 1fr;
@@ -786,8 +902,8 @@
 
     const client = createAgenticClient();
     const PACKS = [
-      'design','planning','i18n','rtl','a11y','seo','privacy','security',
-      'deps','migration','changelog','wikisync','image','bootllm','perf','visual'
+      'design','planning','rtl','a11y','seo','privacy','security',
+      'deps','migration','bootllm','perf','changelog','wikisync','image','i18n','visual'
     ];
     const NAV = [
       { id: 'overview', group: 'Control' },
@@ -840,7 +956,14 @@
       if (!runState) return 'idle';
       const results = runState.results || {};
       const keys = Object.keys(results).sort();
-      const resultBits = keys.map((k) => `${k}:${results[k]?.ok ? 1 : 0}`).join(',');
+      const resultBits = keys.map((k) => {
+        const r = results[k] || {};
+        return `${k}:${r.ok ? 1 : 0}:${r.needsApproval ? 1 : 0}:${r.approvalState || ''}`;
+      }).join(',');
+      const packs = runState.packs || {};
+      const packBits = Object.keys(packs).sort()
+        .map((k) => `${k}:${packs[k]?.status || ''}`)
+        .join(',');
       return [
         runState.status || '',
         runState.dryRun ? 'd' : 'l',
@@ -849,6 +972,7 @@
         (runState.order || []).join('|'),
         (runState.skip || []).join('|'),
         resultBits,
+        packBits,
       ].join('::');
     }
 
@@ -894,9 +1018,12 @@
       if (packSnap?.status === 'pending_approval' || packSnap?.status === 'applied'
         || packSnap?.status === 'rejected' || packSnap?.status === 'passed'
         || packSnap?.status === 'broken' || packSnap?.status === 'dry_run'
+        || packSnap?.status === 'queued_apply'
         || packSnap?.status === 'running' || packSnap?.status === 'paused') {
         if (packSnap.status === 'running' || packSnap.status === 'paused') {
           /* fall through — also respect results */
+        } else if (packSnap.status === 'queued_apply') {
+          return 'pending_approval';
         } else {
           return packSnap.status;
         }
@@ -904,12 +1031,14 @@
       const r = (runState.results || {})[packId];
       if (r) {
         if (r.needsApproval || r.approvalState === 'pending') return 'pending_approval';
+        if (r.approvalState === 'queued') return 'pending_approval';
         return r.ok ? 'passed' : 'broken';
       }
       if (runState.currentPack === packId && (runState.status === 'running' || runState.status === 'paused')) {
         return 'running';
       }
-      if (runState.status === 'running' || runState.status === 'paused') {
+      if (runState.status === 'running' || runState.status === 'paused'
+        || runState.status === 'awaiting_approvals') {
         const order = runState.order || PACKS;
         const idx = order.indexOf(packId);
         if (idx >= 0 && idx < (runState.stepIndex || 0)) return 'passed';
@@ -945,20 +1074,144 @@
       return escaped;
     }
 
-    /** Derive Gates → LLM → Proposal → Approve rail states for a pack. */
+    let wizardStep = 'gates';
+    let wizardFollow = true;
+
+    function isVisualPack(pack, act) {
+      return pack === 'visual' || act?.pack === 'visual';
+    }
+
+    function deriveWizardStep(act, pack) {
+      const now = act?.now || {};
+      const status = now.status || 'idle';
+      const stage = String(now.stage || '');
+      if (isVisualPack(pack, act)) {
+        if (status === 'pending_approval' || status === 'queued_apply') return 'approve';
+        if (stage === 'polish' || status === 'polish_running' || /polish/i.test(stage)) return 'polish';
+        if (stage === 'qa' || stage === 'screenshot' || /qa/i.test(stage)) return 'qa';
+        if (status === 'running' && (stage === 'gates' || stage === 'check' || !stage)) return 'gates';
+        if ((act?.planned?.items || []).some((it) => it.kind === 'visual_repolish' || it.kind === 'ack_only')) {
+          return status === 'running' ? 'polish' : 'approve';
+        }
+        if (status === 'broken' && /gate/i.test(stage)) return 'gates';
+        return 'gates';
+      }
+      if (status === 'pending_approval' || status === 'queued_apply' || status === 'applied' || status === 'rejected') {
+        return status === 'pending_approval' || status === 'queued_apply' ? 'approve' : 'approve';
+      }
+      if (status === 'broken' && /gate/i.test(stage)) return 'gates';
+      if (status === 'broken' && stage === 'llm') return 'llm';
+      if (stage === 'llm' || (status === 'running' && stage === 'llm')) return 'llm';
+      if (stage === 'post' || stage === 'pending_approval') return 'proposal';
+      if (status === 'running' && (stage === 'gates' || stage === 'check' || stage === 'default' || !stage)) return 'gates';
+      if ((act?.planned?.items || []).length) return 'proposal';
+      if ((act?.done || []).length && status !== 'idle') return 'llm';
+      return 'gates';
+    }
+
+    function focusWizardStep(step, { pin = false, pack = '' } = {}) {
+      const visual = isVisualPack(pack, null) || ['qa', 'polish'].includes(step);
+      const allowed = visual
+        ? ['gates', 'qa', 'approve', 'polish']
+        : ['gates', 'llm', 'proposal', 'approve'];
+      if (!allowed.includes(step)) step = 'gates';
+      wizardStep = step;
+      if (pin) wizardFollow = false;
+      document.querySelectorAll('.wizard-panel[data-step]').forEach((el) => {
+        el.dataset.open = el.dataset.step === step ? '1' : '0';
+      });
+      document.querySelectorAll('.pipe-rail li[data-step]').forEach((li) => {
+        li.dataset.focus = li.dataset.step === step ? '1' : '0';
+      });
+      const root = document.getElementById('activityRoot');
+      if (root) root.dataset.wizardStep = step;
+    }
+
+    function wirePipeRail(pack) {
+      const rail = document.querySelector('.pack-stage .pipe-rail');
+      if (!rail) return;
+      rail.querySelectorAll('.pipe-step-btn').forEach((btn) => {
+        btn.onclick = () => {
+          const step = btn.closest('[data-step]')?.dataset.step;
+          if (!step) return;
+          focusWizardStep(step, { pin: true, pack });
+        };
+      });
+      // Re-apply focus after rail HTML swap.
+      focusWizardStep(wizardStep, { pin: !wizardFollow, pack });
+    }
+
+    function wizardEmpty(title, detail) {
+      return `<div class="wizard-empty"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(detail)}</span></div>`;
+    }
+
+    function packNeighbors(pack) {
+      const i = PACKS.indexOf(pack);
+      return {
+        prev: i > 0 ? PACKS[i - 1] : null,
+        next: i >= 0 && i < PACKS.length - 1 ? PACKS[i + 1] : null,
+      };
+    }
+
+    /** Derive Gates → … rail states for a pack. */
     function pipeRailHtml(act, opts = {}) {
       const now = act?.now || {};
       const status = now.status || 'idle';
       const stage = String(now.stage || '');
       const doneGates = (act?.done || []).filter((d) => d.status === 'pass' || d.status === 'skipped-dry-run');
       const plannedItems = act?.planned?.items || [];
-      const hideApprove = opts.hidePlanned === true || act?.pack === 'visual' || opts.pack === 'visual';
+      const focus = opts.focusStep || wizardStep || 'gates';
+      const visual = isVisualPack(opts.pack, act);
 
       const running = status === 'running';
       const broken = status === 'broken';
-      const pending = status === 'pending_approval';
+      const pending = status === 'pending_approval' || status === 'queued_apply';
       const finishedOk = status === 'passed' || status === 'applied' || status === 'dry_run';
       const rejected = status === 'rejected';
+      const polishRun = stage === 'polish' || status === 'polish_running';
+
+      if (visual) {
+        const gateS = broken && /gate/i.test(stage)
+          ? 'fail'
+          : (doneGates.length || stage === 'qa' || pending || polishRun || finishedOk)
+            ? 'done'
+            : (running && (!stage || stage === 'gates' || stage === 'check'))
+              ? 'active'
+              : 'idle';
+        const qaS = stage === 'qa' && running
+          ? 'active'
+          : (pending || polishRun || finishedOk || plannedItems.length)
+            ? 'done'
+            : 'idle';
+        const apprS = status === 'applied' || polishRun
+          ? 'done'
+          : rejected
+            ? 'fail'
+            : pending
+              ? 'active'
+              : 'idle';
+        const polS = polishRun && running
+          ? 'active'
+          : (finishedOk || status === 'applied')
+            ? 'done'
+            : 'idle';
+        const brokenN = plannedItems.filter((it) => it.kind === 'visual_repolish').length;
+        const steps = [
+          { id: 'gates', n: '1', title: 'Gates', sub: gateS === 'done' ? `${doneGates.length || 'ok'}` : (gateS === 'active' ? 'running' : 'wait'), s: gateS },
+          { id: 'qa', n: '2', title: 'Q&A', sub: qaS === 'active' ? 'scanning' : (brokenN ? `${brokenN} candidates` : 'find polish'), s: qaS },
+          { id: 'approve', n: '3', title: 'Approve', sub: pending ? 'select candidates' : (polishRun ? 'queued' : 'gated'), s: apprS },
+          { id: 'polish', n: '4', title: 'Polish×8', sub: polishRun ? 'Pass 1…8' : 'after approve', s: polS },
+        ];
+        return `<ol class="pipe-rail" role="tablist" aria-label="Visual pack stages">
+          ${steps.map((st) => `
+            <li data-s="${st.s}" data-step="${st.id}" data-focus="${st.id === focus ? '1' : '0'}">
+              <button type="button" class="pipe-step-btn" role="tab" aria-selected="${st.id === focus ? 'true' : 'false'}">
+                <span class="n">${st.n}</span>
+                <span class="lbl"><b>${st.title}</b><span>${escapeHtml(st.sub)}</span></span>
+              </button>
+            </li>`).join('')}
+        </ol>`;
+      }
 
       const gateS = broken && /gate/i.test(stage)
         ? 'fail'
@@ -975,65 +1228,60 @@
             ? 'done'
             : 'idle';
       const propS = pending
-        ? 'active'
+        ? 'done'
         : (finishedOk || rejected || (plannedItems.length && !running))
           ? 'done'
           : (running && stage === 'post')
             ? 'active'
             : 'idle';
-      const apprS = hideApprove
-        ? (finishedOk ? 'done' : 'idle')
-        : status === 'applied'
-          ? 'done'
-          : rejected
-            ? 'fail'
-            : pending
-              ? 'active'
-              : 'idle';
+      const apprS = status === 'applied'
+        ? 'done'
+        : rejected
+          ? 'fail'
+          : pending
+            ? 'active'
+            : 'idle';
 
       const steps = [
-        { n: '1', title: 'Gates', sub: gateS === 'done' ? `${doneGates.length || 'ok'}` : (gateS === 'active' ? 'running' : 'wait'), s: gateS },
-        { n: '2', title: 'LLM', sub: now.model || (llmS === 'active' ? 'streaming' : 'advisory'), s: llmS },
-        { n: '3', title: 'Proposal', sub: plannedItems.length ? `${plannedItems.length} item(s)` : (propS === 'active' ? 'building' : '—'), s: propS },
-      ];
-      if (!hideApprove) {
-        steps.push({
+        { id: 'gates', n: '1', title: 'Gates', sub: gateS === 'done' ? `${doneGates.length || 'ok'}` : (gateS === 'active' ? 'running' : 'wait'), s: gateS },
+        { id: 'llm', n: '2', title: 'LLM', sub: now.model || (llmS === 'active' ? 'streaming' : 'advisory'), s: llmS },
+        { id: 'proposal', n: '3', title: 'Proposal', sub: plannedItems.length ? `${plannedItems.length} item(s)` : (propS === 'active' ? 'building' : '—'), s: propS },
+        {
+          id: 'approve',
           n: '4',
           title: 'Approve',
           sub: pending ? 'needs you' : (status === 'applied' ? 'applied' : (rejected ? 'rejected' : 'gated')),
           s: apprS,
-        });
-      } else {
-        steps.push({ n: '4', title: 'Live QA', sub: 'polish HUD', s: finishedOk ? 'done' : (running ? 'active' : 'idle') });
-      }
+        },
+      ];
 
-      return `<ol class="pipe-rail" aria-label="Pack pipeline stages">
+      return `<ol class="pipe-rail" role="tablist" aria-label="Pack pipeline stages">
         ${steps.map((st) => `
-          <li data-s="${st.s}">
-            <span class="n">${st.n}</span>
-            <span class="lbl"><b>${st.title}</b><span>${escapeHtml(st.sub)}</span></span>
+          <li data-s="${st.s}" data-step="${st.id}" data-focus="${st.id === focus ? '1' : '0'}">
+            <button type="button" class="pipe-step-btn" role="tab" aria-selected="${st.id === focus ? 'true' : 'false'}">
+              <span class="n">${st.n}</span>
+              <span class="lbl"><b>${st.title}</b><span>${escapeHtml(st.sub)}</span></span>
+            </button>
           </li>`).join('')}
       </ol>`;
     }
 
     function activityHtml(act, opts = {}) {
       const cockpit = opts.layout === 'cockpit';
-      // Visual tab: Live polish HUD owns status/QA — skip Now/Thinking/Done/Planned.
-      if (opts.hideActivity === true || opts.pack === 'visual' || act?.pack === 'visual') {
+      const wizard = opts.layout === 'wizard';
+      if (opts.hideActivity === true) {
         return '';
       }
-      if (!act) {
+      if (!act && !wizard) {
         return `<div class="activity${cockpit ? ' cockpit' : ''}" id="activityRoot"><div class="activity-panel ap-now"><h3>Now</h3><div class="body">No activity yet</div></div></div>`;
       }
-      const now = act.now || {};
-      const thinking = act.thinking || {};
-      const done = act.done || [];
-      const planned = act.planned || {};
+      const now = act?.now || {};
+      const thinking = act?.thinking || {};
+      const done = act?.done || [];
+      const planned = act?.planned || {};
       const items = planned.items || [];
-      // Visual apply is QA-gated in Live polish — no Planned approve/reject row on that tab.
-      const hidePlanned = opts.hidePlanned === true
-        || act.pack === 'visual'
-        || opts.pack === 'visual';
+      const visual = isVisualPack(opts.pack, act);
+      const hidePlanned = opts.hidePlanned === true;
       const fill = thinking.fillProgress;
       const ctx = thinking.context;
       const ctxChip = ctx?.filesUsed?.length
@@ -1043,7 +1291,182 @@
         ? `Filling ${fill.locale || '…'} · ${fill.done || 0}/${fill.total || 0}`
           + (fill.sampleTranslation ? `\n\n${fill.lastKey}: ${fill.sampleTranslation}` : '')
           + (thinking.text ? `\n\n${thinking.text}` : '')
-        : (thinking.text || '—');
+        : (thinking.text || '');
+      const pack = opts.pack || act?.pack || '';
+      const hops = packNeighbors(pack);
+      const hopHtml = `
+        <div class="pack-hop">
+          ${hops.prev ? `<button type="button" class="btn" data-pack-hop="${hops.prev}">${icon('rtl')} ${escapeHtml(hops.prev)}</button>` : ''}
+          ${hops.next ? `<button type="button" class="btn" data-pack-hop="${hops.next}">${escapeHtml(hops.next)} ${icon('run-all')}</button>` : ''}
+        </div>`;
+
+      if (wizard && visual) {
+        const active = opts.focusStep || (wizardFollow ? deriveWizardStep(act, pack) : wizardStep) || 'gates';
+        const gateBody = done.length
+          ? `<div class="body done-chips">${done.map((d) => `<span class="chip">${escapeHtml(d.label)} · ${escapeHtml(d.status)}</span>`).join('')}</div>`
+          : wizardEmpty('Gates not started', 'Dry-run or Live runs verify:icon-spec before Q&A.');
+        const qaBody = thinkText
+          ? `<div class="body md">${renderMd(thinkText)}</div>`
+          : wizardEmpty(
+            'Q&A finds polish needs',
+            planned.summary || 'Live runs screenshot Q&A, then lists broken glyphs as Approve candidates. Run-all reuses existing broken.json.',
+          );
+        const planListApprove = items.length ? `
+          <div class="body" style="white-space:normal;max-height:min(42vh,360px)" id="plannedBody">
+            ${items.map((it) => `
+              <label class="plan-item">
+                <input type="checkbox" data-item="${escapeHtml(it.id)}" ${it.selected !== false ? 'checked' : ''} />
+                <span>
+                  <strong>${escapeHtml(it.title)}</strong>
+                  <div style="color:var(--muted);font-size:0.75rem">${escapeHtml((it.detail || '').slice(0, 180))}</div>
+                </span>
+                <span class="risk-${escapeHtml(it.risk || 'low')}">${escapeHtml(it.kind === 'visual_repolish' ? 'polish' : (it.risk || 'low'))}</span>
+              </label>`).join('')}
+          </div>` : wizardEmpty('No candidates', 'Run Live so Q&A can populate polish candidates.');
+        const approveBody = `
+            ${planListApprove}
+            <div class="activity-actions">
+              <button class="btn primary" id="btnApprove">${icon('check')} Approve → Polish×8</button>
+              <button class="btn" id="btnReject">${icon('x')} Reject</button>
+            </div>`;
+        const polishBody = wizardEmpty(
+          'Polish×8',
+          'After Approve, Gemma re-polishes selected candidates through up to 8 Q&A rounds. Watch C-only Live polish below.',
+        );
+        return `
+        <div class="activity wizard" id="activityRoot" data-wizard-step="${active}" data-visual="1">
+          <div class="wizard-meta">
+            <span class="chip">Status <strong>${escapeHtml(now.status || 'idle')}</strong></span>
+            <span class="chip">Stage <strong>${escapeHtml(now.stage || '—')}</strong></span>
+            ${now.needsApproval ? '<span class="chip warn-chip">select candidates</span>' : ''}
+            ${now.dryRun ? '<span class="chip">dry-run</span>' : ''}
+          </div>
+          <section class="wizard-panel" data-step="gates" data-open="${active === 'gates' ? '1' : '0'}">
+            <header><h3>1 · Gates</h3><p>Icon-spec verify before Q&A spend.</p></header>
+            ${gateBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-next="qa">Next · Q&A ${icon('run-all')}</button>
+              ${hopHtml}
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="qa" data-open="${active === 'qa' ? '1' : '0'}">
+            <header><h3>2 · Q&A</h3><p>Screenshot Q&A finds glyphs that need polish.</p></header>
+            ${qaBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="gates">${icon('rtl')} Gates</button>
+              <button type="button" class="btn" data-wiz-next="approve">Next · Approve</button>
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="approve" data-open="${active === 'approve' ? '1' : '0'}">
+            <header><h3>3 · Approve</h3><p>Pick candidates — Approve starts Polish×8 (no product write).</p></header>
+            ${approveBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="qa">${icon('rtl')} Q&A</button>
+              <button type="button" class="btn" data-wiz-next="polish">Next · Polish×8</button>
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="polish" data-open="${active === 'polish' ? '1' : '0'}">
+            <header><h3>4 · Polish×8</h3><p>Up to 8 Q&A re-polish rounds on approved ids. C column only.</p></header>
+            ${polishBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="approve">${icon('rtl')} Approve</button>
+              ${hopHtml}
+            </div>
+          </section>
+        </div>`;
+      }
+
+      if (wizard) {
+        const active = opts.focusStep || (wizardFollow ? deriveWizardStep(act, pack) : wizardStep) || 'gates';
+        const gateBody = done.length
+          ? `<div class="body done-chips">${done.map((d) => `<span class="chip">${escapeHtml(d.label)} · ${escapeHtml(d.status)}</span>`).join('')}</div>`
+          : wizardEmpty('Gates not started', 'Run Dry-run or Live — verify scripts run before the LLM advisory.');
+        const thinkBody = thinkText
+          ? `${ctxChip}<div class="body md" id="thinkingBody">${renderMd(thinkText)}${thinking.streaming ? ' <span class="cursor-blink"></span>' : ''}</div>`
+          : wizardEmpty('Waiting on LLM', 'After gates pass, Thinking streams here. Model unload stays grouped with sibling packs.');
+        const planListReview = items.length ? `
+          <div class="body" style="white-space:normal;max-height:min(42vh,360px)">
+            ${items.map((it) => `
+              <div class="plan-item" style="cursor:default">
+                <span>
+                  <strong>${escapeHtml(it.title)}</strong>
+                  <div style="color:var(--muted);font-size:0.75rem">${escapeHtml((it.detail || '').slice(0, 180))}</div>
+                </span>
+                <span class="risk-${escapeHtml(it.risk || 'low')}">${escapeHtml(it.risk || 'low')}</span>
+              </div>`).join('')}
+          </div>` : wizardEmpty('No proposal yet', 'Proposal items appear after the advisory (or TranslateGemma fill) finishes.');
+        const planListApprove = items.length ? `
+          <div class="body" style="white-space:normal;max-height:min(42vh,360px)" id="plannedBody">
+            ${items.map((it) => `
+              <label class="plan-item">
+                <input type="checkbox" data-item="${escapeHtml(it.id)}" ${it.selected !== false ? 'checked' : ''}
+                  ${(it.fillStatus === 'pending' || it.proposed == null) && it.kind === 'i18n_string' ? 'disabled' : ''} />
+                <span>
+                  <strong>${escapeHtml(it.title)}</strong>
+                  <div style="color:var(--muted);font-size:0.75rem">${escapeHtml((it.detail || '').slice(0, 180))}</div>
+                </span>
+                <span class="risk-${escapeHtml(it.risk || 'low')}">${escapeHtml(
+                  it.fillStatus === 'pending' ? 'missing'
+                    : (it.fillStatus === 'failed' ? 'failed' : (it.risk || 'low'))
+                )}</span>
+              </label>`).join('')}
+          </div>` : wizardEmpty('Nothing to approve', 'Finish Live so Planned items land in this queue.');
+        const approveBody = hidePlanned
+          ? wizardEmpty('Hidden', 'Proposal hidden for this pack.')
+          : `
+            ${planListApprove}
+            <div class="activity-actions">
+              <label class="chip"><input type="checkbox" id="optConfirmWrite" /> confirm product write</label>
+              <label class="chip"><input type="checkbox" id="optAllowBump" /> allow dep bump</label>
+              <label class="chip"><input type="checkbox" id="optGitCommit" /> git commit</label>
+              <button class="btn primary" id="btnApprove">${icon('check')} Approve selected</button>
+              <button class="btn" id="btnReject">${icon('x')} Reject</button>
+            </div>`;
+
+        return `
+        <div class="activity wizard" id="activityRoot" data-wizard-step="${active}"${hidePlanned ? ' data-no-planned="1"' : ''}>
+          <div class="wizard-meta">
+            <span class="chip">Status <strong>${escapeHtml(now.status || 'idle')}</strong></span>
+            <span class="chip">Stage <strong>${escapeHtml(now.stage || '—')}</strong></span>
+            <span class="chip">Model <strong>${escapeHtml(now.model || 'none')}</strong></span>
+            ${now.needsApproval && !hidePlanned ? '<span class="chip warn-chip">needs approval</span>' : ''}
+            ${now.dryRun ? '<span class="chip">dry-run</span>' : ''}
+          </div>
+          <section class="wizard-panel" data-step="gates" data-open="${active === 'gates' ? '1' : '0'}">
+            <header><h3>1 · Gates</h3><p>Hard verifies before any LLM spend.</p></header>
+            ${gateBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-next="llm">Next · LLM ${icon('run-all')}</button>
+              ${hopHtml}
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="llm" data-open="${active === 'llm' ? '1' : '0'}">
+            <header><h3>2 · LLM ${thinking.streaming ? '<span class="cursor-blink"></span>' : ''}</h3><p>Thinking stream / fill progress for this pack.</p></header>
+            ${thinkBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="gates">${icon('rtl')} Gates</button>
+              <button type="button" class="btn" data-wiz-next="proposal">Next · Proposal ${icon('run-all')}</button>
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="proposal" data-open="${active === 'proposal' ? '1' : '0'}">
+            <header><h3>3 · Proposal</h3><p>${escapeHtml(planned.summary || 'Review generated actions before Approve.')}</p></header>
+            ${planListReview}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="llm">${icon('rtl')} LLM</button>
+              <button type="button" class="btn primary" data-wiz-next="approve">Next · Approve</button>
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="approve" data-open="${active === 'approve' ? '1' : '0'}">
+            <header><h3>4 · Approve</h3><p>Approve enqueues apply work (model-grouped drain). Product writes need confirm.</p></header>
+            ${approveBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="proposal">${icon('rtl')} Proposal</button>
+              ${hopHtml}
+            </div>
+          </section>
+        </div>`;
+      }
+
       const plannedPanel = hidePlanned ? '' : `
           <div class="activity-panel ap-plan">
             <h3>Planned · ${escapeHtml(planned.summary || '')}</h3>
@@ -1103,7 +1526,7 @@
           <div class="activity-panel ap-think">
             <h3>Thinking ${thinking.streaming ? '<span class="cursor-blink"></span>' : ''}</h3>
             ${ctxChip}
-            <div class="body md" id="thinkingBody">${renderMd(thinkText)}</div>
+            <div class="body md" id="thinkingBody">${renderMd(thinkText || '—')}</div>
           </div>
           <div class="activity-panel ap-done">
             <h3>Done</h3>
@@ -1113,11 +1536,29 @@
         </div>`;
     }
 
+    function wireWizardNav(pack) {
+      document.querySelectorAll('[data-wiz-next]').forEach((btn) => {
+        btn.onclick = () => focusWizardStep(btn.dataset.wizNext, { pin: true, pack });
+      });
+      document.querySelectorAll('[data-wiz-prev]').forEach((btn) => {
+        btn.onclick = () => focusWizardStep(btn.dataset.wizPrev, { pin: true, pack });
+      });
+      document.querySelectorAll('[data-pack-hop]').forEach((btn) => {
+        btn.onclick = () => {
+          state.view = btn.dataset.packHop;
+          wizardFollow = true;
+          wizardStep = 'gates';
+          render();
+        };
+      });
+      wirePipeRail(pack);
+    }
+
     function packInsight(pack) {
       if (pack === 'i18n') return 'TranslateGemma propose-dir → Approve (+ confirm) → merge Tier-C';
       if (pack === 'deps') return 'Bumps require allowDependencyBump + confirm — never silent';
       if (pack === 'security') return 'Ack only — CSP/header edits refused';
-      if (pack === 'visual') return 'Live polish HUD owns model pick + QA-gated apply';
+      if (pack === 'visual') return 'Gates → Q&A candidates → Approve → Polish×8 (C only)';
       if (pack === 'changelog') return 'Draft bullets from git + Unreleased · promote on Approve';
       return 'Review Thinking + Planned · Approve before product writes';
     }
@@ -1191,42 +1632,41 @@
       const act = await client.getPackActivity(pack).catch(() => null);
       if (!act) return null;
 
-      // Visual: only refresh status pill + stage rail — no Activity cockpit.
-      if (pack === 'visual') {
-        const pillFp = `${act.now?.status || ''}`;
-        if (force || pillFp !== lastPillFp) {
-          lastPillFp = pillFp;
+      const host = document.getElementById('packActivity')
+        || document.getElementById('runAllActivity');
+      if (!host) {
+        // Visual legacy: pill + rail only when activity host missing
+        if (pack === 'visual') {
           const pill = document.querySelector('.pack-stage .pack-status-pill');
           if (pill && act.now?.status) {
             pill.dataset.s = act.now.status;
             pill.innerHTML = `${icon('dot')} ${escapeHtml(act.now.status)}`;
           }
-        }
-        const railFp = railFingerprint(act);
-        if (force || railFp !== lastRailFp) {
-          lastRailFp = railFp;
           const rail = document.querySelector('.pack-stage .pipe-rail');
           if (rail) {
+            const focus = wizardFollow ? deriveWizardStep(act, pack) : wizardStep;
             const tmp = document.createElement('div');
-            tmp.innerHTML = pipeRailHtml(act, { pack, hidePlanned: true });
+            tmp.innerHTML = pipeRailHtml(act, { pack, focusStep: focus });
             if (tmp.firstElementChild) rail.replaceWith(tmp.firstElementChild);
+            wirePipeRail(pack);
           }
         }
         return act;
       }
-
-      const host = document.getElementById('packActivity')
-        || document.getElementById('runAllActivity');
-      if (!host) return act;
 
       const railFp = railFingerprint(act);
       if (force || railFp !== lastRailFp) {
         lastRailFp = railFp;
         const rail = document.querySelector('.pack-stage .pipe-rail');
         if (rail) {
+          const focus = (host.id === 'packActivity' && !wizardFollow)
+            ? wizardStep
+            : deriveWizardStep(act, pack);
+          if (host.id === 'packActivity' && wizardFollow) wizardStep = focus;
           const tmp = document.createElement('div');
-          tmp.innerHTML = pipeRailHtml(act, { pack, hidePlanned: false });
+          tmp.innerHTML = pipeRailHtml(act, { pack, focusStep: focus });
           if (tmp.firstElementChild) rail.replaceWith(tmp.firstElementChild);
+          wirePipeRail(pack);
         }
       }
 
@@ -1243,12 +1683,15 @@
       const structFp = activityStructFingerprint(act);
       if (force || structFp !== lastActivityStructFp) {
         lastActivityStructFp = structFp;
-        const cockpit = Boolean(host.closest('.pack-stage') || host.id === 'packActivity');
+        const isPackTab = host.id === 'packActivity';
+        if (isPackTab && wizardFollow) wizardStep = deriveWizardStep(act, pack);
         host.innerHTML = activityHtml(act, {
           pack,
-          layout: cockpit ? 'cockpit' : undefined,
+          layout: isPackTab ? 'wizard' : undefined,
+          focusStep: isPackTab ? wizardStep : undefined,
         });
         await wireActivityActions(pack);
+        if (isPackTab) wireWizardNav(pack);
         lastThinkingFp = '';
       }
 
@@ -1359,6 +1802,11 @@
         const id = b.dataset.v;
         if (PACKS.includes(id)) b.dataset.s = stepStatus(id, runState);
       });
+
+      // Overview pack tiles (soft patch — no fade-up flash on every poll).
+      if (document.getElementById('packGrid')) {
+        paintOverviewGrid(runState, { soft: true });
+      }
     }
 
     function setRunAllBusy(busy) {
@@ -1385,6 +1833,13 @@
         // Soft-patch current pack Activity on run-all (no full view rewrite).
         if (st?.currentPack && document.getElementById('runAllActivity')) {
           await softRefreshPackActivity(st.currentPack);
+        }
+        // Overview: keep approval queue in sync while run-all polls.
+        if (state.view === 'overview') {
+          try {
+            const runAct = await client.getRunAllActivity();
+            softPaintApprovalQueue(runAct?.approvalQueue || []);
+          } catch { /* quiet */ }
         }
         if (st && (st.status === 'running' || st.status === 'paused')) {
           setRunAllBusy(true);
@@ -1488,9 +1943,22 @@
       return catalog?.packs?.[id]?.recommended || '—';
     }
 
-    function paintOverviewGrid(runState) {
+    function paintOverviewGrid(runState, { soft = false } = {}) {
       const grid = document.getElementById('packGrid');
       if (!grid) return;
+      const tiles = grid.querySelectorAll('.pack-tile');
+      if (soft && tiles.length === PACKS.length) {
+        PACKS.forEach((p) => {
+          const el = grid.querySelector(`.pack-tile[data-pack="${p}"]`);
+          if (!el) return;
+          const s = stepStatus(p, runState);
+          if (el.dataset.s === s) return;
+          el.dataset.s = s;
+          const row = el.querySelector('.status-row');
+          if (row) row.innerHTML = `<strong>${p}</strong>${statusBadge(s)}`;
+        });
+        return;
+      }
       grid.innerHTML = PACKS.map((p, i) => {
         const s = stepStatus(p, runState);
         return `<button class="pack-tile" data-s="${s}" data-pack="${p}" style="animation-delay:${i * 20}ms">
@@ -1502,6 +1970,28 @@
       grid.querySelectorAll('.pack-tile').forEach((el) => {
         el.onclick = () => { state.view = el.dataset.pack; render(); };
       });
+    }
+
+    function softPaintApprovalQueue(queue) {
+      const host = document.getElementById('view');
+      if (!host || state.view !== 'overview') return;
+      const fp = (queue || []).map((q) => q.pack).join(',');
+      if (fp === softPaintApprovalQueue._fp) return;
+      softPaintApprovalQueue._fp = fp;
+      let strip = host.querySelector('.approval-queue');
+      if (!(queue || []).length) {
+        if (strip) strip.remove();
+        return;
+      }
+      const html = `<div class="approval-queue"><strong>Approval queue (${queue.length})</strong> · ${
+        queue.map((q) => escapeHtml(q.pack)).join(', ')
+      }</div>`;
+      if (strip) {
+        strip.outerHTML = html;
+      } else {
+        const grid = document.getElementById('packGrid');
+        if (grid) grid.insertAdjacentHTML('beforebegin', html);
+      }
     }
 
     async function render() {
@@ -1519,15 +2009,17 @@
 
       if (state.view === 'overview') {
         stopActivityPoll();
+        softPaintApprovalQueue._fp = undefined;
         const pct = progressPct(lastRunState);
         let runAct = null;
         try { runAct = await client.getRunAllActivity(); } catch { /* */ }
         const queue = runAct?.approvalQueue || [];
+        softPaintApprovalQueue._fp = (queue || []).map((q) => q.pack).join(',');
         view.innerHTML = `
           <section class="hero">
             <div class="hero-copy">
               <h2>Pipeline cockpit</h2>
-              <p>Sixteen local packs. Nothing product-applies without Approve (or explicit auto-approve).</p>
+              <p>Sixteen local packs (model-grouped). Run-all finishes every pack first — Approve anytime after; apply jobs drain by model group.</p>
               <div class="actions">
                 <button class="primary" id="btnRunAll">${icon('play')} Dry-run all</button>
                 <button id="btnLive">${icon('run-all')} Open run-all</button>
@@ -1543,8 +2035,21 @@
             </div>
           </section>
           ${queue.length ? `<div class="approval-queue"><strong>Approval queue (${queue.length})</strong> · ${queue.map((q) => escapeHtml(q.pack)).join(', ')}</div>` : ''}
+          ${runAct?.applyQueue?.pending
+            ? `<div class="approval-queue"><strong>Apply queue (${runAct.applyQueue.pending})</strong> · model-grouped drain · ${
+              (runAct.applyQueue.jobs || []).map((j) => escapeHtml(j.packId)).join(', ')
+            }</div>`
+            : ''}
           <div class="pack-grid" id="packGrid"></div>`;
         paintOverviewGrid(lastRunState);
+        // Live status + poll so tiles/ring update without manual Refresh.
+        try {
+          const st = await client.getRunAllStatus();
+          paintTimeline(st, { force: true });
+          if (st && (st.status === 'running' || st.status === 'paused')) {
+            startRunAllPoll();
+          }
+        } catch { /* quiet */ }
         document.getElementById('btnRunAll').onclick = async () => {
           try {
             const result = await client.runAll({ dryRun: true, background: false, stopOnBroken: true });
@@ -1560,10 +2065,11 @@
         document.getElementById('btnStatus').onclick = async () => {
           try {
             const st = await client.getRunAllStatus();
-            paintTimeline(st);
-            paintOverviewGrid(st);
+            paintTimeline(st, { force: true });
             log(st);
-            await render();
+            if (st && (st.status === 'running' || st.status === 'paused')) {
+              startRunAllPoll();
+            }
           } catch (e) { log(e.message); }
         };
         document.getElementById('btnClearAll').onclick = async () => {
@@ -1639,7 +2145,7 @@
           const prefs = await client.getMode().catch(() => ({}));
           const ok = await uiConfirm({
             title: 'Start live run-all?',
-            message: `Live gates for all packs. autoApprove=${prefs.autoApprove || false} (${prefs.autoApproveMode || 'ack'}). Product writes stay off unless you enabled product-write + confirm in Settings.`,
+            message: `Runs all 16 packs without waiting for Approve (model-grouped unload). autoApprove=${prefs.autoApprove || false} (${prefs.autoApproveMode || 'ack'}). Afterward, review the approval queue — Approve enqueues apply work by model group. Product writes stay off unless you enabled product-write + confirm in Settings.`,
             okLabel: 'Start live',
             cancelLabel: 'Cancel',
             iconName: 'run-all',
@@ -1650,6 +2156,7 @@
             const result = await client.runAll({
               dryRun: false,
               background: true,
+              stopOnBroken: false,
               autoApprove: Boolean(prefs.autoApprove),
               autoApproveMode: prefs.autoApproveMode || 'ack',
               confirmProductWrite: Boolean(prefs.confirmProductWrite),
@@ -1776,10 +2283,12 @@
       let activity = null;
       try { activity = await client.getPackActivity(pack); } catch { /* */ }
 
-      // Visual pack: model selection lives inside the live preview Review HUD.
+      // Visual pack: Gates → Q&A → Approve → Polish×8 + C-only live iframe.
       if (pack === 'visual') {
         const qa = await client.getVisualQa().catch(() => ({ brokenCount: '?', applyAllowed: false }));
         const st = activity?.now?.status || 'idle';
+        wizardFollow = true;
+        wizardStep = deriveWizardStep(activity, 'visual');
         view.innerHTML = `
           <div class="pack-stage pack-stage-enter visual-shell">
             <div class="pack-stage-card">
@@ -1788,7 +2297,7 @@
                   <div class="ico">${icon('visual')}</div>
                   <div>
                     <h2>visual</h2>
-                    <p class="meta">QA broken=${escapeHtml(qa.brokenCount)} · apply ${qa.applyAllowed ? 'allowed' : 'locked'}</p>
+                    <p class="meta">Q&A candidates=${escapeHtml(qa.brokenCount)} · C only · Polish×8 on Approve</p>
                     <p class="insight">${packInsight('visual')}</p>
                     <div class="pack-status-pill" data-s="${escapeHtml(st)}">${icon('dot')} ${escapeHtml(st)}</div>
                   </div>
@@ -1803,15 +2312,22 @@
                   </div>
                 </div>
               </div>
-              ${pipeRailHtml(activity, { pack: 'visual', hidePlanned: true })}
+              ${pipeRailHtml(activity, { pack: 'visual', focusStep: wizardStep })}
+              <div class="pack-stage-body" id="packActivity">${activityHtml(activity, { pack: 'visual', layout: 'wizard', focusStep: wizardStep })}</div>
             </div>
-            <div id="visualLive" class="embed-frame" style="display:grid;place-items:center;color:var(--muted)">Loading preview…</div>
+            <div id="visualLive" class="embed-frame" style="display:grid;place-items:center;color:var(--muted)">Loading C preview…</div>
           </div>`;
+        await wireActivityActions(pack);
+        wireWizardNav(pack);
+        lastActivityStructFp = activityStructFingerprint(activity);
+        lastRailFp = railFingerprint(activity);
+        lastPillFp = activity?.now?.status || '';
         startActivityPoll(pack);
         const wire = (id, fn) => { document.getElementById(id).onclick = fn; };
         wire('startDry', async () => {
           try {
             log(await client.startPack(pack, { dryRun: true }));
+            wizardFollow = true;
             startActivityPoll(pack);
             await softRefreshPackActivity(pack, { force: true });
           } catch (e) { log(e.envelope || e.message); }
@@ -1819,6 +2335,7 @@
         wire('startLive', async () => {
           try {
             log(await client.startPack(pack, { dryRun: false }));
+            wizardFollow = true;
             startActivityPoll(pack);
             await softRefreshPackActivity(pack, { force: true });
           } catch (e) { log(e.envelope || e.message); }
@@ -1844,7 +2361,10 @@
         try {
           const live = await client.getVisualLive();
           if (live.reachable) {
-            box.outerHTML = `<iframe class="embed-frame" title="Visual live polish" src="${live.liveUrl}"></iframe>`;
+            const url = String(live.liveUrl || '').includes('agentic=')
+              ? live.liveUrl
+              : `${live.liveUrl}${live.liveUrl.includes('?') ? '&' : '?'}agentic=1&cOnly=1`;
+            box.outerHTML = `<iframe class="embed-frame" title="Visual live polish C" src="${url}"></iframe>`;
           } else {
             box.innerHTML = `<p class="warn">Live polish offline. Run <code>${live.hint}</code>.</p>`;
           }
@@ -1855,6 +2375,8 @@
       }
 
       const st = activity?.now?.status || 'idle';
+      wizardFollow = true;
+      wizardStep = deriveWizardStep(activity, pack);
       view.innerHTML = `
         <div class="pack-stage pack-stage-enter">
           <div class="pack-stage-card">
@@ -1882,12 +2404,13 @@
                 </div>
               </div>
             </div>
-            ${pipeRailHtml(activity, { pack })}
-            <div class="pack-stage-body" id="packActivity">${activityHtml(activity, { pack, layout: 'cockpit' })}</div>
+            ${pipeRailHtml(activity, { pack, focusStep: wizardStep })}
+            <div class="pack-stage-body" id="packActivity">${activityHtml(activity, { pack, layout: 'wizard', focusStep: wizardStep })}</div>
           </div>
         </div>`;
 
       await wireActivityActions(pack);
+      wireWizardNav(pack);
       lastActivityStructFp = activityStructFingerprint(activity);
       lastRailFp = railFingerprint(activity);
       lastPillFp = activity?.now?.status || '';
@@ -1901,6 +2424,7 @@
       document.getElementById('startDry').onclick = async () => {
         try {
           log(await client.startPack(pack, { dryRun: true, model: sel.value }));
+          wizardFollow = true;
           startActivityPoll(pack);
           await softRefreshPackActivity(pack, { force: true });
         } catch (e) { log(e.envelope || e.message); }
@@ -1908,6 +2432,7 @@
       document.getElementById('startLive').onclick = async () => {
         try {
           log(await client.startPack(pack, { dryRun: false, model: sel.value }));
+          wizardFollow = true;
           startActivityPoll(pack);
           await softRefreshPackActivity(pack, { force: true });
         } catch (e) { log(e.envelope || e.message); }

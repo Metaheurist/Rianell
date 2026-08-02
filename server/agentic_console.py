@@ -38,10 +38,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONSOLE_DIR = REPO_ROOT / 'scripts' / 'dev' / 'agentic-console'
 CATALOG_PATH = REPO_ROOT / 'scripts' / 'dev' / 'agentic-pipeline' / 'model-catalog.json'
 MODE_PATH = REPO_ROOT / 'artifacts' / 'agentic' / 'mode.json'
-VISUAL_LIVE_URL = 'http://127.0.0.1:8766/'
+VISUAL_LIVE_URL = 'http://127.0.0.1:8766/?agentic=1&cOnly=1'
 PACK_IDS = (
-    'design', 'planning', 'i18n', 'rtl', 'a11y', 'seo', 'privacy', 'security',
-    'deps', 'migration', 'changelog', 'wikisync', 'image', 'bootllm', 'perf', 'visual',
+    # Model-grouped order (unload only when recommended model changes).
+    'design', 'planning', 'rtl', 'a11y', 'seo', 'privacy', 'security',
+    'deps', 'migration', 'bootllm', 'perf',
+    'changelog', 'wikisync', 'image',
+    'i18n',
+    'visual',
 )
 
 
@@ -210,9 +214,13 @@ def run_all(
     confirm_product_write: bool = False,
     allow_dependency_bump: bool = False,
     git_commit_on_approve: bool = False,
-    stop_on_broken: bool = True,
+    stop_on_broken: bool = False,
 ) -> dict[str, Any]:
-    """Run chronological pack sequence. Live runs default to background so UI can poll."""
+    """Run model-grouped pack sequence. Never waits for Approve between packs.
+
+    Live runs default to background so UI can poll. Default continues on broken
+    packs so all 16 can still produce proposals for the approval queue.
+    """
     if background is None:
         background = not dry_run
     args = ['scripts/ci/agentic-run-all.mjs']
@@ -220,8 +228,8 @@ def run_all(
         args.append('--dry-run')
     if skip:
         args.append('--skip=' + ','.join(skip))
-    if not stop_on_broken:
-        args.append('--no-stop-on-broken')
+    if stop_on_broken:
+        args.append('--stop-on-broken')
     if auto_approve:
         args.append('--auto-approve')
         args.append(f'--auto-approve-mode={auto_approve_mode or "ack"}')

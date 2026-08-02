@@ -21,9 +21,20 @@ Preflight: `npm run brain:ensure` (serves Ollama / pulls the requested tag).
 | `npm run visual:register` / `:check` | Build/verify `apps/pwa-webapp/assets/visual-register.json` |
 | `npm run visual:gen` / `:status` | Qwen Stage 1 queue → `artifacts/visual-gen/` (gitignored) |
 | `npm run visual:polish` / `:status` | Gemma Stage 2 (`construct→critique→apply→verify`) → `polished/` |
-| `npm run visual:polish:live` | Live A/B/C preview **http://localhost:8766/** |
+| `npm run visual:polish:live` | Live polish preview **http://localhost:8766/** (agentic embed: `?agentic=1&cOnly=1` → C only) |
 | `npm run visual:polish:screenshot-qa` | Tiered QA (`--tier=1\|2\|3\|all`, optional `--gemma-review`) |
 | `npm run visual:polish:qa-loop` | Wait pending≈0 → QA → re-polish (`--start-round=N`, max 8) |
+
+### Agentic visual pack flow
+
+In `/dev/agentic` → **visual**:
+
+1. **Gates** — `verify:icon-spec`
+2. **Q&A** — Live pack runs screenshot QA and lists broken glyphs as Approve candidates (run-all reuses existing `broken.json`)
+3. **Approve** — select candidates (no product-write / dep-bump / git toggles)
+4. **Polish×8** — Approve narrows `broken.json` to the selection and starts `visual:polish:qa-loop --now --max-rounds=8`
+
+Product `visual:apply` stays separate until Q&A stays green.
 | `npm run visual:pause` / `visual:resume` / `visual:state` | Durable pause/resume (banks remaining ids + Pass N) |
 | `npm run visual:derive-variants` | Derive fancy team sprites via `generate:theme-icons` (no LLM) |
 | `npm run audit:icon-a` | Score Stage A corpus → `artifacts/audit/icon-a-audit.*` |

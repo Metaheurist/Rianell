@@ -158,6 +158,8 @@ export function silentSpawnSync(cmd, args = [], opts = {}) {
     ...(env || process.env),
     // Ask nested tools / npm (if used) to stay quiet; scripts should honor windowsHide.
     AGENTIC_HEADLESS: '1',
+    // Live Cloudflare CSP is advisory for agentic gates (edge may be unreachable / out of date).
+    SKIP_CSP_LIVE: '1',
     npm_config_progress: 'false',
     npm_config_loglevel: 'error',
   };

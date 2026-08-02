@@ -375,7 +375,7 @@ class ApiRoutesMixin:
                         background = not dry
                     stop_on_broken = body.get('stopOnBroken')
                     if stop_on_broken is None:
-                        stop_on_broken = True
+                        stop_on_broken = False
                     result = agentic_console.run_all(
                         dry_run=dry,
                         skip=skip,
