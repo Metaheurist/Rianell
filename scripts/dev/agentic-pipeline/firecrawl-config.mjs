@@ -108,7 +108,8 @@ export function setFirecrawlApiKey(rawKey) {
 export function clearFirecrawlApiKey() {
   let text = readEnvFile(SECURITY_ENV);
   if (KEY_RE.test(text)) {
-    text = text.replace(KEY_RE, 'FIRECRAWL_API_KEY=');
+    // Empty value via upsert (avoids gitleaks generic-api-key on a literal KEY= line).
+    text = upsertEnvLine(text, 'FIRECRAWL_API_KEY', '');
     fs.writeFileSync(SECURITY_ENV, text, 'utf8');
   }
   delete process.env.FIRECRAWL_API_KEY;
