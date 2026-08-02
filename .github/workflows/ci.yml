@@ -6,7 +6,7 @@
 #
 # Pipeline phases (job keys — file order matches DAG):
 #   Phase 0 — paths-filter
-#   Phase 1 — unit-tests | prepare-minified-assets | security-audit  (max 3 parallel)
+#   Phase 1 — unit-tests | prepare-minified-assets | security-audit | agentic-harness-smoke
 #   Phase 2 — benchmarks-web | deploy-pages | server-exe |
 #             commit-dependencies-doc | sync-wiki-to-github  (parallel)
 #   Phase 3 — audit-boot-post-deploy | playwright-e2e | lighthouse-ci | zap-scan |
@@ -157,6 +157,53 @@ jobs:
 
       - name: LLM model language coverage (all offered locales supported)
         run: node --test tests/unit/llm-model-language-coverage.test.mjs
+
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
+
+  agentic-harness-smoke:
+    name: "1 · Agentic harness smoke (Ollama)"
+    needs: [paths-filter]
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: write
+    env:
+      AGENTIC_SMOKE_MODEL: smollm:135m
+      OLLAMA_HOST: http://127.0.0.1:11434
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-node-ci
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama --version
+
+      - name: Start Ollama daemon
+        run: |
+          ollama serve > /tmp/ollama-serve.log 2>&1 &
+          echo $! > /tmp/ollama-serve.pid
+          for i in $(seq 1 60); do
+            if curl -fsS "$OLLAMA_HOST/api/tags" >/dev/null 2>&1; then
+              echo "Ollama up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Ollama failed to start" >&2
+          cat /tmp/ollama-serve.log >&2 || true
+          exit 1
+
+      - name: Pull + load tiny smoke model (≤200MB)
+        run: npm run agentic:smoke
+
+      - name: Agentic pipeline dry-run (16 packs)
+        run: npm run agentic:run-all -- --dry-run
 
       - name: Cancel workflow on failure
         if: failure()
