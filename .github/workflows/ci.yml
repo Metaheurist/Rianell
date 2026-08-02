@@ -7,7 +7,7 @@
 # Pipeline phases (job keys — file order matches DAG):
 #   Phase 0 — paths-filter
 #   Phase 1 — unit-tests | prepare-minified-assets | security-audit | agentic suite (unit/catalog/ollama/dry-run)
-#   Phase 2 — benchmarks-web | deploy-pages | server-exe |
+#   Phase 2 — benchmarks-web | deploy-pages | server-exe (needs Agentic suite) |
 #             commit-dependencies-doc | sync-wiki-to-github  (parallel)
 #   Phase 3 — audit-boot-post-deploy | playwright-e2e | lighthouse-ci | zap-scan |
 #             audit-llm-download-live
@@ -480,7 +480,14 @@ jobs:
 
   server-exe:
     name: "2 · Server EXE (${{ matrix.arch }})"
-    needs: [paths-filter, unit-tests, security-audit]
+    needs:
+      - paths-filter
+      - unit-tests
+      - security-audit
+      - agentic-harness-unit
+      - agentic-harness-catalog
+      - agentic-harness-ollama
+      - agentic-harness-dry-run
     if: |
       github.event_name == 'pull_request' ||
       ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.paths-filter.outputs.release_build == 'true')
