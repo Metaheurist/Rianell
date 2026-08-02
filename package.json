@@ -18,6 +18,7 @@
     "agentic:resume": "node scripts/dev/agentic-pipeline/cli-state.mjs --resume",
     "agentic:state": "node scripts/dev/agentic-pipeline/cli-state.mjs --status",
     "agentic:run-all": "node scripts/ci/agentic-run-all.mjs",
+    "agentic:smoke": "node scripts/ci/agentic-ollama-smoke.mjs",
     "agentic:design-context": "node scripts/ci/agentic-design-context.mjs",
     "agentic:planning": "node scripts/ci/agentic-planning.mjs",
     "agentic:i18n": "node scripts/ci/agentic-i18n.mjs",

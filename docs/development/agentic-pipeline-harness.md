@@ -63,6 +63,7 @@ Artifacts per pack: `artifacts/agentic/<pack>/llm-context.md` + `llm-context.met
 ```bash
 node --test tests/unit/agentic-*.test.mjs
 npm run agentic:run-all -- --dry-run
+npm run agentic:smoke          # tiny Ollama load (needs local daemon; CI uses smollm:135m)
 node scripts/verify/doc-links.mjs --strict
 ```
 

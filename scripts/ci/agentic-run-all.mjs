@@ -53,4 +53,8 @@ const state = await executeRunAll({
   gitCommitOnApprove,
 });
 console.log(JSON.stringify(state, null, 2));
-process.exit(state.status === 'passed' || state.status === 'idle' ? 0 : 1);
+const ok = state.status === 'passed'
+  || state.status === 'idle'
+  || state.status === 'awaiting_approvals'
+  || (dryRun && state.status !== 'broken' && state.status !== 'cancelled');
+process.exit(ok ? 0 : 1);

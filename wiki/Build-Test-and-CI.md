@@ -63,9 +63,12 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 - **paths-filter** - On push, sets `mobile_release` (skip mobile/release when only `artifacts/` changed).
 
-### Phase 1 - Foundation (max 3 parallel)
+### Phase 1 - Foundation (parallel)
 
 - **unit-tests** - `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, `verify:i18n`
+- **prepare-minified-assets** - minified web artifact for later deploy/probe jobs
+- **security-audit** - gitleaks / osv / dependency audits (reusable workflow)
+- **agentic-harness-smoke** - install Ollama, load `smollm:135m` (≤200 MB), `npm run agentic:smoke`, then `npm run agentic:run-all -- --dry-run`
 - **prepare-minified-assets** - minified PWA → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** - Gitleaks, OSV, npm/pip audit (reusable workflow)
 
