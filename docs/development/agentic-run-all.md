@@ -30,7 +30,7 @@ Worker PID (background live): `artifacts/agentic/run-all-worker.pid`.
 `POST /api/agentic/clear-all` (UI: **Clear all + unload**):
 
 1. Signals `cancelled` on the sequencer  
-2. Kills stuck `agentic-run-all` / `agentic-pack-cli` / `ollama-translate-gaps` workers  
+2. Kills stuck `agentic-run-all.mjs` / `agentic-pack-cli.mjs` / `ollama-translate-gaps.mjs` workers (skipped under `node:test`)  
 3. Wipes pack runtime + pending `proposal.json` / fill plans / apply queue; resets every pack to `idle`  
 4. Unloads all models reported by `ollama ps`  
 

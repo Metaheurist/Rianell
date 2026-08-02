@@ -1,46 +1,31 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import {
+
+const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'rianell-agentic-i18n-'));
+process.env.AGENTIC_ROOT = tmpRoot;
+
+const {
   loadI18nFillPlannedItems,
   buildPackActivity,
-} from '../../scripts/dev/agentic-pipeline/activity.mjs';
-import { packDir, ensureDir } from '../../scripts/dev/agentic-pipeline/state.mjs';
+} = await import('../../scripts/dev/agentic-pipeline/activity.mjs');
+const { packDir, ensureDir } = await import('../../scripts/dev/agentic-pipeline/state.mjs');
 
 const dir = packDir('i18n');
 const proposeDir = path.join(dir, 'fill-proposals');
 const progressPath = path.join(dir, 'fill-progress.json');
-const backed = [];
-
-function backup(p) {
-  if (fs.existsSync(p)) {
-    const bak = `${p}.bak-test`;
-    fs.copyFileSync(p, bak);
-    backed.push([p, bak]);
-  } else {
-    backed.push([p, null]);
-  }
-}
 
 after(() => {
-  for (const [p, bak] of backed.reverse()) {
-    try {
-      if (bak && fs.existsSync(bak)) {
-        fs.copyFileSync(bak, p);
-        fs.unlinkSync(bak);
-      } else if (fs.existsSync(p) && path.basename(p).includes('pt-BR')) {
-        fs.unlinkSync(p);
-      }
-    } catch { /* ignore */ }
-  }
+  try {
+    fs.rmSync(tmpRoot, { recursive: true, force: true });
+  } catch { /* ignore */ }
+  delete process.env.AGENTIC_ROOT;
 });
 
 test('loadI18nFillPlannedItems includes pending missing keys', () => {
   ensureDir(proposeDir);
-  backup(path.join(proposeDir, 'pt-BR.json'));
-  backup(progressPath);
   fs.writeFileSync(path.join(proposeDir, 'pt-BR.json'), `${JSON.stringify({
     locale: 'pt-BR',
     entries: [
@@ -61,8 +46,6 @@ test('loadI18nFillPlannedItems includes pending missing keys', () => {
 
 test('buildPackActivity surfaces live fill-proposals while filling', () => {
   ensureDir(proposeDir);
-  backup(path.join(proposeDir, 'pt-BR.json'));
-  backup(progressPath);
   fs.writeFileSync(path.join(proposeDir, 'pt-BR.json'), `${JSON.stringify({
     locale: 'pt-BR',
     entries: [

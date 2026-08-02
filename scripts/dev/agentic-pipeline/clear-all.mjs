@@ -12,14 +12,16 @@ import { cancelRunAll } from './run-all.mjs';
 import { clearApplyQueue } from './apply-queue.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
 import {
-  AGENTIC_ROOT,
+  getAgenticRoot,
   ensureDir,
   packDir,
   writePackState,
   writeRunAllState,
 } from './state.mjs';
 
-const WORKER_PID_FILE = path.join(AGENTIC_ROOT, 'run-all-worker.pid');
+function workerPidFile() {
+  return path.join(getAgenticRoot(), 'run-all-worker.pid');
+}
 
 const TRANSIENT = [
   'state.json',
@@ -36,10 +38,12 @@ const TRANSIENT = [
   'proposal.rejected.json',
 ];
 
-const WORKER_CMD_PATTERNS = [
-  'agentic-run-all',
-  'agentic-pack-cli',
-  'ollama-translate-gaps',
+// Match script path basenames only. Substrings like `agentic-run-all` must NOT
+// appear alone — they match `agentic-run-all-order.test.mjs` and pkill the suite.
+export const WORKER_CMD_PATTERNS = [
+  'agentic-run-all.mjs',
+  'agentic-pack-cli.mjs',
+  'ollama-translate-gaps.mjs',
 ];
 
 function rmSafe(p) {
@@ -75,7 +79,7 @@ function killPid(pid) {
   try {
     if (process.platform === 'win32') {
       silentSpawnSync('taskkill', ['/PID', String(n), '/T', '/F'], {
-        cwd: AGENTIC_ROOT,
+        cwd: getAgenticRoot(),
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     } else {
@@ -90,12 +94,18 @@ function killPid(pid) {
 /** Force-stop run-all / pack / i18n fill workers still holding the CPU. */
 export function killAgenticWorkers() {
   const killed = [];
-  if (fs.existsSync(WORKER_PID_FILE)) {
+  if (fs.existsSync(workerPidFile())) {
     try {
-      const pid = String(fs.readFileSync(WORKER_PID_FILE, 'utf8')).trim();
+      const pid = String(fs.readFileSync(workerPidFile(), 'utf8')).trim();
       if (killPid(pid)) killed.push(Number(pid));
     } catch { /* ignore */ }
-    rmSafe(WORKER_PID_FILE);
+    rmSafe(workerPidFile());
+  }
+
+  // Under node:test, never scan/kill by cmdline — broad patterns used to match
+  // `agentic-run-all-order.test.mjs` and abort the whole suite on Linux CI.
+  if (process.env.NODE_TEST_CONTEXT) {
+    return [...new Set(killed)];
   }
 
   if (process.platform === 'win32') {
@@ -113,15 +123,15 @@ Get-CimInstance Win32_Process -Filter "Name='node.exe'" | ForEach-Object {
 `.trim();
     const res = silentSpawnSync('powershell', [
       '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', ps,
-    ], { cwd: AGENTIC_ROOT });
+    ], { cwd: getAgenticRoot() });
     const out = String(res.stdout || '');
     for (const line of out.split(/\r?\n/)) {
       const n = Number(line.trim());
       if (Number.isFinite(n) && n > 0) killed.push(n);
     }
   } else {
-    for (const pat of ['agentic-run-all', 'agentic-pack-cli', 'ollama-translate-gaps']) {
-      silentSpawnSync('pkill', ['-f', pat], { cwd: AGENTIC_ROOT });
+    for (const pat of WORKER_CMD_PATTERNS) {
+      silentSpawnSync('pkill', ['-f', pat], { cwd: getAgenticRoot() });
     }
   }
   return [...new Set(killed)];
@@ -163,7 +173,7 @@ function clearPackDir(packId) {
 }
 
 export async function clearAllAndUnload() {
-  ensureDir(AGENTIC_ROOT);
+  ensureDir(getAgenticRoot());
 
   // 1) Signal run-all to stop between packs
   let cancelled = null;
@@ -197,8 +207,8 @@ export async function clearAllAndUnload() {
     packs[id] = { removed: clearPackDir(id), status: 'idle' };
   }
 
-  rmSafe(path.join(AGENTIC_ROOT, 'run-all-worker.log'));
-  rmSafe(WORKER_PID_FILE);
+  rmSafe(path.join(getAgenticRoot(), 'run-all-worker.log'));
+  rmSafe(workerPidFile());
   clearApplyQueue();
 
   // 4) Unload every model currently resident in Ollama VRAM

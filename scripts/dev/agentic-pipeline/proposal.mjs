@@ -3,7 +3,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { ensureDir, packDir, AGENTIC_ROOT } from './state.mjs';
+import { ensureDir, packDir, getAgenticRoot } from './state.mjs';
 
 export const PROPOSAL_SCHEMA_VERSION = 1;
 
@@ -135,8 +135,8 @@ export function humanGateLabel(cmd) {
 }
 
 export function appendApprovalLog(entry) {
-  ensureDir(AGENTIC_ROOT);
-  const p = path.join(AGENTIC_ROOT, 'approval-log.jsonl');
+  ensureDir(getAgenticRoot());
+  const p = path.join(getAgenticRoot(), 'approval-log.jsonl');
   fs.appendFileSync(p, `${JSON.stringify({ ...entry, at: new Date().toISOString() })}\n`);
 }
 

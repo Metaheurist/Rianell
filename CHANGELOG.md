@@ -20,7 +20,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
 ### Changed
-- **Agentic harness CI suite:** four Phase‑1 nodes — `Agentic · unit`, `Agentic · catalog`, `Agentic · ollama-load` (`smollm:135m` ≤200 MB via `npm run agentic:smoke`), `Agentic · dry-run` (`npm run agentic:run-all -- --dry-run`).
+- **Agentic harness CI suite:** four Phase‑1 nodes — `Agentic · unit`, `Agentic · catalog`, `Agentic · ollama-load` (`smollm:135m` ≤200 MB via `npm run agentic:smoke`), `Agentic · dry-run` (`npm run agentic:run-all -- --dry-run`). Clear-all worker kill matches `*.mjs` script basenames only (avoids `pkill` matching `agentic-run-all-order.test.mjs` on Linux CI).
 - **Agentic Overview / Run-all:** primary control is live **Run all** (dry-run and Start live removed from those surfaces).
 - **Agentic visual pack:** C-only live embed; wizard is Gates → Q&A → Approve candidates → Polish×8 (qa-loop max 8). Approve no longer means product `visual:apply` — it starts re-polish on selected Q&A findings. A/B compare toggles hidden in agentic mode.
 - **Agentic pack tabs:** stage wizard UI — one full-width panel per Gates → LLM → Proposal → Approve; clickable rail + auto-follow while running; pack hop footer.

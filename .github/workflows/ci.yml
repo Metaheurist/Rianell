@@ -176,7 +176,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-node-ci
       - name: Agentic unit tests
-        run: node --test tests/unit/agentic-*.test.mjs
+        run: node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs
       - name: Cancel workflow on failure
         if: failure()
         uses: ./.github/actions/cancel-workflow-on-failure
