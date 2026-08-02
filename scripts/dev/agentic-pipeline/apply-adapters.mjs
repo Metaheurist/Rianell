@@ -11,7 +11,7 @@ import {
   writeProposal,
 } from './proposal.mjs';
 import { ensureDir, packDir, ROOT, readPackState, writePackState } from './state.mjs';
-import { gitCommitOnApprove } from './git-commit-on-approve.mjs';
+import { commitApprovedItem, gitPushOnApprove } from './git-commit-on-approve.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
 import { drainApplyQueue, enqueueApprovedWork } from './apply-queue.mjs';
 import { applyVisualRepolish } from './visual-qa-propose.mjs';
@@ -165,8 +165,47 @@ function applyDepsBump(items, allow, confirm) {
   return { ok: true, paths };
 }
 
+function resolveItemAdapter(packId, it) {
+  let adapter = it.applyAdapter || 'ack';
+  if (it.kind === 'deps_bump') adapter = 'deps-bump';
+  if (it.kind === 'i18n_string') adapter = 'i18n-apply-fill';
+  if (it.kind === 'changelog_bullet') adapter = 'changelog-promote';
+  if (it.kind === 'wiki_patch') adapter = 'wiki-sync';
+  if (it.kind === 'visual_apply') adapter = 'visual-apply';
+  if (it.kind === 'visual_repolish') adapter = 'visual-repolish';
+  if (it.kind === 'file_write' || it.kind === 'file_create') adapter = 'research-file-write';
+  if (it.kind === 'script_run') adapter = 'research-script-run';
+  if (it.kind === 'tidy') adapter = 'research-tidy';
+  if (packId === 'security' && /csp|header/i.test(it.title)) {
+    return { ok: false, error: 'refuse CSP/header mutation from harness' };
+  }
+  return { ok: true, adapter };
+}
+
+function runAdapter(packId, adapter, list, confirm, allowBump) {
+  if (adapter === 'ack') return { ok: true, paths: writeAck(packId, list) };
+  if (adapter === 'write-approved-artifact') return { ok: true, paths: writeApprovedArtifact(packId, list) };
+  if (adapter === 'i18n-apply-fill') {
+    if (!confirm) return { ok: false, error: 'confirmProductWrite required for i18n fill apply' };
+    return applyI18nFill(packId, list);
+  }
+  if (adapter === 'changelog-promote') return applyChangelog(list, confirm);
+  if (adapter === 'wiki-sync') return applyWiki(confirm);
+  if (adapter === 'visual-apply') return applyVisual(confirm);
+  if (adapter === 'visual-repolish') return applyVisualRepolish(list);
+  if (adapter === 'deps-bump') return applyDepsBump(list, allowBump, confirm);
+  if (adapter === 'research-file-write') return applyResearchFileWrite(list, confirm);
+  if (adapter === 'research-script-run') return applyResearchScriptRun(list, confirm);
+  if (adapter === 'research-tidy') return applyResearchTidy(list, confirm);
+  if (adapter === 'refuse-bump' || adapter === 'refuse-csp-mutate') {
+    return { ok: false, error: 'adapter refuses this action' };
+  }
+  return { ok: true, paths: writeApprovedArtifact(packId, list) };
+}
+
 /**
  * Execute adapters for selected proposal items (used by apply-queue drain).
+ * With gitCommitOnApprove: one LLM-authored commit per item, then push once for the pack.
  */
 export async function executeApprovedItems(packId, items, opts = {}) {
   const confirm = Boolean(opts.confirmProductWrite);
@@ -175,67 +214,67 @@ export async function executeApprovedItems(packId, items, opts = {}) {
 
   if (!items.length) return { ok: false, error: { code: 'empty', message: 'no items selected' } };
 
-  const byAdapter = new Map();
-  for (const it of items) {
-    let adapter = it.applyAdapter || 'ack';
-    if (it.kind === 'deps_bump') adapter = 'deps-bump';
-    if (it.kind === 'i18n_string') adapter = 'i18n-apply-fill';
-    if (it.kind === 'changelog_bullet') adapter = 'changelog-promote';
-    if (it.kind === 'wiki_patch') adapter = 'wiki-sync';
-    if (it.kind === 'visual_apply') adapter = 'visual-apply';
-    if (it.kind === 'visual_repolish') adapter = 'visual-repolish';
-    if (it.kind === 'file_write' || it.kind === 'file_create') adapter = 'research-file-write';
-    if (it.kind === 'script_run') adapter = 'research-script-run';
-    if (it.kind === 'tidy') adapter = 'research-tidy';
-    if (packId === 'security' && /csp|header/i.test(it.title)) {
-      return { ok: false, error: { code: 409, message: 'refuse CSP/header mutation from harness' } };
-    }
-    if (!byAdapter.has(adapter)) byAdapter.set(adapter, []);
-    byAdapter.get(adapter).push(it);
-  }
-
   const touched = [];
   const results = [];
-
-  for (const [adapter, list] of byAdapter) {
-    let r;
-    if (adapter === 'ack') r = { ok: true, paths: writeAck(packId, list) };
-    else if (adapter === 'write-approved-artifact') r = { ok: true, paths: writeApprovedArtifact(packId, list) };
-    else if (adapter === 'i18n-apply-fill') {
-      if (!confirm) r = { ok: false, error: 'confirmProductWrite required for i18n fill apply' };
-      else r = applyI18nFill(packId, list);
-    } else if (adapter === 'changelog-promote') r = applyChangelog(list, confirm);
-    else if (adapter === 'wiki-sync') r = applyWiki(confirm);
-    else if (adapter === 'visual-apply') r = applyVisual(confirm);
-    else if (adapter === 'visual-repolish') r = applyVisualRepolish(list);
-    else if (adapter === 'deps-bump') r = applyDepsBump(list, allowBump, confirm);
-    else if (adapter === 'research-file-write') r = applyResearchFileWrite(list, confirm);
-    else if (adapter === 'research-script-run') r = applyResearchScriptRun(list, confirm);
-    else if (adapter === 'research-tidy') r = applyResearchTidy(list, confirm);
-    else if (adapter === 'refuse-bump' || adapter === 'refuse-csp-mutate') {
-      r = { ok: false, error: 'adapter refuses this action' };
-    } else {
-      r = { ok: true, paths: writeApprovedArtifact(packId, list) };
-    }
-    results.push({ adapter, ...r });
-    if (!r.ok) {
-      appendApprovalLog({ pack: packId, action: 'approve_failed', adapter, error: r.error });
-      return { ok: false, error: { code: 409, message: String(r.error) }, data: { results } };
-    }
-    touched.push(...(r.paths || []));
-  }
-
+  const gitCommits = [];
   let gitSha = null;
-  if (doGit && touched.length) {
-    const g = gitCommitOnApprove({
-      packId,
-      paths: touched,
-      message: `chore(agentic): approve ${packId}`,
-    });
-    if (!g.ok) {
-      return { ok: false, error: { code: 'git', message: g.error }, data: { results, touched } };
+  let gitPush = null;
+
+  if (doGit) {
+    // One apply + dedicated LLM commit per approval item, then push once.
+    for (const it of items) {
+      const resolved = resolveItemAdapter(packId, it);
+      if (!resolved.ok) {
+        appendApprovalLog({ pack: packId, action: 'approve_failed', error: resolved.error, itemId: it.id });
+        return { ok: false, error: { code: 409, message: String(resolved.error) }, data: { results, gitCommits } };
+      }
+      const r = runAdapter(packId, resolved.adapter, [it], confirm, allowBump);
+      results.push({ adapter: resolved.adapter, itemId: it.id, ...r });
+      if (!r.ok) {
+        appendApprovalLog({ pack: packId, action: 'approve_failed', adapter: resolved.adapter, error: r.error, itemId: it.id });
+        return { ok: false, error: { code: 409, message: String(r.error) }, data: { results, gitCommits } };
+      }
+      const paths = r.paths || [];
+      touched.push(...paths);
+      if (paths.length) {
+        const g = await commitApprovedItem({ packId, item: it, paths });
+        gitCommits.push(g);
+        if (!g.ok) {
+          return { ok: false, error: { code: 'git', message: g.error }, data: { results, touched, gitCommits } };
+        }
+        if (g.sha) gitSha = g.sha;
+      }
     }
-    gitSha = g.sha;
+    if (gitCommits.some((g) => g.sha)) {
+      gitPush = gitPushOnApprove();
+      if (!gitPush.ok) {
+        return {
+          ok: false,
+          error: { code: 'git_push', message: gitPush.error },
+          data: { results, touched, gitCommits, gitSha, gitPush },
+        };
+      }
+    }
+  } else {
+    const byAdapter = new Map();
+    for (const it of items) {
+      const resolved = resolveItemAdapter(packId, it);
+      if (!resolved.ok) {
+        return { ok: false, error: { code: 409, message: String(resolved.error) } };
+      }
+      if (!byAdapter.has(resolved.adapter)) byAdapter.set(resolved.adapter, []);
+      byAdapter.get(resolved.adapter).push(it);
+    }
+
+    for (const [adapter, list] of byAdapter) {
+      const r = runAdapter(packId, adapter, list, confirm, allowBump);
+      results.push({ adapter, ...r });
+      if (!r.ok) {
+        appendApprovalLog({ pack: packId, action: 'approve_failed', adapter, error: r.error });
+        return { ok: false, error: { code: 409, message: String(r.error) }, data: { results } };
+      }
+      touched.push(...(r.paths || []));
+    }
   }
 
   const proposal = readProposal(packId);
@@ -253,6 +292,13 @@ export async function executeApprovedItems(packId, items, opts = {}) {
         allowDependencyBump: allowBump,
         gitCommitOnApprove: doGit,
         gitCommitSha: gitSha,
+        gitCommits: doGit ? gitCommits.map((g) => ({
+          itemId: g.itemId,
+          sha: g.sha,
+          message: g.commitMessage || g.message,
+          llmFallback: g.llmFallback,
+        })) : undefined,
+        gitPush: doGit ? (gitPush || null) : undefined,
       },
     };
     writeProposal(packId, next);
@@ -262,8 +308,10 @@ export async function executeApprovedItems(packId, items, opts = {}) {
     pack: packId,
     action: deferredPolish ? 'approve_polish' : 'approve',
     by: opts.by || 'operator',
-    adapters: [...byAdapter.keys()],
+    adapters: [...new Set(results.map((r) => r.adapter))],
     gitSha,
+    gitCommits: doGit ? gitCommits.map((g) => g.sha).filter(Boolean) : undefined,
+    gitPush: gitPush?.ok,
     itemIds: items.map((i) => i.id),
   });
 
@@ -279,7 +327,14 @@ export async function executeApprovedItems(packId, items, opts = {}) {
   return {
     ok: true,
     error: null,
-    data: { results, touched, gitSha, proposal: readProposal(packId) },
+    data: {
+      results,
+      touched,
+      gitSha,
+      gitCommits: doGit ? gitCommits : undefined,
+      gitPush: doGit ? gitPush : undefined,
+      proposal: readProposal(packId),
+    },
   };
 }
 
