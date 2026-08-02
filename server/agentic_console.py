@@ -49,13 +49,40 @@ PACK_IDS = (
 )
 
 
+def _console_candidates() -> list[Path]:
+    """Resolve console dir even if cwd / packaged layout differs slightly."""
+    import os
+    roots = [REPO_ROOT, Path.cwd()]
+    env = os.environ.get('RIANELL_REPO_ROOT') or os.environ.get('GITHUB_WORKSPACE')
+    if env:
+        roots.insert(0, Path(env))
+    seen: set[Path] = set()
+    out: list[Path] = []
+    for root in roots:
+        try:
+            d = (root / 'scripts' / 'dev' / 'agentic-console').resolve()
+        except OSError:
+            continue
+        if d in seen:
+            continue
+        seen.add(d)
+        out.append(d)
+    return out
+
+
 def console_index_path() -> Path:
+    for d in _console_candidates():
+        p = d / 'index.html'
+        if p.is_file():
+            return p
     return CONSOLE_DIR / 'index.html'
 
 
 def console_html() -> bytes:
     path = console_index_path()
     if not path.is_file():
+        logger.error('Agentic console missing — looked for index.html under %s',
+                     ', '.join(str(d) for d in _console_candidates()))
         return b''
     return path.read_bytes()
 
@@ -65,23 +92,27 @@ def console_asset(rel: str) -> Optional[tuple[bytes, str]]:
     clean = (rel or '').lstrip('/').replace('\\', '/')
     if not clean or '..' in clean.split('/'):
         return None
-    path = (CONSOLE_DIR / clean).resolve()
-    try:
-        path.relative_to(CONSOLE_DIR.resolve())
-    except ValueError:
-        return None
-    if not path.is_file():
-        return None
-    suffix = path.suffix.lower()
-    ctype = {
-        '.js': 'text/javascript; charset=utf-8',
-        '.mjs': 'text/javascript; charset=utf-8',
-        '.css': 'text/css; charset=utf-8',
-        '.json': 'application/json; charset=utf-8',
-        '.html': 'text/html; charset=utf-8',
-        '.svg': 'image/svg+xml',
-    }.get(suffix, 'application/octet-stream')
-    return path.read_bytes(), ctype
+    for console_dir in _console_candidates():
+        if not console_dir.is_dir():
+            continue
+        path = (console_dir / clean).resolve()
+        try:
+            path.relative_to(console_dir.resolve())
+        except ValueError:
+            continue
+        if not path.is_file():
+            continue
+        suffix = path.suffix.lower()
+        ctype = {
+            '.js': 'text/javascript; charset=utf-8',
+            '.mjs': 'text/javascript; charset=utf-8',
+            '.css': 'text/css; charset=utf-8',
+            '.json': 'application/json; charset=utf-8',
+            '.html': 'text/html; charset=utf-8',
+            '.svg': 'image/svg+xml',
+        }.get(suffix, 'application/octet-stream')
+        return path.read_bytes(), ctype
+    return None
 
 
 def load_catalog() -> dict:
@@ -111,6 +142,7 @@ def get_mode() -> dict[str, Any]:
         'allowDependencyBump': False,
         'gitCommitOnApprove': False,
         'i18nFillScope': 'full',
+        'hardwareProfile': 'auto',
     }
 
 
@@ -376,3 +408,19 @@ def clear_all_and_unload() -> dict[str, Any]:
             'error': inner.get('error') or result.get('error'),
         }
     return result
+
+
+def firecrawl_status() -> dict[str, Any]:
+    return _node(['scripts/dev/agentic-pipeline/firecrawl-cli.mjs', '--status'], timeout=30)
+
+
+def firecrawl_set_key(api_key: str) -> dict[str, Any]:
+    key = (api_key or '').strip()
+    return _node(
+        ['scripts/dev/agentic-pipeline/firecrawl-cli.mjs', f'--set={key}'],
+        timeout=30,
+    )
+
+
+def firecrawl_clear_key() -> dict[str, Any]:
+    return _node(['scripts/dev/agentic-pipeline/firecrawl-cli.mjs', '--clear'], timeout=30)

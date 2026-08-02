@@ -584,7 +584,7 @@
     .pack-stage-body {
       padding: 12px 14px 14px;
     }
-    /* Stage wizard — one primary panel per Gates → LLM → Proposal → Approve */
+    /* Stage wizard — one primary panel per Gates → Research → LLM → Proposal → Approve */
     .activity.wizard {
       display: flex;
       flex-direction: column;
@@ -634,12 +634,51 @@
     .wizard-panel .body {
       flex: 1 1 auto;
       max-height: none;
-      min-height: 160px;
+      min-height: 0; /* allow flex child to shrink + scroll */
       white-space: pre-wrap;
     }
-    .wizard-panel .body.md {
+    .wizard-panel .body.md,
+    .wizard-panel .body.plan-list {
       max-height: min(48vh, 420px);
       overflow: auto;
+      scrollbar-width: thin;
+    }
+    .wizard-panel .activity-actions,
+    .wizard-panel .wizard-nav,
+    .wizard-panel .wizard-footer {
+      flex: 0 0 auto;
+    }
+    .wizard-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      background: rgba(8, 12, 10, 0.55);
+      border-radius: 0 0 10px 10px;
+    }
+    .wizard-footer .wizard-nav {
+      padding-top: 0;
+      border-top: 0;
+    }
+    .wizard-footer .activity-actions {
+      margin-top: 0;
+    }
+    .activity-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: center;
+    }
+    .activity-panel .activity-actions {
+      flex: 0 0 auto;
+      position: relative;
+      z-index: 1;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
     }
     .wizard-empty {
       display: grid;
@@ -832,7 +871,6 @@
     .plan-item:first-of-type { border-top: 0; }
     .plan-item .risk-high { color: var(--bad); }
     .plan-item .risk-medium { color: var(--warn); }
-    .activity-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .approval-queue {
       border: 1px solid rgba(255,183,77,.35);
       background: rgba(255,183,77,.06);
@@ -842,7 +880,7 @@
       font-size: 0.82rem;
     }
     .cursor-blink::after {
-      content: '▍';
+      content: '\25AE';
       animation: pulse 1s step-end infinite;
       color: var(--accent);
     }
@@ -909,7 +947,6 @@
       { id: 'overview', group: 'Control' },
       { id: 'run-all', group: 'Control' },
       ...PACKS.map((id) => ({ id, group: 'Packs' })),
-      { id: 'models', group: 'System' },
       { id: 'settings', group: 'System' },
     ];
 
@@ -1089,6 +1126,7 @@
         if (status === 'pending_approval' || status === 'queued_apply') return 'approve';
         if (stage === 'polish' || status === 'polish_running' || /polish/i.test(stage)) return 'polish';
         if (stage === 'qa' || stage === 'screenshot' || /qa/i.test(stage)) return 'qa';
+        if (stage === 'research') return 'research';
         if (status === 'running' && (stage === 'gates' || stage === 'check' || !stage)) return 'gates';
         if ((act?.planned?.items || []).some((it) => it.kind === 'visual_repolish' || it.kind === 'ack_only')) {
           return status === 'running' ? 'polish' : 'approve';
@@ -1101,10 +1139,12 @@
       }
       if (status === 'broken' && /gate/i.test(stage)) return 'gates';
       if (status === 'broken' && stage === 'llm') return 'llm';
+      if (stage === 'research') return 'research';
       if (stage === 'llm' || (status === 'running' && stage === 'llm')) return 'llm';
       if (stage === 'post' || stage === 'pending_approval') return 'proposal';
       if (status === 'running' && (stage === 'gates' || stage === 'check' || stage === 'default' || !stage)) return 'gates';
       if ((act?.planned?.items || []).length) return 'proposal';
+      if (act?.research?.text && status === 'running') return 'research';
       if ((act?.done || []).length && status !== 'idle') return 'llm';
       return 'gates';
     }
@@ -1112,8 +1152,8 @@
     function focusWizardStep(step, { pin = false, pack = '' } = {}) {
       const visual = isVisualPack(pack, null) || ['qa', 'polish'].includes(step);
       const allowed = visual
-        ? ['gates', 'qa', 'approve', 'polish']
-        : ['gates', 'llm', 'proposal', 'approve'];
+        ? ['gates', 'research', 'qa', 'approve', 'polish']
+        : ['gates', 'research', 'llm', 'proposal', 'approve'];
       if (!allowed.includes(step)) step = 'gates';
       wizardStep = step;
       if (pin) wizardFollow = false;
@@ -1173,11 +1213,17 @@
       if (visual) {
         const gateS = broken && /gate/i.test(stage)
           ? 'fail'
-          : (doneGates.length || stage === 'qa' || pending || polishRun || finishedOk)
+          : (doneGates.length || stage === 'research' || stage === 'qa' || pending || polishRun || finishedOk)
             ? 'done'
             : (running && (!stage || stage === 'gates' || stage === 'check'))
               ? 'active'
               : 'idle';
+        const research = act?.research;
+        const resS = stage === 'research' && running
+          ? 'active'
+          : (research?.text || stage === 'qa' || pending || polishRun || finishedOk)
+            ? 'done'
+            : 'idle';
         const qaS = stage === 'qa' && running
           ? 'active'
           : (pending || polishRun || finishedOk || plannedItems.length)
@@ -1198,9 +1244,10 @@
         const brokenN = plannedItems.filter((it) => it.kind === 'visual_repolish').length;
         const steps = [
           { id: 'gates', n: '1', title: 'Gates', sub: gateS === 'done' ? `${doneGates.length || 'ok'}` : (gateS === 'active' ? 'running' : 'wait'), s: gateS },
-          { id: 'qa', n: '2', title: 'Q&A', sub: qaS === 'active' ? 'scanning' : (brokenN ? `${brokenN} candidates` : 'find polish'), s: qaS },
-          { id: 'approve', n: '3', title: 'Approve', sub: pending ? 'select candidates' : (polishRun ? 'queued' : 'gated'), s: apprS },
-          { id: 'polish', n: '4', title: 'Polish×8', sub: polishRun ? 'Pass 1…8' : 'after approve', s: polS },
+          { id: 'research', n: '2', title: 'Research', sub: resS === 'active' ? 'Firecrawl' : (research?.sources ? `${research.sources} src` : 'web brief'), s: resS },
+          { id: 'qa', n: '3', title: 'Q&A', sub: qaS === 'active' ? 'scanning' : (brokenN ? `${brokenN} candidates` : 'find polish'), s: qaS },
+          { id: 'approve', n: '4', title: 'Approve', sub: pending ? 'select candidates' : (polishRun ? 'queued' : 'gated'), s: apprS },
+          { id: 'polish', n: '5', title: 'Polish×8', sub: polishRun ? 'Pass 1…8' : 'after approve', s: polS },
         ];
         return `<ol class="pipe-rail" role="tablist" aria-label="Visual pack stages">
           ${steps.map((st) => `
@@ -1213,13 +1260,19 @@
         </ol>`;
       }
 
+      const research = act?.research;
       const gateS = broken && /gate/i.test(stage)
         ? 'fail'
-        : (doneGates.length || stage === 'llm' || pending || finishedOk || rejected)
+        : (doneGates.length || stage === 'research' || stage === 'llm' || pending || finishedOk || rejected)
           ? 'done'
           : (running && (!stage || stage === 'gates' || stage === 'check' || stage === 'default'))
             ? 'active'
             : 'idle';
+      const resS = stage === 'research' && running
+        ? 'active'
+        : (research?.text || stage === 'llm' || pending || finishedOk || rejected || stage === 'pending_approval' || stage === 'post')
+          ? 'done'
+          : 'idle';
       const llmS = broken && stage === 'llm'
         ? 'fail'
         : (stage === 'llm' && running)
@@ -1244,11 +1297,12 @@
 
       const steps = [
         { id: 'gates', n: '1', title: 'Gates', sub: gateS === 'done' ? `${doneGates.length || 'ok'}` : (gateS === 'active' ? 'running' : 'wait'), s: gateS },
-        { id: 'llm', n: '2', title: 'LLM', sub: now.model || (llmS === 'active' ? 'streaming' : 'advisory'), s: llmS },
-        { id: 'proposal', n: '3', title: 'Proposal', sub: plannedItems.length ? `${plannedItems.length} item(s)` : (propS === 'active' ? 'building' : '—'), s: propS },
+        { id: 'research', n: '2', title: 'Research', sub: resS === 'active' ? 'Firecrawl' : (research?.sources ? `${research.sources} src` : 'web brief'), s: resS },
+        { id: 'llm', n: '3', title: 'LLM', sub: now.model || (llmS === 'active' ? 'streaming' : 'advisory'), s: llmS },
+        { id: 'proposal', n: '4', title: 'Proposal', sub: plannedItems.length ? `${plannedItems.length} item(s)` : (propS === 'active' ? 'building' : '—'), s: propS },
         {
           id: 'approve',
-          n: '4',
+          n: '5',
           title: 'Approve',
           sub: pending ? 'needs you' : (status === 'applied' ? 'applied' : (rejected ? 'rejected' : 'gated')),
           s: apprS,
@@ -1302,9 +1356,13 @@
 
       if (wizard && visual) {
         const active = opts.focusStep || (wizardFollow ? deriveWizardStep(act, pack) : wizardStep) || 'gates';
+        const research = act?.research;
         const gateBody = done.length
           ? `<div class="body done-chips">${done.map((d) => `<span class="chip">${escapeHtml(d.label)} · ${escapeHtml(d.status)}</span>`).join('')}</div>`
           : wizardEmpty('Gates not started', 'Dry-run or Live runs verify:icon-spec before Q&A.');
+        const researchBody = research?.text
+          ? `<div class="body md">${renderMd(research.text)}</div>`
+          : wizardEmpty('Research not started', 'After gates, Firecrawl gathers a web brief for this pack (feeds later decisions). Set key in Settings.');
         const qaBody = thinkText
           ? `<div class="body md">${renderMd(thinkText)}</div>`
           : wizardEmpty(
@@ -1312,7 +1370,7 @@
             planned.summary || 'Live runs screenshot Q&A, then lists broken glyphs as Approve candidates. Run-all reuses existing broken.json.',
           );
         const planListApprove = items.length ? `
-          <div class="body" style="white-space:normal;max-height:min(42vh,360px)" id="plannedBody">
+          <div class="body plan-list" style="white-space:normal" id="plannedBody">
             ${items.map((it) => `
               <label class="plan-item">
                 <input type="checkbox" data-item="${escapeHtml(it.id)}" ${it.selected !== false ? 'checked' : ''} />
@@ -1323,8 +1381,7 @@
                 <span class="risk-${escapeHtml(it.risk || 'low')}">${escapeHtml(it.kind === 'visual_repolish' ? 'polish' : (it.risk || 'low'))}</span>
               </label>`).join('')}
           </div>` : wizardEmpty('No candidates', 'Run Live so Q&A can populate polish candidates.');
-        const approveBody = `
-            ${planListApprove}
+        const approveActions = `
             <div class="activity-actions">
               <button class="btn primary" id="btnApprove">${icon('check')} Approve → Polish×8</button>
               <button class="btn" id="btnReject">${icon('x')} Reject</button>
@@ -1342,31 +1399,42 @@
             ${now.dryRun ? '<span class="chip">dry-run</span>' : ''}
           </div>
           <section class="wizard-panel" data-step="gates" data-open="${active === 'gates' ? '1' : '0'}">
-            <header><h3>1 · Gates</h3><p>Icon-spec verify before Q&A spend.</p></header>
+            <header><h3>1 · Gates</h3><p>Icon-spec verify before research / Q&A spend.</p></header>
             ${gateBody}
             <div class="wizard-nav">
-              <button type="button" class="btn" data-wiz-next="qa">Next · Q&A ${icon('run-all')}</button>
+              <button type="button" class="btn" data-wiz-next="research">Next · Research ${icon('run-all')}</button>
               ${hopHtml}
             </div>
           </section>
-          <section class="wizard-panel" data-step="qa" data-open="${active === 'qa' ? '1' : '0'}">
-            <header><h3>2 · Q&A</h3><p>Screenshot Q&A finds glyphs that need polish.</p></header>
-            ${qaBody}
+          <section class="wizard-panel" data-step="research" data-open="${active === 'research' ? '1' : '0'}">
+            <header><h3>2 · Research</h3><p>Firecrawl web brief — grounds later Approve decisions.</p></header>
+            ${researchBody}
             <div class="wizard-nav">
               <button type="button" class="btn" data-wiz-prev="gates">${icon('rtl')} Gates</button>
+              <button type="button" class="btn" data-wiz-next="qa">Next · Q&A ${icon('run-all')}</button>
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="qa" data-open="${active === 'qa' ? '1' : '0'}">
+            <header><h3>3 · Q&A</h3><p>Screenshot Q&A finds glyphs that need polish.</p></header>
+            ${qaBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="research">${icon('rtl')} Research</button>
               <button type="button" class="btn" data-wiz-next="approve">Next · Approve</button>
             </div>
           </section>
           <section class="wizard-panel" data-step="approve" data-open="${active === 'approve' ? '1' : '0'}">
-            <header><h3>3 · Approve</h3><p>Pick candidates — Approve starts Polish×8 (no product write).</p></header>
-            ${approveBody}
-            <div class="wizard-nav">
-              <button type="button" class="btn" data-wiz-prev="qa">${icon('rtl')} Q&A</button>
-              <button type="button" class="btn" data-wiz-next="polish">Next · Polish×8</button>
+            <header><h3>4 · Approve</h3><p>Pick candidates — Approve starts Polish×8 (no product write).</p></header>
+            ${planListApprove}
+            <div class="wizard-footer">
+              ${approveActions}
+              <div class="wizard-nav">
+                <button type="button" class="btn" data-wiz-prev="qa">${icon('rtl')} Q&A</button>
+                <button type="button" class="btn" data-wiz-next="polish">Next · Polish×8</button>
+              </div>
             </div>
           </section>
           <section class="wizard-panel" data-step="polish" data-open="${active === 'polish' ? '1' : '0'}">
-            <header><h3>4 · Polish×8</h3><p>Up to 8 Q&A re-polish rounds on approved ids. C column only.</p></header>
+            <header><h3>5 · Polish×8</h3><p>Up to 8 Q&A re-polish rounds on approved ids. C column only.</p></header>
             ${polishBody}
             <div class="wizard-nav">
               <button type="button" class="btn" data-wiz-prev="approve">${icon('rtl')} Approve</button>
@@ -1378,14 +1446,19 @@
 
       if (wizard) {
         const active = opts.focusStep || (wizardFollow ? deriveWizardStep(act, pack) : wizardStep) || 'gates';
+        const research = act?.research;
         const gateBody = done.length
           ? `<div class="body done-chips">${done.map((d) => `<span class="chip">${escapeHtml(d.label)} · ${escapeHtml(d.status)}</span>`).join('')}</div>`
-          : wizardEmpty('Gates not started', 'Run Dry-run or Live — verify scripts run before the LLM advisory.');
+          : wizardEmpty('Gates not started', 'Run Dry-run or Live — verify scripts run before the research + LLM advisory.');
+        const researchBody = research?.text
+          ? `<div class="chip" style="margin-bottom:0.5rem">${research.configured ? 'Firecrawl configured' : 'offline stub'} · ${research.sources || 0} source(s)</div>
+             <div class="body md">${renderMd(research.text)}</div>`
+          : wizardEmpty('Research not started', 'After gates pass, Firecrawl builds a pack-scoped web brief so the LLM can ground Approvals. Set FIRECRAWL_API_KEY in Settings.');
         const thinkBody = thinkText
           ? `${ctxChip}<div class="body md" id="thinkingBody">${renderMd(thinkText)}${thinking.streaming ? ' <span class="cursor-blink"></span>' : ''}</div>`
-          : wizardEmpty('Waiting on LLM', 'After gates pass, Thinking streams here. Model unload stays grouped with sibling packs.');
+          : wizardEmpty('Waiting on LLM', 'After Research, Thinking streams here. Model unload stays grouped with sibling packs.');
         const planListReview = items.length ? `
-          <div class="body" style="white-space:normal;max-height:min(42vh,360px)">
+          <div class="body plan-list" style="white-space:normal">
             ${items.map((it) => `
               <div class="plan-item" style="cursor:default">
                 <span>
@@ -1396,7 +1469,7 @@
               </div>`).join('')}
           </div>` : wizardEmpty('No proposal yet', 'Proposal items appear after the advisory (or TranslateGemma fill) finishes.');
         const planListApprove = items.length ? `
-          <div class="body" style="white-space:normal;max-height:min(42vh,360px)" id="plannedBody">
+          <div class="body plan-list" style="white-space:normal" id="plannedBody">
             ${items.map((it) => `
               <label class="plan-item">
                 <input type="checkbox" data-item="${escapeHtml(it.id)}" ${it.selected !== false ? 'checked' : ''}
@@ -1411,10 +1484,9 @@
                 )}</span>
               </label>`).join('')}
           </div>` : wizardEmpty('Nothing to approve', 'Finish Live so Planned items land in this queue.');
-        const approveBody = hidePlanned
-          ? wizardEmpty('Hidden', 'Proposal hidden for this pack.')
+        const approveActions = hidePlanned
+          ? ''
           : `
-            ${planListApprove}
             <div class="activity-actions">
               <label class="chip"><input type="checkbox" id="optConfirmWrite" /> confirm product write</label>
               <label class="chip"><input type="checkbox" id="optAllowBump" /> allow dep bump</label>
@@ -1422,6 +1494,9 @@
               <button class="btn primary" id="btnApprove">${icon('check')} Approve selected</button>
               <button class="btn" id="btnReject">${icon('x')} Reject</button>
             </div>`;
+        const approveList = hidePlanned
+          ? wizardEmpty('Hidden', 'Proposal hidden for this pack.')
+          : planListApprove;
 
         return `
         <div class="activity wizard" id="activityRoot" data-wizard-step="${active}"${hidePlanned ? ' data-no-planned="1"' : ''}>
@@ -1433,23 +1508,31 @@
             ${now.dryRun ? '<span class="chip">dry-run</span>' : ''}
           </div>
           <section class="wizard-panel" data-step="gates" data-open="${active === 'gates' ? '1' : '0'}">
-            <header><h3>1 · Gates</h3><p>Hard verifies before any LLM spend.</p></header>
+            <header><h3>1 · Gates</h3><p>Hard verifies before research or LLM spend.</p></header>
             ${gateBody}
             <div class="wizard-nav">
-              <button type="button" class="btn" data-wiz-next="llm">Next · LLM ${icon('run-all')}</button>
+              <button type="button" class="btn" data-wiz-next="research">Next · Research ${icon('run-all')}</button>
               ${hopHtml}
             </div>
           </section>
-          <section class="wizard-panel" data-step="llm" data-open="${active === 'llm' ? '1' : '0'}">
-            <header><h3>2 · LLM ${thinking.streaming ? '<span class="cursor-blink"></span>' : ''}</h3><p>Thinking stream / fill progress for this pack.</p></header>
-            ${thinkBody}
+          <section class="wizard-panel" data-step="research" data-open="${active === 'research' ? '1' : '0'}">
+            <header><h3>2 · Research</h3><p>Firecrawl brief for this pack — feeds the LLM before Approvals.</p></header>
+            ${researchBody}
             <div class="wizard-nav">
               <button type="button" class="btn" data-wiz-prev="gates">${icon('rtl')} Gates</button>
+              <button type="button" class="btn" data-wiz-next="llm">Next · LLM ${icon('run-all')}</button>
+            </div>
+          </section>
+          <section class="wizard-panel" data-step="llm" data-open="${active === 'llm' ? '1' : '0'}">
+            <header><h3>3 · LLM ${thinking.streaming ? '<span class="cursor-blink"></span>' : ''}</h3><p>Thinking stream / fill progress for this pack.</p></header>
+            ${thinkBody}
+            <div class="wizard-nav">
+              <button type="button" class="btn" data-wiz-prev="research">${icon('rtl')} Research</button>
               <button type="button" class="btn" data-wiz-next="proposal">Next · Proposal ${icon('run-all')}</button>
             </div>
           </section>
           <section class="wizard-panel" data-step="proposal" data-open="${active === 'proposal' ? '1' : '0'}">
-            <header><h3>3 · Proposal</h3><p>${escapeHtml(planned.summary || 'Review generated actions before Approve.')}</p></header>
+            <header><h3>4 · Proposal</h3><p>${escapeHtml(planned.summary || 'Review generated actions before Approve.')}</p></header>
             ${planListReview}
             <div class="wizard-nav">
               <button type="button" class="btn" data-wiz-prev="llm">${icon('rtl')} LLM</button>
@@ -1457,11 +1540,14 @@
             </div>
           </section>
           <section class="wizard-panel" data-step="approve" data-open="${active === 'approve' ? '1' : '0'}">
-            <header><h3>4 · Approve</h3><p>Approve enqueues apply work (model-grouped drain). Product writes need confirm.</p></header>
-            ${approveBody}
-            <div class="wizard-nav">
-              <button type="button" class="btn" data-wiz-prev="proposal">${icon('rtl')} Proposal</button>
-              ${hopHtml}
+            <header><h3>5 · Approve</h3><p>Approve enqueues apply work (model-grouped drain). Product writes need confirm.</p></header>
+            ${approveList}
+            <div class="wizard-footer">
+              ${approveActions}
+              <div class="wizard-nav">
+                <button type="button" class="btn" data-wiz-prev="proposal">${icon('rtl')} Proposal</button>
+                ${hopHtml}
+              </div>
             </div>
           </section>
         </div>`;
@@ -1889,7 +1975,11 @@
       }
       nav.innerHTML = html;
       nav.querySelectorAll('button').forEach((b) => {
-        b.onclick = () => { state.view = b.dataset.v; render(); };
+        b.onclick = () => {
+          const v = b.dataset.v === 'models' ? 'settings' : b.dataset.v;
+          state.view = v;
+          render();
+        };
       });
     }
 
@@ -1910,7 +2000,10 @@
           client.getHealth(),
           client.getGpus().catch(() => null),
         ]);
-        const profile = gpus?.profile || 'unknown';
+        const profile = gpus?.effectiveProfile || gpus?.profile || 'unknown';
+        const profileLabel = gpus?.override && gpus.override !== 'auto'
+          ? `${profile}*`
+          : profile;
         // localhost / 127.* / ::1 (page + API peer) → safe client
         const safe = client.safeClient === true && health.safeClient !== false;
         const safeChip = safe
@@ -1919,7 +2012,7 @@
         lastHudOk =
           `<span class="chip">${icon('check')}<strong>API</strong> ok</span>` +
           `<span class="chip">${icon('overview')} packs <strong>${(health.packs || PACKS).length}</strong></span>` +
-          `<span class="chip">${icon('models')} <strong>${profile}</strong></span>` +
+          `<span class="chip">${icon('models')} <strong>${profileLabel}</strong></span>` +
           safeChip;
         lastHudAt = now;
         hud.innerHTML = lastHudOk + (pollNote
@@ -2224,14 +2317,16 @@
         return;
       }
 
-      if (state.view === 'models' || state.view === 'settings') {
+      if (state.view === 'models') state.view = 'settings';
+
+      if (state.view === 'settings') {
         stopActivityPoll();
         const mode = await client.getMode().catch(() => ({ mode: 'serial' }));
         view.innerHTML = `
           <div class="pack-head">
-            <div class="ico">${icon(state.view)}</div>
-            <div><h2 style="margin:0">${state.view}</h2>
-            <p style="margin:4px 0 0;color:var(--muted);font-size:0.85rem">Scheduler · approval defaults (require approval before apply: ON)</p></div>
+            <div class="ico">${icon('settings')}</div>
+            <div><h2 style="margin:0">settings</h2>
+            <p style="margin:4px 0 0;color:var(--muted);font-size:0.85rem">Hardware profile · scheduler · approval defaults (require approval before apply: ON)</p></div>
           </div>
           <div class="panel">
             <label>Concurrency mode</label>
@@ -2254,6 +2349,20 @@
               <option value="full">full (all non-EN)</option>
               <option value="tier-c">tier-c (ga, ar, he)</option>
             </select>
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0"/>
+            <h3 style="margin:0 0 8px;font-size:0.95rem">Hardware profile</h3>
+            <p id="hwProfileHint" style="margin:0 0 8px;color:var(--muted);font-size:0.85rem">Loading…</p>
+            <label>Profile (auto-detect or manual override)</label>
+            <select id="hwProfileSel" style="max-width:28rem"></select>
+            <hr style="border:none;border-top:1px solid var(--line);margin:16px 0"/>
+            <h3 style="margin:0 0 8px;font-size:0.95rem">Firecrawl (shared Research stage)</h3>
+            <p id="fcStatus" style="margin:0 0 8px;color:var(--muted);font-size:0.85rem">Checking key…</p>
+            <label>API key (stored in security/.env — never committed)</label>
+            <input type="password" id="fcKey" placeholder="fc-…" autocomplete="off" style="width:100%;max-width:28rem"/>
+            <div class="actions" style="margin-top:10px">
+              <button class="primary" id="fcSave">${icon('check')} Save key</button>
+              <button id="fcClear">${icon('x')} Clear key</button>
+            </div>
             <p class="warn" style="margin-top:10px">Approval log: artifacts/agentic/approval-log.jsonl · never auto-pushes git</p>
             <div class="actions" style="margin-top:14px">
               <button class="primary" id="saveMode">${icon('check')} Save prefs</button>
@@ -2264,6 +2373,58 @@
         document.getElementById('modeSel').value = mode.mode || 'serial';
         document.getElementById('autoApproveMode').value = mode.autoApproveMode || 'ack';
         document.getElementById('i18nFillScope').value = mode.i18nFillScope || 'full';
+        const hwSel = document.getElementById('hwProfileSel');
+        const hwHint = document.getElementById('hwProfileHint');
+        client.getGpus().then((g) => {
+          const profiles = g?.profiles || [
+            { id: 'auto', label: 'Auto-detect' },
+            { id: 'cpu_only', label: 'CPU only' },
+            { id: 'single_8', label: 'Single GPU · ~8 GB' },
+            { id: 'single_12', label: 'Single GPU · ~12 GB' },
+            { id: 'single_16', label: 'Single GPU · ~16 GB' },
+            { id: 'single_24', label: 'Single GPU · ~24 GB' },
+            { id: 'dual_12_16', label: 'Dual GPU · 12+16 GB' },
+            { id: 'dual_balanced', label: 'Dual / multi GPU' },
+            { id: 'workstation_48', label: 'Workstation · 40 GB+' },
+          ];
+          hwSel.innerHTML = profiles.map((p) =>
+            `<option value="${escapeHtml(p.id)}">${escapeHtml(p.label || p.id)}</option>`).join('');
+          const chosen = mode.hardwareProfile || 'auto';
+          hwSel.value = profiles.some((p) => p.id === chosen) ? chosen : 'auto';
+          const eff = g?.effectiveProfile || g?.profile || '—';
+          const ovr = g?.override && g.override !== 'auto' ? `override · auto would be ${g.autoWouldBe || '—'}` : 'auto-detect';
+          const budget = g?.maxModelVramGb != null ? ` · budget ≤${g.maxModelVramGb} GB` : '';
+          const gpuN = (g?.gpus || []).length;
+          hwHint.textContent = `Effective: ${eff} (${ovr})${budget} · probed ${gpuN} GPU(s)`;
+        }).catch(() => {
+          hwSel.innerHTML = '<option value="auto">Auto-detect</option>';
+          hwHint.textContent = 'Could not probe GPUs — defaulting to auto.';
+        });
+        const paintFc = (st) => {
+          const el = document.getElementById('fcStatus');
+          if (!el) return;
+          if (!st || !st.configured) {
+            el.textContent = 'Not configured — paste your Firecrawl key (shared Research stage on every pack).';
+            return;
+          }
+          el.textContent = `Configured (${st.hint || '••••'}) via ${st.source || 'local'} · ${st.apiUrl || ''}`;
+        };
+        client.getFirecrawl().then(paintFc).catch(() => paintFc(null));
+        document.getElementById('fcSave').onclick = async () => {
+          try {
+            const apiKey = document.getElementById('fcKey').value.trim();
+            if (!apiKey) { log('Enter a Firecrawl key first'); return; }
+            paintFc(await client.setFirecrawlKey(apiKey));
+            document.getElementById('fcKey').value = '';
+            log({ ok: true, firecrawl: 'saved' });
+          } catch (e) { log(e.message); }
+        };
+        document.getElementById('fcClear').onclick = async () => {
+          try {
+            paintFc(await client.clearFirecrawlKey());
+            log({ ok: true, firecrawl: 'cleared' });
+          } catch (e) { log(e.message); }
+        };
         document.getElementById('saveMode').onclick = async () => {
           try {
             log(await client.setMode({
@@ -2274,7 +2435,17 @@
               allowDependencyBump: document.getElementById('allowDependencyBump').checked,
               gitCommitOnApprove: document.getElementById('gitCommitOnApprove').checked,
               i18nFillScope: document.getElementById('i18nFillScope').value,
+              hardwareProfile: document.getElementById('hwProfileSel')?.value || 'auto',
             }));
+            // Refresh profile chip context after override save
+            client.getGpus().then((g) => {
+              const hint = document.getElementById('hwProfileHint');
+              if (!hint || !g) return;
+              const eff = g.effectiveProfile || g.profile || '—';
+              const ovr = g.override && g.override !== 'auto' ? `override · auto would be ${g.autoWouldBe || '—'}` : 'auto-detect';
+              const budget = g.maxModelVramGb != null ? ` · budget ≤${g.maxModelVramGb} GB` : '';
+              hint.textContent = `Effective: ${eff} (${ovr})${budget} · probed ${(g.gpus || []).length} GPU(s)`;
+            }).catch(() => {});
           } catch (e) { log(e.message); }
         };
         document.getElementById('pauseAll').onclick = async () => {
@@ -2292,7 +2463,7 @@
       let activity = null;
       try { activity = await client.getPackActivity(pack); } catch { /* */ }
 
-      // Visual pack: Gates → Q&A → Approve → Polish×8 + C-only live iframe.
+      // Visual pack: Gates → Research → Q&A → Approve → Polish×8 + C-only live iframe.
       if (pack === 'visual') {
         const qa = await client.getVisualQa().catch(() => ({ brokenCount: '?', applyAllowed: false }));
         const st = activity?.now?.status || 'idle';

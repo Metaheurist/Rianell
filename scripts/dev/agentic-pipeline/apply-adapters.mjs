@@ -15,6 +15,11 @@ import { gitCommitOnApprove } from './git-commit-on-approve.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
 import { drainApplyQueue, enqueueApprovedWork } from './apply-queue.mjs';
 import { applyVisualRepolish } from './visual-qa-propose.mjs';
+import {
+  applyResearchFileWrite,
+  applyResearchScriptRun,
+  applyResearchTidy,
+} from './research-apply.mjs';
 
 function npmRun(script, extraArgs = []) {
   const res = silentSpawnSync('npm', ['run', script, ...extraArgs], {
@@ -179,6 +184,9 @@ export async function executeApprovedItems(packId, items, opts = {}) {
     if (it.kind === 'wiki_patch') adapter = 'wiki-sync';
     if (it.kind === 'visual_apply') adapter = 'visual-apply';
     if (it.kind === 'visual_repolish') adapter = 'visual-repolish';
+    if (it.kind === 'file_write' || it.kind === 'file_create') adapter = 'research-file-write';
+    if (it.kind === 'script_run') adapter = 'research-script-run';
+    if (it.kind === 'tidy') adapter = 'research-tidy';
     if (packId === 'security' && /csp|header/i.test(it.title)) {
       return { ok: false, error: { code: 409, message: 'refuse CSP/header mutation from harness' } };
     }
@@ -201,6 +209,9 @@ export async function executeApprovedItems(packId, items, opts = {}) {
     else if (adapter === 'visual-apply') r = applyVisual(confirm);
     else if (adapter === 'visual-repolish') r = applyVisualRepolish(list);
     else if (adapter === 'deps-bump') r = applyDepsBump(list, allowBump, confirm);
+    else if (adapter === 'research-file-write') r = applyResearchFileWrite(list, confirm);
+    else if (adapter === 'research-script-run') r = applyResearchScriptRun(list, confirm);
+    else if (adapter === 'research-tidy') r = applyResearchTidy(list, confirm);
     else if (adapter === 'refuse-bump' || adapter === 'refuse-csp-mutate') {
       r = { ok: false, error: 'adapter refuses this action' };
     } else {

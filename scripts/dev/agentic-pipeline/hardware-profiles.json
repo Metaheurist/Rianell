@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "defaultProfile": "auto",
+  "profiles": [
+    {
+      "id": "auto",
+      "label": "Auto-detect",
+      "description": "Probe GPUs each time and pick the best matching profile.",
+      "maxConcurrentLarge": null,
+      "maxModelVramGb": null,
+      "selectable": true
+    },
+    {
+      "id": "cpu_only",
+      "label": "CPU only",
+      "description": "No usable NVIDIA GPU (or Ollama on CPU). Prefer tiny coder models.",
+      "maxConcurrentLarge": 0,
+      "maxModelVramGb": 4,
+      "selectable": true
+    },
+    {
+      "id": "single_8",
+      "label": "Single GPU · ~8 GB",
+      "description": "Laptop / entry cards (6–10 GB). Prefer 3B–14B class models.",
+      "maxConcurrentLarge": 1,
+      "maxModelVramGb": 8,
+      "selectable": true
+    },
+    {
+      "id": "single_12",
+      "label": "Single GPU · ~12 GB",
+      "description": "Common 10–14 GB cards. Prefer 14B; avoid 32B defaults.",
+      "maxConcurrentLarge": 1,
+      "maxModelVramGb": 12,
+      "selectable": true
+    },
+    {
+      "id": "single_16",
+      "label": "Single GPU · ~16 GB",
+      "description": "14–20 GB cards (e.g. 4060 Ti 16GB). Full 32B coder recommended packs.",
+      "maxConcurrentLarge": 1,
+      "maxModelVramGb": 19,
+      "selectable": true
+    },
+    {
+      "id": "single_24",
+      "label": "Single GPU · ~24 GB",
+      "description": "20–28 GB cards (3090 / 4090). Comfortable headroom for large exclusive groups.",
+      "maxConcurrentLarge": 1,
+      "maxModelVramGb": 24,
+      "selectable": true
+    },
+    {
+      "id": "dual_12_16",
+      "label": "Dual GPU · 12+16 GB",
+      "description": "Two GPUs (~12 GB + ~16 GB). Up to two large loads when parallel.",
+      "maxConcurrentLarge": 2,
+      "maxModelVramGb": 19,
+      "selectable": true
+    },
+    {
+      "id": "dual_balanced",
+      "label": "Dual / multi GPU",
+      "description": "Two or more GPUs that don’t match the classic 12+16 split. Budget = largest card.",
+      "maxConcurrentLarge": 2,
+      "maxModelVramGb": 19,
+      "selectable": true
+    },
+    {
+      "id": "workstation_48",
+      "label": "Workstation · 40 GB+",
+      "description": "40 GB+ single card or multi-GPU VRAM sum ≥ 40. Highest concurrency.",
+      "maxConcurrentLarge": 3,
+      "maxModelVramGb": 48,
+      "selectable": true
+    }
+  ]
+}

@@ -189,7 +189,11 @@ class ApiRoutesMixin:
                 from .. import agentic_console
                 body = agentic_console.console_html()
                 if not body:
-                    self.send_error(404, 'agentic console not found')
+                    missing = agentic_console.console_index_path()
+                    self.send_error(
+                        404,
+                        f'agentic console not found (expected {missing})',
+                    )
                     return
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/html; charset=utf-8')
@@ -343,6 +347,36 @@ class ApiRoutesMixin:
                     self._agentic_json(200 if result['ok'] else 500, agentic_console.envelope(
                         result['ok'], result.get('data'), result.get('error'),
                     ))
+                    return
+
+                if method == 'GET' and rel in ('/firecrawl', 'firecrawl'):
+                    result = agentic_console.firecrawl_status()
+                    inner = result.get('data') if isinstance(result.get('data'), dict) else result
+                    if isinstance(inner, dict) and 'ok' in inner and 'data' in inner:
+                        self._agentic_json(200 if inner.get('ok') else 500, agentic_console.envelope(
+                            bool(inner.get('ok')), inner.get('data'), inner.get('error'),
+                        ))
+                    else:
+                        self._agentic_json(200 if result.get('ok') else 500, agentic_console.envelope(
+                            bool(result.get('ok')), result.get('data'), result.get('error'),
+                        ))
+                    return
+
+                if method == 'POST' and rel in ('/firecrawl', 'firecrawl'):
+                    body = body_obj or {}
+                    if body.get('clear'):
+                        result = agentic_console.firecrawl_clear_key()
+                    else:
+                        result = agentic_console.firecrawl_set_key(str(body.get('apiKey') or body.get('key') or ''))
+                    inner = result.get('data') if isinstance(result.get('data'), dict) else result
+                    if isinstance(inner, dict) and 'ok' in inner and ('data' in inner or 'error' in inner):
+                        self._agentic_json(200 if inner.get('ok') else 400, agentic_console.envelope(
+                            bool(inner.get('ok')), inner.get('data'), inner.get('error'),
+                        ))
+                    else:
+                        self._agentic_json(200 if result.get('ok') else 400, agentic_console.envelope(
+                            bool(result.get('ok')), result.get('data'), result.get('error'),
+                        ))
                     return
 
                 if method == 'GET' and rel in ('/run-all', 'run-all'):

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "tool": "firecrawl",
+  "scope": "shared-stage-every-pack",
+  "defaultQueries": [
+    "Progressive Web App CSP and privacy UX best practices 2026",
+    "WCAG 2.2 AA checklist for health and wellness web apps"
+  ],
+  "limitPerQuery": 3,
+  "scrapeTop": 1,
+  "byPack": {
+    "design": [
+      "UI design token systems and icon SVG accessibility best practices 2026"
+    ],
+    "planning": [
+      "PWA health app product planning and monorepo rollout practices 2026"
+    ],
+    "a11y": [
+      "WCAG 2.2 AA checklist for health and wellness web apps"
+    ],
+    "seo": [
+      "MedicalWebPage schema and PWA SEO sitemap best practices"
+    ],
+    "privacy": [
+      "GDPR Art.9 health data consent UX for PWAs"
+    ],
+    "security": [
+      "OWASP CSP and Content-Security-Policy for SPAs 2026"
+    ],
+    "i18n": [
+      "i18n localization QA for RTL Arabic Hebrew web apps"
+    ],
+    "visual": [
+      "SVG icon design systems and polish QA checklists"
+    ]
+  },
+  "apply": {
+    "fileWriteRequiresConfirm": true,
+    "scriptRunRequiresConfirm": true,
+    "allowedPathPrefixes": [
+      "apps/",
+      "packages/",
+      "scripts/",
+      "docs/",
+      "wiki/",
+      "i18n-packs/",
+      "tests/",
+      "server/",
+      "benchmarks/",
+      "artifacts/agentic/"
+    ]
+  }
+}

@@ -95,6 +95,12 @@ export function buildPackActivity(packId) {
   const proposal = readProposal(packId);
   const stream = readPackStream(packId);
   const contextMeta = readJson(path.join(packDir(packId), 'llm-context.meta.json'), null);
+  const researchJson = readJson(path.join(packDir(packId), 'web-research.json'), null);
+  let researchMd = '';
+  try {
+    const rp = path.join(packDir(packId), 'web-research.md');
+    if (fs.existsSync(rp)) researchMd = fs.readFileSync(rp, 'utf8');
+  } catch { /* ignore */ }
 
   const gates = (report?.gates || proposal?.gates || []).map((g) => ({
     label: humanGateLabel(g.cmd || g.label),
@@ -170,6 +176,16 @@ export function buildPackActivity(packId) {
         }
         : null,
     },
+    research: researchJson || researchMd
+      ? {
+        text: researchMd || '',
+        configured: Boolean(researchJson?.configured),
+        queries: researchJson?.queries || [],
+        sources: researchJson?.sources?.length || 0,
+        errors: researchJson?.errors || [],
+        queriedAt: researchJson?.queriedAt || null,
+      }
+      : null,
     done,
     planned: {
       status: plannedStatus,

@@ -3,6 +3,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getAgenticRoot, ensureDir } from './state.mjs';
 
 export function modePrefsPath() {
@@ -20,6 +21,8 @@ export const DEFAULT_MODE_PREFS = {
   allowDependencyBump: false,
   gitCommitOnApprove: false,
   i18nFillScope: 'full',
+  /** 'auto' or a profile id from hardware-profiles.json */
+  hardwareProfile: 'auto',
 };
 
 export function readModePrefs() {
@@ -45,6 +48,21 @@ export function writeModePrefs(patch = {}) {
   if (!['full', 'tier-c'].includes(next.i18nFillScope)) {
     next.i18nFillScope = 'full';
   }
+  if (next.hardwareProfile == null || next.hardwareProfile === '') {
+    next.hardwareProfile = 'auto';
+  }
+  const known = new Set([
+    'auto', 'cpu_only', 'single_8', 'single_12', 'single_16', 'single_24',
+    'dual_12_16', 'dual_balanced', 'workstation_48',
+  ]);
+  try {
+    const catalogPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'hardware-profiles.json');
+    if (fs.existsSync(catalogPath)) {
+      const cat = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
+      for (const p of cat.profiles || []) known.add(p.id);
+    }
+  } catch { /* keep built-in known set */ }
+  if (!known.has(String(next.hardwareProfile))) next.hardwareProfile = 'auto';
   fs.writeFileSync(modePrefsPath(), `${JSON.stringify(next, null, 2)}\n`);
   return { ok: true, error: null, data: next };
 }

@@ -1,11 +1,12 @@
 /**
- * Shared pack runner: gates → optional streamed LLM advisory → proposal → pending_approval.
+ * Shared pack runner: gates → Research (Firecrawl) → optional streamed LLM → proposal → pending_approval.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { sanitizeAgentContext } from '../sanitize-agent-context.mjs';
 import { resolvePackModel } from './catalog.mjs';
 import { canStartPack } from './scheduler.mjs';
+import { probeHardwareProfile } from '../probe-hardware-profile.mjs';
 import {
   ROOT,
   ensureDir,
@@ -22,6 +23,22 @@ import {
 } from './proposal.mjs';
 import { buildPackLlmPrompt, ADVISORY_SYSTEM } from './pack-context.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
+import { researchBeforeLlm } from './research-pack.mjs';
+
+let hwProfileCache = null;
+
+async function resolveHwProfileHint(dryRun) {
+  if (dryRun) return null;
+  const now = Date.now();
+  if (hwProfileCache && now - hwProfileCache.at < 60_000) return hwProfileCache.profile;
+  try {
+    const profile = await probeHardwareProfile();
+    hwProfileCache = { at: now, profile };
+    return profile;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * @param {string} packId
@@ -38,11 +55,14 @@ import { silentSpawnSync } from './spawn-silent.mjs';
  *   defaultKind?: string,
  *   defaultAdapter?: string,
  *   afterGates?: (ctx: object) => Promise<object|null>,
+ *   beforeLlm?: (ctx: object) => Promise<object|null>,
+ *   skipResearch?: boolean,
  * }} opts
  */
 export async function runPack(packId, opts = {}) {
   const dryRun = Boolean(opts.dryRun || process.env.AGENTIC_DRY_RUN === '1');
-  const resolved = resolvePackModel(packId, opts.model);
+  const hwHint = await resolveHwProfileHint(dryRun);
+  const resolved = resolvePackModel(packId, opts.model, undefined, hwHint);
   if (!resolved.ok) {
     return { ok: false, pack: packId, error: resolved.error, data: null };
   }
@@ -99,6 +119,33 @@ export async function runPack(packId, opts = {}) {
   const dir = packDir(packId);
   ensureDir(dir);
 
+  // Shared Research stage (Firecrawl) — every pack unless skipResearch.
+  let beforeLlmMeta = null;
+  const beforeLlmFn = opts.skipResearch
+    ? null
+    : (typeof opts.beforeLlm === 'function' ? opts.beforeLlm : researchBeforeLlm);
+  if (beforeLlmFn && !gatesFailed) {
+    writePackState(packId, { ...readPackState(packId), stage: 'research', status: 'running' });
+    try {
+      beforeLlmMeta = await beforeLlmFn({
+        packId,
+        dryRun,
+        model: resolved.model,
+        gateResults,
+        dir,
+        topic: opts.llmTopic || opts.llmPrompt || packId,
+        fromRunAll: Boolean(opts.fromRunAll),
+      });
+    } catch (err) {
+      // Soft-fail: continue without web brief rather than killing the pack.
+      beforeLlmMeta = {
+        stage: 'research',
+        error: String(err?.message || err),
+        llmPromptExtra: `## Web research (Firecrawl)\n\nResearch stage error (continuing offline): ${String(err?.message || err)}\n`,
+      };
+    }
+  }
+
   if (!opts.skipLlm && (opts.llmPrompt || opts.llmTopic) && !dryRun && !gatesFailed) {
     writePackState(packId, { ...readPackState(packId), stage: 'llm', status: 'running' });
     const enrich = opts.enrichContext !== false;
@@ -119,6 +166,9 @@ export async function runPack(packId, opts = {}) {
       contextMeta = built.meta;
     } else {
       promptText = opts.llmPrompt;
+    }
+    if (beforeLlmMeta?.llmPromptExtra) {
+      promptText = `${promptText}\n\n${sanitizeAgentContext(beforeLlmMeta.llmPromptExtra).text}\n`;
     }
     const clean = sanitizeAgentContext(promptText);
     const sys = sanitizeAgentContext(opts.llmSystem || ADVISORY_SYSTEM).text;
@@ -185,11 +235,14 @@ export async function runPack(packId, opts = {}) {
       writeArtifactDir: dir,
     });
     const fileHint = (built.meta.filesUsed || []).slice(0, 6).join(', ') || '(no docs)';
+    const extraHint = beforeLlmMeta?.llmPromptExtra
+      ? `\n[dry-run] Also attached beforeLlm research brief (${String(beforeLlmMeta.llmPromptExtra).length} chars).`
+      : '';
     llm = {
       ok: true,
       text: [
         '## Thinking',
-        `[dry-run] LLM skipped. Would load codebase context (${built.meta.filesUsed?.length || 0} files): ${fileHint}.`,
+        `[dry-run] LLM skipped. Would load codebase context (${built.meta.filesUsed?.length || 0} files): ${fileHint}.${extraHint}`,
         '',
         '## Proposed actions',
         '1. Acknowledge dry-run advisory stub (re-run without --dry-run for path-grounded proposals)',
@@ -208,6 +261,7 @@ export async function runPack(packId, opts = {}) {
         model: resolved.model,
         gateResults,
         llm,
+        beforeLlmMeta,
         fromRunAll: Boolean(opts.fromRunAll),
       });
     } catch (err) {
