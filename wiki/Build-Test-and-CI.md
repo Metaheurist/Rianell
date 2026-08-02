@@ -79,7 +79,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 - **benchmarks-web** - starts when minify finishes (does not wait for unit tests)
 - **deploy-pages** - GitHub Pages → [rianell.com](https://rianell.com) (push only; gated on Phase 1)
-- **server-exe** - Windows x64/x86 (starts after unit tests + audit, not minify)
+- **server-exe** - Windows x64/x86 (starts after unit tests + security audit + **Agentic harness suite**, not minify)
 - **commit-dependencies-doc** / **sync-wiki-to-github** - main push bots (after unit tests)
 
 ### Phase 3 - Downstream
