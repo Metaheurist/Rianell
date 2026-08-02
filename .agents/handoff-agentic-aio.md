@@ -49,4 +49,5 @@ node scripts/verify/doc-links.mjs --strict
 ## CI
 
 - PR: https://github.com/Metaheurist/Rianell/pull/85
-- Re-record green run URLs in this section after the Activity/cockpit push lands.
+- CI: https://github.com/Metaheurist/Rianell/actions/runs/30740058454 (green)
+- Security DAST: https://github.com/Metaheurist/Rianell/actions/runs/30740058430 (green)
