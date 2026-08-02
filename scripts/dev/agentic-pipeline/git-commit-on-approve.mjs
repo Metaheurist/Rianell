@@ -1,9 +1,9 @@
 /**
  * Opt-in local git commit after agentic approve. Never pushes. Honors hooks.
  */
-import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { ROOT } from './state.mjs';
+import { silentSpawnSync } from './spawn-silent.mjs';
 
 const SECRET_RE = /(?:^|\/)(\.env|security\/\.env|\.encryption_key|supabase-config\.js)(?:$|\/)/i;
 
@@ -18,21 +18,13 @@ export function gitCommitOnApprove({ packId, paths = [], message } = {}) {
     return { ok: false, error: 'no allowlisted paths to commit' };
   }
 
-  const add = spawnSync('git', ['add', '--', ...allow], {
-    cwd: ROOT,
-    encoding: 'utf8',
-    shell: false,
-  });
+  const add = silentSpawnSync('git', ['add', '--', ...allow], { cwd: ROOT });
   if (add.status !== 0) {
     return { ok: false, error: (add.stderr || add.stdout || 'git add failed').slice(0, 400) };
   }
 
   const msg = message || `chore(agentic): approve ${packId}`;
-  const commit = spawnSync('git', ['commit', '-m', msg], {
-    cwd: ROOT,
-    encoding: 'utf8',
-    shell: false,
-  });
+  const commit = silentSpawnSync('git', ['commit', '-m', msg], { cwd: ROOT });
   if (commit.status !== 0) {
     const err = (commit.stderr || commit.stdout || 'git commit failed').slice(0, 500);
     if (/nothing to commit/i.test(err)) {
@@ -41,11 +33,7 @@ export function gitCommitOnApprove({ packId, paths = [], message } = {}) {
     return { ok: false, error: err };
   }
 
-  const rev = spawnSync('git', ['rev-parse', 'HEAD'], {
-    cwd: ROOT,
-    encoding: 'utf8',
-    shell: false,
-  });
+  const rev = silentSpawnSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT });
   const sha = (rev.stdout || '').trim() || null;
   return { ok: true, sha, paths: allow.map((p) => path.normalize(p)) };
 }

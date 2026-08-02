@@ -6,7 +6,7 @@ Registers live under `docs/development/*-register.json`, plus `security/review-r
 |------|-----|---------------------|
 | design | `agentic:design-context` | `verify:icon-spec`, `verify:design-tokens` |
 | planning | `agentic:planning` | advisory artifacts |
-| i18n | `agentic:i18n` | `verify:i18n:check` → TranslateGemma `--propose-dir` → Approve → `i18n:merge-tier-c` |
+| i18n | `agentic:i18n` | `verify:i18n:check` → TranslateGemma `--propose-dir` (Planned lists missing keys live) → Approve → `i18n:merge-tier-c` |
 | rtl | `agentic:rtl` | heuristics + LLM |
 | a11y | `agentic:a11y` | `verify:a11y`, `verify:a11y-tokens` |
 | seo | `agentic:seo` | `seo:sitemap:check`, `seo:content:check`, `seo:pages:check` |
@@ -19,7 +19,7 @@ Registers live under `docs/development/*-register.json`, plus `security/review-r
 | image | `agentic:image` | sharp / `seo:og-card` path |
 | bootllm | `agentic:bootllm` | `audit:boot:strict` when `PROBE_URL` |
 | perf | `agentic:perf` | `audit:cwv` / `verify:cwv`, `verify:bundle-split` |
-| visual | `visual:*` via pack | icon-spec + polish QA (**apply deferred**) |
+| visual | `visual:*` via pack | icon-spec + polish QA (**apply deferred**); UI has no Activity cockpit |
 
 Outputs: `artifacts/agentic/<pack>/report.json`, `broken.json`, optional `llm-advisory.md`, plus `llm-context.md` / `llm-context.meta.json` (codebase context fed into Thinking / Proposed actions).
 
@@ -42,7 +42,7 @@ Prompt / context expansion for icon contract + design tokens. Register: `docs/st
 Advisory-only docs / unit-test / feature-plan drafts. See [agentic-planning-pack.md](agentic-planning-pack.md). Register: `docs/development/planning-register.json`.
 
 ### i18n
-Check-only gate `verify:i18n:check` (no `packages/shared` sync). Live fill uses TranslateGemma (`translategemma:27b`) via `i18n:ollama --propose-dir=artifacts/agentic/i18n/fill-proposals` — never writes `i18n-packs/` until Approve + confirm. Scope: Settings `i18nFillScope` (`full` \| `tier-c`). Merge: `i18n:merge-tier-c` post-approve. Register: `docs/development/i18n-register.json`.
+Check-only gate `verify:i18n:check` (no `packages/shared` sync). Live fill uses TranslateGemma (`translategemma:27b`) via `i18n:ollama --propose-dir=artifacts/agentic/i18n/fill-proposals` — never writes `i18n-packs/` until Approve + confirm. Missing keys appear in Planned as soon as each locale plan is written. Scope: Settings `i18nFillScope` (`full` \| `tier-c`). Merge: `i18n:merge-tier-c` post-approve. Register: `docs/development/i18n-register.json`.
 
 ### rtl
 Post-i18n layout/CSS direction for `ar`/`he`. Register: `docs/development/rtl-register.json`.

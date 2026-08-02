@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
@@ -15,6 +16,23 @@ from typing import Any, Optional
 from . import config
 
 logger = config.logger
+
+# Hide console windows for node/npm children on Windows (agentic gates).
+_CREATE_NO_WINDOW = 0x08000000
+
+
+def _win_no_window_kwargs() -> dict:
+    if sys.platform != 'win32':
+        return {}
+    kwargs: dict[str, Any] = {'creationflags': _CREATE_NO_WINDOW}
+    try:
+        si = subprocess.STARTUPINFO()
+        si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        si.wShowWindow = subprocess.SW_HIDE
+        kwargs['startupinfo'] = si
+    except (AttributeError, ValueError):
+        pass
+    return kwargs
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONSOLE_DIR = REPO_ROOT / 'scripts' / 'dev' / 'agentic-console'
@@ -139,6 +157,7 @@ def _node(args: list[str], timeout: int = 120) -> dict[str, Any]:
             text=True,
             timeout=timeout,
             shell=False,
+            **_win_no_window_kwargs(),
         )
     except Exception as e:
         return {'ok': False, 'error': {'code': 'spawn', 'message': str(e)}, 'data': None}
@@ -191,6 +210,7 @@ def run_all(
     confirm_product_write: bool = False,
     allow_dependency_bump: bool = False,
     git_commit_on_approve: bool = False,
+    stop_on_broken: bool = True,
 ) -> dict[str, Any]:
     """Run chronological pack sequence. Live runs default to background so UI can poll."""
     if background is None:
@@ -200,6 +220,8 @@ def run_all(
         args.append('--dry-run')
     if skip:
         args.append('--skip=' + ','.join(skip))
+    if not stop_on_broken:
+        args.append('--no-stop-on-broken')
     if auto_approve:
         args.append('--auto-approve')
         args.append(f'--auto-approve-mode={auto_approve_mode or "ack"}')
@@ -245,13 +267,20 @@ def run_all(
     except OSError:
         log_f = subprocess.DEVNULL
     try:
-        subprocess.Popen(
+        proc = subprocess.Popen(
             ['node', *args],
             cwd=str(REPO_ROOT),
             stdout=log_f,
             stderr=subprocess.STDOUT,
             shell=False,
+            **_win_no_window_kwargs(),
         )
+        try:
+            pid_path = REPO_ROOT / 'artifacts' / 'agentic' / 'run-all-worker.pid'
+            pid_path.parent.mkdir(parents=True, exist_ok=True)
+            pid_path.write_text(str(proc.pid), encoding='utf-8')
+        except OSError:
+            pass
     except Exception as e:
         return {'ok': False, 'error': {'code': 'spawn', 'message': str(e)}, 'data': seed}
     return {'ok': True, 'error': None, 'data': seed}
@@ -324,7 +353,12 @@ def visual_qa() -> dict[str, Any]:
 
 
 def clear_all_and_unload() -> dict[str, Any]:
-    """Reset pack/run-all runtime state and unload Ollama models in VRAM."""
+    """Cancel pipelines, kill workers, wipe runtime/approvals, unload Ollama VRAM."""
+    # Best-effort cancel signal before the clear script (also cancels + kills).
+    try:
+        _node(['scripts/ci/agentic-run-all.mjs', '--cancel'], timeout=30)
+    except Exception:
+        pass
     result = _node(['scripts/dev/agentic-pipeline/clear-all.mjs'], timeout=180)
     inner = result.get('data')
     if isinstance(inner, dict) and 'ok' in inner and ('data' in inner or 'error' in inner):

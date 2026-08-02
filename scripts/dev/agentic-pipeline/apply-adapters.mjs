@@ -1,7 +1,6 @@
 /**
  * Pack-specific apply adapters. Never called automatically from pack-runner.
  */
-import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../../packages/shared/src/i18n/packPaths.mjs';
@@ -12,12 +11,11 @@ import {
 } from './proposal.mjs';
 import { ensureDir, packDir, ROOT, readPackState, writePackState } from './state.mjs';
 import { gitCommitOnApprove } from './git-commit-on-approve.mjs';
+import { silentSpawnSync } from './spawn-silent.mjs';
 
 function npmRun(script, extraArgs = []) {
-  const res = spawnSync('npm', ['run', script, ...extraArgs], {
+  const res = silentSpawnSync('npm', ['run', script, ...extraArgs], {
     cwd: ROOT,
-    encoding: 'utf8',
-    shell: process.platform === 'win32',
     env: process.env,
   });
   return {
@@ -147,10 +145,9 @@ function applyDepsBump(items, allow, confirm) {
     if (pkg.includes('..') || pkg.startsWith('@/') || /[;|&]/.test(pkg)) {
       return { ok: false, error: `refusing unsafe package name ${pkg}` };
     }
-    const res = spawnSync('npm', ['install', `${pkg}@${b.to}`, '--save'], {
+    const res = silentSpawnSync('npm', ['install', `${pkg}@${b.to}`, '--save'], {
       cwd: ROOT,
-      encoding: 'utf8',
-      shell: process.platform === 'win32',
+      env: process.env,
     });
     if (res.status !== 0) {
       return { ok: false, error: (res.stderr || res.stdout || 'npm install failed').slice(0, 500), paths };

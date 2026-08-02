@@ -335,6 +335,10 @@
       align-items: center;
       gap: 8px;
     }
+    .visual-shell .pack-stage-body:empty,
+    .visual-shell #packActivity:empty {
+      display: none;
+    }
     .visual-shell .embed-frame {
       flex: 1 1 auto;
       min-height: min(72vh, 820px);
@@ -885,9 +889,21 @@
       if (!runState) return 'pending';
       const skip = new Set(runState.skip || []);
       if (skip.has(packId)) return 'skipped';
+      // Prefer live pack status from run-all snapshot when present (e.g. pending_approval).
+      const packSnap = runState.packs?.[packId];
+      if (packSnap?.status === 'pending_approval' || packSnap?.status === 'applied'
+        || packSnap?.status === 'rejected' || packSnap?.status === 'passed'
+        || packSnap?.status === 'broken' || packSnap?.status === 'dry_run'
+        || packSnap?.status === 'running' || packSnap?.status === 'paused') {
+        if (packSnap.status === 'running' || packSnap.status === 'paused') {
+          /* fall through — also respect results */
+        } else {
+          return packSnap.status;
+        }
+      }
       const r = (runState.results || {})[packId];
       if (r) {
-        if (r.needsApproval || r.approvalState === 'pending') return 'running';
+        if (r.needsApproval || r.approvalState === 'pending') return 'pending_approval';
         return r.ok ? 'passed' : 'broken';
       }
       if (runState.currentPack === packId && (runState.status === 'running' || runState.status === 'paused')) {
@@ -1002,6 +1018,10 @@
 
     function activityHtml(act, opts = {}) {
       const cockpit = opts.layout === 'cockpit';
+      // Visual tab: Live polish HUD owns status/QA — skip Now/Thinking/Done/Planned.
+      if (opts.hideActivity === true || opts.pack === 'visual' || act?.pack === 'visual') {
+        return '';
+      }
       if (!act) {
         return `<div class="activity${cockpit ? ' cockpit' : ''}" id="activityRoot"><div class="activity-panel ap-now"><h3>Now</h3><div class="body">No activity yet</div></div></div>`;
       }
@@ -1031,12 +1051,15 @@
               ${items.length ? items.map((it) => `
                 <label class="plan-item">
                   <input type="checkbox" data-item="${escapeHtml(it.id)}" ${it.selected !== false ? 'checked' : ''}
-                    ${it.kind === 'deps_bump' ? '' : ''} />
+                    ${(it.fillStatus === 'pending' || it.proposed == null) && it.kind === 'i18n_string' ? 'disabled' : ''} />
                   <span>
                     <strong>${escapeHtml(it.title)}</strong>
                     <div style="color:var(--muted);font-size:0.75rem">${escapeHtml((it.detail || '').slice(0, 180))}</div>
                   </span>
-                  <span class="risk-${escapeHtml(it.risk || 'low')}">${escapeHtml(it.risk || 'low')}</span>
+                  <span class="risk-${escapeHtml(it.risk || 'low')}">${escapeHtml(
+                    it.fillStatus === 'pending' ? 'missing'
+                      : (it.fillStatus === 'failed' ? 'failed' : (it.risk || 'low'))
+                  )}</span>
                 </label>`).join('') : '<div class="chip">No proposal items yet — run Dry-run or Live</div>'}
             </div>
             <div class="activity-actions">
@@ -1143,14 +1166,16 @@
     function activityStructFingerprint(act) {
       if (!act) return '';
       const items = (act.planned?.items || [])
-        .map((i) => `${i.id}:${i.selected !== false}:${i.title}:${i.risk}`)
+        .map((i) => `${i.id}:${i.selected !== false}:${i.fillStatus || ''}:${i.title}:${String(i.proposed || '').slice(0, 24)}`)
         .join('|');
       const done = (act.done || []).map((d) => `${d.label}:${d.status}`).join('|');
       const n = act.now || {};
+      const fill = act.thinking?.fillProgress;
       return [
         act.pack, n.status, n.stage, n.model, n.needsApproval, n.dryRun,
         act.planned?.status, act.planned?.summary, done, items,
         act.thinking?.context?.filesUsed?.length || 0,
+        fill ? `${fill.locale}:${fill.done}/${fill.total}:${fill.phase}` : '',
       ].join('::');
     }
 
@@ -1165,9 +1190,33 @@
     async function softRefreshPackActivity(pack, { force = false } = {}) {
       const act = await client.getPackActivity(pack).catch(() => null);
       if (!act) return null;
+
+      // Visual: only refresh status pill + stage rail — no Activity cockpit.
+      if (pack === 'visual') {
+        const pillFp = `${act.now?.status || ''}`;
+        if (force || pillFp !== lastPillFp) {
+          lastPillFp = pillFp;
+          const pill = document.querySelector('.pack-stage .pack-status-pill');
+          if (pill && act.now?.status) {
+            pill.dataset.s = act.now.status;
+            pill.innerHTML = `${icon('dot')} ${escapeHtml(act.now.status)}`;
+          }
+        }
+        const railFp = railFingerprint(act);
+        if (force || railFp !== lastRailFp) {
+          lastRailFp = railFp;
+          const rail = document.querySelector('.pack-stage .pipe-rail');
+          if (rail) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = pipeRailHtml(act, { pack, hidePlanned: true });
+            if (tmp.firstElementChild) rail.replaceWith(tmp.firstElementChild);
+          }
+        }
+        return act;
+      }
+
       const host = document.getElementById('packActivity')
-        || document.getElementById('runAllActivity')
-        || document.getElementById('overviewActivity');
+        || document.getElementById('runAllActivity');
       if (!host) return act;
 
       const railFp = railFingerprint(act);
@@ -1176,7 +1225,7 @@
         const rail = document.querySelector('.pack-stage .pipe-rail');
         if (rail) {
           const tmp = document.createElement('div');
-          tmp.innerHTML = pipeRailHtml(act, { pack, hidePlanned: pack === 'visual' });
+          tmp.innerHTML = pipeRailHtml(act, { pack, hidePlanned: false });
           if (tmp.firstElementChild) rail.replaceWith(tmp.firstElementChild);
         }
       }
@@ -1194,14 +1243,12 @@
       const structFp = activityStructFingerprint(act);
       if (force || structFp !== lastActivityStructFp) {
         lastActivityStructFp = structFp;
-        const hidePlanned = pack === 'visual';
         const cockpit = Boolean(host.closest('.pack-stage') || host.id === 'packActivity');
         host.innerHTML = activityHtml(act, {
           pack,
-          hidePlanned,
           layout: cockpit ? 'cockpit' : undefined,
         });
-        if (!hidePlanned) await wireActivityActions(pack);
+        await wireActivityActions(pack);
         lastThinkingFp = '';
       }
 
@@ -1496,7 +1543,6 @@
             </div>
           </section>
           ${queue.length ? `<div class="approval-queue"><strong>Approval queue (${queue.length})</strong> · ${queue.map((q) => escapeHtml(q.pack)).join(', ')}</div>` : ''}
-          <div id="overviewActivity">${activityHtml(runAct?.currentActivity)}</div>
           <div class="pack-grid" id="packGrid"></div>`;
         paintOverviewGrid(lastRunState);
         document.getElementById('btnRunAll').onclick = async () => {
@@ -1523,7 +1569,7 @@
         document.getElementById('btnClearAll').onclick = async () => {
           const ok = await uiConfirm({
             title: 'Clear all + unload models?',
-            message: 'Resets pack/run-all progress and proposals, then unloads every model in Ollama VRAM. Approval log and approved/ archives are kept.',
+            message: 'Stops any running pipeline (run-all / pack / i18n fill), clears every pack tab, wipes pending approvals & proposals, then unloads all Ollama models from VRAM. Approval log and approved/ archives are kept.',
             okLabel: 'Clear + unload',
             cancelLabel: 'Cancel',
             iconName: 'x',
@@ -1533,8 +1579,11 @@
             stopRunAllPoll();
             stopActivityPoll();
             lastRunState = null;
+            setRunAllBusy(false);
+            try { await client.cancelRunAll(); } catch { /* best-effort */ }
             const result = await client.clearAll();
             log(result);
+            state.view = 'overview';
             await render();
           } catch (e) { log(e.envelope || e.message); }
         };
@@ -1639,7 +1688,7 @@
         document.getElementById('clearAll').onclick = async () => {
           const ok = await uiConfirm({
             title: 'Clear all + unload models?',
-            message: 'Resets pack/run-all progress and proposals, then unloads every model in Ollama VRAM. Approval log and approved/ archives are kept.',
+            message: 'Stops any running pipeline (run-all / pack / i18n fill), clears every pack tab, wipes pending approvals & proposals, then unloads all Ollama models from VRAM. Approval log and approved/ archives are kept.',
             okLabel: 'Clear + unload',
             cancelLabel: 'Cancel',
             iconName: 'x',
@@ -1650,7 +1699,9 @@
             stopActivityPoll();
             lastRunState = null;
             setRunAllBusy(false);
+            try { await client.cancelRunAll(); } catch { /* best-effort */ }
             log(await client.clearAll());
+            state.view = 'overview';
             await render();
           } catch (e) { log(e.envelope || e.message); }
         };
@@ -1753,7 +1804,6 @@
                 </div>
               </div>
               ${pipeRailHtml(activity, { pack: 'visual', hidePlanned: true })}
-              <div class="pack-stage-body" id="packActivity">${activityHtml(activity, { pack: 'visual', hidePlanned: true, layout: 'cockpit' })}</div>
             </div>
             <div id="visualLive" class="embed-frame" style="display:grid;place-items:center;color:var(--muted)">Loading preview…</div>
           </div>`;
