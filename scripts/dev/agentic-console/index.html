@@ -161,6 +161,12 @@
       max-width: 100%;
       transition: border-color .15s ease, transform .12s ease, background .15s ease;
     }
+    /* display:inline-flex above would otherwise override HTML [hidden] */
+    .actions button[hidden],
+    .pack-actions button[hidden],
+    .btn[hidden] {
+      display: none !important;
+    }
     .actions button svg, .pack-actions button svg, .btn svg,
     .pack-status-pill svg, .chip svg {
       width: 15px;
