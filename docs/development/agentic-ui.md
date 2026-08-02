@@ -4,8 +4,8 @@ Served at `/dev/agentic` from the Python server.
 
 ## Surfaces
 
-- **Overview:** progress ring, pack grid, approval queue + apply-queue strip (no Activity cockpit). Pack tiles show **needs approval** when awaiting Approve (not “running”). While run-all is running/paused, Overview polls and **soft-patches** tile status + ring + approval queue (no manual Refresh). Live run-all finishes all 16 packs first (model-grouped); Approve later drains apply jobs by model.
-- **Run-all:** timeline + current Activity + approval queue; Start live uses Settings prefs (`autoApprove`, etc.)
+- **Overview:** progress ring, pack grid, approval queue + apply-queue strip (no Activity cockpit). Pack tiles show **needs approval** when awaiting Approve (not “running”). While run-all is running/paused, Overview polls and **soft-patches** tile status + ring + approval queue (no manual Refresh). Primary **Run all** starts a live model-grouped sweep (confirm dialog); Approve later drains apply jobs by model.
+- **Run-all:** timeline + current Activity + approval queue; **Run all** (live only — no dry-run / Start live) uses Settings prefs (`autoApprove`, etc.)
 - **Per-pack tabs:** stage **wizard** — clickable Gates → LLM → Proposal → Approve rail drives one full-width panel at a time (auto-follows while running; pin a step by clicking). Prev/next pack hop in the wizard footer. Model picker + Dry-run / Live / Pause / Resume stay in the header.
 - **visual:** Gates → Q&A → Approve candidates → Polish×8; C-only live polish iframe (no A/B); model picker in preview Review HUD; Approve starts Gemma qa-loop (max 8), not product apply
 - **Settings:** concurrency mode, `autoApprove` / mode, `confirmProductWrite`, `allowDependencyBump`, `gitCommitOnApprove`, `i18nFillScope`

@@ -1810,10 +1810,8 @@
     }
 
     function setRunAllBusy(busy) {
-      ['go', 'live'].forEach((id) => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = busy;
-      });
+      const el = document.getElementById('go') || document.getElementById('btnRunAll');
+      if (el) el.disabled = busy;
     }
 
     async function refreshRunAllTimeline() {
@@ -2021,7 +2019,7 @@
               <h2>Pipeline cockpit</h2>
               <p>Sixteen local packs (model-grouped). Run-all finishes every pack first — Approve anytime after; apply jobs drain by model group.</p>
               <div class="actions">
-                <button class="primary" id="btnRunAll">${icon('play')} Dry-run all</button>
+                <button class="primary" id="btnRunAll">${icon('play')} Run all</button>
                 <button id="btnLive">${icon('run-all')} Open run-all</button>
                 <button id="btnStatus">${icon('spin')} Refresh</button>
                 <button id="btnClearAll">${icon('x')} Clear all + unload</button>
@@ -2051,15 +2049,39 @@
           }
         } catch { /* quiet */ }
         document.getElementById('btnRunAll').onclick = async () => {
+          const prefs = await client.getMode().catch(() => ({}));
+          const ok = await uiConfirm({
+            title: 'Run all packs live?',
+            message: `Runs all 16 packs without waiting for Approve (model-grouped unload). autoApprove=${prefs.autoApprove || false} (${prefs.autoApproveMode || 'ack'}). Afterward, review the approval queue — Approve enqueues apply work by model group. Product writes stay off unless you enabled product-write + confirm in Settings.`,
+            okLabel: 'Run all',
+            cancelLabel: 'Cancel',
+            iconName: 'play',
+          });
+          if (!ok) return;
+          setRunAllBusy(true);
           try {
-            const result = await client.runAll({ dryRun: true, background: false, stopOnBroken: true });
+            const result = await client.runAll({
+              dryRun: false,
+              background: true,
+              stopOnBroken: false,
+              autoApprove: Boolean(prefs.autoApprove),
+              autoApproveMode: prefs.autoApproveMode || 'ack',
+              confirmProductWrite: Boolean(prefs.confirmProductWrite),
+              allowDependencyBump: Boolean(prefs.allowDependencyBump),
+              gitCommitOnApprove: Boolean(prefs.gitCommitOnApprove),
+            });
             log(result);
             paintTimeline(result);
             paintOverviewGrid(result);
             state.view = 'run-all';
             await render();
             paintTimeline(result);
-          } catch (e) { log(e.envelope || e.message); }
+            startRunAllPoll();
+            await refreshRunAllTimeline();
+          } catch (e) {
+            log(e.envelope || e.message);
+            setRunAllBusy(false);
+          }
         };
         document.getElementById('btnLive').onclick = () => { state.view = 'run-all'; render(); };
         document.getElementById('btnStatus').onclick = async () => {
@@ -2110,8 +2132,7 @@
           </div>
           <div class="progress" id="progress"></div>
           <div class="actions">
-            <button class="primary" id="go">${icon('play')} Dry-run</button>
-            <button id="live">${icon('run-all')} Start live</button>
+            <button class="primary" id="go">${icon('play')} Run all</button>
             <button id="pause">${icon('pause')} Pause</button>
             <button id="resume">${icon('play')} Resume</button>
             <button id="cancel">${icon('x')} Cancel</button>
@@ -2130,25 +2151,13 @@
           wireActivityActions(runAct.currentActivity.pack);
         }
         document.getElementById('go').onclick = async () => {
-          setRunAllBusy(true);
-          try {
-            const result = await client.runAll({ dryRun: true, background: false });
-            paintTimeline(result);
-            log(result);
-          } catch (e) {
-            log(e.envelope || e.message);
-          } finally {
-            setRunAllBusy(false);
-          }
-        };
-        document.getElementById('live').onclick = async () => {
           const prefs = await client.getMode().catch(() => ({}));
           const ok = await uiConfirm({
-            title: 'Start live run-all?',
+            title: 'Run all packs live?',
             message: `Runs all 16 packs without waiting for Approve (model-grouped unload). autoApprove=${prefs.autoApprove || false} (${prefs.autoApproveMode || 'ack'}). Afterward, review the approval queue — Approve enqueues apply work by model group. Product writes stay off unless you enabled product-write + confirm in Settings.`,
-            okLabel: 'Start live',
+            okLabel: 'Run all',
             cancelLabel: 'Cancel',
-            iconName: 'run-all',
+            iconName: 'play',
           });
           if (!ok) return;
           setRunAllBusy(true);
