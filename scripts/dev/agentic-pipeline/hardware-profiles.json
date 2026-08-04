@@ -37,7 +37,7 @@
     {
       "id": "single_16",
       "label": "Single GPU · ~16 GB",
-      "description": "14–20 GB cards (e.g. 4060 Ti 16GB). Full 32B coder recommended packs.",
+      "description": "14-20 GB cards (e.g. 4060 Ti 16GB). Prefer qwen3:14b / qwen3-coder:30b; may downshift from qwen3.6:35b.",
       "maxConcurrentLarge": 1,
       "maxModelVramGb": 19,
       "selectable": true
@@ -45,7 +45,7 @@
     {
       "id": "single_24",
       "label": "Single GPU · ~24 GB",
-      "description": "20–28 GB cards (3090 / 4090). Comfortable headroom for large exclusive groups.",
+      "description": "20-28 GB cards (3090 / 4090). Comfortable headroom for qwen3.6:35b recommended packs.",
       "maxConcurrentLarge": 1,
       "maxModelVramGb": 24,
       "selectable": true
@@ -55,15 +55,15 @@
       "label": "Dual GPU · 12+16 GB",
       "description": "Two GPUs (~12 GB + ~16 GB). Up to two large loads when parallel.",
       "maxConcurrentLarge": 2,
-      "maxModelVramGb": 19,
+      "maxModelVramGb": 22,
       "selectable": true
     },
     {
       "id": "dual_balanced",
       "label": "Dual / multi GPU",
-      "description": "Two or more GPUs that don’t match the classic 12+16 split. Budget = largest card.",
+      "description": "Two or more GPUs that don't match the classic 12+16 split. Budget = largest card.",
       "maxConcurrentLarge": 2,
-      "maxModelVramGb": 19,
+      "maxModelVramGb": 22,
       "selectable": true
     },
     {

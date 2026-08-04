@@ -3,7 +3,7 @@
 This project utilizes a decentralized agentic workflow optimized for local developer workstations running high-parameter local models alongside IDE automated harnesses.
 
 ## System Topology
-1. **Intelligence Core:** Ollama API (`http://localhost:11434`) -> `qwen2.5-coder:32b`.
+1. **Intelligence Core:** Ollama API (`http://localhost:11434`) -> `qwen3.6:35b`.
 2. **Context & Execution Engine:** Cursor IDE Agentic Loop / Workspace Terminal Harness.
 
 ## Preflight: Serve-Before-Consult (Mandatory)
@@ -15,7 +15,7 @@ npm run brain:ensure        # -> node scripts/dev/ensure-ollama.mjs
 
 The preflight is idempotent and self-healing:
 * Pings the Ollama daemon; if down, launches `ollama serve` (detached) and waits for it to answer.
-* Lists installed models via `/api/tags`; if `qwen2.5-coder:32b` is absent, runs `ollama pull qwen2.5-coder:32b`.
+* Lists installed models via `/api/tags`; if `qwen3.6:35b` is absent, runs `ollama pull qwen3.6:35b`.
 * Exits `0` only when the daemon is reachable **and** the model is available.
 
 Environment overrides: `OLLAMA_HOST`, `OLLAMA_MODEL`, `OLLAMA_SERVE_TIMEOUT_MS`.

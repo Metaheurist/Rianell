@@ -54,7 +54,8 @@ test('classifyResearchAction and refine prefixes', () => {
 test('redactKey never returns full secret', () => {
   const full = 'fc-TESTKEY000000000000000000000001';
   const hint = redactKey(full);
-  assert.ok(hint.includes('...'));
+  // ASCII ellipsis — Windows consoles mojibake U+2026
+  assert.ok(hint.includes('...') || hint.includes('…'));
   assert.ok(!hint.includes('TESTKEY000000'));
 });
 

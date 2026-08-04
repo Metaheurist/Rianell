@@ -16,8 +16,8 @@ POST /api/agentic/run-all { "dryRun": true, "skip": [], "stopOnBroken": false }
 
 Order (model-grouped):
 
-1–11 · `qwen2.5-coder:32b`: design → planning → rtl → a11y → seo → privacy → security → deps → migration → bootllm → perf  
-12–14 · `qwen2.5-coder:14b`: changelog → wikisync → image  
+1–11 · `qwen3.6:35b`: design → planning → rtl → a11y → seo → privacy → security → deps → migration → bootllm → perf  
+12–14 · `qwen3:14b`: changelog → wikisync → image  
 15 · `translategemma:27b`: i18n  
 16 · `gemma4:31b-it-qat`: visual  
 

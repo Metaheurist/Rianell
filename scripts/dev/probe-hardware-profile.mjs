@@ -79,7 +79,7 @@ export function classifyProfile(gpus) {
         profile: 'dual_12_16',
         gpus: sorted,
         maxConcurrentLarge: 2,
-        maxModelVramGb: 19,
+        maxModelVramGb: 22,
         detectedReason: 'classic-12-16-split',
       };
     }
@@ -119,12 +119,12 @@ export function classifyProfile(gpus) {
       detectedReason: 'single-24-class',
     };
   }
-  if (top >= 14) {
+    if (top >= 14) {
     return {
       profile: 'single_16',
       gpus: sorted,
       maxConcurrentLarge: 1,
-      maxModelVramGb: 19,
+      maxModelVramGb: 22,
       detectedReason: 'single-16-class',
     };
   }

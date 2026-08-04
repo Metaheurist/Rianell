@@ -38,14 +38,14 @@ test('run-all order keeps same recommended model contiguous', () => {
 test('apply-queue sorts jobs by model group then pack order', () => {
   const order = runAllOrder();
   const ranks = modelGroupRanks(order);
-  assert.ok(ranks.has('qwen2.5-coder:32b'));
-  assert.ok(ranks.get('qwen2.5-coder:32b') < ranks.get('translategemma:27b'));
+  assert.ok(ranks.has('qwen3.6:35b'));
+  assert.ok(ranks.get('qwen3.6:35b') < ranks.get('translategemma:27b'));
 
   const jobs = [
     { id: '1', packId: 'i18n', model: 'translategemma:27b', enqueuedAt: '2026-01-01T00:00:02Z', status: 'queued' },
-    { id: '2', packId: 'design', model: 'qwen2.5-coder:32b', enqueuedAt: '2026-01-01T00:00:01Z', status: 'queued' },
-    { id: '3', packId: 'changelog', model: 'qwen2.5-coder:14b', enqueuedAt: '2026-01-01T00:00:00Z', status: 'queued' },
-    { id: '4', packId: 'rtl', model: 'qwen2.5-coder:32b', enqueuedAt: '2026-01-01T00:00:03Z', status: 'queued' },
+    { id: '2', packId: 'design', model: 'qwen3.6:35b', enqueuedAt: '2026-01-01T00:00:01Z', status: 'queued' },
+    { id: '3', packId: 'changelog', model: 'qwen3:14b', enqueuedAt: '2026-01-01T00:00:00Z', status: 'queued' },
+    { id: '4', packId: 'rtl', model: 'qwen3.6:35b', enqueuedAt: '2026-01-01T00:00:03Z', status: 'queued' },
   ];
   const sorted = sortJobsByModelGroup(jobs, order);
   assert.deepEqual(sorted.map((j) => j.packId), ['design', 'rtl', 'changelog', 'i18n']);

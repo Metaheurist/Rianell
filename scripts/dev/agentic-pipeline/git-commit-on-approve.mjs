@@ -70,14 +70,14 @@ async function pickCommitModel(packId, preferred) {
   try {
     const ps = await ollamaPs();
     const loaded = (ps.models || []).map((m) => m.name || m.model).filter(Boolean);
-    const prefer = ['qwen2.5-coder:14b', 'qwen2.5-coder:3b', 'qwen2.5-coder:32b'];
+    const prefer = ['qwen3:14b', 'qwen3:8b', 'qwen3-coder:30b', 'qwen3.6:35b'];
     for (const p of prefer) {
       if (loaded.some((n) => n === p || n.startsWith(`${p}/`) || n.startsWith(`${p}:`))) return p;
     }
     if (loaded[0]) return loaded[0];
   } catch { /* ignore */ }
   const resolved = resolvePackModel(packId);
-  return resolved?.model || 'qwen2.5-coder:14b';
+  return resolved?.model || 'qwen3:14b';
 }
 
 /**
