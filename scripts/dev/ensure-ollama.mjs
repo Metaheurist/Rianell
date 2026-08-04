@@ -13,7 +13,7 @@
  * Usage:
  *   node scripts/dev/ensure-ollama.mjs                 # uses default model
  *   node scripts/dev/ensure-ollama.mjs qwen3.6:35b
- *   node scripts/dev/ensure-ollama.mjs --model=qwen2.5-coder:32b
+ *   node scripts/dev/ensure-ollama.mjs --model=qwen3.6:35b
  *   node scripts/dev/ensure-ollama.mjs --pack=security
  */
 import { spawn, spawnSync } from 'node:child_process';
@@ -47,7 +47,7 @@ function resolveModelArg() {
       /* fall through */
     }
   }
-  return model || 'qwen2.5-coder:32b';
+  return model || 'qwen3.6:35b';
 }
 
 const MODEL = resolveModelArg();

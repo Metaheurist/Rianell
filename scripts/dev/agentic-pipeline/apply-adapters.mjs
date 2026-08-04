@@ -176,7 +176,9 @@ function resolveItemAdapter(packId, it) {
   if (it.kind === 'file_write' || it.kind === 'file_create') adapter = 'research-file-write';
   if (it.kind === 'script_run') adapter = 'research-script-run';
   if (it.kind === 'tidy') adapter = 'research-tidy';
-  if (packId === 'security' && /csp|header/i.test(it.title)) {
+  // Ack-only review notes may mention CSP/headers; refuse only mutation adapters.
+  if (packId === 'security' && /csp|header/i.test(it.title || '')
+    && adapter !== 'ack' && adapter !== 'write-approved-artifact') {
     return { ok: false, error: 'refuse CSP/header mutation from harness' };
   }
   return { ok: true, adapter };
@@ -376,8 +378,9 @@ export async function approvePack(packId, opts = {}) {
   if (!items.length) return { ok: false, error: { code: 'empty', message: 'no items selected' } };
 
   for (const it of items) {
-    if (packId === 'security' && /csp|header/i.test(it.title)) {
-      return { ok: false, error: { code: 409, message: 'refuse CSP/header mutation from harness' } };
+    const resolved = resolveItemAdapter(packId, it);
+    if (!resolved.ok) {
+      return { ok: false, error: { code: 409, message: String(resolved.error) } };
     }
   }
 

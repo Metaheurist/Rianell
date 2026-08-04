@@ -23,6 +23,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
 ### Changed
+- **Agentic default models:** catalog + local-brain preflight use Qwen 3 family (`qwen3.6:35b` / `qwen3:14b` / `qwen3:8b`); Qwen 2.5 marked rejected for defaults. Ollama client sends `think: false` so Qwen3.6 does not hang packs on empty `response`.
+- **Agentic security approve:** CSP/header title guard refuses mutation adapters only (`ack` / artifact notes still allowed).
 - **Agentic git on Approve:** when `gitCommitOnApprove` is checked, each selected item gets its own LLM-authored conventional commit, then the pack Approves with a single `git push` (no force). Falls back to a template message if Ollama is unavailable (`AGENTIC_SKIP_COMMIT_LLM=1` / `AGENTIC_SKIP_GIT_PUSH=1` for offline).
 - **Agentic Clear-all confirm:** shorter copy; destructive **Clear** control uses danger (red) styling.
 - **Agentic Approve stage:** action chips (confirm write / Approve / Reject) and pack hops sit in a footer below the scrolling item list so they no longer overlay proposals.

@@ -47,19 +47,19 @@ test('manual override replaces auto classification', () => {
 
 test('resolvePackModel downshifts on tight profile budget', () => {
   const full = resolvePackModel('design');
-  assert.equal(full.model, 'qwen2.5-coder:32b');
+  assert.equal(full.model, 'qwen3.6:35b');
   const small = resolvePackModel('design', null, undefined, {
     profile: 'single_12',
     maxModelVramGb: 12,
   });
-  assert.equal(small.model, 'qwen2.5-coder:14b');
+  assert.equal(small.model, 'qwen3:14b');
   assert.equal(small.profileRemapped, true);
 });
 
 test('explicit model request is not remapped', () => {
-  const r = resolvePackModel('design', 'qwen2.5-coder:32b', undefined, {
+  const r = resolvePackModel('design', 'qwen3.6:35b', undefined, {
     maxModelVramGb: 8,
   });
-  assert.equal(r.model, 'qwen2.5-coder:32b');
+  assert.equal(r.model, 'qwen3.6:35b');
   assert.equal(r.profileRemapped, false);
 });
