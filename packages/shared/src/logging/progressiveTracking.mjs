@@ -1,4 +1,4 @@
-/** Plan 04 L1 — progressive category unlock paired with S2 tracking profile. */
+/** Plan 04 L1 - progressive category unlock paired with S2 tracking profile. */
 
 import { normalizeTrackingProfile } from '../settings/trackingProfile.mjs';
 

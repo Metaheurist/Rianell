@@ -26,7 +26,7 @@ export function getConsentBlockReason(prefs, ctx, opts = {}) {
   );
   if (!health.available) {
     if (p.privacyRegion !== 'eea_uk' && isPrivacyRegionConfigured(p)) {
-      /* Non-EEA first-run skips explicit health step — region confirmation is sufficient. */
+      /* Non-EEA first-run skips explicit health step - region confirmation is sufficient. */
     } else if (health.reason === 'missing_consent') {
       return 'missing-health-consent';
     } else {

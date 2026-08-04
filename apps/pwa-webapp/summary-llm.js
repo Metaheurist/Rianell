@@ -25,7 +25,7 @@
   // Model chosen for this session, pinned once WebGPU availability is known. Tier
   // selection depends on async signals (WebGPU probe, DeviceBenchmark) that settle
   // over the first minute; without a pin, a late upgrade (small→large) would dispose
-  // the in-progress engine and re-download — the "reaches 100% then restarts" loop.
+  // the in-progress engine and re-download - the "reaches 100% then restarts" loop.
   var sessionModelId = null;
   // Per-file byte tallies for the active download so overall progress reflects the
   // whole model (all shards/files), not each file cycling 0→100 independently.
@@ -958,7 +958,7 @@
     if (maxTotal > 0) {
       var frac = maxLoaded / maxTotal;
       if (maxTotal < BIG_FILE_MIN) {
-        // Only small metadata files seen so far — keep the bar in an early range
+        // Only small metadata files seen so far - keep the bar in an early range
         // instead of jumping to 100% before the weights download begins.
         pct = Math.min(10, Math.round(frac * 10));
       } else {
@@ -968,8 +968,8 @@
     } else if (data.status === 'progress' && data.total) {
       pct = Math.round((data.loaded / data.total) * 100);
     } else if (data.progress != null) {
-      // transformers.js reports `progress` as a percentage (0–100); older builds use
-      // a 0–1 fraction. Normalise both without double-scaling.
+      // transformers.js reports `progress` as a percentage (0-100); older builds use
+      // a 0-1 fraction. Normalise both without double-scaling.
       var p = Number(data.progress);
       pct = Math.round(p > 1 ? p : p * 100);
     }
@@ -994,7 +994,7 @@
       status = finalizing ? 'finalizing' : (data.status || downloadProgressState.status);
       if (finalizing && !finalizeWatchdog) {
         // Guard against a hung compile/warmup so the UI can never sit at ~100%
-        // forever — fail with a retry instead.
+        // forever - fail with a retry instead.
         var watchGen = loadGeneration;
         finalizeWatchdog = setTimeout(function () {
           finalizeWatchdog = null;
@@ -1009,7 +1009,7 @@
           }
         }, FINALIZE_TIMEOUT_MS);
       } else if (!finalizing && finalizeWatchdog) {
-        // More download work resumed (e.g. a second shard) — cancel the finalize guard.
+        // More download work resumed (e.g. a second shard) - cancel the finalize guard.
         clearFinalizeWatchdog();
       }
     }
@@ -1163,7 +1163,7 @@
     var modelId = options.modelId || getResolvedModelId();
     if (cachedPipeline && cachedModelId === modelId) return cachedPipeline;
     // Claim the in-flight slot synchronously (before any await) so concurrent
-    // callers dedupe. Consent is prompted *inside* the promise — otherwise callers
+    // callers dedupe. Consent is prompted *inside* the promise - otherwise callers
     // arriving during the async consent prompt would each pass this guard and start
     // a duplicate load, stomping shared cached* state (download loop + engine misroute).
     if (loadInFlight) return loadInFlight;
@@ -1192,7 +1192,7 @@
 
       await ensureGpuCandidatesReady();
 
-      // WebGPU availability is now known — pin the definitive model for the session.
+      // WebGPU availability is now known - pin the definitive model for the session.
       // Resolving here (rather than at call time) prevents the small→large upgrade
       // that fires once the WebGPU probe/benchmark settle, which would otherwise
       // dispose the in-progress engine and restart the download from 0%.
@@ -1431,7 +1431,7 @@
     // is only known after ensurePipelineLoaded settles (on first run the caller's
     // cachedActiveEngine is still the 'onnx' default, and cachedMlcEngine is null),
     // so branching before the load would misroute an MLC marker into the callable
-    // ONNX path — the source of "pipe is not a function".
+    // ONNX path - the source of "pipe is not a function".
     return runQueued(async function () {
       var pipe = await ensurePipelineLoaded(pipelineOptions || {});
       if (cachedActiveEngine === 'gguf' && window.RianellLlmGguf) {

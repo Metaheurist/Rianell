@@ -1,4 +1,4 @@
-/** Plan Visual Upgrade P4 — lazy-loaded WebGL chunk marker. */
+/** Plan Visual Upgrade P4 - lazy-loaded WebGL chunk marker. */
 export async function lazyLoadWebGL() {
   if (typeof window === 'undefined') return null;
   if (window.RianellWebGL) return window.RianellWebGL;

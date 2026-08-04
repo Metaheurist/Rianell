@@ -11,7 +11,7 @@ function mean(values) {
   return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
-/** Accept only 0–10 scale values (ignores corrupted or out-of-range logs). */
+/** Accept only 0-10 scale values (ignores corrupted or out-of-range logs). */
 export function readScaleMetric(log, field) {
   const raw = log?.[field];
   if (raw == null || raw === '') return null;

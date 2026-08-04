@@ -62,7 +62,7 @@
   --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
   --shadow-focus: 0 0 0 2px var(--primary-color);
 
-  /* Design tokens: spacing (4px base — sync @rianell/tokens) */
+  /* Design tokens: spacing (4px base - sync @rianell/tokens) */
   --space-unit: 0.25rem;
   --space-xxs: 2px;
   --space-xs: 4px;
@@ -74,7 +74,7 @@
   --space-xxl: 48px;
   --space-section: 64px;
 
-  /* Surface tokens — mirror @rianell/tokens SURFACE_TOKENS.dark */
+  /* Surface tokens - mirror @rianell/tokens SURFACE_TOKENS.dark */
   --surface-card: rgba(0, 0, 0, 0.18);
   --surface-card-solid: rgba(22, 24, 26, 0.88);
   --surface-glass: rgba(255, 255, 255, 0.08);
@@ -107,7 +107,7 @@
   --card-bg-light: rgba(255, 255, 255, 0.95);
   --border-light: var(--accent-soft);
 
-  /* Animation timings — legacy aliases map to @rianell/tokens motion ladder */
+  /* Animation timings - legacy aliases map to @rianell/tokens motion ladder */
   --transition-fast: var(--dur-fast) var(--ease-out-expo);
   --transition-normal: var(--dur-normal) var(--ease-out-expo);
   --transition-slow: var(--dur-slow) var(--ease-out-expo);
@@ -142,7 +142,7 @@
 
   --radius-full: 999px;
 
-  /* Boot / recovery overlays (@rianell/recovery-tokens — sync index.html critical CSS) */
+  /* Boot / recovery overlays (@rianell/recovery-tokens - sync index.html critical CSS) */
   --recovery-overlay-bg: var(--shell-bg);
   --recovery-overlay-text: var(--text-light);
   --recovery-btn-bg: var(--neon-lime-deep);
@@ -808,7 +808,7 @@ body.light-mode {
   --surface-header-tint: rgba(248, 253, 248, 0.96);
 }
 
-/* Light mode must follow the global theme team — do not leave mint greens when Red/Black (or others) is active. */
+/* Light mode must follow the global theme team - do not leave mint greens when Red/Black (or others) is active. */
 body.light-mode.theme-mint,
 body.light-mode:not(.theme-red-black):not(.theme-mono):not(.theme-rainbow) {
   --primary-color: #2e7d32;
@@ -1005,7 +1005,7 @@ body.light-mode .entry:hover {
   border-color: var(--accent-border-hover);
 }
 
-/* Prevent mouse-wheel scroll from triggering chart zoom — let the page scroll instead */
+/* Prevent mouse-wheel scroll from triggering chart zoom - let the page scroll instead */
 .apexcharts-canvas,
 .apexcharts-inner,
 [class*="apexcharts"] {
@@ -1569,7 +1569,7 @@ body.light-mode .motd-sway-wrap {
   /* NOTE: backdrop-filter is intentionally NOT set here. On dark themes
      --surface-main is ~96% opaque, so the blur is imperceptible, yet it
      creates a backdrop-root that some GPUs/compositors repaint as an opaque
-     white layer when a tab switch promotes/animates .tab-content — showing
+     white layer when a tab switch promotes/animates .tab-content - showing
      the "white square" behind the cards. Light mode re-adds the blur in the
      body.light-mode .container rule, where the panel is translucent enough
      for the glass effect to read (and the artifact does not surface). */
@@ -2954,7 +2954,7 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   gap: 0;
 }
 
-/* Phase 4: symptoms split — map left / scales right on wide viewports */
+/* Phase 4: symptoms split - map left / scales right on wide viewports */
 .symptoms-split-layout {
   display: flex;
   flex-direction: column;
@@ -4993,7 +4993,7 @@ body.light-mode .vitals-last-value-hint__value {
   }
 }
 
-/* Vital / BP idle outlines — readable before first interaction */
+/* Vital / BP idle outlines - readable before first interaction */
 .vital-widget[data-vital-active="false"],
 .bp-dial-widget[data-bp-active="false"] {
   --vital-idle-stroke: color-mix(in srgb, var(--vital-color, #8aa89a) 55%, rgba(255, 255, 255, 0.5));
@@ -6030,7 +6030,7 @@ body.light-mode .log-wizard-dot--done {
   }
 }
 
-/* Side rail navigation — lowkey, always available while wizard is open */
+/* Side rail navigation - lowkey, always available while wizard is open */
 .log-wizard-side-nav {
   display: flex;
   position: fixed;
@@ -8889,7 +8889,7 @@ body.light-mode .ai-pain-body-legend {
   font-style: italic;
 }
 
-/* Things to watch — ranked metric cards */
+/* Things to watch - ranked metric cards */
 .ai-watch-section {
   padding: 1.15rem 1.25rem 1.1rem;
 }
@@ -9339,7 +9339,7 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
   }
 }
 
-/* AI Analysis — semantic status tokens & chapter layout (2026 overhaul) */
+/* AI Analysis - semantic status tokens & chapter layout (2026 overhaul) */
 :root {
   --ai-status-optimal: var(--primary-color);
   --ai-status-optimal-bg: color-mix(in srgb, var(--primary-color) 12%, transparent);
@@ -9848,7 +9848,7 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
   text-transform: capitalize;
 }
 
-/* Lifestyle chapter — stat strip & panels */
+/* Lifestyle chapter - stat strip & panels */
 .ai-lifestyle-stat-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -12118,7 +12118,7 @@ body.light-mode .character-counter {
   transform-origin: 32px 36px;
 }
 
-/* Mobility — side-view running legs; cadence via --mobility-run-dur */
+/* Mobility - side-view running legs; cadence via --mobility-run-dur */
 @property --metric-fill-pct {
   syntax: '<percentage>';
   inherits: true;
@@ -12196,7 +12196,7 @@ body.light-mode .character-counter {
   animation: metricMobilityShadowPulse var(--mobility-run-dur, 1s) ease-in-out infinite;
 }
 
-/* Sagittal swing — facing right; near/far legs opposite phase */
+/* Sagittal swing - facing right; near/far legs opposite phase */
 @keyframes metricMobilityThighNear {
   0%, 100% { transform: rotate(40deg); }
   50% { transform: rotate(-44deg); }
@@ -12250,7 +12250,7 @@ body.light-mode .metric-mobility-shadow {
   overflow: visible;
 }
 
-/* Swelling — balloon on pin; scales from anchor with severity */
+/* Swelling - balloon on pin; scales from anchor with severity */
 .metric-widget--swelling .metric-widget__visual {
   flex: 0 0 64px;
   overflow: visible;
@@ -12427,7 +12427,7 @@ body.light-mode .metric-battery-cap {
   50% { opacity: 1; transform: scale(1.15); }
 }
 
-/* Mood — animated face (sad → happy) */
+/* Mood - animated face (sad → happy) */
 .metric-widget--mood .metric-widget__icon-wrap {
   border-radius: 50%;
   overflow: visible;
@@ -12512,7 +12512,7 @@ body.light-mode .metric-battery-cap {
   max-width: 58px;
 }
 
-/* Irritability — chill frustrated face ↔ thought cloud + escaping frustrations */
+/* Irritability - chill frustrated face ↔ thought cloud + escaping frustrations */
 .metric-widget--irritability {
   --irrit-anger: 0;
 }
@@ -12631,7 +12631,7 @@ body.light-mode .metric-battery-cap {
   }
 }
 
-/* Weather — cloud fades toward clear; sun shines at wellness 8–10 */
+/* Weather - cloud fades toward clear; sun shines at wellness 8-10 */
 .metric-svg--weather {
   overflow: visible;
 }
@@ -12961,7 +12961,7 @@ input[type="range"]:active::-moz-range-thumb {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
-/* Stepped range sliders (analysis / chart / log / mood / prediction) — override generic range pseudo-elements */
+/* Stepped range sliders (analysis / chart / log / mood / prediction) - override generic range pseudo-elements */
 .range-slider-group input[type="range"].range-slider {
   --slider-fill-color: var(--primary-color);
   height: auto;
@@ -14146,7 +14146,7 @@ body.loading .header-buttons-wrap {
   pointer-events: none !important;
 }
 
-/* Recovery overlays (CSS-fail + boot timeout) — tokens also in index.html critical CSS */
+/* Recovery overlays (CSS-fail + boot timeout) - tokens also in index.html critical CSS */
 .rianell-recovery-overlay {
   position: fixed;
   inset: 0;
@@ -18044,7 +18044,7 @@ body.light-mode .energy-clarity-chip--negative {
   position: relative;
 }
 
-/* Picker chips are compact tiles — override global button { width:100%; margin; min-height } */
+/* Picker chips are compact tiles - override global button { width:100%; margin; min-height } */
 button.food-chip,
 button.exercise-chip,
 button.stressor-chip,
@@ -18848,7 +18848,7 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   text-align: center;
 }
 
-/* Header buttons: bug (left) + goals/settings (right) — siblings of .app-main-scroll */
+/* Header buttons: bug (left) + goals/settings (right) - siblings of .app-main-scroll */
 .header-buttons-wrap {
   position: fixed;
   top: max(24px, env(safe-area-inset-top, 0px));
@@ -19922,7 +19922,7 @@ body.light-mode .goals-value-label {
   margin-bottom: 0;
 }
 
-/* Goals progress block on Home tab — Phase 2 flat bento */
+/* Goals progress block on Home tab - Phase 2 flat bento */
 .goals-progress-block {
   margin: 0;
   padding: 14px 16px 12px;
@@ -21108,7 +21108,7 @@ body.settings-modal-open {
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-color) 74%, transparent), 0 0 0 2px color-mix(in srgb, var(--primary-color) 26%, transparent);
 }
 
-/* Horizontal clip only — vertical scroll lives on each pane (not the track). */
+/* Horizontal clip only - vertical scroll lives on each pane (not the track). */
 .settings-carousel-viewport {
   container-type: inline-size;
   container-name: settings-carousel;
@@ -21649,7 +21649,7 @@ body.light-mode .settings-consent-dashboard h5 {
   max-width: 100%;
 }
 
-/* Passphrase setup fields — both rows use the same fixed input width
+/* Passphrase setup fields - both rows use the same fixed input width
    so labels of different lengths don't cause unequal field sizes. */
 .app-lock-passphrase-field {
   flex: 0 0 160px;
@@ -22049,7 +22049,7 @@ body.light-mode .settings-performance-advanced-body .settings-sub-label {
 
 body.light-mode .settings-data-btn--primary,
 body.light-mode .settings-data-btn--accent {
-  /* Dark ink on white chrome — never use neon-lime primary as label colour */
+  /* Dark ink on white chrome - never use neon-lime primary as label colour */
   color: var(--text-dark);
 }
 
@@ -23139,7 +23139,7 @@ body.light-mode .danger-zone {
     font-size: 0.85rem;
   }
 
-  /* Log wizard side rails + compact skip — exempt from global mobile button sizing */
+  /* Log wizard side rails + compact skip - exempt from global mobile button sizing */
   .log-wizard-side-nav {
     min-height: 72px !important;
     height: 72px;
@@ -27551,7 +27551,7 @@ body.light-mode .mood-sparkline-wrap {
   gap: 10px;
 }
 
-/* Mood Control Deck — unified 3D panel (Mood tab only) */
+/* Mood Control Deck - unified 3D panel (Mood tab only) */
 .mood-control-deck {
   --checkin-stop-icon-slot: 3.5rem;
   --checkin-stop-icon-size: 1.9rem;
@@ -27643,7 +27643,7 @@ body.light-mode .mood-sparkline-wrap {
 }
 
 .mood-deck-orbs {
-  /* Flat hit-testing — preserve-3d + translateZ on buttons breaks clicks in Chromium */
+  /* Flat hit-testing - preserve-3d + translateZ on buttons breaks clicks in Chromium */
   transform: none;
   position: relative;
   z-index: 2;
@@ -27682,7 +27682,7 @@ body.light-mode .mood-sparkline-wrap {
   box-shadow:
     0 6px 14px color-mix(in srgb, var(--surface-border) 45%, transparent),
     0 1px 0 color-mix(in srgb, var(--primary-color) 16%, transparent) inset;
-  /* 2D only — translateZ under a rotated parent steals / misses pointer hits */
+  /* 2D only - translateZ under a rotated parent steals / misses pointer hits */
   transform: scale(0.98);
   transition:
     transform var(--dur-fast) var(--ease-spring),
@@ -31060,7 +31060,7 @@ body.light-mode .mood-deck-tile-icon-svg {
   color: color-mix(in srgb, var(--primary-color) 86%, var(--light-ink-deep) 14%);
 }
 
-/* Graphics portfolio — avatar theme slots (values from tokens.css) */
+/* Graphics portfolio - avatar theme slots (values from tokens.css) */
 :root {
   --avatar-primary: var(--primary-color);
   --avatar-secondary: var(--secondary-color, color-mix(in srgb, var(--primary-color) 55%, white 45%));
@@ -31417,7 +31417,7 @@ body.light-mode .log-detail-pane {
   }
 }
 
-/* Heatmap cells are <button>s — beat global / light-mode button chrome */
+/* Heatmap cells are <button>s - beat global / light-mode button chrome */
 .mood-heatmap__cell,
 body.light-mode .mood-heatmap__cell,
 body.light-mode button.mood-heatmap__cell {
@@ -31476,7 +31476,7 @@ body.light-mode button.mood-heatmap__cell .mood-heatmap__cell-month {
   opacity: 0.85;
 }
 
-/* Tone tiles are pastel (mixed with white) — dark ink reads on all of them */
+/* Tone tiles are pastel (mixed with white) - dark ink reads on all of them */
 .mood-heatmap__cell--low .mood-heatmap__cell-day,
 .mood-heatmap__cell--moderate .mood-heatmap__cell-day,
 .mood-heatmap__cell--okay .mood-heatmap__cell-day,

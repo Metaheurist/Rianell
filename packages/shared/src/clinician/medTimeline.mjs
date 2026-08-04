@@ -1,4 +1,4 @@
-/** Plan 12 CL4 — medication / treatment timeline (A4-aligned, Gantt rows). */
+/** Plan 12 CL4 - medication / treatment timeline (A4-aligned, Gantt rows). */
 
 function mean(values) {
   if (!values.length) return null;
@@ -75,7 +75,7 @@ export function buildMedicationTimeline(logs, treatmentStarts = [], opts = {}) {
   return { rows, spanStart, spanEnd };
 }
 
-/** Semantic export SVG colors — mirror @rianell/tokens SEMANTIC_COLORS */
+/** Semantic export SVG colors - mirror @rianell/tokens SEMANTIC_COLORS */
 export const EXPORT_SVG_COLORS = {
   ink: '#1a1a1a',
   inkMuted: '#333333',

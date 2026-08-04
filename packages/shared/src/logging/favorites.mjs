@@ -1,4 +1,4 @@
-/** Plan 04 L2 — one-tap favorite meals, exercises, med combos. */
+/** Plan 04 L2 - one-tap favorite meals, exercises, med combos. */
 
 const MAX_FAVORITES = 24;
 

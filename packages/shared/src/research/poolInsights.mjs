@@ -1,4 +1,4 @@
-/** Plan 13 RE1 — k-anonymous cohort insights from per-user facets. */
+/** Plan 13 RE1 - k-anonymous cohort insights from per-user facets. */
 
 import { POOL_INSIGHT_MIN_K } from './poolGates.mjs';
 import { flareToBit } from './researchFacets.mjs';

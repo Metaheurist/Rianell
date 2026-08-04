@@ -392,7 +392,7 @@ function updateSettingsCarouselDots(activeIdx) {
 
 /**
  * Full settings module: carousel navigation, overlay open/close, keyboard trap.
- * @param {object} deps — callbacks from app.js (loadSettingsState, svgIcon, etc.)
+ * @param {object} deps - callbacks from app.js (loadSettingsState, svgIcon, etc.)
  */
 export function installSettingsModule(deps) {
   const svgIcon = deps.svgIcon;

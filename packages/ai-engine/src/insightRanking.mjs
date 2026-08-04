@@ -6,7 +6,7 @@ function slugId(text) {
     .slice(0, 40);
 }
 
-/** Layer 9 ranking — same rubric as PWA NeuralAnalysisNetwork.layerInterpretation */
+/** Layer 9 ranking - same rubric as PWA NeuralAnalysisNetwork.layerInterpretation */
 export function collectInsightCandidates(analysis) {
   const a = analysis && typeof analysis === 'object' ? analysis : {};
   const items = [];

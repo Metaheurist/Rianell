@@ -590,7 +590,7 @@ var RianellAIEngine = (() => {
       id: "ibs",
       watchMetrics: ["fatigue", "mood", "stressors"],
       triggers: ["stressor"],
-      advice: ["Log meals and stressors on flare days.", "Look for stress\u2013symptom overlap in correlations."]
+      advice: ["Log meals and stressors on flare days.", "Look for stress-symptom overlap in correlations."]
     }
   };
   function applyConditionPack(packId, analysis) {

@@ -1,4 +1,4 @@
-/** Migration helpers — single Supabase project; always unblocked. */
+/** Migration helpers - single Supabase project; always unblocked. */
 export function applyMigrationPendingFlag(prefs) {
   return { ...prefs, migrationPending: false };
 }

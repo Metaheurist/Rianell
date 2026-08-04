@@ -1,4 +1,4 @@
-/** Shared repository path constants — migrate to @rianell/build-tools in Phase 10 */
+/** Shared repository path constants - migrate to @rianell/build-tools in Phase 10 */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 

@@ -1,4 +1,4 @@
-/** Plan 14 X14.1 — Weekly Health Review ritual steps and gates. */
+/** Plan 14 X14.1 - Weekly Health Review ritual steps and gates. */
 
 export const WEEKLY_REVIEW_STEPS = [
   { id: 'correlations', i18n: 'weeklyReview.step.correlations' },

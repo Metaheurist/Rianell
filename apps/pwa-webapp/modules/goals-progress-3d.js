@@ -1,5 +1,5 @@
 /**
- * Rianell 3D goals depth — seven-day pillar charts inside each metric row.
+ * Rianell 3D goals depth - seven-day pillar charts inside each metric row.
  * Lazy-imports three.js; tier-gated like weather-orb-3d.js.
  */
 (function (global) {

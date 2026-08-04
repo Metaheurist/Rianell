@@ -25,7 +25,7 @@ function byDateAsc(a, b) {
 }
 
 /**
- * Plan 10 H4 — merge AM/midday/PM partial sub-entry without full wizard.
+ * Plan 10 H4 - merge AM/midday/PM partial sub-entry without full wizard.
  * @param {Array<Record<string, unknown>>} logs
  * @param {string} todayStr
  * @param {'AM'|'midday'|'PM'} period

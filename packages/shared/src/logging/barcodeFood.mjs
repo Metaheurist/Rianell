@@ -1,4 +1,4 @@
-/** Plan 04 L5 / Plan 17 NU1 — Open Food Facts barcode lookup + full-text search. */
+/** Plan 04 L5 / Plan 17 NU1 - Open Food Facts barcode lookup + full-text search. */
 
 const OFF_PRODUCT_API = 'https://world.openfoodfacts.org/api/v2/product';
 const OFF_SEARCH_API = 'https://world.openfoodfacts.org/cgi/search.pl';

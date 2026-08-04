@@ -1,4 +1,4 @@
-/** Plan 05 P5 — fields included/excluded in anonymized research pool contribution. */
+/** Plan 05 P5 - fields included/excluded in anonymized research pool contribution. */
 
 export const ANON_POOL_INCLUDED_FIELDS = [
   { id: 'date', labelKey: 'settings.privacy.anonPool.field.date' },

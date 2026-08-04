@@ -2,11 +2,11 @@
 
 export const CYCLE_DAY_MIN = 1;
 export const CYCLE_DAY_TYPICAL_MAX = 28;
-/** ACOG-cited typical upper bound — late messaging threshold (not phase-hint template). */
+/** ACOG-cited typical upper bound - late messaging threshold (not phase-hint template). */
 export const CYCLE_DAY_NORMAL_MAX = 35;
 /** Default day-selector pill count in wizard UI. */
 export const CYCLE_DAY_SELECTOR_MAX = 35;
-/** Irregular / adolescent storage cap (Clue cites 21–45 for early cycles). */
+/** Irregular / adolescent storage cap (Clue cites 21-45 for early cycles). */
 export const CYCLE_DAY_MAX = 45;
 
 export const CYCLE_PHASES = [
@@ -50,7 +50,7 @@ function isBackwardCompatPeriodStart(cycle) {
   return PERIOD_FLOW_IDS.has(cycle.flow);
 }
 
-/** Typical 28-day pattern — suggestion only; user can override. */
+/** Typical 28-day pattern - suggestion only; user can override. */
 export function suggestCyclePhaseForDay(day) {
   const n = typeof day === 'number' ? day : typeof day === 'string' ? parseInt(day, 10) : NaN;
   if (!Number.isFinite(n) || n < CYCLE_DAY_MIN) return undefined;

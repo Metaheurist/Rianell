@@ -1,4 +1,4 @@
-/** Plan 11 R1 — learn median log time; nudge if missed by median + grace. */
+/** Plan 11 R1 - learn median log time; nudge if missed by median + grace. */
 
 export const SMART_REMINDER_WINDOW_DAYS = 14;
 export const SMART_REMINDER_MIN_SAMPLES = 3;

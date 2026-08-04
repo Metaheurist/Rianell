@@ -1,4 +1,4 @@
-/** Plan 11 R5 — gentle re-engagement after 7 days idle; max one nudge per idle period. */
+/** Plan 11 R5 - gentle re-engagement after 7 days idle; max one nudge per idle period. */
 
 export const RE_ENGAGEMENT_IDLE_DAYS = 7;
 

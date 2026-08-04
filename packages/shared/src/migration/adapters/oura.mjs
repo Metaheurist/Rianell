@@ -1,4 +1,4 @@
-/** Plan 25 DM3 — Oura Ring CSV import. */
+/** Plan 25 DM3 - Oura Ring CSV import. */
 
 import { MigrationAdapter } from '../MigrationAdapter.mjs';
 

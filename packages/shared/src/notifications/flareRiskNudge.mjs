@@ -1,4 +1,4 @@
-/** Plan 11 R3 — flare-risk nudge from on-device fatigue anomaly (A5-aligned). */
+/** Plan 11 R3 - flare-risk nudge from on-device fatigue anomaly (A5-aligned). */
 
 function mean(values) {
   if (!values.length) return null;

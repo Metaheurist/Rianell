@@ -1,4 +1,4 @@
-/** Plan 25 — unified migration adapter interface. */
+/** Plan 25 - unified migration adapter interface. */
 
 export class MigrationAdapter {
   static get id() {

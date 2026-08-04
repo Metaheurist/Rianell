@@ -1,4 +1,4 @@
-/** N11 — PWA/RN on-device LLM policy; no user-supplied commercial inference endpoints. */
+/** N11 - PWA/RN on-device LLM policy; no user-supplied commercial inference endpoints. */
 
 export const BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = [
   /api\.openai\.com/i,

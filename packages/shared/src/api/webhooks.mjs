@@ -1,4 +1,4 @@
-/** Plan 18 API5 — webhook payload builder for client fire-and-forget delivery. */
+/** Plan 18 API5 - webhook payload builder for client fire-and-forget delivery. */
 
 /**
  * @param {object} opts

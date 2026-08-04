@@ -1,4 +1,4 @@
-/** Plan 23 CM1 — anonymous community tips (no user_id). */
+/** Plan 23 CM1 - anonymous community tips (no user_id). */
 
 export const COMMUNITY_TIP_CATEGORIES = ['trigger', 'treatment', 'lifestyle', 'general'];
 export const TIP_MAX_LENGTH = 500;

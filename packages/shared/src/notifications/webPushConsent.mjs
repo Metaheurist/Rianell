@@ -6,7 +6,7 @@ export function isConfiguredVapidPublicKey(vapidPublicKey) {
   return vapid.length > 0 && vapid !== 'YOUR_VAPID_PUBLIC_KEY';
 }
 
-/** Plan 11 R4 — gate Web Push opt-in on region, consent, and VAPID configuration. */
+/** Plan 11 R4 - gate Web Push opt-in on region, consent, and VAPID configuration. */
 export function canOfferWebPush(prefs, opts = {}) {
   const p = prefs && typeof prefs === 'object' ? prefs : {};
   const vapid = String(opts.vapidPublicKey || '').trim();

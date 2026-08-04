@@ -1,4 +1,4 @@
-/** Plan 04 L3 — medication scheduler (local-only; reminders wired in plan 11). */
+/** Plan 04 L3 - medication scheduler (local-only; reminders wired in plan 11). */
 
 const MAX_SCHEDULE = 20;
 

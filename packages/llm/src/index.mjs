@@ -46,7 +46,7 @@ export const DEFAULT_MODELS_STORAGE_BUCKET = 'llm-models';
 
 export const MODELS_REMOTE_PATH_TEMPLATE = 'models/{model}/resolve/{revision}/';
 
-/** Resolve remoteHost + pathTemplate for Transformers.js — HF Hub only at runtime. */
+/** Resolve remoteHost + pathTemplate for Transformers.js - HF Hub only at runtime. */
 export function resolveModelsRemoteHost(options = {}) {
   if (options.preferSupabase === true && options.supabaseUrl) {
     const supabaseBase = buildSupabaseModelsPublicBase(

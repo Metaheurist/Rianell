@@ -1,4 +1,4 @@
-/** Plan 26 — WCAG 2.2 helpers for focus, motion, and contrast checks. */
+/** Plan 26 - WCAG 2.2 helpers for focus, motion, and contrast checks. */
 
 export const WCAG_BODY_TEXT_MIN_CONTRAST = 4.5;
 export const WCAG_LARGE_TEXT_MIN_CONTRAST = 3;

@@ -1,4 +1,4 @@
-/** Plan 05 P4 — password-protected export envelope (PBKDF2 + AES-GCM). */
+/** Plan 05 P4 - password-protected export envelope (PBKDF2 + AES-GCM). */
 
 export const ENCRYPTED_EXPORT_FORMAT = 'rianell-encrypted-export-v1';
 export const ENCRYPTED_EXPORT_KDF_ITERATIONS = 120000;

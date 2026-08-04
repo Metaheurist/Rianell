@@ -1,4 +1,4 @@
-/** Plan 05 P3 — local-only mode gates outbound network features. */
+/** Plan 05 P3 - local-only mode gates outbound network features. */
 
 export const LOCAL_ONLY_NETWORK_FEATURES = [
   { id: 'cloudSync', labelKey: 'settings.privacy.localOnly.cloudSync' },
@@ -25,7 +25,7 @@ export function shouldAllowNetworkOperation(prefs, featureId) {
   return !blocked.has(featureId);
 }
 
-/** On-device AI model download/init — allowed in demo mode; blocked only by local-only. */
+/** On-device AI model download/init - allowed in demo mode; blocked only by local-only. */
 export function shouldAllowAiModelDownload(prefs) {
   return shouldAllowNetworkOperation(prefs, 'modelDownload');
 }

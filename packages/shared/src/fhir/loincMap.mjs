@@ -1,4 +1,4 @@
-/** Plan 20 SH2 — LOINC code map for FHIR Observation resources. */
+/** Plan 20 SH2 - LOINC code map for FHIR Observation resources. */
 
 export const LOINC_MAP = {
   mood: '72133-2',

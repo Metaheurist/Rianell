@@ -2,8 +2,7 @@
  * Rianell "view in your language" banner (SEO-safe, no auto-redirect).
  *
  * On the crawlable static marketing/feature pages, this reads the visitor's
- * browser language, and — only if a localized version of THIS page exists —
- * shows a small dismissable banner linking to it. It never redirects (that would
+ * browser language, and - only if a localized version of THIS page exists - * shows a small dismissable banner linking to it. It never redirects (that would
  * be cloaking and traps users), never runs on already-localized pages, and
  * remembers a dismissal in localStorage.
  *

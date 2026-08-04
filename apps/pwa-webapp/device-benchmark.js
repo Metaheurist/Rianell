@@ -1,8 +1,8 @@
 // ============================================
 // DEVICE BENCHMARK
-// Platform type (mobile/desktop), CPU benchmark → tier 1–5, expansive profile tables.
+// Platform type (mobile/desktop), CPU benchmark → tier 1-5, expansive profile tables.
 // Oriented around device performance and on-device AI runnability: each profile has
-// llmModelSize ('tier1'..'tier5') maps to tier 1–2 (small package) or tier 3–5 (large package).
+// llmModelSize ('tier1'..'tier5') maps to tier 1-2 (small package) or tier 3-5 (large package).
 // Load after device-module.js, before performance-utils.js. Cache in localStorage.
 // ============================================
 
@@ -882,7 +882,7 @@
 
     /**
      * Cooperative yield: one tickFn per macrotask.
-     * Never pack batches in a while-loop — cold V8 JIT can make one 8k arith batch take
+     * Never pack batches in a while-loop - cold V8 JIT can make one 8k arith batch take
      * hundreds of ms; packing several trips Chrome’s “Page Unresponsive” dialog on first boot.
      */
     function runWorkInSlices(tickFn, isDone, done) {

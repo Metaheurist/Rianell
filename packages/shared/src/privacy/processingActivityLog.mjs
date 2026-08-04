@@ -1,4 +1,4 @@
-/** Plan 05 P2 — append-only local processing activity log (sync, model, export). */
+/** Plan 05 P2 - append-only local processing activity log (sync, model, export). */
 
 export const PROCESSING_ACTIVITY_LOG_KEY = 'rianellProcessingActivityLog';
 export const PROCESSING_ACTIVITY_LOG_MAX = 500;

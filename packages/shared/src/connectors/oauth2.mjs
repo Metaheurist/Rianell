@@ -1,4 +1,4 @@
-/** Plan 19 CN1 — OAuth2 PKCE connector framework. */
+/** Plan 19 CN1 - OAuth2 PKCE connector framework. */
 
 export const OAUTH2_SCOPES = ['logs:read', 'metrics:read', 'goals:read', 'profile:read', 'logs:write'];
 
@@ -34,7 +34,7 @@ export function buildAuthorizeUrl(baseUrl, params) {
   return u.toString();
 }
 
-/** Connector provider registry (CN4–CN7). */
+/** Connector provider registry (CN4 - CN7). */
 export const CONNECTOR_PROVIDERS = {
   'google-sheets': { id: 'google-sheets', label: 'Google Sheets', oauth: true },
   withings: { id: 'withings', label: 'Withings', oauth: true },

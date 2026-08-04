@@ -1,4 +1,4 @@
-/** Plan 12 CL1 — appointment mode PDF sections (charts summary + brief + meds + flare calendar). */
+/** Plan 12 CL1 - appointment mode PDF sections (charts summary + brief + meds + flare calendar). */
 
 export const APPOINTMENT_DISCLAIMER =
   'Wellness tracking only, not medical advice, diagnosis, or treatment. Discuss patterns with your clinician.';

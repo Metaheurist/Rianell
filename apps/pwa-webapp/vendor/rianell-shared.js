@@ -3517,7 +3517,7 @@ var RianellShared = (() => {
       const parts = [];
       if (avgSleep != null && avgMood != null && avgFatigue != null) {
         parts.push(
-          `Across ${total} recent days, averages are sleep ${formatMetricAvg(avgSleep)}, mood ${formatMetricAvg(avgMood)}, fatigue ${formatMetricAvg(avgFatigue)} (1\u201310).`
+          `Across ${total} recent days, averages are sleep ${formatMetricAvg(avgSleep)}, mood ${formatMetricAvg(avgMood)}, fatigue ${formatMetricAvg(avgFatigue)} (1-10).`
         );
       } else {
         parts.push(`You logged ${total} days in this window.`);

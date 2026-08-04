@@ -1,4 +1,4 @@
-/** Shared tier 1–5 thresholds and tier → llmModelSize mapping (PWA + RN parity). */
+/** Shared tier 1-5 thresholds and tier → llmModelSize mapping (PWA + RN parity). */
 
 export const TIER_KEYS = ['tier1', 'tier2', 'tier3', 'tier4', 'tier5'];
 

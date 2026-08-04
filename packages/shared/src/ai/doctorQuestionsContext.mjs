@@ -1,4 +1,4 @@
-/** Plan 12 CL5 — LLM doctor questions from recent trends (wellness framing). */
+/** Plan 12 CL5 - LLM doctor questions from recent trends (wellness framing). */
 
 const MAX_CONTEXT_CHARS = 800;
 

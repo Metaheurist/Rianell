@@ -52,7 +52,7 @@ export function correlationConfidenceLevel(coef) {
 }
 
 /**
- * Plan 09 C1 — structured correlation cards from deterministic pearson pairs (A3/summary parity).
+ * Plan 09 C1 - structured correlation cards from deterministic pearson pairs (A3/summary parity).
  * @param {Array<Record<string, unknown>>} logs
  * @param {14|30|90|'all'|number} [range]
  */
@@ -92,7 +92,7 @@ function byDateAsc(a, b) {
 }
 
 /**
- * Plan 09 C2 — 7-day before/after flare post-mortem with diverging wellness metrics.
+ * Plan 09 C2 - 7-day before/after flare post-mortem with diverging wellness metrics.
  * @param {Array<Record<string, unknown>>} logs
  * @param {{ windowDays?: number, minDelta?: number, flareDate?: string }} [options]
  */
@@ -188,7 +188,7 @@ function summarizeMetricWindow(logs, startDate, endDate) {
 }
 
 /**
- * Plan 09 C4 — cycle phase bands for chart overlays (requires L7 cycle logs).
+ * Plan 09 C4 - cycle phase bands for chart overlays (requires L7 cycle logs).
  * @param {Array<Record<string, unknown>>} logs
  */
 export function buildCyclePhaseBands(logs) {
@@ -256,7 +256,7 @@ export function cycleBandsToApexAnnotations(bands) {
 }
 
 /**
- * Plan 09 C5 — compare this month vs last month (+ optional A4 treatment windows).
+ * Plan 09 C5 - compare this month vs last month (+ optional A4 treatment windows).
  * @param {Array<Record<string, unknown>>} logs
  * @param {{ refDate?: string, treatmentStarts?: Array<{ date: string, label?: string }> }} [options]
  */
@@ -304,7 +304,7 @@ function plannedSpoonsForIndex(sorted, index) {
 }
 
 /**
- * Plan 09 C9 — spoon/pacing series: planned capacity vs actual activity vs fatigue.
+ * Plan 09 C9 - spoon/pacing series: planned capacity vs actual activity vs fatigue.
  * @param {Array<Record<string, unknown>>} logs
  * @param {14|30|90|'all'|number} [range]
  */
@@ -347,7 +347,7 @@ function metricCatalog(customMetrics = []) {
 }
 
 /**
- * Plan 09 C3 — balance radar/spider series for RN + export.
+ * Plan 09 C3 - balance radar/spider series for RN + export.
  * @param {Array<Record<string, unknown>>} logs
  * @param {{ selectedFields?: string[], customMetrics?: Array<{ id: string, label: string, type: string }>, range?: number|'all' }} [options]
  */
@@ -414,7 +414,7 @@ export function buildPacingChartSeries(logs, range = 30) {
 }
 
 /**
- * Plan 10 H2 — today's spoon/energy budget (pairs with C9 pacing chart).
+ * Plan 10 H2 - today's spoon/energy budget (pairs with C9 pacing chart).
  * @param {Array<Record<string, unknown>>} logs
  * @param {string} todayStr YYYY-MM-DD
  */

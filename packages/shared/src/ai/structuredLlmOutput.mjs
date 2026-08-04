@@ -1,4 +1,4 @@
-/** N5 — parse and validate `{ insights[], actions[], confidence }` from LLM text. */
+/** N5 - parse and validate `{ insights[], actions[], confidence }` from LLM text. */
 export function parseStructuredLlmOutput(raw) {
   if (!raw || typeof raw !== 'string') return null;
   let parsed;

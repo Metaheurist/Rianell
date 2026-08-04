@@ -1,4 +1,4 @@
-/** Plan 17 NU5 — meal photo attachment helpers (category: food). */
+/** Plan 17 NU5 - meal photo attachment helpers (category: food). */
 
 export const MEAL_PHOTO_CATEGORY = 'food';
 export const MEAL_PHOTO_BUCKET = 'health-photos';

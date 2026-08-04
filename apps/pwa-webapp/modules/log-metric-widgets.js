@@ -343,7 +343,7 @@
     widget.style.setProperty('--mobility-run-dur', dur + 's');
   }
 
-  /** Balloon scales from the pin anchor (36, 72) — matches low / mid / high reference frames. */
+  /** Balloon scales from the pin anchor (36, 72) - matches low / mid / high reference frames. */
   var BALLOON_SCALE_LOW = { sx: 0.38, sy: 0.34, ty: 10, lean: 0 };
   var BALLOON_SCALE_MID = { sx: 0.72, sy: 0.68, ty: 2, lean: -1 };
   var BALLOON_SCALE_HIGH = { sx: 1.05, sy: 1.08, ty: -4, lean: -5 };

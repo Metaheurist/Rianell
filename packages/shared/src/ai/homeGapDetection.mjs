@@ -1,4 +1,4 @@
-/** Plan 10 H7 — yesterday logging gaps → single daily contextual home question. */
+/** Plan 10 H7 - yesterday logging gaps → single daily contextual home question. */
 
 import { filterLogsForHomeSuggestions } from './homeSuggestions.mjs';
 

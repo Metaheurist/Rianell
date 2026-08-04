@@ -1,4 +1,4 @@
-/** Plan 23 CM3 — community-curated trigger library (k≥5). */
+/** Plan 23 CM3 - community-curated trigger library (k≥5). */
 
 import { COHORT_MIN_K } from './cohortInsights.mjs';
 

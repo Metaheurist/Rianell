@@ -1,5 +1,5 @@
 /**
- * graphics-portfolio.js — Avatar entities, metric companions, achievement icons.
+ * graphics-portfolio.js - Avatar entities, metric companions, achievement icons.
  * Namespace: window.RianellGraphicsPortfolio
  */
 (function (global) {
@@ -96,7 +96,7 @@
     svg.appendChild(sym);
   }
 
-  /** CSS paint with fallbacks — empty --avatar-secondary must not wipe strokes/fills. */
+  /** CSS paint with fallbacks - empty --avatar-secondary must not wipe strokes/fills. */
   var AVATAR_FILL_PRIMARY = 'fill="var(--avatar-primary, var(--primary-color, currentColor))"';
   var AVATAR_FILL_SECONDARY = 'fill="var(--avatar-secondary, var(--avatar-primary, var(--primary-color, currentColor)))"';
   var AVATAR_STROKE_SECONDARY = 'stroke="var(--avatar-secondary, var(--avatar-primary, var(--primary-color, currentColor)))" stroke-width="1.5" fill="none"';

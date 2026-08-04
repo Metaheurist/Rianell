@@ -23,7 +23,7 @@ export function getTutorialVisibleIndices(aiEnabled) {
 }
 
 /**
- * Canonical induction progress track — keeps completed steps in the sequence so
+ * Canonical induction progress track - keeps completed steps in the sequence so
  * `current` does not jump when prefs update mid-wizard.
  * @param {Record<string, unknown>} prefs
  * @param {import('./firstRunSteps.mjs').FirstRunPlatformContext} ctx
@@ -107,7 +107,7 @@ function inductionStepsEqual(a, b) {
 
 /**
  * Grow session progress when conditional steps appear (e.g. EEA health consent).
- * Never removes steps already shown — completed steps stay in the 1–N counter.
+ * Never removes steps already shown - completed steps stay in the 1 - N counter.
  * @param {ReturnType<typeof buildInductionProgressSteps>} existing
  * @param {ReturnType<typeof buildInductionProgressSteps>} next
  */

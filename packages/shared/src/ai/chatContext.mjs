@@ -1,5 +1,5 @@
 /**
- * Health chat LLM context — richer than week-chat, with screening exclusion and redaction.
+ * Health chat LLM context - richer than week-chat, with screening exclusion and redaction.
  * Ephemeral chat only; callers must not persist assembled prompts.
  */
 

@@ -1,4 +1,4 @@
-/** Plan 13 — unified anonymized log payload (PWA + RN parity). */
+/** Plan 13 - unified anonymized log payload (PWA + RN parity). */
 
 import { buildResearchFacetsFromLog } from './researchFacets.mjs';
 

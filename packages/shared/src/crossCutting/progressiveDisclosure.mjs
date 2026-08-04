@@ -1,4 +1,4 @@
-/** Plan 14 X14.3 — progressive disclosure schedule (L1/S2/S5). */
+/** Plan 14 X14.3 - progressive disclosure schedule (L1/S2/S5). */
 
 export const PROGRESSIVE_DISCLOSURE_MILESTONES = [
   { id: 'day1', i18n: 'progressiveDisclosure.milestone.day1', unlockDay: 0 },

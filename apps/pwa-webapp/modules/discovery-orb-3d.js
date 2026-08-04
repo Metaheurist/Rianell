@@ -1,5 +1,5 @@
 /**
- * Rianell 3D discovery orb — neural pulse for the Ask Rianell header.
+ * Rianell 3D discovery orb - neural pulse for the Ask Rianell header.
  * Lazy-imports three.js; tier-gated like weather-orb-3d.js.
  */
 (function (global) {

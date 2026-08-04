@@ -1,4 +1,4 @@
-/** Plan 13 — gates for anonymized pool contribution and insight viewing. */
+/** Plan 13 - gates for anonymized pool contribution and insight viewing. */
 
 export const POOL_INSIGHT_MIN_K = 5;
 export const POOL_CONTRIBUTION_MIN_DAYS = 90;

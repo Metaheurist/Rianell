@@ -1,8 +1,8 @@
-/** Plan 17 NU4 — per-serving macro calculation from per-100g nutrients. */
+/** Plan 17 NU4 - per-serving macro calculation from per-100g nutrients. */
 
 /**
  * @param {{ nutrients?: { energy_kcal?: number, proteins_g?: number, carbohydrates_g?: number, fat_g?: number, fiber_g?: number } }} food
- * @param {number} servingGrams — grams consumed (default 100)
+ * @param {number} servingGrams - grams consumed (default 100)
  */
 export function calculateMacrosForServing(food, servingGrams = 100) {
   const g = Math.max(0, Number(servingGrams) || 100);

@@ -1,5 +1,5 @@
 /**
- * Produces apps/pwa-webapp/.web-dist/ — a full copy with first-party JS/CSS minified
+ * Produces apps/pwa-webapp/.web-dist/ - a full copy with first-party JS/CSS minified
  * and index.html pointing at content-hashed app + styles bundles.
  *
  * Run after build-site.mjs --skip-trace (writes asset-manifest.json + app.<hash>.min.js).
@@ -23,10 +23,10 @@ function mkdirp(dir) {
 }
 
 const SKIP_DIRS = new Set(['.trace-build', '.web-dist', 'build-plugins', 'node_modules']);
-/** Build tooling at web root — not part of the shipped app */
+/** Build tooling at web root - not part of the shipped app */
 const SKIP_FILES = new Set(['build-site.mjs', 'build-min-dist.mjs', 'fingerprint-assets.mjs']);
 
-/** Already minified / special — copy as-is */
+/** Already minified / special - copy as-is */
 function isPreMinifiedJs(name) {
   if (name === 'apexcharts.min.js') return true;
   if (name === 'app.min.js') return true;

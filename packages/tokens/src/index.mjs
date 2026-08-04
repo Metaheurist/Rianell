@@ -15,7 +15,7 @@ export const SPACING_TOKENS = {
   section: 64,
 };
 
-/** Surface fills — dark/light pairs for cards, glass, modals. */
+/** Surface fills - dark/light pairs for cards, glass, modals. */
 export const SURFACE_TOKENS = {
   dark: {
     card: 'rgba(0,0,0,0.18)',
@@ -33,7 +33,7 @@ export const SURFACE_TOKENS = {
   },
 };
 
-/** Achievement tier ring colors — mirror graphics-portfolio.css badge tiers */
+/** Achievement tier ring colors - mirror graphics-portfolio.css badge tiers */
 export const ACHIEVEMENT_TIER_COLORS = {
   bronze: '#CD7F32',
   silver: '#A8B4C4',
@@ -44,7 +44,7 @@ export const ACHIEVEMENT_TIER_COLORS = {
 /** Text on primary/accent fills (mint team default). */
 export const ON_ACCENT = '#041008';
 
-/** Semantic UI colors — mirror apps/pwa-webapp/styles.css :root tokens. */
+/** Semantic UI colors - mirror apps/pwa-webapp/styles.css :root tokens. */
 const SEMANTIC_COLORS = {
   success: '#4caf50',
   danger: '#f44336',
@@ -74,8 +74,8 @@ export function resolveSurfaceTokens(mode = 'dark') {
   return mode === 'light' ? SURFACE_TOKENS.light : SURFACE_TOKENS.dark;
 }
 
-/** Boot / loading overlay palette — keep web index.html critical CSS in sync (search: @rianell/loader-tokens). */
-/** Recovery overlay/button layout — keep web index.html + styles.css in sync (search: @rianell/recovery-tokens). */
+/** Boot / loading overlay palette - keep web index.html critical CSS in sync (search: @rianell/loader-tokens). */
+/** Recovery overlay/button layout - keep web index.html + styles.css in sync (search: @rianell/recovery-tokens). */
 export const RECOVERY_TOKENS = {
   btnPaddingY: '0.45rem',
   btnPaddingX: '0.875rem',
@@ -87,7 +87,7 @@ export const RECOVERY_TOKENS = {
   btnIcon: '#ffffff',
 };
 
-// ─── OASIS TOKENS — UI Oasis Overhaul v2.1.0 ──────────────────────────────
+// ─── OASIS TOKENS - UI Oasis Overhaul v2.1.0 ──────────────────────────────
 // search: @rianell/oasis-tokens
 export const OASIS_TOKENS = {
   motion: {
@@ -132,7 +132,7 @@ export const OASIS_TOKENS = {
 };
 // ─── END OASIS TOKENS ───────────────────────────────────────────────────────
 
-// ─── THEME FX TOKENS — Per-team ambient + intensity (Team Experiences) ─────
+// ─── THEME FX TOKENS - Per-team ambient + intensity (Team Experiences) ─────
 // search: @rianell/theme-fx-tokens
 export const THEME_FX_TOKENS = {
   budgets: {
@@ -143,7 +143,7 @@ export const THEME_FX_TOKENS = {
   },
   intensities: ['off', 'subtle', 'bold'],
   defaultIntensity: 'subtle',
-  /** Plain icon CSS treatments — synced to --ui-icon-* via sync:tokens */
+  /** Plain icon CSS treatments - synced to --ui-icon-* via sync:tokens */
   uiIcon: {
     mint: {
       color: 'var(--primary-color)',

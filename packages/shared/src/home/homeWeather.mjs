@@ -1,4 +1,4 @@
-/** Plan 10 H5 — Open-Meteo weather / air-quality strip (no API key). */
+/** Plan 10 H5 - Open-Meteo weather / air-quality strip (no API key). */
 
 export const WEATHER_CACHE_MS = 60 * 60 * 1000;
 

@@ -1,5 +1,5 @@
 /**
- * Plan 21 SEC8 — secure storage wrapper. Uses an injected encrypted backend when configured;
+ * Plan 21 SEC8 - secure storage wrapper. Uses an injected encrypted backend when configured;
  * PWA falls back to localStorage.
  * Sensitive keys: userKeys, supabaseSession, vapidSubscription, encryptionPassphrase.
  */

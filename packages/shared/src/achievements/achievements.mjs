@@ -1,4 +1,4 @@
-/** Progressive logging unlock achievements — derived from trackingProfile (Plan 04 L1). */
+/** Progressive logging unlock achievements - derived from trackingProfile (Plan 04 L1). */
 
 import {
   daysSinceTrackingProfileStart,

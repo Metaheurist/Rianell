@@ -459,7 +459,7 @@ function initializeEventHandlers() {
   
 }
 
-// Initialize when DOM is ready (defer only — app.js defines installOrLaunchPWA later in the bundle)
+// Initialize when DOM is ready (defer only - app.js defines installOrLaunchPWA later in the bundle)
 document.addEventListener('DOMContentLoaded', initializeEventHandlers);
 // Event handlers for Health App
 
