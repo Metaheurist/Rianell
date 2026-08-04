@@ -477,7 +477,8 @@ export function buildPackLlmPrompt(opts) {
     '## Your job',
     `- Topic focus: ${opts.topic || ctx.mission}`,
     '- In **## Thinking**: reference specific gate outcomes, docs, or paths from Repo context (not generic best practices).',
-    '- In **## Proposed actions**: numbered, concrete, file-level next steps (path + what to change). Max 8 items.',
+    '- In **## Proposed actions**: numbered, concrete, file-level next steps (path + what to change). At least 2 items, max 8.',
+    '- Every pack must produce actionable work: cite real paths and a specific change. Do not output only a generic acknowledge.',
     '- Mark risk implicitly via wording (advisory vs product-write). Do not invent secrets or health data.',
   ].join('\n');
 
@@ -521,9 +522,11 @@ Output markdown with exactly these sections:
 2. Next action with repo path(s)
 
 Rules:
+- Always include at least two numbered Proposed actions with real paths from ## Repo context.
 - Prefer paths that appear under ## Repo context.
 - Do not invent files, packages, or APIs.
 - No secrets. No health scores or screening answers.
+- Do not propose a sole generic "acknowledge" with no path-level work.
 - Do not propose silent dependency installs or CSP allowlist edits unless the pack constraints explicitly allow it.`;
 
 export { ROOT as PACK_CONTEXT_ROOT };
