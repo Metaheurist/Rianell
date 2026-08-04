@@ -7,10 +7,11 @@ function llm(topic, extra = {}) {
     llmSystem: ADVISORY_SYSTEM,
     llmTopic: topic,
     // Short handler note merged into Repo context by pack-runner (not a standalone generic prompt).
-    llmPrompt: `Focus: ${topic}`,
+    llmPrompt: `Focus: ${topic}. Propose at least two concrete, path-cited actions (not a sole generic acknowledge).`,
     enrichContext: true,
-    defaultKind: extra.defaultKind || 'ack_only',
-    defaultAdapter: extra.defaultAdapter || 'ack',
+    defaultKind: extra.defaultKind || 'code_hint',
+    // Persist approved findings as artifacts when no product adapter applies.
+    defaultAdapter: extra.defaultAdapter || 'write-approved-artifact',
   };
 }
 
@@ -84,7 +85,7 @@ export const PACK_HANDLERS = {
     gates: [npmGate('audit:deps')],
     ...llm('dependency advisory triage — list bump candidates; do not instruct silent install'),
     defaultKind: 'deps_note',
-    defaultAdapter: 'ack',
+    defaultAdapter: 'write-approved-artifact',
   }),
   migration: (o) => runPack('migration', {
     ...o,
