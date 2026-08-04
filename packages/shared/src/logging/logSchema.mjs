@@ -1,4 +1,4 @@
-/** Plan 04 + Plan 16 — extended log entry fields. */
+/** Plan 04 + Plan 16 - extended log entry fields. */
 
 import { CYCLE_DAY_MAX } from './cycleTracking.mjs';
 

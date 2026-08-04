@@ -1,4 +1,4 @@
-/** Plan 09 C8 — user-defined chart metrics (0–10 scale or boolean). */
+/** Plan 09 C8 - user-defined chart metrics (0-10 scale or boolean). */
 
 const MAX_CUSTOM = 8;
 const LABEL_MAX = 40;
@@ -73,7 +73,7 @@ export function normalizeCustomMetricValues(raw) {
 }
 
 /**
- * Read a normalized 0–10 radar value from a log for a custom metric definition.
+ * Read a normalized 0-10 radar value from a log for a custom metric definition.
  * @param {Record<string, unknown>} log
  * @param {{ id: string, type: 'scale'|'boolean' }} def
  */

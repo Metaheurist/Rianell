@@ -1,4 +1,4 @@
-/** Plan 23 CM2 — "People like me" cohort benchmark cards (extends RE1). */
+/** Plan 23 CM2 - "People like me" cohort benchmark cards (extends RE1). */
 
 export const COHORT_MIN_K = 5;
 

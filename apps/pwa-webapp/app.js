@@ -9049,7 +9049,7 @@ function renderAIExercisePanel(timeline, summary, reduceUIAnimations) {
       var labels = labelMeta.show ? formatAIExerciseDayLabel(dateKey, { withMonth: labelMeta.withMonth }) : { day: '', month: '' };
       var tip = dateKey === endKey
         ? (dateKey + ': ' + d.minutes + ' min')
-        : (dateKey + ' – ' + endKey + ': ~' + d.minutes + ' min/day');
+        : (dateKey + '-' + endKey + ': ~' + d.minutes + ' min/day');
       var delayMs = Math.round((idx / Math.max(1, n - 1)) * 520);
       html += '<span class="ai-exercise-timeline__day' + (labelMeta.show ? ' ai-exercise-timeline__day--labeled' : '') + '" title="' + escapeAttr(tip) + '">';
       html += '<span class="ai-exercise-timeline__bar' + (active ? ' ai-exercise-timeline__bar--active' : '') + '" style="height:' + h + 'px;--bar-delay:' + delayMs + 'ms"></span>';
@@ -9571,7 +9571,7 @@ function initAIChapterAnimations(container) {
   var reduceMotion = container.classList.contains('reduce-motion') ||
     (typeof document !== 'undefined' && document.body && document.body.classList.contains('reduce-motion'));
   if (reduceMotion) {
-    // Snap scores to final values — never leave the wellbeing ring stuck on the "0" placeholder.
+    // Snap scores to final values - never leave the wellbeing ring stuck on the "0" placeholder.
     counters.forEach(function(el) {
       if (!el.classList.contains('ai-count-up') && !el.classList.contains('ai-wellbeing-ring__value')) return;
       var target = parseInt(el.getAttribute('data-count-target'), 10);
@@ -11730,7 +11730,7 @@ function updateGoalsProgressBlock() {
     if (avgPct >= 100) return { cls: 'on-track', label: 'Avg above target' };
     return { cls: 'below', label: 'Below target' };
   }
-  /** Seven day chips driven by that day's % of target (0–100), not a binary met/not count. */
+  /** Seven day chips driven by that day's % of target (0-100), not a binary met/not count. */
   function daysDotsFromPcts(pcts) {
     var values = Array.isArray(pcts) ? pcts : [];
     var s = '';
@@ -23526,7 +23526,7 @@ function toggleDemoMode() {
             window.logs = logs;
           }
           
-          // Update settings for demo — keep on-device AI available for exploration
+          // Update settings for demo - keep on-device AI available for exploration
           appSettings.userName = 'John Doe';
           appSettings.medicalCondition = 'Arthritis';
           appSettings.demoMode = true;
@@ -25386,8 +25386,7 @@ function renderHomeAskSetupGate() {
     : (typeof tUi === 'function' ? tUi('home.chat.needAi.body') : 'Turn on AI features and download the on-device model before chatting.');
   var confirmText = typeof tUi === 'function' ? tUi('home.chat.needAi.confirm') : 'Enable and download';
   // The gate re-renders on every download-progress event (many per second). Its
-  // content only depends on whether we're downloading (not the live percent —
-  // that's shown by the shared corner/modal overlay), so skip rebuilding the DOM
+  // content only depends on whether we're downloading (not the live percent - // that's shown by the shared corner/modal overlay), so skip rebuilding the DOM
   // when nothing visible changed. Otherwise the animated pill flashes as the node
   // is destroyed and recreated each tick.
   var sig = state.mode + '|' + (downloading ? 'dl' : 'idle') + '|' + title + '|' + body + '|' + confirmText;

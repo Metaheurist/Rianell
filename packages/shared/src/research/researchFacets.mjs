@@ -1,4 +1,4 @@
-/** Plan 13 — numeric-only facets for k-anonymous pool aggregation (no PII). */
+/** Plan 13 - numeric-only facets for k-anonymous pool aggregation (no PII). */
 
 function num(v) {
   const n = Number(v);

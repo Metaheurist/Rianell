@@ -1,5 +1,5 @@
 /**
- * Session recording (Smartlook) — off by default; activate only after explicit opt-in + disclosure timestamp.
+ * Session recording (Smartlook) - off by default; activate only after explicit opt-in + disclosure timestamp.
  */
 
 /**

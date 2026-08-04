@@ -1,4 +1,4 @@
-/** Plan 17 NU3 — per-food sensitivity detection from log correlation. */
+/** Plan 17 NU3 - per-food sensitivity detection from log correlation. */
 
 function parseDate(iso) {
   const d = new Date(`${iso}T12:00:00Z`);

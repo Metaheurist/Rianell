@@ -9,7 +9,7 @@
  *   2. Off-topic messages (nothing about the user's own health/wellbeing data) are
  *      redirected before any model call happens.
  *
- * Enforcement is intentionally independent of the LLM output — the model never
+ * Enforcement is intentionally independent of the LLM output - the model never
  * gets a chance to "argue" its way past these gates.
  */
 

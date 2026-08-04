@@ -1,4 +1,4 @@
-/** Plan 06 D3 — detect same-date log divergence before cloud merge. */
+/** Plan 06 D3 - detect same-date log divergence before cloud merge. */
 
 const CONFLICT_KEYS = [
   'bpm', 'weight', 'fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain',

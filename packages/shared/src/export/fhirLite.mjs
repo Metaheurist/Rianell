@@ -1,4 +1,4 @@
-/** Plan 06 D4 — FHIR R4-lite Observation bundle for key daily metrics. */
+/** Plan 06 D4 - FHIR R4-lite Observation bundle for key daily metrics. */
 
 const METRIC_CODES = {
   mood: { system: 'http://loinc.org', code: '80296-7', display: 'Mood' },

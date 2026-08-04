@@ -14,7 +14,7 @@ export function getRegionLabels(pack) {
   }));
 }
 
-/** Suggest region from locale/timezone — hint only, never auto-applied. */
+/** Suggest region from locale/timezone - hint only, never auto-applied. */
 export function suggestPrivacyRegionFromHint(locale, timeZone) {
   const loc = (locale || '').toLowerCase();
   const tz = (timeZone || '').toLowerCase();

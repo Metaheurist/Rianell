@@ -1,4 +1,4 @@
-/** Unified slider UX: 1 = bad (left), 10 = good (right). Storage keeps raw metric semantics (1–10). */
+/** Unified slider UX: 1 = bad (left), 10 = good (right). Storage keeps raw metric semantics (1-10). */
 
 export const METRICS_HIGHER_IS_BETTER = Object.freeze([
   'sleep',
@@ -34,7 +34,7 @@ export function isMetricHigherIsBetter(field) {
   return METRICS_HIGHER_IS_BETTER.includes(field);
 }
 
-/** Map stored raw metric (1–10) to unified wellness slider position (1 = bad, 10 = good). */
+/** Map stored raw metric (1-10) to unified wellness slider position (1 = bad, 10 = good). */
 export function rawToWellnessSlider(field, raw) {
   const value = clampInt(raw, SLIDER_MIN, SLIDER_MAX);
   return isMetricHigherIsBetter(field) ? value : (SLIDER_MAX + SLIDER_MIN - value);

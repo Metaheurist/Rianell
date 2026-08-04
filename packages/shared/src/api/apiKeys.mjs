@@ -1,4 +1,4 @@
-/** Plan 18 API4 — API key generation helpers (client-side display; hash stored server-side). */
+/** Plan 18 API4 - API key generation helpers (client-side display; hash stored server-side). */
 
 const KEY_PREFIX = 'rn_live_';
 const KEY_HEX_LEN = 32;

@@ -45,7 +45,7 @@ function tr(translate, key, params, fallback) {
   return fallback;
 }
 
-/** @deprecated Use summarizeLogsForAi / runDeterministicAnalysis — kept for vendor backward compat */
+/** @deprecated Use summarizeLogsForAi / runDeterministicAnalysis - kept for vendor backward compat */
 export function analyzeHealthMetrics(logs, range = 30, options = {}) {  return summarizeLogsForAi(logs, range, options);
 }
 export function predictFutureValues(series, days = 7) {

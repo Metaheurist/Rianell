@@ -71,7 +71,7 @@ export function applyBundleNamesToHtml(html, manifest) {
   html = html.replace(/href="app\.js(\?[^"]*)?"/g, `href="${mainJs}"`);
   html = html.replace(/src="app\.min\.js(\?[^"]*)?"/g, `src="${mainJs}"`);
   html = html.replace(/href="app\.min\.js(\?[^"]*)?"/g, `href="${mainJs}"`);
-  // CI bundle is esbuild IIFE — use classic script + crossorigin preload (matches fetch credentials).
+  // CI bundle is esbuild IIFE - use classic script + crossorigin preload (matches fetch credentials).
   html = html.replace(
     /<script\s+type="module"\s+defer\s+src="app\.[^"]+"\s*><\/script>/gi,
     `<script defer src="${mainJs}" crossorigin="anonymous"></script>`

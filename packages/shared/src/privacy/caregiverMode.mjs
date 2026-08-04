@@ -1,4 +1,4 @@
-/** Plan 05 P6 — caregiver proxy logging for a dependent (local metadata only). */
+/** Plan 05 P6 - caregiver proxy logging for a dependent (local metadata only). */
 
 export const CAREGIVER_RELATIONSHIPS = ['parent', 'guardian', 'other'];
 

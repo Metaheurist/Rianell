@@ -1,4 +1,4 @@
-/** Canonical third-party connector registry (CN4–CN7). Slugs use hyphens. */
+/** Canonical third-party connector registry (CN4 - CN7). Slugs use hyphens. */
 
 export const CONNECTOR_PROVIDER_SPECS = {
   strava: {

@@ -1,6 +1,6 @@
 /**
  * Tier-gated WebGL ambient scenes (home hero depth field, mood orb, achievement burst).
- * Uses WebGL2 point sprites — no Three.js bundle to stay within CWV budget.
+ * Uses WebGL2 point sprites - no Three.js bundle to stay within CWV budget.
  */
 (function (global) {
   'use strict';

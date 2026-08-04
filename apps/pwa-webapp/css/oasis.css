@@ -1,5 +1,5 @@
 /*
- * oasis.css — UI Oasis Overhaul v2.1.0
+ * oasis.css - UI Oasis Overhaul v2.1.0
  * All selectors scoped to .oasis-* or [data-oasis] to avoid collisions.
  * Animate ONLY: transform, opacity, filter (ui-motion.mdc rule).
  * Every @keyframes block is wrapped in @media (not (prefers-reduced-motion: reduce)).
@@ -18,13 +18,13 @@
   --oasis-blob-opacity:   0.2;
 }
 
-/* Per-team overrides — piggyback on existing .rianell-theme-* classes */
+/* Per-team overrides - piggyback on existing .rianell-theme-* classes */
 .rianell-theme-mint          { --oasis-blob1: #1a5c3a; --oasis-blob2: #0d3d2e; --oasis-blob3: #2e7a5a; --oasis-glow: #7bdf8c; }
 .rianell-theme-red-black     { --oasis-blob1: #6b1a2e; --oasis-blob2: #3d0d1a; --oasis-blob3: #a0294a; --oasis-glow: #ff8d98; }
 .rianell-theme-mono          { --oasis-blob1: #1e1e1e; --oasis-blob2: #2d2d2d; --oasis-blob3: #3a3a3a; --oasis-glow: #d0d0d0; }
 .rianell-theme-rainbow       { --oasis-blob1: #1a1550; --oasis-blob2: #2a0d40; --oasis-blob3: #3d1f6b; --oasis-glow: #ff4fa0; }
 
-/* Light mode: keep blobs barely visible — heavy blur reads as a smudge on white */
+/* Light mode: keep blobs barely visible - heavy blur reads as a smudge on white */
 .rianell-appearance-light    { --oasis-blob-opacity: 0.1; --oasis-blur-radius: 32px; }
 
 /* Brain fog mode: kill all oasis animations immediately */
@@ -38,7 +38,7 @@
   isolation: isolate;
 }
 
-/* Clips blur bleed — never set overflow:hidden on .tab-content itself (breaks scroll) */
+/* Clips blur bleed - never set overflow:hidden on .tab-content itself (breaks scroll) */
 .oasis-ambient-layer {
   position: absolute;
   inset: 0;
@@ -55,11 +55,11 @@
   pointer-events: none;
   will-change: transform, opacity;
   opacity: var(--oasis-blob-opacity);
-  /* filter: blur() is GPU-composited — safe per ui-motion.mdc */
+  /* filter: blur() is GPU-composited - safe per ui-motion.mdc */
   filter: blur(var(--oasis-blur-radius));
 }
 
-/* Corner-only placement — keeps the vertical content lane clear */
+/* Corner-only placement - keeps the vertical content lane clear */
 .oasis-blob--1 { background: var(--oasis-blob1); width: 180px; height: 180px; top: -90px;  left: -70px;  }
 .oasis-blob--2 { background: var(--oasis-blob2); width: 140px; height: 140px; bottom: -50px; right: -50px; }
 .oasis-blob--3 { background: var(--oasis-blob3); width: 100px; height: 100px; bottom: 8%;   left: -40px;  }
@@ -91,7 +91,7 @@
 
 /* ── 4. SVG grain texture overlay ───────────────────────────────────────────── */
 /* Grain is a ::before on each tab-content. The SVG feTurbulence is inlined as
-   data URI — zero HTTP requests. GPU-composited via will-change: transform.    */
+   data URI - zero HTTP requests. GPU-composited via will-change: transform.    */
 .tab-content::before {
   content: '';
   position: absolute;
@@ -110,7 +110,7 @@
 /* ── 5. Calm-glow ring for healthy metrics ───────────────────────────────────── */
 [data-metric-status="improving"] .metric-widget__ring,
 [data-metric-status="improving"] .metric-card {
-  /* filter is GPU-composited — safe */
+  /* filter is GPU-composited - safe */
   filter: drop-shadow(0 0 8px var(--oasis-glow));
 }
 
@@ -124,7 +124,7 @@
   }
 }
 
-/* Status 'declining' — remove glow, never shame with harsh colour */
+/* Status 'declining' - remove glow, never shame with harsh colour */
 [data-metric-status="declining"] .metric-widget__ring { filter: none; }
 
 /* ── 6. Positive-trend shimmer on vitals cards ──────────────────────────────── */
@@ -146,7 +146,7 @@
 @media (not (prefers-reduced-motion: reduce)) {
   [data-metric-status="improving"] .vitals-card::after {
     animation: shimmerSweep 2800ms var(--ease-out-expo) infinite;
-    /* shimmerSweep is defined in styles.css — reuse, do not redefine */
+    /* shimmerSweep is defined in styles.css - reuse, do not redefine */
   }
 }
 
@@ -268,7 +268,7 @@
 }
 
 /* ── 11. Magnetic CTA reset spring ──────────────────────────────────────────── */
-/* Applied via JS — this class is the rest-state after mouseleave */
+/* Applied via JS - this class is the rest-state after mouseleave */
 .oasis-magnet-reset {
   transition: transform var(--dur-fast) var(--ease-spring) !important;
   transform: translate(0px, 0px) !important;
@@ -325,7 +325,7 @@
     animation: oasisParticleFly var(--oasis-particle-dur) var(--ease-out-expo) forwards;
   }
 }
-/* Phase F — brain fog extended overrides */
+/* Phase F - brain fog extended overrides */
 .rianell-brain-fog .oasis-neural-trace { display: none !important; }
 .rianell-brain-fog .oasis-particle { animation: none !important; opacity: 0 !important; }
 .rianell-brain-fog .oasis-count-flip { animation: none !important; transform: none !important; }

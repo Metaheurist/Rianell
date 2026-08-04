@@ -1,7 +1,7 @@
-/** Plan 20 SH4 — minimal HL7 v2 ORU-R01 parser. */
+/** Plan 20 SH4 - minimal HL7 v2 ORU-R01 parser. */
 
 /**
- * @param {string} message — pipe-delimited HL7 message
+ * @param {string} message - pipe-delimited HL7 message
  * @returns {Array<{testName:string,value:string,units:string,referenceRange:string,observedAt:string}>}
  */
 export function parseORU(message) {

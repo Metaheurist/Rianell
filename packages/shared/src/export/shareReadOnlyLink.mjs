@@ -1,4 +1,4 @@
-/** Plan 06 D6 — time-limited encrypted read-only share envelope (client-side + hosted links). */
+/** Plan 06 D6 - time-limited encrypted read-only share envelope (client-side + hosted links). */
 
 import {
   encryptExportWithPassphrase,

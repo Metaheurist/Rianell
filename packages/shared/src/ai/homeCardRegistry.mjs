@@ -1,4 +1,4 @@
-/** Plan 10 H1 — adaptive home card registry (PWA + RN parity). */
+/** Plan 10 H1 - adaptive home card registry (PWA + RN parity). */
 
 const HOME_CARDS = [
   { id: 'weeklyReview', basePriority: 68 },
@@ -17,7 +17,7 @@ function yesterdayOf(todayStr) {
   return toDateStr(d);
 }
 
-/** Logged yesterday but not today — gentle nudge, not gamified. */
+/** Logged yesterday but not today - gentle nudge, not gamified. */
 export function isLoggingStreakBroken(logs, todayStr) {
   if (!Array.isArray(logs) || !todayStr) return false;
   const dates = new Set(logs.map((l) => l?.date).filter(Boolean));
@@ -25,7 +25,7 @@ export function isLoggingStreakBroken(logs, todayStr) {
   return dates.has(yesterdayOf(todayStr));
 }
 
-/** Missed yesterday and today but logged the day before — compassionate return, not shame. */
+/** Missed yesterday and today but logged the day before - compassionate return, not shame. */
 export function isLoggingStreakGrace(logs, todayStr) {
   if (!Array.isArray(logs) || !todayStr) return false;
   const dates = new Set(logs.map((l) => l?.date).filter(Boolean));

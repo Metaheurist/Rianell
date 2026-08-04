@@ -1,4 +1,4 @@
-/** n8n community node stub — Plan 19 CN2 */
+/** n8n community node stub - Plan 19 CN2 */
 export class Rianell {
   description = {
     displayName: 'Rianell',

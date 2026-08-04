@@ -1,4 +1,4 @@
-/** Plan 25 DM8 — Daylio CSV backup import. */
+/** Plan 25 DM8 - Daylio CSV backup import. */
 
 import { MigrationAdapter } from '../MigrationAdapter.mjs';
 

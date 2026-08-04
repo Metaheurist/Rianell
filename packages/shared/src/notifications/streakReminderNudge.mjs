@@ -1,4 +1,4 @@
-/** Plan 11 R6 — optional achievement-free streak reminder (pairs Plan 10 H3). */
+/** Plan 11 R6 - optional achievement-free streak reminder (pairs Plan 10 H3). */
 
 import { computeFlareFreeDays, computeGoodDayStreak } from '../home/homeStreakStats.mjs';
 import { hasLoggedToday, localDateStrFromNow, shouldFireMissedLogNudge } from './smartReminder.mjs';

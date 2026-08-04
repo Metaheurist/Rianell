@@ -1,5 +1,5 @@
 /**
- * Smartlook session recording — shared project key + EU region (PWA + RN parity).
+ * Smartlook session recording - shared project key + EU region (PWA + RN parity).
  * Client-side key; rotate in Smartlook dashboard if compromised.
  */
 export const SMARTLOOK_PROJECT_KEY = 'c205987c47aef0b2da2a93569620b15a81bef013';

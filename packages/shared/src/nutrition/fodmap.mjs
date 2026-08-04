@@ -1,4 +1,4 @@
-/** Plan 17 NU2 — curated FODMAP status lookup (Monash-inspired public lists). */
+/** Plan 17 NU2 - curated FODMAP status lookup (Monash-inspired public lists). */
 
 /** @type {Record<string, 'high'|'moderate'|'low'>} */
 export const FODMAP_CATEGORIES = {

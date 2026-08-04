@@ -36,7 +36,7 @@ function longestFlareFreeRun(logs) {
   return best;
 }
 
-/** Personal bests across all logs — for positive reinforcement cards. */
+/** Personal bests across all logs - for positive reinforcement cards. */
 export function computePersonalBests(logs) {
   const list = Array.isArray(logs) ? logs : [];
   return {

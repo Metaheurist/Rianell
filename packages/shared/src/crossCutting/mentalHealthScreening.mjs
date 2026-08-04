@@ -1,4 +1,4 @@
-/** Plan 14 X14.5 — PHQ-2/9 and GAD-2/7 wellness screening (not diagnostic). */
+/** Plan 14 X14.5 - PHQ-2/9 and GAD-2/7 wellness screening (not diagnostic). */
 
 export const PHQ2_QUESTIONS = [
   { id: 'phq2_1', i18n: 'mentalHealth.phq2.q1' },

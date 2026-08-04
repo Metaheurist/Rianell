@@ -1,4 +1,4 @@
-/** Plan 06 D5 + Plan 25 DM1–DM9 — map external app exports to canonical log fields. */
+/** Plan 06 D5 + Plan 25 DM1 - DM9 - map external app exports to canonical log fields. */
 
 import { CaraMigrationAdapter } from '../migration/adapters/cara.mjs';
 import { DaylioMigrationAdapter } from '../migration/adapters/daylio.mjs';

@@ -1,4 +1,4 @@
-/** Plan 12 CL2 — ephemeral encrypted QR handoff (P4 crypto, bounded payload). */
+/** Plan 12 CL2 - ephemeral encrypted QR handoff (P4 crypto, bounded payload). */
 
 import { encryptExportWithPassphrase, decryptExportWithPassphrase, ENCRYPTED_EXPORT_MIN_LENGTH } from '../privacy/encryptedExport.mjs';
 

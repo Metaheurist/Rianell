@@ -1,4 +1,4 @@
-/** Plan 05 P1 — extended policy body paragraphs (plain text, offline). */
+/** Plan 05 P1 - extended policy body paragraphs (plain text, offline). */
 
 export const POLICY_BODIES = {
   'global-baseline': [

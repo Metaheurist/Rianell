@@ -38,7 +38,7 @@ export function applyLocaleDefaultsToPrefs(prefs, locale) {
       next.weightUnit = deriveWeightUnitFromLocale(loc);
       next.weightUnitSource = 'locale';
     }
-    // Factory DMY default means "not chosen" — follow locale until user overrides.
+    // Factory DMY default means "not chosen" - follow locale until user overrides.
     if (!next.dateFormat || next.dateFormat === 'DMY') {
       next.dateFormat = 'locale';
     }

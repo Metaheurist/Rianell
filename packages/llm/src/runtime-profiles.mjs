@@ -75,7 +75,7 @@ export function shouldCapTierForMemory({ platformKind, tier, deviceMemory }) {
 }
 
 /**
- * When WebGPU is unavailable, cap tier 3–5 to tier 2 (small model) unless user opts into large-on-WASM.
+ * When WebGPU is unavailable, cap tier 3-5 to tier 2 (small model) unless user opts into large-on-WASM.
  * @param {{ tier: string, webGpuAvailable: boolean, forceLargeOnWasm?: boolean, deviceMemory?: number|null }} options
  */
 export function resolveWasmOnlyCap(options = {}) {

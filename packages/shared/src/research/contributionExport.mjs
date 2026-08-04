@@ -1,4 +1,4 @@
-/** Plan 13 RE4 — export bundle for personal anonymized contribution history. */
+/** Plan 13 RE4 - export bundle for personal anonymized contribution history. */
 
 export const CONTRIBUTION_EXPORT_FORMAT = 'rianell-contribution-export-v1';
 

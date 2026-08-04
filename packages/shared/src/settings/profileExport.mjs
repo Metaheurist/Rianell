@@ -1,6 +1,6 @@
 export const SETTINGS_PROFILE_EXPORT_VERSION = 1;
 
-/** Portable settings + goals blob (Plan 03 S8) — never includes health logs. */
+/** Portable settings + goals blob (Plan 03 S8) - never includes health logs. */
 export function buildSettingsProfileExport(prefs, goals) {
   return {
     kind: 'rianell-settings-profile',

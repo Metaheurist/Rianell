@@ -1,4 +1,4 @@
-/** Plan 10 H6 — appointment countdown for clinician visit prep. */
+/** Plan 10 H6 - appointment countdown for clinician visit prep. */
 
 export const APPOINTMENT_COUNTDOWN_DAYS = 14;
 

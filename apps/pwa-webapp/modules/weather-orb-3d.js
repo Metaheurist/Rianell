@@ -1,5 +1,5 @@
 /**
- * Rianell 3D weather orb — a miniature living sky rendered inside the
+ * Rianell 3D weather orb - a miniature living sky rendered inside the
  * "enable local weather" button and, once enabled, inside the weather strip's
  * condition slot. Powered by three.js, lazy-imported from vendor/three only
  * when the orb is actually visible.

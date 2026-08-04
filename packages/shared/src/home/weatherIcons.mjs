@@ -1,4 +1,4 @@
-/** Home weather strip — WMO / metric icon ids (pair with PWA `#icon-{id}` sprites). */
+/** Home weather strip - WMO / metric icon ids (pair with PWA `#icon-{id}` sprites). */
 
 /** @param {number | null | undefined} weatherCode Open-Meteo WMO code */
 export function resolveConditionIconId(weatherCode) {

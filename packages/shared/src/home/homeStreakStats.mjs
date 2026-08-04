@@ -1,4 +1,4 @@
-/** Plan 10 H3 — non-gamified good-day streak + flare-free counter. */
+/** Plan 10 H3 - non-gamified good-day streak + flare-free counter. */
 
 function parseMood(log) {
   if (log?.mood == null || log.mood === '') return null;

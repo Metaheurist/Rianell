@@ -1,4 +1,4 @@
-/** Plan 06 D7 — encrypted blob backup to user-owned WebDAV (Basic auth). */
+/** Plan 06 D7 - encrypted blob backup to user-owned WebDAV (Basic auth). */
 
 import { encryptExportWithPassphrase } from '../privacy/encryptedExport.mjs';
 

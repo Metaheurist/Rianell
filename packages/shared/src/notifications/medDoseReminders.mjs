@@ -1,4 +1,4 @@
-/** Plan 11 R2 — L3 medication dose local reminders. */
+/** Plan 11 R2 - L3 medication dose local reminders. */
 
 import { buildTodayMedDoseStatuses, normalizeMedSchedule } from '../logging/medSchedule.mjs';
 import { localDateStrFromNow } from './smartReminder.mjs';

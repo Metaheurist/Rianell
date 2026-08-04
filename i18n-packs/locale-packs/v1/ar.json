@@ -382,7 +382,7 @@
     "common.choose.which.days.to.include": "اختر الأيام التي تريد تضمينها.",
     "common.clear.and.redownload.model": "امسح البيانات وأعد تنزيل النموذج",
     "common.clear.benchmark.cache.god.mode.and.reloa": "امسح ذاكرة التخزين المؤقت الخاصة بمعايير الأداء (وضع \"إلهي\" باستخدام الرمز `) ثم أعد تحميل البرنامج لعرض رسم بياني يوضح مدى استقرار النظام.",
-    "common.clear.choice": "Clear {label}",
+    "common.clear.choice": "مسح/إزالة {label}",
     "common.click.to.turn.off.predictions": "انقر لإيقاف تشغيل ميزة التنبؤات",
     "common.close": "أغلق/إغلاق",
     "common.close.tutorial": "إغلاق البرنامج التعليمي التفاعلي",

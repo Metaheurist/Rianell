@@ -1,4 +1,4 @@
-/** Plan 04 L6 — user-learned symptom chip templates per condition. */
+/** Plan 04 L6 - user-learned symptom chip templates per condition. */
 
 const MAX_TEMPLATES = 12;
 const MAX_CHIPS = 40;

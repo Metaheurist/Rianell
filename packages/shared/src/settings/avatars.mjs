@@ -1,4 +1,4 @@
-/** Preset profile avatars — abstract inclusive entities (graphics portfolio). */
+/** Preset profile avatars - abstract inclusive entities (graphics portfolio). */
 export const PROFILE_AVATAR_IDS = [
   'voidorb', 'tidewarden', 'leafcircuit', 'prismcore', 'moonthread',
   'emberveil', 'riftecho', 'stonebloom', 'glasswave', 'ashspiral',
