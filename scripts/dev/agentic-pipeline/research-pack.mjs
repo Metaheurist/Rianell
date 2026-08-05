@@ -155,7 +155,7 @@ export function researchRefineProposal(proposal) {
       if (kind === 'fact_check') applyAdapter = 'write-approved-artifact';
       else if (kind === 'tidy') applyAdapter = 'research-tidy';
       else if (kind === 'script_run') applyAdapter = 'research-script-run';
-      else applyAdapter = 'research-file-write';
+      else applyAdapter = 'safe-patch';
     } else {
       const c = classifyResearchAction(title, detail);
       kind = c.kind;
@@ -168,8 +168,8 @@ export function researchRefineProposal(proposal) {
       title: title.slice(0, 200),
       kind,
       applyAdapter,
-      risk: /file_|script_run/.test(kind) ? 'high' : (it.risk || 'low'),
-      selected: kind === 'script_run' || kind === 'file_write' || kind === 'file_create' ? false : it.selected !== false,
+      risk: /file_|script_run|doc_patch|code_hint/.test(kind) ? 'high' : (it.risk || 'low'),
+      selected: kind === 'script_run' ? false : it.selected !== false,
     };
     if (pathHit) {
       next.path = pathHit[1];

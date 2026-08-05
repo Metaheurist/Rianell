@@ -33,8 +33,9 @@ In `/dev/agentic` → **visual**:
 2. **Q&A** — Live pack runs screenshot QA and lists broken glyphs as Approve candidates (run-all reuses existing `broken.json`)
 3. **Approve** — select candidates (no product-write / dep-bump / git toggles)
 4. **Polish×8** — Approve narrows `broken.json` to the selection and starts `visual:polish:qa-loop --now --max-rounds=8`
+5. **Amend to repo (optional)** — when QA `broken.length === 0`, enable Settings `visualApplyAfterPolish` + `confirmProductWrite`, or click **Amend to repo**, to run `npm run visual:apply` into `apps/pwa-webapp/`
 
-Product `visual:apply` stays separate until Q&A stays green.
+Product `visual:apply` stays blocked while Q&A reports broken ids.
 | `npm run visual:pause` / `visual:resume` / `visual:state` | Durable pause/resume (banks remaining ids + Pass N) |
 | `npm run visual:derive-variants` | Derive fancy team sprites via `generate:theme-icons` (no LLM) |
 | `npm run audit:icon-a` | Score Stage A corpus → `artifacts/audit/icon-a-audit.*` |

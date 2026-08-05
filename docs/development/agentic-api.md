@@ -49,8 +49,9 @@ Rate limits: **skipped for loopback peers**; remote clients still throttled.
 ## Approval rules
 
 - Packs end in `pending_approval` with `artifacts/agentic/<pack>/proposal.json` (async queue; run-all continues).
-- Product adapters (changelog, wiki:sync, i18n fill+merge, visual:apply, deps bump) require `confirmProductWrite` (and bump/QA unlocks as documented). Visual **repolish** Approve needs no product-write flag.
-- `autoApprove: ack` never product-writes; `product-write` requires confirm.
+- Product adapters (changelog, wiki:sync, i18n fill+merge, **safe-patch** file/doc edits, visual:apply, deps bump) require `confirmProductWrite` (and bump/QA unlocks as documented). Visual **repolish** Approve needs no product-write flag.
+- `autoApprove: ack` never product-writes; `product-write` requires confirm and a **tracked-path mutation** (or findings note under `docs/development/agentic-findings/`).
+- Mode pref `visualApplyAfterPolish` (default false): after polish QA is green, auto-run `visual:apply` when confirm is also on. Console **Amend to repo** uses the same adapter.
 - Git commit on approve is opt-in, local only, never pushes.
 - Audit: `artifacts/agentic/approval-log.jsonl`.
 - Client disconnect mid-response (`ConnectionAbortedError`) is not logged as a 500 — normal on tab refresh/poll cancel.

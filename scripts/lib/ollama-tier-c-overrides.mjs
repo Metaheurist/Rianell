@@ -2174,6 +2174,7 @@ export const OLLAMA_TIER_C_OVERRIDES = {
     "onboarding.questionnaire.region.suggested": "Is é {region} an ceart, nach bhfuil?",
     "settings.export.qrHandoff.meta": "Lá nó laethanta taifeadta {count} · síneann sé go dtí {expires}",
     "wizard.vitals.hrv.unit": "bhean singil",
+    "ai.weekChat.turnsLeft": "casann {left} ar chlé",
   },
   'ar': {
     "achievements.completionCounter": "تم فتح {unlocked}/‏{total}",

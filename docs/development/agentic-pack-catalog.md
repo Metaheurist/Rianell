@@ -5,21 +5,21 @@ Registers live under `docs/development/*-register.json`, plus `security/review-r
 | Pack | npm | Deterministic hooks |
 |------|-----|---------------------|
 | design | `agentic:design-context` | `verify:icon-spec`, `verify:design-tokens` (+ shared Research stage) |
-| planning | `agentic:planning` | advisory artifacts (+ shared Research) |
+| planning | `agentic:planning` | safe-patch docs under `docs/` (+ shared Research) |
 | i18n | `agentic:i18n` | `verify:i18n:check` → TranslateGemma `--propose-dir` (Planned lists missing keys live) → Approve → `i18n:merge-tier-c` |
-| rtl | `agentic:rtl` | heuristics + LLM |
-| a11y | `agentic:a11y` | `verify:a11y`, `verify:a11y-tokens` |
-| seo | `agentic:seo` | `seo:sitemap:check`, `seo:content:check`, `seo:pages:check` |
-| privacy | `agentic:privacy` | `verify:privacy-docs`, `verify-ropa-drift.mjs` |
-| security | `agentic:security` | csp / llm-security / sinks / cspro (+ **threat-model** LLM stage) |
-| deps | `agentic:deps` | `audit:deps` |
-| migration | `agentic:migration` | `verify:migration` |
-| changelog | `agentic:changelog` | advisory draft (coder 14B default) |
-| wikisync | `agentic:wikisync` | doc-links + `wiki:verify` |
-| image | `agentic:image` | sharp / `seo:og-card` path |
-| bootllm | `agentic:bootllm` | `audit:boot:strict` when `PROBE_URL` |
-| perf | `agentic:perf` | `audit:cwv` / `verify:cwv`, `verify:bundle-split` |
-| visual | `visual:*` via pack | icon-spec + polish QA (**apply deferred**); UI has no Activity cockpit |
+| rtl | `agentic:rtl` | heuristics + LLM → safe-patch |
+| a11y | `agentic:a11y` | `verify:a11y`, `verify:a11y-tokens` → safe-patch |
+| seo | `agentic:seo` | `seo:sitemap:check`, `seo:content:check`, `seo:pages:check` → safe-patch |
+| privacy | `agentic:privacy` | `verify:privacy-docs`, `verify-ropa-drift.mjs` → safe-patch |
+| security | `agentic:security` | csp / llm-security / sinks / cspro (+ **threat-model** LLM; CSP file edits refused) |
+| deps | `agentic:deps` | `audit:deps` (bumps gated) |
+| migration | `agentic:migration` | `verify:migration` → safe-patch |
+| changelog | `agentic:changelog` | promote bullets into `CHANGELOG.md` Unreleased on Approve + confirm |
+| wikisync | `agentic:wikisync` | doc-links + `wiki:verify` → `wiki:sync` on Approve + confirm |
+| image | `agentic:image` | sharp / `seo:og-card` path → safe-patch |
+| bootllm | `agentic:bootllm` | `audit:boot:strict` when `PROBE_URL` → safe-patch |
+| perf | `agentic:perf` | `audit:cwv` / `verify:cwv`, `verify:bundle-split` → safe-patch |
+| visual | `visual:*` via pack | icon-spec + polish QA; optional Amend (`visual:apply`) when green |
 
 Outputs: `artifacts/agentic/<pack>/report.json`, `broken.json`, optional `llm-advisory.md`, plus `llm-context.md` / `llm-context.meta.json` (codebase context fed into Thinking / Proposed actions).
 
@@ -27,11 +27,12 @@ Outputs: `artifacts/agentic/<pack>/report.json`, `broken.json`, optional `llm-ad
 
 | Action | Allowed in v1? |
 |--------|----------------|
-| Write advisory under `artifacts/agentic/` | Yes |
+| Write advisory under `artifacts/agentic/` | Yes (ack mode) |
+| Product-write `safe-patch` on allowlisted paths | Yes — Approve + `confirmProductWrite` (or run-all product-write + confirm); findings fallback under `docs/development/agentic-findings/` |
 | Auto-merge i18n Tier-C overrides | No — only via Approve + `confirmProductWrite` (or run-all product-write + confirm) |
-| Auto-promote wiki / changelog / planning into committed trees | No |
-| Auto `npm` dependency bumps | No |
-| `visual:apply` into PWA sprites | No until QA `broken.length === 0` + unlock |
+| Auto-promote wiki / changelog into committed trees | Only via Approve + `confirmProductWrite` |
+| Auto `npm` dependency bumps | No (needs `allowDependencyBump` + `deps_bump`) |
+| `visual:apply` into PWA sprites | Only when QA `broken.length === 0` + unlock + confirm (`visualApplyAfterPolish` or Amend CTA) |
 
 ## Per-pack notes
 
@@ -69,10 +70,10 @@ Deterministic CSP / sinks / cspro, then LLM security review. **Threat-model** is
 `verify:migration` + architecture drift notes (`packages/*` must not import `apps/*`). Register: `docs/development/migration-register.json`.
 
 ### changelog
-Coder 14B draft bullets into artifacts only. Register: `docs/development/changelog-register.json`.
+Promote Keep-a-Changelog bullets into `CHANGELOG.md` `## [Unreleased]` on Approve + confirm (no meta Agentic draft block). Register: `docs/development/changelog-register.json`.
 
 ### wikisync
-`doc-links --strict` + `wiki:verify`; draft patches stay advisory. Register: `docs/development/wikisync-register.json`.
+`doc-links --strict` + `wiki:verify`; Approve + confirm runs `wiki:sync`. Register: `docs/development/wikisync-register.json`.
 
 ### image
 Alt-text / OG-card helpers; no binary invention into product trees. Register: `docs/development/image-register.json`.
@@ -84,8 +85,10 @@ Boot / first-inference latency when `PROBE_URL` set (`audit:boot:strict`). Regis
 Measure via CWV / bundle gates; LLM triages backlog only. Register: `benchmarks/perf-register.json`.
 
 ### visual
-Last run-all step. Embeds live polish at `http://127.0.0.1:8766/` when reachable (`GET /api/agentic/visual/live`). Gen/polish exclusive; never co-load. See [visual-pack-harness.md](visual-pack-harness.md).
+Last run-all step. Embeds live polish at `http://127.0.0.1:8766/` when reachable (`GET /api/agentic/visual/live`). Gen/polish exclusive; never co-load. After polish QA is green, optional **Amend to repo** via `visual:apply` (`visualApplyAfterPolish` + confirm, or Amend CTA). See [visual-pack-harness.md](visual-pack-harness.md).
 
 ## Models
 
 Full matrix: [agentic-model-catalog.md](agentic-model-catalog.md) and `scripts/dev/agentic-pipeline/model-catalog.json`.
+
+Product-write rollout: [agentic-product-write-rollout.md](agentic-product-write-rollout.md).

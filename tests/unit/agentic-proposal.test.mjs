@@ -11,8 +11,8 @@ test('extractProposalFromMarkdown parses Thinking + Proposed actions', () => {
 Risks around tokens.
 
 ## Proposed actions
-1. Fix focus ring on Settings
-2. Document token drift
+1. Fix focus ring on Settings in apps/pwa-webapp/styles.css
+2. Document token drift in docs/development/a11y-register.json
 `;
   const p = extractProposalFromMarkdown('a11y', md, { model: 'qwen2.5-coder:32b' });
   assert.equal(p.schemaVersion, PROPOSAL_SCHEMA_VERSION);

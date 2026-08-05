@@ -23,6 +23,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
 ### Changed
+- **Agentic product-write mutations:** advisory packs propose structured `[doc_patch]`/`[file_write]` actions; `safe-patch` applies search_replace/append on allowlisted paths; patch-author fills missing bodies; run-all fails packs with zero tracked-path mutations. Rollout: `docs/development/agentic-product-write-rollout.md`.
+- **Agentic changelog promote:** appends Keep-a-Changelog bullets under `## [Unreleased]` (no meta `Agentic draft` block).
+- **Agentic visual amend:** optional `visualApplyAfterPolish` + **Amend to repo** after polish when QA `broken.length === 0` (reuses `visual:apply`).
 - **Agentic default models:** catalog + local-brain preflight use Qwen 3 family (`qwen3.6:35b` / `qwen3:14b` / `qwen3:8b`); Qwen 2.5 marked rejected for defaults. Ollama client sends `think: false` so Qwen3.6 does not hang packs on empty `response`.
 - **Agentic security approve:** CSP/header title guard refuses mutation adapters only (`ack` / artifact notes still allowed).
 - **Agentic git on Approve:** when `gitCommitOnApprove` is checked, each selected item gets its own LLM-authored conventional commit, then the pack Approves with a single `git push` (no force). Falls back to a template message if Ollama is unavailable (`AGENTIC_SKIP_COMMIT_LLM=1` / `AGENTIC_SKIP_GIT_PUSH=1` for offline).

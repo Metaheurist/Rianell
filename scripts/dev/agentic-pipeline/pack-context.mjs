@@ -477,7 +477,9 @@ export function buildPackLlmPrompt(opts) {
     '## Your job',
     `- Topic focus: ${opts.topic || ctx.mission}`,
     '- In **## Thinking**: reference specific gate outcomes, docs, or paths from Repo context (not generic best practices).',
-    '- In **## Proposed actions**: numbered, concrete, file-level next steps (path + what to change). At least 2 items, max 8.',
+    '- In **## Proposed actions**: at least 2, max 8 numbered items using the structured shape:',
+    '  `1. [doc_patch] path=docs/example.md mode=append` then optional fenced patch body.',
+    '- Prefer mode=search_replace (<<<SEARCH / ======= / >>>REPLACE) or mode=append. Full replace only for small files.',
     '- Every pack must produce actionable work: cite real paths and a specific change. Do not output only a generic acknowledge.',
     '- Mark risk implicitly via wording (advisory vs product-write). Do not invent secrets or health data.',
   ].join('\n');
@@ -516,14 +518,27 @@ When a ## Web research (Firecrawl) section is present, use it to ground Approval
 
 Output markdown with exactly these sections:
 ## Thinking
-(2–6 short paragraphs or bullets grounded in the provided Repo context — cite paths, gate names, or doc titles. Avoid generic advice that could apply to any app.)
+(2–6 short paragraphs or bullets grounded in the provided Repo context - cite paths, gate names, or doc titles. Avoid generic advice that could apply to any app.)
 ## Proposed actions
-1. Concrete action with repo path(s)
-2. Next action with repo path(s)
+1. [doc_patch] path=docs/example.md mode=append
+   Brief why this change is needed
+   \`\`\`patch
+   - **Bullet or small prose to append**
+   \`\`\`
+2. [file_write] path=apps/pwa-webapp/styles.css mode=search_replace
+   \`\`\`patch
+   <<<SEARCH
+   exact unique old snippet
+   =======
+   exact new snippet
+   >>>REPLACE
+   \`\`\`
 
 Rules:
 - Always include at least two numbered Proposed actions with real paths from ## Repo context.
+- Use kinds: doc_patch, code_hint, file_write, file_create, script_run, fact_check.
 - Prefer paths that appear under ## Repo context.
+- Prefer search_replace or append; avoid full-file rewrite of large sources.
 - Do not invent files, packages, or APIs.
 - No secrets. No health scores or screening answers.
 - Do not propose a sole generic "acknowledge" with no path-level work.

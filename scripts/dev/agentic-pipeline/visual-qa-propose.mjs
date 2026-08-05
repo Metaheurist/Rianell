@@ -7,10 +7,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { emptyProposal } from './proposal.mjs';
+import { emptyProposal, writeProposal, readProposal } from './proposal.mjs';
 import { silentSpawnSync, resolveSilentInvocation } from './spawn-silent.mjs';
 import { writePackState, readPackState, ROOT } from './state.mjs';
 import { writeQaProgress } from '../visual-polish-qa-status.mjs';
+import { readModePrefs } from './mode-prefs.mjs';
 
 const QA_ROOT = path.join(ROOT, 'artifacts/visual-gen/qa');
 const BROKEN_PATH = path.join(QA_ROOT, 'broken.json');
@@ -62,30 +63,44 @@ export function buildVisualPolishProposal(opts = {}) {
   }));
 
   if (!ids.length) {
-    return emptyProposal('visual', {
-      status: dryRun ? 'dry_run' : 'pending_approval',
-      summary: ranQa
-        ? 'Q&A green — no polish candidates'
-        : (fromRunAll
-          ? 'No broken.json candidates (run-all skips live Q&A scan)'
-          : 'No broken Q&A candidates yet — run Live to scan'),
-      thinking: [
-        'Visual flow: Gates → Q&A → Approve candidates → Polish×8.',
-        ranQa
-          ? 'Screenshot Q&A found zero broken items.'
-          : 'Proposal reflects artifacts/visual-gen/qa/broken.json.',
-        'Product apply (visual:apply) stays separate until Q&A stays green.',
-      ].join(' '),
-      items: [{
+    const prefs = readModePrefs();
+    const canAmend = Boolean(prefs.visualApplyAfterPolish && prefs.confirmProductWrite);
+    const items = canAmend
+      ? [{
+        id: 'visual-amend-repo',
+        kind: 'visual_apply',
+        title: 'Amend polished SVGs into apps/pwa-webapp (visual:apply)',
+        detail: 'QA green — promote polished symbols/keyframes into the live PWA sources.',
+        risk: 'high',
+        selected: true,
+        applyAdapter: 'visual-apply',
+        targets: ['apps/pwa-webapp/'],
+      }]
+      : [{
         id: 'visual-qa-ack',
         kind: 'ack_only',
-        title: 'Acknowledge Q&A (no polish needed)',
+        title: 'Acknowledge Q&A (no polish needed) — use Amend to repo when ready',
         detail: at ? `Last Q&A at ${at}` : 'No broken ids in broken.json',
         risk: 'low',
         selected: true,
         applyAdapter: 'ack',
         targets: ['artifacts/visual-gen/qa/'],
-      }],
+      }];
+    return emptyProposal('visual', {
+      status: dryRun ? 'dry_run' : 'pending_approval',
+      summary: ranQa
+        ? (canAmend ? 'Q&A green — ready to amend polished SVGs into repo' : 'Q&A green — no polish candidates')
+        : (fromRunAll
+          ? 'No broken.json candidates (run-all skips live Q&A scan)'
+          : 'No broken Q&A candidates yet — run Live to scan'),
+      thinking: [
+        'Visual flow: Gates → Q&A → Approve candidates → Polish×8 → optional Amend to repo.',
+        ranQa
+          ? 'Screenshot Q&A found zero broken items.'
+          : 'Proposal reflects artifacts/visual-gen/qa/broken.json.',
+        'Product apply (visual:apply) requires confirmProductWrite and broken.length === 0.',
+      ].join(' '),
+      items,
       gates: gateMeta,
     });
   }
@@ -242,6 +257,9 @@ export function applyVisualRepolish(items) {
       AGENTIC_HEADLESS: '1',
     },
   });
+  child.on('exit', () => {
+    finalizeVisualPolish().catch(() => {});
+  });
   child.unref();
 
   return {
@@ -255,6 +273,113 @@ export function applyVisualRepolish(items) {
     selected: ids.length,
     maxRounds: MAX_ROUNDS,
   };
+}
+
+/**
+ * After polish qa-loop exits: mark polish_complete or auto-amend into repo.
+ */
+export async function finalizeVisualPolish() {
+  const { ids } = loadBrokenList();
+  const prefs = readModePrefs();
+  const brokenCount = ids.length;
+
+  if (brokenCount > 0) {
+    writePackState('visual', {
+      ...readPackState('visual'),
+      status: 'pending_approval',
+      stage: 'qa',
+      finishedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    const proposal = readProposal('visual');
+    if (proposal) {
+      writeProposal('visual', {
+        ...proposal,
+        status: 'pending_approval',
+        summary: `Polish finished with ${brokenCount} still broken — re-approve or Amend blocked`,
+        approval: {
+          ...proposal.approval,
+          state: 'pending',
+          at: new Date().toISOString(),
+        },
+      });
+    }
+    return { ok: true, broken: brokenCount, amended: false, status: 'pending_approval' };
+  }
+
+  const wantAmend = Boolean(prefs.visualApplyAfterPolish && prefs.confirmProductWrite);
+  if (wantAmend) {
+    const { applyVisualAmendToRepo } = await import('./apply-adapters.mjs');
+    const applied = applyVisualAmendToRepo({ confirmProductWrite: true });
+    writePackState('visual', {
+      ...readPackState('visual'),
+      status: applied.ok ? 'applied' : 'polish_complete',
+      stage: applied.ok ? 'applied' : 'polish_complete',
+      finishedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    const proposal = readProposal('visual');
+    if (proposal) {
+      writeProposal('visual', {
+        ...proposal,
+        status: applied.ok ? 'applied' : 'polish_complete',
+        summary: applied.ok
+          ? 'Polish green + amended polished SVGs into apps/pwa-webapp'
+          : `Polish green but amend failed: ${applied.error || 'unknown'}`,
+        approval: {
+          ...proposal.approval,
+          state: applied.ok ? 'applied' : 'polish_complete',
+          at: new Date().toISOString(),
+          confirmProductWrite: true,
+          touchedPaths: applied.paths || [],
+          amendError: applied.ok ? null : applied.error,
+        },
+      });
+    }
+    return {
+      ok: applied.ok,
+      broken: 0,
+      amended: applied.ok,
+      status: applied.ok ? 'applied' : 'polish_complete',
+      error: applied.error || null,
+      paths: applied.paths || [],
+    };
+  }
+
+  writePackState('visual', {
+    ...readPackState('visual'),
+    status: 'polish_complete',
+    stage: 'polish_complete',
+    finishedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  const proposal = readProposal('visual');
+  if (proposal) {
+    writeProposal('visual', {
+      ...proposal,
+      status: 'polish_complete',
+      summary: 'Polish complete (QA green) — optional Amend polished SVGs into repo',
+      items: [
+        ...(proposal.items || []).filter((it) => it.id !== 'visual-amend-repo'),
+        {
+          id: 'visual-amend-repo',
+          kind: 'visual_apply',
+          title: 'Amend polished SVGs into apps/pwa-webapp (visual:apply)',
+          detail: 'QA green after polish — promote polished symbols/keyframes into live PWA sources.',
+          risk: 'high',
+          selected: true,
+          applyAdapter: 'visual-apply',
+          targets: ['apps/pwa-webapp/'],
+        },
+      ],
+      approval: {
+        ...proposal.approval,
+        state: 'polish_complete',
+        at: new Date().toISOString(),
+      },
+    });
+  }
+  return { ok: true, broken: 0, amended: false, status: 'polish_complete' };
 }
 
 /**

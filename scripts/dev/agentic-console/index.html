@@ -1446,7 +1446,10 @@
           </div>` : wizardEmpty('No candidates', 'Run Live so Q&A can populate polish candidates.');
         const approveActions = `
             <div class="activity-actions">
+              <label class="chip"><input type="checkbox" id="optConfirmWrite" /> confirm product write</label>
+              <label class="chip"><input type="checkbox" id="optVisualAmend" /> amend SVGs after polish</label>
               <button class="btn primary" id="btnApprove">${icon('check')} Approve → Polish×8</button>
+              <button class="btn" id="btnAmendRepo">${icon('check')} Amend to repo</button>
               <button class="btn" id="btnReject">${icon('x')} Reject</button>
             </div>`;
         const polishBody = wizardEmpty(
@@ -1707,7 +1710,7 @@
       if (pack === 'i18n') return 'TranslateGemma propose-dir → Approve (+ confirm) → merge Tier-C';
       if (pack === 'deps') return 'Bumps require allowDependencyBump + confirm - never silent';
       if (pack === 'security') return 'Ack only - CSP/header edits refused';
-      if (pack === 'visual') return 'Gates → Q&A candidates → Approve → Polish×8 (C only)';
+      if (pack === 'visual') return 'Gates → Q&A → Polish×8 → optional Amend polished SVGs into apps/pwa-webapp';
       if (pack === 'changelog') return 'Draft bullets from git + Unreleased · promote on Approve';
       return 'Review Thinking + Planned · Approve before product writes';
     }
@@ -1720,12 +1723,44 @@
     async function wireActivityActions(pack) {
       const approve = document.getElementById('btnApprove');
       const reject = document.getElementById('btnReject');
+      const amend = document.getElementById('btnAmendRepo');
+      if (amend) {
+        amend.onclick = async () => {
+          try {
+            const confirmWrite = Boolean(document.getElementById('optConfirmWrite')?.checked);
+            if (!confirmWrite) {
+              log({ ok: false, error: 'confirm product write required to amend SVGs into repo' });
+              return;
+            }
+            // Prefer selecting visual_apply item; else approve that kind by id.
+            const ids = selectedItemIds().filter(Boolean);
+            const data = await client.approvePack(pack, {
+              itemIds: ids.length ? ids : ['visual-amend-repo'],
+              confirmProductWrite: true,
+              allowDependencyBump: false,
+              gitCommitOnApprove: document.getElementById('optGitCommit')?.checked,
+            });
+            log(data);
+            await render();
+          } catch (e) { log(e.envelope || e.message); }
+        };
+      }
       if (!approve || !reject) return;
       approve.onclick = async () => {
         try {
+          const amendAfter = Boolean(document.getElementById('optVisualAmend')?.checked);
+          const confirmWrite = Boolean(document.getElementById('optConfirmWrite')?.checked);
+          if (amendAfter && pack === 'visual') {
+            try {
+              await client.setMode({
+                visualApplyAfterPolish: true,
+                confirmProductWrite: confirmWrite || true,
+              });
+            } catch { /* prefs optional */ }
+          }
           const data = await client.approvePack(pack, {
             itemIds: selectedItemIds(),
-            confirmProductWrite: document.getElementById('optConfirmWrite')?.checked,
+            confirmProductWrite: confirmWrite,
             allowDependencyBump: document.getElementById('optAllowBump')?.checked,
             gitCommitOnApprove: document.getElementById('optGitCommit')?.checked,
           });
@@ -2474,6 +2509,7 @@
               <option value="product-write">product-write (needs confirm)</option>
             </select>
             <label><input type="checkbox" id="confirmProductWrite" ${mode.confirmProductWrite ? 'checked' : ''}/> confirmProductWrite master</label>
+            <label><input type="checkbox" id="visualApplyAfterPolish" ${mode.visualApplyAfterPolish ? 'checked' : ''}/> visualApplyAfterPolish (amend SVGs into repo when QA green)</label>
             <label><input type="checkbox" id="allowDependencyBump" ${mode.allowDependencyBump ? 'checked' : ''}/> allowDependencyBump</label>
             <label><input type="checkbox" id="gitCommitOnApprove" ${mode.gitCommitOnApprove ? 'checked' : ''}/> gitCommitOnApprove (LLM message per item → commit each → push pack)</label>
             <label>i18n fill scope</label>
@@ -2510,6 +2546,7 @@
           autoApprove: Boolean(document.getElementById('autoApprove')?.checked),
           autoApproveMode: document.getElementById('autoApproveMode')?.value || 'ack',
           confirmProductWrite: Boolean(document.getElementById('confirmProductWrite')?.checked),
+          visualApplyAfterPolish: Boolean(document.getElementById('visualApplyAfterPolish')?.checked),
           allowDependencyBump: Boolean(document.getElementById('allowDependencyBump')?.checked),
           gitCommitOnApprove: Boolean(document.getElementById('gitCommitOnApprove')?.checked),
           i18nFillScope: document.getElementById('i18nFillScope')?.value || 'full',
@@ -2560,6 +2597,7 @@
         });
         for (const id of [
           'modeSel', 'autoApprove', 'autoApproveMode', 'confirmProductWrite',
+          'visualApplyAfterPolish',
           'allowDependencyBump', 'gitCommitOnApprove', 'i18nFillScope', 'hwProfileSel',
         ]) {
           const el = document.getElementById(id);

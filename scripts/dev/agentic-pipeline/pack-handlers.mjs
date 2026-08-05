@@ -7,11 +7,10 @@ function llm(topic, extra = {}) {
     llmSystem: ADVISORY_SYSTEM,
     llmTopic: topic,
     // Short handler note merged into Repo context by pack-runner (not a standalone generic prompt).
-    llmPrompt: `Focus: ${topic}. Propose at least two concrete, path-cited actions (not a sole generic acknowledge).`,
+    llmPrompt: `Focus: ${topic}. Propose at least two concrete, path-cited actions with [doc_patch]/[file_write] and path=… (not a sole generic acknowledge).`,
     enrichContext: true,
     defaultKind: extra.defaultKind || 'code_hint',
-    // Persist approved findings as artifacts when no product adapter applies.
-    defaultAdapter: extra.defaultAdapter || 'write-approved-artifact',
+    defaultAdapter: extra.defaultAdapter || 'safe-patch',
   };
 }
 
@@ -25,8 +24,8 @@ export const PACK_HANDLERS = {
     ...o,
     gates: [],
     skipLlm: o.dryRun,
-    ...llm('feature planning docs and unit-test proposals (advisory artifacts only)', {
-      defaultAdapter: 'write-approved-artifact',
+    ...llm('feature planning docs and unit-test proposals under docs/plans or docs/development', {
+      defaultAdapter: 'safe-patch',
       defaultKind: 'doc_patch',
     }),
   }),
@@ -42,24 +41,19 @@ export const PACK_HANDLERS = {
   rtl: (o) => runPack('rtl', {
     ...o,
     gates: [],
-    ...llm('RTL layout risks for ar/he locales in PWA CSS and shell', {
-      defaultAdapter: 'write-approved-artifact',
-    }),
+    ...llm('RTL layout risks for ar/he locales in PWA CSS and shell'),
   }),
   a11y: (o) => runPack('a11y', {
     ...o,
     gates: [npmGate('verify:a11y-tokens'), npmGate('verify:a11y')],
     ...llm('accessibility gate failures → concrete PWA/token fixes', {
-      defaultAdapter: 'write-approved-artifact',
       defaultKind: 'code_hint',
     }),
   }),
   seo: (o) => runPack('seo', {
     ...o,
     gates: [npmGate('seo:sitemap:check'), npmGate('seo:content:check'), npmGate('seo:pages:check')],
-    ...llm('SEO structured data / sitemap / content check gaps', {
-      defaultAdapter: 'write-approved-artifact',
-    }),
+    ...llm('SEO structured data / sitemap / content check gaps'),
   }),
   privacy: (o) => runPack('privacy', {
     ...o,
@@ -83,9 +77,10 @@ export const PACK_HANDLERS = {
   deps: (o) => runPack('deps', {
     ...o,
     gates: [npmGate('audit:deps')],
-    ...llm('dependency advisory triage — list bump candidates; do not instruct silent install'),
-    defaultKind: 'deps_note',
-    defaultAdapter: 'write-approved-artifact',
+    ...llm('dependency advisory triage — list bump candidates; do not instruct silent install', {
+      defaultKind: 'deps_note',
+      defaultAdapter: 'write-approved-artifact',
+    }),
   }),
   migration: (o) => runPack('migration', {
     ...o,
@@ -115,9 +110,7 @@ export const PACK_HANDLERS = {
     ...o,
     gates: [],
     skipLlm: o.dryRun,
-    ...llm('alt-text drafts for content images — no binary invention', {
-      defaultAdapter: 'write-approved-artifact',
-    }),
+    ...llm('alt-text drafts for content images — no binary invention'),
   }),
   bootllm: (o) => runPack('bootllm', {
     ...o,
