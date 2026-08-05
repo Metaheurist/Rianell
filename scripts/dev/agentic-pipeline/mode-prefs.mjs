@@ -21,6 +21,8 @@ export const DEFAULT_MODE_PREFS = {
   allowDependencyBump: false,
   gitCommitOnApprove: false,
   i18nFillScope: 'full',
+  /** When true + confirmProductWrite, run visual:apply after polish QA is green. */
+  visualApplyAfterPolish: false,
   /** 'auto' or a profile id from hardware-profiles.json */
   hardwareProfile: 'auto',
 };
@@ -48,6 +50,7 @@ export function writeModePrefs(patch = {}) {
   if (!['full', 'tier-c'].includes(next.i18nFillScope)) {
     next.i18nFillScope = 'full';
   }
+  next.visualApplyAfterPolish = Boolean(next.visualApplyAfterPolish);
   if (next.hardwareProfile == null || next.hardwareProfile === '') {
     next.hardwareProfile = 'auto';
   }

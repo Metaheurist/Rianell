@@ -167,7 +167,7 @@
     "ai.weekChat.placeholder": "Fiafraigh faoi chodladh, brionglóid nó nósanna...",
     "ai.weekChat.section": "Fiafraigh faoi mo sheachtain",
     "ai.weekChat.send": "Seol",
-    "ai.weekChat.turnsLeft": "{left} turn(s) left",
+    "ai.weekChat.turnsLeft": "casann {left} ar chlé",
     "ai.weekly.digest": "Aisghaireacht na seachtaine",
     "ai.wellbeing.label": "Folláine",
     "ai.wellbeing.scoreAria": "Scór maithbhienteachta: {score} as 100",

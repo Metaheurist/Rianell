@@ -23,7 +23,13 @@ import {
 } from './proposal.mjs';
 import { buildPackLlmPrompt, ADVISORY_SYSTEM } from './pack-context.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
-import { researchBeforeLlm } from './research-pack.mjs';
+import { researchBeforeLlm, researchRefineProposal } from './research-pack.mjs';
+import {
+  authorPatchBodies,
+  ensureFindingsFallbackItem,
+  reselectMutateItems,
+} from './patch-author.mjs';
+import { readModePrefs } from './mode-prefs.mjs';
 
 let hwProfileCache = null;
 
@@ -328,6 +334,47 @@ export async function runPack(packId, opts = {}) {
   }
 
   if (proposal && reportOk) {
+    const prefs = readModePrefs();
+    const productWrite = !dryRun && (
+      prefs.autoApproveMode === 'product-write'
+      || Boolean(opts.productWrite)
+      || prefs.confirmProductWrite
+    );
+
+    if (!customProposal) {
+      proposal = researchRefineProposal(proposal);
+      proposal = {
+        ...proposal,
+        items: (proposal.items || []).map((it) => {
+          if (it.kind === 'file_write' || it.kind === 'file_create' || it.kind === 'doc_patch' || it.kind === 'code_hint') {
+            return { ...it, applyAdapter: 'safe-patch' };
+          }
+          return it;
+        }),
+      };
+      proposal = {
+        ...proposal,
+        items: reselectMutateItems(proposal.items, { productWrite }),
+      };
+      if (!dryRun) {
+        proposal = {
+          ...proposal,
+          items: await authorPatchBodies(packId, proposal.items, {
+            model: resolved.model,
+            dryRun,
+          }),
+        };
+      }
+    }
+
+    if (productWrite && !dryRun) {
+      proposal = {
+        ...proposal,
+        items: ensureFindingsFallbackItem(packId, proposal.items, proposal.thinking),
+        summary: `${(proposal.items || []).length} proposed action(s)`,
+      };
+    }
+
     writeProposal(packId, proposal);
   }
 

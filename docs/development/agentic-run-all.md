@@ -12,7 +12,8 @@ POST /api/agentic/run-all { "dryRun": true, "skip": [], "stopOnBroken": false }
 1. **Proposal sweep** — runs all 16 packs without waiting for human Approve between packs.  
 2. **Model-grouped order** — packs using the same recommended model stay contiguous; Ollama **unload only when the model changes**.  
 3. **Terminal status** — `awaiting_approvals` when any pack still needs Approve; otherwise `passed`.  
-4. **Approve → apply queue** — Approve enqueues selected items; drain executes jobs sorted by model group (then pack order). No skipping mid-group. **visual** Approve starts Polish×8 (qa-loop) on selected Q&A candidates.
+4. **Approve → apply queue** — Approve enqueues selected items; drain executes jobs sorted by model group (then pack order). No skipping mid-group. **visual** Approve starts Polish×8 (qa-loop) on selected Q&A candidates; optional **Amend to repo** (`visual:apply`) when QA is green.
+5. **Product-write mutation gate** — with `autoApproveMode: product-write` + confirm, each pack must touch ≥1 path outside `artifacts/**` or fails with `no_product_mutation`. See [agentic-product-write-rollout.md](agentic-product-write-rollout.md).
 
 Order (model-grouped):
 

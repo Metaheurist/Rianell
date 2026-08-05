@@ -19,6 +19,8 @@ import {
   applyResearchFileWrite,
   applyResearchScriptRun,
   applyResearchTidy,
+  applySafePatch,
+  isProductTrackedPath,
 } from './research-apply.mjs';
 
 function npmRun(script, extraArgs = []) {
@@ -100,12 +102,37 @@ function applyChangelog(items, confirm) {
   if (!confirm) return { ok: false, error: 'confirmProductWrite required for CHANGELOG.md' };
   const bullets = items
     .filter((it) => it.kind === 'changelog_bullet' || it.selected)
-    .map((it) => `- ${it.title}`);
+    .map((it) => {
+      const t = String(it.title || '').trim();
+      if (t.startsWith('- ')) return t;
+      // Prefer Keep-a-Changelog bold lead when title is a short headline.
+      if (/^\*\*/.test(t)) return `- ${t}`;
+      return `- **${t.replace(/\.$/, '')}**`;
+    });
   if (!bullets.length) return { ok: false, error: 'no changelog bullets selected' };
   const file = path.join(ROOT, 'CHANGELOG.md');
-  const prev = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# Changelog\n';
-  const block = `\n## Agentic draft (approved)\n\n${bullets.join('\n')}\n`;
-  fs.writeFileSync(file, prev.replace(/^(# Changelog\s*\n)/, `$1${block}`) || `${prev}\n${block}`);
+  let prev = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# Changelog\n\n## [Unreleased]\n\n### Added\n';
+  // Strip legacy meta draft blocks if present.
+  prev = prev.replace(/\n## Agentic draft \(approved\)\n[\s\S]*?(?=\n## |\nAll notable|\nFormat follows|$)/, '\n');
+
+  const unreleased = prev.match(/## \[Unreleased\]([\s\S]*?)(?=\n## \[|$)/);
+  if (!unreleased) {
+    const inject = `## [Unreleased]\n\n### Changed\n${bullets.join('\n')}\n\n`;
+    const next = prev.replace(/^(# Changelog\s*\n+)/, `$1\n${inject}`);
+    fs.writeFileSync(file, next.includes(inject) ? next : `${prev}\n${inject}`);
+    return { ok: true, paths: ['CHANGELOG.md'] };
+  }
+
+  let section = unreleased[1];
+  if (/### Changed/.test(section)) {
+    section = section.replace(/(### Changed\n)/, `$1${bullets.join('\n')}\n`);
+  } else if (/### Added/.test(section)) {
+    section = section.replace(/(### Added\n)/, `$1${bullets.join('\n')}\n`);
+  } else {
+    section = `\n\n### Changed\n${bullets.join('\n')}\n${section}`;
+  }
+  const next = prev.replace(/## \[Unreleased\][\s\S]*?(?=\n## \[|$)/, `## [Unreleased]${section}`);
+  fs.writeFileSync(file, next);
   return { ok: true, paths: ['CHANGELOG.md'] };
 }
 
@@ -129,6 +156,13 @@ function applyVisual(confirm) {
   if (Array.isArray(broken) && broken.length > 0) {
     return { ok: false, error: `visual QA broken.length=${broken.length}; refuse apply` };
   }
+  // Also accept object form { ids: [...] }
+  if (broken && typeof broken === 'object' && !Array.isArray(broken)) {
+    const ids = Array.isArray(broken.ids) ? broken.ids : (Array.isArray(broken.broken) ? broken.broken : []);
+    if (ids.length > 0) {
+      return { ok: false, error: `visual QA broken.length=${ids.length}; refuse apply` };
+    }
+  }
   const unlock = path.join(packDir('visual'), 'apply-unlock.json');
   ensureDir(packDir('visual'));
   fs.writeFileSync(unlock, `${JSON.stringify({ unlockedAt: new Date().toISOString() }, null, 2)}\n`);
@@ -138,6 +172,15 @@ function applyVisual(confirm) {
     error: res.ok ? null : (res.stderr || 'visual:apply failed'),
     paths: res.ok ? ['apps/pwa-webapp/', path.relative(ROOT, unlock).replace(/\\/g, '/')] : [],
   };
+}
+
+/** Public entry for UI Amend-to-repo / post-polish auto-amend. */
+export function applyVisualAmendToRepo(opts = {}) {
+  return applyVisual(Boolean(opts.confirmProductWrite));
+}
+
+export function filterProductTouchedPaths(paths = []) {
+  return [...new Set((paths || []).map(String).filter((p) => isProductTrackedPath(p)))];
 }
 
 function applyDepsBump(items, allow, confirm) {
@@ -173,7 +216,16 @@ function resolveItemAdapter(packId, it) {
   if (it.kind === 'wiki_patch') adapter = 'wiki-sync';
   if (it.kind === 'visual_apply') adapter = 'visual-apply';
   if (it.kind === 'visual_repolish') adapter = 'visual-repolish';
-  if (it.kind === 'file_write' || it.kind === 'file_create') adapter = 'research-file-write';
+  if (it.kind === 'file_write' || it.kind === 'file_create' || it.kind === 'doc_patch' || it.kind === 'code_hint') {
+    const hasBody = (it.find != null && it.replace != null)
+      || (it.content != null && String(it.content).trim())
+      || (it.proposed != null && String(it.proposed).trim());
+    const hasPath = Boolean(it.path || it.target || (it.targets && it.targets[0]));
+    if (!hasPath || !hasBody) {
+      return { ok: false, error: `safe-patch requires path+body for ${it.id || it.kind}` };
+    }
+    adapter = 'safe-patch';
+  }
   if (it.kind === 'script_run') adapter = 'research-script-run';
   if (it.kind === 'tidy') adapter = 'research-tidy';
   // Ack-only review notes may mention CSP/headers; refuse only mutation adapters.
@@ -196,6 +248,7 @@ function runAdapter(packId, adapter, list, confirm, allowBump) {
   if (adapter === 'visual-apply') return applyVisual(confirm);
   if (adapter === 'visual-repolish') return applyVisualRepolish(list);
   if (adapter === 'deps-bump') return applyDepsBump(list, allowBump, confirm);
+  if (adapter === 'safe-patch') return applySafePatch(list, confirm);
   if (adapter === 'research-file-write') return applyResearchFileWrite(list, confirm);
   if (adapter === 'research-script-run') return applyResearchScriptRun(list, confirm);
   if (adapter === 'research-tidy') return applyResearchTidy(list, confirm);

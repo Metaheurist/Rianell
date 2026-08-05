@@ -44,8 +44,9 @@ test('classifyResearchAction and refine prefixes', () => {
     ],
   });
   assert.equal(prop.items[0].kind, 'file_write');
-  assert.equal(prop.items[0].applyAdapter, 'research-file-write');
+  assert.equal(prop.items[0].applyAdapter, 'safe-patch');
   assert.equal(prop.items[0].path, 'docs/development/research-register.json');
+  assert.equal(prop.items[0].selected, true);
   assert.equal(prop.items[1].kind, 'fact_check');
   assert.equal(prop.items[2].npmScript, 'verify:doc-links');
   assert.equal(prop.items[3].applyAdapter, 'research-tidy');

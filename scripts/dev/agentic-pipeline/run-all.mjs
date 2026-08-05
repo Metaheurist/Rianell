@@ -2,7 +2,7 @@ import { runAllOrder, resolvePackModel } from './catalog.mjs';
 import { readRunAllState, writeRunAllState, readPackState } from './state.mjs';
 import { PACK_HANDLERS } from './pack-handlers.mjs';
 import { ollamaUnload } from './ollama-client.mjs';
-import { autoAckPack, approvePack } from './apply-adapters.mjs';
+import { autoAckPack, approvePack, filterProductTouchedPaths } from './apply-adapters.mjs';
 import { readModePrefs } from './mode-prefs.mjs';
 
 async function waitIfPaused() {
@@ -12,6 +12,31 @@ async function waitIfPaused() {
     if (s.status !== 'paused') return 'ok';
     await new Promise((r) => setTimeout(r, 500));
   }
+}
+
+function productMutationOk(packId, approveResult, prefs) {
+  if (packId === 'visual') {
+    const proposal = approveResult?.data?.proposal;
+    const state = proposal?.approval?.state || proposal?.status;
+    if (state === 'polish_running' || approveResult?.data?.results?.some((r) => r.deferred)) {
+      return { ok: true, deferred: true };
+    }
+    if (state === 'polish_complete') {
+      // OK when amend pref off; when on, require applied product paths.
+      if (prefs.visualApplyAfterPolish) {
+        const paths = filterProductTouchedPaths(
+          proposal?.approval?.touchedPaths || approveResult?.data?.touched || [],
+        );
+        return paths.length
+          ? { ok: true }
+          : { ok: false, error: 'no_product_mutation' };
+      }
+      return { ok: true, polishComplete: true };
+    }
+  }
+  const paths = filterProductTouchedPaths(approveResult?.data?.touched || []);
+  if (paths.length) return { ok: true, paths };
+  return { ok: false, error: 'no_product_mutation' };
 }
 
 /**
@@ -104,10 +129,16 @@ export async function executeRunAll(opts = {}) {
       ? resolvePackModel(nextId).model
       : null;
 
-    const result = await handler({ dryRun, fromRunAll: true });
+    const result = await handler({
+      dryRun,
+      fromRunAll: true,
+      productWrite: autoApproveMode === 'product-write' && confirmProductWrite,
+    });
     // Never block the sequencer on human Approve — continue to the next pack.
     const needsApproval = Boolean(result.needsApproval) && !dryRun;
     let approvalState = needsApproval ? 'pending' : null;
+    let packOk = result.ok;
+    let packError = result.error || null;
 
     if (!dryRun && needsApproval && autoApprove) {
       if (autoApproveMode === 'ack') {
@@ -120,15 +151,35 @@ export async function executeRunAll(opts = {}) {
           gitCommitOnApprove,
           by: 'auto-product',
         });
-        approvalState = ap.ok ? 'applied' : 'pending';
+        if (!ap.ok) {
+          approvalState = 'pending';
+          packOk = false;
+          packError = ap.error?.message || ap.error || 'approve failed';
+        } else {
+          const mut = productMutationOk(packId, ap, {
+            ...prefs,
+            visualApplyAfterPolish: prefs.visualApplyAfterPolish,
+          });
+          if (mut.deferred) {
+            approvalState = 'polish_running';
+          } else if (mut.polishComplete) {
+            approvalState = 'polish_complete';
+          } else if (!mut.ok) {
+            approvalState = 'pending';
+            packOk = false;
+            packError = mut.error || 'no_product_mutation';
+          } else {
+            approvalState = 'applied';
+          }
+        }
       }
     }
 
     state = readRunAllState();
     state.results[packId] = {
-      ok: result.ok,
-      error: result.error || null,
-      needsApproval: needsApproval && approvalState === 'pending',
+      ok: packOk,
+      error: packError,
+      needsApproval: needsApproval && (approvalState === 'pending'),
       approvalState,
       model: model || null,
     };
@@ -139,7 +190,7 @@ export async function executeRunAll(opts = {}) {
       await ollamaUnload(model);
     }
 
-    if (!result.ok && stopOnBroken) {
+    if (!packOk && stopOnBroken) {
       writeRunAllState({
         ...readRunAllState(),
         status: 'broken',
