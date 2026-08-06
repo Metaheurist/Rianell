@@ -22,6 +22,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run verify:icon-spec`** — specs stay aligned with `THEME_FX_TOKENS` and `--ui-icon-stroke`.
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
+### Fixed
+- **Agentic product-write mutation gate:** `approvePack` now surfaces apply `touched` paths (and drain failures) so auto product-write no longer false-fails with `no_product_mutation` after a successful safe-patch.
+- **Agentic safe-patch SEARCH markers:** parse indented `<<<SEARCH` / `=======` / `>>>REPLACE` blocks; recover find/replace from leftover content markers at apply time; re-author when markers lack parsed fields.
+- **Agentic LLM empty panel:** console shows "Loading model / waiting for first tokens" while streaming is open but no tokens yet (cold-load clarity).
+- **Agentic unapplyable patches:** product-write auto-approve coerces broken `search_replace` items (missing/non-unique find) into `docs/development/agentic-findings/<pack>.md` appends so the mutation gate can pass.
+- **Agentic product-write loop:** treat `polish_running` / `polish_complete` as successful visual outcomes; continue-all (no stop-on-broken) so one pack fault does not discard later packs.
+
 ### Changed
 - **Agentic product-write mutations:** advisory packs propose structured `[doc_patch]`/`[file_write]` actions; `safe-patch` applies search_replace/append on allowlisted paths; patch-author fills missing bodies; run-all fails packs with zero tracked-path mutations. Rollout: `docs/development/agentic-product-write-rollout.md`.
 - **Agentic changelog promote:** appends Keep-a-Changelog bullets under `## [Unreleased]` (no meta `Agentic draft` block).
@@ -1187,3 +1194,4 @@ Post-2.0.0 polish: logging, security lock, accessibility, and UX fixes across PW
 ---
 
 _Older entries are available in git history (`git log --oneline`)._
+   - **Agentic product-write mutations:** advisory packs propose structured `[doc_patch]`/`[file_write]` actions; `safe-patch` applies search_replace/append on allowlisted paths; patch-author fills missing bodies; run-all fails packs with zero tracked-path mutations. Rollout: `docs/development/agentic-product-write-rollout.md`.

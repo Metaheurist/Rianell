@@ -232,8 +232,8 @@ export function applySafePatch(items, confirm) {
     }
     const abs = path.join(ROOT, rel);
     let mode = String(it.mode || '').toLowerCase();
-    const find = it.find != null ? String(it.find) : null;
-    const replace = it.replace != null ? String(it.replace) : null;
+    let find = it.find != null ? String(it.find) : null;
+    let replace = it.replace != null ? String(it.replace) : null;
     const content = it.content != null
       ? String(it.content)
       : (it.proposed != null ? String(it.proposed) : '');
@@ -246,6 +246,22 @@ export function applySafePatch(items, confirm) {
     }
 
     if (mode === 'search_replace') {
+      // Tolerate LLM patches that left markers inside `content` instead of find/replace fields.
+      if ((find == null || replace == null) && content && /<<<SEARCH|=======|>>>REPLACE/i.test(content)) {
+        const m = content.replace(/\r\n/g, '\n').match(
+          /<<<SEARCH\s*\n([\s\S]*?)\n[ \t]*=======\s*\n([\s\S]*?)(?:\n[ \t]*>>>REPLACE\s*)?$/i,
+        );
+        if (m) {
+          const strip = (t) => {
+            const lines = String(t || '').replace(/\s+$/, '').split('\n');
+            const indents = lines.filter((l) => l.trim()).map((l) => (l.match(/^[ \t]*/)?.[0] || '').length);
+            const n = indents.length ? Math.min(...indents) : 0;
+            return lines.map((l) => (n ? l.slice(n) : l)).join('\n');
+          };
+          find = strip(m[1]);
+          replace = strip(m[2]);
+        }
+      }
       if (find == null || replace == null) {
         return { ok: false, error: `search_replace needs find+replace for ${rel}`, paths: written };
       }

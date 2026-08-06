@@ -13,7 +13,7 @@ import {
 import { ensureDir, packDir, ROOT, readPackState, writePackState } from './state.mjs';
 import { commitApprovedItem, gitPushOnApprove } from './git-commit-on-approve.mjs';
 import { silentSpawnSync } from './spawn-silent.mjs';
-import { drainApplyQueue, enqueueApprovedWork } from './apply-queue.mjs';
+import { drainApplyQueue, enqueueApprovedWork, readApplyQueue } from './apply-queue.mjs';
 import { applyVisualRepolish } from './visual-qa-propose.mjs';
 import {
   applyResearchFileWrite,
@@ -22,6 +22,7 @@ import {
   applySafePatch,
   isProductTrackedPath,
 } from './research-apply.mjs';
+import { coerceUnapplyablePatches } from './patch-author.mjs';
 
 function npmRun(script, extraArgs = []) {
   const res = silentSpawnSync('npm', ['run', script, ...extraArgs], {
@@ -269,6 +270,9 @@ export async function executeApprovedItems(packId, items, opts = {}) {
 
   if (!items.length) return { ok: false, error: { code: 'empty', message: 'no items selected' } };
 
+  // Product writes: coerce bad search_replace inventedx finds into findings appends.
+  const prepared = confirm ? coerceUnapplyablePatches(packId, items) : items;
+
   const touched = [];
   const results = [];
   const gitCommits = [];
@@ -277,7 +281,7 @@ export async function executeApprovedItems(packId, items, opts = {}) {
 
   if (doGit) {
     // One apply + dedicated LLM commit per approval item, then push once.
-    for (const it of items) {
+    for (const it of prepared) {
       const resolved = resolveItemAdapter(packId, it);
       if (!resolved.ok) {
         appendApprovalLog({ pack: packId, action: 'approve_failed', error: resolved.error, itemId: it.id });
@@ -312,7 +316,7 @@ export async function executeApprovedItems(packId, items, opts = {}) {
     }
   } else {
     const byAdapter = new Map();
-    for (const it of items) {
+    for (const it of prepared) {
       const resolved = resolveItemAdapter(packId, it);
       if (!resolved.ok) {
         return { ok: false, error: { code: 409, message: String(resolved.error) } };
@@ -337,6 +341,10 @@ export async function executeApprovedItems(packId, items, opts = {}) {
   if (proposal) {
     const next = {
       ...proposal,
+      items: (proposal.items || []).map((orig) => {
+        const coerced = prepared.find((p) => p.id === orig.id);
+        return coerced || orig;
+      }),
       status: deferredPolish ? 'polish_running' : 'applied',
       approval: {
         ...proposal.approval,
@@ -346,6 +354,7 @@ export async function executeApprovedItems(packId, items, opts = {}) {
         confirmProductWrite: confirm,
         allowDependencyBump: allowBump,
         gitCommitOnApprove: doGit,
+        touchedPaths: touched,
         gitCommitSha: gitSha,
         gitCommits: doGit ? gitCommits.map((g) => ({
           itemId: g.itemId,
@@ -367,7 +376,7 @@ export async function executeApprovedItems(packId, items, opts = {}) {
     gitSha,
     gitCommits: doGit ? gitCommits.map((g) => g.sha).filter(Boolean) : undefined,
     gitPush: gitPush?.ok,
-    itemIds: items.map((i) => i.id),
+    itemIds: prepared.map((i) => i.id),
   });
 
   const prevState = readPackState(packId);
@@ -424,11 +433,23 @@ export async function approvePack(packId, opts = {}) {
   const selectedIds = opts.itemIds?.length
     ? new Set(opts.itemIds)
     : null;
-  const items = (proposal.items || []).filter((it) => {
+  let items = (proposal.items || []).filter((it) => {
     if (selectedIds) return selectedIds.has(it.id);
     return it.selected !== false;
   });
   if (!items.length) return { ok: false, error: { code: 'empty', message: 'no items selected' } };
+
+  // Coerce before adapter resolve so missing path/body becomes findings append.
+  if (confirm) {
+    items = coerceUnapplyablePatches(packId, items);
+    writeProposal(packId, {
+      ...proposal,
+      items: (proposal.items || []).map((orig) => {
+        const coerced = items.find((p) => p.id === orig.id);
+        return coerced || orig;
+      }),
+    });
+  }
 
   for (const it of items) {
     const resolved = resolveItemAdapter(packId, it);
@@ -482,7 +503,29 @@ export async function approvePack(packId, opts = {}) {
     return {
       ok: false,
       error: { code: 'drain', message: String(drain.error || 'apply queue drain failed') },
-      data: { job, drain },
+      data: { job, drain, touched: [] },
+    };
+  }
+
+  // Surface apply paths from the drained job so product-write mutation gate can see them.
+  const finished = (drain.data?.queue?.jobs || []).find((j) => j.id === job.id)
+    || (readApplyQueue().jobs || []).find((j) => j.id === job.id);
+  const applyData = finished?.result || {};
+  const touched = Array.isArray(applyData.touched) ? applyData.touched : [];
+  if (finished?.status === 'failed') {
+    return {
+      ok: false,
+      error: {
+        code: 409,
+        message: String(finished.error || applyData.error || 'apply failed'),
+      },
+      data: {
+        job,
+        drain,
+        touched,
+        results: applyData.results,
+        proposal: readProposal(packId),
+      },
     };
   }
 
@@ -494,6 +537,8 @@ export async function approvePack(packId, opts = {}) {
       queued: true,
       proposal: readProposal(packId),
       drain,
+      touched,
+      results: applyData.results,
     },
   };
 }

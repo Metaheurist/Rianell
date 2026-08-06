@@ -175,7 +175,14 @@ export async function drainApplyQueue(opts) {
         slot.result = r.data || null;
         writeApplyQueue(after);
       }
-      results.push({ id: job.id, packId: job.packId, ok: Boolean(r.ok), error: r.error || null });
+      results.push({
+        id: job.id,
+        packId: job.packId,
+        ok: Boolean(r.ok),
+        error: r.error || null,
+        touched: Array.isArray(r.data?.touched) ? r.data.touched : [],
+        result: r.data || null,
+      });
       lastModel = job.model || lastModel;
     }
 
@@ -190,6 +197,14 @@ export async function drainApplyQueue(opts) {
       lastDrainAt: new Date().toISOString(),
       lastError: null,
     });
+    const failed = results.filter((r) => !r.ok);
+    if (failed.length) {
+      return {
+        ok: false,
+        error: failed.map((f) => f.error || `${f.packId} apply failed`).join('; '),
+        data: { results, queue: readApplyQueue() },
+      };
+    }
     return { ok: true, data: { results, queue: readApplyQueue() } };
   } catch (e) {
     const final = readApplyQueue();

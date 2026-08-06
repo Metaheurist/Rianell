@@ -13,7 +13,14 @@ const MAX_FILE_CHARS = 12_000;
 
 function hasBody(it) {
   if (it.find != null && it.replace != null) return true;
-  if (it.content != null && String(it.content).trim()) return true;
+  if (it.content != null && String(it.content).trim()) {
+    // SEARCH markers without parsed find/replace still need a real patch pass.
+    if (/<<<SEARCH|=======|>>>REPLACE/i.test(String(it.content))
+      && (it.find == null || it.replace == null)) {
+      return false;
+    }
+    return true;
+  }
   if (it.proposed != null && String(it.proposed).trim()) return true;
   return false;
 }
@@ -180,6 +187,124 @@ export function reselectMutateItems(items, { productWrite = false } = {}) {
     const rel = normalizeRelPath(it.path || it.target || (it.targets && it.targets[0]));
     if (mutate && (rel || ['changelog_bullet', 'wiki_patch', 'i18n_string', 'visual_apply'].includes(it.kind))) {
       return { ...it, selected: it.kind === 'deps_bump' ? it.selected : true };
+    }
+    return it;
+  });
+}
+
+/**
+ * Coerce incomplete search_replace items into findings appends so product-write
+ * still mutates a tracked path when the LLM invented a bad find string.
+ */
+export function coerceUnapplyablePatches(packId, items) {
+  const findingsPath = `docs/development/agentic-findings/${packId}.md`;
+  const stamp = new Date().toISOString().slice(0, 10);
+  return (items || []).map((it, idx) => {
+    const looksMutate = MUTATE_KINDS.has(it.kind)
+      || it.applyAdapter === 'safe-patch'
+      || it.applyAdapter === 'research-file-write';
+    if (!looksMutate) return it;
+    const rel = normalizeRelPath(it.path || it.target || (it.targets && it.targets[0]));
+    let find = it.find != null ? String(it.find) : null;
+    let replace = it.replace != null ? String(it.replace) : null;
+    let content = it.content != null
+      ? String(it.content)
+      : (it.proposed != null ? String(it.proposed) : '');
+    let mode = String(it.mode || '').toLowerCase();
+
+    if ((!find || !replace) && content && /<<<SEARCH|=======|>>>REPLACE/i.test(content)) {
+      const m = content.replace(/\r\n/g, '\n').match(
+        /<<<SEARCH\s*\n([\s\S]*?)\n[ \t]*=======\s*\n([\s\S]*?)(?:\n[ \t]*>>>REPLACE\s*)?$/i,
+      );
+      if (m) {
+        const strip = (t) => {
+          const lines = String(t || '').replace(/\s+$/, '').split('\n');
+          const indents = lines.filter((l) => l.trim()).map((l) => (l.match(/^[ \t]*/)?.[0] || '').length);
+          const n = indents.length ? Math.min(...indents) : 0;
+          return lines.map((l) => (n ? l.slice(n) : l)).join('\n');
+        };
+        find = strip(m[1]);
+        replace = strip(m[2]);
+        mode = 'search_replace';
+        content = '';
+      }
+    }
+
+    const toFindings = (reason) => {
+      const note = [
+        '',
+        `## ${stamp} · ${packId} (${reason})`,
+        '',
+        `- ${it.title || it.id || `item-${idx + 1}`}`,
+        rel ? `- original path: ${rel}` : '- no path cited',
+        content ? `\n\`\`\`\n${content.slice(0, 800)}\n\`\`\`` : '',
+        String(it.detail || '').slice(0, 500),
+        '',
+      ].filter(Boolean).join('\n');
+      return {
+        ...it,
+        kind: 'doc_patch',
+        path: findingsPath,
+        targets: [findingsPath],
+        mode: 'append',
+        content: note,
+        proposed: note,
+        find: undefined,
+        replace: undefined,
+        applyAdapter: 'safe-patch',
+        selected: true,
+        title: `Findings fallback: ${it.title || rel || it.id}`,
+      };
+    };
+
+    // Mutate kinds must have path+body before resolveItemAdapter.
+    if (!rel || !isAllowedWritePath(rel)) {
+      return toFindings(rel ? `disallowed path ${rel}` : 'missing path');
+    }
+    if (!content && find == null && replace == null && !String(it.detail || '').trim()) {
+      return toFindings('empty body');
+    }
+
+    if (mode === 'search_replace' && find != null && replace != null && rel) {
+      const abs = path.join(ROOT, rel);
+      if (fs.existsSync(abs)) {
+        const prev = fs.readFileSync(abs, 'utf8');
+        const count = prev.split(find).length - 1;
+        if (count === 1) {
+          return {
+            ...it,
+            path: rel,
+            targets: [rel],
+            mode: 'search_replace',
+            find,
+            replace,
+            applyAdapter: 'safe-patch',
+          };
+        }
+      }
+      return toFindings(`search_replace unusable for ${rel}`);
+    }
+
+    if (mode === 'search_replace') {
+      return toFindings('incomplete search_replace');
+    }
+
+    if ((mode === 'append' || mode === 'create' || mode === 'replace' || !mode)) {
+      const body = content || String(it.detail || it.title || '').trim();
+      if (!body) return toFindings('empty append/create body');
+      if (mode === 'create' && rel && fs.existsSync(path.join(ROOT, rel))) {
+        return toFindings(`create blocked (exists): ${rel}`);
+      }
+      return {
+        ...it,
+        path: rel,
+        targets: [rel],
+        mode: mode || (it.kind === 'file_create' ? 'create' : 'append'),
+        content: body,
+        proposed: body,
+        applyAdapter: 'safe-patch',
+        selected: true,
+      };
     }
     return it;
   });

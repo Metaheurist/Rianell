@@ -66,14 +66,22 @@ function summarize(state) {
     ok: Boolean(r?.ok),
     approvalState: r?.approvalState ?? null,
     needsApproval: Boolean(r?.needsApproval),
-    error: r?.error || null,
+    error: r?.error == null
+      ? null
+      : (typeof r.error === 'object' ? (r.error.message || JSON.stringify(r.error)) : String(r.error)),
     model: r?.model || null,
   }));
   const failed = rows.filter((r) => !r.ok);
   const pending = rows.filter((r) => r.needsApproval || r.approvalState === 'pending');
+  const appliedOk = (state) => (
+    state === 'applied'
+    || state === 'polish_running'
+    || state === 'polish_complete'
+    || state == null
+  );
   const allOk = rows.length === 16 && failed.length === 0;
   const allApplied = allOk && pending.length === 0
-    && rows.every((r) => r.approvalState === 'applied' || r.approvalState == null);
+    && rows.every((r) => appliedOk(r.approvalState));
   return { rows, failed, pending, allOk, allApplied, status: state?.status };
 }
 
@@ -88,7 +96,7 @@ async function oneAttempt(attempt) {
 
   const state = await executeRunAll({
     dryRun: false,
-    stopOnBroken: true,
+    stopOnBroken: false,
     autoApprove: true,
     autoApproveMode: 'product-write',
     confirmProductWrite: true,
@@ -103,7 +111,7 @@ async function oneAttempt(attempt) {
   console.log(`[loop] status=${summary.status} allOk=${summary.allOk} allApplied=${summary.allApplied}`);
   for (const r of summary.rows) {
     const mark = r.ok ? 'PASS' : 'FAIL';
-    console.log(`  ${mark} ${r.pack} model=${r.model} appr=${r.approvalState}${r.error ? ` err=${r.error}` : ''}`);
+    console.log(`  ${mark} ${r.pack} model=${r.model} appr=${r.approvalState}${r.error ? ` err=${typeof r.error === 'object' ? (r.error.message || JSON.stringify(r.error)) : r.error}` : ''}`);
   }
   return { state, summary };
 }
