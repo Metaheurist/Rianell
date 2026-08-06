@@ -34,7 +34,13 @@ function productMutationOk(packId, approveResult, prefs) {
       return { ok: true, polishComplete: true };
     }
   }
-  const paths = filterProductTouchedPaths(approveResult?.data?.touched || []);
+  const fromDrain = (approveResult?.data?.drain?.data?.results || [])
+    .flatMap((r) => (Array.isArray(r.touched) ? r.touched : []));
+  const paths = filterProductTouchedPaths([
+    ...(approveResult?.data?.touched || []),
+    ...fromDrain,
+    ...(approveResult?.data?.proposal?.approval?.touchedPaths || []),
+  ]);
   if (paths.length) return { ok: true, paths };
   return { ok: false, error: 'no_product_mutation' };
 }
@@ -154,7 +160,10 @@ export async function executeRunAll(opts = {}) {
         if (!ap.ok) {
           approvalState = 'pending';
           packOk = false;
-          packError = ap.error?.message || ap.error || 'approve failed';
+          const err = ap.error;
+          packError = (err && typeof err === 'object')
+            ? (err.message || err.code || JSON.stringify(err))
+            : (err || 'approve failed');
         } else {
           const mut = productMutationOk(packId, ap, {
             ...prefs,

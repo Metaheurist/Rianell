@@ -1522,7 +1522,12 @@
           : wizardEmpty('Research not started', 'After gates pass, Firecrawl builds a pack-scoped web brief so the LLM can ground Approvals. Set FIRECRAWL_API_KEY in Settings.');
         const thinkBody = thinkText
           ? `${ctxChip}<div class="body md" id="thinkingBody">${renderMd(thinkText)}${thinking.streaming ? ' <span class="cursor-blink"></span>' : ''}</div>`
-          : wizardEmpty('Waiting on LLM', 'After Research, Thinking streams here. Model unload stays grouped with sibling packs.');
+          : wizardEmpty(
+            thinking.streaming ? 'Loading model / waiting for first tokens' : 'Waiting on LLM',
+            thinking.streaming
+              ? 'Ollama is loading or warming the pack model. Thinking stream appears after the first token (qwen3.6:35b cold load can take 1–2 minutes).'
+              : 'After Research, Thinking streams here. Model unload stays grouped with sibling packs.',
+          );
         const planListReview = items.length ? `
           <div class="body plan-list" style="white-space:normal">
             ${items.map((it) => `

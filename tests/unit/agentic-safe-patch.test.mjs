@@ -109,6 +109,79 @@ test('isProductTrackedPath excludes artifacts', () => {
   );
 });
 
+test('parseActionBlock tolerates indented SEARCH markers', () => {
+  const block = `[file_write] path=apps/pwa-webapp/styles.css mode=search_replace
+\`\`\`patch
+   <<<SEARCH
+   :root {
+   =======
+   :root {
+     /* agentic */
+   >>>REPLACE
+\`\`\``;
+  const it = parseActionBlock(block, { defaultAdapter: 'safe-patch' });
+  assert.equal(it.mode, 'search_replace');
+  assert.ok(it.find.includes(':root'));
+  assert.ok(it.replace.includes('agentic'));
+  assert.equal(it.content, undefined);
+});
+
+test('applySafePatch recovers find/replace from content markers', () => {
+  const rel = 'docs/development/_safe-patch-markers.md';
+  const abs = path.join(process.cwd(), rel);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, ':root {\n  color: red;\n}\n', 'utf8');
+  try {
+    const r = applySafePatch([{
+      path: rel,
+      mode: 'search_replace',
+      content: `   <<<SEARCH
+   :root {
+     color: red;
+   }
+   =======
+   :root {
+     color: blue;
+   }
+   >>>REPLACE`,
+    }], true);
+    assert.equal(r.ok, true);
+    assert.match(fs.readFileSync(abs, 'utf8'), /blue/);
+  } finally {
+    try { fs.unlinkSync(abs); } catch { /* ignore */ }
+  }
+});
+
+test('coerceUnapplyablePatches demotes bad search_replace to findings', async () => {
+  const { coerceUnapplyablePatches } = await import('../../scripts/dev/agentic-pipeline/patch-author.mjs');
+  const out = coerceUnapplyablePatches('design', [{
+    id: 'design-1',
+    kind: 'file_write',
+    path: 'apps/pwa-webapp/css/tokens.css',
+    mode: 'search_replace',
+    title: 'invented find',
+    content: 'no markers here',
+    selected: true,
+  }]);
+  assert.equal(out[0].mode, 'append');
+  assert.equal(out[0].path, 'docs/development/agentic-findings/design.md');
+  assert.match(out[0].content, /invented find/);
+});
+
+test('coerceUnapplyablePatches demotes missing path to findings', async () => {
+  const { coerceUnapplyablePatches } = await import('../../scripts/dev/agentic-pipeline/patch-author.mjs');
+  const out = coerceUnapplyablePatches('a11y', [{
+    id: 'a11y-1',
+    kind: 'code_hint',
+    title: 'Improve focus order',
+    detail: 'Focus ring missing on primary nav',
+    selected: true,
+  }]);
+  assert.equal(out[0].path, 'docs/development/agentic-findings/a11y.md');
+  assert.equal(out[0].mode, 'append');
+  assert.ok(String(out[0].content).length > 10);
+});
+
 test('findings fallback and reselect mutate items', () => {
   const items = reselectMutateItems([
     { id: '1', kind: 'file_write', path: 'docs/a.md', selected: false, title: 't' },

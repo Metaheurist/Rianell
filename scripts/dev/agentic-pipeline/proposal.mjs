@@ -87,6 +87,28 @@ function defaultAdapterForKind(kind, fallback) {
   return fallback || 'ack';
 }
 
+/** Parse <<<SEARCH / ======= / >>>REPLACE bodies (allows indented markers). */
+export function parseSearchReplaceMarkers(raw) {
+  const content = String(raw || '').replace(/\r\n/g, '\n');
+  const m = content.match(
+    /<<<SEARCH\s*\n([\s\S]*?)\n[ \t]*=======\s*\n([\s\S]*?)(?:\n[ \t]*>>>REPLACE\s*)?$/i,
+  ) || content.match(/find:\s*\n([\s\S]*?)\nreplace:\s*\n([\s\S]*)$/i);
+  if (!m) return null;
+  return {
+    find: stripCommonIndent(m[1]),
+    replace: stripCommonIndent(m[2]),
+  };
+}
+
+function stripCommonIndent(text) {
+  const lines = String(text || '').replace(/\s+$/, '').split('\n');
+  const indents = lines
+    .filter((l) => l.trim().length)
+    .map((l) => (l.match(/^[ \t]*/)?.[0] || '').length);
+  const n = indents.length ? Math.min(...indents) : 0;
+  return lines.map((l) => (n ? l.slice(n) : l)).join('\n');
+}
+
 /** Parse a single proposed-action block (title line + optional attrs / fence). */
 export function parseActionBlock(rawBlock, opts = {}) {
   const block = String(rawBlock || '').trim();
@@ -115,11 +137,10 @@ export function parseActionBlock(rawBlock, opts = {}) {
   let find = null;
   let replace = null;
   if (content && /<<<SEARCH|=======|>>>REPLACE/i.test(content)) {
-    const m = content.match(/<<<SEARCH\s*\n([\s\S]*?)\n=======\s*\n([\s\S]*?)(?:\n>>>REPLACE)?$/i)
-      || content.match(/find:\s*\n([\s\S]*?)\nreplace:\s*\n([\s\S]*)$/i);
-    if (m) {
-      find = m[1];
-      replace = m[2];
+    const parsed = parseSearchReplaceMarkers(content);
+    if (parsed) {
+      find = parsed.find;
+      replace = parsed.replace;
       mode = mode || 'search_replace';
       content = null;
     }
