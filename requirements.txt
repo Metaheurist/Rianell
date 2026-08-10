@@ -22,7 +22,7 @@ python-dotenv>=1.2.2
 
 # Cryptography for data encryption/decryption (required for encrypted anonymised data)
 # Floor >=49.0.0: current OSV-clean floor (was >=48.0.1 / GHSA-537c-gmf6-5ccf).
-cryptography>=49.0.0
+cryptography>=50.0.0
 
 # PostgreSQL drivers for direct SQL when DATABASE_URL is set (optional; at least one needed for exec_sql)
 psycopg[binary]>=3.3.4
