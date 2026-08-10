@@ -5,8 +5,22 @@
   <meta name="robots" content="noindex">
   <title>Rianell</title>
   <script>
-    var m = window.location.pathname.match(/^\/[Ss]hare\/([A-Za-z0-9_\-]{4,64})$/);
-    window.location.replace(m ? '/#share/' + m[1] : '/');
+    (function () {
+      var path = window.location.pathname || '/';
+      var share = path.match(/^\/[Ss]hare\/([A-Za-z0-9_\-]{4,64})\/?$/);
+      if (share) {
+        window.location.replace('/#share/' + share[1]);
+        return;
+      }
+      // Known app-shell path → hash (stubs under /home etc. also return HTTP 200).
+      var tab = path.match(/^\/(home|logs|charts|mood|ai|log)\/?$/i);
+      if (tab) {
+        var name = tab[1].toLowerCase();
+        window.location.replace('/#' + (name === 'log' ? 'logs' : name));
+        return;
+      }
+      window.location.replace('/');
+    })();
   </script>
 </head>
 <body></body>

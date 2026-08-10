@@ -2529,12 +2529,12 @@
             <select id="hwProfileSel" style="max-width:28rem"></select>
             <hr style="border:none;border-top:1px solid var(--line);margin:16px 0"/>
             <h3 style="margin:0 0 8px;font-size:0.95rem">Firecrawl</h3>
-            <p id="fcStatus" style="margin:0 0 8px;color:var(--muted);font-size:0.85rem">Checking…</p>
-            <label>API key (security/.env · not committed)</label>
-            <input type="password" id="fcKey" placeholder="fc-…" autocomplete="off" style="width:100%;max-width:28rem"/>
+            <p id="fcStatus" style="margin:0 0 8px;color:var(--muted);font-size:0.85rem;display:flex;flex-wrap:wrap;align-items:center;gap:8px">Checking…</p>
+            <label id="fcKeyLabel">API key (security/.env · not committed)</label>
+            <input type="password" id="fcKey" placeholder="fc-…" autocomplete="off" spellcheck="false" style="width:100%;max-width:28rem"/>
             <div class="actions" style="margin-top:10px">
               <button class="primary" id="fcSave" hidden>${icon('check')} Save key</button>
-              <button id="fcClear">${icon('x')} Clear key</button>
+              <button id="fcClear" hidden>${icon('x')} Clear key</button>
             </div>
             <p class="warn" style="margin-top:10px">Approval log: artifacts/agentic/approval-log.jsonl · never auto-pushes git</p>
             <div class="actions" style="margin-top:14px">
@@ -2610,20 +2610,48 @@
           el.addEventListener('change', syncSavePrefsVisibility);
           el.addEventListener('input', syncSavePrefsVisibility);
         }
+        const FC_MASK = '****************';
         const paintFc = (st) => {
           const el = document.getElementById('fcStatus');
-          if (!el) return;
-          if (!st || !st.configured) {
-            el.textContent = 'Not configured - paste a key to enable Research.';
+          const input = document.getElementById('fcKey');
+          const saveBtn = document.getElementById('fcSave');
+          const clearBtn = document.getElementById('fcClear');
+          const label = document.getElementById('fcKeyLabel');
+          if (!el || !input) return;
+          const configured = Boolean(st?.configured);
+          if (!configured) {
+            el.innerHTML = `<span class="chip warn-chip">${icon('x')} No key</span>`
+              + `<span>Paste a Firecrawl key to enable Research.</span>`;
+            input.disabled = false;
+            input.readOnly = false;
+            input.value = '';
+            input.placeholder = 'fc-…';
+            input.setAttribute('aria-label', 'Firecrawl API key');
+            if (label) label.textContent = 'API key (security/.env · not committed)';
+            if (clearBtn) clearBtn.hidden = true;
+            syncFcSaveVisibility();
             return;
           }
-          el.textContent = `Configured (${st.hint || '••••'}) · ${st.source || 'local'}`;
+          const hint = escapeHtml(st.hint || 'fc-…');
+          const src = escapeHtml(st.source || 'local');
+          el.innerHTML = `<span class="chip">${icon('check')} Key saved</span>`
+            + `<code style="letter-spacing:0.08em;color:var(--accent)">${FC_MASK}</code>`
+            + `<span style="color:var(--muted)">${hint} · ${src}</span>`;
+          // Locked until Clear — cannot paste over an applied key.
+          input.disabled = true;
+          input.readOnly = true;
+          input.value = '';
+          input.placeholder = FC_MASK;
+          input.setAttribute('aria-label', 'Firecrawl API key saved (clear to replace)');
+          if (label) label.textContent = 'API key saved — Clear key to replace';
+          if (saveBtn) saveBtn.hidden = true;
+          if (clearBtn) clearBtn.hidden = false;
         };
         const syncFcSaveVisibility = () => {
           const btn = document.getElementById('fcSave');
           const input = document.getElementById('fcKey');
           if (!btn || !input) return;
-          btn.hidden = !input.value.trim();
+          btn.hidden = input.disabled || !input.value.trim();
         };
         client.getFirecrawl().then(paintFc).catch(() => paintFc(null));
         document.getElementById('fcKey').addEventListener('input', syncFcSaveVisibility);
@@ -2631,19 +2659,18 @@
         syncFcSaveVisibility();
         document.getElementById('fcSave').onclick = async () => {
           try {
-            const apiKey = document.getElementById('fcKey').value.trim();
+            const input = document.getElementById('fcKey');
+            if (input?.disabled) { log('Clear the saved key before entering a new one'); return; }
+            const apiKey = input.value.trim();
             if (!apiKey) { log('Enter a Firecrawl key first'); return; }
             paintFc(await client.setFirecrawlKey(apiKey));
-            document.getElementById('fcKey').value = '';
-            syncFcSaveVisibility();
             log({ ok: true, firecrawl: 'saved' });
           } catch (e) { log(e.message); }
         };
         document.getElementById('fcClear').onclick = async () => {
           try {
             paintFc(await client.clearFirecrawlKey());
-            document.getElementById('fcKey').value = '';
-            syncFcSaveVisibility();
+            document.getElementById('fcKey')?.focus();
             log({ ok: true, firecrawl: 'cleared' });
           } catch (e) { log(e.message); }
         };
