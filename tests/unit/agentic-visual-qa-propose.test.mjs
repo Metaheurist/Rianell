@@ -10,6 +10,18 @@ import {
   itemIdForVisualBroken,
   applyVisualRepolish,
 } from '../../scripts/dev/agentic-pipeline/visual-qa-propose.mjs';
+import { readModePrefs, writeModePrefs } from '../../scripts/dev/agentic-pipeline/mode-prefs.mjs';
+
+/** Isolate mode.json so visualApplyAfterPolish prefs from a live dash don't flake tests. */
+function withModePrefs(patch, fn) {
+  const before = readModePrefs();
+  try {
+    writeModePrefs(patch);
+    return fn();
+  } finally {
+    writeModePrefs(before);
+  }
+}
 
 test('loadBrokenList reads { ids, reasons } shape', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'rianell-broken-'));
@@ -63,9 +75,30 @@ test('buildVisualPolishProposal acks when no broken ids', () => {
   if (fs.existsSync(brokenPath)) prev = fs.readFileSync(brokenPath, 'utf8');
   try {
     fs.writeFileSync(brokenPath, JSON.stringify({ ids: [], reasons: {} }));
-    const prop = buildVisualPolishProposal({ dryRun: true, ranQa: true });
-    assert.equal(prop.status, 'dry_run');
-    assert.equal(prop.items[0].kind, 'ack_only');
+    withModePrefs({ visualApplyAfterPolish: false, confirmProductWrite: false }, () => {
+      const prop = buildVisualPolishProposal({ dryRun: true, ranQa: true });
+      assert.equal(prop.status, 'dry_run');
+      assert.equal(prop.items[0].kind, 'ack_only');
+    });
+  } finally {
+    if (prev != null) fs.writeFileSync(brokenPath, prev);
+  }
+});
+
+test('buildVisualPolishProposal offers visual_apply when amend prefs on and QA green', () => {
+  const qaRoot = path.join(process.cwd(), 'artifacts/visual-gen/qa');
+  fs.mkdirSync(qaRoot, { recursive: true });
+  const brokenPath = path.join(qaRoot, 'broken.json');
+  let prev = null;
+  if (fs.existsSync(brokenPath)) prev = fs.readFileSync(brokenPath, 'utf8');
+  try {
+    fs.writeFileSync(brokenPath, JSON.stringify({ ids: [], reasons: {} }));
+    withModePrefs({ visualApplyAfterPolish: true, confirmProductWrite: true }, () => {
+      const prop = buildVisualPolishProposal({ dryRun: true, ranQa: true });
+      assert.equal(prop.status, 'dry_run');
+      assert.equal(prop.items[0].kind, 'visual_apply');
+      assert.equal(prop.items[0].applyAdapter, 'visual-apply');
+    });
   } finally {
     if (prev != null) fs.writeFileSync(brokenPath, prev);
   }

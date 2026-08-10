@@ -37,6 +37,8 @@ const EXCLUDE_DIRS = new Set([
   'node_modules', '.trace-build', '.android-dist', '.web-dist', '.server-dist',
   'design-catalog', 'Icons',
   'models', 'i18n-packs', 'partials', ...Object.values(SLUG),
+  // App-shell path stubs (HTTP 200 → hash redirect). Not marketing content.
+  'home', 'logs', 'charts', 'mood', 'ai',
 ]);
 
 function parseArgs(argv) {

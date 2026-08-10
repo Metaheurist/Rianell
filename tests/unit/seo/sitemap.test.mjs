@@ -34,6 +34,21 @@ test('collectRoutes excludes non-content and noindex pages', () => {
   assert.ok(!routes.some((r) => r.startsWith('design-catalog')), 'design-catalog must not be in sitemap');
   assert.ok(!routes.some((r) => r.startsWith('Icons')), 'asset dirs must not be in sitemap');
   assert.ok(!routes.some((r) => r.startsWith('.web-dist')), '.web-dist must not be in sitemap');
+  for (const stub of ['home/', 'logs/', 'charts/', 'mood/', 'ai/']) {
+    assert.ok(!routes.includes(stub), `app-shell stub "${stub}" must not be in sitemap`);
+  }
+});
+
+test('app-shell path stubs exist for common SPA deep links (GH Pages 200)', () => {
+  for (const stub of ['home', 'logs', 'charts', 'mood', 'ai']) {
+    const p = path.join(webRoot, stub, 'index.html');
+    assert.ok(fs.existsSync(p), `missing stub: ${stub}/index.html`);
+    const html = fs.readFileSync(p, 'utf8');
+    assert.match(html, /noindex/i, `${stub} stub should be noindex`);
+    assert.match(html, /location\.replace\('\/#/, `${stub} stub should hash-redirect`);
+  }
+  const fourOhFour = fs.readFileSync(path.join(webRoot, '404.html'), 'utf8');
+  assert.match(fourOhFour, /home\|logs\|charts\|mood\|ai\|log/);
 });
 
 test('buildSitemap emits valid urlset with absolute rianell.com URLs', () => {
