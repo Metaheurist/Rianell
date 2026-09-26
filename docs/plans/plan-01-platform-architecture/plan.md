@@ -28,7 +28,7 @@ Establish maintainable PWA structure and a documented design system before featu
 
 | Doc | Purpose |
 |-----|---------|
-| [security-performance.md](./security-performance.md) | CVE + performance review (Firecrawl cross-ref) |
+| [security-performance.md](./security-performance.md) | CVE + performance review |
 | [scope.md](./scope.md) | Scope boundaries + verify scripts |
 | [references.md](./references.md) | Internal + external references |
 

@@ -2,7 +2,7 @@
 
 Rollup of CVE/exploit surfaces and performance constraints per execution plan. Detail lives in each folder's [security-performance.md](./plan-01-platform-architecture/security-performance.md).
 
-**Sources:** [docs/SECURITY.md](../SECURITY.md) · [docs/ai-security.md](../ai-security.md) · Firecrawl `.firecrawl/projects/` · OWASP MASVS · [FINAL-EXECUTION-CHECK.md](./FINAL-EXECUTION-CHECK.md)
+**Sources:** [docs/SECURITY.md](../SECURITY.md) · [docs/ai-security.md](../ai-security.md) · OWASP MASVS · [FINAL-EXECUTION-CHECK.md](./FINAL-EXECUTION-CHECK.md)
 
 **Policy:** [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) - no paid third-party APIs in default path.
 
@@ -39,27 +39,6 @@ Rollup of CVE/exploit surfaces and performance constraints per execution plan. D
 | 12 | [Clinician](./plan-12-clinician-sharing/security-performance.md) | CL2 QR PHI exposure | PDF on main thread |
 | 13 | [Research](./plan-13-research-community/security-performance.md) | RE1 k-anonymity breach | Aggregation cache |
 | 14 | [Cross-cutting](./plan-14-cross-cutting/security-performance.md) | X14.5 screening scope | Weekly flow step load |
-
----
-
-## Firecrawl research cache
-
-| File | Used by plans |
-|------|---------------|
-| `.firecrawl/projects/supabase-rls.md` | 06, 13 |
-| `.firecrawl/projects/supabase-free-tier.json` | 06, 13 |
-| `.firecrawl/projects/open-meteo-weather.json` | 10 |
-| `.firecrawl/projects/web-push-mdn.md` | 11, 14 |
-| `.firecrawl/projects/openfoodfacts.json` | 04 |
-| `.firecrawl/projects/owasp-masvs-health.json` | 01-14 |
-| `.firecrawl/projects/transformers-js-local.json` | 08 |
-
-Refresh before dependency major bumps:
-
-```bash
-firecrawl search "<topic>" --limit 5 --scrape -o .firecrawl/projects/plan-NN-topic.json
-node scripts/projects/generate-plan-folder-docs.mjs
-```
 
 ---
 

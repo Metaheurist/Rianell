@@ -2,7 +2,7 @@
 
 **Section 1:** Home & dashboard · **IDs:** H1-H7
 
-Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
+Cross-checked against repo [SECURITY.md](../../SECURITY.md) and [ai-security.md](../../ai-security.md).
 
 ---
 

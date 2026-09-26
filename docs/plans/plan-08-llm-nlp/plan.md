@@ -36,7 +36,7 @@ Extend on-device LLM beyond four fixed intents: bounded chat, clinician brief, c
 
 | Doc | Purpose |
 |-----|---------|
-| [security-performance.md](./security-performance.md) | CVE + performance review (Firecrawl cross-ref) |
+| [security-performance.md](./security-performance.md) | CVE + performance review |
 | [scope.md](./scope.md) | Scope boundaries + verify scripts |
 | [references.md](./references.md) | Internal + external references |
 
