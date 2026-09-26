@@ -1,6 +1,0 @@
-- **Triage Procedure for High Severity Findings**
-  - When `high=1` is detected in `npm audit`, identify the vulnerable package name from `package-lock.json`.
-  - Verify if a patch exists upstream (e.g., via `npm info <pkg> versions`).
-  - Propose a specific bump candidate: `<package>@<target-version>`.
-  - Require `allowDependencyBump` operator confirmation for this specific candidate.
-  - Update the audit log in `docs/plans/MANUAL-deps-triage.md` with the finding details and resolution status.
