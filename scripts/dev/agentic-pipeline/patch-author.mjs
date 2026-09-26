@@ -135,7 +135,7 @@ export async function authorPatchBodies(packId, items, opts = {}) {
 /**
  * Ensure at least one product finding note item exists for product-write.
  */
-export function ensureFindingsFallbackItem(packId, items, thinking = '') {
+export function ensureFindingsFallbackItem(packId, items, _thinking = '') {
   const list = Array.isArray(items) ? [...items] : [];
   const hasMutateBody = list.some((it) => {
     if (it.selected === false) return false;
@@ -148,27 +148,29 @@ export function ensureFindingsFallbackItem(packId, items, thinking = '') {
 
   const findingsPath = `docs/development/agentic-findings/${packId}.md`;
   const stamp = new Date().toISOString().slice(0, 10);
+  const titles = list.slice(0, 8).map((it) => {
+    const rel = normalizeRelPath(it.path || it.target || (it.targets && it.targets[0]));
+    return `- ${it.title || it.id || 'item'}${rel ? ` (\`${rel}\`)` : ''}`;
+  });
   const body = [
     '',
     `## ${stamp} · ${packId}`,
     '',
-    ...(list.slice(0, 6).map((it) => `- ${it.title}`)),
-    thinking ? '' : '',
-    thinking ? String(thinking).slice(0, 600) : '',
+    ...(titles.length ? titles : ['- No path-cited mutations; pack gates clean.']),
     '',
-  ].filter((line, i, arr) => !(line === '' && arr[i - 1] === '')).join('\n');
+  ].join('\n');
 
   list.push({
     id: `${packId}-findings`,
     kind: 'doc_patch',
     title: `Record ${packId} findings in ${findingsPath}`,
-    detail: `Append agentic findings for ${packId}`,
+    detail: `Append short path-cited findings for ${packId}`,
     risk: 'low',
     path: findingsPath,
     targets: [findingsPath],
     mode: 'append',
-    content: body.trimStart() || `\n## ${stamp} · ${packId}\n\n- Findings recorded by agentic harness.\n`,
-    proposed: body.trimStart() || `\n## ${stamp} · ${packId}\n\n- Findings recorded by agentic harness.\n`,
+    content: body.trimStart(),
+    proposed: body.trimStart(),
     selected: true,
     applyAdapter: 'safe-patch',
   });
@@ -233,14 +235,13 @@ export function coerceUnapplyablePatches(packId, items) {
     const toFindings = (reason) => {
       const note = [
         '',
-        `## ${stamp} · ${packId} (${reason})`,
+        `## ${stamp} · ${packId}`,
         '',
         `- ${it.title || it.id || `item-${idx + 1}`}`,
-        rel ? `- original path: ${rel}` : '- no path cited',
-        content ? `\n\`\`\`\n${content.slice(0, 800)}\n\`\`\`` : '',
-        String(it.detail || '').slice(0, 500),
+        rel ? `- path: \`${rel}\`` : '- path: (none)',
+        `- reason: ${reason}`,
         '',
-      ].filter(Boolean).join('\n');
+      ].join('\n');
       return {
         ...it,
         kind: 'doc_patch',

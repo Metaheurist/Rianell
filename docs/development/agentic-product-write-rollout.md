@@ -34,4 +34,4 @@ Phased rollout for repo-mutating auto-approve. Do **not** jump straight to full 
 
 ## Mutation gate
 
-Under `autoApproveMode: product-write`, each pack must touch ≥1 tracked path outside `artifacts/**` (selected items only). Clean packs append `docs/development/agentic-findings/<packId>.md`. Visual: `polish_complete` OK when amend pref is off; when `visualApplyAfterPolish` is on, amend is required.
+Under `autoApproveMode: product-write`, each pack must touch ≥1 tracked path outside `artifacts/**` (selected items only). Clean packs may append a short path-cited note to `docs/development/agentic-findings/<packId>.md` (operator scratch — not research briefs). Visual: `polish_complete` OK when amend pref is off; when `visualApplyAfterPolish` is on, amend is required.
