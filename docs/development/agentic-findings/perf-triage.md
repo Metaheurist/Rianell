@@ -1,4 +1,0 @@
-   - ### CWV & Bundle-Split Status (2026-08-05)
-     - **Gates**: `audit:cwv` (Dry Run OK), `verify:bundle-split` (OK).
-     - **Action**: No file-level failures detected, but backlog items are required to improve CWV scores further.
-     - **Context**: Per [agentic-pack-catalog](../agentic-pack-catalog.md), this pack ties actions to bundle-split/CWV gate outputs. Current status is stable; next steps involve triaging for specific metric improvements (LCP/FID) rather than fixing broken builds.
