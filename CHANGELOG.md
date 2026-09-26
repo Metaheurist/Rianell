@@ -22,6 +22,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run verify:icon-spec`** — specs stay aligned with `THEME_FX_TOKENS` and `--ui-icon-stroke`.
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
+### Removed
+- **Agentic / research dump docs:** deleted LLM coerce notes under `docs/development/agentic-findings/*.md` (kept README only), speculative `docs/plans/plan-27-next-phase-execution.md` / `MANUAL-deps-triage.md` / `SEO-STRUCTURE-TESTS.md` / `pyqt6-dashboard-migration.md`, unused `rtl-logical-mapping.css`, and the broken `verify-policy-docs-drift.mjs` stub. Stripped Firecrawl cache/runbook fluff from archived plan docs; policy and security tables kept.
+
 ### Fixed
 - **Agentic product-write mutation gate:** `approvePack` now surfaces apply `touched` paths (and drain failures) so auto product-write no longer false-fails with `no_product_mutation` after a successful safe-patch.
 - **Agentic safe-patch SEARCH markers:** parse indented `<<<SEARCH` / `=======` / `>>>REPLACE` blocks; recover find/replace from leftover content markers at apply time; re-author when markers lack parsed fields.
@@ -30,6 +33,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **Agentic product-write loop:** treat `polish_running` / `polish_complete` as successful visual outcomes; continue-all (no stop-on-broken) so one pack fault does not discard later packs.
 
 ### Changed
+- **Agentic findings notes:** coerce/fallback appends stay short (title, path, reason) — no thinking dumps or invented patch bodies in `docs/development/agentic-findings/`.
 - **Agentic product-write mutations:** advisory packs propose structured `[doc_patch]`/`[file_write]` actions; `safe-patch` applies search_replace/append on allowlisted paths; patch-author fills missing bodies; run-all fails packs with zero tracked-path mutations. Rollout: `docs/development/agentic-product-write-rollout.md`.
 - **Agentic changelog promote:** appends Keep-a-Changelog bullets under `## [Unreleased]` (no meta `Agentic draft` block).
 - **Agentic visual amend:** optional `visualApplyAfterPolish` + **Amend to repo** after polish when QA `broken.length === 0` (reuses `visual:apply`).
