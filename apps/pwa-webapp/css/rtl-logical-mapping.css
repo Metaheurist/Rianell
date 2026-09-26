@@ -1,0 +1,19 @@
+/* rtl-logical-mapping.css: Mitigates layout drift for ar/he locales */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+/* Example: Override physical left properties used in oasis.css */
+[dir="rtl"] .nav-item,
+[dir="rtl"] .sidebar-panel {
+  inset-inline-start: 0; /* Maps to right in RTL */
+  inset-inline-end: auto;
+}
+
+/* Ensure text alignment respects direction */
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] p {
+  text-align: start;
+}
