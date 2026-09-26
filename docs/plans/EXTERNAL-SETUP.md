@@ -4,7 +4,7 @@
 
 **Policy:** [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) - free providers only.
 
-**Last verified:** 2026-06-18 (Firecrawl + Supabase docs)
+**Last verified:** 2026-06-18 (Supabase + provider docs)
 
 ---
 
@@ -68,7 +68,7 @@
 
 3. Wire service worker: `apps/pwa-webapp/sw.js`, `push-subscribe.js`.
 4. Verify: `npm run verify:push-contract`
-5. Reference: [MDN Push API](https://developer.mozilla.org/en-US/docs/Web/API/Push_API/Using_the_Push_API) (cached: `.firecrawl/projects/web-push-mdn.md`).
+5. Reference: [MDN Push API](https://developer.mozilla.org/en-US/docs/Web/API/Push_API/Using_the_Push_API).
 
 ---
 

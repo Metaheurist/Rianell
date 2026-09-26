@@ -5,11 +5,6 @@
 - [`docs/ai-security.md`](../../ai-security.md)
 - [SECURITY-PERFORMANCE-INDEX.md](../SECURITY-PERFORMANCE-INDEX.md)
 
-## Firecrawl research (local cache)
-
-- `.firecrawl/projects/owasp-masvs.md`
-- `docs/ai-security.md §6 GDPR Art. 22`
-
 ## External (verify online)
 
 | Topic | URL |
@@ -19,9 +14,3 @@
 | Web Push encryption | https://www.rfc-editor.org/rfc/rfc8291 |
 | Supabase RLS | https://supabase.com/docs/guides/database/postgres/row-level-security |
 | Transformers.js | https://huggingface.co/docs/transformers.js |
-
-Re-run Firecrawl before major dependency bumps:
-
-```bash
-firecrawl search "<plan-specific query>" --limit 5 --scrape -o .firecrawl/projects/plan-14.json
-```

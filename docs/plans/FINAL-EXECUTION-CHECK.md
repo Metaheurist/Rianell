@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-19 (final sign-off)  
 **Scope:** All 14 plans in `docs/plans/`  
-**Verification:** Firecrawl online docs + cross-plan audit + CI [27845245487](https://github.com/Metaheurist/Rianell/actions/runs/27845245487)
+**Verification:** Cross-plan audit + CI [27845245487](https://github.com/Metaheurist/Rianell/actions/runs/27845245487)
 
 ---
 
@@ -16,7 +16,7 @@
 | Mobile/desktop UX | **Documented** | [UI-UX-STANDARDS.md](./UI-UX-STANDARDS.md) - parity matrix + verification checklist |
 | Security (CVE/exploit) | **Reviewed** | Per-plan `security-performance.md`; index updated |
 | Performance | **Reviewed** | Lazy-load, worker, cache patterns documented per plan |
-| Online doc alignment | **Verified** | See Firecrawl cache table below |
+| Online doc alignment | **Verified** | Provider docs linked in EXTERNAL-SETUP / FREE-TIER-POLICY |
 | Unit tests | **302/302 pass** | `npm run test:unit` |
 | Migration verify | **Pass** | `npm run verify:migration` |
 | i18n verify | **Pass** | `npm run verify:i18n` (Tier A ≤13% identical) |
@@ -26,19 +26,17 @@
 
 ---
 
-## Firecrawl verification (2026-06-18)
+## Provider alignment (sign-off)
 
 | Topic | Source | Finding | Plans |
 |-------|--------|---------|-------|
 | Supabase RLS | [supabase.com/docs/.../row-level-security](https://supabase.com/docs/guides/database/postgres/row-level-security) | RLS required on all client-facing tables; policies per operation | 06, 13 |
-| Supabase free tier | supabase.com/pricing + community guides | 500 MB DB, 50k MAU, RLS included | 06, 13 |
+| Supabase free tier | supabase.com/pricing | 500 MB DB, 50k MAU, RLS included | 06, 13 |
 | Weather (no key) | [open-meteo.com](https://open-meteo.com/) | Free JSON API, no authentication | 10 H5 |
 | Web Push | MDN Push API | VAPID server-held private key; user consent | 11, 14 |
 | Open Food Facts | world.openfoodfacts.org | Free product API | 04 L5 |
 | OWASP MASVS | owasp.org mobile app security | Storage, auth, network baseline | 01-14 |
 | Transformers.js | Hugging Face | Browser/on-device inference; pin CVE version | 08 |
-
-Cache: `.firecrawl/projects/*.json|md` (gitignored)
 
 ---
 

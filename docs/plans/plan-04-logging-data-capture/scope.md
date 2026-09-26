@@ -17,7 +17,7 @@ See [../MASTER.md §Excluded(../MASTER.md#excluded-nr). **L10** (HealthKit, Heal
 |------|---------|
 | [plan.md](./plan.md) | Agent runbook |
 | [security-performance.md](./security-performance.md) | CVE + perf review |
-| [references.md](./references.md) | External docs + Firecrawl |
+| [references.md](./references.md) | Internal + external docs |
 | [scripts/verify-plan.mjs](./scripts/verify-plan.mjs) | Pre-rollout verify |
 
 ## Agent scripts (repo root)

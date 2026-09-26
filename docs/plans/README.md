@@ -15,7 +15,7 @@ Early index (plans 01–14 / 87 features at v1.111.0) is preserved below; MASTER
 | [FREE-TIER-POLICY.md](./FREE-TIER-POLICY.md) | **Mandatory** - free providers only, no paid APIs |
 | [UI-UX-STANDARDS.md](./UI-UX-STANDARDS.md) | Mobile + desktop parity, a11y, perf UX |
 | [EXTERNAL-SETUP.md](./EXTERNAL-SETUP.md) | Supabase SQL, VAPID, env vars - step-by-step |
-| [FINAL-EXECUTION-CHECK.md](./FINAL-EXECUTION-CHECK.md) | Final audit (2026-06-18) + Firecrawl verification |
+| [FINAL-EXECUTION-CHECK.md](./FINAL-EXECUTION-CHECK.md) | Final audit (2026-06-18) |
 
 ## Plan folders
 
@@ -43,7 +43,7 @@ plan-NN-<name>/
   plan.md                    # Runbook (phases, gates)
   security-performance.md    # CVE exploits + perf review
   scope.md                   # In/out of scope, scripts
-  references.md              # Firecrawl + internal docs
+  references.md              # Internal + external docs
   scripts/
     verify-plan.mjs          # Pre-rollout verify
 ```
@@ -63,5 +63,3 @@ After updating plan metadata:
 ```bash
 node scripts/projects/generate-plan-folder-docs.mjs
 ```
-
-Firecrawl cache: `.firecrawl/projects/` (gitignored).

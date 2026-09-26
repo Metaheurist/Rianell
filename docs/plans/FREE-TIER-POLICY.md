@@ -2,8 +2,6 @@
 
 **Mandatory for every execution plan.** No paid third-party APIs, commercial API keys, or metered SaaS tokens in product code or default configuration.
 
-**Verified:** 2026-06-18 via Firecrawl (`.firecrawl/projects/`)
-
 ---
 
 ## Rules
@@ -43,26 +41,6 @@
 | Wearables / HealthKit / Fitbit | Xcode + Apple Developer; platform OAuth | 04 (L10), 08 (N8) | **Excluded (NR)** - not in scope |
 | `service_role` Supabase key in client | Full DB bypass | 05, 06 | `verify-no-service-role-in-clients` |
 | Third-party analytics / crash SDKs with paid tiers | Cost + PHI risk | All | Smartlook free tier allowed **only** with explicit opt-in + local-only block; no default tracking |
-
----
-
-## Firecrawl verification cache
-
-| Topic | Cache file |
-|-------|------------|
-| Supabase RLS | `.firecrawl/projects/supabase-rls.md` |
-| Supabase free tier | `.firecrawl/projects/supabase-free-tier.json` |
-| Open-Meteo (no key) | `.firecrawl/projects/open-meteo-weather.json` |
-| Web Push (MDN) | `.firecrawl/projects/web-push-mdn.md` |
-| Open Food Facts | `.firecrawl/projects/openfoodfacts.json` |
-| OWASP MASVS | `.firecrawl/projects/owasp-masvs-health.json` |
-| Transformers.js local | `.firecrawl/projects/transformers-js-local.json` |
-
-Refresh before major dependency bumps:
-
-```bash
-firecrawl search "<topic>" --limit 3 --scrape -o .firecrawl/projects/<name>.json
-```
 
 ---
 
