@@ -18,7 +18,7 @@ watchdog>=6.0.0
 
 # Environment variable management (required for .env file support)
 # Floor >=1.2.2: OSV clean (GHSA-mf9w-mj56-hr94 fixed in 1.2.2).
-python-dotenv>=1.2.2
+python-dotenv>=1.2.3
 
 # Cryptography for data encryption/decryption (required for encrypted anonymised data)
 # Floor >=49.0.0: current OSV-clean floor (was >=48.0.1 / GHSA-537c-gmf6-5ccf).
