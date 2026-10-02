@@ -31,12 +31,15 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/parser` | ^7.26.7 |
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
-| `@huggingface/transformers` | 3.3.2 |
+| `@eslint/js` | ^10.0.1 |
+| `@huggingface/transformers` | 4.3.0 |
 | `@opentelemetry/core` | ^2.10.0 |
 | `@sentry/node` | ^10.68.0 |
 | `esbuild` | 0.28.1 |
+| `eslint` | ^10.11.0 |
+| `globals` | ^17.13.0 |
 | `jsdom` | ^30.0.1 |
-| `sharp` | ^0.35.3 |
+| `sharp` | ^0.35.4 |
 | `turbo` | ^2.10.7 |
 
 **`overrides`** — 28 pin(s): `@babel/core`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@sentry/node`, `@tootallnate/once`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `lighthouse → @sentry/node`, `minimatch`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `sharp`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
