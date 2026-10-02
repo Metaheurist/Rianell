@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
-const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+const appJs = readAppSource();
 const chatJs = readFileSync('apps/pwa-webapp/modules/ai-chat.js', 'utf8');
 
 const SUPERCHARGE_KEYS = [

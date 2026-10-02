@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('app.js renders modern lifestyle panels', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /function renderAILifestyleStatStrip/);
   assert.match(js, /function renderAINutritionPanel/);
   assert.match(js, /function renderAIExercisePanel/);
@@ -52,7 +53,7 @@ test('styles.css defines lifestyle panel layout', () => {
 });
 
 test('exercise chart buckets long series and sparsifies labels', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /var maxBars = 28/);
   assert.match(js, /Math\.ceil\(n \/ 6\)/);
   assert.match(js, /aiExerciseBarIn|ai-exercise-timeline--animate/);

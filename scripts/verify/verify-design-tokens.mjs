@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { appSourceFiles } from '../lib/app-source.mjs';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -42,7 +43,9 @@ function checkFile(rel, rules) {
   }
 }
 
-checkFile('apps/pwa-webapp/app.js', PWA_JS_FORBIDDEN);
+for (const rel of appSourceFiles(root)) {
+  checkFile(rel, PWA_JS_FORBIDDEN);
+}
 
 for (const rel of PWA_CSS_PROGRESS) {
   checkFile(rel, CSS_FORBIDDEN);

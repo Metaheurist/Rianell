@@ -1,10 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
 const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
-const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+const app = readAppSource();
 const drum = readFileSync('apps/pwa-webapp/modules/drum-picker-scroll.js', 'utf8');
 const metrics = readFileSync('apps/pwa-webapp/modules/log-metric-widgets.js', 'utf8');
 const graphics = readFileSync('apps/pwa-webapp/modules/graphics-portfolio.js', 'utf8');

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
-const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+const app = readAppSource();
 
 function fnBody(name) {
   const start = app.indexOf('function ' + name + '(');

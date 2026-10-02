@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
-const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+const js = readAppSource();
 const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
 const handlers = readFileSync('apps/pwa-webapp/event-handlers.js', 'utf8');
 

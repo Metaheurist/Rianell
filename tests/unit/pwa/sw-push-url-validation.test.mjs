@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('service worker validates push notification URLs are same-origin', () => {
   const sw = readFileSync('apps/pwa-webapp/sw.js', 'utf8');
@@ -28,7 +29,7 @@ test('dead code files removed from PWA tree', () => {
 test('share modal extracted to modules/share-modal.js', () => {
   const mod = readFileSync('apps/pwa-webapp/modules/share-modal.js', 'utf8');
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
-  const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const app = readAppSource();
   assert.match(mod, /global\.openShareModal = openShareModal/);
   assert.match(mod, /bodyHTML must be static or built with escapeHTML/);
   assert.match(html, /modules\/share-modal\.js/);

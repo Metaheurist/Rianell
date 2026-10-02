@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 const EM = '\u2014';
 
@@ -26,7 +27,7 @@ test('locale and prompt packs do not use em dashes in UI copy', () => {
 });
 
 test('PWA fallback strings for watch footnote avoid em dashes', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /ai\.watch\.footnote/);
   assert.doesNotMatch(appJs, /Patterns in your logs only \u2014/);
   assert.match(appJs, /Patterns in your logs only - not a diagnosis/);

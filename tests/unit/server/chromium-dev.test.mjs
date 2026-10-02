@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('chromium-dev script exists and status command returns JSON shape', () => {
   const script = path.join('server', 'scripts', 'chromium-dev.mjs');
@@ -18,7 +19,7 @@ test('chromium-dev launch watches /api/reload on loopback', () => {
 });
 
 test('PWA skips in-page reload stream when external dev watcher is active', () => {
-  const appJs = fs.readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /__rianellExternalReloadWatcher/);
   assert.match(appJs, /Reload stream handled by dev Chromium launcher/);
 });

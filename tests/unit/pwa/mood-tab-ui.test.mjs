@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('mood uniform streak uses i18n keys', () => {
   const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
@@ -85,7 +86,7 @@ test('mood tab renders unified Mood Control Deck with 3D panel hooks', () => {
 });
 
 test('check-in slider wires click handlers for period selection (RN parity)', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /function wireCheckinSliderEvents/);
   assert.match(js, /closest\('\.checkin-slider-stop'\)/);
   assert.match(js, /aria-pressed/);
@@ -125,7 +126,7 @@ test('check-in slider icons scale up for button footprint', () => {
 test('mood deck quick-check tiles use clipboard and anxious-face icons', () => {
   const js = readFileSync('apps/pwa-webapp/modules/mood-tab.js', 'utf8');
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
-  const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const app = readAppSource();
   assert.match(js, /renderMoodDeckActionTile\('moodPhq2Btn'[\s\S]*?'mood-clipboard'/);
   assert.match(js, /renderMoodDeckActionTile\('moodGad2Btn'[\s\S]*?'anxious-face'/);
   assert.match(html, /id="icon-mood-clipboard"/);

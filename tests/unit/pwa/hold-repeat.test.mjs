@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import vm from 'node:vm';
 import { JSDOM } from 'jsdom';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 function loadHoldRepeat(window) {
   const src = readFileSync('apps/pwa-webapp/modules/hold-repeat.js', 'utf8');
@@ -46,7 +47,7 @@ test('nudge widgets use RianellHoldRepeat.bindAll', () => {
     const src = readFileSync(file, 'utf8');
     assert.match(src, /RianellHoldRepeat\.bindAll/, `${file} binds hold-repeat`);
   }
-  const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const app = readAppSource();
   assert.match(app, /RianellHoldRepeat\.bindAll/);
 });
 

@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('styles.css defines theme-aware accent token family', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
@@ -47,7 +48,7 @@ test('styles.css tokenises shell shade, toggles, and optional weather prompt', (
 });
 
 test('app.js theme helpers read from document.body and refresh on theme change', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /document\.body \|\| document\.documentElement/);
   assert.match(appJs, /function getThemePrimaryColor/);
   assert.match(appJs, /function colorToRgba/);
@@ -106,7 +107,7 @@ test('light mode chrome hardcodes use theme ink tokens instead of mint hex', () 
 });
 
 test('app.js chart theme helpers read theme ink tokens', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /function getThemeInkColor/);
   assert.match(appJs, /getThemeInkColor\('#151515'\)/);
   assert.doesNotMatch(appJs, /text: light \? '#1b5e20'/);

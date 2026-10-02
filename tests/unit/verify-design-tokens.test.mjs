@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../scripts/lib/app-source.mjs';
 
 test('verify-design-tokens.mjs passes on current tree', () => {
   const r = spawnSync(process.execPath, ['scripts/verify/verify-design-tokens.mjs'], {
@@ -20,7 +21,7 @@ test('styles.css progress fills use transform scaleX not width transition', () =
 });
 
 test('app.js exposes setProgressScale helper', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /function setProgressScale\(el, pct\)/);
   assert.match(js, /setProperty\('--progress'/);
 });

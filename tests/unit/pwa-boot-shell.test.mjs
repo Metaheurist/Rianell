@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../scripts/lib/app-source.mjs';
 
 test('privacy-gate CSS hides app chrome only, not every body child', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
@@ -17,7 +18,7 @@ test('index.html forces shell visible once loaded', () => {
 });
 
 test('app.js clears privacy gate lock and logs boot phases', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /function clearPrivacyGateShellLock/);
   assert.match(appJs, /function logBootState/);
   assert.match(appJs, /function ensureAppShellDomPlacement/);
@@ -90,7 +91,7 @@ test('i18n refresh re-renders active guided onboarding', () => {
 });
 
 test('app.js reveals shell before blocking AI preload on installed mobile PWA', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /Reveal the shell before AI preload/);
   assert.match(appJs, /__rianellForceRevealBootShell/);
   assert.doesNotMatch(
@@ -139,7 +140,7 @@ test('guided onboarding choice buttons bind directly (modal-content stops propag
 });
 
 test('app.js wires onFirstRunWizardComplete after guided onboarding', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /function onFirstRunWizardComplete/);
   assert.match(appJs, /window\.onFirstRunWizardComplete/);
   assert.match(appJs, /window\.appSettings && typeof saveSettings === 'function'/);
@@ -163,7 +164,7 @@ test('index.html syncs system appearance before boot shell paints', () => {
 });
 
 test('app.js applies appearance sync and alert modal theme tokens', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /__rianellSyncAppearanceDom/);
   assert.match(appJs, /alert-modal-message--html/);
   assert.match(appJs, /alert-modal-message--icon/);

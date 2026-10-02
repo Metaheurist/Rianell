@@ -5,6 +5,7 @@ import {
   isPrivacyRegionConfigured,
   applyPrivacyProfileToLocal,
 } from '../../../packages/shared/src/privacy/profileSync.mjs';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('isPrivacyRegionConfigured false when empty', () => {
   assert.equal(isPrivacyRegionConfigured({}), false);
@@ -28,7 +29,7 @@ test('applyPrivacyProfileToLocal overwrites local region from Supabase', () => {
 });
 
 test('PWA gates runAppInit behind privacy gate', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /startAppAfterPrivacyGate/);
   assert.match(appJs, /RianellPrivacy\.awaitGateReady/);
   assert.match(appJs, /__rianellRunAppInit/);

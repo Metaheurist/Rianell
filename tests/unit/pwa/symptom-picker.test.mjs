@@ -2,22 +2,22 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 const root = process.cwd();
-const appPath = path.join(root, 'apps/pwa-webapp/app.js');
 const portfolioJs = path.join(root, 'apps/pwa-webapp/modules/graphics-portfolio.js');
 const portfolioCss = path.join(root, 'apps/pwa-webapp/css/graphics-portfolio.css');
 const i18nPath = path.join(root, 'apps/pwa-webapp/i18n-pwa.js');
 
 test('symptom picker search stores i18n keys with fallbacks', () => {
-  const src = fs.readFileSync(appPath, 'utf8');
+  const src = readAppSource();
   assert.match(src, /data-i18n-placeholder-fallback/);
   assert.match(src, /placeholderKey: 'logs\.picker\.filterSymptoms'/);
   assert.match(src, /function refreshTilePickerSearchI18n/);
 });
 
 test('symptom chips map icons to motion classes', () => {
-  const src = fs.readFileSync(appPath, 'utf8');
+  const src = readAppSource();
   const css = fs.readFileSync(portfolioCss, 'utf8');
   assert.match(src, /SYMPTOM_ICON_ANIM/);
   assert.match(src, /symptom-chip-icon--breathe/);

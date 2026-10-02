@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import vm from 'node:vm';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 const SRC = readFileSync('apps/pwa-webapp/modules/boot-guard.js', 'utf8');
 
@@ -122,7 +123,7 @@ test('crash report contains only phases, flags and UA (no health data or storage
 });
 
 test('app.js no longer blocks the shell on AI download and gates boot auto-load', () => {
-  const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const app = readAppSource();
   assert.doesNotMatch(app, /shouldAwaitAiDownloadBeforeShell/);
   assert.doesNotMatch(app, /__rianellAiPreloadedDuringBoot/);
   assert.match(app, /function canAutoLoadLlmAtBoot\(\)/);

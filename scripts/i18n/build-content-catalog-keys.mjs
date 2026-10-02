@@ -6,9 +6,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
+import { readAppSource } from '../lib/app-source.mjs';
 
 const root = process.cwd();
-const appJs = fs.readFileSync(path.join(root, 'apps/pwa-webapp/app.js'), 'utf8');
+const appJs = readAppSource();
 const enPath = path.join(canonicalLocalePacksDir(root), 'en-GB.json');
 const en = JSON.parse(fs.readFileSync(enPath, 'utf8'));
 const strings = { ...(en.strings || {}) };

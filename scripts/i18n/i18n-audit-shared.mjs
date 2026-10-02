@@ -4,10 +4,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
+import { appSourceFiles } from '../lib/app-source.mjs';
 
 export const SCAN_FILES = [
   'apps/pwa-webapp/index.html',
-  'apps/pwa-webapp/app.js',
+  ...appSourceFiles(),
   'apps/pwa-webapp/privacy-region.js',
   'apps/pwa-webapp/ui-feedback.js',
   'apps/pwa-webapp/summary-llm.js',
@@ -87,7 +88,7 @@ export function suggestKey(text, file) {
   else if (file.includes('Home')) domain = 'home';
   else if (file.includes('Logs')) domain = 'logs';
   else if (file.includes('Settings') || file.includes('privacy')) domain = 'settings';
-  else if (file.includes('app.js') && text.includes('Chart')) domain = 'charts';
+  else if ((file.includes('app.js') || file.includes('/modules/app/')) && text.includes('Chart')) domain = 'charts';
   return `${domain}.${slug || 'text'}`;
 }
 

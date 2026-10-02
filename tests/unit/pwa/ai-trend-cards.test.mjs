@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('wellbeing ring shows score immediately under reduce-motion', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /function renderWellbeingScoreRing/);
   assert.match(js, /Under reduce-motion, show the final score immediately/);
   assert.match(js, /valueHtml = reduceMotion/);
@@ -13,7 +14,7 @@ test('wellbeing ring shows score immediately under reduce-motion', () => {
 });
 
 test('app.js renders enriched AI trend metric cards', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /function buildAITrendSparklineSvg/);
   assert.match(js, /function aiTrendMetricEntityId/);
   assert.match(js, /function renderAITrendCardHtml/);
