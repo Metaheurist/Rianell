@@ -403,6 +403,8 @@
   <script src="trace-runtime.js?v=1"></script>
   <!-- Event Handlers Module (for CSP compliance) -->
   <script src="event-handlers.js?v=6"></script>
+  <!-- Crash-loop guard + boot breadcrumb (must run before app.js / summary-llm.js) -->
+  <script src="modules/boot-guard.js?v=1"></script>
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="preconnect" href="https://fonts.googleapis.com">

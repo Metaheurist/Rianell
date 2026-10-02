@@ -15,6 +15,23 @@
     return prefs === true || prefs === 'true';
   }
 
+  var webglSupported = null;
+
+  /** Probe once and release the probe context; browsers cap live WebGL contexts (~16). */
+  function probeWebGL() {
+    if (webglSupported !== null) return webglSupported;
+    try {
+      var c = document.createElement('canvas');
+      var gl = c.getContext('webgl2') || c.getContext('webgl');
+      webglSupported = !!gl;
+      var lose = gl && gl.getExtension('WEBGL_lose_context');
+      if (lose) lose.loseContext();
+    } catch (e) {
+      webglSupported = false;
+    }
+    return webglSupported;
+  }
+
   function canUseWebGL() {
     if (isReducedMotion()) return false;
     if (document.body && document.body.classList.contains('vibe-clinical')) return false;
@@ -22,12 +39,7 @@
     var bench = global.DeviceBenchmark && global.DeviceBenchmark.getTier
       ? global.DeviceBenchmark.getTier() : 'medium';
     if (bench === 'low' || bench === 'very-low') return false;
-    try {
-      var c = document.createElement('canvas');
-      return !!(c.getContext('webgl2') || c.getContext('webgl'));
-    } catch (e) {
-      return false;
-    }
+    return probeWebGL();
   }
 
   function parseColor(css) {
