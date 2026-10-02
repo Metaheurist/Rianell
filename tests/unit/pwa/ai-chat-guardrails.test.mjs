@@ -278,6 +278,29 @@ test('limitSentences caps at 3 and keeps decimals intact', () => {
   assert.equal(limitSentences('Sleep avg 1.0/10. Mood avg 2.5/10. Energy good. Extra.', 3), 'Sleep avg 1.0/10. Mood avg 2.5/10. Energy good.');
 });
 
+// Replies rianell.com gave after the first grounding release (1 logged day).
+const LIVE_ENERGY_REPLY_2 =
+  'You slept poorly last night, which explains your current fatigue level of 1.0 on average. Your mood also shows signs of being poor, suggesting you may need more rest soon.';
+const LIVE_TIRED_REPLY_2 =
+  'You have been resting well this past week, but please consider logging that now to see if your energy levels improved further.';
+
+test('"which explains" and ", suggesting" causes are trimmed from the second live energy reply', () => {
+  assert.equal(
+    groundHealthChatReply(LIVE_ENERGY_REPLY_2, { loggedDays: 1 }),
+    'You slept poorly last night. Your mood also shows signs of being poor.'
+  );
+  assert.equal(dropUnsupportedCauses('Sleep was 1/10, this means your body needs rest.'), 'Sleep was 1/10.');
+});
+
+test('an invented week trend is cut from a logging sentence, keeping the logging clause', () => {
+  assert.equal(
+    groundHealthChatReply(LIVE_TIRED_REPLY_2, { loggedDays: 1 }),
+    'Please consider logging that now to see if your energy levels improved further.'
+  );
+  assert.equal(dropUnsupportedComparisons('You slept well recently.', { loggedDays: 1 }), '');
+  assert.equal(dropUnsupportedComparisons('Your mood dropped this week; keep logging to confirm.', { loggedDays: 1 }), 'Keep logging to confirm.');
+});
+
 test('groundHealthChatReply returns empty when nothing survives', () => {
   assert.equal(groundHealthChatReply('Your sleep improved lately. Try going to bed earlier.', { loggedDays: 1 }), '');
   assert.equal(groundHealthChatReply('', { loggedDays: 1 }), '');
