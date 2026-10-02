@@ -60,7 +60,7 @@ function dispatchFetch(listeners, { url, mode = 'no-cors', accept = '' }) {
 }
 
 test('CACHE_NAME is bumped for the non-blocking cache rewrite', () => {
-  assert.match(SRC, /CACHE_NAME = CACHE_PREFIX \+ 'v2026-10-02-llm-worker-v8'/);
+  assert.match(SRC, /CACHE_NAME = CACHE_PREFIX \+ 'v2026-10-02-llm-models-v9'/);
 });
 
 test('navigation revalidates HTML and returns before the cache write settles', async () => {

@@ -105,6 +105,13 @@ async function disposeGenerator() {
   }
 }
 
+/** transformers.js accepts one dtype, or a per-component map for multi-session models. */
+function isValidDtype(dtype) {
+  if (dtype == null || typeof dtype === 'string') return true;
+  if (typeof dtype !== 'object' || Array.isArray(dtype)) return false;
+  return Object.keys(dtype).every((k) => typeof dtype[k] === 'string');
+}
+
 async function load(id, config) {
   if (!config || typeof config.modelId !== 'string' || !config.modelId) {
     throw new Error('Model id is required');
@@ -115,7 +122,10 @@ async function load(id, config) {
   if (config.remoteHost !== ALLOWED_REMOTE_HOST) {
     throw new Error('Model host is not allowed');
   }
-  const key = [config.modelId, config.revision, config.device || 'wasm', config.dtype || ''].join('|');
+  if (!isValidDtype(config.dtype)) {
+    throw new Error('Model dtype must be a string or a map of component names to strings');
+  }
+  const key = [config.modelId, config.revision, config.device || 'wasm', JSON.stringify(config.dtype || '')].join('|');
   if (generator && generatorKey === key) {
     return { modelId: config.modelId, device: config.device || 'wasm', dtype: config.dtype || null };
   }

@@ -64,7 +64,7 @@
   <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
   <meta name="paypal-client-id" content="">
   <meta name="paypal-currency" content="USD">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://world.openfoodfacts.org https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://world.openfoodfacts.org https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -1897,14 +1897,6 @@
                 <option value="tier4">Tier 4</option>
                 <option value="tier5">Tier 5 (best quality)</option>
               </select>
-              <label for="preferredLlmEngineSelect" class="settings-sub-label" data-i18n="common.ai.inference.engine">How summaries run</label>
-              <select id="preferredLlmEngineSelect" class="settings-select" aria-describedby="llmEngineHint" onchange="setPreferredLlmEngine(this.value)">
-                <option value="auto" data-i18n="common.llm.engine.auto">Automatic (recommended)</option>
-                <option value="onnx" data-i18n="common.llm.engine.onnx">Compatible mode</option>
-                <option value="mlc" data-i18n="common.llm.engine.mlc">Fast mode (uses graphics)</option>
-                <option value="gguf" data-i18n="common.llm.engine.gguf">Experimental</option>
-              </select>
-              <p class="settings-hint" id="llmEngineHint" data-i18n="common.llm.engine.hint">After the model downloads, Automatic tries the fastest option your browser supports, then switches if needed.</p>
               <p class="settings-hint" id="llmModelRecommendationHint" data-i18n="common.recommended">Recommended: -</p>
               <label for="llmCoachPersonaSelect" class="settings-sub-label" data-i18n="settings.performance.llmCoachPersona">Diary coach tone</label>
               <select id="llmCoachPersonaSelect" class="settings-select" onchange="setLlmCoachPersona(this.value)">
@@ -1916,11 +1908,6 @@
               <p class="settings-hint" id="llmModelStorageHint"></p>
               <div class="settings-llm-actions">
                 <button type="button" class="settings-data-btn settings-data-btn--primary" id="clearRedownloadAiModelBtn" onclick="clearAndRedownloadAiModel()" data-i18n="common.clear.and.redownload.model">Clear and redownload model</button>
-              </div>
-              <div class="settings-option settings-option--stacked settings-option--nested">
-                <label data-i18n="common.force.large.ai.model.on.wasm">Allow full-quality model without graphics acceleration</label>
-                <p class="settings-hint" data-i18n="common.requires.8.gb.device.memory.may.be.slow">Needs at least 8 GB memory. May be slow or fail on browsers without graphics support.</p>
-                <div class="toggle-switch" id="forceLargeLlmWasmToggle" onclick="togglePreferredLlmForceLargeOnWasm()" role="switch" aria-checked="false"></div>
               </div>
             </div>
           </details>
@@ -5219,8 +5206,6 @@
     crossorigin="anonymous"></script>
   <script defer src="device-module.js"></script>
   <script defer src="llm-tier-benchmark-sync.js?v=1"></script>
-  <script defer src="llm-runtime-profiles-sync.js?v=1"></script>
-  <script defer src="llm-load-ladder-sync.js?v=3"></script>
   <script defer src="device-benchmark.js?v=9"></script>
   <script defer src="performance-utils.js"></script>
   <script defer src="modules/hold-repeat.js?v=1"></script>
@@ -5239,7 +5224,7 @@
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
       function loadSummaryLlm() {
-        Perf.lazyLoadScript('summary-llm.js?v=4').catch(function () {});
+        Perf.lazyLoadScript('summary-llm.js?v=5').catch(function () {});
       }
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(loadSummaryLlm, { timeout: 2800 });

@@ -72,7 +72,7 @@ try {
       })(),
       vendorRequests: vendorRequests.slice(0, 20),
       activeBackend: modelStatus && modelStatus.activeBackend ? modelStatus.activeBackend : null,
-      activeEngine: modelStatus && modelStatus.activeEngine ? modelStatus.activeEngine : null,
+      modelId: modelStatus && modelStatus.modelId ? modelStatus.modelId : null,
       ts: Date.now(),
     };
   });

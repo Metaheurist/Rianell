@@ -3287,7 +3287,7 @@ if (notesField) notesField.addEventListener('input', updateNotesCounter);
       if (contextStr && contextStr.length >= 30 && typeof window.generateSuggestNoteWithLLM !== 'function'
           && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
         try {
-          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=4');
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=5');
         } catch (e) {}
       }
 
@@ -6069,7 +6069,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
     if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
       try {
-        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=4');
+        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=5');
       } catch (e) {}
     }
   }
@@ -15878,8 +15878,6 @@ let appSettings = {
   forceOnDeviceAi: false, // User explicitly opted into on-device AI chat, overriding the perf deferAI heuristic
   preferredLlmModelSize: 'recommended', // 'recommended' | 'tier1'..'tier5' for on-device AI model
   llmCoachPersona: 'encouraging', // encouraging | clinical | minimal
-  preferredLlmForceLargeOnWasm: false,
-  preferredLlmEngine: 'auto', // auto | onnx | mlc | gguf
   pushNotificationsEnabled: false,
   pushNotificationsEnabledAt: null,
   reEngagementNudgesEnabled: true,
@@ -16345,22 +16343,6 @@ function setLlmCoachPersona(value) {
 }
 if (typeof window !== 'undefined') window.setLlmCoachPersona = setLlmCoachPersona;
 
-function setPreferredLlmEngine(value) {
-  var valid = value === 'auto' || value === 'onnx' || value === 'mlc' || value === 'gguf';
-  if (!valid) return;
-  appSettings.preferredLlmEngine = value;
-  saveSettings();
-  try {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('rianellLlmEngine', value === 'auto' ? 'auto' : value);
-    }
-  } catch (e) {}
-  if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
-  if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
-  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') syncSettingsPerformanceAdvancedDisclosure();
-}
-if (typeof window !== 'undefined') window.setPreferredLlmEngine = setPreferredLlmEngine;
-
 function formatLlmBackendLabel(backend) {
   if (!backend) return '';
   var b = String(backend);
@@ -16372,47 +16354,6 @@ function formatLlmBackendLabel(backend) {
   }
   return b;
 }
-
-function formatLlmEngineLabel(engine) {
-  if (engine === 'mlc') {
-    return typeof tUi === 'function' ? tUi('common.llm.engine.label.mlc') : 'fast mode';
-  }
-  if (engine === 'gguf') {
-    return typeof tUi === 'function' ? tUi('common.llm.engine.label.gguf') : 'experimental';
-  }
-  return '';
-}
-
-function togglePreferredLlmForceLargeOnWasm() {
-  var dm = (typeof navigator !== 'undefined' && navigator.deviceMemory) ? navigator.deviceMemory : null;
-  if (!appSettings.preferredLlmForceLargeOnWasm && dm != null && dm < 8) {
-    if (typeof showToast === 'function') {
-      showToast(
-        typeof tUi === 'function' ? tUi('common.llm.wasm.memory.warning') : 'Full-quality model needs at least 8 GB memory.',
-        { type: 'warning' }
-      );
-    }
-    return;
-  }
-  if (!appSettings.preferredLlmForceLargeOnWasm) {
-    var confirmMsg = typeof tUi === 'function'
-      ? tUi('common.llm.wasm.large.confirm')
-      : 'Allow the full-quality model without graphics acceleration? It may be slow or run out of memory on this device.';
-    var ok = typeof window.confirm === 'function' ? window.confirm(confirmMsg) : true;
-    if (!ok) return;
-  }
-  appSettings.preferredLlmForceLargeOnWasm = !appSettings.preferredLlmForceLargeOnWasm;
-  saveSettings();
-  var toggle = document.getElementById('forceLargeLlmWasmToggle');
-  if (toggle) {
-    toggle.classList.toggle('active', !!appSettings.preferredLlmForceLargeOnWasm);
-    toggle.setAttribute('aria-checked', appSettings.preferredLlmForceLargeOnWasm ? 'true' : 'false');
-  }
-  if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
-  if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
-  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') syncSettingsPerformanceAdvancedDisclosure();
-}
-if (typeof window !== 'undefined') window.togglePreferredLlmForceLargeOnWasm = togglePreferredLlmForceLargeOnWasm;
 
 async function subscribePushFromSettings() {
   try {
@@ -16578,7 +16519,7 @@ function ensureSummaryLlmLoadedForSettings() {
     return Promise.resolve();
   }
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=4');
+    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=5');
   }
   return Promise.resolve();
 }
@@ -16650,9 +16591,6 @@ function shouldHighlightSettingsPerformanceAdvanced() {
   if (!appSettings) return false;
   var tier = appSettings.preferredLlmModelSize || 'recommended';
   if (tier !== 'recommended') return true;
-  var engine = appSettings.preferredLlmEngine || 'auto';
-  if (engine !== 'auto') return true;
-  if (appSettings.preferredLlmForceLargeOnWasm) return true;
   var persona = appSettings.llmCoachPersona || 'encouraging';
   if (persona !== 'encouraging') return true;
   var progressWrap = document.getElementById('llmModelSettingsProgressWrap');
@@ -16667,9 +16605,6 @@ function shouldAutoExpandSettingsPerformanceAdvanced() {
   if (!appSettings) return false;
   var tier = appSettings.preferredLlmModelSize || 'recommended';
   if (tier !== 'recommended') return true;
-  var engine = appSettings.preferredLlmEngine || 'auto';
-  if (engine !== 'auto') return true;
-  if (appSettings.preferredLlmForceLargeOnWasm) return true;
   var persona = appSettings.llmCoachPersona || 'encouraging';
   if (persona !== 'encouraging') return true;
   return false;
@@ -16708,19 +16643,9 @@ function refreshLlmModelSettingsHints() {
 
   if (llmRecommendationHint) {
     var info = (typeof window.getResolvedLlmModelInfo === 'function') ? window.getResolvedLlmModelInfo() : null;
-    var tierText = 'Run benchmark (reload app) to see recommendation.';
-    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
-      var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
-        ? window.DeviceBenchmark.getPlatformTypeCached()
-        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
-      var tier = window.DeviceBenchmark.getPerformanceTier();
-      var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
-      var size = full && full.llmModelSize ? full.llmModelSize : 'tier3';
-      var tierNum = size.replace('tier', '');
-      tierText = 'Recommended: Tier ' + (tierNum || size);
-    }
-    if (info && info.size) {
-      tierText += ' (' + info.size + ')';
+    var tierText = 'Recommended: -';
+    if (info && info.tierLabel) {
+      tierText = 'Recommended: ' + info.tierLabel + (info.size ? ' (' + info.size + ')' : '');
     }
     llmRecommendationHint.textContent = tierText;
   }
@@ -16744,8 +16669,6 @@ function refreshLlmModelSettingsHints() {
         ? 'Ready · loaded in memory'
         : 'Ready · cached on device';
       if (modelStatus.activeBackend) statusLabel += ' · ' + formatLlmBackendLabel(modelStatus.activeBackend);
-      var engineLabel = formatLlmEngineLabel(modelStatus.activeEngine);
-      if (engineLabel) statusLabel += ' · ' + engineLabel;
       if (modelStatus.tierLabel) statusLabel += ' · ' + modelStatus.tierLabel;
     } else if (modelStatus.state === 'consented') {
       statusLabel = 'Consented · not loaded yet';
@@ -18773,17 +18696,6 @@ function loadSettingsState() {
       : 'recommended';
     preferredLlmSelect.value = val;
   }
-  var preferredLlmEngineSelect = document.getElementById('preferredLlmEngineSelect');
-  if (preferredLlmEngineSelect) {
-    var engineVal = appSettings.preferredLlmEngine || 'auto';
-    if (engineVal !== 'auto' && engineVal !== 'onnx' && engineVal !== 'mlc' && engineVal !== 'gguf') engineVal = 'auto';
-    preferredLlmEngineSelect.value = engineVal;
-    try {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('rianellLlmEngine', engineVal);
-      }
-    } catch (e) {}
-  }
   var llmCoachPersonaSelect = document.getElementById('llmCoachPersonaSelect');
   if (llmCoachPersonaSelect) {
     var personaVal = appSettings.llmCoachPersona || 'encouraging';
@@ -18792,12 +18704,6 @@ function loadSettingsState() {
   }
   if (llmRecommendationHint) {
     refreshLlmModelSettingsHints();
-  }
-  var forceLargeToggle = document.getElementById('forceLargeLlmWasmToggle');
-  if (forceLargeToggle) {
-    var forceOn = !!appSettings.preferredLlmForceLargeOnWasm;
-    forceLargeToggle.classList.toggle('active', forceOn);
-    forceLargeToggle.setAttribute('aria-checked', forceOn ? 'true' : 'false');
   }
   if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') {
     syncSettingsPerformanceAdvancedDisclosure();

@@ -25,7 +25,6 @@ const requiredConnectHosts = [
   'https://cas-bridge.xethub.hf.co',
   'https://*.xethub.hf.co',
   'https://*.aws.cdn.hf.co',
-  'https://raw.githubusercontent.com',
   'https://api.open-meteo.com',
   'https://air-quality-api.open-meteo.com',
   'https://geocoding-api.open-meteo.com',
@@ -48,7 +47,16 @@ if (!scriptSrc) {
   process.exit(1);
 }
 
+// Only the removed WebLLM engine fetched from these; keep them out of the policy.
+const forbiddenConnectHosts = ['https://raw.githubusercontent.com'];
+
 let failed = false;
+for (const host of forbiddenConnectHosts) {
+  if (csp.includes(host)) {
+    console.error(`verify-csp-connect-src: connect-src must not allow ${host}`);
+    failed = true;
+  }
+}
 for (const host of requiredConnectHosts) {
   if (!csp.includes(host)) {
     console.error(`verify-csp-connect-src: connect-src missing ${host}`);

@@ -22,7 +22,6 @@ const profiles = [
     tier: 5,
     gpu: { available: false, backend: 'none' },
     ua: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/123 Safari/537.36',
-    skipWithoutOverride: true,
   },
   {
     name: 'desktop_webgpu_tier5',
@@ -40,13 +39,6 @@ for (const profile of profiles) {
     console.log(`skip ${profile.name} (no HF_TOKEN)`);
     continue;
   }
-  if (profile.skipWithoutOverride && process.env.LLM_FORCE_LARGE_WASM !== '1') {
-    console.log(`skip ${profile.name} (WASM tier5 capped to SmolLM — set LLM_FORCE_LARGE_WASM=1 to test Llama fetch)`);
-    continue;
-  }
-  const initExtra = profile.skipWithoutOverride && process.env.LLM_FORCE_LARGE_WASM === '1'
-    ? { preferredLlmForceLargeOnWasm: true }
-    : {};
   const r = spawnSync(
     process.execPath,
     ['scripts/ci/probe-llm-download-live.mjs'],
@@ -61,7 +53,6 @@ for (const profile of profiles) {
         PROBE_GPU_AVAILABLE: profile.gpu.available ? '1' : '0',
         PROBE_GPU_BACKEND: profile.gpu.backend,
         PROBE_USER_AGENT: profile.ua,
-        PROBE_SETTINGS_JSON: JSON.stringify(initExtra),
       },
       stdio: 'inherit',
     }

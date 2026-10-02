@@ -11,7 +11,6 @@ import {
   runGoldenPromptAudit,
   auditGoldenPrompt,
 } from '../../packages/shared/src/ai/llmGoldenPrompts.mjs';
-import { isAllowedGgufModelId, GGUF_BASE_MODEL_ID } from '../../packages/llm/src/gguf-config.mjs';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -42,25 +41,11 @@ test('auditGoldenPrompt rejects empty system prompt', () => {
   assert.ok(errs.length > 0);
 });
 
-test('gguf allowlist matches Path 3 model id', () => {
-  assert.equal(isAllowedGgufModelId(GGUF_BASE_MODEL_ID), true);
-  assert.equal(isAllowedGgufModelId('evil/model'), false);
-});
-
-test('summary-llm-gguf exports allowlist adapter API', () => {
-  const src = readFileSync(join(root, 'apps/pwa-webapp/summary-llm-gguf.js'), 'utf8');
-  assert.ok(src.includes('RianellLlmGguf'));
-  assert.ok(src.includes('isAllowedGgufModel'));
-  assert.ok(src.includes('getGgufPathStatus'));
-  assert.ok(src.includes('runGgufChat'));
-});
-
 test('summary-llm blocks commercial LLM hosts and respects local-only mode', () => {
   const src = readFileSync(join(root, 'apps/pwa-webapp/summary-llm.js'), 'utf8');
   assert.ok(src.includes('isLlmNetworkAllowed'));
   assert.ok(src.includes('localOnlyMode'));
   assert.ok(!src.includes('api.openai.com'));
-  assert.ok(src.includes('cachedActiveEngine === \'gguf\''));
   assert.ok(src.includes('isPwaOnDeviceLlmOnly'));
   for (const re of BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS) {
     assert.ok(!re.test(src), `summary-llm must not reference ${re}`);

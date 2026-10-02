@@ -8,6 +8,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   MODEL_LANGUAGE_SUPPORT,
   requiredLlmLanguages,
@@ -15,20 +16,24 @@ import {
   downloadModelIds,
   LLM_MODEL_SMALL_ID,
   LLM_MODEL_BASE_ID,
-  ALLOWED_MLC_MODEL_IDS,
-  GGUF_BASE_MODEL_ID,
+  LLM_MODEL_WASM_ID,
 } from '../../packages/llm/src/index.mjs';
 import { PROMPT_PACKS_V1 } from '../../packages/shared/src/i18n/promptPackData.mjs';
 
-/** The full set of model ids the app may download, from the live allowlists. */
-const shippedModelIds = Array.from(
-  new Set([
-    LLM_MODEL_SMALL_ID,
-    LLM_MODEL_BASE_ID,
-    ...ALLOWED_MLC_MODEL_IDS,
-    GGUF_BASE_MODEL_ID,
-  ])
+/** Model ids the PWA can actually download: the `id:` entries of LLM_PACKAGES. */
+const summaryLlm = readFileSync('apps/pwa-webapp/summary-llm.js', 'utf8');
+const packagesBlock = summaryLlm.slice(
+  summaryLlm.indexOf('var LLM_PACKAGES = {'),
+  summaryLlm.indexOf('var MODEL_SMALL ='),
 );
+const shippedModelIds = [...packagesBlock.matchAll(/id:\s*'([^']+)'/g)].map((m) => m[1]);
+
+test('PWA LLM_PACKAGES and @rianell/llm model ids agree', () => {
+  assert.deepEqual(
+    [...shippedModelIds].sort(),
+    [LLM_MODEL_SMALL_ID, LLM_MODEL_BASE_ID, LLM_MODEL_WASM_ID].sort(),
+  );
+});
 
 test('offered LLM-inference languages are derived from full prompt packs', () => {
   const required = requiredLlmLanguages(PROMPT_PACKS_V1);

@@ -13,15 +13,15 @@
  *   and Chinese), inherited by Qwen2.5 per https://qwenlm.github.io/blog/qwen2.5
  *   ("multilingual support for over 29 languages"). Western Europe row includes
  *   Dutch; Eastern & Central Europe row includes Polish.
- * - HF model cards confirm the base repos: onnx-community/Qwen2.5-*-Instruct,
- *   mlc-ai/Qwen2.5-*-Instruct-q4f16_1-MLC, bartowski/Qwen2.5-1.5B-Instruct-GGUF.
+ * - Qwen3.5 family: https://huggingface.co/Qwen/Qwen3.5-2B ("Expanded support to
+ *   201 languages and dialects"). No per-language list is published, so Qwen3.5
+ *   declares the documented Qwen2.5 set as a conservative subset.
+ * - LiquidAI LFM2.5 was benchmarked and rejected: its card lists English, Arabic,
+ *   Chinese, French, German, Japanese, Korean and Spanish only (no it/nl/pl/pt).
+ *   See docs/research/llm-shortlist-2026-10.md.
  */
 
-/**
- * Documented Qwen2.5 language set as BCP-47 primary subtags (29 languages).
- * All shipped Qwen2.5 variants (ONNX / MLC / GGUF) share the same base training,
- * so they declare the same set.
- */
+/** Documented Qwen2.5 language set as BCP-47 primary subtags (29 languages). */
 export const QWEN25_LANGUAGES = Object.freeze([
   'zh', 'en', 'de', 'fr', 'es', 'pt', 'it', 'nl', // Chinese, English, Western Europe
   'ru', 'cs', 'pl', // Eastern & Central Europe
@@ -31,20 +31,18 @@ export const QWEN25_LANGUAGES = Object.freeze([
   'hi', 'bn', 'ur', // Southern Asia
 ]);
 
+/** Conservative declared subset of Qwen3.5's 201 languages (see header). */
+export const QWEN35_LANGUAGES = QWEN25_LANGUAGES;
+
 /**
  * model id -> declared supported language subtags. Keys are exactly the ids the
- * app is allowed to download across ONNX (Transformers.js), MLC (WebLLM) and GGUF.
+ * app is allowed to download (LLM_PACKAGES in apps/pwa-webapp/summary-llm.js).
  * @type {Readonly<Record<string, readonly string[]>>}
  */
 export const MODEL_LANGUAGE_SUPPORT = Object.freeze({
-  // ONNX (Transformers.js) - self-hosted mirror / HF Hub
+  'onnx-community/Qwen3.5-0.8B-Text-ONNX': QWEN35_LANGUAGES,
+  'onnx-community/Qwen3.5-2B-ONNX-OPT': QWEN35_LANGUAGES,
   'onnx-community/Qwen2.5-0.5B-Instruct': QWEN25_LANGUAGES,
-  'onnx-community/Qwen2.5-1.5B-Instruct': QWEN25_LANGUAGES,
-  // MLC (WebLLM / WebGPU)
-  'Qwen2.5-0.5B-Instruct-q4f16_1-MLC': QWEN25_LANGUAGES,
-  'Qwen2.5-1.5B-Instruct-q4f16_1-MLC': QWEN25_LANGUAGES,
-  // GGUF (Path 3 spike)
-  'bartowski/Qwen2.5-1.5B-Instruct-GGUF': QWEN25_LANGUAGES,
 });
 
 /** All model ids the app may download (the registry is the source of truth). */

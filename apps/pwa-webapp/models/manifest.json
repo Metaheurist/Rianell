@@ -1,33 +1,52 @@
 {
-  "version": 2,
-  "description": "On-device LLM weights from Hugging Face Hub (onnx-community Qwen2.5 Transformers.js mirrors). Runtime is HF-only; q4 (WASM) and q4f16 (WebGPU) quantizations are single-file (no external _data sidecar).",
+  "version": 3,
+  "description": "On-device LLM packages (LLM_PACKAGES in summary-llm.js). Runtime downloads from Hugging Face Hub at the pinned revisions below; this manifest drives the optional mirror scripts. Only the quantization each package loads is listed.",
   "models": [
     {
-      "id": "onnx-community/Qwen2.5-0.5B-Instruct",
-      "sourceRepo": "onnx-community/Qwen2.5-0.5B-Instruct",
-      "revision": "main",
-      "label": "Tier 1-2 package (small)",
-      "approxMb": 1280,
+      "package": "small",
+      "id": "onnx-community/Qwen3.5-0.8B-Text-ONNX",
+      "sourceRepo": "onnx-community/Qwen3.5-0.8B-Text-ONNX",
+      "revision": "1e45daba048899e7f771657ada617ec49350aa91",
+      "label": "Small package (WebGPU, mobile / <= 4 GB / tiers 1-2)",
+      "approxMb": 470,
       "files": [
         "config.json",
         "generation_config.json",
-        "quantize_config.json",
+        "chat_template.jinja",
         "tokenizer.json",
         "tokenizer_config.json",
-        "special_tokens_map.json",
-        "added_tokens.json",
-        "merges.txt",
-        "vocab.json",
-        "onnx/model_q4.onnx",
-        "onnx/model_q4f16.onnx"
+        "onnx/model_q4f16.onnx",
+        "onnx/model_q4f16.onnx_data"
       ]
     },
     {
-      "id": "onnx-community/Qwen2.5-1.5B-Instruct",
-      "sourceRepo": "onnx-community/Qwen2.5-1.5B-Instruct",
-      "revision": "main",
-      "label": "Tier 3-5 package (base)",
-      "approxMb": 3080,
+      "package": "large",
+      "id": "onnx-community/Qwen3.5-2B-ONNX-OPT",
+      "sourceRepo": "onnx-community/Qwen3.5-2B-ONNX-OPT",
+      "revision": "2ea7886f48b926aca97de8b0e041ffca7e3ebaa9",
+      "label": "Large package (WebGPU desktop / tiers 3-5)",
+      "approxMb": 1320,
+      "files": [
+        "config.json",
+        "generation_config.json",
+        "chat_template.jinja",
+        "preprocessor_config.json",
+        "processor_config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "onnx/embed_tokens_q4f16.onnx",
+        "onnx/embed_tokens_q4f16.onnx_data",
+        "onnx/decoder_model_merged_q4f16.onnx",
+        "onnx/decoder_model_merged_q4f16.onnx_data"
+      ]
+    },
+    {
+      "package": "wasm",
+      "id": "onnx-community/Qwen2.5-0.5B-Instruct",
+      "sourceRepo": "onnx-community/Qwen2.5-0.5B-Instruct",
+      "revision": "cc5cc01a65cc3ff17bdb73a7de33d879f62599b0",
+      "label": "WASM package (no WebGPU)",
+      "approxMb": 760,
       "files": [
         "config.json",
         "generation_config.json",
@@ -38,8 +57,7 @@
         "added_tokens.json",
         "merges.txt",
         "vocab.json",
-        "onnx/model_q4.onnx",
-        "onnx/model_q4f16.onnx"
+        "onnx/model_q4.onnx"
       ]
     }
   ]
