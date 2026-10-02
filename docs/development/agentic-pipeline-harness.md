@@ -42,6 +42,7 @@ npm run brain:ensure -- --pack=security
 - **i18n Planned** shows missing keys as soon as each locale plan is written (not only after TranslateGemma finishes).
 - Overview omits the full Activity cockpit; **visual** uses Gates → Q&A → Approve → Polish×8 + C-only iframe. Pack tiles use **needs approval** (not running) when waiting on Approve.
 - Visual Live pack runs screenshot Q&A then lists polish candidates; Approve starts `visual:polish:qa-loop` (max 8). Product `visual:apply` stays QA-green + separate.
+- Playwright MCP browser checks: keep each tool call under about 60 s and split long flows (model download, chat turns) into several calls. If calls start hanging, run `npm run dev:reset-playwright-mcp` (`-- --dry-run` to list first). It kills only the browser `@playwright/mcp` launched, never your own Chrome or other Playwright runs; the next `browser_navigate` starts a fresh one.
 
 ## Codebase-aware Thinking / Planned actions
 
