@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
-import { appSourceFiles } from '../lib/app-source.mjs';
+import { APP_ENTRY, APP_MODULE_DIR, appSourceFiles } from '../lib/app-source.mjs';
 
 export const SCAN_FILES = [
   'apps/pwa-webapp/index.html',
@@ -53,9 +53,12 @@ export function isAllowlisted(text, file, allowlist) {
   if (allowlist.exact.has(text)) return true;
   if (allowlist.patterns.some((re) => re.test(text))) return true;
   const rel = file.replace(/\\/g, '/');
-  const fileRules = allowlist.files[rel];
-  if (fileRules?.exact?.includes(text)) return true;
-  if (fileRules?.patterns?.some((p) => new RegExp(p, 'i').test(text))) return true;
+  const ruleSets = [allowlist.files[rel]];
+  if (rel.startsWith(`${APP_MODULE_DIR}/`)) ruleSets.push(allowlist.files[APP_ENTRY]);
+  for (const fileRules of ruleSets) {
+    if (fileRules?.exact?.includes(text)) return true;
+    if (fileRules?.patterns?.some((p) => new RegExp(p, 'i').test(text))) return true;
+  }
   return false;
 }
 
