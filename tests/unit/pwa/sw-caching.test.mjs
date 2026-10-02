@@ -59,8 +59,33 @@ function dispatchFetch(listeners, { url, mode = 'no-cors', accept = '' }) {
   return { responsePromise, waits };
 }
 
-test('CACHE_NAME is bumped for the non-blocking cache rewrite', () => {
-  assert.match(SRC, /CACHE_NAME = CACHE_PREFIX \+ 'v2026-10-02-llm-models-v9'/);
+test('CACHE_NAME is bumped for the navigation cache key change', () => {
+  assert.match(SRC, /CACHE_NAME = CACHE_PREFIX \+ 'v2026-10-02-nav-key-v10'/);
+});
+
+test('shell navigations share one index.html cache entry regardless of query', async () => {
+  for (const url of [`${ORIGIN}/`, `${ORIGIN}/?cb=123`, `${ORIGIN}/?_sw=99`, `${ORIGIN}/index.html?x=1`]) {
+    const { listeners, puts } = loadWorker({ fetchImpl: () => Promise.resolve(fakeResponse({ body: 'html' })) });
+    const { responsePromise, waits } = dispatchFetch(listeners, { url, mode: 'navigate', accept: 'text/html' });
+    await responsePromise;
+    await Promise.all(waits);
+    assert.deepEqual(puts.map((p) => p.url), [`${ORIGIN}/index.html`], url);
+  }
+});
+
+test('other HTML pages are cached by path without the query string', async () => {
+  const { listeners, puts } = loadWorker({ fetchImpl: () => Promise.resolve(fakeResponse({ body: 'html' })) });
+  const { responsePromise, waits } = dispatchFetch(listeners, { url: `${ORIGIN}/de/index.html?ref=x`, mode: 'navigate', accept: 'text/html' });
+  await responsePromise;
+  await Promise.all(waits);
+  assert.deepEqual(puts.map((p) => p.url), [`${ORIGIN}/de/index.html`]);
+});
+
+test('offline navigation serves the normalised shell copy', async () => {
+  const cached = new Map([[`${ORIGIN}/index.html`, fakeResponse({ body: 'cached-shell' })]]);
+  const { listeners } = loadWorker({ cached, fetchImpl: () => Promise.reject(new Error('offline')) });
+  const res = await dispatchFetch(listeners, { url: `${ORIGIN}/?cb=7`, mode: 'navigate', accept: 'text/html' }).responsePromise;
+  assert.equal(res.body, 'cached-shell');
 });
 
 test('navigation revalidates HTML and returns before the cache write settles', async () => {

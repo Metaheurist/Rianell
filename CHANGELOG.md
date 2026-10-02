@@ -33,6 +33,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
   - Filters apply to English replies only.
 
   `rianell-shared.js?v=15`, `summary-llm.js?v=9`, `modules/ai-chat.js?v=4`. The scroll test moved to `tests/unit/pwa/ai-chat-scroll.test.mjs`.
+- **First visit after a deploy could boot the previous build:** a browser-cached `index.html` (GitHub Pages sends `max-age=600`) still pointed at the old bundles, and the service worker only fixes this after it has installed. The site build now stamps each deploy with a `buildId`:
+  - The id is a hash of the shell HTML, so deploys that change nothing user-facing keep the same id.
+  - It is written to `asset-manifest.json` and to `<meta name="rianell-build">` in `index.html`.
+
+  When the browser is idle after boot, the new `modules/app/build-freshness.js` fetches the manifest with `cache: 'no-store'` and compares the two ids. If they differ:
+  - Before any tap or key press, the page reloads once. A `sessionStorage` guard (`rianellBuildReload`) prevents a loop if the CDN edge is still stale.
+  - After the user has interacted, it shows the existing "Update available" dialog instead.
+
+  The check is skipped when offline, in the native app, or when the page has no build meta (local dev).
+
+  `sw.js` now caches app-shell navigations (`/`, `/?cb=…`, `/?_sw=…`, `/index.html`) under the single `index.html` key, so the offline fallback serves the latest shell rather than the install-time copy. Other HTML pages are keyed by path without the query. `CACHE_NAME` → `v2026-10-02-nav-key-v10`.
 - **Newest Ask Rianell answer hidden below the fold:** `renderMessages` scrolled to the end while the follow-up chips were hidden. The chips then reappeared, shrinking the message list, and the scroll position was not updated. On rianell.com it stayed at 44px of a possible 278px, so most of the new answer was cut off. `renderFollowups` and `renderLimitRecovery` now scroll to the end after they change the layout (`modules/ai-chat.js?v=3`).
 - **Hold-repeat unit test could hang the whole suite:** when the machine was slow and the "repeats while held" assertion failed, the button was never released, so the repeat interval kept the test process alive. The test now always releases the button and closes its DOM.
 - **Model size shown wrongly before download:** Settings and the download consent dialog showed the WASM package (~760 MB) on WebGPU devices. The package choice assumed no WebGPU until the adapter probe ran, and the probe ran after consent. The probe now runs before the consent dialog, and Settings requests it once and re-renders when it settles (`window.isLlmDeviceProbeKnown` / `ensureLlmDeviceProbed`).

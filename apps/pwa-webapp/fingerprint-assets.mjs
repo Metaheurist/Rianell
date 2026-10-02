@@ -92,22 +92,49 @@ export function applyBundleNamesToHtml(html, manifest) {
   return html;
 }
 
+const BUILD_META_RE = /[ \t]*<meta name="rianell-build" content="[^"]*">\r?\n?/g;
+
+/**
+ * Deploy identity: hash of the shell HTML (bundle hashes and ?v= cache-busters live there),
+ * so deploys that change nothing user-facing keep the same id and trigger no reloads.
+ * @param {string} html
+ */
+export function computeBuildId(html) {
+  return contentHash(Buffer.from(String(html).replace(BUILD_META_RE, ''), 'utf8'));
+}
+
+/**
+ * @param {string} html
+ * @param {string} buildId
+ */
+export function injectBuildMeta(html, buildId) {
+  const stripped = String(html).replace(BUILD_META_RE, '');
+  const tag = `<meta name="rianell-build" content="${buildId}">`;
+  const charset = /([ \t]*)(<meta charset="[^"]*"\s*\/?>)(\r?\n)/i;
+  if (charset.test(stripped)) return stripped.replace(charset, `$1$2$3$1${tag}$3`);
+  return stripped.replace(/<head([^>]*)>/i, (m) => `${m}\n  ${tag}`);
+}
+
 /**
  * @param {string} htmlPath
  * @param {{ mainJs: string, mainCss?: string | null }} manifest
+ * @returns {string} buildId written into the page meta
  */
 export function patchIndexHtml(htmlPath, manifest) {
   let html = fs.readFileSync(htmlPath, 'utf8');
   html = applyBundleNamesToHtml(html, manifest);
-  fs.writeFileSync(htmlPath, html);
+  const buildId = computeBuildId(html);
+  fs.writeFileSync(htmlPath, injectBuildMeta(html, buildId));
+  return buildId;
 }
 
 /**
  * @param {string} siteDir
- * @param {{ mainJs: string, mainCss?: string | null }} manifest
+ * @param {{ mainJs: string, mainCss?: string | null, buildId?: string | null }} manifest
  */
 export function writeAssetManifest(siteDir, manifest) {
   const out = { mainJs: manifest.mainJs };
   if (manifest.mainCss) out.mainCss = manifest.mainCss;
+  if (manifest.buildId) out.buildId = manifest.buildId;
   fs.writeFileSync(path.join(siteDir, 'asset-manifest.json'), JSON.stringify(out, null, 2) + '\n');
 }

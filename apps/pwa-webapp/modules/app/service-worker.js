@@ -7,6 +7,7 @@
 import { isRianellNativeApp } from './platform.js';
 import { Logger } from './logger.js';
 import { showConfirmModal } from './modal-host.js';
+import { scheduleBuildFreshnessCheck } from './build-freshness.js';
 
 // ============================================
 // PWA Service Worker - rianell.com / *.github.io (or ?sw=1 / localStorage rianellEnableStaticSW=1)
@@ -14,6 +15,13 @@ import { showConfirmModal } from './modal-host.js';
 function initRianellPwaServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   if (typeof isRianellNativeApp === 'function' && isRianellNativeApp()) return;
+
+  scheduleBuildFreshnessCheck({
+    window: window,
+    document: document,
+    fetch: function (url, init) { return window.fetch(url, init); },
+    confirm: showConfirmModal,
+  });
 
   navigator.serviceWorker
     .register('sw.js', { updateViaCache: 'none' })
