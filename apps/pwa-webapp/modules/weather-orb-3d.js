@@ -162,6 +162,7 @@
       return null;
     }
     renderer.setClearColor(0x000000, 0);
+    canvas.addEventListener('webglcontextlost', function () { dispose(); });
     renderer.setPixelRatio(Math.min(global.devicePixelRatio || 1, 2));
 
     var scene = new THREE.Scene();

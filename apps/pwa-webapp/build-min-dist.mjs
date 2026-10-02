@@ -43,6 +43,13 @@ function loadManifestMainJs(webRoot) {
   return 'app.min.js';
 }
 
+/** sw.js precaches mainJs + mainCss from this manifest, so both must name the dist files. */
+export function buildDistManifest(mainJs, mainCss) {
+  const manifest = { mainJs };
+  if (mainCss) manifest.mainCss = mainCss;
+  return manifest;
+}
+
 export async function buildMinDistBundle(webRoot) {
   const outRoot = path.join(webRoot, '.web-dist');
   rmrf(outRoot);
@@ -139,5 +146,10 @@ export async function buildMinDistBundle(webRoot) {
   }
 
   await walk('');
+  fs.writeFileSync(
+    path.join(outRoot, 'asset-manifest.json'),
+    JSON.stringify(buildDistManifest(distMainJs, distMainCss), null, 2) + '\n',
+    'utf8'
+  );
   console.log('[build-min-dist] wrote', path.relative(repoRoot, outRoot));
 }

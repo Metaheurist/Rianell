@@ -1,6 +1,8 @@
 /* Rianell PWA - versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
-var CACHE_NAME = CACHE_PREFIX + 'v2026-06-20-shell-visible-v6';
+var CACHE_NAME = CACHE_PREFIX + 'v2026-10-02-nonblocking-v7';
+/** app.<hash>.min.js / styles.<hash>.css never change once published. */
+var HASHED_ASSET_RE = /\.[0-9a-f]{10,}(\.min)?\.(js|css)$/i;
 
 var OFFLINE_HTML =
   '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
@@ -12,11 +14,30 @@ var OFFLINE_HTML =
   '<button type="button" onclick="location.reload()" style="padding:12px 24px;font-size:1rem;background:#4caf50;' +
   'color:#fff;border:none;border-radius:8px;font-weight:600">Reload</button></div></body></html>';
 
+/** Same-origin, complete (200), not opaque/redirected, and not marked no-store. */
+function isCacheableResponse(response) {
+  if (!response || !response.ok || response.status !== 200) return false;
+  if (response.type !== 'basic' && response.type !== 'default') return false;
+  var cc = (response.headers && response.headers.get('Cache-Control')) || '';
+  return !/no-store/i.test(cc);
+}
+
 function cachePutSafe(cache, request, response) {
   try {
-    if (response && response.ok) return cache.put(request, response.clone());
+    if (isCacheableResponse(response)) return cache.put(request, response.clone()).catch(function () {});
   } catch (err) {}
   return Promise.resolve();
+}
+
+/** Write to the cache without delaying the response the page is waiting for. */
+function cacheInBackground(event, request, response) {
+  if (!isCacheableResponse(response)) return;
+  var copy = response.clone();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(function (cache) { return cache.put(request, copy); })
+      .catch(function () {})
+  );
 }
 
 function fetchAndCache(cache, url) {
@@ -104,14 +125,11 @@ self.addEventListener('fetch', function (e) {
 
     var accept = req.headers.get('accept') || '';
     if (req.mode === 'navigate' || accept.indexOf('text/html') !== -1) {
+      // Revalidate HTML with the server so a stale HTTP-cached index.html never boots the previous deploy's bundles.
       e.respondWith(
-        fetch(req)
+        fetch(req, { cache: 'no-cache' })
           .then(function (res) {
-            if (res && res.ok) {
-              return caches.open(CACHE_NAME).then(function (cache) {
-                return cachePutSafe(cache, req, res).then(function () { return res; });
-              });
-            }
+            cacheInBackground(e, req, res);
             return res;
           })
           .catch(function () {
@@ -122,21 +140,35 @@ self.addEventListener('fetch', function (e) {
     }
 
     var path = url.pathname;
-    if (!/\.(js|css|png|svg|json|woff2?|ico|webp|onnx|onnx_data)$/i.test(path) && path.indexOf('/models/') === -1) return;
+    // Model weights are large and managed by the transformers.js cache, not the shell cache.
+    if (path.indexOf('/models/') !== -1 || /\.(onnx|onnx_data|gguf|wasm)$/i.test(path)) return;
+    if (!/\.(js|mjs|css|png|svg|json|woff2?|ico|webp)$/i.test(path)) return;
+
+    if (HASHED_ASSET_RE.test(path)) {
+      e.respondWith(
+        caches.match(req).then(function (cached) {
+          if (cached) return cached;
+          return fetch(req).then(function (res) {
+            cacheInBackground(e, req, res);
+            return res;
+          });
+        })
+      );
+      return;
+    }
 
     e.respondWith(
-      caches.open(CACHE_NAME).then(function (cache) {
-        return fetch(req)
-          .then(function (res) {
-            return cachePutSafe(cache, req, res).then(function () { return res; });
-          })
-          .catch(function () {
-            return cache.match(req).then(function (cached) {
-              if (cached) return cached;
-              throw new Error('offline asset miss');
-            });
+      fetch(req)
+        .then(function (res) {
+          cacheInBackground(e, req, res);
+          return res;
+        })
+        .catch(function () {
+          return caches.match(req).then(function (cached) {
+            if (cached) return cached;
+            throw new Error('offline asset miss');
           });
-      })
+        })
     );
   } catch (err) {}
 });
