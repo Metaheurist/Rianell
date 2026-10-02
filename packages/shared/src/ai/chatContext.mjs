@@ -67,6 +67,38 @@ export function sanitizeObjectForChatContext(obj) {
   return out;
 }
 
+/**
+ * Small models read a bare "1.0/10" as neutral and misread fatigue's inverted scale,
+ * so the verdict leads and the score follows. Bands match AIEngine anomaly thresholds.
+ * @param {number} value 0-10 score where higher is better
+ * @returns {'poor' | 'fair' | 'good'}
+ */
+export function scoreBand(value) {
+  const v = Number(value);
+  return v <= 4 ? 'poor' : v >= 7 ? 'good' : 'fair';
+}
+
+/**
+ * Chat context lines for the averaged scores, e.g. `Sleep: poor (avg 1.0/10).`
+ * @param {{ avgFatigue?: number, avgSleep?: number, avgMood?: number }} analysis
+ * @returns {string[]}
+ */
+export function describeChatScores(analysis = {}) {
+  const lines = [];
+  if (analysis.avgFatigue != null) {
+    const v = Number(analysis.avgFatigue);
+    const level = v >= 7 ? 'high' : v <= 3 ? 'low' : 'moderate';
+    lines.push(`Energy: ${scoreBand(10 - v)} (fatigue avg ${v.toFixed(1)}/10, ${level}).`);
+  }
+  if (analysis.avgSleep != null) {
+    lines.push(`Sleep: ${scoreBand(analysis.avgSleep)} (avg ${Number(analysis.avgSleep).toFixed(1)}/10).`);
+  }
+  if (analysis.avgMood != null) {
+    lines.push(`Mood: ${scoreBand(analysis.avgMood)} (avg ${Number(analysis.avgMood).toFixed(1)}/10).`);
+  }
+  return lines;
+}
+
 function formatGoals(goals) {
   if (!goals || typeof goals !== 'object') return '';
   const parts = [];
@@ -107,9 +139,7 @@ export function buildChatContext({
   if (analysis.flareDays != null && analysis.flareDays > 0) {
     parts.push(`Flares: ${analysis.flareDays} day(s).`);
   }
-  if (analysis.avgFatigue != null) parts.push(`Fatigue avg: ${analysis.avgFatigue.toFixed(1)}/10.`);
-  if (analysis.avgSleep != null) parts.push(`Sleep avg: ${analysis.avgSleep.toFixed(1)}/10.`);
-  if (analysis.avgMood != null) parts.push(`Mood avg: ${analysis.avgMood.toFixed(1)}/10.`);
+  parts.push(...describeChatScores(analysis));
   if (analysis.topSymptoms?.length) {
     parts.push(`Top symptoms: ${analysis.topSymptoms.slice(0, 4).join(', ')}.`);
   }
@@ -146,7 +176,11 @@ export function canSendHealthChatTurn(turnCount) {
  */
 export function formatHealthChatHistory(turns) {
   if (!Array.isArray(turns) || !turns.length) return '';
-  return turns
+  // The turn being answered is already in `turns` with an empty reply; the payload
+  // adds its question separately, so listing it here would duplicate the question.
+  const answered = turns.filter((t) => t && String(t.assistant || '').trim());
+  if (!answered.length) return '';
+  return answered
     .map(
       (t, i) =>
         `Turn ${i + 1}:\nUser: ${redactUntrustedText(String(t.user || '').trim())}\nAssistant: ${redactUntrustedText(String(t.assistant || '').trim())}`,

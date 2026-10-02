@@ -10,7 +10,11 @@ import {
   MAX_HEALTH_CHAT_CONTEXT_CHARS,
   canSendHealthChatTurn,
   MAX_HEALTH_CHAT_TURNS,
+  describeChatScores,
+  formatHealthChatHistory,
+  scoreBand,
 } from '../../packages/shared/src/ai/chatContext.mjs';
+import { buildWeekChatContext, formatWeekChatHistory } from '../../packages/shared/src/ai/weekChat.mjs';
 import { computeHomeAnalysisSnapshot } from '../../packages/shared/src/ai/homeSuggestions.mjs';
 
 test('buildChatContext caps length', () => {
@@ -66,6 +70,36 @@ test('buildHealthChatUserPayload wraps user message safely', () => {
   });
   assert.ok(payload.includes('User: What affects my mood'));
   assert.ok(!payload.includes('https://'));
+});
+
+test('chat context states what each score means, energy first for fatigue', () => {
+  const ctx = buildChatContext({ analysis: { totalLogs: 1, avgFatigue: 1, avgSleep: 1, avgMood: 8 }, logs: [] });
+  assert.ok(ctx.includes('Energy: good (fatigue avg 1.0/10, low).'), ctx);
+  assert.ok(ctx.includes('Sleep: poor (avg 1.0/10).'), ctx);
+  assert.ok(ctx.includes('Mood: good (avg 8.0/10).'), ctx);
+  assert.deepEqual(describeChatScores({ avgFatigue: 8, avgSleep: 5.5 }), [
+    'Energy: poor (fatigue avg 8.0/10, high).',
+    'Sleep: fair (avg 5.5/10).',
+  ]);
+  assert.equal(scoreBand(4), 'poor');
+  assert.equal(scoreBand(7), 'good');
+});
+
+test('week chat context uses the same described scores', () => {
+  const ctx = buildWeekChatContext({ analysis: { totalLogs: 3, avgSleep: 2 } });
+  assert.ok(ctx.includes('Sleep: poor (avg 2.0/10).'), ctx);
+});
+
+test('chat history leaves out the turn still waiting for a reply', () => {
+  const turns = [
+    { user: 'How did I sleep?', assistant: 'Your sleep was poor.' },
+    { user: 'Why?', assistant: '' },
+  ];
+  const hist = formatHealthChatHistory(turns);
+  assert.ok(hist.includes('Turn 1:\nUser: How did I sleep?\nAssistant: Your sleep was poor.'));
+  assert.ok(!hist.includes('Why?'), 'pending question is added once, by the payload builder');
+  assert.equal(formatHealthChatHistory([{ user: 'First question', assistant: '' }]), '');
+  assert.ok(!formatWeekChatHistory(turns).includes('Why?'));
 });
 
 test('buildHealthChatUserPayload labels the context as the user\'s own data', () => {

@@ -48,6 +48,8 @@ test('health chat prompt grounds answers in the log instead of refusing', () => 
   // telling a 0.8B model to "refuse" made it decline ordinary log questions.
   assert.doesNotMatch(system, /refuse/i);
   assert.match(system, /user's own data/i);
+  // The 0.8B model otherwise echoes the user's "I" ("I slept poorly last night").
+  assert.match(system, /Speak to the user directly as 'you'/);
   assert.match(system, /has not been logged yet/i);
   assert.match(system, /never repeat a sentence/i);
   assert.match(system, /NSFW/);
