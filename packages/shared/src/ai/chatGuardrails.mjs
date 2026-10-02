@@ -210,9 +210,10 @@ export function limitSentences(text, max) {
 // ("say so briefly and suggest logging it"), so no filter below may remove them.
 const LOGGING_SENTENCE_RE = /\b(log|logs|logged|logging|track|tracking|more days|not enough|no trend|yet)\b/i;
 const COMPARISON_RE =
-  /\b(yesterday|improved|improving|worsened|worsening|dropped|increased|decreased|compared|than before|lately|trends?)\b/i;
+  /\b(yesterday|improved|improving|worsened|worsening|dropped|increased|decreased|compared|than before|lately|recently|trends?|(?:this |the )?past (?:week|few days)|this week|last week)\b/i;
 const CAUSE_RE =
-  /\b(which (?:is|was) why|that's why|that is why|because|due to|caused|led to|as a result|suggest(?:s|ing) that|is influencing)\b/i;
+  /\b(which (?:is|was) why|that's why|that is why|because|due to|caused|led to|as a result|(?:which|this|that) (?:explains|means|suggests|indicates)|explains why|suggest(?:s|ing) that|is influencing)\b|,\s*(?:suggesting|indicating|meaning)\b/i;
+const CLAUSE_SPLIT_RE = /,\s+(?=(?:but|and|so|while|though)\b)|;\s*/i;
 const TIP_RE =
   /\b(try|trying|consider|please|make sure|aim to|you should|it may help|to help you|continue to|prioriti[sz]e|(?:this|that|it) (?:will|should|can|may) (?:likely )?(?:help|improve|boost|support))\b/i;
 
@@ -230,7 +231,21 @@ function keepSentence(sentence, dropRe) {
 export function dropUnsupportedComparisons(text, { loggedDays = 0 } = {}) {
   const sentences = splitSentences(text);
   if (Number(loggedDays) >= 2) return sentences.join(' ');
-  return sentences.filter((s) => keepSentence(s, COMPARISON_RE)).join(' ');
+  return sentences.map(dropComparisonClauses).filter(Boolean).join(' ');
+}
+
+// A logging sentence can still open with an invented trend ("You rested well this
+// past week, but please keep logging…"), so the exemption applies per clause.
+function dropComparisonClauses(sentence) {
+  if (!COMPARISON_RE.test(sentence)) return sentence;
+  if (!LOGGING_SENTENCE_RE.test(sentence)) return '';
+  const clauses = sentence.split(CLAUSE_SPLIT_RE);
+  if (clauses.length < 2) return sentence;
+  const kept = clauses.filter((c) => keepSentence(c, COMPARISON_RE));
+  if (!kept.length) return '';
+  const out = kept.join(', ').replace(/^(?:but|and|so|while|though)\s+/i, '');
+  const capped = out.charAt(0).toUpperCase() + out.slice(1);
+  return /[.!?]$/.test(capped) ? capped : `${capped}.`;
 }
 
 /**
