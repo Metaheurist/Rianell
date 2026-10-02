@@ -34,8 +34,8 @@ function closeSettingsModalIfOpen() {
   }
   const conditionSelector = document.getElementById('medicalConditionSelector');
   if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
-  if (typeof closeSettings === 'function') {
-    closeSettings();
+  if (typeof window.closeSettings === 'function') {
+    window.closeSettings();
   } else if (typeof toggleSettings === 'function') {
     toggleSettings();
   } else {
@@ -101,8 +101,8 @@ function showAlertModal(message, title, onClose, options) {
   }
   
   // Show modal
-  if (typeof openModalOverlay === 'function') {
-    openModalOverlay(overlay, {
+  if (typeof window.openModalOverlay === 'function') {
+    window.openModalOverlay(overlay, {
       onEscape: closeAlertModal,
       initialFocusSelector: '.modal-save-btn'
     });
@@ -148,8 +148,8 @@ function showAlertModal(message, title, onClose, options) {
 function closeAlertModal() {
   const overlay = document.getElementById('alertModalOverlay');
   if (!overlay) return;
-  if (typeof closeModalOverlay === 'function') {
-    closeModalOverlay(overlay);
+  if (typeof window.closeModalOverlay === 'function') {
+    window.closeModalOverlay(overlay);
     return;
   }
   overlay.style.display = 'none';

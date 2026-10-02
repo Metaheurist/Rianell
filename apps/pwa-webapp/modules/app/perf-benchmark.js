@@ -14,16 +14,6 @@ import { closeSettingsModalIfOpen, showAlertModal } from './modal-host.js';
 // ============================================
 let _perfBenchmarkEscapeHandler = null;
 
-/** Expandable benchmark details (test bars, CPU/GPU stability, profile JSON): show only on desktop-width viewports. */
-function isBenchmarkDetailsDesktopViewport() {
-  try {
-    if (typeof window.matchMedia === 'undefined') return true;
-    return window.matchMedia('(min-width: 1024px)').matches;
-  } catch (e) {
-    return true;
-  }
-}
-
 function closePerfBenchmarkModal() {
   if (_perfBenchmarkEscapeHandler) {
     document.removeEventListener('keydown', _perfBenchmarkEscapeHandler);
@@ -67,8 +57,6 @@ function openPerfBenchmarkModal(options) {
 
   const platformType = result && result.platformType ? result.platformType : 'unknown';
   const tier = result && typeof result.tier === 'number' ? result.tier : null;
-  const score = result && typeof result.score === 'number' ? result.score : null;
-  const totalMs = result && typeof result.totalMs === 'number' ? result.totalMs : null;
   const repeats = result && typeof result.repeats === 'number' ? result.repeats : null;
   const deviceClass = (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getLegacyDeviceClass === 'function' && tier != null)
     ? window.DeviceBenchmark.getLegacyDeviceClass(tier)

@@ -108,6 +108,9 @@ jobs:
       - name: Run app unit tests
         run: npm run test:unit
 
+      - name: ESLint (scoped, eslint.config.mjs)
+        run: npm run lint
+
       - name: Accessibility token contrast (WCAG AA)
         run: npm run verify:a11y-tokens
 

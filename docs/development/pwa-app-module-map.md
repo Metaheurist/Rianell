@@ -18,7 +18,7 @@
 | `platform.js` | Static host, service-worker host, native shell detection, portrait lock | — |
 | `i18n-theme.js` | `tUi` / `tContent` translation helpers, locale and date formatting, theme colours, Apex chart theming | — |
 | `logger.js` | `Logger` (dev-host log relay) and the bug-report console capture buffer | `platform` |
-| `dom-safety.js` | `escapeHTML` / `escapeAttr`, `sanitizeHTML`, SVG icons, modal focus trap, notify helpers, toggle-switch a11y | — |
+| `dom-safety.js` | `escapeHTML` / `escapeAttr`, SVG icons, modal focus trap, notify helpers, toggle-switch a11y | — |
 | `modal-host.js` | Shared alert and confirm modals, `closeSettingsModalIfOpen` with injected settings hooks | `i18n-theme`, `logger`, `dom-safety` |
 | `voice-input.js` | Speech-to-text buttons for eligible text fields | `i18n-theme`, `modal-host` |
 | `scheduling.js` | `runCriticalTask`, `runBackgroundTask`, `waitForMainThreadHeavyWorkSlot` | — |
@@ -27,7 +27,7 @@
 | `auth-ui.js` | Password visibility toggles and the local password strength meter | `logger`, `dom-safety` |
 | `cookie-consent.js` | Cookie consent banner and cookie policy modal | `logger` |
 | `donate.js` | Donate modal and PayPal SDK loader | `i18n-theme`, `dom-safety` |
-| `pwa-install-guide.js` | Per-platform install guide modal, `file://` help, standalone launch | `i18n-theme`, `modal-host` |
+| `pwa-install-guide.js` | Per-platform install guide modal, `file://` help | — |
 
 ## Still in `app.js` (coupled domains)
 

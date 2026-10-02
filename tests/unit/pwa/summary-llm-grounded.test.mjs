@@ -97,3 +97,11 @@ test('ai-chat routes factual stat questions to the deterministic grounded reply'
   const payloadIdx = aiChat.indexOf('var payload = assemblePayload(userMessage);');
   assert.ok(fastIdx > 0 && payloadIdx > 0 && fastIdx < payloadIdx, 'fast-path must precede LLM payload assembly');
 });
+
+test('summary-llm reads app state via window (app.js is bundled as an IIFE, so its top-level names are not globals)', () => {
+  assert.doesNotMatch(summaryLlm, /typeof appSettings\b|[^.\w]appSettings\./);
+  assert.doesNotMatch(summaryLlm, /getTodayDateStr/);
+  assert.match(summaryLlm, /window\.appSettings\.llmCoachPersona/);
+  // The home-question cache is per local day; toISOString() would roll over at UTC midnight.
+  assert.match(summaryLlm, /var todayKey = now\.getFullYear\(\)/);
+});
