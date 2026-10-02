@@ -388,6 +388,8 @@
         submitUserMessage();
       };
     });
+    // Showing the chips shrinks the message list, which would leave the new answer below the fold.
+    scrollMessagesToEnd();
   }
 
   function defaultFollowups() {
@@ -637,6 +639,7 @@
       ' ' +
       escapeHTML(tOr('home.chat.emptyBody', 'Sleep, mood, and patterns from your recent entries - wellness tips only.')) +
       '</p>';
+    scrollMessagesToEnd();
   }
 
   function bindLifecycle() {

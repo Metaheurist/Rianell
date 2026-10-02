@@ -64,8 +64,8 @@
     "sha256": "9776d65f6d53c079fd1e46fa4b3a4a0b0323bf5e6b8fecce1d9c8fa6837d3793"
   },
   "modules/ai-chat.js": {
-    "v": 2,
-    "sha256": "4a12444efac548b95140b1348609b65162cb29c93f10e4f227eb68f614df8655"
+    "v": 3,
+    "sha256": "2652a23a10cc7990a16a8cc731890c3d97148bce758cee859e09792df520d1aa"
   },
   "modules/app-lock.js": {
     "v": 5,
