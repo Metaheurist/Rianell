@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
  * Mirror Transformers.js ONNX weights into apps/pwa-webapp/models/ for same-origin hosting.
- * Requires network access to huggingface.co. Qwen2.5 repos are Apache-2.0 (no HF_TOKEN needed).
+ * Requires network access to huggingface.co. Qwen repos are Apache-2.0 (no HF_TOKEN needed).
  *
  * Usage:
  *   node scripts/models/download-llm-models.mjs
- *   node scripts/models/download-llm-models.mjs --model small|base
+ *   node scripts/models/download-llm-models.mjs --model small|large|wasm
  *   HF_TOKEN=hf_... node scripts/models/download-llm-models.mjs
  */
 import crypto from 'crypto';
@@ -84,13 +84,9 @@ function sha256File(filePath) {
 
 function filterModels(models, arg) {
   if (arg === 'all') return models;
-  if (arg === 'small') {
-    return models.filter((m) => m.id.includes('Qwen2.5-0.5B'));
-  }
-  if (arg === 'base') {
-    return models.filter((m) => m.id.includes('Qwen2.5-1.5B'));
-  }
-  throw new Error(`Unknown --model ${arg} (use small, base, or omit for all)`);
+  const picked = models.filter((m) => m.package === arg);
+  if (!picked.length) throw new Error(`Unknown --model ${arg} (use small, large, wasm, or omit for all)`);
+  return picked;
 }
 
 async function main() {

@@ -64,9 +64,9 @@ function loadSecurityEnv() {
 
 function filterModels(models, arg) {
   if (arg === 'all') return models;
-  if (arg === 'small') return models.filter((m) => m.id.includes('Qwen2.5-0.5B'));
-  if (arg === 'base') return models.filter((m) => m.id.includes('Qwen2.5-1.5B'));
-  throw new Error(`Unknown --model ${arg}`);
+  const picked = models.filter((m) => m.package === arg);
+  if (!picked.length) throw new Error(`Unknown --model ${arg}`);
+  return picked;
 }
 
 function storagePath(modelId, revision, file) {

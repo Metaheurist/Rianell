@@ -1,9 +1,15 @@
-export const LLM_MODEL_SMALL = 'Qwen2.5-0.5B-Instruct';
-export const LLM_MODEL_BASE = 'Qwen2.5-1.5B-Instruct';
+export const LLM_MODEL_SMALL = 'Qwen3.5-0.8B';
+export const LLM_MODEL_BASE = 'Qwen3.5-2B';
+export const LLM_MODEL_WASM = 'Qwen2.5-0.5B-Instruct';
 
-/** Canonical Hugging Face repo ids (onnx-community Transformers.js mirrors). */
-export const LLM_MODEL_SMALL_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
-export const LLM_MODEL_BASE_ID = 'onnx-community/Qwen2.5-1.5B-Instruct';
+/**
+ * Canonical Hugging Face repo ids (onnx-community Transformers.js exports). Must match
+ * LLM_PACKAGES in apps/pwa-webapp/summary-llm.js (asserted by llm-model-language-coverage).
+ * SMALL / BASE need WebGPU; WASM is the package for devices without it.
+ */
+export const LLM_MODEL_SMALL_ID = 'onnx-community/Qwen3.5-0.8B-Text-ONNX';
+export const LLM_MODEL_BASE_ID = 'onnx-community/Qwen3.5-2B-ONNX-OPT';
+export const LLM_MODEL_WASM_ID = 'onnx-community/Qwen2.5-0.5B-Instruct';
 
 export const HF_REMOTE_HOST = 'https://huggingface.co/';
 export const HF_REMOTE_PATH_TEMPLATE = '{model}/resolve/{revision}/';
@@ -109,33 +115,8 @@ export {
 } from './instant-tier.mjs';
 
 export {
-  PLATFORM_KINDS,
-  resolvePlatformKind,
-  resolveLlmPreset,
-  shouldCapTierForMemory,
-  resolveWasmOnlyCap,
-  LAST_STABLE_PRESET_KEY,
-  parseOomError,
-} from './runtime-profiles.mjs';
-
-export {
-  buildPwaLoadAttempts,
-  buildPwaWebNnAttempts,
-  buildPwaWasmAttempt,
-  backendLabelFromAttempt,
-} from './load-ladder.mjs';
-
-export { classifyGpuLoadError, GPU_PIPELINE_FAIL_KEY } from './gpu-errors.mjs';
-export {
-  MLC_BASE_MODEL_ID,
-  MLC_SMALL_MODEL_ID,
-  ALLOWED_MLC_MODEL_IDS,
-  isAllowedMlcModelId,
-  resolveMlcModelForTier,
-} from './mlc-config.mjs';
-export { GGUF_BASE_MODEL_ID, ALLOWED_GGUF_MODEL_IDS, isAllowedGgufModelId } from './gguf-config.mjs';
-export {
   QWEN25_LANGUAGES,
+  QWEN35_LANGUAGES,
   MODEL_LANGUAGE_SUPPORT,
   downloadModelIds,
   languageSubtag,

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * LLM security contract: HF-only runtime, pinned CDN or self-hosted vendor, sync artifacts present.
+ * LLM security contract: HF-only runtime, pinned CDN or self-hosted vendor, revision-pinned
+ * packages, single worker engine.
  */
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
@@ -15,25 +16,40 @@ function read(rel) {
 }
 
 const summaryLlm = read('apps/pwa-webapp/summary-llm.js');
-const summaryLlmGguf = read('apps/pwa-webapp/summary-llm-gguf.js');
-const summaryLlmMlc = read('apps/pwa-webapp/summary-llm-mlc.js');
 const indexHtml = read('apps/pwa-webapp/index.html');
-const loadLadderSync = read('apps/pwa-webapp/llm-load-ladder-sync.js');
 
 if (summaryLlm.includes('getPreferredDevice')) {
   errors.push('summary-llm.js must not reference undefined getPreferredDevice');
 }
 if (!summaryLlm.includes('tryLoadWithPlans')) {
-  errors.push('summary-llm.js missing GPU load ladder (tryLoadWithPlans)');
+  errors.push('summary-llm.js missing GPU load attempt (tryLoadWithPlans)');
 }
 if (!summaryLlm.includes('warmupPipelineOrThrow')) {
   errors.push('summary-llm.js missing warmupPipelineOrThrow before finishDownloadProgress');
 }
 if (/device:\s*['"]webgl['"]/.test(summaryLlm)) {
-  errors.push('summary-llm.js must not pass webgl to Transformers load ladder');
+  errors.push('summary-llm.js must not load models on webgl');
 }
-if (/device:\s*['"]webgl['"]/.test(loadLadderSync)) {
-  errors.push('llm-load-ladder-sync.js must not include webgl attempts');
+
+// One engine: transformers.js in workers/llm-worker.js. The WebLLM (MLC) and GGUF engines
+// pulled unpinned CDN code and weights from outside the revision-pinned Hub path.
+const REMOVED_ENGINE_FILES = [
+  'apps/pwa-webapp/summary-llm-mlc.js',
+  'apps/pwa-webapp/llm-mlc-worker.js',
+  'apps/pwa-webapp/summary-llm-gguf.js',
+  'apps/pwa-webapp/llm-load-ladder-sync.js',
+  'apps/pwa-webapp/llm-runtime-profiles-sync.js',
+];
+for (const rel of REMOVED_ENGINE_FILES) {
+  if (existsSync(join(root, rel))) errors.push(`${rel} must stay removed (single transformers.js worker engine)`);
+  const base = rel.split('/').pop();
+  if (indexHtml.includes(base)) errors.push(`index.html must not load ${base}`);
+}
+if (/web-llm|RianellLlmMlc|RianellLlmGguf|wllama/i.test(summaryLlm)) {
+  errors.push('summary-llm.js must not reference the removed MLC / GGUF engines');
+}
+if (!summaryLlm.includes('enable_thinking: false')) {
+  errors.push('summary-llm.js must disable reasoning (enable_thinking: false) for Qwen3.5 packages');
 }
 const TRANSFORMERS_PIN = '4.3.0';
 const hasCdnPin = summaryLlm.includes(`@huggingface/transformers@${TRANSFORMERS_PIN}`);
@@ -77,42 +93,19 @@ if (/import\(\s*url\s*\)|\.pipeline\(\s*'text-generation'/.test(summaryLlm)) {
 if (/revision:\s*['"]main['"]/.test(summaryLlm)) {
   errors.push("summary-llm.js must not load models from revision 'main'");
 }
-const revisionPins = [...summaryLlm.matchAll(/MODEL_REVISIONS\[(\w+)\]\s*=\s*'([^']*)'/g)];
-if (revisionPins.length === 0) {
-  errors.push('summary-llm.js must pin MODEL_REVISIONS for every on-device model');
+const packagesBlock = summaryLlm.slice(summaryLlm.indexOf('var LLM_PACKAGES = {'), summaryLlm.indexOf('var MODEL_SMALL ='));
+const packagePins = [...packagesBlock.matchAll(/id:\s*'([^']+)',\s*revision:\s*'([^']*)'/g)];
+if (packagePins.length < 3) {
+  errors.push('summary-llm.js LLM_PACKAGES must declare id + revision for the small, large and wasm packages');
 }
-for (const [, model, sha] of revisionPins) {
-  if (!/^[0-9a-f]{40}$/.test(sha)) errors.push(`MODEL_REVISIONS[${model}] must be a 40-char commit SHA`);
+for (const [, model, sha] of packagePins) {
+  if (!/^[0-9a-f]{40}$/.test(sha)) errors.push(`LLM_PACKAGES ${model} revision must be a 40-char commit SHA`);
 }
 if (summaryLlm.includes('supabase') && summaryLlm.includes('remoteHost')) {
   errors.push('summary-llm.js must not set Supabase as model remoteHost');
 }
-if (!indexHtml.includes('llm-load-ladder-sync.js')) {
-  errors.push('index.html must load llm-load-ladder-sync.js');
-}
-if (!existsSync(join(root, 'apps/pwa-webapp/llm-load-ladder-sync.js'))) {
-  errors.push('missing apps/pwa-webapp/llm-load-ladder-sync.js — run npm run sync:llm-pwa');
-}
 if (!existsSync(join(root, 'apps/pwa-webapp/llm-tier-benchmark-sync.js'))) {
   errors.push('missing apps/pwa-webapp/llm-tier-benchmark-sync.js — run npm run sync:llm-pwa');
-}
-if (!existsSync(join(root, 'apps/pwa-webapp/llm-runtime-profiles-sync.js'))) {
-  errors.push('missing apps/pwa-webapp/llm-runtime-profiles-sync.js — run npm run sync:llm-pwa');
-}
-if (!summaryLlmMlc.includes('Qwen2.5-1.5B-Instruct-q4f16_1-MLC')) {
-  errors.push('summary-llm-mlc.js must allowlist single MLC model id');
-}
-if (!summaryLlmMlc.includes('@mlc-ai/web-llm@0.2.84')) {
-  errors.push('summary-llm-mlc.js must pin @mlc-ai/web-llm@0.2.84');
-}
-if (!summaryLlmGguf.includes('RianellLlmGguf')) {
-  errors.push('summary-llm-gguf.js must export RianellLlmGguf');
-}
-if (!summaryLlmGguf.includes('isAllowedGgufModel')) {
-  errors.push('summary-llm-gguf.js must allowlist GGUF model ids');
-}
-if (!summaryLlmGguf.includes('getGgufPathStatus')) {
-  errors.push('summary-llm-gguf.js must expose getGgufPathStatus');
 }
 if (!summaryLlm.includes('isLlmNetworkAllowed')) {
   errors.push('summary-llm.js must gate downloads with isLlmNetworkAllowed (local-only mode)');
@@ -122,9 +115,6 @@ if (!summaryLlm.includes('isPwaOnDeviceLlmOnly')) {
 }
 if (/api\.openai\.com|api\.anthropic\.com|openrouter\.ai/i.test(summaryLlm)) {
   errors.push('summary-llm.js must not reference commercial LLM API hosts');
-}
-if (!summaryLlm.includes("cachedActiveEngine === 'gguf'")) {
-  errors.push('summary-llm.js must wire GGUF engine in runChatInference');
 }
 if (!summaryLlm.includes('generateHealthChatWithLLM')) {
   errors.push('summary-llm.js must export generateHealthChatWithLLM alias for health chat');
@@ -159,10 +149,6 @@ if (!chatContext.includes('isScreeningField')) {
 if (!chatContext.includes('MAX_HEALTH_CHAT_TURNS')) {
   errors.push('chatContext.mjs must define MAX_HEALTH_CHAT_TURNS');
 }
-if (!indexHtml.includes('llm-runtime-profiles-sync.js')) {
-  errors.push('index.html must load llm-runtime-profiles-sync.js');
-}
-
 const vendorDir = join(root, 'apps/pwa-webapp/vendor/transformers');
 const vendorManifest = join(vendorDir, 'vendor-manifest.json');
 if (hasVendorPath && !existsSync(vendorManifest)) {

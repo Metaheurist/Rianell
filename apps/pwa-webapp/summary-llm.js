@@ -9,10 +9,6 @@
   var cachedModelId = null;
   var cachedActiveBackend = null;
   var cachedActiveDtype = null;
-  var cachedActiveEngine = 'onnx';
-  var cachedMlcEngine = null;
-  var mlcScriptPromise = null;
-  var ggufScriptPromise = null;
   var workerClientScriptPromise = null;
   var llmWorkerClient = null;
   var llmWorkQueue = Promise.resolve();
@@ -33,26 +29,27 @@
   // Per-file byte tallies for the active download so overall progress reflects the
   // whole model (all shards/files), not each file cycling 0→100 independently.
   var downloadFileBytes = {};
-  // Highest headline pct shown since the last 'initiate'. Keeps the bar monotonic so
-  // engines that report progress in phases (WebLLM MLC reports fetch 0→1 then GPU
-  // compile 0→1) don't render a backwards "100%→restart" jump mid-load.
+  // Highest headline pct shown since the last 'initiate'. Keeps the bar monotonic so a
+  // retry in a fresh worker (WebGPU failed, WASM fallback) doesn't render a backwards
+  // "100%→restart" jump mid-load.
   var downloadPctPeak = 0;
   var finalizeWatchdog = null;
   var webGpuAdapterProbePromise = null;
   var WEBGPU_CACHE_KEY = 'rianell.webgpu.adapterOk';
   var WEBGPU_CACHE_TTL_MS = 86400000;
   var GPU_PIPELINE_FAIL_KEY = 'rianell.llm.gpuPipelineFail';
-  var WEBNN_CACHE_KEY = 'rianell.webnn.available';
-  var WEBNN_CACHE_TTL_MS = 86400000;
-  var webNnProbePromise = null;
+  // Cache Storage / IndexedDB names of the removed WebLLM (MLC) engine.
+  var LEGACY_ENGINE_STORE_RE = /^webllm\/|tvmjs/i;
+  var LEGACY_PURGE_KEY = 'rianell.llm.legacyPurge';
+  var LEGACY_PURGE_VERSION = '2026-10-models';
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
   var MAX_HOME_QUESTION_CACHE = 8;
   var MAX_CONTEXT_CHARS = 720;
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 45000;
-  // First-run load budget. MLC (primary WebGPU engine) downloads weights and compiles
-  // WebGPU shaders on first use, which can run longer than the ONNX path; cached after.
+  // First-run load budget: the large package is ~1.3 GB and WebGPU shader compile runs
+  // after the download; cached loads finish in seconds.
   var LOAD_TIMEOUT_MS = 240000;
   // Max silence in the "preparing" phase (session compile + warmup after all bytes are
   // in) before failing with Retry, so the UI can never sit at "Preparing" indefinitely.
@@ -71,22 +68,64 @@
   var TIMEOUT_HOME_QUESTION_MS = 35000;
   var MAX_MOTD_CHARS = 160;
 
-  var MODEL_SMALL = 'onnx-community/Qwen2.5-0.5B-Instruct';
-  var MODEL_BASE = 'onnx-community/Qwen2.5-1.5B-Instruct';
-
-  // Hub commit per model. Loads never follow a branch, so a push to the model repo
-  // cannot swap the weights users download. The worker rejects non-SHA revisions.
-  var MODEL_REVISIONS = {};
-  MODEL_REVISIONS[MODEL_SMALL] = 'cc5cc01a65cc3ff17bdb73a7de33d879f62599b0';
-  MODEL_REVISIONS[MODEL_BASE] = '6287331f475a3e20e8c879be8fd4bf3551ad9d34';
+  // Every package the app may download (docs/research/llm-shortlist-2026-10.md).
+  // `revision` is a Hub commit, so a push to the model repo cannot swap the weights
+  // users download; the worker rejects non-SHA revisions. The WebGPU packages quantise
+  // their embeddings with GatherBlockQuantized, which onnxruntime-web has no WASM
+  // kernel for, so devices without WebGPU (or whose WebGPU load fails) get `wasm`.
+  var LLM_PACKAGES = {
+    small: {
+      id: 'onnx-community/Qwen3.5-0.8B-Text-ONNX',
+      revision: '1e45daba048899e7f771657ada617ec49350aa91',
+      device: 'webgpu',
+      dtype: 'q4f16',
+      noThinking: true,
+      size: '~470 MB',
+      approxBytes: 489166749
+    },
+    large: {
+      id: 'onnx-community/Qwen3.5-2B-ONNX-OPT',
+      revision: '2ea7886f48b926aca97de8b0e041ffca7e3ebaa9',
+      device: 'webgpu',
+      dtype: { embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' },
+      noThinking: true,
+      size: '~1.3 GB',
+      approxBytes: 1402852398
+    },
+    wasm: {
+      id: 'onnx-community/Qwen2.5-0.5B-Instruct',
+      revision: 'cc5cc01a65cc3ff17bdb73a7de33d879f62599b0',
+      device: 'wasm',
+      dtype: 'q4',
+      noThinking: false,
+      size: '~760 MB',
+      approxBytes: 795975055
+    }
+  };
+  var MODEL_SMALL = LLM_PACKAGES.small.id;
+  var MODEL_LARGE = LLM_PACKAGES.large.id;
+  var MODEL_WASM = LLM_PACKAGES.wasm.id;
 
   var LLM_TIER_MODELS = {
-    tier1: { id: MODEL_SMALL, size: '~480 MB', approxBytes: 506462208 },
-    tier2: { id: MODEL_SMALL, size: '~480 MB', approxBytes: 506462208 },
-    tier3: { id: MODEL_BASE, size: '~1.2 GB', approxBytes: 1258291200 },
-    tier4: { id: MODEL_BASE, size: '~1.2 GB', approxBytes: 1258291200 },
-    tier5: { id: MODEL_BASE, size: '~1.2 GB', approxBytes: 1258291200 }
+    tier1: { id: MODEL_SMALL, size: LLM_PACKAGES.small.size, approxBytes: LLM_PACKAGES.small.approxBytes },
+    tier2: { id: MODEL_SMALL, size: LLM_PACKAGES.small.size, approxBytes: LLM_PACKAGES.small.approxBytes },
+    tier3: { id: MODEL_LARGE, size: LLM_PACKAGES.large.size, approxBytes: LLM_PACKAGES.large.approxBytes },
+    tier4: { id: MODEL_LARGE, size: LLM_PACKAGES.large.size, approxBytes: LLM_PACKAGES.large.approxBytes },
+    tier5: { id: MODEL_LARGE, size: LLM_PACKAGES.large.size, approxBytes: LLM_PACKAGES.large.approxBytes }
   };
+
+  function packageKeyForModelId(modelId) {
+    var keys = Object.keys(LLM_PACKAGES);
+    for (var i = 0; i < keys.length; i++) {
+      if (LLM_PACKAGES[keys[i]].id === modelId) return keys[i];
+    }
+    return null;
+  }
+
+  function packageForModelId(modelId) {
+    var key = packageKeyForModelId(modelId);
+    return key ? LLM_PACKAGES[key] : null;
+  }
 
   var promptPackByLocale = {};
   var promptPackLoadPromises = {};
@@ -291,12 +330,6 @@
     return lines.join('\n');
   }
 
-  function llmTierOrSizeToModelId(tierOrSize) {
-    if (tierOrSize === 'tier1' || tierOrSize === 'tier2' || tierOrSize === 'small') return MODEL_SMALL;
-    if (tierOrSize === 'tier3' || tierOrSize === 'tier4' || tierOrSize === 'tier5' || tierOrSize === 'base' || tierOrSize === 'large') return MODEL_BASE;
-    return MODEL_BASE;
-  }
-
   function readWebGpuCache() {
     try {
       if (typeof sessionStorage === 'undefined') return null;
@@ -324,16 +357,12 @@
     var msg = String(err && err.message ? err.message : err || '');
     var codeMatch = msg.match(/\b(\d{6,10})\b/);
     var code = codeMatch ? codeMatch[1] : null;
-    if (code === '557856688') {
-      return { class: 'ort_webgpu_pipeline_fail', code: code, retryPath: 'mlc' };
-    }
+    if (code === '557856688') return { class: 'ort_webgpu_pipeline_fail', code: code };
     if (/webgpu|wgpu|gpu/i.test(msg) && /fail|error|invalid|unsupported/i.test(msg)) {
-      return { class: 'webgpu_generic', code: code, retryPath: 'mlc' };
+      return { class: 'webgpu_generic', code: code };
     }
-    if (/out of memory|oom|memory allocation/i.test(msg)) {
-      return { class: 'oom', code: code, retryPath: 'wasm_cap' };
-    }
-    return { class: 'unknown', code: code, retryPath: 'wasm' };
+    if (/out of memory|oom|memory allocation/i.test(msg)) return { class: 'oom', code: code };
+    return { class: 'unknown', code: code };
   }
 
   function readGpuPipelineFailCache() {
@@ -353,73 +382,6 @@
         sessionStorage.setItem(GPU_PIPELINE_FAIL_KEY, JSON.stringify(Object.assign({}, info, { ts: Date.now() })));
       }
     } catch (e) {}
-  }
-
-  function shouldSkipOnnxPath1ForLlama(modelId) {
-    if (modelId !== MODEL_BASE) return false;
-    var pref = resolveLlmEnginePreference();
-    if (pref === 'mlc' || pref === 'gguf') return true;
-    var fail = readGpuPipelineFailCache();
-    return !!(fail && (fail.class === 'ort_webgpu_pipeline_fail' || fail.retryPath === 'mlc'));
-  }
-
-  function resolveLlmEnginePreference() {
-    try {
-      if (typeof window !== 'undefined' && window.appSettings && window.appSettings.preferredLlmEngine) {
-        var setting = window.appSettings.preferredLlmEngine;
-        if (setting === 'onnx' || setting === 'mlc' || setting === 'gguf' || setting === 'auto') return setting;
-      }
-      if (typeof localStorage !== 'undefined') {
-        var v = localStorage.getItem('rianellLlmEngine');
-        if (v === 'onnx' || v === 'mlc' || v === 'gguf' || v === 'auto') return v;
-      }
-    } catch (e) {}
-    return 'auto';
-  }
-
-  function readWebNnCache() {
-    try {
-      if (typeof sessionStorage === 'undefined') return null;
-      var raw = sessionStorage.getItem(WEBNN_CACHE_KEY);
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      if (parsed && parsed.ts && (Date.now() - parsed.ts) < WEBNN_CACHE_TTL_MS) return !!parsed.ok;
-    } catch (e) {}
-    return null;
-  }
-
-  function writeWebNnCache(ok) {
-    try {
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.setItem(WEBNN_CACHE_KEY, JSON.stringify({ ok: !!ok, ts: Date.now() }));
-      }
-    } catch (e) {}
-  }
-
-  function isWebNnAvailableCached() {
-    return readWebNnCache() === true;
-  }
-
-  async function probeWebNnAsync() {
-    var cached = readWebNnCache();
-    if (cached !== null) return cached;
-    if (webNnProbePromise) return webNnProbePromise;
-    webNnProbePromise = (async function () {
-      var ok = false;
-      try {
-        ok = typeof navigator !== 'undefined' && typeof navigator.ml !== 'undefined'
-          && typeof navigator.ml.createContext === 'function';
-      } catch (e) {
-        ok = false;
-      }
-      writeWebNnCache(ok);
-      return ok;
-    })();
-    try {
-      return await webNnProbePromise;
-    } finally {
-      webNnProbePromise = null;
-    }
   }
 
   async function probeWebGpuAdapterAsync() {
@@ -447,112 +409,63 @@
     return webGpuAdapterProbePromise;
   }
 
-  function getDeviceMemoryGb() {
-    var nav = typeof navigator !== 'undefined' ? navigator : {};
-    if (typeof window !== 'undefined' && window.isSecureContext === true &&
-        typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) {
-      return nav.deviceMemory;
+  /**
+   * WebGPU is usable when the adapter probe succeeded, the device benchmark did not
+   * rule the GPU out, and no WebGPU load has already failed this session.
+   */
+  function canUseWebGpuPackages() {
+    if (typeof window !== 'undefined' && window.DeviceBenchmark &&
+        typeof window.DeviceBenchmark.getCachedResult === 'function') {
+      var cached = window.DeviceBenchmark.getCachedResult();
+      if (cached && cached.gpu && cached.gpu.available === false) return false;
     }
-    return null;
+    if (readGpuPipelineFailCache()) return false;
+    return isWebGpuAvailableCached();
   }
 
-  function resolveWasmOnlyCapForTier(tierKey, webGpuOverride) {
-    var prefs = typeof window !== 'undefined' && window.appSettings;
-    var forceLarge = !!(prefs && prefs.preferredLlmForceLargeOnWasm);
-    var webGpu = webGpuOverride != null ? webGpuOverride : isWebGpuAvailableCached();
-    if (typeof window !== 'undefined' && window.RianellLlmRuntimeProfiles &&
-        typeof window.RianellLlmRuntimeProfiles.resolveWasmOnlyCap === 'function') {
-      return window.RianellLlmRuntimeProfiles.resolveWasmOnlyCap({
-        tier: tierKey,
-        webGpuAvailable: webGpu,
-        forceLargeOnWasm: forceLarge,
-        deviceMemory: getDeviceMemoryGb()
-      });
-    }
-    if (webGpu || tierKey === 'tier1' || tierKey === 'tier2') {
-      return { tier: tierKey, capped: false, warning: null };
-    }
-    if (forceLarge && getDeviceMemoryGb() != null && getDeviceMemoryGb() >= 8) {
-      return { tier: tierKey, capped: false, warning: null };
-    }
-    if (tierKey === 'tier3' || tierKey === 'tier4' || tierKey === 'tier5') {
-      return {
-        tier: 'tier2',
-        capped: true,
-        warning: 'No GPU acceleration available; using smaller AI model for stability.'
-      };
-    }
-    return { tier: tierKey, capped: false, warning: null };
-  }
-
-  function applyWasmCapToTierKey(tierKey, webGpuOverride) {
-    var cap = resolveWasmOnlyCapForTier(tierKey, webGpuOverride);
-    return cap.tier;
-  }
-
-  function getPreferredTierKeyUncapped() {
+  /**
+   * Package choice: no WebGPU -> `wasm`; an explicit tier setting wins next; phones,
+   * devices with <= 4 GB memory and post-crash sessions get `small`; everything else
+   * gets `large`.
+   */
+  function resolvePackageKey(webGpuOverride) {
+    var webGpu = webGpuOverride != null ? webGpuOverride : canUseWebGpuPackages();
+    if (!webGpu) return 'wasm';
     var prefs = typeof window !== 'undefined' && window.appSettings;
     var preferred = prefs && prefs.preferredLlmModelSize;
-    var tierKey;
+    if (preferred === 'tier1' || preferred === 'tier2') return 'small';
+    if (preferred === 'tier3' || preferred === 'tier4' || preferred === 'tier5') return 'large';
     var guard = typeof window !== 'undefined' ? window.RianellBootGuard : null;
-    if (preferred && preferred !== 'recommended' && /^tier[1-5]$/.test(preferred)) {
-      tierKey = preferred;
-    } else if (guard && (guard.isLlmSafeMode() || guard.isConstrainedDevice())) {
-      // Phones / low-memory devices and post-crash sessions use the small package.
-      tierKey = 'tier1';
-    } else if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
-      var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
-        ? window.DeviceBenchmark.getPlatformTypeCached()
-        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
-      var tier = window.DeviceBenchmark.getPerformanceTier();
-      var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
-      tierKey = (full && full.llmModelSize && /^tier[1-5]$/.test(full.llmModelSize))
-        ? full.llmModelSize
-        : null;
-    }
-    if (!tierKey) {
-      var deviceClass = getDeviceClassForModel();
-      tierKey = deviceClass === 'low' ? 'tier1' : 'tier5';
-    }
-    return tierKey;
+    if (guard && (guard.isLlmSafeMode() || guard.isConstrainedDevice())) return 'small';
+    return 'large';
   }
 
-  function resolvePreferredTierKey() {
-    return applyWasmCapToTierKey(getPreferredTierKeyUncapped());
+  function packageKeyToTierKey(key) {
+    var prefs = typeof window !== 'undefined' && window.appSettings;
+    var preferred = prefs && prefs.preferredLlmModelSize;
+    if (key === 'large') return /^tier[345]$/.test(preferred || '') ? preferred : 'tier5';
+    return /^tier[12]$/.test(preferred || '') ? preferred : 'tier1';
   }
 
-  function resolveWasmFallbackModelId(currentModelId) {
-    if (currentModelId !== MODEL_BASE) return currentModelId;
-    var wasmTier = applyWasmCapToTierKey(getPreferredTierKeyUncapped(), false);
-    return llmTierOrSizeToModelId(wasmTier);
-  }
-
-  function tierKeyToDisplay(tierKey) {
-    var key = tierKey && /^tier[1-5]$/.test(tierKey) ? tierKey : 'tier3';
-    var tierMeta = LLM_TIER_MODELS[key] || LLM_TIER_MODELS.tier3;
-    var tierNum = key.replace('tier', '');
+  function packageDisplayInfo(key) {
+    var pkg = LLM_PACKAGES[key] || LLM_PACKAGES.small;
+    var tierKey = packageKeyToTierKey(key);
+    var tierNum = tierKey.replace('tier', '');
     return {
-      tierKey: key,
+      tierKey: tierKey,
       tier: tierNum,
       tierLabel: 'Tier ' + tierNum,
-      size: tierMeta.size,
-      approxBytes: tierMeta.approxBytes
+      size: pkg.size,
+      approxBytes: pkg.approxBytes
     };
   }
 
   function getResolvedLlmTierInfo() {
-    return tierKeyToDisplay(resolvePreferredTierKey());
+    return packageDisplayInfo(packageKeyForModelId(getResolvedModelId()) || resolvePackageKey());
   }
 
   function getModelDisplayInfo(modelId) {
-    var tierInfo = getResolvedLlmTierInfo();
-    if (modelId === MODEL_SMALL && (tierInfo.tier === '3' || tierInfo.tier === '4' || tierInfo.tier === '5')) {
-      return tierKeyToDisplay('tier2');
-    }
-    if (modelId === MODEL_BASE && (tierInfo.tier === '1' || tierInfo.tier === '2')) {
-      return tierKeyToDisplay('tier3');
-    }
-    return tierInfo;
+    return packageDisplayInfo(packageKeyForModelId(modelId) || resolvePackageKey());
   }
 
   function sanitizeDownloadFileLabel(file) {
@@ -566,141 +479,17 @@
     return text.length <= 64 ? text : text.slice(0, 61) + '…';
   }
 
-  function getDeviceClassForModel() {
-    if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.getDevicePerformanceClass === 'function') {
-      return window.PerformanceUtils.getDevicePerformanceClass();
-    }
-    return 'medium';
-  }
-
-  function getModelIdForDeviceClass(deviceClass) {
-    return deviceClass === 'low' ? MODEL_SMALL : MODEL_BASE;
-  }
-
-  function detectGpuBackendFallback() {
-    return null;
-  }
-
-  /** Ordered GPU backends to try before WASM/CPU (adapter probe cache only - never benchmark alone). */
-  function getGpuDeviceCandidates() {
-    var ordered = [];
-    if (typeof window !== 'undefined' && window.DeviceBenchmark &&
-        typeof window.DeviceBenchmark.getCachedResult === 'function') {
-      var cached = window.DeviceBenchmark.getCachedResult();
-      if (cached && cached.gpu && cached.gpu.available === false) {
-        return ordered;
-      }
-    }
-    if (isWebGpuAvailableCached()) {
-      ordered.push('webgpu');
-    }
-    if (isWebNnAvailableCached()) {
-      ordered.push('webnn-gpu');
-      ordered.push('webnn-npu');
-      ordered.push('webnn-cpu');
-    }
-    return ordered;
-  }
-
-  async function ensureGpuCandidatesReady() {
+  async function ensureWebGpuProbed() {
     if (typeof window !== 'undefined' && window.DeviceBenchmark &&
         typeof window.DeviceBenchmark.getCachedResult === 'function') {
       var bench = window.DeviceBenchmark.getCachedResult();
       if (bench && bench.gpu && bench.gpu.available === false) return;
     }
     await probeWebGpuAdapterAsync();
-    await probeWebNnAsync();
   }
 
-  function ensureMlcScriptsLoaded() {
-    if (mlcScriptPromise) return mlcScriptPromise;
-    mlcScriptPromise = new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = getAppOriginBase() + 'summary-llm-mlc.js';
-      s.async = true;
-      s.onload = function () { resolve(); };
-      s.onerror = function () { reject(new Error('Failed to load summary-llm-mlc.js')); };
-      document.head.appendChild(s);
-    });
-    return mlcScriptPromise;
-  }
-
-  /**
-   * Map the resolved ONNX model id (tier-encoded) to the MLC model to load on WebGPU.
-   * MODEL_BASE (tier 3-5) -> Qwen2.5-1.5B MLC; MODEL_SMALL (tier 1-2) -> small MLC model.
-   */
-  function resolveMlcModelIdForModel(modelId) {
-    var mlc = (typeof window !== 'undefined' && window.RianellLlmMlc) || null;
-    var small = (mlc && mlc.smallModel) || 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC';
-    var base = (mlc && (mlc.baseModel || mlc.allowedModel)) || 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC';
-    return modelId === MODEL_BASE ? base : small;
-  }
-
-  function ensureGgufScriptsLoaded() {
-    if (ggufScriptPromise) return ggufScriptPromise;
-    ggufScriptPromise = new Promise(function (resolve, reject) {
-      var s = document.createElement('script');
-      s.src = getAppOriginBase() + 'summary-llm-gguf.js';
-      s.async = true;
-      s.onload = function () { resolve(); };
-      s.onerror = function () { reject(new Error('Failed to load summary-llm-gguf.js')); };
-      document.head.appendChild(s);
-    });
-    return ggufScriptPromise;
-  }
-
-  /** GPU load attempts in priority order; WASM is never included here. */
-  function buildGpuAttemptPlans(devices) {
-    var plans = [];
-    (devices || []).forEach(function (device) {
-      if (device === 'webgpu') {
-        plans.push({ device: 'webgpu', dtype: 'q4f16' });
-        plans.push({ device: 'webgpu', dtype: 'q4' });
-      }
-    });
-    return plans;
-  }
-
-  function getPlatformKindForLoad() {
-    if (typeof window !== 'undefined' && window.RianellLlmLoadLadder &&
-        typeof window.RianellLlmLoadLadder.resolvePlatformKindFromWindow === 'function') {
-      return window.RianellLlmLoadLadder.resolvePlatformKindFromWindow();
-    }
-    if (typeof window !== 'undefined' && window.DeviceBenchmark) {
-      var pt = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
-        ? window.DeviceBenchmark.getPlatformTypeCached()
-        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
-      return pt === 'mobile' ? 'pwa_mobile' : 'pwa_desktop';
-    }
-    return 'pwa_desktop';
-  }
-
-  function buildLoadPlansForPwa(gpuCandidates, platformKind) {
-    if (typeof window !== 'undefined' && window.RianellLlmLoadLadder &&
-        typeof window.RianellLlmLoadLadder.buildPwaLoadAttempts === 'function') {
-      return window.RianellLlmLoadLadder.buildPwaLoadAttempts({
-        platformKind: platformKind,
-        gpuCandidates: gpuCandidates
-      });
-    }
-    return buildGpuAttemptPlans(gpuCandidates);
-  }
-
-  function buildWasmAttempt() {
-    if (typeof window !== 'undefined' && window.RianellLlmLoadLadder &&
-        typeof window.RianellLlmLoadLadder.buildPwaWasmAttempt === 'function') {
-      return window.RianellLlmLoadLadder.buildPwaWasmAttempt();
-    }
-    return { device: 'wasm', dtype: 'q4' };
-  }
-
-  function buildWasmPipelineOpts() {
-    return buildWasmAttempt();
-  }
-
-  function parseOomError(err) {
-    var msg = String(err && err.message ? err.message : err || '').toLowerCase();
-    return /out of memory|oom|memory allocation|failed to allocate|array buffer allocation/i.test(msg);
+  function planForPackage(pkg) {
+    return { device: pkg.device, dtype: pkg.dtype };
   }
 
   function persistLastStablePreset(modelId, backend, dtype) {
@@ -715,16 +504,9 @@
     } catch (e) {}
   }
 
-  function maybeWarnMemoryCap(platformKind) {
-    var nav = typeof navigator !== 'undefined' ? navigator : {};
-    var dm = (typeof window !== 'undefined' && window.isSecureContext === true &&
-      typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) ? nav.deviceMemory : null;
-    if (dm == null || platformKind !== 'pwa_mobile') return;
-    var tierKey = resolvePreferredTierKey();
-    if (dm < 4 && (tierKey === 'tier5' || tierKey === 'tier4') &&
-        typeof window !== 'undefined' && typeof window.showToast === 'function') {
-      window.showToast('Large model tier on limited memory - may fall back automatically.', { type: 'info' });
-    }
+  function dtypeLabel(dtype) {
+    if (dtype && typeof dtype === 'object') return dtype.decoder_model_merged || 'mixed';
+    return dtype || 'q4';
   }
 
   async function tryLoadWithPlans(loadModelId, plans, myGen) {
@@ -732,33 +514,27 @@
     for (var i = 0; i < plans.length; i++) {
       if (isStaleLoad(myGen) || downloadCancelled) throw new Error('AI model download deferred');
       var plan = plans[i];
-      var label = plan.device ? (plan.device + ' ' + (plan.dtype || '')) : 'wasm';
+      var label = plan.device + ' ' + dtypeLabel(plan.dtype);
       reportDownloadProgress({ status: 'progress', progress: 0, file: '' });
       try {
         var client = await getLlmWorkerClient(false);
         var pipe = await runChatGenerationPipelineGuarded(client, loadModelId, plan);
         if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-        cachedActiveBackend = plan.device || 'wasm';
-        cachedActiveDtype = plan.dtype || 'q4';
+        cachedActiveBackend = plan.device;
+        cachedActiveDtype = dtypeLabel(plan.dtype);
         return pipe;
       } catch (e) {
+        if (isStaleLoad(myGen)) throw e;
         lastErr = e;
         var gpuClass = classifyGpuLoadError(e);
-        if (plan.device === 'webgpu' || (plan.device && plan.device.indexOf('webnn') === 0)) {
+        if (plan.device === 'webgpu') {
           writeWebGpuCache(false);
-          if (gpuClass.class === 'ort_webgpu_pipeline_fail' || gpuClass.retryPath === 'mlc') {
-            writeGpuPipelineFailCache(gpuClass);
-          }
+          writeGpuPipelineFailCache(gpuClass);
         }
-        if (typeof console !== 'undefined') {
-          var logGpuFallback = gpuClass.retryPath === 'mlc' && console.info ? console.info : console.warn;
-          if (logGpuFallback) {
-            logGpuFallback.call(console, 'Summary LLM: attempt failed (' + label + '), retrying fallback:', e.message || e,
-              gpuClass.code ? ('[' + gpuClass.class + ' ' + gpuClass.code + ']') : ('[' + gpuClass.class + ']'));
-          }
-        }
-        if (gpuClass.retryPath === 'mlc' && plan.device === 'webgpu') {
-          break;
+        // WebGPU failures are expected on some drivers and are recovered by WASM.
+        if (typeof console !== 'undefined' && console.info) {
+          console.info('Summary LLM: attempt failed (' + label + '), retrying fallback:', e.message || e,
+            gpuClass.code ? ('[' + gpuClass.class + ' ' + gpuClass.code + ']') : ('[' + gpuClass.class + ']'));
         }
       }
     }
@@ -827,14 +603,13 @@
   }
 
   function buildWorkerLoadConfig(modelId, plan) {
-    var revision = MODEL_REVISIONS[modelId];
-    if (!revision) throw new Error('Model is not allowlisted: ' + modelId);
-    var device = plan.device || 'wasm';
+    var pkg = packageForModelId(modelId);
+    if (!pkg) throw new Error('Model is not allowlisted: ' + modelId);
     return {
-      modelId: modelId,
-      revision: revision,
-      device: device,
-      dtype: plan.dtype != null ? plan.dtype : resolveDtype(device),
+      modelId: pkg.id,
+      revision: pkg.revision,
+      device: plan.device || pkg.device,
+      dtype: plan.dtype != null ? plan.dtype : pkg.dtype,
       runtimeUrl: resolveTransformersImportUrl(),
       wasmBase: isTransformersCdnMode() ? '' : getAppOriginBase() + 'vendor/transformers/',
       remoteHost: 'https://huggingface.co/',
@@ -843,7 +618,7 @@
   }
 
   function computeResolvedModelId() {
-    return llmTierOrSizeToModelId(resolvePreferredTierKey());
+    return LLM_PACKAGES[resolvePackageKey()].id;
   }
 
   function getResolvedModelId() {
@@ -1114,11 +889,6 @@
     return result;
   }
 
-  function resolveDtype(device) {
-    if (device === 'webgpu') return 'q4f16';
-    return 'q4';
-  }
-
   /** Load the model in the worker; resolves to a callable with the transformers.js pipeline signature. */
   async function runChatGenerationPipeline(client, pipelineModelId, opts) {
     await client.load(buildWorkerLoadConfig(pipelineModelId, opts || {}), reportDownloadProgress);
@@ -1200,8 +970,6 @@
       cachedModelId = null;
       cachedActiveBackend = null;
       cachedActiveDtype = null;
-      cachedActiveEngine = 'onnx';
-      cachedMlcEngine = null;
 
       downloadProgressState.active = true;
       downloadCancelled = false;
@@ -1211,11 +979,9 @@
       var bootGuard = typeof window !== 'undefined' ? window.RianellBootGuard : null;
       if (bootGuard) bootGuard.markLlmLoadStart(modelId);
       var myGen = loadGeneration;
-      var platformKind = getPlatformKindForLoad();
-      maybeWarnMemoryCap(platformKind);
       reportDownloadProgress({ status: 'initiate', progress: 0, file: '' });
 
-      await ensureGpuCandidatesReady();
+      await ensureWebGpuProbed();
 
       // WebGPU availability is now known - pin the definitive model for the session.
       // Resolving here (rather than at call time) prevents the small→large upgrade
@@ -1225,70 +991,26 @@
       if (!sessionModelId) sessionModelId = computeResolvedModelId();
       modelId = sessionModelId;
 
-      var gpuCandidates = getGpuDeviceCandidates();
-      var hasWebGpuCandidate = gpuCandidates.indexOf('webgpu') !== -1;
-      var gpuPlans = buildLoadPlansForPwa(gpuCandidates, platformKind);
-      if (shouldSkipOnnxPath1ForLlama(modelId)) {
-        gpuPlans = gpuPlans.filter(function (p) { return p.device !== 'webgpu'; });
-      }
-      var wasmPlan = buildWasmAttempt();
-      var loadModelId = modelId;
+      var pkg = packageForModelId(modelId) || LLM_PACKAGES.wasm;
+      var gpuPlans = pkg.device === 'webgpu' ? [planForPackage(pkg)] : [];
+      var loadModelId = pkg.id;
       var loaded = false;
       var gpuErr = null;
-      var enginePref = resolveLlmEnginePreference();
 
-      // Pre-flight heap guard: skip the ONNX GPU path if memory is already under pressure.
-      // The first AI tab switch can spike the heap by ~400MB (three runtime loads); a high
-      // session baseline turns that spike into an OOM. MLC weights live in a Worker (off the
-      // main JS heap), so the MLC primary path is exempt from this guard.
+      // Pre-flight heap guard: a high main-thread heap baseline makes the GPU upload
+      // spike more likely to OOM the tab, so go straight to the smaller WASM package.
       var _heapPressure = (typeof performance !== 'undefined' && performance.memory &&
         performance.memory.usedJSHeapSize > 209715200); // 200 MB
       if (_heapPressure) {
         gpuPlans = [];
       }
 
-      // Path 1 (primary): WebLLM MLC on WebGPU for every device tier. onnxruntime-web's
-      // WebGPU pipeline fails on some machines (ort_webgpu_pipeline_fail) even when WebGPU
-      // is available; MLC compiles its own WebGPU shaders and works where ONNX does not.
-      if (!loaded && !isStaleLoad(myGen) && hasWebGpuCandidate &&
-          enginePref !== 'onnx' && enginePref !== 'gguf') {
+      if (gpuPlans.length > 0 && !isStaleLoad(myGen)) {
         try {
-          if (typeof console !== 'undefined' && console.info) {
-            console.info('Summary LLM: loading WebLLM MLC (primary WebGPU engine)');
-          }
-          await ensureMlcScriptsLoaded();
-          var mlcApi = typeof window !== 'undefined' && window.RianellLlmMlc;
-          if (mlcApi && typeof mlcApi.ensureMlcEngine === 'function') {
-            var mlcModelId = resolveMlcModelIdForModel(loadModelId);
-            cachedMlcEngine = await mlcApi.ensureMlcEngine(mlcModelId, reportDownloadProgress);
-            if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-            cachedPipeline = { __rianellEngine: 'mlc' };
-            cachedActiveEngine = 'mlc';
-            cachedActiveBackend = 'webgpu';
-            cachedActiveDtype = 'q4f16';
-            loaded = true;
-          } else if (typeof console !== 'undefined' && console.warn) {
-            console.warn('Summary LLM: MLC adapter unavailable after script load');
-          }
-        } catch (mlcErr) {
-          cachedMlcEngine = null;
-          if (typeof console !== 'undefined' && console.warn) {
-            console.warn('Summary LLM: MLC primary path failed, falling back to ONNX:', mlcErr.message || mlcErr);
-          }
-        }
-      }
-
-      // Path 2: ONNX transformers.js on WebGPU/WebNN.
-      if (!loaded && !isStaleLoad(myGen)) {
-        try {
-          if (gpuPlans.length > 0) {
-            cachedPipeline = await tryLoadWithPlans(loadModelId, gpuPlans, myGen);
-            cachedActiveEngine = 'onnx';
-            loaded = true;
-          } else {
-            throw new Error('ONNX GPU path skipped (prior pipeline failure, heap pressure, or engine preference)');
-          }
+          cachedPipeline = await tryLoadWithPlans(loadModelId, gpuPlans, myGen);
+          loaded = true;
         } catch (e1) {
+          if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
           gpuErr = e1;
           // Release any partially-initialized pipeline so GC can reclaim WebGPU/ONNX resources
           // before the WASM fallback allocates its own runtime.
@@ -1297,75 +1019,29 @@
         }
       }
 
-      // Path 3: GGUF spike (feature-flagged, base 1.5B model only).
-      if (!loaded && !isStaleLoad(myGen)) {
-        if (loadModelId === MODEL_BASE && enginePref !== 'onnx' && enginePref !== 'mlc') {
-          try {
-            await ensureGgufScriptsLoaded();
-            var ggufApi = typeof window !== 'undefined' && window.RianellLlmGguf;
-            if (ggufApi && typeof ggufApi.ensureGgufEngine === 'function') {
-              await ggufApi.ensureGgufEngine(ggufApi.allowedModelPrefix, reportDownloadProgress);
-              if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-              cachedPipeline = { __rianellEngine: 'gguf' };
-              cachedActiveEngine = 'gguf';
-              cachedActiveBackend = 'webgpu';
-              cachedActiveDtype = 'q4';
-              loaded = true;
-            }
-          } catch (ggufErr) {
-            if (typeof console !== 'undefined' && console.warn) {
-              console.warn('Summary LLM: GGUF path unavailable:', ggufErr.message || ggufErr);
-            }
-          }
-        }
-      }
-
       if (!loaded) {
         if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-        if (typeof console !== 'undefined') {
-          var logWasmFallback = console.info || console.warn;
-          if (logWasmFallback) logWasmFallback.call(console, 'Summary LLM: GPU/MLC attempts unavailable, trying WASM:', gpuErr && (gpuErr.message || gpuErr));
+        if (gpuErr && typeof console !== 'undefined' && console.info) {
+          console.info('Summary LLM: GPU attempts unavailable, trying WASM:', gpuErr.message || gpuErr);
         }
-        var wasmNoCachePlan = Object.assign({}, wasmPlan, { useBrowserCache: false });
         try {
           // A failed GPU attempt can leave ORT/WebGPU state behind; start WASM in a clean worker.
           var wasmClient = await getLlmWorkerClient(gpuPlans.length > 0);
-          var wasmModelId = resolveWasmFallbackModelId(loadModelId);
-          cachedPipeline = await runChatGenerationPipelineGuarded(wasmClient, wasmModelId, wasmNoCachePlan);
+          cachedPipeline = await runChatGenerationPipelineGuarded(wasmClient, MODEL_WASM, planForPackage(LLM_PACKAGES.wasm));
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-          loadModelId = wasmModelId;
-          cachedActiveEngine = 'onnx';
+          loadModelId = MODEL_WASM;
           cachedActiveBackend = 'wasm';
-          cachedActiveDtype = 'q4';
+          cachedActiveDtype = dtypeLabel(LLM_PACKAGES.wasm.dtype);
           loaded = true;
         } catch (wasmErr) {
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-          var oom = parseOomError(wasmErr) || parseOomError(gpuErr);
-          if (loadModelId === MODEL_BASE) {
-            if (typeof console !== 'undefined' && console.warn) {
-              console.warn('Summary LLM: large package failed' + (oom ? ' (OOM)' : '') + ', retrying smaller model');
-            }
-            if (typeof window !== 'undefined' && typeof window.showToast === 'function' && oom) {
-              window.showToast('Not enough memory for the large model - using the smaller package.', { type: 'info' });
-            }
-            try {
-              var smallClient = await getLlmWorkerClient(true);
-              cachedPipeline = await runChatGenerationPipelineGuarded(smallClient, MODEL_SMALL, wasmNoCachePlan);
-              if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-              loadModelId = MODEL_SMALL;
-              cachedActiveBackend = 'wasm';
-              cachedActiveDtype = 'q4';
-              loaded = true;
-            } catch (smallErr) {
-              failDownloadProgress(formatDownloadError(smallErr));
-              throw smallErr;
-            }
-          } else {
-            failDownloadProgress(formatDownloadError(wasmErr));
-            throw wasmErr;
-          }
+          failDownloadProgress(formatDownloadError(wasmErr));
+          throw wasmErr;
         }
       }
+      // Pin what actually loaded, so callers resolving the session model after a
+      // WebGPU -> WASM fallback match cachedModelId instead of starting a reload.
+      sessionModelId = loadModelId;
 
       if (!loaded || !cachedPipeline) {
         failDownloadProgress('Model load failed');
@@ -1409,6 +1085,11 @@
     });
   }
 
+  /** Qwen3.5 can still emit a (normally empty) reasoning block; users never see it. */
+  function stripThinking(text) {
+    return String(text || '').replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+  }
+
   function extractChatReply(out) {
     if (!out || !out[0]) return '';
     var gt = out[0].generated_text;
@@ -1416,14 +1097,24 @@
       for (var i = gt.length - 1; i >= 0; i--) {
         var msg = gt[i];
         if (msg && (msg.role === 'assistant' || msg.role === 'model') && msg.content) {
-          return String(msg.content).trim();
+          return stripThinking(msg.content);
         }
       }
       var last = gt[gt.length - 1];
-      if (last && typeof last.content === 'string') return last.content.trim();
+      if (last && typeof last.content === 'string') return stripThinking(last.content);
     }
-    if (typeof gt === 'string') return gt.trim();
+    if (typeof gt === 'string') return stripThinking(gt);
     return '';
+  }
+
+  /** Thinking models answer directly when the chat template is told not to reason. */
+  function withModelGenerationOptions(genOpts) {
+    var opts = Object.assign({}, genOpts || {});
+    var pkg = packageForModelId(cachedModelId);
+    if (pkg && pkg.noThinking) {
+      opts.tokenizer_encode_kwargs = Object.assign({}, opts.tokenizer_encode_kwargs, { enable_thinking: false });
+    }
+    return opts;
   }
 
   function buildChatMessages(systemText, userText) {
@@ -1434,11 +1125,6 @@
   }
 
   async function runChatInference(systemText, userText, genOpts, pipelineOptions) {
-    // Load first, then dispatch on the engine that actually resolved. The engine
-    // is only known after ensurePipelineLoaded settles (on first run the caller's
-    // cachedActiveEngine is still the 'onnx' default, and cachedMlcEngine is null),
-    // so branching before the load would misroute an MLC marker into the callable
-    // ONNX path - the source of "pipe is not a function".
     return runQueued(async function () {
       await ensurePipelineLoaded(pipelineOptions || {});
       return runLoadedEngineChat(systemText, userText, genOpts);
@@ -1446,18 +1132,11 @@
   }
 
   async function runLoadedEngineChat(systemText, userText, genOpts) {
-    if (cachedActiveEngine === 'gguf' && window.RianellLlmGguf) {
-      return window.RianellLlmGguf.runGgufChat(cachedPipeline, userText, systemText, genOpts || {});
-    }
-    if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
-      return window.RianellLlmMlc.runMlcChat(cachedMlcEngine, userText, systemText, genOpts || {});
-    }
     var pipe = cachedPipeline;
     if (typeof pipe !== 'function') {
-      // A worker-backed engine marker leaked here without its adapter being ready.
-      throw new Error('AI engine "' + cachedActiveEngine + '" is not ready for inference');
+      throw new Error('AI model is not ready for inference');
     }
-    var out = await pipe(buildChatMessages(systemText, userText), genOpts);
+    var out = await pipe(buildChatMessages(systemText, userText), withModelGenerationOptions(genOpts));
     return extractChatReply(out);
   }
 
@@ -2074,8 +1753,7 @@
       size: info.size,
       approxBytes: info.approxBytes,
       activeBackend: cachedActiveBackend,
-      activeDtype: cachedActiveDtype,
-      activeEngine: cachedActiveEngine
+      activeDtype: cachedActiveDtype
     };
     if (downloadProgressState.active) {
       return Object.assign({
@@ -2102,18 +1780,11 @@
 
   function clearSummaryLLMCache() {
     bumpLoadGeneration();
-    if (cachedActiveEngine === 'mlc' && window.RianellLlmMlc && typeof window.RianellLlmMlc.disposeMlcEngine === 'function') {
-      window.RianellLlmMlc.disposeMlcEngine().catch(function () {});
-    }
     terminateLlmWorker('AI model cache cleared');
     cachedPipeline = null;
     cachedModelId = null;
     cachedActiveBackend = null;
     cachedActiveDtype = null;
-    cachedActiveEngine = 'onnx';
-    cachedMlcEngine = null;
-    mlcScriptPromise = null;
-    ggufScriptPromise = null;
     lastDownloadError = null;
     sessionModelId = null;
     llmWorkQueue = Promise.resolve();
@@ -2133,7 +1804,7 @@
       try {
         var dbs = await indexedDB.databases();
         dbs.forEach(function (db) {
-          if (db.name && /transformers|xenova|hf-|huggingface|onnx/i.test(db.name)) {
+          if (db.name && (/transformers|xenova|hf-|huggingface|onnx/i.test(db.name) || LEGACY_ENGINE_STORE_RE.test(db.name))) {
             names.push(db.name);
           }
         });
@@ -2147,6 +1818,64 @@
     }));
   }
 
+  function isShippedModelUrl(url) {
+    var keys = Object.keys(LLM_PACKAGES);
+    for (var i = 0; i < keys.length; i++) {
+      if (url.indexOf('/' + LLM_PACKAGES[keys[i]].id + '/') !== -1) return true;
+    }
+    return false;
+  }
+
+  /**
+   * One-off cleanup after the model refit: drops the WebLLM stores and cached files of
+   * Hugging Face models the app no longer ships (Qwen2.5-1.5B etc.), which would
+   * otherwise keep 1-2 GB of quota per user. Runs once per LEGACY_PURGE_VERSION.
+   */
+  async function purgeLegacyModelCaches() {
+    try {
+      if (typeof localStorage === 'undefined' || localStorage.getItem(LEGACY_PURGE_KEY) === LEGACY_PURGE_VERSION) return;
+    } catch (e) {
+      return;
+    }
+    try {
+      if (typeof caches !== 'undefined') {
+        var names = await caches.keys();
+        for (var i = 0; i < names.length; i++) {
+          if (LEGACY_ENGINE_STORE_RE.test(names[i])) {
+            await caches.delete(names[i]);
+          } else if (/transformers/i.test(names[i])) {
+            var cache = await caches.open(names[i]);
+            var reqs = await cache.keys();
+            for (var j = 0; j < reqs.length; j++) {
+              var url = reqs[j].url || '';
+              if (url.indexOf('huggingface.co/') !== -1 && !isShippedModelUrl(url)) await cache.delete(reqs[j]);
+            }
+          }
+        }
+      }
+      if (typeof indexedDB !== 'undefined' && indexedDB.databases) {
+        var dbs = await indexedDB.databases();
+        await Promise.all(dbs.filter(function (db) {
+          return db.name && LEGACY_ENGINE_STORE_RE.test(db.name);
+        }).map(function (db) {
+          return new Promise(function (resolve) {
+            var req = indexedDB.deleteDatabase(db.name);
+            req.onsuccess = req.onerror = req.onblocked = function () { resolve(); };
+          });
+        }));
+      }
+      localStorage.setItem(LEGACY_PURGE_KEY, LEGACY_PURGE_VERSION);
+    } catch (e) {}
+  }
+
+  function scheduleLegacyModelCachePurge() {
+    if (typeof window === 'undefined') return;
+    var idle = typeof window.requestIdleCallback === 'function'
+      ? function (cb) { window.requestIdleCallback(cb, { timeout: 30000 }); }
+      : function (cb) { setTimeout(cb, 15000); };
+    idle(function () { return purgeLegacyModelCaches(); });
+  }
+
   async function clearAiModelCache(options) {
     options = options || {};
     clearSummaryLLMCache();
@@ -2158,7 +1887,7 @@
       if (typeof caches !== 'undefined') {
         var keys = await caches.keys();
         await Promise.all(keys.map(function (key) {
-          if (/transformers|huggingface|onnx|models|rianell/i.test(key)) {
+          if (/transformers|huggingface|onnx|models|rianell/i.test(key) || LEGACY_ENGINE_STORE_RE.test(key)) {
             return caches.delete(key);
           }
           return Promise.resolve(false);
@@ -2247,4 +1976,5 @@
     llmWorkQueue = Promise.resolve();
   };
   window.cancelAiModelDownload = cancelDownloadInFlight;
+  scheduleLegacyModelCachePurge();
 })();

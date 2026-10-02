@@ -48,7 +48,6 @@ SRI integrity attributes in index.html: **1** (expand via `apps/pwa-webapp/cdn-m
 - `rianellFunctionTrace`
 - `rianellGoals`
 - `rianellInstallModalAfterTutorialSeen`
-- `rianellLlmEngine`
 - `rianellPerfBenchmark`
 - `rianellPerfLongTasks`
 - `rianellPredictionState`

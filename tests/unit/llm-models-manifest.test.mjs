@@ -9,16 +9,18 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const manifestPath = path.join(__dirname, '..', '..', 'apps', 'pwa-webapp', 'models', 'manifest.json');
 
-test('llm models manifest lists self-hosted Qwen2.5 small and base entries', () => {
+test('llm models manifest lists the small, large and wasm packages at pinned revisions', () => {
   assert.ok(fs.existsSync(manifestPath), 'manifest.json must exist');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.ok(Array.isArray(manifest.models) && manifest.models.length >= 2);
-  const ids = manifest.models.map((m) => m.id);
-  assert.ok(ids.some((id) => id.includes('Qwen2.5-0.5B')));
-  assert.ok(ids.some((id) => id.includes('Qwen2.5-1.5B')));
+  assert.deepEqual(manifest.models.map((m) => m.package).sort(), ['large', 'small', 'wasm']);
+  const summaryLlm = fs.readFileSync(path.join(__dirname, '..', '..', 'apps', 'pwa-webapp', 'summary-llm.js'), 'utf8');
   for (const model of manifest.models) {
     assert.ok(model.sourceRepo, `${model.id} needs sourceRepo`);
-    assert.ok(model.revision, `${model.id} needs revision`);
+    assert.match(model.revision, /^[0-9a-f]{40}$/, `${model.id} revision must be a commit SHA`);
+    assert.ok(
+      new RegExp(`id:\\s*'${model.id.replace(/[.]/g, '\\.')}',\\s*revision:\\s*'${model.revision}'`).test(summaryLlm),
+      `${model.id}@${model.revision} must match LLM_PACKAGES in summary-llm.js`,
+    );
     assert.ok(Array.isArray(model.files) && model.files.length > 0, `${model.id} needs files`);
     const paths = model.files.map((f) => (typeof f === 'string' ? f : f.path));
     assert.ok(paths.includes('config.json'), `${model.id} needs config.json`);

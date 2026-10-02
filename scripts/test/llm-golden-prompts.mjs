@@ -9,7 +9,7 @@ import {
 } from '../../packages/shared/src/ai/llmGoldenPrompts.mjs';
 import { isLlmInferenceAllowed } from '../../packages/shared/src/ai/llmCapability.mjs';
 
-const engines = (process.env.LLM_ENGINE || 'onnx,mlc,gguf').split(',').map((s) => s.trim()).filter(Boolean);
+const engines = (process.env.LLM_ENGINE || 'onnx').split(',').map((s) => s.trim()).filter(Boolean);
 
 console.log('llm-golden-prompts: auditing', GOLDEN_LLM_INTENTS.length, 'intents ×', GOLDEN_LLM_LOCALES.length, 'locales');
 const { errors, checked } = runGoldenPromptAudit();

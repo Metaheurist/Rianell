@@ -38,9 +38,3 @@ test('i18n-pwa sets document lang on locale refresh', () => {
   const src = readFileSync(join(root, 'apps/pwa-webapp/i18n-pwa.js'), 'utf8');
   assert.match(src, /document\.documentElement\.lang/);
 });
-
-test('summary-llm-gguf resolves when feature flag enabled', async () => {
-  const src = readFileSync(join(root, 'apps/pwa-webapp/summary-llm-gguf.js'), 'utf8');
-  assert.match(src, /isGgufFeatureEnabled/);
-  assert.doesNotMatch(src, /loader is not wired yet/);
-});

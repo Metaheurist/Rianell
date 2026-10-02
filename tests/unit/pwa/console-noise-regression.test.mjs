@@ -26,6 +26,6 @@ test('developer Supabase API keys do not hit cloud in demo, local-only, or offli
 test('expected WebGPU fallback logs are informational, not warnings', () => {
   assert.match(summaryLlm, /retrying fallback/);
   assert.match(summaryLlm, /console\.info/);
-  assert.match(summaryLlm, /GPU\/MLC attempts unavailable, trying WASM/);
-  assert.doesNotMatch(summaryLlm, /GPU\/MLC attempts failed, trying WASM/);
+  assert.match(summaryLlm, /console\.info\('Summary LLM: GPU attempts unavailable, trying WASM/);
+  assert.doesNotMatch(summaryLlm, /console\.warn\('Summary LLM: GPU attempts/);
 });

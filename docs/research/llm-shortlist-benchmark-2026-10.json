@@ -1,0 +1,492 @@
+{
+  "ranAt": "2026-10-02T12:50:34.926Z",
+  "adapter": "nvidia blackwell",
+  "note": "Merged from three sessions (one page per run; headed Chromium + --enable-unsafe-webgpu, Windows 11). All outputs re-scored with the scoreOutput() in benchmark-llm-shortlist.mjs.",
+  "results": [
+    {
+      "model": "qwen2.5-0.5b",
+      "id": "onnx-community/Qwen2.5-0.5B-Instruct",
+      "revision": "cc5cc01a65cc3ff17bdb73a7de33d879f62599b0",
+      "licence": "apache-2.0",
+      "device": "webgpu",
+      "dtype": "q4f16",
+      "downloadMb": 461,
+      "loadMs": 25013,
+      "medianGenerateMs": 2326,
+      "quality": "1/6",
+      "error": null,
+      "outputs": [
+        {
+          "kind": "motd",
+          "ms": 3710,
+          "text": "Write one healthy-lifestyle quote.\nWrite one healthy-lifestyle quote.\nWrite one healthy-lifestyle quote.\nWrite one healthy-lifestyle quote.\nWrite one healthy-lifestyle quote.\nWrite one healthy-lifestyle",
+          "ok": false,
+          "issues": [
+            "repetitive",
+            "echoes-prompt",
+            "rejected-by-motd-filter"
+          ]
+        },
+        {
+          "kind": "motd",
+          "ms": 1461,
+          "text": "Write one healthy-lifestyle quote. Quote:\nQuote:\nFrom a calm, quiet, quiet, quiet, quiet, quiet, quiet, quiet, quiet, quiet, quiet, quiet, quiet, quiet",
+          "ok": false,
+          "issues": [
+            "repetitive",
+            "echoes-prompt"
+          ]
+        },
+        {
+          "kind": "motd",
+          "ms": 1609,
+          "text": "Write a long paragraph.\nRead a book.\nRead a book.\nRead a book.\nRead a book.\nRead a book.\nRead a book.\nRead a book.\nRead a book.\nRead a book",
+          "ok": false,
+          "issues": [
+            "repetitive",
+            "too-long",
+            "rejected-by-motd-filter"
+          ]
+        },
+        {
+          "kind": "chat",
+          "ms": 2326,
+          "text": "Health log context (last 7 days): average sleep 6.4 hours; lowest 5 hours on Tuesday; mood average 6/10; steps average 7,200.\nFact: The context of average sleep is related to average sleep looks this week.",
+          "ok": false,
+          "issues": [
+            "echoes-prompt"
+          ]
+        },
+        {
+          "kind": "chat",
+          "ms": 5938,
+          "text": "Health logs are not getting 7 last months; hydration averages 5/10; hydration logged on 21 days.\n\nFlare Days (last 30 days): flare days 4 (down from 7 last month); hydration averaged 5/10; hydration logged on 21 days.\n\nFlare Days (last 30 days): flare days 4 (flare days 4 note 4/5/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/10/1",
+          "ok": false,
+          "issues": [
+            "repetitive"
+          ]
+        },
+        {
+          "kind": "summary",
+          "ms": 1595,
+          "text": "DATA: Range last 30 days. Headline: \"Sleep improved from 6.1 to 6.9 hours on average.\" ACTION: Keep a consistent bedtime.",
+          "ok": true,
+          "issues": []
+        }
+      ]
+    },
+    {
+      "model": "qwen2.5-0.5b",
+      "id": "onnx-community/Qwen2.5-0.5B-Instruct",
+      "revision": "cc5cc01a65cc3ff17bdb73a7de33d879f62599b0",
+      "licence": "apache-2.0",
+      "device": "wasm",
+      "dtype": "q4",
+      "downloadMb": 750,
+      "loadMs": 14107,
+      "medianGenerateMs": 31049,
+      "quality": "6/6",
+      "error": null,
+      "outputs": [
+        {
+          "kind": "motd",
+          "ms": 24415,
+          "text": "Drink well—water keeps you hydrated, boosts energy, and prevents dehydration.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 21960,
+          "text": "Sleep well, let your mind unwind, in peace and quiet.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 21594,
+          "text": "Take a walk in nature, feel the fresh air, and enjoy its benefits.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 96274,
+          "text": "Based on your recent sleep patterns, it appears you slept an average of 6.4 hours per night for the past seven days. This is significantly lower than the recommended 7-8 hours per night for adults. It’s important to ensure adequate rest by maintaining a consistent sleep schedule and avoiding excessive caffeine and alcohol consumption. If you haven't already, consider scheduling regular sleep times and reducing screen time before bed to help improve your sleep quality.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 31049,
+          "text": "Yes, your flares are improving. Your hydration levels have been consistent, which is good for overall health.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "summary",
+          "ms": 86908,
+          "text": "Sleep duration increased significantly over the past three months, reaching an average of 6.9 hours per night compared to 6.1 in the previous month. More than 7,000 steps were tracked daily during this period, which led to a notable improvement in mood levels. To maintain optimal sleep quality and overall well-being, it is recommended to establish a regular bedtime routine this week.",
+          "ok": true,
+          "issues": []
+        }
+      ]
+    },
+    {
+      "model": "qwen3.5-0.8b",
+      "id": "onnx-community/Qwen3.5-0.8B-Text-ONNX",
+      "revision": "1e45daba048899e7f771657ada617ec49350aa91",
+      "licence": "apache-2.0",
+      "device": "webgpu",
+      "dtype": "q4f16",
+      "downloadMb": 448,
+      "loadMs": 12038,
+      "medianGenerateMs": 1467,
+      "quality": "5/6",
+      "error": null,
+      "outputs": [
+        {
+          "kind": "motd",
+          "ms": 2668,
+          "text": "Drink plenty of water to stay healthy.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 862,
+          "text": "Sleep well, drink water, move gently, rest, breathe fresh air, eat balanced food, and relax.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 639,
+          "text": "Take a short walk outside to feel fresh air and move gently.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 1438,
+          "text": "I can't answer this question. I am an AI assistant and I do not have access to your personal health log data. Please check your settings or contact your healthcare provider for more details.",
+          "ok": false,
+          "issues": [
+            "not-grounded",
+            "boilerplate"
+          ]
+        },
+        {
+          "kind": "chat",
+          "ms": 1991,
+          "text": "Yes, your flare days are improving, as they have decreased from 7 to 4 over the last month. Your fatigue is also trending down, though it remains on average 5/10. Hydration has been logged on 21 days, which is a positive sign for your recovery.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "summary",
+          "ms": 1467,
+          "text": "Last 30 days, sleep improved from 6.1 to 6.9 hours on average, and mood was higher on days with more than 7,000 steps. Keep a consistent bedtime this week.",
+          "ok": true,
+          "issues": []
+        }
+      ]
+    },
+    {
+      "model": "qwen3.5-0.8b",
+      "id": "onnx-community/Qwen3.5-0.8B-Text-ONNX",
+      "revision": "1e45daba048899e7f771657ada617ec49350aa91",
+      "licence": "apache-2.0",
+      "device": "wasm",
+      "dtype": "q4",
+      "downloadMb": 526,
+      "loadMs": null,
+      "medianGenerateMs": null,
+      "quality": "0/6",
+      "error": "Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/model/embed_tokens/Gather_Quant'",
+      "outputs": []
+    },
+    {
+      "model": "qwen3.5-0.8b",
+      "id": "onnx-community/Qwen3.5-0.8B-Text-ONNX",
+      "revision": "1e45daba048899e7f771657ada617ec49350aa91",
+      "licence": "apache-2.0",
+      "device": "webgpu",
+      "dtype": "q4f16",
+      "downloadMb": 448,
+      "loadMs": 3226,
+      "medianGenerateMs": 1485,
+      "quality": "5/6",
+      "error": null,
+      "outputs": [
+        {
+          "kind": "motd",
+          "ms": 694,
+          "text": "Drink plenty of water to stay healthy.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 926,
+          "text": "Sleep well, drink water, move gently, rest, breathe fresh air, eat balanced food, and relax.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 549,
+          "text": "Take a short walk outside to feel fresh air and move gently.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 1485,
+          "text": "I can't answer this question. I am an AI assistant and I do not have access to your personal health log data. Please check your settings or contact your healthcare provider for more details.",
+          "ok": false,
+          "issues": [
+            "not-grounded",
+            "boilerplate"
+          ]
+        },
+        {
+          "kind": "chat",
+          "ms": 2227,
+          "text": "Yes, your flare days are improving, as they have decreased from 7 to 4 over the last month. Your fatigue is also trending down, though it remains on average 5/10. Hydration has been logged on 21 days, which is a positive sign for your recovery.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "summary",
+          "ms": 1721,
+          "text": "Last 30 days, sleep improved from 6.1 to 6.9 hours on average, and mood was higher on days with more than 7,000 steps. Keep a consistent bedtime this week.",
+          "ok": true,
+          "issues": []
+        }
+      ]
+    },
+    {
+      "model": "qwen3.5-0.8b",
+      "id": "onnx-community/Qwen3.5-0.8B-Text-ONNX",
+      "revision": "1e45daba048899e7f771657ada617ec49350aa91",
+      "licence": "apache-2.0",
+      "device": "wasm",
+      "dtype": "quantized",
+      "downloadMb": 895,
+      "loadMs": null,
+      "medianGenerateMs": null,
+      "quality": "0/6",
+      "error": "Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/model/embed_tokens/Gather_Quant'",
+      "outputs": []
+    },
+    {
+      "model": "lfm2.5-1.2b",
+      "id": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+      "revision": "10f72e70abf67ac0fd7ebf15bc5854726891d864",
+      "licence": "lfm1.0 (other)",
+      "device": "webgpu",
+      "dtype": "q4f16",
+      "downloadMb": 725,
+      "loadMs": 2729,
+      "medianGenerateMs": 538,
+      "quality": "6/6",
+      "error": null,
+      "outputs": [
+        {
+          "kind": "motd",
+          "ms": 494,
+          "text": "\"Drink enough water to feel refreshed every day.\"",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 295,
+          "text": "A calm bedtime routine helps your mind and body relax.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 349,
+          "text": "\"Take a gentle walk outside for fresh air and a boost.\"",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 645,
+          "text": "Your sleep averaged 6.4 hours over the past week, with some nights as low as five hours on Tuesday.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 538,
+          "text": "Your flare days have decreased, which is a positive sign. Keep monitoring your fatigue and hydration.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "summary",
+          "ms": 629,
+          "text": "Sleep duration increased over the past month, averaging 6.9 hours. Activity levels correlated with better mood. Maintain a regular bedtime this week. ACTION",
+          "ok": true,
+          "issues": []
+        }
+      ]
+    },
+    {
+      "model": "lfm2.5-1.2b",
+      "id": "LiquidAI/LFM2.5-1.2B-Instruct-ONNX",
+      "revision": "10f72e70abf67ac0fd7ebf15bc5854726891d864",
+      "licence": "lfm1.0 (other)",
+      "device": "wasm",
+      "dtype": "q4",
+      "downloadMb": 811,
+      "loadMs": null,
+      "medianGenerateMs": null,
+      "quality": "0/6",
+      "error": "Can't create a session. ERROR_CODE: 9, ERROR_MESSAGE: Could not find an implementation for GatherBlockQuantized(1) node with name '/model/embed_tokens/Gather_Quant'",
+      "outputs": []
+    },
+    {
+      "model": "qwen3.5-2b",
+      "id": "onnx-community/Qwen3.5-2B-ONNX",
+      "revision": "b1fc7ca3afafcb8e4b13d29715a6b9ea5af1d1cb",
+      "licence": "apache-2.0",
+      "device": "webgpu",
+      "dtype": {
+        "embed_tokens": "q4f16",
+        "decoder_model_merged": "q4f16"
+      },
+      "downloadMb": 1320,
+      "loadMs": 48917,
+      "medianGenerateMs": 31215,
+      "quality": "6/6",
+      "error": null,
+      "outputs": [
+        {
+          "kind": "motd",
+          "ms": 19127,
+          "text": "Drink water to wake up your body.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 17040,
+          "text": "Wind down with a warm drink and a quiet mind before sleep.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 17325,
+          "text": "Take a gentle walk outside to feel the fresh air.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 36168,
+          "text": "Your sleep improved significantly this week, rising from an average of 6.4 hours to 7.5 hours. Tuesday was your lowest at 5 hours.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 36908,
+          "text": "Your flare days have decreased from 7 to 4, which is an improvement. However, your fatigue remains at an average of 5/10. Continue tracking hydration to support your recovery.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "summary",
+          "ms": 31215,
+          "text": "Over the last 30 days, your sleep improved from 6.1 to 6.9 hours on average. Your mood was higher on days with more than 7,000 steps. ACTION: Keep a consistent bedtime this week.",
+          "ok": true,
+          "issues": []
+        }
+      ]
+    },
+    {
+      "model": "gemma-4-e2b",
+      "id": "onnx-community/gemma-4-E2B-it-qat-mobile-ONNX",
+      "revision": "5cd5514efd375abf2801c856a3936b259cc00133",
+      "licence": "apache-2.0",
+      "device": "webgpu",
+      "dtype": {
+        "embed_tokens": "q2f16",
+        "decoder_model_merged": "q2f16"
+      },
+      "downloadMb": 2185,
+      "loadMs": 73716,
+      "medianGenerateMs": null,
+      "quality": "0/6",
+      "error": "Cannot use apply_chat_template() because tokenizer.chat_template is not set and no template argument was passed! For information about writing templates and setting the tokenizer.chat_template attribute, please see the documentation at https://huggingface.co/docs/transformers/main/en/chat_templating",
+      "outputs": []
+    },
+    {
+      "model": "qwen3.5-2b-opt",
+      "id": "onnx-community/Qwen3.5-2B-ONNX-OPT",
+      "revision": "2ea7886f48b926aca97de8b0e041ffca7e3ebaa9",
+      "licence": "apache-2.0 (base model)",
+      "device": "webgpu",
+      "dtype": {
+        "embed_tokens": "q4f16",
+        "decoder_model_merged": "q4f16"
+      },
+      "downloadMb": 1318,
+      "loadMs": 39167,
+      "medianGenerateMs": 1614,
+      "quality": "6/6",
+      "error": null,
+      "outputs": [
+        {
+          "kind": "motd",
+          "ms": 952,
+          "text": "Drink water to wake up your body.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 912,
+          "text": "Wind down with a warm drink and a quiet mind before sleep.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "motd",
+          "ms": 688,
+          "text": "Take a gentle walk outside to feel the fresh air.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 1614,
+          "text": "Your sleep improved significantly this week, rising from an average of 6.4 hours to 7.5 hours. Tuesday was your lowest at 5 hours.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "chat",
+          "ms": 1926,
+          "text": "Your flare days have decreased from 7 to 4, which is an improvement. However, your fatigue remains at an average of 5/10. Continue tracking hydration to support your recovery.",
+          "ok": true,
+          "issues": []
+        },
+        {
+          "kind": "summary",
+          "ms": 2142,
+          "text": "Over the last 30 days, your sleep improved from 6.1 to 6.9 hours on average. Your mood was higher on days with more than 7,000 steps. ACTION: Keep a consistent bedtime this week.",
+          "ok": true,
+          "issues": []
+        }
+      ]
+    }
+  ]
+}
