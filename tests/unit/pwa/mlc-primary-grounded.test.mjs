@@ -47,7 +47,9 @@ test('summary-llm loads MLC as the primary WebGPU engine for all tiers', () => {
 
 test('summary-llm gives MLC first-run a longer load budget', () => {
   assert.match(summaryLlm, /var LOAD_TIMEOUT_MS = 240000/);
-  assert.match(summaryLlm, /var FINALIZE_TIMEOUT_MS = 180000/);
+  // Preparing watchdog is silence-based, so MLC compile progress keeps re-arming it.
+  assert.match(summaryLlm, /var FINALIZE_TIMEOUT_MS = 90000/);
+  assert.match(summaryLlm, /if \(finalizing\) \{\s*\/\/[^\n]*\n[^\n]*\n\s*clearFinalizeWatchdog\(\);/);
 });
 
 test('buildSummaryContext emits a deterministic HEADLINE and ACTION chosen by AIEngine', () => {

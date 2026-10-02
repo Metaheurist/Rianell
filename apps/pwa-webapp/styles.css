@@ -25206,6 +25206,40 @@ body.light-mode .tile-picker-search::placeholder {
   cursor: pointer;
 }
 
+/* Out-rank the global/mobile `button` and `body.light-mode button` chrome (56px, full-width). */
+.rianell-toast .rianell-toast__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  top: 0;
+  right: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.rianell-toast .rianell-toast__action {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  min-height: 44px;
+  margin: 8px 0 0;
+  padding: 8px 16px;
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 600;
+  box-shadow: none;
+}
+
 .modal-overlay--closing .modal-content {
   animation: modalCloseOut var(--dur-fast) var(--ease-out-expo) forwards;
 }
@@ -25324,6 +25358,7 @@ body.light-mode .tile-picker-search::placeholder {
   height: 4px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, currentColor 15%, transparent);
   overflow: hidden;
 }
 
@@ -25379,6 +25414,7 @@ body.light-mode .tile-picker-search::placeholder {
   height: 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, currentColor 15%, transparent);
   overflow: hidden;
   margin-bottom: 8px;
 }
@@ -25391,6 +25427,33 @@ body.light-mode .tile-picker-search::placeholder {
   transform: scaleX(var(--progress, 0));
   transform-origin: left center;
   transition: transform 0.25s var(--ease-out-expo, ease-out);
+}
+
+/* Preparing phase: bytes are in but the runtime reports no progress while compiling. */
+.ai-model-download--indeterminate .ai-model-download-banner__fill,
+.ai-model-download--indeterminate .ai-model-download-progress__fill {
+  width: 40%;
+  transform: none;
+  animation: ai-model-download-indeterminate 1.2s ease-in-out infinite;
+}
+
+.ai-model-download--indeterminate .ai-model-download-banner__pct,
+.ai-model-download--indeterminate .ai-model-download-progress__pct {
+  visibility: hidden;
+}
+
+@keyframes ai-model-download-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-model-download--indeterminate .ai-model-download-banner__fill,
+  .ai-model-download--indeterminate .ai-model-download-progress__fill {
+    width: 100%;
+    animation: none;
+    opacity: 0.6;
+  }
 }
 
 .ai-model-download-progress__pct {

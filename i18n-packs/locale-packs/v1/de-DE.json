@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Fragen für meinen Arzt",
     "ai.doctorQuestions.loading": "Fragen werden vorgeschlagen…",
     "ai.doctorQuestions.section": "Fragen für meinen Arzt",
+    "ai.download.failedRetry": "KI-Modell konnte nicht eingerichtet werden. Prüfe deine Verbindung und versuche es erneut.",
     "ai.empty.noData.desc": "Fügen Sie Protokolle mit der +-Taste hinzu. Die Analyse erscheint hier für Ihren gewählten Zeitraum.",
     "ai.empty.noData.title": "Noch keine Gesundheitsdaten",
     "ai.empty.noRange.title": "Keine Daten in diesem Bereich",

@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Perguntas para o médico",
     "ai.doctorQuestions.loading": "A sugerir perguntas…",
     "ai.doctorQuestions.section": "Perguntas para o médico",
+    "ai.download.failedRetry": "Não foi possível preparar o modelo de IA. Verifique a ligação e tente novamente.",
     "ai.empty.noData.desc": "Adicione registos com o botão +. Os resultados da análise serão apresentados aqui para o período de datas selecionado.",
     "ai.empty.noData.title": "Ainda não há dados de saúde",
     "ai.empty.noRange.title": "Não há dados neste intervalo",

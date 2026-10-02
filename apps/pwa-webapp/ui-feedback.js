@@ -467,23 +467,29 @@
     return el;
   }
 
+  function isAiDownloadPreparing(state) {
+    if (!state) return false;
+    if (state.phase) return state.phase === 'preparing';
+    return state.status === 'finalizing' || (typeof state.pct === 'number' && state.pct >= 99);
+  }
+
   function formatAiDownloadLabel(state) {
     // Once bytes are in and the model is compiling/warming up, say "Preparing…"
-    // rather than implying an endless download at 100%.
-    if (state && (state.status === 'finalizing' || (typeof state.pct === 'number' && state.pct >= 99))) {
-      return tUi('common.preparing.on.device.ai');
-    }
+    // rather than implying an endless download at 99%.
+    if (isAiDownloadPreparing(state)) return tUi('common.preparing.on.device.ai');
     return tUi('common.downloading.ai.model');
   }
 
   function applyAiDownloadProgressToElements(state, labelSel, pctSel, fillSel, root) {
     root = root || document;
     var pct = typeof state.pct === 'number' ? state.pct : 0;
+    var preparing = isAiDownloadPreparing(state);
     var labelEl = root.querySelector(labelSel);
     var pctEl = root.querySelector(pctSel);
     var fill = root.querySelector(fillSel);
+    if (root.classList) root.classList.toggle('ai-model-download--indeterminate', preparing);
     if (labelEl) labelEl.textContent = formatAiDownloadLabel(state);
-    if (pctEl) pctEl.textContent = pct + '%';
+    if (pctEl) pctEl.textContent = preparing ? '' : pct + '%';
     if (fill) fill.style.setProperty('--progress', String(Math.max(0, Math.min(100, pct)) / 100));
   }
 
@@ -575,6 +581,23 @@
     hideAiModelDownloadProgressModal();
   }
 
+  function retryAiModelDownload() {
+    if (typeof global.resetAiModelDownloadState === 'function') global.resetAiModelDownloadState();
+    if (typeof global.preloadSummaryLLM === 'function') {
+      Promise.resolve(global.preloadSummaryLLM()).catch(function () {});
+    }
+  }
+
+  function onAiModelDownloadProgressEvent(event) {
+    var detail = event && event.detail;
+    if (!detail || !detail.failed) return;
+    showToast(tUi('ai.download.failedRetry'), {
+      type: 'error',
+      duration: 12000,
+      action: { label: tUi('common.retry'), onClick: retryAiModelDownload }
+    });
+  }
+
   function skipAiModelDownloadProgress() {
     if (aiDownloadUiMode === 'blocking') return;
     if (typeof global.cancelAiModelDownload === 'function') {
@@ -612,6 +635,10 @@
     var b = TAB_ORDER.indexOf(toTab);
     if (a < 0 || b < 0 || a === b) return 0;
     return b > a ? 1 : -1;
+  }
+
+  if (typeof global.addEventListener === 'function') {
+    global.addEventListener('rianell-llm-download-progress', onAiModelDownloadProgressEvent);
   }
 
   function initUiFeedback() {
@@ -671,6 +698,7 @@
   global.updateAiModelDownloadProgressUI = updateAiModelDownloadProgressUI;
   global.hideAiModelDownloadProgressUI = hideAiModelDownloadProgressUI;
   global.skipAiModelDownloadProgress = skipAiModelDownloadProgress;
+  global.retryAiModelDownload = retryAiModelDownload;
   global.applyThemeCrossfade = applyThemeCrossfade;
   global.getTabDirection = getTabDirection;
   global.triggerMilestoneConfetti = triggerMilestoneConfetti;

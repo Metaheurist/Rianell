@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Domande per il medico",
     "ai.doctorQuestions.loading": "Suggerimento domande…",
     "ai.doctorQuestions.section": "Domande per il medico",
+    "ai.download.failedRetry": "Impossibile preparare il modello IA. Controlla la connessione e riprova.",
     "ai.empty.noData.desc": "Aggiungere i dati tramite il pulsante +. L’analisi verrà visualizzata qui per l’intervallo di date selezionato.",
     "ai.empty.noData.title": "Nessun dato sanitario ancora",
     "ai.empty.noRange.title": "Nessun dato in questo intervallo",
