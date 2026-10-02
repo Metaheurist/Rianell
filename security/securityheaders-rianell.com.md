@@ -1,57 +1,81 @@
 ---
 source: securityheaders.com
 scan_url: "https://securityheaders.com/?q=rianell.com&followRedirects=on"
-generated_utc: 2026-10-02T15:56:11.091Z
-github_run_number: 852
-github_sha: cbe2c2f
-github_run_id: 37029973221
-securityheaders_http_status: 403
-securityheaders_scan_relay: direct
-securityheaders_scan: blocked_or_unavailable
+generated_utc: 2026-10-02T16:28:04.015Z
+github_run_number: 853
+github_sha: db7da66
+github_run_id: 37033666746
+securityheaders_http_status: 200
+securityheaders_scan_relay: allorigins
 ---
 
-# Security headers report (CI)
+# Scan results for rianell.com
 
-The **[securityheaders.com](https://securityheaders.com/)** scan page was not usable after **direct** fetch and optional **relay** attempts (`allorigins`, `corsproxy.io`). Datacenter IPs are often blocked. Browser-only proxy homepages (e.g. Proxyium) are not used — they have no stable API for CI.
+**Fetched:** https://securityheaders.com/?q=rianell.com&followRedirects=on
+  
+**Scan HTML relay:** `allorigins` (third party retrieved the scan page HTML for parsing.)
 
-Below: **response headers** from the live site URL(s) (`SECURITY_HEADERS_LIVE_URLS` / `SECURITY_HEADERS_FALLBACK_SITE`), fetched with a **browser-like** User-Agent. **HTTP 403** may still include useful `Content-Security-Policy`, `Strict-Transport-Security`, etc., when Cloudflare serves a challenge page.
+### Scan your site now
 
-## Live site response headers
+| Site: | [https://rianell.com/](https://rianell.com/) |  |
+| --- | --- | --- |
+| IP Address: | 172.67.156.107 |  |
+| Report Time: | 02 Oct 2026 16:28:02 UTC |  |
+| Headers: | X-Frame-Options Content-Security-Policy Permissions-Policy Strict-Transport-Security X-Content-Type-Options Referrer-Policy |  |
+| Advanced: | Wow, amazing grade! Perform a deeper security analysis of your website and APIs: | [](https://probely.com/sh?utm_campaign=Security%20Headers&utm_source=Security%20Headers&utm_medium=Display&utm_content=A+) |
 
-**URLs tried (in order):** `https://rianell.com`, `https://www.rianell.com`
-
-**Chosen URL:** https://rianell.com  
-**HTTP status:** 403  
-**Final URL:** https://rianell.com/  
-**Response body length (bytes):** 5828
-
-| Header | Value |
+| HTTP/2 | 200 |
 | --- | --- |
-| accept-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
-| alt-svc | h3=":443"; ma=86400 |
-| cf-mitigated | challenge |
-| cf-ray | a444e54a78246b1c-DFW |
-| connection | close |
-| content-encoding | br |
-| content-security-policy | default-src 'none'; script-src 'nonce-bpxWvObawbVzJmHLfhoDDC' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self' |
-| content-type | text/html; charset=UTF-8 |
-| critical-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
-| cross-origin-embedder-policy | require-corp |
-| cross-origin-opener-policy | same-origin |
-| cross-origin-resource-policy | same-origin |
-| date | Fri, 02 Oct 2026 15:56:11 GMT |
-| expect-ct | max-age=86400, enforce |
-| nel | {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800} |
-| origin-agent-cluster | ?1 |
-| permissions-policy | accelerometer=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=(),xr-spatial-tracking=* |
-| referrer-policy | same-origin |
-| report-to | {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=5Va1GFBTqQkWcGMqogn4m0Ber6INMKuPOsiGv85ms29knU3%2FGqEhZ2ImEsxhYIOke8J4nI61%2B2Xpc9TV36Ku6FNDSuJWrVi6IzLwgJqEXCjusbNY4IDM9iE%2FbwkNng%3D%3D"}]} |
+| date | Fri, 02 Oct 2026 16:28:02 GMT |
+| content-type | text/html; charset=utf-8 |
 | server | cloudflare |
-| server-timing | chlray;desc="a444e54a78246b1c" |
-| speculation-rules | "/cdn-cgi/speculation" |
-| strict-transport-security | max-age=31536000; includeSubDomains; preload |
-| transfer-encoding | chunked |
-| x-content-type-options | nosniff |
+| last-modified | Fri, 02 Oct 2026 16:26:31 GMT |
+| access-control-allow-origin | * |
 | x-frame-options | SAMEORIGIN |
+| expires | Fri, 02 Oct 2026 16:38:02 GMT |
+| cache-control | max-age=600 |
+| content-security-policy | frame-ancestors &#039;self&#039; |
+| x-proxy-cache | MISS |
+| x-github-request-id | 98EE:3F5617:2D4F:75F2:6ABFDB90 |
+| x-github-edge-region | northeurope |
 | x-xss-protection | 1; mode=block |
+| age | 0 |
+| via | 1.1 varnish |
+| x-served-by | cache-dub4325-DUB |
+| x-cache | MISS |
+| x-cache-hits | 0 |
+| x-timer | S1790958482.207939,VS0,VE122 |
+| vary | Accept-Encoding |
+| x-fastly-request-id | a021c1ebf216fbb47bed6c82c3a3659d140eb985 |
+| cf-cache-status | DYNAMIC |
+| permissions-policy | microphone=(self), geolocation=(self), camera=(), interest-cohort=() |
+| strict-transport-security | max-age=31536000; includeSubDomains; preload |
+| x-content-type-options | nosniff |
+| speculation-rules | &quot;/cdn-cgi/speculation&quot; |
+| report-to | {&quot;group&quot;:&quot;cf-nel&quot;,&quot;max_age&quot;:604800,&quot;endpoints&quot;:[{&quot;url&quot;:&quot;https://a.nel.cloudflare.com/report/v4?s=75vK3yTdGLBeeu2gPe0RibXgsoBpxUFzEogDCJ1cA0azvpZbwWFtN%2F09p6b7ITiGSrqp4Rm7lTB8xiUYdwGBGnkrsv6Sm3bPG9k9UHx4aERkTRv%2FmW0OJtA3LZJ4DA%3D%3D&quot;}]} |
+| nel | {&quot;report_to&quot;:&quot;cf-nel&quot;,&quot;success_fraction&quot;:0.0,&quot;max_age&quot;:604800} |
+| expect-ct | max-age=86400, enforce |
+| referrer-policy | strict-origin-when-cross-origin |
+| content-encoding | gzip |
+| cf-ray | a44513f1af7ee2cc-DUB |
+| alt-svc | h3=&quot;:443&quot;; ma=86400 |
+
+| Cross-Origin-Embedder-Policy | [Cross-Origin Embedder Policy](https://scotthelme.co.uk/coop-and-coep/) allows a site to prevent assets being loaded that do not grant permission to load them via CORS or CORP. |
+| --- | --- |
+| Cross-Origin-Opener-Policy | [Cross-Origin Opener Policy](https://scotthelme.co.uk/coop-and-coep/) allows a site to opt-in to Cross-Origin Isolation in the browser. |
+| Cross-Origin-Resource-Policy | [Cross-Origin Resource Policy](https://scotthelme.co.uk/coop-and-coep/) allows a resource owner to specify who can load the resource. |
+
+| server | [Server](https://scotthelme.co.uk/hardening-your-http-response-headers/#server) value has been changed. Typically you will see values like "Microsoft-IIS/8.0" or "nginx 1.7.2". |
+| --- | --- |
+| access-control-allow-origin | This is a very lax CORS policy. Such a policy should only be used on a public CDN. |
+| x-frame-options | [X-Frame-Options](https://scotthelme.co.uk/hardening-your-http-response-headers/#x-frame-options) tells the browser whether you want to allow your site to be framed or not. By preventing a browser from framing your site you can defend against attacks like clickjacking. |
+| content-security-policy | [Content Security Policy](https://scotthelme.co.uk/content-security-policy-an-introduction/) is an effective measure to protect your site from XSS attacks. By whitelisting sources of approved content, you can prevent the browser from loading malicious assets. [Analyse](https://report-uri.com/home/analyse/https%3A%2F%2Frianell.com%2F) this policy in more detail. You can sign up for a free account on [Report URI](https://report-uri.com) to collect reports about problems on your site. |
+| x-xss-protection | [X-XSS-Protection](https://scotthelme.co.uk/hardening-your-http-response-headers/#x-xss-protection) sets the configuration for the XSS Auditor built into older browsers. The recommended value was "X-XSS-Protection: 1; mode=block" but you should now look at [Content Security Policy](https://scotthelme.co.uk/content-security-policy-an-introduction/) instead. |
+| permissions-policy | [Permissions Policy](https://scotthelme.co.uk/goodbye-feature-policy-and-hello-permissions-policy/) is a new header that allows a site to control which features and APIs can be used in the browser. |
+| strict-transport-security | [HTTP Strict Transport Security](https://scotthelme.co.uk/hsts-the-missing-link-in-tls/) is an excellent feature to support on your site and strengthens your implementation of TLS by getting the User Agent to enforce the use of HTTPS. |
+| x-content-type-options | [X-Content-Type-Options](https://scotthelme.co.uk/hardening-your-http-response-headers/#x-content-type-options) stops a browser from trying to MIME-sniff the content type and forces it to stick with the declared content-type. The only valid value for this header is "X-Content-Type-Options: nosniff". |
+| report-to | [Report-To](https://scotthelme.co.uk/introducing-the-reporting-api-nel-other-major-changes-to-report-uri/) enables the Reporting API. This allows a website to collect reports from the browser about various errors that may occur. You can sign up for a free account on [Report URI](https://report-uri.com) to collect these reports. |
+| nel | [Network Error Logging](https://scotthelme.co.uk/network-error-logging-deep-dive/) is a new header that instructs the browser to send reports during various network or application errors. You can sign up for a free account on [Report URI](https://report-uri.com) to collect these reports. |
+| expect-ct | [Expect-CT](https://scotthelme.co.uk/a-new-security-header-expect-ct/) will soon be deprecated and can be removed. |
+| referrer-policy | [Referrer Policy](https://scotthelme.co.uk/a-new-security-header-referrer-policy/) is a new header that allows a site to control how much information the browser includes with navigations away from a document and should be set by all sites. |
 
