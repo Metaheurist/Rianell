@@ -17,6 +17,7 @@ const strict = process.env.CSP_LIVE_STRICT === '1';
 const REQUIRED_CONNECT_HOSTS = [
   'https://api.open-meteo.com',
   'https://air-quality-api.open-meteo.com',
+  'https://geocoding-api.open-meteo.com',
   'https://raw.githubusercontent.com',
   'https://world.openfoodfacts.org',
   'https://web-sdk.smartlook.com',

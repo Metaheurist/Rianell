@@ -17946,6 +17946,8 @@ let appSettings = {
   weatherLat: null,
   weatherLon: null,
   weatherCache: null,
+  weatherPlaceName: null,
+  weatherLocationDeniedAt: null,
   nextAppointmentDate: null,
   treatmentStarts: [],
   homeGapQuestionCache: null,
@@ -24971,46 +24973,149 @@ function weatherOrbPromptState(state) {
   }
 }
 
-function enableHomeWeatherStrip() {
-  if (typeof navigator === 'undefined' || !navigator.geolocation) {
-    if (typeof showToast === 'function') {
-      showToast(typeof tUi === 'function' ? tUi('home.weather.locationDenied') : 'Location denied', { type: 'error' });
-    }
+var _homeWeatherLocating = false;
+
+function setHomeWeatherPromptBusy(busy) {
+  var btn = document.querySelector('#homeWeatherStrip .home-weather-enable-prompt');
+  if (!btn) return;
+  btn.disabled = !!busy;
+  btn.classList.toggle('home-weather-enable-prompt--busy', !!busy);
+  if (busy) btn.setAttribute('aria-busy', 'true');
+  else btn.removeAttribute('aria-busy');
+}
+
+function applyHomeWeatherCoords(rounded, placeName) {
+  var S = getHomeSharedAi();
+  appSettings.weatherStripEnabled = true;
+  appSettings.weatherLat = rounded.lat;
+  appSettings.weatherLon = rounded.lon;
+  appSettings.weatherPlaceName = placeName || null;
+  appSettings.weatherCache = null;
+  if (typeof saveSettings === 'function') saveSettings();
+  if (S && typeof S.fetchHomeWeatherSnapshot === 'function') {
+    _homeWeatherFetchInFlight = true;
+    S.fetchHomeWeatherSnapshot(rounded.lat, rounded.lon).then(function(snap) {
+      _homeWeatherFetchInFlight = false;
+      if (snap) {
+        appSettings.weatherCache = snap;
+        if (typeof saveSettings === 'function') saveSettings();
+      }
+      if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+      if (!snap) showHomeWeatherUnavailable();
+    }).catch(function() {
+      _homeWeatherFetchInFlight = false;
+      if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+      showHomeWeatherUnavailable();
+    });
+  } else if (typeof applyHomeCardLayout === 'function') {
+    applyHomeCardLayout();
+  }
+}
+
+function weatherUiLanguage() {
+  var loc = (appSettings && appSettings.uiLocale) || (typeof navigator !== 'undefined' ? navigator.language : '') || 'en';
+  return String(loc).slice(0, 2).toLowerCase();
+}
+
+/** Manual city entry; shown when location is denied/unavailable. User text only ever goes through textContent / input.value. */
+function openHomeWeatherCityForm(reasonKey) {
+  var strip = document.getElementById('homeWeatherStrip');
+  if (!strip) return;
+  var S = getHomeSharedAi();
+  var maxLen = (S && S.PLACE_QUERY_MAX_LENGTH) || 80;
+  strip.hidden = false;
+  strip.classList.add('home-weather-strip--prompt');
+  strip.innerHTML =
+    '<form class="home-weather-city-form" novalidate>' +
+      (reasonKey ? '<p class="home-weather-city-form__lead" role="status">' + escapeHTML(tUi(reasonKey)) + '</p>' : '') +
+      '<label class="home-weather-city-form__label" for="homeWeatherCityInput">' + escapeHTML(tUi('home.weather.city.label')) + '</label>' +
+      '<div class="home-weather-city-form__row">' +
+        '<input id="homeWeatherCityInput" class="home-weather-city-form__input" type="text" inputmode="text" autocomplete="address-level2" maxlength="' + maxLen + '" placeholder="' + escapeAttr(tUi('home.weather.city.placeholder')) + '">' +
+        '<button type="submit" class="home-weather-city-form__submit">' + escapeHTML(tUi('home.weather.city.submit')) + '</button>' +
+      '</div>' +
+      '<p class="home-weather-city-form__error" role="alert" hidden></p>' +
+      '<div class="home-weather-city-form__actions">' +
+        '<button type="button" class="home-weather-city-form__locate">' + escapeHTML(tUi('home.weather.city.useLocation')) + '</button>' +
+        '<button type="button" class="home-weather-city-form__cancel">' + escapeHTML(tUi('home.weather.city.cancel')) + '</button>' +
+      '</div>' +
+    '</form>';
+  var form = strip.querySelector('.home-weather-city-form');
+  var input = strip.querySelector('#homeWeatherCityInput');
+  var submit = strip.querySelector('.home-weather-city-form__submit');
+  var errorEl = strip.querySelector('.home-weather-city-form__error');
+  var busy = false;
+  function showError(key) {
+    errorEl.textContent = tUi(key);
+    errorEl.hidden = false;
+  }
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (busy) return;
+    errorEl.hidden = true;
+    var q = S && typeof S.sanitizePlaceQuery === 'function' ? S.sanitizePlaceQuery(input.value) : null;
+    if (!q) { showError('home.weather.city.invalid'); input.focus(); return; }
+    if (typeof S.geocodePlace !== 'function') { showHomeWeatherUnavailable(); return; }
+    busy = true;
+    submit.disabled = true;
+    submit.setAttribute('aria-busy', 'true');
+    S.geocodePlace(q, { language: weatherUiLanguage() }).then(function (place) {
+      busy = false;
+      submit.disabled = false;
+      submit.removeAttribute('aria-busy');
+      if (!place) { showError('home.weather.city.notFound'); input.focus(); return; }
+      applyHomeWeatherCoords({ lat: place.lat, lon: place.lon }, place.name);
+    }).catch(function () {
+      busy = false;
+      submit.disabled = false;
+      submit.removeAttribute('aria-busy');
+      showError('home.weather.city.notFound');
+    });
+  });
+  strip.querySelector('.home-weather-city-form__locate').addEventListener('click', function () {
+    appSettings.weatherLocationDeniedAt = null;
+    if (typeof saveSettings === 'function') saveSettings();
+    if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+    enableHomeWeatherStrip({ forceGeolocation: true });
+  });
+  strip.querySelector('.home-weather-city-form__cancel').addEventListener('click', function () {
+    if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+  });
+  try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+}
+
+function enableHomeWeatherStrip(options) {
+  options = options || {};
+  if (_homeWeatherLocating) return;
+  var hasGeo = typeof navigator !== 'undefined' && !!navigator.geolocation;
+  // Safari reports geolocation permission as "prompt" even after a denial, so remember PERMISSION_DENIED ourselves.
+  if (!hasGeo || (appSettings.weatherLocationDeniedAt && !options.forceGeolocation)) {
+    openHomeWeatherCityForm();
     return;
   }
   var S = getHomeSharedAi();
+  _homeWeatherLocating = true;
+  setHomeWeatherPromptBusy(true);
   weatherOrbPromptState('loading');
   navigator.geolocation.getCurrentPosition(function(pos) {
+    _homeWeatherLocating = false;
+    setHomeWeatherPromptBusy(false);
     var rounded = S && typeof S.normalizeWeatherCoords === 'function'
       ? S.normalizeWeatherCoords(pos.coords.latitude, pos.coords.longitude)
       : null;
     if (!rounded) { weatherOrbPromptState('error'); return; }
     weatherOrbPromptState('success');
-    appSettings.weatherStripEnabled = true;
-    appSettings.weatherLat = rounded.lat;
-    appSettings.weatherLon = rounded.lon;
-    if (typeof saveSettings === 'function') saveSettings();
-    if (S && typeof S.fetchHomeWeatherSnapshot === 'function') {
-      S.fetchHomeWeatherSnapshot(rounded.lat, rounded.lon).then(function(snap) {
-        if (snap) {
-          appSettings.weatherCache = snap;
-          if (typeof saveSettings === 'function') saveSettings();
-        } else {
-          showHomeWeatherUnavailable();
-        }
-        if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
-      }).catch(function() {
-        showHomeWeatherUnavailable();
-        if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
-      });
-    } else if (typeof applyHomeCardLayout === 'function') {
-      applyHomeCardLayout();
-    }
-  }, function() {
+    appSettings.weatherLocationDeniedAt = null;
+    applyHomeWeatherCoords(rounded, null);
+  }, function(err) {
+    _homeWeatherLocating = false;
+    setHomeWeatherPromptBusy(false);
     weatherOrbPromptState('error');
-    if (typeof showToast === 'function') {
-      showToast(typeof tUi === 'function' ? tUi('home.weather.locationDenied') : 'Location denied', { type: 'error' });
+    var denied = !!(err && err.code === 1);
+    if (denied) {
+      appSettings.weatherLocationDeniedAt = Date.now();
+      if (typeof saveSettings === 'function') saveSettings();
     }
+    openHomeWeatherCityForm(denied ? 'home.weather.locationDeniedCity' : 'home.weather.locationUnavailable');
   }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
 }
 

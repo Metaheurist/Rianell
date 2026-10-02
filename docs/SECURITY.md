@@ -153,7 +153,7 @@ Unified **Delete cloud data** removes user-linked rows from `health_data`, `user
 
 ### `connect-src` and third-party hosts
 
-The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), **Open-Meteo** (`api.open-meteo.com`, `air-quality-api.open-meteo.com` for opt-in home weather), **Open Food Facts** (`world.openfoodfacts.org` for barcode food lookup), **Smartlook** (`web-sdk.smartlook.com`, `*.smartlook.com`, `*.smartlook.cloud` for opt-in session recording - also required in **`script-src`**), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed.
+The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), **Open-Meteo** (`api.open-meteo.com`, `air-quality-api.open-meteo.com` for opt-in home weather; `geocoding-api.open-meteo.com` for the manual city fallback, which sends only the typed city name), **Open Food Facts** (`world.openfoodfacts.org` for barcode food lookup), **Smartlook** (`web-sdk.smartlook.com`, `*.smartlook.com`, `*.smartlook.cloud` for opt-in session recording - also required in **`script-src`**), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed.
 
 ### Subresource Integrity (SRI)
 

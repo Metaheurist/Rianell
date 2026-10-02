@@ -99,3 +99,62 @@ export async function fetchHomeWeatherSnapshot(lat, lon, options = {}) {
   }
   return parseWeatherApiResponse(forecastJson, aqiJson);
 }
+
+export const PLACE_QUERY_MAX_LENGTH = 80;
+
+/**
+ * Manual city entry (used when geolocation is denied). Letters from any script, digits,
+ * spaces and common place-name punctuation only; returns null for anything else.
+ * @param {unknown} input
+ * @returns {string | null}
+ */
+export function sanitizePlaceQuery(input) {
+  if (typeof input !== 'string') return null;
+  const q = input.normalize('NFC').replace(/\s+/g, ' ').trim();
+  if (q.length < 2 || q.length > PLACE_QUERY_MAX_LENGTH) return null;
+  if (!/^[\p{L}\p{M}\d][\p{L}\p{M}\d .,'’\-()]*$/u.test(q)) return null;
+  return q;
+}
+
+export function buildGeocodingUrl(query, language = 'en') {
+  const q = sanitizePlaceQuery(query);
+  if (!q) return null;
+  const lang = /^[a-z]{2}$/i.test(String(language || '')) ? String(language).toLowerCase() : 'en';
+  const params = new URLSearchParams({ name: q, count: '1', language: lang, format: 'json' });
+  return `https://geocoding-api.open-meteo.com/v1/search?${params.toString()}`;
+}
+
+/**
+ * Keeps only a display label and rounded coordinates from the first geocoding result.
+ * @returns {{ name: string, lat: number, lon: number } | null}
+ */
+export function parseGeocodingResponse(json) {
+  const first = Array.isArray(json?.results) ? json.results[0] : null;
+  if (!first || typeof first !== 'object') return null;
+  const coords = normalizeWeatherCoords(first.latitude, first.longitude);
+  if (!coords) return null;
+  const parts = [first.name, first.admin1, first.country]
+    .filter((p) => typeof p === 'string' && p.trim())
+    .map((p) => p.trim().slice(0, 60));
+  const name = Array.from(new Set(parts)).join(', ').slice(0, 120);
+  if (!name) return null;
+  return { name, lat: coords.lat, lon: coords.lon };
+}
+
+/**
+ * @param {string} query
+ * @param {{ fetchFn?: typeof fetch, language?: string }} [options]
+ */
+export async function geocodePlace(query, options = {}) {
+  const url = buildGeocodingUrl(query, options.language);
+  if (!url) return null;
+  const fetchFn = options.fetchFn || (typeof fetch === 'function' ? fetch.bind(globalThis) : null);
+  if (!fetchFn) return null;
+  try {
+    const res = await fetchFn(url);
+    if (!res?.ok) return null;
+    return parseGeocodingResponse(await res.json());
+  } catch {
+    return null;
+  }
+}
