@@ -190,6 +190,102 @@ export function tidyHealthChatReply(text) {
   return collapseRepeatedSentences(addressUserInSecondPerson(text));
 }
 
+function splitSentences(text) {
+  const raw = String(text == null ? '' : text).trim();
+  if (!raw) return [];
+  return raw.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+}
+
+/**
+ * Keep the first `max` sentences.
+ * @param {string} text
+ * @param {number} max
+ * @returns {string}
+ */
+export function limitSentences(text, max) {
+  return splitSentences(text).slice(0, Math.max(0, max)).join(' ');
+}
+
+// Sentences about logging or missing data are what the system prompt asks for
+// ("say so briefly and suggest logging it"), so no filter below may remove them.
+const LOGGING_SENTENCE_RE = /\b(log|logs|logged|logging|track|tracking|more days|not enough|no trend|yet)\b/i;
+const COMPARISON_RE =
+  /\b(yesterday|improved|improving|worsened|worsening|dropped|increased|decreased|compared|than before|lately|trends?)\b/i;
+const CAUSE_RE =
+  /\b(which (?:is|was) why|that's why|that is why|because|due to|caused|led to|as a result|suggest(?:s|ing) that|is influencing)\b/i;
+const TIP_RE =
+  /\b(try|trying|consider|please|make sure|aim to|you should|it may help|to help you|continue to|prioriti[sz]e|(?:this|that|it) (?:will|should|can|may) (?:likely )?(?:help|improve|boost|support))\b/i;
+
+function keepSentence(sentence, dropRe) {
+  return LOGGING_SENTENCE_RE.test(sentence) || !dropRe.test(sentence);
+}
+
+/**
+ * With fewer than 2 logged days there is nothing to compare, so drop sentences
+ * claiming a change or trend.
+ * @param {string} text
+ * @param {{ loggedDays?: number }} [options]
+ * @returns {string}
+ */
+export function dropUnsupportedComparisons(text, { loggedDays = 0 } = {}) {
+  const sentences = splitSentences(text);
+  if (Number(loggedDays) >= 2) return sentences.join(' ');
+  return sentences.filter((s) => keepSentence(s, COMPARISON_RE)).join(' ');
+}
+
+/**
+ * The chat context never contains causes, so any cause-and-effect claim is
+ * invented. Trim the clause from the cause marker on ("You slept poorly, which
+ * was why…" -> "You slept poorly."), or drop the sentence if too little is left.
+ * @param {string} text
+ * @returns {string}
+ */
+export function dropUnsupportedCauses(text) {
+  return splitSentences(text)
+    .map((s) => {
+      if (keepSentence(s, CAUSE_RE)) return s;
+      const head = s.slice(0, s.search(CAUSE_RE)).replace(/[\s,;:\u2013\u2014-]+$/, '');
+      return head.split(/\s+/).filter(Boolean).length >= 3 ? `${head}.` : '';
+    })
+    .filter(Boolean)
+    .join(' ');
+}
+
+/**
+ * Drop tip sentences unless the user asked for advice; then keep only the first.
+ * @param {string} text
+ * @param {{ adviceRequested?: boolean }} [options]
+ * @returns {string}
+ */
+export function dropUnsolicitedTips(text, { adviceRequested = false } = {}) {
+  let tipsLeft = adviceRequested ? 1 : 0;
+  return splitSentences(text)
+    .filter((s) => {
+      if (keepSentence(s, TIP_RE)) return true;
+      if (tipsLeft > 0) {
+        tipsLeft -= 1;
+        return true;
+      }
+      return false;
+    })
+    .join(' ');
+}
+
+/**
+ * English-only grounding pass for the health chat: trim invented causes, drop
+ * comparisons the log cannot support and unrequested tips, then cap at 3
+ * sentences. Returns '' when nothing survives so the caller can fall back.
+ * @param {string} text
+ * @param {{ loggedDays?: number, adviceRequested?: boolean }} [options]
+ * @returns {string}
+ */
+export function groundHealthChatReply(text, { loggedDays = 0, adviceRequested = false } = {}) {
+  let out = dropUnsupportedCauses(text);
+  out = dropUnsupportedComparisons(out, { loggedDays });
+  out = dropUnsolicitedTips(out, { adviceRequested });
+  return limitSentences(out, 3);
+}
+
 /**
  * Defense-in-depth output gate for the model runner. Returns the canned blocked
  * message when the reply trips the NSFW filter, otherwise the tidied reply.

@@ -587,6 +587,14 @@
       if (S && typeof S.isNsfwText === 'function' && S.isNsfwText(reply)) {
         return blockedGuardrailMessage('nsfw');
       }
+      // The word lists are English; other locales keep the model reply as-is.
+      var locale = String(chatLocale() || '').toLowerCase();
+      if (reply && reply !== fallback && locale.indexOf('en') === 0 && S && typeof S.groundHealthChatReply === 'function') {
+        reply = S.groundHealthChatReply(reply, {
+          loggedDays: (_analysis && _analysis.totalLogs) || 0,
+          adviceRequested: FASTPATH_ADVICE_RE.test(String(userMessage || '').toLowerCase()),
+        }) || fallback;
+      }
       return reply;
     } catch (_) {
       return fallback;

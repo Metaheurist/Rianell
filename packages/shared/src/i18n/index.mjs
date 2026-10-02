@@ -102,4 +102,9 @@ export {
   collapseRepeatedSentences,
   addressUserInSecondPerson,
   tidyHealthChatReply,
+  limitSentences,
+  dropUnsupportedComparisons,
+  dropUnsupportedCauses,
+  dropUnsolicitedTips,
+  groundHealthChatReply,
 } from '../ai/chatGuardrails.mjs';
