@@ -24695,6 +24695,12 @@ function __rianellRunAfterShellRevealed(fn) {
 }
 
 /** Defers 3D work until the shell is revealed + idle so boot stays lean. */
+/** three.js scenes are skipped on phones / low-memory devices (GPU memory pressure crashes iOS tabs). */
+function __rianellAllow3DScenes() {
+  var guard = typeof window !== 'undefined' ? window.RianellBootGuard : null;
+  return !(guard && typeof guard.isConstrainedDevice === 'function' && guard.isConstrainedDevice());
+}
+
 function scheduleHome3DEnhancement(run) {
   __rianellRunAfterShellRevealed(function () {
     var idle = typeof window.requestIdleCallback === 'function'
@@ -24730,6 +24736,7 @@ function lazyLoadWeatherOrb3D() {
 
 /** Defers 3D orb work until the browser is idle so boot stays lean. */
 function scheduleWeatherOrbEnhancement(run) {
+  if (!__rianellAllow3DScenes()) return;
   scheduleHome3DEnhancement(function () {
     lazyLoadWeatherOrb3D().then(function (orb) {
       if (orb && orb.canUse3D()) run(orb);
@@ -24790,6 +24797,7 @@ function scheduleGoalsProgress3DEnhancement(block) {
   scheduleHome3DEnhancement(function () {
     lazyLoadGoalsProgressSvg().then(function (svgMod) {
       if (svgMod && block.isConnected) svgMod.enhanceBlock(block);
+      if (!__rianellAllow3DScenes()) return;
       lazyLoadGoalsProgress3D().then(function (mod) {
         if (mod && mod.canUse3D() && block.isConnected) mod.enhanceBlock(block);
       });
@@ -24822,7 +24830,7 @@ function lazyLoadDiscoveryOrb3D() {
 }
 
 function scheduleDiscoveryOrbEnhancement(section) {
-  if (!section) return;
+  if (!section || !__rianellAllow3DScenes()) return;
   scheduleHome3DEnhancement(function () {
     lazyLoadDiscoveryOrb3D().then(function (mod) {
       if (mod && mod.canUse3D() && section.isConnected) mod.enhanceSection(section);
@@ -27697,12 +27705,55 @@ function runRianellBootAfterDomReady() {
   }
   if (typeof window !== 'undefined') window.ensureDemoModeAiModelInit = ensureDemoModeAiModelInit;
 
-  function runPostShellIdleWork(skipAiPreload) {
-    if (typeof ensureDemoModeAiModelInit === 'function') ensureDemoModeAiModelInit();
+  var bootGuard = window.RianellBootGuard || null;
+  var llmLoadInterruptedLastSession = !!(bootGuard && bootGuard.consumeInterruptedLlmLoad());
+  var constrainedDevice = !!(bootGuard && bootGuard.isConstrainedDevice());
+
+  /**
+   * Background model download at boot is opt-in only: consent already granted, a desktop-class
+   * device, and the previous session did not die mid-load. Phones load the model on demand
+   * (Settings or first AI use) so a crash can never repeat on every launch.
+   */
+  function canAutoLoadLlmAtBoot() {
+    if (appSettings.aiEnabled === false) return false;
+    if (appSettings.aiModelDownloadConsent !== 'granted') return false;
+    if (constrainedDevice || llmLoadInterruptedLastSession) return false;
+    if (bootGuard && bootGuard.isLlmSafeMode()) return false;
+    return typeof window.preloadSummaryLLM === 'function';
+  }
+
+  function showBootGuardNotices() {
+    if (typeof showToast !== 'function' || typeof tUi !== 'function') return;
+    if (llmLoadInterruptedLastSession) {
+      showToast(tUi('boot.guard.aiInterrupted'), { type: 'info', duration: 8000 });
+      return;
+    }
+    if (bootGuard && bootGuard.shouldShowCrashNotice()) {
+      bootGuard.markCrashNoticeShown();
+      showToast(tUi('boot.guard.closedUnexpectedly'), {
+        type: 'info',
+        duration: 10000,
+        action: {
+          label: tUi('boot.guard.copyReport'),
+          onClick: function () {
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(bootGuard.getCrashReport());
+              }
+            } catch (e) { /* ignore */ }
+          }
+        }
+      });
+    }
+  }
+
+  function runPostShellIdleWork() {
+    if (typeof ensureDemoModeAiModelInit === 'function' && !constrainedDevice && !llmLoadInterruptedLastSession) {
+      ensureDemoModeAiModelInit();
+    }
     const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
     const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
-    const shouldPreloadAi = !skipAiPreload && !window.__rianellAiPreloadedDuringBoot
-      && appSettings.aiModelDownloadConsent !== 'deferred';
+    const shouldPreloadAi = canAutoLoadLlmAtBoot();
 
     function runChartsWhenIdle() {
       if (!needCharts) return Promise.resolve();
@@ -27717,9 +27768,7 @@ function runRianellBootAfterDomReady() {
     }
 
     function runAiWhenIdle() {
-      if (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function' || !shouldPreloadAi) {
-        return Promise.resolve();
-      }
+      if (!shouldPreloadAi) return Promise.resolve();
       return waitForMainThreadHeavyWorkSlot(120000).then(function (ok) {
         if (!ok) return Promise.resolve();
         return runBackgroundTask(function () {
@@ -27739,7 +27788,7 @@ function runRianellBootAfterDomReady() {
       return runAiWhenIdle();
     }).then(function () {
       if (typeof updateDashboardTitle === 'function') updateDashboardTitle();
-      if (appSettings.aiEnabled !== false && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
+      if (appSettings.aiEnabled !== false && !constrainedDevice && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
         var cached = window.DeviceBenchmark.getCachedResult();
         if (cached && cached.gpu && cached.gpu.good) {
           var warm = function() {
@@ -27763,8 +27812,9 @@ function runRianellBootAfterDomReady() {
       var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
       if (!window.__chartsBuiltDuringLoad && !isLow && typeof scheduleChartsPreload === 'function') scheduleChartsPreload();
       window.__chartsBuiltDuringLoad = false;
-      if (!isLow && !window.__rianellAiPreloadedDuringBoot && typeof scheduleAIPreload === 'function') scheduleAIPreload();
+      if (!isLow && !constrainedDevice && typeof scheduleAIPreload === 'function') scheduleAIPreload();
       clearAISection();
+      if (bootGuard) bootGuard.recordBootPhase('ready');
       if (appSettings.showCharts && logs && logs.length > 0 && appSettings.chartView === 'individual') {
         requestAnimationFrame(function() {
           setTimeout(function() {
@@ -27776,64 +27826,30 @@ function runRianellBootAfterDomReady() {
     });
   }
 
-  function shouldAwaitAiDownloadBeforeShell() {
-    if (appSettings.aiEnabled === false) return false;
-    if (typeof window.isInstalledPwa !== 'function' || !window.isInstalledPwa()) return false;
-    if (typeof window.isMobileViewport !== 'function' || !window.isMobileViewport()) return false;
-    return typeof window.preloadSummaryLLM === 'function';
-  }
-
-  function schedulePostShellIdleWork(skipAiPreload) {
-    var run = function () { runPostShellIdleWork(skipAiPreload); };
-    /* Let the shell paint before AI download consent can cover it with a full-screen backdrop. */
-    var delayMs = skipAiPreload ? 0 : 1200;
-    var start = function () {
+  function schedulePostShellIdleWork() {
+    var run = function () { runPostShellIdleWork(); };
+    /* Let the shell paint and settle before any background AI or chart work starts. */
+    setTimeout(function () {
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(run, { timeout: 4000 });
       } else {
         setTimeout(run, 0);
       }
-    };
-    if (delayMs > 0) {
-      setTimeout(start, delayMs);
-    } else {
-      start();
-    }
+    }, 1200);
   }
 
-  var awaitAiDuringBoot = shouldAwaitAiDownloadBeforeShell();
   if (typeof window.setAiModelDownloadUiMode === 'function') {
-    window.setAiModelDownloadUiMode(awaitAiDuringBoot ? 'blocking' : undefined);
+    window.setAiModelDownloadUiMode(undefined);
   }
 
   /* Reveal the shell before AI preload so consent modals and onboarding overlays stay tappable. */
   revealAppShellWithLocale();
+  if (bootGuard) bootGuard.recordBootPhase('shell');
   setTimeout(function () {
-    if (window.OasisCanvas) window.OasisCanvas.init();
+    if (window.OasisCanvas && !constrainedDevice) window.OasisCanvas.init();
+    showBootGuardNotices();
   }, 0);
-  schedulePostShellIdleWork(awaitAiDuringBoot);
-
-  if (awaitAiDuringBoot) {
-    var aiBootChain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
-      ? window.PerformanceUtils.ensureAIEngineLoaded()
-      : Promise.resolve();
-    aiBootChain.then(function () {
-      return waitForMainThreadHeavyWorkSlot(120000).then(function (ok) {
-        if (!ok) return Promise.resolve();
-        return runBackgroundTask(function () {
-          return window.preloadSummaryLLM().then(function () {
-            if (typeof preloadAIForAllRanges === 'function') {
-              return preloadAIForAllRanges();
-            }
-          });
-        });
-      });
-    }).catch(function () {
-      /* deferred consent or download failure */
-    }).then(function () {
-      window.__rianellAiPreloadedDuringBoot = true;
-    });
-  }
+  schedulePostShellIdleWork();
 
   if (!appSettings.weightUnit) {
       appSettings.weightUnit = 'kg';

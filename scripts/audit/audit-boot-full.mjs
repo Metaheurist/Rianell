@@ -73,7 +73,7 @@ async function bootProbe(cold) {
 
     await page.goto(PROBE_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
     try {
-      await page.waitForSelector('script[src*="app."]', { timeout: 90000 });
+      await page.waitForSelector('script[src*="app."]', { state: 'attached', timeout: 90000 });
     } catch (e) {
       // Script may appear after domcontentloaded; final snap below decides.
     }

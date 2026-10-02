@@ -481,8 +481,12 @@
     var prefs = typeof window !== 'undefined' && window.appSettings;
     var preferred = prefs && prefs.preferredLlmModelSize;
     var tierKey;
+    var guard = typeof window !== 'undefined' ? window.RianellBootGuard : null;
     if (preferred && preferred !== 'recommended' && /^tier[1-5]$/.test(preferred)) {
       tierKey = preferred;
+    } else if (guard && (guard.isLlmSafeMode() || guard.isConstrainedDevice())) {
+      // Phones / low-memory devices and post-crash sessions use the small package.
+      tierKey = 'tier1';
     } else if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
       var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
         ? window.DeviceBenchmark.getPlatformTypeCached()
@@ -1185,6 +1189,8 @@
       lastDownloadError = null;
       clearFinalizeWatchdog();
       downloadFileBytes = {};
+      var bootGuard = typeof window !== 'undefined' ? window.RianellBootGuard : null;
+      if (bootGuard) bootGuard.markLlmLoadStart(modelId);
       var myGen = loadGeneration;
       var platformKind = getPlatformKindForLoad();
       maybeWarnMemoryCap(platformKind);
@@ -1390,9 +1396,12 @@
     })();
 
     try {
-      return await loadInFlight;
+      var loadedPipe = await loadInFlight;
+      if (typeof window !== 'undefined' && window.RianellBootGuard) window.RianellBootGuard.clearLlmSafeMode();
+      return loadedPipe;
     } finally {
       loadInFlight = null;
+      if (typeof window !== 'undefined' && window.RianellBootGuard) window.RianellBootGuard.markLlmLoadEnd();
     }
   }
 
