@@ -1,6 +1,6 @@
 /* Rianell PWA - versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
-var CACHE_NAME = CACHE_PREFIX + 'v2026-10-02-llm-models-v9';
+var CACHE_NAME = CACHE_PREFIX + 'v2026-10-02-nav-key-v10';
 /** app.<hash>.min.js / styles.<hash>.css never change once published. */
 var HASHED_ASSET_RE = /\.[0-9a-f]{10,}(\.min)?\.(js|css)$/i;
 
@@ -76,8 +76,20 @@ function matchCachedDocument() {
   });
 }
 
-function offlineDocumentResponse() {
-  return matchCachedDocument().then(function (cached) {
+/** One cache entry per page: '/?cb=1', '/?_sw=…' and '/index.html' all refresh the shell copy the offline fallback serves. */
+function navigationCacheKey(url) {
+  var scopePath = '/';
+  try {
+    if (self.registration && self.registration.scope) scopePath = new URL(self.registration.scope).pathname;
+  } catch (err) {}
+  if (url.pathname === scopePath || url.pathname === scopePath + 'index.html') return url.origin + scopePath + 'index.html';
+  return url.origin + url.pathname;
+}
+
+function offlineDocumentResponse(key) {
+  return (key ? caches.match(key) : Promise.resolve(null)).then(function (hit) {
+    return hit || matchCachedDocument();
+  }).then(function (cached) {
     if (cached) return cached;
     return new Response(OFFLINE_HTML, {
       status: 200,
@@ -126,14 +138,15 @@ self.addEventListener('fetch', function (e) {
     var accept = req.headers.get('accept') || '';
     if (req.mode === 'navigate' || accept.indexOf('text/html') !== -1) {
       // Revalidate HTML with the server so a stale HTTP-cached index.html never boots the previous deploy's bundles.
+      var navKey = navigationCacheKey(url);
       e.respondWith(
         fetch(req, { cache: 'no-cache' })
           .then(function (res) {
-            cacheInBackground(e, req, res);
+            cacheInBackground(e, navKey, res);
             return res;
           })
           .catch(function () {
-            return offlineDocumentResponse();
+            return offlineDocumentResponse(navKey);
           })
       );
       return;

@@ -159,8 +159,8 @@ if (siteDir) {
   const mainJs = fingerprintAppJs(siteDir);
   const mainCss = fingerprintStylesheet(siteDir);
   const manifest = { mainJs, mainCss: mainCss || undefined };
-  writeAssetManifest(siteDir, manifest);
-  patchIndexHtml(path.join(siteDir, 'index.html'), manifest);
+  const buildId = patchIndexHtml(path.join(siteDir, 'index.html'), manifest);
+  writeAssetManifest(siteDir, { ...manifest, buildId });
   console.log(
     '[build-site] fingerprinted',
     mainJs + (mainCss ? `, ${mainCss}` : ''),
