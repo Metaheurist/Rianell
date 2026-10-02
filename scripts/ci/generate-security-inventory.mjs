@@ -5,6 +5,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { readAppSource } from '../lib/app-source.mjs';
 
 const SCHEMA_VERSION = 1;
 const root = process.cwd();
@@ -40,7 +41,7 @@ function generate() {
   const rootPkg = readJson('package.json');
   const indexHtml = readText('apps/pwa-webapp/index.html');
   const schemaSql = readText('supabase/Schema.sql');
-  const appJs = readText('apps/pwa-webapp/app.js');
+  const appJs = readAppSource();
   const cloudSync = readText('apps/pwa-webapp/cloud-sync.js');
   const benchJs = readText('apps/pwa-webapp/device-benchmark.js');
 

@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readAppSource } from '../lib/app-source.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const errors = [];
@@ -13,7 +14,7 @@ const sw = readFileSync(join(root, 'apps/pwa-webapp/sw.js'), 'utf8');
 const pushJs = readFileSync(join(root, 'apps/pwa-webapp/push-subscribe.js'), 'utf8');
 const pushConfig = readFileSync(join(root, 'apps/pwa-webapp/push-config.js'), 'utf8');
 const indexHtml = readFileSync(join(root, 'apps/pwa-webapp/index.html'), 'utf8');
-const appJs = readFileSync(join(root, 'apps/pwa-webapp/app.js'), 'utf8');
+const appJs = readAppSource();
 
 if (!/addEventListener\(\s*['"]push['"]/.test(sw)) {
   errors.push('sw.js must handle push events');

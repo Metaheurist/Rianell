@@ -15,6 +15,7 @@ import {
   MEAL_PHOTO_CATEGORY,
 } from '@rianell/shared';
 import { detectFoodSensitivities } from '@rianell/ai-engine';
+import { readAppSource } from '../../scripts/lib/app-source.mjs';
 
 const root = join(import.meta.dirname, '..', '..');
 
@@ -82,7 +83,7 @@ test('detectFoodSensitivities returns array for sufficient logs', () => {
 
 test('PWA food search UI is wired', () => {
   const html = readFileSync(join(root, 'apps/pwa-webapp/index.html'), 'utf8');
-  const js = readFileSync(join(root, 'apps/pwa-webapp/app.js'), 'utf8');
+  const js = readAppSource();
   assert.match(html, /foodSearchInput/);
   assert.match(js, /bindFoodSearchUi/);
   assert.match(js, /bindMealPhotoUi/);

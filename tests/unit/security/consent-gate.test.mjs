@@ -5,6 +5,7 @@ import {
   getConsentBlockReason,
   isHealthLoggingUnlocked,
 } from '../../../packages/shared/src/privacy/consentGate.mjs';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 const ctx = { platform: 'pwa', tutorialSeenLegacy: false };
 
@@ -48,7 +49,7 @@ test('PWA enforces consent beyond overlay CSS', () => {
 });
 
 test('app.js guards health log writes behind consent', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /requireHealthLoggingUnlocked/);
   assert.match(appJs, /saveLogsToStorage\(\) \{[\s\S]*requireHealthLoggingUnlocked\('save-logs'\)/);
   assert.match(appJs, /openLogWizardFromHome[\s\S]*requireHealthLoggingUnlocked/);

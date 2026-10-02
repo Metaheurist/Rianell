@@ -1,16 +1,17 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('boot flow does not auto-open first-run benchmark modal', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /function revealBootShellAfterBenchmark/);
   assert.doesNotMatch(appJs, /openPerfBenchmarkModal\(\{\s*mode:\s*'firstRun'/);
   assert.match(appJs, /startAppAfterPrivacyGate\(\)/);
 });
 
 test('benchmark modal is exposed via god mode developer section', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /godMode\.viewBenchmarkDetails/);
   assert.match(appJs, /action: run\(openBenchmarkDetails\)/);
   assert.doesNotMatch(
@@ -20,7 +21,7 @@ test('benchmark modal is exposed via god mode developer section', () => {
 });
 
 test('boot benchmark progress uses measuring fallback before i18n is ready', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /Measuring performance…/);
   assert.match(appJs, /translated !== 'common\.measuring\.performance'/);
 });
@@ -66,7 +67,7 @@ test('boot CPU batches stay small under cold JIT', () => {
 });
 
 test('boot watchdog aborts an in-flight benchmark before force reveal', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(appJs, /abortActiveSuite/);
   assert.match(appJs, /bootWatchdog:forceReveal/);
 });
@@ -97,7 +98,7 @@ test('GPU probe never blocks first paint (revealed before probe, off critical pa
 });
 
 test('3D/WebGL capability probes are gated on shell reveal (never block boot)', () => {
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   // Shared gate that waits for body.loaded before any GPU/WebGL work.
   assert.match(appJs, /function __rianellRunAfterShellRevealed/);
   assert.match(appJs, /__rianellRunAfterShellRevealed[\s\S]*classList\.contains\('loaded'\)/);

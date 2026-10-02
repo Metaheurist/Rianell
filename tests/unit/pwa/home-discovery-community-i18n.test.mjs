@@ -2,20 +2,20 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
-const APP_JS = 'apps/pwa-webapp/app.js';
 const AI_CHAT_JS = 'apps/pwa-webapp/modules/ai-chat.js';
 const LOCALE_DIR = 'i18n-packs/locale-packs/v1';
 
 test('closeHomeDiscoveryModal noop self-reassign is removed from app.js', () => {
-  const js = readFileSync(APP_JS, 'utf8');
+  const js = readAppSource();
   assert.doesNotMatch(js, /function closeHomeDiscoveryModal/);
   assert.doesNotMatch(js, /closeHomeDiscoveryModal\s*=\s*function\s*\(\s*\)\s*\{\s*\}/);
   assert.doesNotMatch(js, /window\.closeHomeDiscoveryModal/);
 });
 
 test('renderCommunityTipsPane is awaited inside updateHomeTodayPanel', () => {
-  const js = readFileSync(APP_JS, 'utf8');
+  const js = readAppSource();
   const panelMatch = js.match(/async function updateHomeTodayPanel\(\)\s*\{([\s\S]*?)\n\}/);
   assert.ok(panelMatch, 'updateHomeTodayPanel should be async');
   const body = panelMatch[1];
@@ -25,7 +25,7 @@ test('renderCommunityTipsPane is awaited inside updateHomeTodayPanel', () => {
 });
 
 test('refreshAllTabsForLocaleChange does not call renderCommunityTipsPane without await', () => {
-  const js = readFileSync(APP_JS, 'utf8');
+  const js = readAppSource();
   const refreshMatch = js.match(/async function refreshAllTabsForLocaleChange\(\)\s*\{([\s\S]*?)\n\}/);
   assert.ok(refreshMatch, 'refreshAllTabsForLocaleChange should be async');
   const body = refreshMatch[1];

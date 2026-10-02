@@ -1,8 +1,9 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
-const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+const appJs = readAppSource();
 const perfUtils = readFileSync('apps/pwa-webapp/performance-utils.js', 'utf8');
 const privacyRegion = readFileSync('apps/pwa-webapp/privacy-region.js', 'utf8');
 const summaryLlm = readFileSync('apps/pwa-webapp/summary-llm.js', 'utf8');

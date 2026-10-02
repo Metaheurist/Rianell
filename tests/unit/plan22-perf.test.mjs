@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { readAppSource } from '../../scripts/lib/app-source.mjs';
 
 const root = join(import.meta.dirname, '..', '..');
 
@@ -11,6 +12,6 @@ test('bundle split verify script passes markers', () => {
 });
 
 test('PWA app.js includes lazy chart loading', () => {
-  const app = readFileSync(join(root, 'apps/pwa-webapp/app.js'), 'utf8');
+  const app = readAppSource();
   assert.ok(/lazyCharts|lazyLoadCharts|import\s*\(/.test(app));
 });

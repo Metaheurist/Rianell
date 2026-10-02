@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('app.js uses dedicated achievement icon renderer', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /GP\.renderAchievementIconHTML\(s\.id/);
 });
 

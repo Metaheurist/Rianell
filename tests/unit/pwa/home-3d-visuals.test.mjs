@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('home 3D modules lazy-load three.js from vendor', () => {
   for (const mod of ['goals-progress-3d.js', 'discovery-orb-3d.js', 'weather-orb-3d.js']) {
@@ -13,7 +14,7 @@ test('home 3D modules lazy-load three.js from vendor', () => {
 });
 
 test('app.js wires goals and discovery 3D enhancement hooks', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /lazyLoadGoalsProgress3D/);
   assert.match(js, /lazyLoadGoalsProgressSvg/);
   assert.match(js, /lazyLoadDiscoveryOrb3D/);
@@ -36,7 +37,7 @@ test('goals progress SVG module renders animated seven-day charts', () => {
 });
 
 test('goals progress day chips and slots react to target vs result', () => {
-  const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const app = readAppSource();
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
   const portfolio = readFileSync('apps/pwa-webapp/modules/graphics-portfolio.js', 'utf8');
   assert.match(app, /daysDotsFromPcts/);

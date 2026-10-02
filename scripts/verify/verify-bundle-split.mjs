@@ -2,10 +2,11 @@
 /** Plan 22 PF1 — verify bundle split / lazy-load markers in PWA build. */
 import fs from 'node:fs';
 import path from 'node:path';
+import { readAppSource } from '../lib/app-source.mjs';
 
 const root = process.cwd();
 const buildSite = fs.readFileSync(path.join(root, 'apps/pwa-webapp/build-site.mjs'), 'utf8');
-const appJs = fs.readFileSync(path.join(root, 'apps/pwa-webapp/app.js'), 'utf8');
+const appJs = readAppSource();
 
 const checks = [
   { name: 'lazyCharts pref', ok: /lazyCharts/.test(appJs) },

@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { readAppSource } from '../../scripts/lib/app-source.mjs';
 
 const indexHtml = fs.readFileSync(new URL('../../apps/pwa-webapp/index.html', import.meta.url), 'utf8');
-const appJs = fs.readFileSync(new URL('../../apps/pwa-webapp/app.js', import.meta.url), 'utf8');
+const appJs = readAppSource();
 const stylesCss = fs.readFileSync(new URL('../../apps/pwa-webapp/styles.css', import.meta.url), 'utf8');
 
 function extractFunctionBlock(source, functionName) {

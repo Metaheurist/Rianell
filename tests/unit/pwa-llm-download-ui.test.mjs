@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { readAppSource } from '../../scripts/lib/app-source.mjs';
 
 const summaryLlm = fs.readFileSync(
   new URL('../../apps/pwa-webapp/summary-llm.js', import.meta.url),
@@ -14,10 +15,7 @@ const styles = fs.readFileSync(
   new URL('../../apps/pwa-webapp/styles.css', import.meta.url),
   'utf8',
 );
-const appJs = fs.readFileSync(
-  new URL('../../apps/pwa-webapp/app.js', import.meta.url),
-  'utf8',
-);
+const appJs = readAppSource();
 
 test('PWA LLM download UI uses generic i18n label (not Hugging Face filenames)', () => {
   assert.match(uiFeedback, /common\.downloading\.ai\.model/);

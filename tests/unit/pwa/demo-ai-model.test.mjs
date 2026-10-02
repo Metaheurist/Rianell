@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
-const app = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+const app = readAppSource();
 const llm = readFileSync('apps/pwa-webapp/summary-llm.js', 'utf8');
 
 test('PWA demo mode allows on-device AI download and init', () => {

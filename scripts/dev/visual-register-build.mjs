@@ -8,6 +8,7 @@ import path from 'path';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 import { THEME_FX_TOKENS, getTeamIds } from '@rianell/tokens';
+import { readAppSource } from '../lib/app-source.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../..');
@@ -159,7 +160,7 @@ function entry(partial) {
 function build() {
   const html = fs.readFileSync(path.join(pwa, 'index.html'), 'utf8');
   const portfolioSrc = fs.readFileSync(path.join(pwa, 'modules/graphics-portfolio.js'), 'utf8');
-  const appJs = fs.readFileSync(path.join(pwa, 'app.js'), 'utf8');
+  const appJs = readAppSource();
   const themeFx = fs.readFileSync(path.join(pwa, 'modules/theme-fx.js'), 'utf8');
   const oasisJs = fs.readFileSync(path.join(pwa, 'modules/oasis-canvas.js'), 'utf8');
 

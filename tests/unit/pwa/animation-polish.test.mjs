@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('styles.css tab transitions use wider travel and motion tokens', () => {
   const css = readFileSync('apps/pwa-webapp/styles.css', 'utf8');
@@ -96,7 +97,7 @@ test('styles.css body.reduce-motion disables webgl and hero stagger', () => {
 });
 
 test('app.js wires lazyLoadWebGL and syncReduceMotionBodyClass', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /async function lazyLoadWebGL/);
   assert.match(js, /function syncReduceMotionBodyClass/);
   assert.match(js, /initWebGLSurfacesForTab/);
@@ -160,7 +161,7 @@ test('AI Analysis and Overview icons are sized for visibility', () => {
 
 test('index.html AI chapter sprites include overview monitor and trends vitals', () => {
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
-  const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const appJs = readAppSource();
   assert.match(html, /id="icon-overview-monitor"/);
   assert.match(html, /overview-monitor-bezel/);
   assert.doesNotMatch(html, /overview-monitor-page|overviewMonitorScreenClip/);

@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 test('app.js renders Things to watch as ranked metric cards', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   const catalog = readFileSync('i18n-packs/locale-packs/v1/en-GB.json', 'utf8');
   assert.match(js, /function renderAIThingsToWatch/);
   assert.match(js, /ai-watch-grid/);
@@ -23,7 +24,7 @@ test('AIEngine outliers emit structured watch items', () => {
 });
 
 test('normalizeAnomalyWatchItem parses legacy outlier strings', () => {
-  const js = readFileSync('apps/pwa-webapp/app.js', 'utf8');
+  const js = readAppSource();
   assert.match(js, /unusual values detected/i);
   assert.match(js, /function normalizeAnomalyWatchItem/);
   assert.match(js, /function anomalyToPlainText/);

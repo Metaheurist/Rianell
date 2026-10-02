@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { readAppSource } from '../../scripts/lib/app-source.mjs';
 
 const enGb = JSON.parse(
   fs.readFileSync(new URL('../../i18n-packs/locale-packs/v1/en-GB.json', import.meta.url), 'utf8'),
@@ -37,13 +38,7 @@ test('PWA policy viewer shows disclaimer for non-en-GB locales', () => {
 });
 
 test('no UGC auto-translate helper in app sources', () => {
-  const roots = [
-    '../../apps/pwa-webapp/app.js',
-  ];
-  for (const rel of roots) {
-    const src = fs.readFileSync(new URL(rel, import.meta.url), 'utf8');
-    assert.doesNotMatch(src, /translateUgcForDisplay/);
-  }
+  assert.doesNotMatch(readAppSource(), /translateUgcForDisplay/);
 });
 
 test('PWA export uses localized CSV headers only', () => {

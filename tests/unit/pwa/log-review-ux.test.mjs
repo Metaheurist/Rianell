@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { readAppSource } from '../../../scripts/lib/app-source.mjs';
 
 const root = process.cwd();
-const appPath = path.join(root, 'apps/pwa-webapp/app.js');
 const widgetsPath = path.join(root, 'apps/pwa-webapp/modules/log-metric-widgets.js');
 const vitalsPath = path.join(root, 'apps/pwa-webapp/modules/advanced-vitals-widgets.js');
 const cssPath = path.join(root, 'apps/pwa-webapp/styles.css');
@@ -17,7 +17,7 @@ test('severity metrics use High/Low scale hints and raw readout', () => {
 });
 
 test('buildLogReviewSummaryHtml shows raw severity bars and urgent vitals rows', () => {
-  const src = fs.readFileSync(appPath, 'utf8');
+  const src = readAppSource();
   const css = fs.readFileSync(cssPath, 'utf8');
   assert.match(src, /log-review-metric-bar/);
   assert.match(src, /formatReviewMetric/);
