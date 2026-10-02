@@ -1,6 +1,6 @@
 # Execution plans - archive index
 
-> **Historical.** Plans **01–26** are complete (see [MASTER.md](./MASTER.md)). This folder is an archive, not an open agent queue. Active roadmap: [`../next-phase-development-plan.md`](../next-phase-development-plan.md). Current product: **npm 2.6.0**.
+> **Historical.** Plans **01–26** are complete (see [MASTER.md](./MASTER.md)). This folder is an archive, not an open agent queue. Active roadmap: [`../next-phase-development-plan.md`](../next-phase-development-plan.md). Current product: **npm 2.7.0**.
 
 Early index (plans 01–14 / 87 features at v1.111.0) is preserved below; MASTER is authoritative for 15–26 closeout.
 

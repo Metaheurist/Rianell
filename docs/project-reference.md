@@ -4,12 +4,19 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
-**Current product:** npm **v2.6.0** · PWA-only (`apps/pwa-webapp`) · optional Python/Tkinter `server/` · living roadmap [`next-phase-development-plan.md`](next-phase-development-plan.md). Feature rollout plans 01–26 are a closed archive ([`plans/MASTER.md`](plans/MASTER.md)).
+**Current product:** npm **v2.7.0** · PWA-only (`apps/pwa-webapp`) · optional Python/Tkinter `server/` · living roadmap [`next-phase-development-plan.md`](next-phase-development-plan.md). Feature rollout plans 01–26 are a closed archive ([`plans/MASTER.md`](plans/MASTER.md)).
 
 ### Unreleased documentation sync (agentic AIO harness)
 
 - **Tooling:** Local Agentic AIO at `/dev/agentic` + loopback `/api/agentic/*` for 16 packs; Activity cockpit + approve/reject; codebase-aware `pack-context`; `@rianell/build-tools/agentic-api-client` (`safeClient` on localhost); `npm run agentic:run-all`. CI: four Phase‑1 nodes (`Agentic · unit|catalog|ollama-load|dry-run`). Operator guide: [`development/agentic-pipeline-harness.md`](development/agentic-pipeline-harness.md).
 - **See:** [CHANGELOG.md](../CHANGELOG.md) `[Unreleased]`.
+
+### v2.7.0 documentation sync (PWA stability + on-device AI refit)
+
+- **PWA:** mobile crash-loop guard (`modules/boot-guard.js`, AI safe mode), no model download at boot on phones, three.js/WebGL scenes skipped on constrained devices, non-blocking service worker caching with hashed CSS, de-duplicated toasts, weather manual-city fallback. `app.js` split into domain modules (`modules/app/`, see [`development/pwa-app-module-map.md`](development/pwa-app-module-map.md)).
+- **On-device AI:** Transformers.js 4.3.0 in `workers/llm-worker.js`; Qwen3.5-0.8B / Qwen3.5-2B-ONNX-OPT on WebGPU, Qwen2.5-0.5B on WASM, pinned SHAs; MLC/GGUF engines and the load ladder removed. See [`ai-architecture.md`](ai-architecture.md) and [`research/llm-shortlist-2026-10.md`](research/llm-shortlist-2026-10.md).
+- **CI:** scoped ESLint gate (`npm run lint`); Dependabot `sharp` override fixed. Audit report: [`audits/2026-10-pwa-production-audit.md`](audits/2026-10-pwa-production-audit.md).
+- **See:** [CHANGELOG.md](../CHANGELOG.md) `[2.7.0]`.
 
 ### v2.6.0 documentation sync (visual pack harness)
 

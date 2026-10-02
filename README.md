@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](CHANGELOG.md)** (current **v2.6.0** — Full Visual Pack harness + live polish preview + Tk dashboard gallery (tooling only; product icon apply deferred); prior **v2.5.0** first-run boot-freeze fix and Ask Rianell starter chips).
+**Latest changes:** **[CHANGELOG.md](CHANGELOG.md)** (current **v2.7.0** — mobile crash-loop fix, faster loads without old styles flashing, honest AI download progress, and new on-device models (Qwen3.5) running in a background worker; prior **v2.6.0** Full Visual Pack harness).
 
 ### Here's what we plan next
 
@@ -40,7 +40,7 @@
 <td><b>🧠&nbsp;AI&nbsp;/&nbsp;On-device</b></td>
 <td>
 
-[![Transformers.js](https://img.shields.io/badge/Transformers.js-3.3.2-FFD21E?style=flat-square&logo=huggingface&logoColor=000)](https://huggingface.co/docs/transformers.js)
+[![Transformers.js](https://img.shields.io/badge/Transformers.js-4.3.0-FFD21E?style=flat-square&logo=huggingface&logoColor=000)](https://huggingface.co/docs/transformers.js)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-%40rianell%2Fai--engine-FFD21E?style=flat-square&logo=huggingface&logoColor=000)](https://huggingface.co/)
 
 </td>

@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-07-25
 
-Rianell ships as a **PWA (web) only**, backed by the shared `@rianell/*` packages and the optional Python/Tkinter `server/`. Native/Capacitor parity work is complete and no longer applies. Current npm version: **2.6.0**.
+Rianell ships as a **PWA (web) only**, backed by the shared `@rianell/*` packages and the optional Python/Tkinter `server/`. Native/Capacitor parity work is complete and no longer applies. Current npm version: **2.7.0**.
 
 **Status:** Active next-phase roadmap below. Shipped feature detail lives in [`app-and-features.md`](app-and-features.md); architecture in [`architecture-standard.md`](architecture-standard.md); the generated module call/import graph is in [`codebase_interaction_map.md`](codebase_interaction_map.md). Visual pack tooling: [`development/visual-pack-harness.md`](development/visual-pack-harness.md) (product icon apply still deferred).
 

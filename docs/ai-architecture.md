@@ -2,15 +2,17 @@
 
 ## 🧠 AI Analysis: Neural Network Architecture
 
-### v1.92.1 documentation sync (GPU LLM V1 rollout + UX)
+### v2.7.0 on-device LLM (single worker engine)
 
-- **PWA load ladder (tier 3-5):** Path 1 Transformers.js ONNX (WebGPU → WebNN → WASM) → Path 2 WebLLM MLC (`@mlc-ai/web-llm@0.2.84`, worker + `setInitProgressCallback`) → Path 3 GGUF spike (flag) → WASM small-model cap (Qwen2.5-0.5B). ORT WebGPU pipeline failure (`557856688`) invalidates adapter cache and skips to Path 2.
-- **Settings UX:** “How summaries run” selector with plain-language options (Automatic, Compatible mode, Fast mode, Experimental); status shows friendly backend labels - not ONNX/MLC/WASM jargon.
-- **CSP:** `connect-src` includes `https://raw.githubusercontent.com` for MLC WASM libs. See `docs/runbooks/llm-rollout.md` and `docs/research/gpu-llama-v1-baseline.md`.
+- **Engine:** Transformers.js 4.3.0 runs in a dedicated module worker (`workers/llm-worker.js`), driven by `modules/llm-worker-client.js`; `summary-llm.js` keeps the `window.*` API. The MLC (WebLLM) and GGUF engines, the load ladder and the "How summaries run" selector were removed.
+- **Packages** (`LLM_PACKAGES`, pinned to commit SHAs): small = Qwen3.5-0.8B (WebGPU q4f16) for phones, 4 GB or less memory, AI safe mode or tier 1-2; large = Qwen3.5-2B-ONNX-OPT (WebGPU q4f16) for other WebGPU devices or tier 3-5; wasm = Qwen2.5-0.5B (q4) without WebGPU, or after a WebGPU load failure (fresh worker). Qwen3.5 runs with `enable_thinking: false`.
+- **Boot:** the model never downloads or loads at boot on phones; desktop auto-load needs prior consent. Download phases are `downloading` → `preparing` → `ready` / `error`, with a 90 s silence watchdog and Retry.
+- **Cache migration:** a one-off idle-time purge removes WebLLM/TVM caches and weights for models no longer shipped.
+- **CSP:** `connect-src` needs `'self'`, `https://huggingface.co` and `https://cdn.jsdelivr.net`; `raw.githubusercontent.com` is no longer allowed. Benchmark and decision record: [research/llm-shortlist-2026-10.md](research/llm-shortlist-2026-10.md); runbook: [runbooks/llm-rollout.md](runbooks/llm-rollout.md).
 
 ### v1.70.2 documentation sync (summary LLM model host)
 
-- **PWA `summary-llm.js`:** Uses Hugging Face Hub only (onnx-community `*-ONNX` repos). Load order: WebGPU (q4f16→q4) → WASM q4 last resort. Transformers.js devices are **webgpu** and **wasm** only (no WebGL). Self-hosted Transformers `@3.3.2` at `/vendor/transformers/` with jsDelivr fallback flag. Presets from `packages/llm` (`load-ladder.mjs`, `runtime-profiles.mjs`).
+- **PWA `summary-llm.js`:** Uses Hugging Face Hub only (onnx-community repos). Transformers.js devices are **webgpu** and **wasm** only (no WebGL). Self-hosted Transformers at `/vendor/transformers/` with jsDelivr fallback flag (version: see v2.7.0 above).
 - **Chunk assembly:** Supabase chunk paths are legacy only; HF serves full ONNX files.
 - **Deploy:** `SUPABASE_CONFIG` is auth/sync only (no model bucket).
 

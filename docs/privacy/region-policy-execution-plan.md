@@ -1,6 +1,6 @@
 # Region, policy & UI localization - execution plan (v2.0)
 
-> **Shipped / historical plan.** Single-project residency + region→locale is live on the PWA. Current product: **npm 2.6.0**. Use this doc for architecture notes; do not treat “Version track: v1.52+” as the live release number.
+> **Shipped / historical plan.** Single-project residency + region→locale is live on the PWA. Current product: **npm 2.7.0**. Use this doc for architecture notes; do not treat “Version track: v1.52+” as the live release number.
 
 **Product:** Rianell · **Shipped from:** v1.52+ · **Last updated:** 2026-07-25
 ## Summary

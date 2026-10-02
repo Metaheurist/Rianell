@@ -1,6 +1,6 @@
 # Rianell execution plans - MASTER
 
-> **Closed program archive (2026-07-25).** Plans **01–26** shipped (179/179 features) at **v1.133.0**. Current product version is **npm 2.6.0** — see root [`CHANGELOG.md`](../../CHANGELOG.md) and [`next-phase-development-plan.md`](../next-phase-development-plan.md). Do **not** treat open rows below as an active execution queue unless a plan is explicitly reopened.
+> **Closed program archive (2026-07-25).** Plans **01–26** shipped (179/179 features) at **v1.133.0**. Current product version is **npm 2.7.0** — see root [`CHANGELOG.md`](../../CHANGELOG.md) and [`next-phase-development-plan.md`](../next-phase-development-plan.md). Do **not** treat open rows below as an active execution queue unless a plan is explicitly reopened.
 
 **Index:** [`00-execution-index.md`](00-execution-index.md) · [`SECURITY-PERFORMANCE-INDEX.md`](SECURITY-PERFORMANCE-INDEX.md) · [`FINAL-EXECUTION-CHECK.md`](FINAL-EXECUTION-CHECK.md) · **Program closed:** 2026-06-26 · **Docs refresh:** 2026-07-25
 
@@ -14,7 +14,7 @@
 | Feature IDs done | 179 / 179 |
 | Cross-cutting themes done | 5 / 5 |
 | Last CI run (post-plan) | closed with v1.133.0 program |
-| Current product (npm) | **2.6.0** |
+| Current product (npm) | **2.7.0** |
 
 **Status values:** `pending` · `in_progress` · `done` · `deferred`
 

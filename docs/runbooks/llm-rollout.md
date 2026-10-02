@@ -15,27 +15,26 @@ Optional local GPU matrix (built PWA on port 8080):
 GPU_MATRIX=1 PROBE_URL=http://127.0.0.1:8080/ npm run agentic:gpu-v1 -- --track pwa-gpu
 ```
 
-Qwen2.5 model probes need no `HF_TOKEN` (Apache-2.0 repos).
+Model probes need no `HF_TOKEN` (Apache-2.0 repos). Re-run the shortlist benchmark with `node scripts/models/benchmark-llm-shortlist.mjs` (headed Chromium; needs a WebGPU adapter).
 
-## PWA load order (tier 3-5)
+## PWA load order
 
-1. **Path 1:** Transformers.js ONNX - WebGPU → WebNN → WASM  
-2. **Path 2:** WebLLM MLC (`@mlc-ai/web-llm@0.2.84`) when Path 1 fails or `557856688` cached  
-3. **Path 3:** GGUF spike (feature flag; not bundled in V1 default)  
-4. **Fallback:** WASM small-model cap - Qwen2.5-0.5B (`resolveWasmFallbackModelId`)
+One engine: Transformers.js 4.3.0 in `workers/llm-worker.js`. The package is chosen once per session (`resolvePackageKey` in `summary-llm.js`):
+
+1. **small** (Qwen3.5-0.8B, WebGPU q4f16) on phones, devices with 4 GB or less memory, AI safe mode, or tier 1-2.
+2. **large** (Qwen3.5-2B-ONNX-OPT, WebGPU q4f16) on other WebGPU devices, or tier 3-5.
+3. **wasm** (Qwen2.5-0.5B, q4) when WebGPU is unavailable. If a WebGPU load fails, the GPU is marked failed for this browser and the wasm package loads in a fresh worker.
 
 ## Settings
 
-- **Performance tab:** Model status and download progress are always visible; manual tier, processing mode, storage, maintenance, and force-large WASM live under **Advanced** (collapsed by default, auto-expands when overrides or download are active).
-- **Processing mode:** Settings → Performance → **Advanced** → **How summaries run** (`auto` | `onnx` | `mlc` | `gguf`) - user-facing labels: Automatic (recommended), Compatible mode, Fast mode (uses graphics), Experimental  
-- **Backend label:** Shown in model status when loaded (e.g. “graphics acceleration”, “standard processing”, “fast mode”)  
-- **Force-large WASM:** Under **Advanced** - “Allow full-quality model without graphics acceleration”; requires ≥8 GB memory + consent  
-- **CDN rollback:** `localStorage.rianellTransformersCdn=1`  
-- **Vendor rollback:** Re-run `npm run vendor:transformers` with pinned 3.3.2 tarball from runbook archive
+- **Performance tab:** Model status and download progress are always visible; manual tier, storage and maintenance live under **Advanced** (collapsed by default, auto-expands when overrides or download are active).
+- **Backend label:** Shown in model status when loaded (e.g. “graphics acceleration”, “standard processing”).
+- **CDN rollback:** `localStorage.rianellTransformersCdn=1`
+- **Vendor rollback:** see `docs/research/transformers-js-v4-migration.md`.
 
 ## Cloudflare CSP
 
-Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdelivr.net` + `https://raw.githubusercontent.com` (MLC WASM libs). Report-only violations are expected until headers are aligned - see `security/cloudflare-headers-recommended.md`. Run `npm run verify:csp` before deploy (includes live Report-Only header check on rianell.com; set `SKIP_CSP_LIVE=1` offline).
+Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdelivr.net`. `https://raw.githubusercontent.com` is no longer needed (it served the removed MLC engine's WASM libraries) and `verify-csp-connect-src` fails if it returns. Report-only violations are expected until headers are aligned - see `security/cloudflare-headers-recommended.md`. Run `npm run verify:csp` before deploy (includes live Report-Only header check on rianell.com; set `SKIP_CSP_LIVE=1` offline).
 
 ## Summary LLM timeouts (v1.92.3+)
 

@@ -2,7 +2,14 @@
 
 **Canonical version history:** root [`CHANGELOG.md`](../CHANGELOG.md) (Keep a Changelog). This file keeps a short product-facing summary plus older narrative notes.
 
-**Latest: v2.6.0** (2026-07-25) — current npm workspace version.
+**Latest: v2.7.0** (2026-10-02) — current npm workspace version.
+
+### v2.7.0 - 2026-10-02 - PWA stability + on-device AI refit
+
+- **Stability:** no more blank-page crash loop on phones. The model no longer downloads at boot on mobile, 3D scenes are skipped on constrained devices, and a crash breadcrumb switches the next launch to AI safe mode with a one-time notice.
+- **Loading:** the service worker no longer blocks on cache writes and serves hashed CSS/JS cache-first, so old styles stop flashing in. Toasts no longer stack; the weather button has a loading state and a manual-city fallback.
+- **On-device AI:** honest download phases (no frozen 99%), a 90 s watchdog with Retry, and Transformers.js 4.3.0 in a background worker. Phones get Qwen3.5-0.8B, desktops Qwen3.5-2B, devices without WebGPU Qwen2.5-0.5B; the MLC and GGUF engines were removed.
+- **Engineering:** `app.js` split into domain modules, scoped ESLint gate in CI, Dependabot `sharp` fix. Full notes in root `CHANGELOG.md`; audit: [`audits/2026-10-pwa-production-audit.md`](audits/2026-10-pwa-production-audit.md).
 
 ### v2.6.0 - 2026-07-25 - Visual pack harness + CI hygiene
 
