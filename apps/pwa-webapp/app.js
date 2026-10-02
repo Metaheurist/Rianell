@@ -738,8 +738,20 @@ function bindHealthDataConsentUi() {
   if (declineBtn) declineBtn.addEventListener('click', declineHealthDataConsent);
 }
 
+// Guided onboarding records consent only in rianellSettings; the legacy key is
+// written by the standalone overlay. Either counts.
+function hasHealthDataConsent() {
+  if (localStorage.getItem(HEALTH_DATA_CONSENT_KEY) === 'accepted') return true;
+  try {
+    const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
+    return settings.healthDataConsent === true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function showHealthDataConsentIfNeeded() {
-  if (localStorage.getItem(HEALTH_DATA_CONSENT_KEY) === 'accepted') return;
+  if (hasHealthDataConsent()) return;
   bindHealthDataConsentUi();
   showHealthDataConsentOverlay();
 }

@@ -1,5 +1,10 @@
 import { getPolicyPack } from './resolvePolicyPack.mjs';
 
+/** Acks are stored as pack ids (`v1.0.0`) while manifests may carry a bare `version`. */
+function normalizePolicyVersion(v) {
+  return String(v).trim().replace(/^v/i, '');
+}
+
 /**
  * Compare embedded pack version with hosted manifest.
  * Returns { drift: boolean, requiresReconsent?: boolean, remoteVersion?: string }
@@ -15,9 +20,9 @@ export async function checkPolicyDrift(localAckVersion, fetchImpl = globalThis.f
     const res = await fetchImpl(url, { cache: 'no-store' });
     if (!res.ok) return { drift: false, embedded };
     const remote = await res.json();
-    const remoteVersion = remote.version || remote.policyPackId;
+    const remoteVersion = remote.policyPackId || remote.version;
     if (!remoteVersion) return { drift: false, embedded };
-    const drift = remoteVersion !== local;
+    const drift = normalizePolicyVersion(remoteVersion) !== normalizePolicyVersion(local);
     return {
       drift,
       requiresReconsent: drift && remote.requiresReconsent === true,

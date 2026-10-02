@@ -2157,6 +2157,9 @@ var RianellShared = (() => {
   }
 
   // packages/shared/src/privacy/checkPolicyDrift.mjs
+  function normalizePolicyVersion(v) {
+    return String(v).trim().replace(/^v/i, "");
+  }
   async function checkPolicyDrift(localAckVersion, fetchImpl = globalThis.fetch) {
     const embedded = getPolicyPack().policyPackId ?? getPolicyPack().version ?? "1.0.0";
     const local = localAckVersion || embedded;
@@ -2165,9 +2168,9 @@ var RianellShared = (() => {
       const res = await fetchImpl(url, { cache: "no-store" });
       if (!res.ok) return { drift: false, embedded };
       const remote = await res.json();
-      const remoteVersion = remote.version || remote.policyPackId;
+      const remoteVersion = remote.policyPackId || remote.version;
       if (!remoteVersion) return { drift: false, embedded };
-      const drift = remoteVersion !== local;
+      const drift = normalizePolicyVersion(remoteVersion) !== normalizePolicyVersion(local);
       return {
         drift,
         requiresReconsent: drift && remote.requiresReconsent === true,
