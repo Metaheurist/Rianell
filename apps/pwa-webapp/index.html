@@ -5239,7 +5239,7 @@
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
       function loadSummaryLlm() {
-        Perf.lazyLoadScript('summary-llm.js?v=3').catch(function () {});
+        Perf.lazyLoadScript('summary-llm.js?v=4').catch(function () {});
       }
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(loadSummaryLlm, { timeout: 2800 });

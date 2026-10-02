@@ -1,56 +1,28 @@
-# Transformers.js v4 migration notes (Stage 8)
+# Transformers.js v4 migration notes
 
-**Current production pin:** `@huggingface/transformers@3.3.2`  
-**Stable docs reference:** v3.8.1 (npm)  
-**Target:** v4 when parity gate passes
+**Current production pin:** `@huggingface/transformers@4.3.0` (bundled `onnxruntime-web` checked by `vendor-transformers.mjs`)  
+**Shipped:** 2026-10, together with the dedicated LLM worker  
+**Previous pin:** `3.3.2` (restore from git history; see Rollback)
 
-## Pre-migration checklist
+## What changed with v4
 
-1. Run `node scripts/research/factcheck-transformers-v4.mjs` (npm audit + doc diff).  
-2. Bump with `TRANSFORMERS_VENDOR_VERSION=4.x.x npm run vendor:transformers` only on a spike branch.  
-3. Full gate: `npm run agentic:gpu-v1 -- --track pwa` + `PROBE_TIER=5 node scripts/test/gpu-llama-matrix.mjs`.  
-4. Update `llm-security-contract.mjs` CDN pin strings in `summary-llm.js`.  
-5. Keep 3.3.2 vendor tarball for rollback (`localStorage.rianellTransformersCdn=1` or restore `vendor/transformers/`).
+- **Runtime runs in a module worker.** `apps/pwa-webapp/workers/llm-worker.js` imports transformers.js and owns download, ONNX session compile and generation. `summary-llm.js` talks to it through `modules/llm-worker-client.js` (`window.RianellLlmWorkerClient`); the public `window.*` LLM API is unchanged. The main thread no longer imports transformers.js.
+- **Vendored files.** `vendor/transformers/transformers.min.js` (self-contained ESM with the ORT WebGPU bundle inlined) plus `ort-wasm-simd-threaded.asyncify.{mjs,wasm}` (default) and `ort-wasm-simd-threaded.{mjs,wasm}` (Safari < 26 without WebGPU). The `jsep` files and source maps from 3.x are gone. `transformers.web*.js` is not usable here: it has bare `onnxruntime-web` imports.
+- **Self-hosted WASM.** v4 points `env.backends.onnx.wasm.wasmPaths` at jsDelivr by default; the worker rebases those paths onto `vendor/transformers/`, keeping the variant (asyncify or plain) that transformers.js picked.
+- **Pinned model revisions.** `MODEL_REVISIONS` in `summary-llm.js` maps each model to a 40-character commit SHA; the worker rejects anything else. v4 `pipeline()` does not forward `revision` to its file-list and progress-size pre-pass, so the worker wraps `env.fetch` (`pinModelRevision`) and rewrites `resolve/main/` URLs for the loaded model to the pinned SHA. Without that, every load also sent `config.json` and range probes to `main`.
+- **Supply-chain checks.** `vendor-manifest.json` records `version`, `onnxruntimeWeb` and a sha256 per file. `scripts/verify/llm-security-contract.mjs` re-hashes every vendored file, checks the pins and fails if the main thread imports a runtime.
 
-## Known v4 considerations (verify at bump time)
+## Bumping the pin
 
-- Pipeline API and dtype names may change - re-run `buildPwaLoadAttempts` unit tests.  
-- WebGPU remains `device: 'webgpu'` via ORT inside bundled dist.  
-- WebNN devices (`webnn-gpu`, etc.) - confirm in v4 `supportedDevices` before enabling in ladder.  
-- ORT WASM file names may differ - update `vendor-transformers.mjs` FILES list.  
-- Do **not** bump mid-V1 WebLLM spike; v4 is Stage 8 after PWA core GPU ship.
+1. Change `@huggingface/transformers` in root `package.json` (`devDependencies` and `overrides`), then `npm install`.
+2. `npm run vendor:transformers` - copies the dist + ORT files, checks the ORT version matches, rewrites the manifest.
+3. Update `TRANSFORMERS_PIN` in `llm-security-contract.mjs` and the CDN URL in `resolveTransformersImportUrl()` (`summary-llm.js`).
+4. Check that the WASM file names transformers.js selects still exist in `vendor/transformers/` (`useSelfHostedWasm` keeps the file name).
+5. Re-check whether `pipeline()` now forwards `revision` (see above); keep `pinModelRevision` until it does.
+6. Gates: `npm run test:unit`, `node scripts/verify/llm-security-contract.mjs`, `npm run verify:csp`, `npm run audit:boot:strict`, then `PROBE_URL=http://127.0.0.1:8765/ PROBE_GPU_AVAILABLE=0 node scripts/ci/probe-llm-download-live.mjs` against a local server.
 
 ## Rollback
 
-1. Restore `vendor/transformers/` from 3.3.2 manifest commit.  
-2. Revert package.json overrides to `3.3.2`.  
-3. `npm run vendor:transformers && npm run agentic:gpu-v1 -- --track pwa`
-
-
-## Automated audit (2026-06-17T21:30:19.229Z)
-
-```json
-{
-  "auditReportVersion": 2,
-  "vulnerabilities": {},
-  "metadata": {
-    "vulnerabilities": {
-      "info": 0,
-      "low": 0,
-      "moderate": 0,
-      "high": 0,
-      "critical": 0,
-      "total": 0
-    },
-    "dependencies": {
-      "prod": 711,
-      "dev": 357,
-      "optional": 66,
-      "peer": 2,
-      "peerOptional": 0,
-      "total": 1101
-    }
-  }
-}
-
-```
+1. `git checkout <last 3.3.2 commit> -- apps/pwa-webapp/vendor/transformers scripts/build/vendor-transformers.mjs` and restore the `3.3.2` pin in `package.json`.
+2. Revert `summary-llm.js`, `workers/llm-worker.js`, `modules/llm-worker-client.js` and `llm-security-contract.mjs` together; the 3.x code imported the runtime on the main thread.
+3. Users can also force the jsDelivr runtime with `localStorage.rianellTransformersCdn = '1'` (the worker only accepts the version-pinned `@huggingface/transformers@` CDN prefix).

@@ -1,6 +1,6 @@
 /* Rianell PWA - versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
-var CACHE_NAME = CACHE_PREFIX + 'v2026-10-02-nonblocking-v7';
+var CACHE_NAME = CACHE_PREFIX + 'v2026-10-02-llm-worker-v8';
 /** app.<hash>.min.js / styles.<hash>.css never change once published. */
 var HASHED_ASSET_RE = /\.[0-9a-f]{10,}(\.min)?\.(js|css)$/i;
 

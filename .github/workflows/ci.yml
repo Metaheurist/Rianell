@@ -332,10 +332,12 @@ jobs:
           assertBundle('ci-minified/web-dist', 'web-dist');
           assertBundle('ci-minified/site', 'site');
           if (!fs.existsSync('ci-minified/site/vendor/rianell-shared.js')) throw new Error('missing vendor/rianell-shared.js');
-          const vendorWasm = 'ci-minified/site/vendor/transformers/ort-wasm-simd-threaded.jsep.wasm';
+          const vendorWasm = 'ci-minified/site/vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm';
           if (!fs.existsSync(vendorWasm)) throw new Error('missing vendor/transformers wasm — run npm run vendor:transformers');
           if (fs.statSync(vendorWasm).size < 1000000) throw new Error('vendor wasm too small (corrupt or LFS pointer)');
           if (!fs.existsSync('ci-minified/site/vendor/transformers/transformers.min.js')) throw new Error('missing vendor/transformers/transformers.min.js');
+          if (!fs.existsSync('ci-minified/site/workers/llm-worker.js')) throw new Error('missing workers/llm-worker.js');
+          if (!fs.existsSync('ci-minified/site/modules/llm-worker-client.js')) throw new Error('missing modules/llm-worker-client.js');
           if (!fs.existsSync('ci-minified/site/.well-known/security.txt')) throw new Error('missing .well-known/security.txt in Pages site build');
           if (!fs.existsSync('ci-minified/site/.nojekyll')) throw new Error('missing .nojekyll in Pages site build');
           if (!fs.existsSync('ci-minified/site/sitemap.xml')) throw new Error('missing sitemap.xml in Pages site build');
@@ -971,7 +973,7 @@ jobs:
           node -e "
           const fs = require('fs');
           const root = 'site';
-          const wasm = root + '/vendor/transformers/ort-wasm-simd-threaded.jsep.wasm';
+          const wasm = root + '/vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm';
           const js = root + '/vendor/transformers/transformers.min.js';
           if (!fs.existsSync(wasm)) throw new Error('missing ' + wasm);
           if (fs.statSync(wasm).size < 1000000) throw new Error('wasm corrupt or LFS pointer');

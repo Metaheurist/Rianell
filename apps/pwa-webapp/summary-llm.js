@@ -13,6 +13,8 @@
   var cachedMlcEngine = null;
   var mlcScriptPromise = null;
   var ggufScriptPromise = null;
+  var workerClientScriptPromise = null;
+  var llmWorkerClient = null;
   var llmWorkQueue = Promise.resolve();
   var summaryResultCache = null;
   var suggestResultCache = null;
@@ -71,6 +73,12 @@
 
   var MODEL_SMALL = 'onnx-community/Qwen2.5-0.5B-Instruct';
   var MODEL_BASE = 'onnx-community/Qwen2.5-1.5B-Instruct';
+
+  // Hub commit per model. Loads never follow a branch, so a push to the model repo
+  // cannot swap the weights users download. The worker rejects non-SHA revisions.
+  var MODEL_REVISIONS = {};
+  MODEL_REVISIONS[MODEL_SMALL] = 'cc5cc01a65cc3ff17bdb73a7de33d879f62599b0';
+  MODEL_REVISIONS[MODEL_BASE] = '6287331f475a3e20e8c879be8fd4bf3551ad9d34';
 
   var LLM_TIER_MODELS = {
     tier1: { id: MODEL_SMALL, size: '~480 MB', approxBytes: 506462208 },
@@ -641,13 +649,6 @@
     return ggufScriptPromise;
   }
 
-  function configureOrtWebGpu(mod) {
-    try {
-      if (!mod || !mod.env || !mod.env.webgpu) return;
-      mod.env.webgpu.validateInputContent = true;
-    } catch (e) {}
-  }
-
   /** GPU load attempts in priority order; WASM is never included here. */
   function buildGpuAttemptPlans(devices) {
     var plans = [];
@@ -690,7 +691,7 @@
         typeof window.RianellLlmLoadLadder.buildPwaWasmAttempt === 'function') {
       return window.RianellLlmLoadLadder.buildPwaWasmAttempt();
     }
-    return { revision: 'main', device: 'wasm', dtype: 'q4' };
+    return { device: 'wasm', dtype: 'q4' };
   }
 
   function buildWasmPipelineOpts() {
@@ -726,7 +727,7 @@
     }
   }
 
-  async function tryLoadWithPlans(mod, loadModelId, plans, myGen) {
+  async function tryLoadWithPlans(loadModelId, plans, myGen) {
     var lastErr = null;
     for (var i = 0; i < plans.length; i++) {
       if (isStaleLoad(myGen) || downloadCancelled) throw new Error('AI model download deferred');
@@ -734,8 +735,8 @@
       var label = plan.device ? (plan.device + ' ' + (plan.dtype || '')) : 'wasm';
       reportDownloadProgress({ status: 'progress', progress: 0, file: '' });
       try {
-        applyHuggingFaceRemote(mod);
-        var pipe = await runChatGenerationPipelineGuarded(mod, loadModelId, plan);
+        var client = await getLlmWorkerClient(false);
+        var pipe = await runChatGenerationPipelineGuarded(client, loadModelId, plan);
         if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
         cachedActiveBackend = plan.device || 'wasm';
         cachedActiveDtype = plan.dtype || 'q4';
@@ -764,46 +765,81 @@
     throw lastErr || new Error('All GPU load attempts failed');
   }
 
+  /**
+   * Must not go through runQueued: it runs inside ensurePipelineLoaded, which is itself
+   * queued, so a queued warmup would wait on its own caller forever.
+   */
   async function warmupPipelineOrThrow() {
-    if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
-      await window.RianellLlmMlc.runMlcChat(cachedMlcEngine, 'Reply with OK.', 'OK', {
-        max_new_tokens: 2,
-        temperature: 0.1
-      });
-      return;
-    }
-    await runChatInference(
+    await runLoadedEngineChat(
       'Reply with OK.',
       'OK',
       { max_new_tokens: 2, do_sample: false, temperature: 0.1 }
     );
   }
 
-  function resolveTransformersImportUrl() {
+  function isTransformersCdnMode() {
     try {
-      if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellTransformersCdn') === '1') {
-        return 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2';
-      }
-    } catch (e) {}
+      return typeof localStorage !== 'undefined' && localStorage.getItem('rianellTransformersCdn') === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function resolveTransformersImportUrl() {
+    if (isTransformersCdnMode()) {
+      return 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0/dist/transformers.min.js';
+    }
     return getAppOriginBase() + 'vendor/transformers/transformers.min.js';
   }
 
-  function configureSelfHostedOrtWasm(mod) {
-    try {
-      if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellTransformersCdn') === '1') return;
-      if (!mod || !mod.env || !mod.env.backends || !mod.env.backends.onnx || !mod.env.backends.onnx.wasm) return;
-      mod.env.backends.onnx.wasm.wasmPaths = getAppOriginBase() + 'vendor/transformers/';
-    } catch (e) {}
+  function ensureWorkerClientScriptLoaded() {
+    if (typeof window !== 'undefined' && window.RianellLlmWorkerClient) return Promise.resolve();
+    if (workerClientScriptPromise) return workerClientScriptPromise;
+    workerClientScriptPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = getAppOriginBase() + 'modules/llm-worker-client.js';
+      s.async = true;
+      s.onload = function () { resolve(); };
+      s.onerror = function () {
+        workerClientScriptPromise = null;
+        reject(new Error('Failed to load llm-worker-client.js'));
+      };
+      document.head.appendChild(s);
+    });
+    return workerClientScriptPromise;
   }
 
-  async function importTransformersModule(fresh) {
-    var url = resolveTransformersImportUrl();
-    if (fresh) {
-      url += (url.indexOf('?') >= 0 ? '&' : '?') + 'llmWasmRetry=' + Date.now();
-    }
-    var mod = await import(url);
-    configureSelfHostedOrtWasm(mod);
-    return mod;
+  function terminateLlmWorker(reason) {
+    var client = llmWorkerClient;
+    llmWorkerClient = null;
+    if (client) client.terminate(reason || 'LLM worker reset');
+  }
+
+  /** transformers.js runs in workers/llm-worker.js; `fresh` replaces the current worker. */
+  async function getLlmWorkerClient(fresh) {
+    if (fresh) terminateLlmWorker();
+    if (llmWorkerClient) return llmWorkerClient;
+    await ensureWorkerClientScriptLoaded();
+    llmWorkerClient = window.RianellLlmWorkerClient.createLlmWorkerClient({
+      workerUrl: getAppOriginBase() + 'workers/llm-worker.js'
+    });
+    return llmWorkerClient;
+  }
+
+  function buildWorkerLoadConfig(modelId, plan) {
+    var revision = MODEL_REVISIONS[modelId];
+    if (!revision) throw new Error('Model is not allowlisted: ' + modelId);
+    var device = plan.device || 'wasm';
+    return {
+      modelId: modelId,
+      revision: revision,
+      device: device,
+      dtype: plan.dtype != null ? plan.dtype : resolveDtype(device),
+      runtimeUrl: resolveTransformersImportUrl(),
+      wasmBase: isTransformersCdnMode() ? '' : getAppOriginBase() + 'vendor/transformers/',
+      remoteHost: 'https://huggingface.co/',
+      useBrowserCache: plan.useBrowserCache !== false
+    };
   }
 
   function computeResolvedModelId() {
@@ -853,16 +889,6 @@
     return origin + base + '/';
   }
 
-  function applyTransformersRemote(mod, remoteHost, remotePathTemplate) {
-    if (!mod || !mod.env) return;
-    mod.env.remoteHost = remoteHost;
-    mod.env.remotePathTemplate = remotePathTemplate;
-  }
-
-  function applyHuggingFaceRemote(mod) {
-    applyTransformersRemote(mod, 'https://huggingface.co/', '{model}/resolve/{revision}/');
-  }
-
   function failDownloadProgress(errorMsg) {
     if (downloadCancelled) return;
     clearFinalizeWatchdog();
@@ -880,15 +906,6 @@
         }));
       } catch (e) {}
     }
-  }
-
-  async function resolveModelsRemote(mod, options) {
-    options = options || {};
-    applyHuggingFaceRemote(mod);
-    if (mod && mod.env) {
-      mod.env.useBrowserCache = options.useBrowserCache !== false;
-    }
-    return 'huggingface';
   }
 
   function formatDownloadError(err) {
@@ -912,6 +929,7 @@
     sessionModelId = null;
     cachedPipeline = null;
     cachedModelId = null;
+    terminateLlmWorker('AI model download cancelled');
     llmWorkQueue = Promise.resolve();
     lastDownloadError = null;
     clearFinalizeWatchdog();
@@ -1016,6 +1034,7 @@
             loadInFlight = null;
             cachedPipeline = null;
             cachedModelId = null;
+            terminateLlmWorker('Model preparation timed out');
             failDownloadProgress('Model preparation timed out. Please retry.');
           }
         }, FINALIZE_TIMEOUT_MS);
@@ -1100,38 +1119,22 @@
     return 'q4';
   }
 
-  async function runChatGenerationPipeline(mod, pipelineModelId, opts) {
-    var base = Object.assign({ revision: 'main' }, opts || {});
-    if (base.dtype == null) {
-      base.dtype = resolveDtype(base.device);
-    }
-    base.progress_callback = function (data) {
-      reportDownloadProgress(data);
+  /** Load the model in the worker; resolves to a callable with the transformers.js pipeline signature. */
+  async function runChatGenerationPipeline(client, pipelineModelId, opts) {
+    await client.load(buildWorkerLoadConfig(pipelineModelId, opts || {}), reportDownloadProgress);
+    return function (messages, genOpts) {
+      return client.generate(messages, genOpts);
     };
-    var origWarn = console.warn;
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn = function () {
-        var s = arguments[0] != null ? String(arguments[0]) : '';
-        if (s.indexOf('dtype not specified') !== -1) return;
-        if (s.indexOf('Unable to determine content-length from response headers') !== -1) return;
-        if (s.indexOf('Unable to add response to browser cache') !== -1) return;
-        return origWarn.apply(console, arguments);
-      };
-    }
-    try {
-      return await mod.pipeline('text-generation', pipelineModelId, base);
-    } finally {
-      if (typeof console !== 'undefined') console.warn = origWarn;
-    }
   }
 
   /**
    * Load a pipeline with a stall guard. The timer resets on every download-progress
    * event, so an actively-downloading model is never interrupted; but if a backend
    * hangs (typically WebGPU/ONNX session compile that never resolves or rejects),
-   * the guard rejects so the caller can fall through to the next plan (WASM).
+   * the guard terminates the worker and rejects so the caller can fall through to
+   * the next plan (WASM) in a fresh worker.
    */
-  function runChatGenerationPipelineGuarded(mod, pipelineModelId, opts, stallMs) {
+  function runChatGenerationPipelineGuarded(client, pipelineModelId, opts, stallMs) {
     return new Promise(function (resolve, reject) {
       var settled = false;
       var timer = null;
@@ -1149,13 +1152,15 @@
         if (timer) clearTimeout(timer);
         timer = setTimeout(function () {
           done(reject, new Error('Model engine load stalled'));
+          if (llmWorkerClient === client) terminateLlmWorker('Model engine load stalled');
+          else client.terminate('Model engine load stalled');
         }, stallMs || COMPILE_STALL_MS);
       }
       if (typeof window !== 'undefined') {
         window.addEventListener('rianell-llm-download-progress', arm);
       }
       arm();
-      runChatGenerationPipeline(mod, pipelineModelId, opts).then(
+      runChatGenerationPipeline(client, pipelineModelId, opts).then(
         function (pipe) { done(resolve, pipe); },
         function (err) { done(reject, err); }
       );
@@ -1220,10 +1225,6 @@
       if (!sessionModelId) sessionModelId = computeResolvedModelId();
       modelId = sessionModelId;
 
-      var mod = await importTransformersModule(false);
-      configureOrtWebGpu(mod);
-      await resolveModelsRemote(mod);
-
       var gpuCandidates = getGpuDeviceCandidates();
       var hasWebGpuCandidate = gpuCandidates.indexOf('webgpu') !== -1;
       var gpuPlans = buildLoadPlansForPwa(gpuCandidates, platformKind);
@@ -1281,7 +1282,7 @@
       if (!loaded && !isStaleLoad(myGen)) {
         try {
           if (gpuPlans.length > 0) {
-            cachedPipeline = await tryLoadWithPlans(mod, loadModelId, gpuPlans, myGen);
+            cachedPipeline = await tryLoadWithPlans(loadModelId, gpuPlans, myGen);
             cachedActiveEngine = 'onnx';
             loaded = true;
           } else {
@@ -1325,12 +1326,12 @@
           var logWasmFallback = console.info || console.warn;
           if (logWasmFallback) logWasmFallback.call(console, 'Summary LLM: GPU/MLC attempts unavailable, trying WASM:', gpuErr && (gpuErr.message || gpuErr));
         }
+        var wasmNoCachePlan = Object.assign({}, wasmPlan, { useBrowserCache: false });
         try {
-          var modWasm = gpuPlans.length > 0 ? await importTransformersModule(true) : mod;
-          applyHuggingFaceRemote(modWasm);
-          await resolveModelsRemote(modWasm, { useBrowserCache: false });
+          // A failed GPU attempt can leave ORT/WebGPU state behind; start WASM in a clean worker.
+          var wasmClient = await getLlmWorkerClient(gpuPlans.length > 0);
           var wasmModelId = resolveWasmFallbackModelId(loadModelId);
-          cachedPipeline = await runChatGenerationPipelineGuarded(modWasm, wasmModelId, wasmPlan);
+          cachedPipeline = await runChatGenerationPipelineGuarded(wasmClient, wasmModelId, wasmNoCachePlan);
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
           loadModelId = wasmModelId;
           cachedActiveEngine = 'onnx';
@@ -1348,9 +1349,8 @@
               window.showToast('Not enough memory for the large model - using the smaller package.', { type: 'info' });
             }
             try {
-              applyHuggingFaceRemote(modWasm);
-              await resolveModelsRemote(modWasm, { useBrowserCache: false });
-              cachedPipeline = await runChatGenerationPipelineGuarded(modWasm, MODEL_SMALL, wasmPlan);
+              var smallClient = await getLlmWorkerClient(true);
+              cachedPipeline = await runChatGenerationPipelineGuarded(smallClient, MODEL_SMALL, wasmNoCachePlan);
               if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
               loadModelId = MODEL_SMALL;
               cachedActiveBackend = 'wasm';
@@ -1376,6 +1376,7 @@
       try {
         await warmupPipelineOrThrow();
       } catch (warmErr) {
+        terminateLlmWorker('Model warmup failed');
         cachedPipeline = null;
         cachedModelId = null;
         cachedActiveBackend = null;
@@ -1439,20 +1440,25 @@
     // so branching before the load would misroute an MLC marker into the callable
     // ONNX path - the source of "pipe is not a function".
     return runQueued(async function () {
-      var pipe = await ensurePipelineLoaded(pipelineOptions || {});
-      if (cachedActiveEngine === 'gguf' && window.RianellLlmGguf) {
-        return window.RianellLlmGguf.runGgufChat(cachedPipeline, userText, systemText, genOpts || {});
-      }
-      if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
-        return window.RianellLlmMlc.runMlcChat(cachedMlcEngine, userText, systemText, genOpts || {});
-      }
-      if (typeof pipe !== 'function') {
-        // A worker-backed engine marker leaked here without its adapter being ready.
-        throw new Error('AI engine "' + cachedActiveEngine + '" is not ready for inference');
-      }
-      var out = await pipe(buildChatMessages(systemText, userText), genOpts);
-      return extractChatReply(out);
+      await ensurePipelineLoaded(pipelineOptions || {});
+      return runLoadedEngineChat(systemText, userText, genOpts);
     });
+  }
+
+  async function runLoadedEngineChat(systemText, userText, genOpts) {
+    if (cachedActiveEngine === 'gguf' && window.RianellLlmGguf) {
+      return window.RianellLlmGguf.runGgufChat(cachedPipeline, userText, systemText, genOpts || {});
+    }
+    if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
+      return window.RianellLlmMlc.runMlcChat(cachedMlcEngine, userText, systemText, genOpts || {});
+    }
+    var pipe = cachedPipeline;
+    if (typeof pipe !== 'function') {
+      // A worker-backed engine marker leaked here without its adapter being ready.
+      throw new Error('AI engine "' + cachedActiveEngine + '" is not ready for inference');
+    }
+    var out = await pipe(buildChatMessages(systemText, userText), genOpts);
+    return extractChatReply(out);
   }
 
   function isPipelineReadyForChat() {
@@ -2053,7 +2059,7 @@
   }
 
   async function warmupPipeline() {
-    return warmupPipelineOrThrow();
+    return runQueued(warmupPipelineOrThrow);
   }
 
   function isAiModelReadyForInference() {
@@ -2099,6 +2105,7 @@
     if (cachedActiveEngine === 'mlc' && window.RianellLlmMlc && typeof window.RianellLlmMlc.disposeMlcEngine === 'function') {
       window.RianellLlmMlc.disposeMlcEngine().catch(function () {});
     }
+    terminateLlmWorker('AI model cache cleared');
     cachedPipeline = null;
     cachedModelId = null;
     cachedActiveBackend = null;
