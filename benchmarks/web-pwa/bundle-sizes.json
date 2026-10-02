@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-02T21:42:52.766Z",
+  "generatedAt": "2026-10-02T21:51:08.159Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5716584,
+    "jsBytes": 5717396,
     "cssBytes": 870800,
-    "jsGzipBytes": 1395711,
+    "jsGzipBytes": 1395989,
     "cssGzipBytes": 147240
   },
   "files": [
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 423119,
-      "gzipBytes": 95740
+      "bytes": 423931,
+      "gzipBytes": 96018
     },
     {
       "file": "ci-minified/site/vendor/three/three.core.min.js",
