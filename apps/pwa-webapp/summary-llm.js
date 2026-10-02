@@ -1630,8 +1630,8 @@
       );
       if (text && text.length > 8) {
         var weekReply = stripTrailingIncompleteSentence(text);
-        if (window.RianellShared && typeof window.RianellShared.collapseRepeatedSentences === 'function') {
-          return window.RianellShared.collapseRepeatedSentences(weekReply);
+        if (window.RianellShared && typeof window.RianellShared.tidyHealthChatReply === 'function') {
+          return window.RianellShared.tidyHealthChatReply(weekReply);
         }
         return weekReply;
       }

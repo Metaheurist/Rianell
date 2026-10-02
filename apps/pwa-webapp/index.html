@@ -5224,7 +5224,7 @@
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
       function loadSummaryLlm() {
-        Perf.lazyLoadScript('summary-llm.js?v=7').catch(function () {});
+        Perf.lazyLoadScript('summary-llm.js?v=8').catch(function () {});
       }
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(loadSummaryLlm, { timeout: 2800 });
@@ -5244,7 +5244,7 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=13"></script>
+  <script defer src="vendor/rianell-shared.js?v=14"></script>
   <script defer src="modules/graphics-portfolio.js?v=7"></script>
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>

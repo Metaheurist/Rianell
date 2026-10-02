@@ -100,4 +100,6 @@ export {
   classifyHealthChatMessage,
   enforceHealthChatReply,
   collapseRepeatedSentences,
+  addressUserInSecondPerson,
+  tidyHealthChatReply,
 } from '../ai/chatGuardrails.mjs';

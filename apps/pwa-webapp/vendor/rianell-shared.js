@@ -171,6 +171,7 @@ var RianellShared = (() => {
     WEEKLY_REVIEW_STEPS: () => WEEKLY_REVIEW_STEPS,
     addLogFavorite: () => addLogFavorite,
     addMinutesToHHMM: () => addMinutesToHHMM,
+    addressUserInSecondPerson: () => addressUserInSecondPerson,
     aggregateDailyMacros: () => aggregateDailyMacros,
     analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
     apiKeyDisplayPrefix: () => apiKeyDisplayPrefix,
@@ -627,6 +628,7 @@ var RianellShared = (() => {
     summarizeMoodMetrics: () => summarizeMoodMetrics,
     t: () => t,
     textDirection: () => textDirection,
+    tidyHealthChatReply: () => tidyHealthChatReply,
     touchLastActiveAt: () => touchLastActiveAt,
     unwrapDek: () => unwrapDek,
     uploadShareLink: () => uploadShareLink,
@@ -4274,9 +4276,26 @@ ${hist}`);
     }
     return kept.join(" ");
   }
+  var FIRST_PERSON_LOG_RE = /\bI\s+(slept|woke|felt|feel|logged|ate|exercised|rested|struggled|seemed|was|didn't|did not)\b/g;
+  var FIRST_PERSON_POSSESSIVE_RE = /\b(my|My)\s+(sleep|energy|mood|fatigue|pain|symptoms?|stress|rest|logs?|body|health|day|days|week|night|entries|scores?|recovery)\b/g;
+  function startsSentence(text, offset) {
+    const before = text.slice(0, offset).trimEnd();
+    return !before || /[.!?:\n]$/.test(before);
+  }
+  function addressUserInSecondPerson(text) {
+    const raw = String(text == null ? "" : text);
+    if (!raw) return raw;
+    return raw.replace(FIRST_PERSON_LOG_RE, (_m, verb, offset, whole) => {
+      const subject = startsSentence(whole, offset) ? "You" : "you";
+      return `${subject} ${verb === "was" ? "were" : verb}`;
+    }).replace(FIRST_PERSON_POSSESSIVE_RE, (_m, my, noun) => `${my === "My" ? "Your" : "your"} ${noun}`);
+  }
+  function tidyHealthChatReply(text) {
+    return collapseRepeatedSentences(addressUserInSecondPerson(text));
+  }
   function enforceHealthChatReply(reply, blockedMessage) {
     if (isNsfwText(reply)) return blockedMessage || "";
-    return collapseRepeatedSentences(reply);
+    return tidyHealthChatReply(reply);
   }
 
   // packages/shared/src/settings/localeDefaults.mjs

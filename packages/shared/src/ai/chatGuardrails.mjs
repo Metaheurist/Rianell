@@ -150,15 +150,54 @@ export function collapseRepeatedSentences(text) {
   return kept.join(' ');
 }
 
+// Limited to verbs that describe the user's logged day, so the assistant's own
+// voice ("I can help", "I had a look at your log") is left alone.
+const FIRST_PERSON_LOG_RE =
+  /\bI\s+(slept|woke|felt|feel|logged|ate|exercised|rested|struggled|seemed|was|didn't|did not)\b/g;
+const FIRST_PERSON_POSSESSIVE_RE =
+  /\b(my|My)\s+(sleep|energy|mood|fatigue|pain|symptoms?|stress|rest|logs?|body|health|day|days|week|night|entries|scores?|recovery)\b/g;
+
+function startsSentence(text, offset) {
+  const before = text.slice(0, offset).trimEnd();
+  return !before || /[.!?:\n]$/.test(before);
+}
+
+/**
+ * The 0.8B model echoes the user's "I" when restating their log ("I slept
+ * poorly"). Rewrite those statements to address the user ("You slept poorly").
+ * English-only; other locales pass through unchanged.
+ * @param {string} text
+ * @returns {string}
+ */
+export function addressUserInSecondPerson(text) {
+  const raw = String(text == null ? '' : text);
+  if (!raw) return raw;
+  return raw
+    .replace(FIRST_PERSON_LOG_RE, (_m, verb, offset, whole) => {
+      const subject = startsSentence(whole, offset) ? 'You' : 'you';
+      return `${subject} ${verb === 'was' ? 'were' : verb}`;
+    })
+    .replace(FIRST_PERSON_POSSESSIVE_RE, (_m, my, noun) => `${my === 'My' ? 'Your' : 'your'} ${noun}`);
+}
+
+/**
+ * Post-process a chat reply: address the user in second person and drop
+ * repeated sentences.
+ * @param {string} text
+ * @returns {string}
+ */
+export function tidyHealthChatReply(text) {
+  return collapseRepeatedSentences(addressUserInSecondPerson(text));
+}
+
 /**
  * Defense-in-depth output gate for the model runner. Returns the canned blocked
- * message when the reply trips the NSFW filter, otherwise the reply with
- * repeated sentences collapsed.
+ * message when the reply trips the NSFW filter, otherwise the tidied reply.
  * @param {string} reply
  * @param {string} blockedMessage
  * @returns {string}
  */
 export function enforceHealthChatReply(reply, blockedMessage) {
   if (isNsfwText(reply)) return blockedMessage || '';
-  return collapseRepeatedSentences(reply);
+  return tidyHealthChatReply(reply);
 }
