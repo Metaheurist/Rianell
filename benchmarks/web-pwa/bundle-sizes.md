@@ -1,6 +1,6 @@
 # PWA bundle sizes
 
-Generated: 2026-10-02T17:00:23.049Z
+Generated: 2026-10-02T17:22:30.303Z
 
 | File | Raw | Gzip |
 |------|-----|------|
@@ -25,5 +25,5 @@ Generated: 2026-10-02T17:00:23.049Z
 | ci-minified/site/modules/weekly-review.js | 37373 | 8186 |
 | ci-minified/site/guided-onboarding.js | 35851 | 7194 |
 
-**JS total (gzip):** 1391758 bytes
+**JS total (gzip):** 1391811 bytes
 **CSS total (gzip):** 147240 bytes
