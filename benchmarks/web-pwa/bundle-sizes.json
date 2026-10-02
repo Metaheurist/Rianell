@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-10-02T14:04:14.344Z",
+  "generatedAt": "2026-10-02T14:38:48.652Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5693050,
+    "jsBytes": 5693197,
     "cssBytes": 870393,
-    "jsGzipBytes": 1389372,
+    "jsGzipBytes": 1389451,
     "cssGzipBytes": 147161
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1113435,
-      "gzipBytes": 240966
+      "bytes": 1113582,
+      "gzipBytes": 241048
     },
     {
-      "file": "ci-minified/site/app.edb3912a29c4.min.js",
+      "file": "ci-minified/site/app.33bdd6de3ae5.min.js",
       "bytes": 882658,
-      "gzipBytes": 204582
+      "gzipBytes": 204579
     },
     {
       "file": "ci-minified/site/styles.c03cc9a5fa43.css",
