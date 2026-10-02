@@ -8,6 +8,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ## [Unreleased]
 
+### Fixed
+- **CI gitleaks false positive:** `scripts/models/benchmark-llm-shortlist.mjs` candidate entries use `slug:` instead of `key:` so Gitleaks `generic-api-key` no longer flags model slugs (e.g. `qwen3.5-2b-opt`); no allowlist entry needed.
+
 ## [2.7.0] - 2026-10-02
 
 ### Added
