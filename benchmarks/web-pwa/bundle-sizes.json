@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-02T17:22:30.303Z",
+  "generatedAt": "2026-10-02T21:42:52.766Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5704449,
+    "jsBytes": 5716584,
     "cssBytes": 870800,
-    "jsGzipBytes": 1391811,
+    "jsGzipBytes": 1395711,
     "cssGzipBytes": 147240
   },
   "files": [
@@ -14,9 +14,9 @@
       "gzipBytes": 241252
     },
     {
-      "file": "ci-minified/site/app.e54973444a9f.min.js",
-      "bytes": 883133,
-      "gzipBytes": 204690
+      "file": "ci-minified/site/app.a3396bd0dad5.min.js",
+      "bytes": 885598,
+      "gzipBytes": 205422
     },
     {
       "file": "ci-minified/site/styles.0c513b33c7ed.css",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 419090,
-      "gzipBytes": 94596
+      "bytes": 423119,
+      "gzipBytes": 95740
     },
     {
       "file": "ci-minified/site/vendor/three/three.core.min.js",
@@ -60,8 +60,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 83022,
-      "gzipBytes": 21054
+      "bytes": 83126,
+      "gzipBytes": 21104
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
@@ -110,8 +110,8 @@
     },
     {
       "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 30526,
-      "gzipBytes": 7837
+      "bytes": 31028,
+      "gzipBytes": 7991
     },
     {
       "file": "ci-minified/site/privacy-region.js",
@@ -249,6 +249,11 @@
       "gzipBytes": 2709
     },
     {
+      "file": "ci-minified/site/sw.js",
+      "bytes": 8405,
+      "gzipBytes": 3000
+    },
+    {
       "file": "ci-minified/site/modules/app/voice-input.js",
       "bytes": 8324,
       "gzipBytes": 2549
@@ -257,11 +262,6 @@
       "file": "ci-minified/site/modules/vitals-suggest-ui.js",
       "bytes": 8059,
       "gzipBytes": 2131
-    },
-    {
-      "file": "ci-minified/site/sw.js",
-      "bytes": 7768,
-      "gzipBytes": 2797
     },
     {
       "file": "ci-minified/site/modules/drum-picker-scroll.js",
@@ -349,19 +349,24 @@
       "gzipBytes": 1773
     },
     {
+      "file": "ci-minified/site/modules/app/service-worker.js",
+      "bytes": 4463,
+      "gzipBytes": 1570
+    },
+    {
       "file": "ci-minified/site/modules/app/auth-ui.js",
       "bytes": 4216,
       "gzipBytes": 1209
     },
     {
-      "file": "ci-minified/site/modules/app/service-worker.js",
-      "bytes": 4212,
-      "gzipBytes": 1482
-    },
-    {
       "file": "ci-minified/site/modules/segmented-scale-input.js",
       "bytes": 4154,
       "gzipBytes": 1462
+    },
+    {
+      "file": "ci-minified/site/modules/app/build-freshness.js",
+      "bytes": 4147,
+      "gzipBytes": 1529
     },
     {
       "file": "ci-minified/site/modules/app/cookie-consent.js",
