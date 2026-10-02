@@ -99,4 +99,5 @@ export {
   isGreeting,
   classifyHealthChatMessage,
   enforceHealthChatReply,
+  collapseRepeatedSentences,
 } from '../ai/chatGuardrails.mjs';

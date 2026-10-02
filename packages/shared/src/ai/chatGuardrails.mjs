@@ -122,14 +122,43 @@ export function classifyHealthChatMessage(message, options = {}) {
   return { allowed: true, category: 'ok' };
 }
 
+function sentenceFingerprint(sentence) {
+  return sentence.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+
+/**
+ * Small models decoding greedily can loop on one sentence; keep only the first
+ * occurrence of each sentence (compared case- and punctuation-insensitively).
+ * @param {string} text
+ * @returns {string}
+ */
+export function collapseRepeatedSentences(text) {
+  const raw = String(text == null ? '' : text).trim();
+  if (!raw) return raw;
+  // Split only where terminal punctuation meets whitespace so decimals like 1.0/10 survive.
+  const sentences = raw.split(/(?<=[.!?])\s+/);
+  const seen = new Set();
+  const kept = [];
+  for (const sentence of sentences) {
+    const trimmed = sentence.trim();
+    if (!trimmed) continue;
+    const fingerprint = sentenceFingerprint(trimmed);
+    if (fingerprint && seen.has(fingerprint)) continue;
+    if (fingerprint) seen.add(fingerprint);
+    kept.push(trimmed);
+  }
+  return kept.join(' ');
+}
+
 /**
  * Defense-in-depth output gate for the model runner. Returns the canned blocked
- * message when the reply trips the NSFW filter, otherwise the reply unchanged.
+ * message when the reply trips the NSFW filter, otherwise the reply with
+ * repeated sentences collapsed.
  * @param {string} reply
  * @param {string} blockedMessage
  * @returns {string}
  */
 export function enforceHealthChatReply(reply, blockedMessage) {
   if (isNsfwText(reply)) return blockedMessage || '';
-  return reply;
+  return collapseRepeatedSentences(reply);
 }

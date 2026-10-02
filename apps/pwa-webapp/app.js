@@ -3299,7 +3299,7 @@ if (notesField) notesField.addEventListener('input', updateNotesCounter);
       if (contextStr && contextStr.length >= 30 && typeof window.generateSuggestNoteWithLLM !== 'function'
           && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
         try {
-          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=5');
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=6');
         } catch (e) {}
       }
 
@@ -6081,7 +6081,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
     if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
       try {
-        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=5');
+        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=6');
       } catch (e) {}
     }
   }
@@ -16528,7 +16528,7 @@ function ensureSummaryLlmLoadedForSettings() {
     return Promise.resolve();
   }
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=5');
+    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=6');
   }
   return Promise.resolve();
 }
@@ -16640,6 +16640,8 @@ function syncSettingsPerformanceAdvancedDisclosure() {
   }
 }
 
+var llmDeviceProbeRequested = false;
+
 function refreshLlmModelSettingsHints() {
   var llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
   var llmStorageHint = document.getElementById('llmModelStorageHint');
@@ -16648,6 +16650,11 @@ function refreshLlmModelSettingsHints() {
   var progressFill = document.getElementById('llmModelSettingsProgressFill');
   var progressPct = document.getElementById('llmModelSettingsProgressPct');
   var downloadBtn = document.getElementById('clearRedownloadAiModelBtn');
+  if (!llmDeviceProbeRequested && typeof window.isLlmDeviceProbeKnown === 'function' &&
+      !window.isLlmDeviceProbeKnown() && typeof window.ensureLlmDeviceProbed === 'function') {
+    llmDeviceProbeRequested = true;
+    window.ensureLlmDeviceProbed().then(refreshLlmModelSettingsHints, function () {});
+  }
   var modelStatus = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
 
   if (llmRecommendationHint) {

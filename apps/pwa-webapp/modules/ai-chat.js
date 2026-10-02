@@ -208,7 +208,24 @@
         submitUserMessage();
       });
     }
+    var chatInput = overlay.querySelector('#aiChatInput');
+    if (chatInput) {
+      chatInput.addEventListener('keydown', function (e) {
+        if (!isSendKey(e)) return;
+        e.preventDefault();
+        submitUserMessage();
+      });
+    }
     return overlay;
+  }
+
+  // Enter sends, Shift+Enter keeps a newline. keyCode 229 / isComposing mean an IME
+  // (CJK, dictation) is still composing, where Enter confirms the candidate instead.
+  function isSendKey(e) {
+    if (!e || e.key !== 'Enter') return false;
+    if (e.shiftKey || e.altKey) return false;
+    if (e.isComposing || e.keyCode === 229) return false;
+    return true;
   }
 
   function localizeChrome() {

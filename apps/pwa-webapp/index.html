@@ -5224,7 +5224,7 @@
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
       function loadSummaryLlm() {
-        Perf.lazyLoadScript('summary-llm.js?v=5').catch(function () {});
+        Perf.lazyLoadScript('summary-llm.js?v=6').catch(function () {});
       }
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(loadSummaryLlm, { timeout: 2800 });
@@ -5244,7 +5244,7 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=11"></script>
+  <script defer src="vendor/rianell-shared.js?v=12"></script>
   <script defer src="modules/graphics-portfolio.js?v=7"></script>
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
@@ -5255,11 +5255,11 @@
   <script defer src="modules/lifestyle-vitals-widgets.js?v=3"></script>
   <script defer src="modules/weekly-review.js?v=7"></script>
   <script defer src="modules/mood-tab.js?v=8"></script>
-  <script defer src="modules/ai-chat.js?v=1"></script>
+  <script defer src="modules/ai-chat.js?v=2"></script>
   <script defer src="modules/share-modal.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=4"></script>
   <script defer src="privacy-region.js?v=10"></script>
-  <script defer src="guided-onboarding.js?v=5"></script>
+  <script defer src="guided-onboarding.js?v=6"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
   <script type="module" defer src="app.js?v=72"></script>

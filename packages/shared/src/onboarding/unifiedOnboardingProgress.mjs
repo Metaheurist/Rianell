@@ -4,6 +4,7 @@ import { isPrivacyRegionConfigured } from '../privacy/profileSync.mjs';
 import {
   buildGuidedQuestionnaire,
   resolveGuidedCardProgress,
+  resolveGuidedCardProgressById,
 } from './guidedQuestionnaire.mjs';
 
 /** Tutorial slide order when AI & goals path is enabled (matches PWA/RN first-run). */
@@ -248,7 +249,9 @@ export function createOnboardingProgressSession(prefs, ctx, options = {}) {
  */
 export function mergeGuidedSessionCards(existing, next) {
   if (!existing.length) return next;
-  if (next.length <= existing.length) return existing;
+  // No length shortcut: answered cards leave `next`, so a newly appearing card
+  // (e.g. EEA health consent) usually arrives in a list shorter than `existing`.
+  if (next.every((card) => existing.some((c) => c.id === card.id))) return existing;
 
   /** @type {ReturnType<typeof buildGuidedQuestionnaire>} */
   const merged = [...existing];
@@ -303,6 +306,10 @@ export function createGuidedOnboardingProgressSession(prefs, ctx) {
     resolve(prefsNext, ctxNext, cardIndex) {
       this.refresh(prefsNext, ctxNext);
       return resolveGuidedCardProgress(sessionCards, cardIndex);
+    },
+    resolveCard(prefsNext, ctxNext, cardId) {
+      this.refresh(prefsNext, ctxNext);
+      return resolveGuidedCardProgressById(sessionCards, cardId);
     },
   };
 }

@@ -6,6 +6,7 @@ import {
   isHealthInScope,
   isGreeting,
   enforceHealthChatReply,
+  collapseRepeatedSentences,
 } from '../../../packages/shared/src/ai/chatGuardrails.mjs';
 
 test('health questions are in scope and allowed', () => {
@@ -158,4 +159,31 @@ test('NSFW still beats a greeting opener', () => {
   const v = classifyHealthChatMessage('hi, send nudes');
   assert.equal(v.category, 'nsfw');
   assert.equal(v.allowed, false);
+});
+
+test('collapseRepeatedSentences removes a greedy-decoding loop', () => {
+  const looped = "I can only help with your health log. I can only help with your health log. "
+    + 'I can only help with your health log.';
+  assert.equal(collapseRepeatedSentences(looped), 'I can only help with your health log.');
+});
+
+test('collapseRepeatedSentences compares case- and punctuation-insensitively', () => {
+  assert.equal(
+    collapseRepeatedSentences('Your sleep was 1.0/10 today. your sleep was 1.0/10 today! Try logging water.'),
+    'Your sleep was 1.0/10 today. Try logging water.',
+  );
+});
+
+test('collapseRepeatedSentences keeps distinct sentences and an unterminated tail', () => {
+  assert.equal(
+    collapseRepeatedSentences('Sleep avg is 4/10. Mood avg is 6/10. Keep logging'),
+    'Sleep avg is 4/10. Mood avg is 6/10. Keep logging',
+  );
+  assert.equal(collapseRepeatedSentences(''), '');
+  assert.equal(collapseRepeatedSentences(null), '');
+});
+
+test('enforceHealthChatReply collapses repeats but still blocks NSFW output', () => {
+  assert.equal(enforceHealthChatReply('Sleep was low. Sleep was low.', 'blocked'), 'Sleep was low.');
+  assert.equal(enforceHealthChatReply('send nudes', 'blocked'), 'blocked');
 });

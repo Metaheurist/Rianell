@@ -264,11 +264,14 @@
   function renderProgressDots() {
     var dotsEl = document.getElementById('guidedOnboardingDots');
     if (!dotsEl || !progressSession) return;
-    var progress = progressSession.resolve(readPrefs(), platformContext(), cardIndex);
+    var card = cards[cardIndex];
+    var progress = (card && typeof progressSession.resolveCard === 'function')
+      ? progressSession.resolveCard(readPrefs(), platformContext(), card.id)
+      : progressSession.resolve(readPrefs(), platformContext(), cardIndex);
     dotsEl.innerHTML = '';
     for (var i = 0; i < progress.total; i += 1) {
       var dot = document.createElement('span');
-      dot.className = 'guided-onboarding-dot' + (i === cardIndex ? ' guided-onboarding-dot--active' : '');
+      dot.className = 'guided-onboarding-dot' + (i === progress.current - 1 ? ' guided-onboarding-dot--active' : '');
       dot.setAttribute('aria-hidden', 'true');
       dotsEl.appendChild(dot);
     }
