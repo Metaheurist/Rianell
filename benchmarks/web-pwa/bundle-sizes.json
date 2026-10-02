@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-02T16:26:39.080Z",
+  "generatedAt": "2026-10-02T17:00:23.049Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5703203,
+    "jsBytes": 5704295,
     "cssBytes": 870800,
-    "jsGzipBytes": 1391408,
+    "jsGzipBytes": 1391758,
     "cssGzipBytes": 147240
   },
   "files": [
@@ -14,9 +14,9 @@
       "gzipBytes": 241252
     },
     {
-      "file": "ci-minified/site/app.5c31352200aa.min.js",
+      "file": "ci-minified/site/app.e54973444a9f.min.js",
       "bytes": 883133,
-      "gzipBytes": 204691
+      "gzipBytes": 204690
     },
     {
       "file": "ci-minified/site/styles.0c513b33c7ed.css",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 417986,
-      "gzipBytes": 94236
+      "bytes": 419090,
+      "gzipBytes": 94596
     },
     {
       "file": "ci-minified/site/vendor/three/three.core.min.js",
@@ -60,8 +60,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 83034,
-      "gzipBytes": 21063
+      "bytes": 83022,
+      "gzipBytes": 21054
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
