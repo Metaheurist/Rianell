@@ -2505,6 +2505,111 @@ body.light-mode .app-log-fab {
   min-width: 0;
 }
 
+.home-weather-enable-prompt--busy {
+  cursor: progress;
+  opacity: 0.6;
+  animation: none;
+}
+
+.home-dashboard-header__aside:has(.home-weather-city-form) {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  align-items: stretch;
+  max-width: none;
+}
+
+.home-weather-strip:has(.home-weather-city-form) {
+  justify-self: stretch;
+  width: 100%;
+}
+
+.home-weather-city-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 28rem;
+  margin-left: auto;
+  text-align: left;
+}
+
+.home-weather-city-form__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.home-weather-city-form__lead {
+  margin: 0;
+  font-size: 0.88em;
+  opacity: 0.85;
+}
+
+.home-weather-city-form__lead {
+  margin: 0;
+  font-size: 0.88em;
+  opacity: 0.85;
+}
+
+.home-weather-city-form__row,
+.home-weather-city-form__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.home-weather-city-form__actions {
+  justify-content: flex-end;
+}
+
+.home-weather-city-form__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--home-weather-prompt-border);
+  border-radius: 12px;
+  background: var(--home-weather-prompt-bg);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.home-weather-city-form__input:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.home-weather-city-form__submit,
+.home-weather-city-form__locate,
+.home-weather-city-form__cancel {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--home-weather-prompt-border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.home-weather-city-form__submit {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #0a0c08;
+  font-weight: 600;
+}
+
+.home-weather-city-form__submit[aria-busy="true"] {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.home-weather-city-form__error {
+  margin: 0;
+  font-size: 0.88em;
+  color: var(--color-danger);
+}
+
 .home-weather-enable-prompt {
   position: relative;
   display: inline-flex;

@@ -89,7 +89,31 @@
     return el;
   }
 
+  var MAX_VISIBLE_TOASTS = 3;
+
+  function activeToasts(stack) {
+    var out = [];
+    for (var i = 0; i < stack.children.length; i++) {
+      if (!stack.children[i]._dismissed) out.push(stack.children[i]);
+    }
+    return out;
+  }
+
+  function restartToastTimer(toast, duration) {
+    if (toast._dismissTimer) clearTimeout(toast._dismissTimer);
+    toast._dismissTimer = setTimeout(function () { dismissToast(toast); }, duration);
+    var progress = toast.querySelector('.rianell-toast__progress');
+    if (progress) {
+      progress.style.animationName = 'none';
+      void progress.offsetWidth;
+      progress.style.animationName = '';
+      progress.style.animationDuration = duration + 'ms';
+    }
+  }
+
   /**
+   * Identical (type + message) toasts already on screen are refreshed instead of stacked,
+   * and at most MAX_VISIBLE_TOASTS stay visible (oldest dismissed first).
    * @param {string} message
    * @param {{ type?: string, duration?: number, action?: { label: string, onClick: function } }} [opts]
    */
@@ -98,7 +122,19 @@
     var type = opts.type || 'success';
     var duration = typeof opts.duration === 'number' ? opts.duration : 3200;
     var stack = ensureToastContainer();
+    var dedupeKey = type + '|' + String(message);
+    var live = activeToasts(stack);
+    for (var j = 0; j < live.length; j++) {
+      if (live[j]._dedupeKey === dedupeKey) {
+        restartToastTimer(live[j], duration);
+        return live[j];
+      }
+    }
+    while (live.length >= MAX_VISIBLE_TOASTS) {
+      dismissToast(live.shift());
+    }
     var toast = document.createElement('div');
+    toast._dedupeKey = dedupeKey;
     toast.className = 'rianell-toast rianell-toast--' + type;
     toast.setAttribute('role', 'alert');
 

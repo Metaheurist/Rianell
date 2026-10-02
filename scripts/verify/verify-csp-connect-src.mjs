@@ -28,6 +28,7 @@ const requiredConnectHosts = [
   'https://raw.githubusercontent.com',
   'https://api.open-meteo.com',
   'https://air-quality-api.open-meteo.com',
+  'https://geocoding-api.open-meteo.com',
   'https://world.openfoodfacts.org',
   'https://web-sdk.smartlook.com',
   'https://*.smartlook.com',

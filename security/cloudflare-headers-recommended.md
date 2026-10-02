@@ -14,6 +14,7 @@ Home weather uses **[Open-Meteo](https://open-meteo.com/)** - **free, public, no
 |------|---------|
 | `https://api.open-meteo.com` | Forecast (pressure, temperature) |
 | `https://air-quality-api.open-meteo.com` | US AQI (optional) |
+| `https://geocoding-api.open-meteo.com` | Manual city lookup when location is not shared (only the typed city name is sent) |
 
 If the console shows `Fetch API cannot load https://api.open-meteo.com/... violates Content Security Policy`, the **HTTP** CSP at Cloudflare is **out of date**. The PWA **meta** tag in `index.html` already allows these hosts; a **narrower edge header** still blocks fetches because browsers require **both** policies to allow each origin.
 
@@ -25,7 +26,7 @@ If the console shows `Fetch API cannot load https://api.open-meteo.com/... viola
 2. **Rules** → **Transform Rules** → **Modify Response Header** (or **Rules** → **Response Header Transform Rules**).
 3. Find the rule that **sets** `Content-Security-Policy` (often named for client-side security or custom headers).
 4. **Either (recommended for simplicity):** **Delete** that rule so only the PWA **meta** CSP applies (single source of truth on each deploy).
-5. **Or:** Edit the rule value and paste the full policy from section **B** below (must include `https://api.open-meteo.com` and `https://air-quality-api.open-meteo.com` inside `connect-src`).
+5. **Or:** Edit the rule value and paste the full policy from section **B** below (must include `https://api.open-meteo.com`, `https://air-quality-api.open-meteo.com` and `https://geocoding-api.open-meteo.com` inside `connect-src`).
 6. **Save** and **Purge cache** (Caching → Purge Everything) for HTML if needed.
 7. Hard-refresh the site (Ctrl+Shift+R) and confirm weather loads without CSP errors.
 
@@ -120,7 +121,7 @@ If you must set CSP at the edge, copy the **`content`** value from the **`<meta 
 Single-line reference (keep in sync with that file when editing):
 
 ```http
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://world.openfoodfacts.org https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://world.openfoodfacts.org https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';
 ```
 
 **Note:** Project-specific Supabase host and PayPal endpoints are embedded above; adjust **`connect-src`** / **`frame-src`** if your deployment uses different hosts.
