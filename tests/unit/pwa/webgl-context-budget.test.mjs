@@ -46,6 +46,22 @@ for (const [file, ns] of Object.entries(MODULES)) {
   });
 }
 
+test('every WebGL scene tears itself down on webglcontextlost', () => {
+  for (const file of Object.keys(MODULES)) {
+    const src = readFileSync(`apps/pwa-webapp/modules/${file}`, 'utf8');
+    assert.match(src, /addEventListener\('webglcontextlost'/, `${file} handles context loss`);
+  }
+});
+
+test('webgl-scene ambient canvas is skipped on constrained devices', () => {
+  const src = readFileSync('apps/pwa-webapp/modules/webgl-scene.js', 'utf8');
+  const { window, document, stats } = fakeWindow();
+  window.RianellBootGuard = { isConstrainedDevice: () => true };
+  vm.runInNewContext(src, { window, globalThis: window, document, URL, Map, Set });
+  assert.equal(window.RianellWebGL.canUseWebGL(), false);
+  assert.equal(stats.getContext, 0, 'no GL context created when constrained');
+});
+
 test('three.js scenes force context loss on dispose', () => {
   for (const file of ['weather-orb-3d.js', 'goals-progress-3d.js', 'discovery-orb-3d.js']) {
     const src = readFileSync(`apps/pwa-webapp/modules/${file}`, 'utf8');

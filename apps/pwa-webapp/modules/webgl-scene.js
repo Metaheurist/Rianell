@@ -39,6 +39,8 @@
     var bench = global.DeviceBenchmark && global.DeviceBenchmark.getTier
       ? global.DeviceBenchmark.getTier() : 'medium';
     if (bench === 'low' || bench === 'very-low') return false;
+    var guard = global.RianellBootGuard;
+    if (guard && typeof guard.isConstrainedDevice === 'function' && guard.isConstrainedDevice()) return false;
     return probeWebGL();
   }
 
@@ -155,13 +157,15 @@
     raf = requestAnimationFrame(tick);
 
     var scene = {
+      lost: false,
       dispose: function () {
+        if (disposed) return;
         disposed = true;
         cancelAnimationFrame(raf);
         window.removeEventListener('resize', resize);
         host.removeEventListener('pointermove', onPointer);
         canvas.remove();
-        gl.getExtension('WEBGL_lose_context')?.loseContext();
+        if (!scene.lost) gl.getExtension('WEBGL_lose_context')?.loseContext();
       },
       setMood: function (score) {
         var s = Math.max(0, Math.min(10, Number(score) || 5));
@@ -169,6 +173,12 @@
         color[0] = 0.3 + (10 - s) * 0.04;
       },
     };
+    // A lost context leaves a stale full-panel canvas over the tab; drop it instead.
+    canvas.addEventListener('webglcontextlost', function (e) {
+      if (e && typeof e.preventDefault === 'function') e.preventDefault();
+      scene.lost = true;
+      scene.dispose();
+    });
     return scene;
   }
 
@@ -176,7 +186,11 @@
     if (!canUseWebGL()) return null;
     var host = typeof hostId === 'string' ? document.getElementById(hostId) : hostId;
     if (!host) return null;
-    if (activeScenes.has(sceneKey)) return activeScenes.get(sceneKey);
+    if (activeScenes.has(sceneKey)) {
+      var existing = activeScenes.get(sceneKey);
+      if (!existing.lost) return existing;
+      activeScenes.delete(sceneKey);
+    }
     var scene = createScene(host, opts || {});
     if (scene) activeScenes.set(sceneKey, scene);
     return scene;
