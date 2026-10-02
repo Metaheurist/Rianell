@@ -1,27 +1,27 @@
 {
-  "generatedAt": "2026-10-02T14:57:35.318Z",
+  "generatedAt": "2026-10-02T15:54:10.832Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5693900,
-    "cssBytes": 870393,
-    "jsGzipBytes": 1389666,
-    "cssGzipBytes": 147161
+    "jsBytes": 5702183,
+    "cssBytes": 870800,
+    "jsGzipBytes": 1391115,
+    "cssGzipBytes": 147240
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1113971,
-      "gzipBytes": 241183
+      "bytes": 1114319,
+      "gzipBytes": 241252
     },
     {
-      "file": "ci-minified/site/app.2bc643763ad5.min.js",
-      "bytes": 882833,
-      "gzipBytes": 204625
+      "file": "ci-minified/site/app.96c2f6d0cadf.min.js",
+      "bytes": 883133,
+      "gzipBytes": 204690
     },
     {
-      "file": "ci-minified/site/styles.c03cc9a5fa43.css",
-      "bytes": 795241,
-      "gzipBytes": 131873
+      "file": "ci-minified/site/styles.0c513b33c7ed.css",
+      "bytes": 795648,
+      "gzipBytes": 131952
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 411756,
-      "gzipBytes": 93438
+      "bytes": 417016,
+      "gzipBytes": 93966
     },
     {
       "file": "ci-minified/site/vendor/three/three.core.min.js",
@@ -50,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/AIEngine.js",
-      "bytes": 175076,
-      "gzipBytes": 38586
+      "bytes": 175430,
+      "gzipBytes": 38731
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
@@ -60,8 +60,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 81769,
-      "gzipBytes": 20611
+      "bytes": 82984,
+      "gzipBytes": 21041
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
@@ -105,8 +105,8 @@
     },
     {
       "file": "ci-minified/site/guided-onboarding.js",
-      "bytes": 35662,
-      "gzipBytes": 7165
+      "bytes": 35851,
+      "gzipBytes": 7194
     },
     {
       "file": "ci-minified/site/privacy-region.js",
@@ -115,8 +115,8 @@
     },
     {
       "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 29755,
-      "gzipBytes": 7605
+      "bytes": 30372,
+      "gzipBytes": 7784
     },
     {
       "file": "ci-minified/site/modules/settings.js",
@@ -126,7 +126,7 @@
     {
       "file": "ci-minified/site/performance-utils.js",
       "bytes": 27605,
-      "gzipBytes": 6795
+      "gzipBytes": 6799
     },
     {
       "file": "ci-minified/site/modules/advanced-vitals-widgets.js",
