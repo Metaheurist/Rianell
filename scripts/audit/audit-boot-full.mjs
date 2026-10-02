@@ -26,6 +26,24 @@ function fail(code) {
   if (!failureCodes.includes(code)) failureCodes.push(code);
 }
 
+/**
+ * Untimed load in a throwaway context so the first timed probe does not pay for a cold
+ * server, disk cache and browser process (the usual first-run SLOW_BOOT). PROBE_WARMUP=0 disables it.
+ */
+async function warmUpBrowser(browser) {
+  if (process.env.PROBE_WARMUP === '0') return;
+  let ctx = null;
+  try {
+    ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(PROBE_URL, { waitUntil: 'load', timeout: 60000 });
+  } catch (_) {
+    // Best effort: the timed probe reports real failures.
+  } finally {
+    if (ctx) await ctx.close().catch(() => {});
+  }
+}
+
 async function bootProbe(cold) {
   killHeadless();
   const chromium = await getChromium();
@@ -33,6 +51,7 @@ async function bootProbe(cold) {
     headless: true,
     args: ['--disable-dev-shm-usage', '--no-sandbox'],
   });
+  await warmUpBrowser(browser);
   let clickedBenchmark = false;
   let maxLong50 = 0;
   let maxLong2000 = 0;
