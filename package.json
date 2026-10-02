@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "dev:web": "node scripts/dev/launch-web.mjs",
+    "dev:reset-playwright-mcp": "node scripts/dev/reset-playwright-mcp.mjs",
     "brain:ensure": "node scripts/dev/ensure-ollama.mjs",
     "verify:cwv": "npm run audit:cwv",
     "agentic:catalog": "node scripts/dev/agentic-pipeline/catalog-cli.mjs",
