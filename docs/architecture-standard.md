@@ -18,6 +18,7 @@ References: [Turbo structuring](https://turbo.build/repo/docs/crafting-your-repo
 ```
 apps/
   pwa-webapp/          @rianell/pwa-webapp - vanilla JS PWA + esbuild
+    modules/app/       ES modules split out of app.js (see development/pwa-app-module-map.md)
 packages/
   shared/              @rianell/shared
   ai-engine/           @rianell/ai-engine
@@ -57,7 +58,9 @@ tests/                 Node unit tests (tests/unit/)
 |------|------|
 | `.server-dist/` | Local server bundle from launch-server.ps1 |
 | `ci-minified/` | CI minified site staging |
-| `apps/pwa-webapp/app.*.min.js` | esbuild output - rebuild after app.js changes |
+| `apps/pwa-webapp/app.*.min.js` | esbuild output (app.js + `modules/app/*.js`) - rebuild after app.js changes |
+
+The PWA entry `app.js` imports self-contained domains from `apps/pwa-webapp/modules/app/`. Rules for those modules (no imports of `app.js`, side effects stay in the entry, reassigned bindings are injected) and the list of domains still coupled to `app.js` are in [development/pwa-app-module-map.md](development/pwa-app-module-map.md).
 
 ## Workspace graph
 

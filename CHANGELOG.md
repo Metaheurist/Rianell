@@ -22,6 +22,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 - **`npm run verify:icon-spec`** — specs stay aligned with `THEME_FX_TOKENS` and `--ui-icon-stroke`.
 - **`npm run visual:derive-variants`** — derive fancy team packs via `generate:theme-icons` (no LLM per variant).
 
+### Changed
+- **PWA `app.js` split into domain modules:** 13 self-contained domains moved into ES modules under `apps/pwa-webapp/modules/app/`: platform detection, i18n and theme helpers, logger, DOM safety helpers, alert and confirm modals, voice input, task scheduling, the benchmark modal, service worker init, auth form helpers, cookie consent, the donate modal and the PWA install guide. `build:web` still bundles everything into one `app.<hash>.min.js`, and every `window.*` binding is kept (pinned by `tests/unit/pwa/app-window-bindings.test.mjs`). Tests and verify scripts read the app source through `scripts/lib/app-source.mjs`. Rules and the list of domains still coupled to `app.js` are in `docs/development/pwa-app-module-map.md`.
+
 ### Removed
 - **Agentic / research dump docs:** deleted LLM coerce notes under `docs/development/agentic-findings/*.md` (kept README only), speculative `docs/plans/plan-27-next-phase-execution.md` / `MANUAL-deps-triage.md` / `SEO-STRUCTURE-TESTS.md` / `pyqt6-dashboard-migration.md`, unused `rtl-logical-mapping.css`, and the broken `verify-policy-docs-drift.mjs` stub. Stripped Firecrawl cache/runbook fluff from archived plan docs; policy and security tables kept.
 
