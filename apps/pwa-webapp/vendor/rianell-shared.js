@@ -4313,9 +4313,9 @@ ${hist}`);
   }
   var LOGGING_SENTENCE_RE = /\b(log|logs|logged|logging|track|tracking|more days|not enough|no trend|yet)\b/i;
   var COMPARISON_RE = /\b(yesterday|improved|improving|worsened|worsening|dropped|increased|decreased|compared|than before|lately|recently|trends?|(?:this |the )?past (?:week|few days)|this week|last week)\b/i;
-  var CAUSE_RE = /\b(which (?:is|was) why|that's why|that is why|because|due to|caused|led to|as a result|(?:which|this|that) (?:explains|means|suggests|indicates)|explains why|suggest(?:s|ing) that|is influencing)\b|,\s*(?:suggesting|indicating|meaning)\b/i;
+  var CAUSE_RE = /\b(which (?:is|was) why|that's why|that is why|because|due to|caused|led to|as a result|(?:which|this|that) (?:(?:likely|probably|may|might|could) )?(?:explains?|means?|suggests?|indicates?)|explains why|suggest(?:s|ing) that|is influencing)\b|,\s*(?:suggesting|indicating|meaning)\b/i;
   var CLAUSE_SPLIT_RE = /,\s+(?=(?:but|and|so|while|though)\b)|;\s*/i;
-  var TIP_RE = /\b(try|trying|consider|please|make sure|aim to|you should|it may help|to help you|continue to|prioriti[sz]e|(?:this|that|it) (?:will|should|can|may) (?:likely )?(?:help|improve|boost|support))\b/i;
+  var TIP_RE = /\b(try|trying|consider|please|make sure|aim to|you should|it may help|to help you|continue to|prioriti[sz]e|(?:will|would|could|should|can|may|might) (?:likely )?help|(?:this|that|it) (?:will|should|can|may) (?:likely )?(?:improve|boost|support)|may take (?:a few |several )?(?:days|weeks))\b/i;
   function keepSentence(sentence, dropRe) {
     return LOGGING_SENTENCE_RE.test(sentence) || !dropRe.test(sentence);
   }
