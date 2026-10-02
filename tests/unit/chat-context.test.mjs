@@ -85,6 +85,15 @@ test('chat context states what each score means, energy first for fatigue', () =
   assert.equal(scoreBand(7), 'good');
 });
 
+test('chat context says there is no trend yet only for 0 or 1 logged days', () => {
+  const none = buildChatContext({ analysis: { totalLogs: 0 }, logs: [] });
+  const one = buildChatContext({ analysis: { totalLogs: 1 }, logs: [] });
+  const two = buildChatContext({ analysis: { totalLogs: 2 }, logs: [] });
+  assert.ok(none.includes('Nothing logged yet.'), none);
+  assert.ok(one.includes('Only 1 day logged, so there is no trend or day-to-day comparison yet.'), one);
+  assert.ok(!/Nothing logged yet|no trend/.test(two), two);
+});
+
 test('week chat context uses the same described scores', () => {
   const ctx = buildWeekChatContext({ analysis: { totalLogs: 3, avgSleep: 2 } });
   assert.ok(ctx.includes('Sleep: poor (avg 2.0/10).'), ctx);

@@ -136,6 +136,11 @@ export function buildChatContext({
 
   const total = analysis.totalLogs ?? (Array.isArray(logs) ? logs.length : 0);
   parts.push(`${total} logged day(s).`);
+  if (total === 0) {
+    parts.push('Nothing logged yet.');
+  } else if (total < 2) {
+    parts.push('Only 1 day logged, so there is no trend or day-to-day comparison yet.');
+  }
   if (analysis.flareDays != null && analysis.flareDays > 0) {
     parts.push(`Flares: ${analysis.flareDays} day(s).`);
   }

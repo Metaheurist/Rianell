@@ -64,8 +64,8 @@
     "sha256": "9776d65f6d53c079fd1e46fa4b3a4a0b0323bf5e6b8fecce1d9c8fa6837d3793"
   },
   "modules/ai-chat.js": {
-    "v": 3,
-    "sha256": "2652a23a10cc7990a16a8cc731890c3d97148bce758cee859e09792df520d1aa"
+    "v": 4,
+    "sha256": "9d9d7bd917e73ff0f674f24aa893eb2f49b58ff5abbcfb72cb9ab22058784cc2"
   },
   "modules/app-lock.js": {
     "v": 5,
@@ -168,8 +168,8 @@
     "sha256": "f380619b65199bfa8465204faf75e56598b667d09df5f42f1719f9ffa74c0115"
   },
   "summary-llm.js": {
-    "v": 8,
-    "sha256": "dad0ee7beb84d939e54656e037da366f0d8fc2540c167bc50906b815a44d8133"
+    "v": 9,
+    "sha256": "7d6aaa360aaf5408397d1c27397a551ca43217814cbd364b640a1c40060c5170"
   },
   "trace-runtime.js": {
     "v": 1,
@@ -184,7 +184,7 @@
     "sha256": "cc0cf594822b9a4bb2d77ccba6a380a160fb84f7002caaa84f228748afe7eccb"
   },
   "vendor/rianell-shared.js": {
-    "v": 14,
-    "sha256": "69485efe77f84b47a195a72c23001166a43ee5d2093c20f4d2db84d8ac776607"
+    "v": 15,
+    "sha256": "515651e050079a088772dd7e7951b5992bf386a2b1db35b1f83f0211c2b6d706"
   }
 }

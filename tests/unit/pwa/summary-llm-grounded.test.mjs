@@ -50,6 +50,7 @@ test('health chat prompt grounds answers in the log instead of refusing', () => 
   assert.match(system, /user's own data/i);
   // The 0.8B model otherwise echoes the user's "I" ("I slept poorly last night").
   assert.match(system, /Speak to the user directly as 'you'/);
+  assert.match(system, /Only give a tip when the user asks for advice, and never claim causes the log does not show\./);
   assert.match(system, /has not been logged yet/i);
   assert.match(system, /never repeat a sentence/i);
   assert.match(system, /NSFW/);
@@ -80,6 +81,15 @@ test('chat generation uses a mild repetition penalty and collapses repeated sent
   assert.match(health, /RianellShared\.enforceHealthChatReply\(reply/);
   const week = summaryLlm.slice(summaryLlm.indexOf('async function generateWeekChatWithLLM'));
   assert.match(week, /RianellShared\.tidyHealthChatReply\(weekReply\)/);
+});
+
+test('health chat caps generation at 120 new tokens and stays greedy', () => {
+  const start = summaryLlm.indexOf('async function generateHealthChatWithLLM');
+  const body = summaryLlm.slice(start, summaryLlm.indexOf('\n  }\n', start));
+  // 3 short sentences under 60 words is about 80 tokens; the cap is a safety bound, not a speed change.
+  assert.match(body, /max_new_tokens: 120,/);
+  // Greedy on purpose: sampling (as the Qwen card suggests for open chat) invents more when restating facts.
+  assert.match(body, /do_sample: false/);
 });
 
 test('runChatInference loads first, then calls the worker-backed pipeline', () => {

@@ -9,6 +9,11 @@ import {
   collapseRepeatedSentences,
   addressUserInSecondPerson,
   tidyHealthChatReply,
+  limitSentences,
+  dropUnsupportedComparisons,
+  dropUnsupportedCauses,
+  dropUnsolicitedTips,
+  groundHealthChatReply,
 } from '../../../packages/shared/src/ai/chatGuardrails.mjs';
 
 test('health questions are in scope and allowed', () => {
@@ -216,4 +221,64 @@ test("addressUserInSecondPerson leaves the assistant's own voice alone", () => {
 test('tidyHealthChatReply rewrites before collapsing so echoed repeats merge', () => {
   assert.equal(tidyHealthChatReply('I slept badly. You slept badly. Try logging water.'), 'You slept badly. Try logging water.');
   assert.equal(enforceHealthChatReply('I slept badly.', 'blocked'), 'You slept badly.');
+});
+
+// Replies captured from the 0.8B model on rianell.com with 1 logged day.
+const LIVE_SLEEP_REPLY =
+  'You slept poorly last night, which was why your energy dropped significantly today. To help you recover better tomorrow, please try sleeping for an extra hour before bed and avoid screens for at least one hour. This will likely improve your overall rest and mood.';
+const LIVE_ENERGY_REPLY =
+  'Your energy is currently good, though fatigue averages 1.0 on a scale of 10. While sleep quality improved from yesterday, your mood remains poor, suggesting that some emotional factors may still be influencing your state. Please continue to prioritize getting enough rest and manage stress effectively to maintain this positive outlook.';
+const LIVE_TIRED_REPLY =
+  "No, you aren't tired right now; your energy is actually good despite the poor sleep history. However, since your mood is still poor, consider trying to get back to sleep earlier tonight to boost your current mood.";
+
+test('groundHealthChatReply reduces the live sleep reply to the logged fact', () => {
+  assert.equal(groundHealthChatReply(LIVE_SLEEP_REPLY, { loggedDays: 1 }), 'You slept poorly last night.');
+});
+
+test('groundHealthChatReply drops the invented comparison, cause and tip from the live energy reply', () => {
+  assert.equal(
+    groundHealthChatReply(LIVE_ENERGY_REPLY, { loggedDays: 1 }),
+    'Your energy is currently good, though fatigue averages 1.0 on a scale of 10.'
+  );
+});
+
+test('groundHealthChatReply drops the unrequested tip from the live tiredness reply', () => {
+  assert.equal(
+    groundHealthChatReply(LIVE_TIRED_REPLY, { loggedDays: 1 }),
+    "No, you aren't tired right now; your energy is actually good despite the poor sleep history."
+  );
+});
+
+test('an advice question keeps exactly one tip', () => {
+  const reply = 'Your sleep is poor (avg 1.0/10). Try a fixed bedtime. Consider less caffeine after noon.';
+  assert.equal(
+    groundHealthChatReply(reply, { loggedDays: 1, adviceRequested: true }),
+    'Your sleep is poor (avg 1.0/10). Try a fixed bedtime.'
+  );
+  assert.equal(dropUnsolicitedTips(reply), 'Your sleep is poor (avg 1.0/10).');
+});
+
+test('logging and data-limit sentences survive every filter', () => {
+  const reply = "Keep logging to see trends. I can't compare because only 1 day is logged. Please log your mood tonight.";
+  assert.equal(groundHealthChatReply(reply, { loggedDays: 1 }), reply);
+});
+
+test('comparisons are kept once there are 2 or more logged days', () => {
+  const reply = 'Your sleep improved from yesterday.';
+  assert.equal(dropUnsupportedComparisons(reply, { loggedDays: 2 }), reply);
+  assert.equal(dropUnsupportedComparisons(reply, { loggedDays: 1 }), '');
+});
+
+test('cause trimming keeps a meaningful head and drops a sentence that is all cause', () => {
+  assert.equal(dropUnsupportedCauses('You feel tired because you slept poorly.'), 'You feel tired.');
+  assert.equal(dropUnsupportedCauses('Due to stress, mood is low.'), '');
+});
+
+test('limitSentences caps at 3 and keeps decimals intact', () => {
+  assert.equal(limitSentences('Sleep avg 1.0/10. Mood avg 2.5/10. Energy good. Extra.', 3), 'Sleep avg 1.0/10. Mood avg 2.5/10. Energy good.');
+});
+
+test('groundHealthChatReply returns empty when nothing survives', () => {
+  assert.equal(groundHealthChatReply('Your sleep improved lately. Try going to bed earlier.', { loggedDays: 1 }), '');
+  assert.equal(groundHealthChatReply('', { loggedDays: 1 }), '');
 });
