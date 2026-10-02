@@ -10011,9 +10011,6 @@ function migrateLogs() {
   }
 }
 
-// Run migration on load
-migrateLogs();
-
 /**
  * Build one ECG-like beat (Lead II style): P, PR, Q, sharp R, S, ST, T. Width 100 units; ends on baseline.
  * Randomness is morphology only (amplitude/timing), not baseline drift - beats tile cleanly at x0+100.
@@ -26180,3 +26177,7 @@ function attachInlineHandlersToWindow() {
   });
 }
 attachInlineHandlersToWindow();
+
+// Load-time log migration must stay the last top-level statement: it touches caches
+// declared throughout this file, and a throw here would abort the rest of the bundle.
+migrateLogs();
