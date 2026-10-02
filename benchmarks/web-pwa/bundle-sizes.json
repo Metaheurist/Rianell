@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-10-02T17:00:23.049Z",
+  "generatedAt": "2026-10-02T17:22:30.303Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5704295,
+    "jsBytes": 5704449,
     "cssBytes": 870800,
-    "jsGzipBytes": 1391758,
+    "jsGzipBytes": 1391811,
     "cssGzipBytes": 147240
   },
   "files": [
@@ -109,14 +109,14 @@
       "gzipBytes": 7194
     },
     {
+      "file": "ci-minified/site/modules/ai-chat.js",
+      "bytes": 30526,
+      "gzipBytes": 7837
+    },
+    {
       "file": "ci-minified/site/privacy-region.js",
       "bytes": 30397,
       "gzipBytes": 6405
-    },
-    {
-      "file": "ci-minified/site/modules/ai-chat.js",
-      "bytes": 30372,
-      "gzipBytes": 7784
     },
     {
       "file": "ci-minified/site/modules/settings.js",
