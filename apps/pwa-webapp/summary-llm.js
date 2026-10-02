@@ -142,14 +142,8 @@
     return fallback;
   }
 
-  var INSTANT_LLM_FEATURES = { motd: true, suggestNote: true };
-
-  function isInstantLlmFeature(feature) {
-    return !!(feature && INSTANT_LLM_FEATURES[feature]);
-  }
-
   function getCoachPersona() {
-    var p = (typeof appSettings !== 'undefined' && appSettings.llmCoachPersona) || 'encouraging';
+    var p = (window.appSettings && window.appSettings.llmCoachPersona) || 'encouraging';
     return p === 'clinical' || p === 'minimal' ? p : 'encouraging';
   }
 
@@ -204,9 +198,9 @@
 
   function buildSummaryPromptFromPack(pack, context) {
     var plain =
-      typeof appSettings !== 'undefined' &&
-      appSettings.accessibility &&
-      appSettings.accessibility.plainLanguageEnabled === true;
+      !!window.appSettings &&
+      !!window.appSettings.accessibility &&
+      window.appSettings.accessibility.plainLanguageEnabled === true;
     var system = applyCoachPersona(promptString(
       pack,
       plain ? 'summary.system.plain' : 'summary.system',
@@ -1010,7 +1004,7 @@
           cachedPipeline = await tryLoadWithPlans(loadModelId, gpuPlans, myGen);
           loaded = true;
         } catch (e1) {
-          if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+          if (isStaleLoad(myGen)) throw new Error('AI model download deferred', { cause: e1 });
           gpuErr = e1;
           // Release any partially-initialized pipeline so GC can reclaim WebGPU/ONNX resources
           // before the WASM fallback allocates its own runtime.
@@ -1034,7 +1028,7 @@
           cachedActiveDtype = dtypeLabel(LLM_PACKAGES.wasm.dtype);
           loaded = true;
         } catch (wasmErr) {
-          if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+          if (isStaleLoad(myGen)) throw new Error('AI model download deferred', { cause: wasmErr });
           failDownloadProgress(formatDownloadError(wasmErr));
           throw wasmErr;
         }
@@ -1415,7 +1409,8 @@
     if (!contextString || contextString.length < 10) return fallbackText || '';
     if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
 
-    var todayKey = (typeof getTodayDateStr === 'function' ? getTodayDateStr() : new Date().toISOString().slice(0, 10));
+    var now = new Date();
+    var todayKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     var cacheKey = simpleHash(String(questionId || 'q') + ':' + todayKey + ':' + contextString);
     if (!homeQuestionResultCache) homeQuestionResultCache = new Map();
     var cached = homeQuestionResultCache.get(cacheKey);
@@ -1466,7 +1461,7 @@
 
   async function generateClinicianBriefWithLLM(analysis, options, fallbackText) {
     if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
-    var context = '';
+    var context;
     if (window.RianellShared && typeof window.RianellShared.buildClinicianBriefContext === 'function') {
       context = window.RianellShared.buildClinicianBriefContext({
         analysis: analysis,

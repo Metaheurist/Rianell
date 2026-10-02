@@ -320,7 +320,6 @@
   function countUp(el, target, duration) {
     if (!el) return;
     duration = duration || 600;
-    var start = 0;
     var from = parseFloat(el.getAttribute('data-count-from') || '0') || 0;
     var to = typeof target === 'number' ? target : parseFloat(target) || 0;
     var decimals = (String(to).split('.')[1] || '').length;

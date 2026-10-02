@@ -10,6 +10,7 @@ How Rianell is built, tested, and deployed from GitHub Actions.
 |--------|---------|
 | `npm run build:web` | Sync tokens/i18n → vendor bundle → minified hashed PWA |
 | `npm run test:unit` | Node unit tests (`tests/unit/`) |
+| `npm run lint` | ESLint (flat config `eslint.config.mjs`) on files split out of `app.js` and LLM/SW/feedback files; widen the list as legacy files are cleaned up |
 | `npm run verify:i18n` | Full locale/prompt/MOTD gate suite |
 | `npm run verify:a11y-tokens` | WCAG contrast gate for `@rianell/tokens` theme pairs |
 | `npm run verify:design-tokens` | Guardrail: no hardcoded card scaffolds or width-based progress in critical UI |
@@ -68,7 +69,7 @@ Jobs are grouped into **phases** (see workflow header). File order matches the D
 
 ### Phase 1 - Foundation (parallel)
 
-- **unit-tests** - `test:unit`, `verify:a11y-tokens`, `verify:design-tokens`, `verify:i18n`
+- **unit-tests** - `test:unit`, `lint`, `verify:a11y-tokens`, `verify:design-tokens`, `verify:i18n`
 - **prepare-minified-assets** - minified PWA → artifact `minified-prebuild` (copies `.well-known/security.txt` and `.nojekyll`; glob copy skips dot paths)
 - **security-audit** - Gitleaks, OSV, npm/pip audit (reusable workflow)
 - **Agentic harness suite** (4 parallel nodes):
@@ -164,13 +165,14 @@ Reports committed on `main` via CI when changed.
 | Bundle `--enforce-budget` | 3/5 | `app.*.min.js` gzip ≤ 2 MB, vendor ≤ 15 MB |
 | `verify-boot-warm-budget` | 3/5 | Progressive warm boot gate (`BOOT_WARM_CI_MAX_MS`) |
 
-Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo root). Secret scanning path ignores for vendored Transformers.js: `.github/secret_scanning.yml`.
+Dependabot: `.github/dependabot.yml` (npm + github-actions weekly; pip at repo root). When a package is both a direct dependency and an `overrides` entry, the override must be the `$name` reference (as for `sharp`, `@babel/core`); a literal range makes npm reject Dependabot's bump with `EOVERRIDE`. Secret scanning path ignores for vendored Transformers.js: `.github/secret_scanning.yml`.
 
 ---
 
 ## PR checklist
 
 - [ ] `npm run test:unit` passes
+- [ ] `npm run lint` passes
 - [ ] `npm run verify:i18n` if strings/locales changed
 - [ ] `npm run docs:dependencies` if manifests/deps changed
 - [ ] No secrets in client code (`verify-no-service-role-in-clients` in CI)

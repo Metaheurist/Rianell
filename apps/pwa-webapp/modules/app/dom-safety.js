@@ -47,18 +47,6 @@ function svgIconUnsafe(name, cls) {
   return '<svg class="' + (cls || 'ui-svg-icon') + '" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
 }
 
-function sanitizeHTML(html) {
-  if (typeof html !== 'string') return '';
-  // Escape HTML special characters
-  return html
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
-}
-
 /** Trap Tab/Escape in modal overlays; returns teardown function. */
 function installModalFocusTrap(overlay, options) {
   if (!overlay) return function () {};
@@ -100,9 +88,9 @@ function installModalFocusTrap(overlay, options) {
 /** Unified toast wrapper (ui-feedback.js). */
 function notifyUser(message, opts) {
   opts = opts || {};
-  if (typeof showToast === 'function') {
-    showToast(message, opts);
-    if (typeof haptic === 'function') haptic(opts.type === 'error' ? [20, 40, 20] : 12);
+  if (typeof window.showToast === 'function') {
+    window.showToast(message, opts);
+    if (typeof window.haptic === 'function') window.haptic(opts.type === 'error' ? [20, 40, 20] : 12);
     return;
   }
   alert(message);

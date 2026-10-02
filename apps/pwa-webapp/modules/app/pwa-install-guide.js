@@ -1,11 +1,8 @@
 /**
- * PWA install guidance: per-platform install guide modal, file:// help and standalone launch.
+ * PWA install guidance: per-platform install guide modal and file:// help.
  * Extracted from app.js. app.js re-publishes any window.* bindings at their original
  * positions; this module must not import app.js (it is loaded as app.js?v=N).
  */
-
-import { tUi } from './i18n-theme.js';
-import { showAlertModal } from './modal-host.js';
 
 function showFileProtocolHelp() {
   const helpText = `PWA Installation Limitation
@@ -33,24 +30,6 @@ Would you like manual installation instructions instead?`;
   
   if (confirm(helpText + '\n\nShow manual installation steps?')) {
     showInstallInstructions();
-  }
-}
-
-function openInStandalone() {
-  const currentUrl = window.location.href;
-  const standaloneUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'standalone=true';
-  
-  // Try to open in new window with app-like properties
-  const newWindow = window.open(standaloneUrl, 'RianellApp', 
-    'width=400,height=800,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes'
-  );
-  
-  if (newWindow) {
-    showAlertModal(tUi('common.opening.in.standalone.mode.nclose.this.w'), tUi('common.alert'));
-    // Focus the new window
-    newWindow.focus();
-  } else {
-    showAlertModal(tUi('common.popup.blocked.nplease.allow.popups.for.t'), tUi('common.alert'));
   }
 }
 

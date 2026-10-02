@@ -200,7 +200,7 @@ sequenceDiagram
 | Threat | Description | Likelihood | Impact | Mitigations |
 |--------|-------------|------------|--------|-------------|
 | I1 | `user_keys` plaintext readable by DB admin | Medium | Critical | Documented risk; [crypto-roadmap.md](crypto-roadmap.md) |
-| I2 | XSS exfiltrates localStorage health logs | Medium | High | `escapeHTML` / `sanitizeHTML`; CSP (residual `unsafe-inline`) |
+| I2 | XSS exfiltrates localStorage health logs | Medium | High | `escapeHTML` / `escapeAttr`; CSP (residual `unsafe-inline`) |
 | I3 | GraphQL schema introspection exposes table names | Low | Low | `pg_graphql` dropped in schema; see SECURITY.md |
 | I4 | Bug report leaks console PII | Medium | Medium | User education; truncate console capture |
 | I5 | Anon key in bundle enables enumeration | Low | Medium | RLS; revoke anon on sensitive tables |

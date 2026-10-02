@@ -139,6 +139,7 @@
     "turbo:typecheck": "npx turbo run typecheck",
     "postinstall": "node scripts/build/root-postinstall.mjs",
     "sync:llm-pwa": "node scripts/build/sync-llm-tier-benchmark.mjs",
+    "lint": "eslint --max-warnings=0 apps/pwa-webapp/modules/app apps/pwa-webapp/modules/boot-guard.js apps/pwa-webapp/modules/llm-worker-client.js apps/pwa-webapp/summary-llm.js apps/pwa-webapp/ui-feedback.js apps/pwa-webapp/workers/llm-worker.js apps/pwa-webapp/sw.js eslint.config.mjs scripts/lib/app-source.mjs scripts/models/benchmark-llm-shortlist.mjs tests/unit/pwa/helpers",
     "vendor:transformers": "node scripts/build/vendor-transformers.mjs",
     "test:llm-hardware": "node scripts/test/llm-hardware-matrix.mjs",
     "preflight:llm-chunk": "node scripts/test/preflight-llm-chunk.mjs",
@@ -159,12 +160,15 @@
     "@babel/parser": "^7.26.7",
     "@babel/traverse": "^7.26.7",
     "@babel/types": "^7.26.7",
+    "@eslint/js": "^10.0.1",
     "@huggingface/transformers": "4.3.0",
     "@opentelemetry/core": "^2.10.0",
     "@sentry/node": "^10.68.0",
     "esbuild": "0.28.1",
+    "eslint": "^10.11.0",
+    "globals": "^17.13.0",
     "jsdom": "^30.0.1",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.4",
     "turbo": "^2.10.7"
   },
   "overrides": {
@@ -178,7 +182,7 @@
     "http-proxy-agent@5.0.0": "7.0.2",
     "@tootallnate/once": "^3.0.1",
     "brace-expansion": "^5.0.8",
-    "sharp": "^0.35.3",
+    "sharp": "$sharp",
     "react-devtools-core": {
       "shell-quote": "^1.8.4"
     },
