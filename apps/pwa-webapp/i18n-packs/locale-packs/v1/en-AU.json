@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Questions for my doctor",
     "ai.doctorQuestions.loading": "Suggesting questions…",
     "ai.doctorQuestions.section": "Questions for my doctor",
+    "ai.download.failedRetry": "AI model setup failed. Check your connection and try again.",
     "ai.empty.noData.desc": "Add logs with the + button. Analysis will appear here for your chosen date range.",
     "ai.empty.noData.title": "No health data yet",
     "ai.empty.noRange.title": "No data in this range",

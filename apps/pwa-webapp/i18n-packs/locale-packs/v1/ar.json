@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "أسئلة أريد طرحها على طبيبي/طبيبتي",
     "ai.doctorQuestions.loading": "اقتراح أسئلة...",
     "ai.doctorQuestions.section": "أسئلة أريد طرحها على طبيبي/طبيبتي",
+    "ai.download.failedRetry": "تعذّر إعداد نموذج الذكاء الاصطناعي. تحقق من اتصالك ثم أعد المحاولة.",
     "ai.empty.noData.desc": "أضف سجلات باستخدام زر \"+\". ستظهر هنا نتائج التحليل للفترة الزمنية التي اخترتها.",
     "ai.empty.noData.title": "لم يتم إدخال أي بيانات صحية حتى الآن",
     "ai.empty.noRange.title": "لا توجد بيانات في هذا النطاق",

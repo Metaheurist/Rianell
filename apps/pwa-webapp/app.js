@@ -5283,7 +5283,7 @@ if (notesField) notesField.addEventListener('input', updateNotesCounter);
       if (contextStr && contextStr.length >= 30 && typeof window.generateSuggestNoteWithLLM !== 'function'
           && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
         try {
-          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=2');
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=3');
         } catch (e) {}
       }
 
@@ -8065,7 +8065,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
     if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
       try {
-        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=2');
+        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=3');
       } catch (e) {}
     }
   }
@@ -18583,7 +18583,7 @@ function ensureSummaryLlmLoadedForSettings() {
     return Promise.resolve();
   }
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=2');
+    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=3');
   }
   return Promise.resolve();
 }
@@ -18920,7 +18920,11 @@ async function clearAndRedownloadAiModel() {
         showToast('Download cancelled.', { type: 'info' });
       }
     } else if (typeof showToast === 'function') {
-      showToast('AI model download failed. Check connection and try again.', { type: 'error' });
+      // The loader already raised a translated failure toast with Retry.
+      var dl = typeof window.getAiModelDownloadProgress === 'function' ? window.getAiModelDownloadProgress() : null;
+      if (!dl || dl.phase !== 'error') {
+        showToast('AI model download failed. Check connection and try again.', { type: 'error' });
+      }
     }
   } finally {
     window.__rianellClearRedownloadBusy = false;

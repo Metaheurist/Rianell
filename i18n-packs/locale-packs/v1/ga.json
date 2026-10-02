@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Ceisteanna a bheidh agam do mo dhochtúir",
     "ai.doctorQuestions.loading": "Molaim na ceisteanna seo...",
     "ai.doctorQuestions.section": "Ceisteanna a bheidh agam do mo dhochtúir",
+    "ai.download.failedRetry": "Theip ar shocrú an mhúnla AI. Seiceáil do nasc agus bain triail eile as.",
     "ai.empty.noData.desc": "Cuir logaí leis an gcnaipe +. Beidh anailís le feiceáil anseo don raon dátaí atá roghnaithe agat.",
     "ai.empty.noData.title": "Níl aon sonraí sláinte ann go fóill",
     "ai.empty.noRange.title": "Níl aon sonraí sa raon seo",

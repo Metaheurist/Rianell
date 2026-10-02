@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "שאלות לרופא שלי",
     "ai.doctorQuestions.loading": "הצעת שאלות...",
     "ai.doctorQuestions.section": "שאלות לרופא שלי",
+    "ai.download.failedRetry": "הגדרת מודל הבינה המלאכותית נכשלה. בדקו את החיבור ונסו שוב.",
     "ai.empty.noData.desc": "הוסף רשומות באמצעות כפתור הפלוס (+). ניתוח הנתונים יופיע כאן עבור טווח התאריכים שבחרת.",
     "ai.empty.noData.title": "טרם קיימים נתוני בריאות",
     "ai.empty.noRange.title": "אין נתונים בטווח זה",

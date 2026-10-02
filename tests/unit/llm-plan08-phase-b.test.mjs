@@ -19,11 +19,11 @@ import {
 } from '../../packages/shared/src/ai/weekChat.mjs';
 import { buildWeekChatPrompt, buildMotdPrompt } from '../../packages/shared/src/i18n/promptPack.mjs';
 
-test('isInstantLlmFeature routes motd and suggestNote to tier1', () => {
+test('instant features share the session model instead of loading a second one', () => {
   assert.equal(isInstantLlmFeature('motd'), true);
   assert.equal(isInstantLlmFeature('suggestNote'), true);
   assert.equal(isInstantLlmFeature('summary'), false);
-  assert.equal(resolveLlmModelSizeForFeature('tier5', 'motd'), 'tier1');
+  assert.equal(resolveLlmModelSizeForFeature('tier5', 'motd'), 'tier5');
   assert.equal(resolveLlmModelSizeForFeature('tier5', 'summary'), 'tier5');
 });
 

@@ -414,10 +414,10 @@
   <link rel="preconnect" href="https://api.open-meteo.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=161" as="style">
+  <link rel="preload" href="styles.css?v=162" as="style">
   <link rel="modulepreload" href="app.js?v=72" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=161" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=161&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=162" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=162&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <link rel="stylesheet" href="css/oasis.css?v=3">
   <link rel="stylesheet" href="css/graphics-portfolio.css?v=3">
   <style>
@@ -4475,7 +4475,7 @@
       <div class="modal-body ai-model-download-progress__body">
         <p class="ai-model-download-progress__label" data-i18n="common.preparing.on.device.ai">Preparing on-device AI…</p>
         <div class="ai-model-download-progress__track">
-          <div class="ai-model-download-progress__fill" style="width:0%"></div>
+          <div class="ai-model-download-progress__fill"></div>
         </div>
         <p class="ai-model-download-progress__pct">0%</p>
         <p class="settings-hint ai-model-download-progress__hint" data-i18n="common.wi.fi.recommended.keep.this.screen.open.">Wi-Fi recommended. Keep this screen open until the download finishes.</p>
@@ -5227,7 +5227,7 @@
   <script defer src="modules/segmented-scale-input.js?v=1"></script>
   <script defer src="modules/log-metric-widgets.js?v=16"></script>
   <script defer src="modules/main-thread-governor.js?v=1"></script>
-  <script defer src="ui-feedback.js?v=4"></script>
+  <script defer src="ui-feedback.js?v=5"></script>
   <script defer src="modules/oasis-canvas.js"></script>
   <script defer src="push-subscribe.js?v=1"></script>
   <script defer src="appointment-pdf.js?v=2"></script>
@@ -5239,7 +5239,7 @@
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
       function loadSummaryLlm() {
-        Perf.lazyLoadScript('summary-llm.js?v=2').catch(function () {});
+        Perf.lazyLoadScript('summary-llm.js?v=3').catch(function () {});
       }
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(loadSummaryLlm, { timeout: 2800 });

@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Vragen voor mijn arts",
     "ai.doctorQuestions.loading": "Vragen worden voorgesteld…",
     "ai.doctorQuestions.section": "Vragen voor mijn arts",
+    "ai.download.failedRetry": "AI-model instellen mislukt. Controleer je verbinding en probeer het opnieuw.",
     "ai.empty.noData.desc": "Voeg gegevens toe met de knop +. De analyse voor de door u gekozen periode wordt hier weergegeven.",
     "ai.empty.noData.title": "Nog geen gezondheidsgegevens",
     "ai.empty.noRange.title": "Geen gegevens in dit bereik",

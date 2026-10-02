@@ -17,7 +17,8 @@
   var summaryResultCache = null;
   var suggestResultCache = null;
   var homeQuestionResultCache = null;
-  var downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
+  // phase: idle | downloading | preparing (bytes in, session compiling) | ready | error
+  var downloadProgressState = { pct: 0, status: 'idle', phase: 'idle', file: '', active: false };
   var downloadCancelled = false;
   var lastDownloadError = null;
   var loadGeneration = 0;
@@ -51,9 +52,12 @@
   // First-run load budget. MLC (primary WebGPU engine) downloads weights and compiles
   // WebGPU shaders on first use, which can run longer than the ONNX path; cached after.
   var LOAD_TIMEOUT_MS = 240000;
-  // Max time to wait for engine compile + warmup after bytes are downloaded
-  // before giving up (prevents a permanent "stuck near 100%"). Covers MLC shader compile.
-  var FINALIZE_TIMEOUT_MS = 180000;
+  // Max silence in the "preparing" phase (session compile + warmup after all bytes are
+  // in) before failing with Retry, so the UI can never sit at "Preparing" indefinitely.
+  var FINALIZE_TIMEOUT_MS = 90000;
+  // Progress events arrive per network chunk; repaint at most this often within a phase.
+  var PROGRESS_EMIT_MIN_MS = 200;
+  var lastProgressEmitAt = 0;
   // Per-attempt guard: if a backend produces no download progress for this long
   // (e.g. a WebGPU pipeline that hangs during shader compile instead of throwing),
   // abandon it so the next plan (WASM) can run. Reset on every progress event, so
@@ -107,8 +111,9 @@
     return suffix ? system + ' ' + suffix : system;
   }
 
-  function getResolvedModelIdForFeature(feature) {
-    if (isInstantLlmFeature(feature)) return MODEL_SMALL;
+  // One model per session: a separate small model for instant features evicted the
+  // main model on tier 3+ devices and re-downloaded on every switch.
+  function getResolvedModelIdForFeature(_feature) {
     return getResolvedModelId();
   }
 
@@ -863,6 +868,7 @@
     clearFinalizeWatchdog();
     downloadFileBytes = {};
     downloadProgressState.active = false;
+    downloadProgressState.phase = 'error';
     lastDownloadError = errorMsg ? formatDownloadError(errorMsg) : 'Download failed';
     if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
       window.hideAiModelDownloadProgressUI();
@@ -910,7 +916,7 @@
     lastDownloadError = null;
     clearFinalizeWatchdog();
     downloadFileBytes = {};
-    downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
+    downloadProgressState = { pct: 0, status: 'idle', phase: 'idle', file: '', active: false };
     if (typeof window !== 'undefined') {
       try {
         window.dispatchEvent(new CustomEvent('rianell-llm-download-progress', { detail: downloadProgressState }));
@@ -996,9 +1002,10 @@
       // (transformers.js emits no events during that phase).
       var finalizing = weightsDone || pct >= 99;
       status = finalizing ? 'finalizing' : (data.status || downloadProgressState.status);
-      if (finalizing && !finalizeWatchdog) {
-        // Guard against a hung compile/warmup so the UI can never sit at ~100%
-        // forever - fail with a retry instead.
+      if (finalizing) {
+        // Silence watchdog: re-armed on every event, so an engine that reports compile
+        // progress keeps going, while a hung session compile fails with Retry.
+        clearFinalizeWatchdog();
         var watchGen = loadGeneration;
         finalizeWatchdog = setTimeout(function () {
           finalizeWatchdog = null;
@@ -1021,12 +1028,19 @@
     var active = data.active === false
       ? false
       : (!!loadInFlight || downloadProgressState.active);
+    var phase = isFinal ? 'ready' : (status === 'finalizing' ? 'preparing' : 'downloading');
+    var prevState = downloadProgressState;
     downloadProgressState = {
       pct: pct,
       status: status,
+      phase: phase,
       file: sanitizeDownloadFileLabel(data.file || ''),
       active: active
     };
+    var now = Date.now();
+    var sameStep = prevState.phase === phase && prevState.active === active;
+    if (sameStep && data.status !== 'initiate' && now - lastProgressEmitAt < PROGRESS_EMIT_MIN_MS) return;
+    lastProgressEmitAt = now;
     if (typeof window !== 'undefined') {
       window.__rianellLlmDownloadProgress = downloadProgressState;
       try {
@@ -1344,23 +1358,6 @@
               loaded = true;
             } catch (smallErr) {
               failDownloadProgress(formatDownloadError(smallErr));
-              if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
-                window.showToast('AI model download failed. Using text-only fallbacks.', {
-                  type: 'error',
-                  action: {
-                    label: 'Retry',
-                    onClick: function () {
-                      if (typeof window.clearAndRedownloadAiModel === 'function') {
-                        window.clearAndRedownloadAiModel();
-                      } else if (typeof window.downloadOrRedownloadAiModel === 'function') {
-                        window.downloadOrRedownloadAiModel();
-                      } else if (typeof window.clearSummaryLLMCache === 'function') {
-                        window.clearSummaryLLMCache();
-                      }
-                    }
-                  }
-                });
-              }
               throw smallErr;
             }
           } else {
@@ -1680,7 +1677,7 @@
 
     async function runSuggest() {
       try {
-        var ready = await awaitPipelineForInference(TIMEOUT_SUGGEST_TOTAL_MS, { modelId: MODEL_SMALL });
+        var ready = await awaitPipelineForInference(TIMEOUT_SUGGEST_TOTAL_MS, { modelId: getResolvedModelIdForFeature('suggestNote') });
         if (!ready) return fallbackText || '';
 
         var pack = await loadPromptPack(getActiveLocale());
@@ -1696,7 +1693,7 @@
           },
           TIMEOUT_SUGGEST_MS,
           'Suggest note LLM timeout',
-          { modelId: MODEL_SMALL }
+          { modelId: getResolvedModelIdForFeature('suggestNote') }
         );
 
         if (text && text.length > 8) {
@@ -2017,7 +2014,7 @@
     var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 
     try {
-      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS, { modelId: MODEL_SMALL });
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS, { modelId: getResolvedModelIdForFeature('motd') });
       if (!ready) return fallbackText || '';
 
       var pack = await loadPromptPack(getActiveLocale());
@@ -2035,7 +2032,7 @@
         },
         TIMEOUT_MOTD_MS,
         'MOTD LLM timeout',
-        { modelId: MODEL_SMALL }
+        { modelId: getResolvedModelIdForFeature('motd') }
       );
 
       text = sanitizeMotdText(text);
@@ -2149,7 +2146,7 @@
     lastDownloadError = null;
     clearFinalizeWatchdog();
     downloadFileBytes = {};
-    downloadProgressState = { pct: 0, status: '', file: '', active: false };
+    downloadProgressState = { pct: 0, status: '', phase: 'idle', file: '', active: false };
     try {
       if (typeof caches !== 'undefined') {
         var keys = await caches.keys();
@@ -2239,7 +2236,7 @@
     sessionModelId = null;
     clearFinalizeWatchdog();
     downloadFileBytes = {};
-    downloadProgressState = { pct: 0, status: '', file: '', active: false };
+    downloadProgressState = { pct: 0, status: '', phase: 'idle', file: '', active: false };
     llmWorkQueue = Promise.resolve();
   };
   window.cancelAiModelDownload = cancelDownloadInFlight;

@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Pytania do lekarza",
     "ai.doctorQuestions.loading": "Sugerowanie pytań…",
     "ai.doctorQuestions.section": "Pytania do lekarza",
+    "ai.download.failedRetry": "Nie udało się przygotować modelu AI. Sprawdź połączenie i spróbuj ponownie.",
     "ai.empty.noData.desc": "Dodaj wpisy przyciskiem +. Analiza pojawi się tutaj dla wybranego zakresu dat.",
     "ai.empty.noData.title": "Nie ma jeszcze danych o stanie zdrowia",
     "ai.empty.noRange.title": "Brak danych w tym zakresie",

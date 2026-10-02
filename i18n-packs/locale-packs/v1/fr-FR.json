@@ -83,6 +83,7 @@
     "ai.doctorQuestions.action": "Questions pour mon médecin",
     "ai.doctorQuestions.loading": "Suggestion de questions…",
     "ai.doctorQuestions.section": "Questions pour mon médecin",
+    "ai.download.failedRetry": "La préparation du modèle d’IA a échoué. Vérifiez votre connexion et réessayez.",
     "ai.empty.noData.desc": "Ajoutez des entrées à l’aide du bouton « + ». Les résultats de l’analyse s’afficheront ici pour la période que vous avez sélectionnée.",
     "ai.empty.noData.title": "Pas encore de données de santé",
     "ai.empty.noRange.title": "Aucune donnée dans cette plage",
