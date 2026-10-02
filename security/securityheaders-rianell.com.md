@@ -1,10 +1,10 @@
 ---
 source: securityheaders.com
 scan_url: "https://securityheaders.com/?q=rianell.com&followRedirects=on"
-generated_utc: 2026-10-02T17:24:54.965Z
-github_run_number: 855
-github_sha: d6596f2
-github_run_id: 37040058330
+generated_utc: 2026-10-02T21:44:31.801Z
+github_run_number: 856
+github_sha: 3594097
+github_run_id: 37068260917
 securityheaders_http_status: 403
 securityheaders_scan_relay: direct
 securityheaders_scan: blocked_or_unavailable
@@ -30,24 +30,24 @@ Below: **response headers** from the live site URL(s) (`SECURITY_HEADERS_LIVE_UR
 | accept-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
 | alt-svc | h3=":443"; ma=86400 |
 | cf-mitigated | challenge |
-| cf-ray | a4456743cfd6be62-SJC |
+| cf-ray | a446e38f5f4f37cf-YYZ |
 | connection | close |
 | content-encoding | br |
-| content-security-policy | default-src 'none'; script-src 'nonce-FaQ6LDmwfSzWNp9sLf9cYy' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self' |
+| content-security-policy | default-src 'none'; script-src 'nonce-OOxGX6KPJD0Fh6LLsiIjVG' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self' |
 | content-type | text/html; charset=UTF-8 |
 | critical-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
 | cross-origin-embedder-policy | require-corp |
 | cross-origin-opener-policy | same-origin |
 | cross-origin-resource-policy | same-origin |
-| date | Fri, 02 Oct 2026 17:24:55 GMT |
+| date | Fri, 02 Oct 2026 21:44:31 GMT |
 | expect-ct | max-age=86400, enforce |
 | nel | {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800} |
 | origin-agent-cluster | ?1 |
 | permissions-policy | accelerometer=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=(),xr-spatial-tracking=* |
 | referrer-policy | same-origin |
-| report-to | {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=ZjnqqeriIY79T40LOTdruOyNzG5577pdU9AIAiG2OVaXeWFxtKPsP%2B05w5%2B5OseqLCqnhK7OOb4ITKk8y1YGJYgrO5yf69Cq6NePDKp7yPSAJsKw6ogUa7f9dzx4qw%3D%3D"}]} |
+| report-to | {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=QJ47tDqdOtDxV5uPGI4Zsy5i2AW3CVLOq4FQr902cdBoGN7ltiUnfqTNnt5Neh%2BqPJf%2B9rS9xaFgdGrR7BClgn6ZGw9proYCIriKEYKJt182kCPQLjfLZ3CRvKMzlA%3D%3D"}]} |
 | server | cloudflare |
-| server-timing | chlray;desc="a4456743cfd6be62" |
+| server-timing | chlray;desc="a446e38f5f4f37cf" |
 | speculation-rules | "/cdn-cgi/speculation" |
 | strict-transport-security | max-age=31536000; includeSubDomains; preload |
 | transfer-encoding | chunked |
