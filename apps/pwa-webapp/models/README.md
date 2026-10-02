@@ -1,15 +1,18 @@
 # On-device LLM weights (HF-only)
 
-Rianell downloads ONNX weights directly from **Hugging Face Hub** (onnx-community Qwen2.5 Transformers.js repos). Clients cache weights locally (browser cache/IndexedDB on web; filesystem on RN).
+Rianell downloads ONNX weights directly from **Hugging Face Hub** at pinned commit SHAs, through Transformers.js in `workers/llm-worker.js`. Weights are cached in the browser (Cache API).
 
 Download source: **Hugging Face only**.
 
-Shipped models (Apache-2.0, multilingual - 29 languages incl. all offered UI locales):
+Shipped packages (`LLM_PACKAGES` in `summary-llm.js`; Apache-2.0; the declared language set covers all offered UI locales):
 
-| Tier | Repo | q4f16 (WebGPU) | q4 (WASM) |
-|------|------|----------------|-----------|
-| 1-2 (small) | `onnx-community/Qwen2.5-0.5B-Instruct` | ~483 MB | ~786 MB |
-| 3-5 (base) | `onnx-community/Qwen2.5-1.5B-Instruct` | ~1.2 GB | ~1.8 GB |
+| Package | Repo | Device / dtype | Download | Used when |
+|------|------|----------------|-----------|-----------|
+| small | `onnx-community/Qwen3.5-0.8B-Text-ONNX` | WebGPU q4f16 | ~470 MB | Phone, 4 GB or less memory, AI safe mode, or tier 1-2 |
+| large | `onnx-community/Qwen3.5-2B-ONNX-OPT` | WebGPU q4f16 | ~1.3 GB | Other WebGPU devices, or tier 3-5 |
+| wasm | `onnx-community/Qwen2.5-0.5B-Instruct` | WASM q4 | ~760 MB | No usable WebGPU |
+
+Qwen3.5's quantized graphs need WebGPU (ONNX Runtime Web has no WASM `GatherBlockQuantized` kernel), hence the separate WASM package. Benchmark and rationale: [`docs/research/llm-shortlist-2026-10.md`](../../../docs/research/llm-shortlist-2026-10.md).
 
 ## Local weight files are gitignored
 
@@ -17,14 +20,6 @@ Shipped models (Apache-2.0, multilingual - 29 languages incl. all offered UI loc
 
 ## Manifest catalog
 
-`apps/pwa-webapp/models/manifest.json` is a **catalog** for tier selection and file lists (for RN download UX). It is not a hosting manifest.
-
-## Clients
-
-| Client | Cache location |
-|--------|----------------|
-| **PWA** | IndexedDB (`transformers-cache`) + Cache API |
-| **RN** | `documentDirectory/rianell-models/` |
+`apps/pwa-webapp/models/manifest.json` lists each package's repo, pinned revision and the files it loads. It drives `scripts/models/download-llm-models.mjs --model small|large|wasm` (optional local mirror) and must match `LLM_PACKAGES` (`tests/unit/llm-models-manifest.test.mjs`). It is not a hosting manifest.
 
 GitHub Actions injects `SUPABASE_URL` / `SUPABASE_ANON_KEY` into `supabase-config.js` on Pages deploy for auth/sync only.
-

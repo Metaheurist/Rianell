@@ -61,9 +61,9 @@ flowchart TB
   Fallback --> UI
 ```
 
-**Package references:** `packages/llm` (`runtime-profiles.mjs`, `load-ladder.mjs`, `tier-benchmark.mjs`), PWA `summary-llm.js`.
+**Package references:** `packages/llm` (`tier-benchmark.mjs`, `modelLanguageSupport.mjs`), PWA `summary-llm.js` (`LLM_PACKAGES`) and `workers/llm-worker.js`.
 
-**Load order (GPU-first):** WebGPU (q4f16→q4) → WASM q4 in the browser. Transformers.js browser devices are **webgpu** and **wasm** only.
+**Load order (GPU-first):** the session's WebGPU package (Qwen3.5 small or large, q4f16) → the WASM package (Qwen2.5-0.5B, q4) in a fresh worker. Transformers.js browser devices are **webgpu** and **wasm** only.
 
 ---
 
@@ -124,8 +124,8 @@ See [threat-model.md](threat-model.md) M-08.
 
 ### 4.3 Mitigations
 
-1. **Allowlist model IDs** - only `onnx-community/Qwen2.5-0.5B-Instruct` and `onnx-community/Qwen2.5-1.5B-Instruct` unless extended in release notes.
-2. **Apache-2.0 repos** - Qwen2.5 weights are openly licensed, so no HF gated-license acceptance or `HF_TOKEN` is required for downloads; never commit tokens regardless.
+1. **Allowlist model IDs, pinned revisions** - only the three `LLM_PACKAGES` repos (`onnx-community/Qwen3.5-0.8B-Text-ONNX`, `onnx-community/Qwen3.5-2B-ONNX-OPT`, `onnx-community/Qwen2.5-0.5B-Instruct`), each at a 40-hex commit SHA. `summary-llm.js` refuses to build a load config for any other id; the worker only fetches from `https://huggingface.co/` and rewrites unpinned `resolve/main` requests to the pinned SHA. `scripts/verify/llm-security-contract.mjs` checks the pins.
+2. **Apache-2.0 repos** - Qwen weights are openly licensed, so no HF gated-license acceptance or `HF_TOKEN` is required for downloads; never commit tokens regardless.
 3. **CI scanning** - `npm audit`, OSV-Scanner, Gitleaks per [SECURITY.md](SECURITY.md).
 4. **CSP `connect-src`** - limits fetch targets to known HF hosts (see `index.html`).
 5. **Cache inspection** - operators can clear model cache from settings when behaviour is anomalous.

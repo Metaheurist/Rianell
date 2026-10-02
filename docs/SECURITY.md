@@ -1,6 +1,6 @@
 # Security model: web PWA and Python server
 
-**Standing (2026-07-25):** Deployable surface is the **PWA** plus optional Python/Tkinter debug server. DAST CI is **OWASP ZAP + axe** (`security-dast.yml`); MobSF was removed (no mobile binaries). Smartlook is **opt-in**. Current npm version **2.6.0**.
+**Standing (2026-07-25):** Deployable surface is the **PWA** plus optional Python/Tkinter debug server. DAST CI is **OWASP ZAP + axe** (`security-dast.yml`); MobSF was removed (no mobile binaries). Smartlook is **opt-in**. Current npm version **2.7.0**.
 
 ## v1.53.0 credential hygiene (LLM upload + client config)
 

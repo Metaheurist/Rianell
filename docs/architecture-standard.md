@@ -19,6 +19,7 @@ References: [Turbo structuring](https://turbo.build/repo/docs/crafting-your-repo
 apps/
   pwa-webapp/          @rianell/pwa-webapp - vanilla JS PWA + esbuild
     modules/app/       ES modules split out of app.js (see development/pwa-app-module-map.md)
+    workers/           llm-worker.js - Transformers.js on-device LLM (module worker)
 packages/
   shared/              @rianell/shared
   ai-engine/           @rianell/ai-engine
@@ -34,7 +35,7 @@ scripts/
   ci/                  README, deps doc, deploy probes
   audit/               boot audit, security headers, deploy HTML
   wiki/                sync-wiki, verify-wiki
-  models/              LLM weight download/upload/verify
+  models/              LLM weight mirror/verify, shortlist benchmark
   dev/                 cross-platform dev:web launcher
   lib/                 deprecated shims → @rianell/build-tools
   migration/    one-shot migration scripts (Phase 2 archived; legacy/ removed 2026-07)
@@ -168,4 +169,4 @@ Tool: `scripts/verify/doc-links.mjs`
 | 22 | Deploy-observe loop | verified (local stages) | 2026-06-16 |
 | 23 | Root directory hygiene | verified | 2026-06-14 |
 
-**Current product:** npm **v2.6.0** on `main` (PWA-only). Architecture migration phases 0–23 are complete; living roadmap is [next-phase-development-plan.md](next-phase-development-plan.md). Legacy artifact URL Cloudflare 301s: [migration-signoff.md](migration-signoff.md).
+**Current product:** npm **v2.7.0** on `main` (PWA-only). Architecture migration phases 0–23 are complete; living roadmap is [next-phase-development-plan.md](next-phase-development-plan.md). Legacy artifact URL Cloudflare 301s: [migration-signoff.md](migration-signoff.md).
