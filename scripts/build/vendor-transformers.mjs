@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 /**
- * Copy @huggingface/transformers browser bundle + ORT wasm into PWA vendor/.
- * Default pin: 3.3.2. Set TRANSFORMERS_VENDOR_VERSION=4.x to spike v4 (Stage 8).
+ * Copy the @huggingface/transformers web bundle + its pinned onnxruntime-web WASM
+ * runtimes into PWA vendor/ and write vendor-manifest.json (sha256 per file).
+ * Pin comes from package.json (4.3.0). The worker rewrites transformers.js' default
+ * jsDelivr wasmPaths to these self-hosted copies, so both ORT variants it may pick
+ * (asyncify, or plain on Safari < 26 without WebGPU) must be vendored.
  */
 import { createHash } from 'node:crypto';
 import {
   copyFileSync,
   mkdirSync,
   readFileSync,
+  readdirSync,
+  rmSync,
   writeFileSync,
   existsSync,
 } from 'node:fs';
@@ -15,22 +20,34 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const version = process.env.TRANSFORMERS_VENDOR_VERSION || '3.3.2';
 const pkgRoot = join(root, 'node_modules', '@huggingface', 'transformers');
-const dist = join(pkgRoot, 'dist');
+const ortRoot = join(root, 'node_modules', 'onnxruntime-web');
 const outDir = join(root, 'apps', 'pwa-webapp', 'vendor', 'transformers');
 
 const FILES = [
-  'transformers.min.js',
-  'transformers.min.js.map',
-  'transformers.min.mjs',
-  'transformers.min.mjs.map',
-  'ort-wasm-simd-threaded.jsep.mjs',
-  'ort-wasm-simd-threaded.jsep.wasm',
+  // transformers.min.js inlines the ORT WebGPU bundle; transformers.web*.js keep bare
+  // `onnxruntime-web` imports that only a bundler can resolve.
+  { from: join(pkgRoot, 'dist'), name: 'transformers.min.js' },
+  { from: join(ortRoot, 'dist'), name: 'ort-wasm-simd-threaded.asyncify.mjs' },
+  { from: join(ortRoot, 'dist'), name: 'ort-wasm-simd-threaded.asyncify.wasm' },
+  { from: join(ortRoot, 'dist'), name: 'ort-wasm-simd-threaded.mjs' },
+  { from: join(ortRoot, 'dist'), name: 'ort-wasm-simd-threaded.wasm' },
 ];
 
-if (!existsSync(dist)) {
-  console.error('Run npm ci first — @huggingface/transformers dist missing');
+function readVersion(dir) {
+  return JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).version;
+}
+
+if (!existsSync(join(pkgRoot, 'dist')) || !existsSync(join(ortRoot, 'dist'))) {
+  console.error('Run npm ci first — @huggingface/transformers or onnxruntime-web dist missing');
+  process.exit(1);
+}
+
+const version = readVersion(pkgRoot);
+const ortVersion = readVersion(ortRoot);
+const declaredOrt = JSON.parse(readFileSync(join(pkgRoot, 'package.json'), 'utf8')).dependencies?.['onnxruntime-web'];
+if (declaredOrt && declaredOrt !== ortVersion) {
+  console.error(`onnxruntime-web ${ortVersion} does not match transformers@${version} pin ${declaredOrt}`);
   process.exit(1);
 }
 
@@ -48,10 +65,18 @@ function neutralizeVaultShapedPropertyAccess(source) {
   );
 }
 
-const manifest = { version, files: {} };
+const keep = new Set(FILES.map((f) => f.name).concat('vendor-manifest.json'));
+for (const name of readdirSync(outDir)) {
+  if (!keep.has(name)) {
+    rmSync(join(outDir, name));
+    console.log('Removed stale', name);
+  }
+}
 
-for (const name of FILES) {
-  const src = join(dist, name);
+const manifest = { version, onnxruntimeWeb: ortVersion, files: {} };
+
+for (const { from, name } of FILES) {
+  const src = join(from, name);
   if (!existsSync(src)) {
     console.error('Missing', src);
     process.exit(1);
@@ -59,7 +84,7 @@ for (const name of FILES) {
   const dest = join(outDir, name);
   copyFileSync(src, dest);
   let buf = readFileSync(dest);
-  if (/\.m?js$/.test(name) && !name.endsWith('.map')) {
+  if (/\.m?js$/.test(name)) {
     const rewritten = neutralizeVaultShapedPropertyAccess(buf.toString('utf8'));
     if (rewritten !== buf.toString('utf8')) {
       writeFileSync(dest, rewritten);
@@ -74,5 +99,5 @@ for (const name of FILES) {
   console.log('Copied', name);
 }
 
-writeFileSync(join(outDir, 'vendor-manifest.json'), JSON.stringify(manifest, null, 2));
-console.log('Wrote vendor-manifest.json (transformers@' + version + ')');
+writeFileSync(join(outDir, 'vendor-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
+console.log(`Wrote vendor-manifest.json (transformers@${version}, onnxruntime-web@${ortVersion})`);

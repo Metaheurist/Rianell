@@ -17,7 +17,7 @@ function isDownloadVerified(final, hf, failedRequests, vendor, weightsDownloadVe
 
 const vendorOk = () => [
   'http://127.0.0.1:9876/vendor/transformers/transformers.min.js',
-  'http://127.0.0.1:9876/vendor/transformers/ort-wasm-simd-threaded.jsep.wasm',
+  'http://127.0.0.1:9876/vendor/transformers/ort-wasm-simd-threaded.asyncify.wasm',
 ];
 const hfOnnx = () => ['https://huggingface.co/onnx-community/x/resolve/main/onnx/model_q4.onnx'];
 

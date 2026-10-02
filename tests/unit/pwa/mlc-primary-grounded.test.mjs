@@ -90,11 +90,12 @@ test('runChatInference loads first then dispatches on the resolved engine', () =
     summaryLlm.indexOf('async function runChatInference'),
     summaryLlm.indexOf('function isPipelineReadyForChat'),
   );
-  const loadIdx = src.indexOf('var pipe = await ensurePipelineLoaded');
+  const loadIdx = src.indexOf('await ensurePipelineLoaded');
+  const dispatchIdx = src.indexOf('return runLoadedEngineChat(');
   const mlcIdx = src.indexOf("cachedActiveEngine === 'mlc'");
   const callIdx = src.indexOf('await pipe(');
-  assert.ok(loadIdx > 0 && mlcIdx > 0 && loadIdx < mlcIdx, 'load must precede engine dispatch');
-  assert.ok(callIdx > loadIdx, 'the callable pipe path runs after load');
+  assert.ok(loadIdx > 0 && dispatchIdx > loadIdx, 'load must precede engine dispatch');
+  assert.ok(mlcIdx > 0 && callIdx > mlcIdx, 'the callable pipe path runs after the worker-engine checks');
   assert.match(src, /typeof pipe !== 'function'/, 'guards against calling a non-callable engine marker');
 });
 

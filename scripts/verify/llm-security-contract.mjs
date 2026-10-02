@@ -2,6 +2,7 @@
 /**
  * LLM security contract: HF-only runtime, pinned CDN or self-hosted vendor, sync artifacts present.
  */
+import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,13 +35,54 @@ if (/device:\s*['"]webgl['"]/.test(summaryLlm)) {
 if (/device:\s*['"]webgl['"]/.test(loadLadderSync)) {
   errors.push('llm-load-ladder-sync.js must not include webgl attempts');
 }
-const hasCdnPin = summaryLlm.includes('@huggingface/transformers@3.3.2');
+const TRANSFORMERS_PIN = '4.3.0';
+const hasCdnPin = summaryLlm.includes(`@huggingface/transformers@${TRANSFORMERS_PIN}`);
 const hasVendorPath = summaryLlm.includes('vendor/transformers/transformers.min.js');
 if (!hasCdnPin && !hasVendorPath) {
-  errors.push('summary-llm.js must pin Transformers 3.3.2 (CDN fallback) or self-host vendor path');
+  errors.push(`summary-llm.js must pin Transformers ${TRANSFORMERS_PIN} (CDN fallback) or self-host vendor path`);
 }
-if (/transformers@\d+\.\d+\.\d+/.test(summaryLlm) && !summaryLlm.includes('@3.3.2')) {
-  errors.push('summary-llm.js Transformers.js CDN fallback version must be 3.3.2');
+if (/transformers@\d+\.\d+\.\d+/.test(summaryLlm) && !hasCdnPin) {
+  errors.push(`summary-llm.js Transformers.js CDN fallback version must be ${TRANSFORMERS_PIN}`);
+}
+
+// transformers.js runs in a module worker; model loads are pinned to Hub commits.
+const workerPath = 'apps/pwa-webapp/workers/llm-worker.js';
+const workerClientPath = 'apps/pwa-webapp/modules/llm-worker-client.js';
+if (!existsSync(join(root, workerPath)) || !existsSync(join(root, workerClientPath))) {
+  errors.push('missing workers/llm-worker.js or modules/llm-worker-client.js');
+} else {
+  const worker = read(workerPath);
+  if (!worker.includes('COMMIT_SHA_RE') || !/\[0-9a-f\]\{40\}/.test(worker)) {
+    errors.push('llm-worker.js must reject model revisions that are not 40-char commit SHAs');
+  }
+  if (!worker.includes("ALLOWED_REMOTE_HOST = 'https://huggingface.co/'")) {
+    errors.push('llm-worker.js must only fetch models from https://huggingface.co/');
+  }
+  if (!worker.includes('isAllowedRuntimeUrl')) {
+    errors.push('llm-worker.js must allowlist the transformers runtime URL (same origin or pinned CDN)');
+  }
+  if (!/pinModelRevision\(mod, config\.modelId, config\.revision\)/.test(worker)) {
+    errors.push('llm-worker.js must rewrite resolve/main model requests to the pinned revision (pipeline() drops revision)');
+  }
+  if (/console\.(log|info|debug)\(/.test(worker)) {
+    errors.push('llm-worker.js must not log (prompts and replies stay in memory)');
+  }
+}
+if (!summaryLlm.includes("'workers/llm-worker.js'")) {
+  errors.push('summary-llm.js must load transformers.js through workers/llm-worker.js');
+}
+if (/import\(\s*url\s*\)|\.pipeline\(\s*'text-generation'/.test(summaryLlm)) {
+  errors.push('summary-llm.js must not import transformers.js or build pipelines on the main thread');
+}
+if (/revision:\s*['"]main['"]/.test(summaryLlm)) {
+  errors.push("summary-llm.js must not load models from revision 'main'");
+}
+const revisionPins = [...summaryLlm.matchAll(/MODEL_REVISIONS\[(\w+)\]\s*=\s*'([^']*)'/g)];
+if (revisionPins.length === 0) {
+  errors.push('summary-llm.js must pin MODEL_REVISIONS for every on-device model');
+}
+for (const [, model, sha] of revisionPins) {
+  if (!/^[0-9a-f]{40}$/.test(sha)) errors.push(`MODEL_REVISIONS[${model}] must be a 40-char commit SHA`);
 }
 if (summaryLlm.includes('supabase') && summaryLlm.includes('remoteHost')) {
   errors.push('summary-llm.js must not set Supabase as model remoteHost');
@@ -121,9 +163,24 @@ if (!indexHtml.includes('llm-runtime-profiles-sync.js')) {
   errors.push('index.html must load llm-runtime-profiles-sync.js');
 }
 
-const vendorManifest = join(root, 'apps/pwa-webapp/vendor/transformers/vendor-manifest.json');
+const vendorDir = join(root, 'apps/pwa-webapp/vendor/transformers');
+const vendorManifest = join(vendorDir, 'vendor-manifest.json');
 if (hasVendorPath && !existsSync(vendorManifest)) {
   errors.push('missing vendor manifest — run npm run vendor:transformers');
+} else if (hasVendorPath) {
+  const manifest = JSON.parse(readFileSync(vendorManifest, 'utf8'));
+  if (manifest.version !== TRANSFORMERS_PIN) {
+    errors.push(`vendor manifest is transformers@${manifest.version}; expected ${TRANSFORMERS_PIN}`);
+  }
+  for (const [name, meta] of Object.entries(manifest.files || {})) {
+    const file = join(vendorDir, name);
+    if (!existsSync(file)) {
+      errors.push(`vendor/transformers/${name} listed in manifest but missing`);
+      continue;
+    }
+    const sha = createHash('sha256').update(readFileSync(file)).digest('hex');
+    if (sha !== meta.sha256) errors.push(`vendor/transformers/${name} sha256 does not match vendor-manifest.json`);
+  }
 }
 
 // Ask Rianell chat guardrails: deterministic health-scope + NSFW enforcement.

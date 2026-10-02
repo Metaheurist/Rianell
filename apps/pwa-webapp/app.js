@@ -3287,7 +3287,7 @@ if (notesField) notesField.addEventListener('input', updateNotesCounter);
       if (contextStr && contextStr.length >= 30 && typeof window.generateSuggestNoteWithLLM !== 'function'
           && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
         try {
-          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=3');
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=4');
         } catch (e) {}
       }
 
@@ -6069,7 +6069,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
     if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
       try {
-        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=3');
+        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=4');
       } catch (e) {}
     }
   }
@@ -16578,7 +16578,7 @@ function ensureSummaryLlmLoadedForSettings() {
     return Promise.resolve();
   }
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=3');
+    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=4');
   }
   return Promise.resolve();
 }

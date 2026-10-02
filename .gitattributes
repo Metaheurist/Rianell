@@ -1,2 +1,5 @@
 # On-device LLM ONNX weights are HF-only (no Supabase bucket).
 # Local mirrors under onnx-community/ are gitignored — do not commit weight files.
+
+# Vendored runtime is hashed in vendor-manifest.json; keep bytes identical on every platform.
+apps/pwa-webapp/vendor/transformers/** -text
