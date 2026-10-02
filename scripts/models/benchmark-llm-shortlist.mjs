@@ -21,7 +21,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
 export const SHORTLIST = [
   {
-    key: 'qwen2.5-0.5b',
+    slug: 'qwen2.5-0.5b',
     id: 'onnx-community/Qwen2.5-0.5B-Instruct',
     revision: 'cc5cc01a65cc3ff17bdb73a7de33d879f62599b0',
     licence: 'apache-2.0',
@@ -29,7 +29,7 @@ export const SHORTLIST = [
     variants: [{ device: 'webgpu', dtype: 'q4f16', mb: 461 }, { device: 'wasm', dtype: 'q4', mb: 750 }],
   },
   {
-    key: 'qwen3.5-0.8b',
+    slug: 'qwen3.5-0.8b',
     id: 'onnx-community/Qwen3.5-0.8B-Text-ONNX',
     revision: '1e45daba048899e7f771657ada617ec49350aa91',
     licence: 'apache-2.0',
@@ -39,7 +39,7 @@ export const SHORTLIST = [
     variants: [{ device: 'webgpu', dtype: 'q4f16', mb: 448 }, { device: 'wasm', dtype: 'quantized', mb: 895 }],
   },
   {
-    key: 'lfm2.5-1.2b',
+    slug: 'lfm2.5-1.2b',
     id: 'LiquidAI/LFM2.5-1.2B-Instruct-ONNX',
     revision: '10f72e70abf67ac0fd7ebf15bc5854726891d864',
     licence: 'lfm1.0 (other)',
@@ -47,7 +47,7 @@ export const SHORTLIST = [
     variants: [{ device: 'webgpu', dtype: 'q4f16', mb: 725 }, { device: 'wasm', dtype: 'q4', mb: 811 }],
   },
   {
-    key: 'qwen3.5-2b',
+    slug: 'qwen3.5-2b',
     id: 'onnx-community/Qwen3.5-2B-ONNX',
     revision: 'b1fc7ca3afafcb8e4b13d29715a6b9ea5af1d1cb',
     licence: 'apache-2.0',
@@ -56,7 +56,7 @@ export const SHORTLIST = [
     variants: [{ device: 'webgpu', dtype: { embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' }, mb: 1320 }],
   },
   {
-    key: 'qwen3.5-2b-opt',
+    slug: 'qwen3.5-2b-opt',
     id: 'onnx-community/Qwen3.5-2B-ONNX-OPT',
     revision: '2ea7886f48b926aca97de8b0e041ffca7e3ebaa9',
     licence: 'apache-2.0 (base model)',
@@ -65,7 +65,7 @@ export const SHORTLIST = [
     variants: [{ device: 'webgpu', dtype: { embed_tokens: 'q4f16', decoder_model_merged: 'q4f16' }, mb: 1318 }],
   },
   {
-    key: 'gemma-4-e2b',
+    slug: 'gemma-4-e2b',
     id: 'onnx-community/gemma-4-E2B-it-qat-mobile-ONNX',
     revision: '5cd5514efd375abf2801c856a3936b259cc00133',
     licence: 'apache-2.0',
@@ -157,7 +157,7 @@ function parseArgs(argv) {
 export function planRuns(args) {
   const runs = [];
   for (const m of SHORTLIST) {
-    if (args.models && !args.models.includes(m.key)) continue;
+    if (args.models && !args.models.includes(m.slug)) continue;
     for (const v of m.variants) {
       if (args.devices && !args.devices.includes(v.device)) continue;
       runs.push({ model: m, variant: v });
@@ -216,7 +216,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const runs = planRuns(args);
   if (args.dryRun) {
-    for (const r of runs) console.log(`PLAN ${r.model.key} ${r.variant.device} ${JSON.stringify(r.variant.dtype)} ~${r.variant.mb} MB`);
+    for (const r of runs) console.log(`PLAN ${r.model.slug} ${r.variant.device} ${JSON.stringify(r.variant.dtype)} ~${r.variant.mb} MB`);
     return;
   }
   const { chromium } = await import('playwright');
@@ -247,10 +247,10 @@ async function main() {
     await probe.close();
     for (const { model, variant } of runs) {
       if (variant.device === 'webgpu' && !adapter) {
-        results.push({ model: model.key, device: variant.device, skipped: 'no WebGPU adapter' });
+        results.push({ model: model.slug, device: variant.device, skipped: 'no WebGPU adapter' });
         continue;
       }
-      console.log(`RUN ${model.key} ${variant.device} ${JSON.stringify(variant.dtype)}`);
+      console.log(`RUN ${model.slug} ${variant.device} ${JSON.stringify(variant.dtype)}`);
       // A fresh page per run releases GPU memory, and a renderer crash only loses that run.
       let r;
       const page = await openPage();
@@ -265,7 +265,7 @@ async function main() {
       const passed = scored.filter((o) => o.ok).length;
       const gen = scored.map((o) => o.ms);
       const summary = {
-        model: model.key,
+        model: model.slug,
         id: model.id,
         revision: model.revision,
         licence: model.licence,
