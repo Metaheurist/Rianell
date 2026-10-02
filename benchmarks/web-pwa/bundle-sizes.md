@@ -1,15 +1,15 @@
 # PWA bundle sizes
 
-Generated: 2026-10-02T14:38:48.652Z
+Generated: 2026-10-02T14:49:06.045Z
 
 | File | Raw | Gzip |
 |------|-----|------|
-| ci-minified/site/app.js | 1113582 | 241048 |
-| ci-minified/site/app.33bdd6de3ae5.min.js | 882658 | 204579 |
+| ci-minified/site/app.js | 1113971 | 241183 |
+| ci-minified/site/app.2bc643763ad5.min.js | 882833 | 204625 |
 | ci-minified/site/styles.c03cc9a5fa43.css | 795241 | 131873 |
 | ci-minified/site/vendor/transformers/transformers.min.js | 581935 | 169894 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
-| ci-minified/site/vendor/rianell-shared.js | 411617 | 93404 |
+| ci-minified/site/vendor/rianell-shared.js | 411756 | 93438 |
 | ci-minified/site/vendor/three/three.core.min.js | 381124 | 101305 |
 | ci-minified/site/vendor/three/three.module.min.js | 338908 | 79328 |
 | ci-minified/site/AIEngine.js | 175076 | 38586 |
@@ -25,5 +25,5 @@ Generated: 2026-10-02T14:38:48.652Z
 | ci-minified/site/modules/weekly-review.js | 37373 | 8186 |
 | ci-minified/site/guided-onboarding.js | 35662 | 7165 |
 
-**JS total (gzip):** 1389451 bytes
+**JS total (gzip):** 1389666 bytes
 **CSS total (gzip):** 147161 bytes
