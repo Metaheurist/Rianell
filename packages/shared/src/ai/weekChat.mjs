@@ -1,3 +1,5 @@
+import { describeChatScores } from './chatContext.mjs';
+
 const MAX_CONTEXT_CHARS = 720;
 
 export const MAX_WEEK_CHAT_TURNS = 5;
@@ -32,9 +34,7 @@ export function buildWeekChatContext({
   if (analysis.flareDays != null && analysis.flareDays > 0) {
     parts.push(`Flares: ${analysis.flareDays} day(s).`);
   }
-  if (analysis.avgFatigue != null) parts.push(`Fatigue avg: ${analysis.avgFatigue.toFixed(1)}/10.`);
-  if (analysis.avgSleep != null) parts.push(`Sleep avg: ${analysis.avgSleep.toFixed(1)}/10.`);
-  if (analysis.avgMood != null) parts.push(`Mood avg: ${analysis.avgMood.toFixed(1)}/10.`);
+  parts.push(...describeChatScores(analysis));
   if (analysis.topSymptoms?.length) {
     parts.push(`Top symptoms: ${analysis.topSymptoms.slice(0, 3).join(', ')}.`);
   }
@@ -56,7 +56,9 @@ export function buildWeekChatContext({
  */
 export function formatWeekChatHistory(turns) {
   if (!Array.isArray(turns) || !turns.length) return '';
+  // Skip the pending turn (empty reply); its question is appended by the payload builder.
   return turns
+    .filter((t) => t && String(t.assistant || '').trim())
     .map((t, i) => `Turn ${i + 1}:\nUser: ${String(t.user || '').trim()}\nAssistant: ${String(t.assistant || '').trim()}`)
     .join('\n\n');
 }
