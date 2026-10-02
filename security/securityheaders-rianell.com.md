@@ -1,10 +1,10 @@
 ---
 source: securityheaders.com
 scan_url: "https://securityheaders.com/?q=rianell.com&followRedirects=on"
-generated_utc: 2026-10-02T14:59:33.480Z
-github_run_number: 851
-github_sha: baab705
-github_run_id: 37023306234
+generated_utc: 2026-10-02T15:56:11.091Z
+github_run_number: 852
+github_sha: cbe2c2f
+github_run_id: 37029973221
 securityheaders_http_status: 403
 securityheaders_scan_relay: direct
 securityheaders_scan: blocked_or_unavailable
@@ -23,31 +23,31 @@ Below: **response headers** from the live site URL(s) (`SECURITY_HEADERS_LIVE_UR
 **Chosen URL:** https://rianell.com  
 **HTTP status:** 403  
 **Final URL:** https://rianell.com/  
-**Response body length (bytes):** 5849
+**Response body length (bytes):** 5828
 
 | Header | Value |
 | --- | --- |
 | accept-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
 | alt-svc | h3=":443"; ma=86400 |
 | cf-mitigated | challenge |
-| cf-ray | a444925738d486b7-ATL |
+| cf-ray | a444e54a78246b1c-DFW |
 | connection | close |
 | content-encoding | br |
-| content-security-policy | default-src 'none'; script-src 'nonce-xsz4mGTQ59JU0LUTl7LSjU' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self' |
+| content-security-policy | default-src 'none'; script-src 'nonce-bpxWvObawbVzJmHLfhoDDC' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self' |
 | content-type | text/html; charset=UTF-8 |
 | critical-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
 | cross-origin-embedder-policy | require-corp |
 | cross-origin-opener-policy | same-origin |
 | cross-origin-resource-policy | same-origin |
-| date | Fri, 02 Oct 2026 14:59:33 GMT |
+| date | Fri, 02 Oct 2026 15:56:11 GMT |
 | expect-ct | max-age=86400, enforce |
 | nel | {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800} |
 | origin-agent-cluster | ?1 |
 | permissions-policy | accelerometer=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=(),xr-spatial-tracking=* |
 | referrer-policy | same-origin |
-| report-to | {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=%2BhamVJnmXGGNOD4ljc3WoCKikg6dAaMGAjdlM0POwnMky%2BfZGnNDboyrs5z5eaFJ3dJ3oMqBYShxBDP5S%2FY9vp%2BhIIiyeqzYkn%2FEZTxYma%2BZk1OqZvC8vpnLYg58ng%3D%3D"}]} |
+| report-to | {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=5Va1GFBTqQkWcGMqogn4m0Ber6INMKuPOsiGv85ms29knU3%2FGqEhZ2ImEsxhYIOke8J4nI61%2B2Xpc9TV36Ku6FNDSuJWrVi6IzLwgJqEXCjusbNY4IDM9iE%2FbwkNng%3D%3D"}]} |
 | server | cloudflare |
-| server-timing | chlray;desc="a444925738d486b7" |
+| server-timing | chlray;desc="a444e54a78246b1c" |
 | speculation-rules | "/cdn-cgi/speculation" |
 | strict-transport-security | max-age=31536000; includeSubDomains; preload |
 | transfer-encoding | chunked |
