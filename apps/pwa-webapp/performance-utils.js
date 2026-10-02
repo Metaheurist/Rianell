@@ -339,7 +339,7 @@ function ensureAIEngineLoaded() {
   }
   var tfUrl = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
   var webglUrl = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.22.0/dist/tf-backend-webgl.min.js';
-  var engineUrl = 'AIEngine.js?v=1';
+  var engineUrl = 'AIEngine.js?v=2';
   _aiEngineLoadPromise = lazyLoadScript(tfUrl)
     .then(function () {
       if (typeof console !== 'undefined' && console.warn) {

@@ -536,3 +536,15 @@ export function resolveGuidedCardProgress(cards, cardIndex) {
   const current = Math.min(Math.max(cardIndex + 1, 1), total);
   return { current, total };
 }
+
+/**
+ * Position of a card within the session list. The live card list drops answered
+ * cards, so an index into it cannot be compared with the session total.
+ * @param {Array<{ id: GuidedCardId }>} sessionCards
+ * @param {GuidedCardId} cardId
+ */
+export function resolveGuidedCardProgressById(sessionCards, cardId) {
+  const total = sessionCards.length || 1;
+  const idx = sessionCards.findIndex((c) => c.id === cardId);
+  return { current: idx >= 0 ? idx + 1 : 1, total };
+}

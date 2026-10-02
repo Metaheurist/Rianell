@@ -1569,43 +1569,44 @@ const AIEngine = {
   // Enhanced anomaly detection
   detectAnomalies: function(logs, analysis) {
     const totalDays = logs.length;
+    const totalDaysLabel = totalDays === 1 ? '1 day' : totalDays + ' days';
     
     // Flare-up frequency
     const flareUps = logs.filter(log => log.flare === 'Yes').length;
     if (flareUps > totalDays * 0.4) {
-      analysis.anomalies.push(`High flare-up frequency: ${flareUps} out of ${totalDays} days (${Math.round(flareUps/totalDays*100)}%)`);
+      analysis.anomalies.push(`High flare-up frequency: ${flareUps} out of ${totalDaysLabel} (${Math.round(flareUps/totalDays*100)}%)`);
     } else if (flareUps > totalDays * 0.2) {
-      analysis.anomalies.push(`Moderate flare-up frequency: ${flareUps} out of ${totalDays} days`);
+      analysis.anomalies.push(`Moderate flare-up frequency: ${flareUps} out of ${totalDaysLabel}`);
     }
 
     // Severe pain episodes
     const highPainDays = logs.filter(log => parseInt(log.backPain) >= 8).length;
     if (highPainDays > totalDays * 0.3) {
-      analysis.anomalies.push(`Severe pain episodes: ${highPainDays} out of ${totalDays} days`);
+      analysis.anomalies.push(`Severe pain episodes: ${highPainDays} out of ${totalDaysLabel}`);
     }
 
     // Poor sleep quality
     const poorSleepDays = logs.filter(log => parseInt(log.sleep) <= 4).length;
     if (poorSleepDays > totalDays * 0.3) {
-      analysis.anomalies.push(`Poor sleep quality: ${poorSleepDays} out of ${totalDays} days`);
+      analysis.anomalies.push(`Poor sleep quality: ${poorSleepDays} out of ${totalDaysLabel}`);
     }
     
     // High fatigue
     const highFatigueDays = logs.filter(log => parseInt(log.fatigue) >= 8).length;
     if (highFatigueDays > totalDays * 0.3) {
-      analysis.anomalies.push(`High fatigue days: ${highFatigueDays} out of ${totalDays} days`);
+      analysis.anomalies.push(`High fatigue days: ${highFatigueDays} out of ${totalDaysLabel}`);
     }
     
     // Low mobility
     const lowMobilityDays = logs.filter(log => parseInt(log.mobility) <= 4).length;
     if (lowMobilityDays > totalDays * 0.3) {
-      analysis.anomalies.push(`Significantly reduced mobility: ${lowMobilityDays} out of ${totalDays} days`);
+      analysis.anomalies.push(`Significantly reduced mobility: ${lowMobilityDays} out of ${totalDaysLabel}`);
     }
     
     // Mood concerns
     const lowMoodDays = logs.filter(log => parseInt(log.mood) <= 4).length;
     if (lowMoodDays > totalDays * 0.3) {
-      analysis.anomalies.push(`Low mood periods: ${lowMoodDays} out of ${totalDays} days`);
+      analysis.anomalies.push(`Low mood periods: ${lowMoodDays} out of ${totalDaysLabel}`);
     }
   },
 
@@ -3263,12 +3264,12 @@ const AIEngine = {
     const opts = options || {};
     const dayCount = opts.dayCount || 7;
     const logs = opts.logs || [];
-    const rangeLabel = dayCount === 1 ? 'today' : `the last ${dayCount} days`;
+    const rangeLead = dayCount === 1 ? 'Today' : `Over the last ${dayCount} days`;
 
     const leadParts = [];
     if (analysis.wellbeingScore != null) {
       const band = analysis.wellbeingScore >= 75 ? 'strong' : analysis.wellbeingScore >= 50 ? 'mixed' : 'strained';
-      leadParts.push(`Over ${rangeLabel}, your overall wellbeing score is ${analysis.wellbeingScore} (${band}).`);
+      leadParts.push(`${rangeLead}, your overall wellbeing score is ${analysis.wellbeingScore} (${band}).`);
     }
 
     const improving = [];
@@ -3309,7 +3310,14 @@ const AIEngine = {
       return a.trends && a.trends.sleep && a.trends.sleep.statusFromAverage === 'worsening';
     }
 
-    const sentences = [...leadParts.slice(0, 2), ...actionParts.slice(0, 1)];
+    // Insight and advice strings are often label-style fragments ("Poor sleep quality: 1 out of 1 day").
+    function asSentence(text) {
+      const s = String(text || '').trim();
+      if (!s) return '';
+      return /[.!?\u2026]$/.test(s) ? s : s + '.';
+    }
+
+    const sentences = [...leadParts.slice(0, 2), ...actionParts.slice(0, 1)].map(asSentence);
     return sentences.filter(Boolean).join(' ') || 'Keep logging daily - your next insight appears as more entries build up.';
   },
 

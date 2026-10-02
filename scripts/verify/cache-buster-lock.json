@@ -1,0 +1,190 @@
+{
+  "AIEngine.js": {
+    "v": 2,
+    "sha256": "5864d2796eb4637ec9e890579794799dca777bacdba0a0badafb6f7a6f56e284"
+  },
+  "achievements-sync.js": {
+    "v": 1,
+    "sha256": "6723e6fb5808187aa61c19377d0bc1225b73419914ebdb18ae918846db971059"
+  },
+  "appointment-pdf.js": {
+    "v": 2,
+    "sha256": "b5c2183aed70225e70aa1c4f88f6e56a599b5d8108ff42b57c089715b3141039"
+  },
+  "cloud-sync.js": {
+    "v": 2,
+    "sha256": "9e6099d247811ad3cf5446ee28744a865d83bd8d935d9bcdb4f880ee6ba4a297"
+  },
+  "css/graphics-portfolio.css": {
+    "v": 3,
+    "sha256": "2280c730ce0a0709a3d600f213f09f3d7f438529d72322fd4ae381b5c8b839dc"
+  },
+  "css/oasis.css": {
+    "v": 3,
+    "sha256": "180386aba961b257fe55b618621de5df55e1def8ec0898bf562a174e720c89b6"
+  },
+  "css/tokens.css": {
+    "v": 1,
+    "sha256": "21d766878d4b62f4a9877fa042e7a380c1e84d718aa2852be324b6a0de9177ca"
+  },
+  "device-benchmark.js": {
+    "v": 9,
+    "sha256": "d10d462535c3bba9e354c953f2430a0a9b167d5f34fc8041bf3c4167c676baee"
+  },
+  "event-handlers.js": {
+    "v": 6,
+    "sha256": "acff8852119b6fd15e26118216bffc811aff4d75f88ab9612f34ae5607fc4896"
+  },
+  "export-utils.js": {
+    "v": 1,
+    "sha256": "593a78b2fd8f983205d3154a1dfe232aed80627992022243cf813556a4ce971d"
+  },
+  "guided-onboarding.js": {
+    "v": 6,
+    "sha256": "15d201d07295b87b50a081b3c0443601250cb52d627bd644b23a0ac2be6b8904"
+  },
+  "i18n-pwa.js": {
+    "v": 4,
+    "sha256": "ae0ce9973f77b598e0656a1a8c645f3d68a54abd7972dac16c8546e6e93b7cb2"
+  },
+  "import-utils.js": {
+    "v": 1,
+    "sha256": "cf3afb9aac517a3466307bd3dd54fa795ebb532263d4413755729647eff8e5df"
+  },
+  "llm-tier-benchmark-sync.js": {
+    "v": 1,
+    "sha256": "aef3ccacfc2b1591a5059fa98950fcf53412034728e96693bea2f0d193461b19"
+  },
+  "logs-idb.js": {
+    "v": 1,
+    "sha256": "cd2800c22308aa3a8cc6349b888fa27d1542ea783f68af8201be07eecc50976a"
+  },
+  "modules/advanced-vitals-widgets.js": {
+    "v": 5,
+    "sha256": "9776d65f6d53c079fd1e46fa4b3a4a0b0323bf5e6b8fecce1d9c8fa6837d3793"
+  },
+  "modules/ai-chat.js": {
+    "v": 2,
+    "sha256": "4a12444efac548b95140b1348609b65162cb29c93f10e4f227eb68f614df8655"
+  },
+  "modules/app-lock.js": {
+    "v": 5,
+    "sha256": "c3bec633bacb7aa48dd419d7d4302d2f5f86d222e8dd4283e1359c0d21142fb3"
+  },
+  "modules/boot-guard.js": {
+    "v": 1,
+    "sha256": "32744eaa4ca67bb105465fb9cf28ee6eb3b309c5f52b0f3db82665e6269bd878"
+  },
+  "modules/bp-input-widget.js": {
+    "v": 3,
+    "sha256": "ecc99e171a7968ab7df95517789488c94a7839a30e514d10b56ffaac88ccb5ec"
+  },
+  "modules/cycle-tracking-ui.js": {
+    "v": 5,
+    "sha256": "46327e9fb94244737cde055f5604ffa4f0b79e6a04e836beaa42d51031b82689"
+  },
+  "modules/drum-picker-scroll.js": {
+    "v": 3,
+    "sha256": "5553db3332027855592546c27040dbc4c2b60d5850cc80dd82b39598d1f0347a"
+  },
+  "modules/goals-carousel.js": {
+    "v": 8,
+    "sha256": "fe4126541b1916e2f0b5bd31ff40c4726effc4f4bd6b26490bfdad929702264e"
+  },
+  "modules/graphics-portfolio.js": {
+    "v": 7,
+    "sha256": "59c08d6d09cddde2ebbf7962fec78b00ba18f3e6eeaf877261568e5bf67a5782"
+  },
+  "modules/hold-repeat.js": {
+    "v": 1,
+    "sha256": "e3e839091e9e8decc65888d3904798cdd95d4b50a5e61f3d64cb81dae4dcdcb9"
+  },
+  "modules/lifestyle-vitals-widgets.js": {
+    "v": 3,
+    "sha256": "12d2eae17783c82ae5a9216ed25019a9861ca5da2cccd4db3fc3835bcf7cb498"
+  },
+  "modules/log-metric-widgets.js": {
+    "v": 16,
+    "sha256": "386ddf487ab32c4e3b07dfb6d2f50b784e8297e86994965419a7f5296f1477e3"
+  },
+  "modules/main-thread-governor.js": {
+    "v": 1,
+    "sha256": "1a1f4be53110961679b579393a5c1cf9bfa3452951de0e0ec077ea31cab5863f"
+  },
+  "modules/mood-tab.js": {
+    "v": 8,
+    "sha256": "c5a1a2a023a198b505734910af78a53a15be7b76455015b8d7bfdf327e744363"
+  },
+  "modules/segmented-scale-input.js": {
+    "v": 1,
+    "sha256": "42c391542f5775592c844a2296c894b3d69829c218f47029d62d2a9a3b0e607a"
+  },
+  "modules/share-modal.js": {
+    "v": 1,
+    "sha256": "48f7dc166287236d9997a2377e014fcdbadf7390e2e413c20a04b6ccf283428b"
+  },
+  "modules/vitals-suggest-ui.js": {
+    "v": 3,
+    "sha256": "08f66153f982062f331ec0b490ecd87a028d293664044529aa0380e7ca305937"
+  },
+  "modules/weekly-review.js": {
+    "v": 7,
+    "sha256": "482b689d9543eb06055cb0fa3a6c00e316d0eeccc23d8f5e646b6a446a97cd09"
+  },
+  "notification-helpers.js": {
+    "v": 1,
+    "sha256": "439d7dcae37d393079d2ce4ee15d58f75f7deb547510d7945b15cecaa418aa26"
+  },
+  "notifications.js": {
+    "v": 1,
+    "sha256": "7942634f547ffcb2758d0adea659fdb3516dbc9b9ebf07fcddd1c85340084b8e"
+  },
+  "print-utils.js": {
+    "v": 1,
+    "sha256": "5894eb97a68661a4885b4b5ba12e829f9a74d9fb299334d035bf048a75a86468"
+  },
+  "privacy-region.js": {
+    "v": 10,
+    "sha256": "5316e0bf72c1b436d6bba06aa7c3aff1e0a6afd4a10e918baecf7bafc41112e2"
+  },
+  "push-subscribe.js": {
+    "v": 1,
+    "sha256": "3f5f112c4f9637d47321578ba5aef23e3aecef7bb1bbe3e232164daf40eb4a7c"
+  },
+  "qr-handoff.js": {
+    "v": 1,
+    "sha256": "56a66d7466cc5b9e087fe7439cf1f565773a27280a436768f0a65395d09a8684"
+  },
+  "smartlook.js": {
+    "v": 1,
+    "sha256": "c17423d623f9e8506982e3e26f10dcaa036afa9bc944b898c8876240ba7c2189"
+  },
+  "storage-utils.js": {
+    "v": 1,
+    "sha256": "59c808f54fd4a7df273e9e758e6f666f7f06af3f41d5628af5e02d5c004ce61d"
+  },
+  "styles-charts.css": {
+    "v": 2,
+    "sha256": "f380619b65199bfa8465204faf75e56598b667d09df5f42f1719f9ffa74c0115"
+  },
+  "summary-llm.js": {
+    "v": 6,
+    "sha256": "3837374d4fd5d02050d78c61ab0517cb9acf9518533de07f049649d5ab1f2fb1"
+  },
+  "trace-runtime.js": {
+    "v": 1,
+    "sha256": "6477103e77f0ddc2ea9218fa21e6dc8c46967aabda08fc6c2dbd0dab6df379d6"
+  },
+  "ui-feedback.js": {
+    "v": 5,
+    "sha256": "336b173235a2f11a553f458ce4cf555e43fd4aad0f34e7c49d648946a8c9e959"
+  },
+  "vendor/rianell-ai-engine.js": {
+    "v": 1,
+    "sha256": "cc0cf594822b9a4bb2d77ccba6a380a160fb84f7002caaa84f228748afe7eccb"
+  },
+  "vendor/rianell-shared.js": {
+    "v": 12,
+    "sha256": "b4b0e85e03036f352d68da14118d8c4bc6fbdfa9996746cb7dd0593286ba62da"
+  }
+}

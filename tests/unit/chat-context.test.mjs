@@ -68,6 +68,17 @@ test('buildHealthChatUserPayload wraps user message safely', () => {
   assert.ok(!payload.includes('https://'));
 });
 
+test('buildHealthChatUserPayload labels the context as the user\'s own data', () => {
+  const payload = buildHealthChatUserPayload({
+    baseContext: 'Health scope: Last 14 days. Sleep avg: 1.0/10.',
+    history: '',
+    userMessage: 'How did I sleep?',
+  });
+  assert.ok(payload.startsWith("Health log context (the user's own data):\nHealth scope: Last 14 days."));
+  const empty = buildHealthChatUserPayload({ baseContext: '', history: '', userMessage: 'Hi there' });
+  assert.equal(empty, 'User: Hi there');
+});
+
 test('isScreeningField detects screening keys', () => {
   assert.equal(isScreeningField('phq9Total', 9), true);
   assert.equal(isScreeningField('mood', 7), false);

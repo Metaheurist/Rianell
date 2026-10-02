@@ -42,6 +42,44 @@ test('summary prompt pack instructs the model to rephrase provided facts only', 
   assert.match(promptPack.strings['summary.system'], /No medical disclaimers|Reply with only/i);
 });
 
+test('health chat prompt grounds answers in the log instead of refusing', () => {
+  const system = promptPack.strings['healthChat.system'];
+  // Off-topic questions are filtered by classifyHealthChatMessage before the model runs;
+  // telling a 0.8B model to "refuse" made it decline ordinary log questions.
+  assert.doesNotMatch(system, /refuse/i);
+  assert.match(system, /user's own data/i);
+  assert.match(system, /has not been logged yet/i);
+  assert.match(system, /never repeat a sentence/i);
+  assert.match(system, /NSFW/);
+  assert.match(system, /---USER_NOTE---/);
+  assert.match(system, /No diagnosis, prescriptions/);
+});
+
+test('every locale ships the same health chat system prompt', () => {
+  const dir = new URL('../../../i18n-packs/prompt-packs/v1/', import.meta.url);
+  const prompts = new Set(
+    fs.readdirSync(dir)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => JSON.parse(fs.readFileSync(new URL(f, dir), 'utf8')).strings['healthChat.system']),
+  );
+  assert.equal(prompts.size, 1);
+});
+
+test('chat generation uses a mild repetition penalty and collapses repeated sentences', () => {
+  assert.match(summaryLlm, /var CHAT_REPETITION_PENALTY = 1\.1;/);
+  for (const fn of ['generateHealthChatWithLLM', 'generateWeekChatWithLLM']) {
+    const start = summaryLlm.indexOf(`async function ${fn}`);
+    const body = summaryLlm.slice(start, summaryLlm.indexOf('\n  }\n', start));
+    assert.match(body, /repetition_penalty: CHAT_REPETITION_PENALTY/, `${fn} sets repetition_penalty`);
+    // no_repeat_ngram_size also bans prompt n-grams, which blocks quoting logged numbers.
+    assert.doesNotMatch(body, /no_repeat_ngram_size/, `${fn} must not ban prompt n-grams`);
+  }
+  const health = summaryLlm.slice(summaryLlm.indexOf('async function generateHealthChatWithLLM'));
+  assert.match(health, /RianellShared\.enforceHealthChatReply\(reply/);
+  const week = summaryLlm.slice(summaryLlm.indexOf('async function generateWeekChatWithLLM'));
+  assert.match(week, /RianellShared\.collapseRepeatedSentences\(weekReply\)/);
+});
+
 test('runChatInference loads first, then calls the worker-backed pipeline', () => {
   const src = summaryLlm.slice(
     summaryLlm.indexOf('async function runChatInference'),

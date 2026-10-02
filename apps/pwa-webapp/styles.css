@@ -2763,18 +2763,6 @@ body.light-mode .app-log-fab {
   50% { transform: translateY(-2px); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .home-weather-enable-prompt {
-    animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-  }
-
-  .home-weather-enable-prompt__spark,
-  .home-weather-enable-prompt__halo,
-  .home-weather-enable-prompt__icon .home-weather-icon {
-    animation: none !important;
-  }
-}
-
 .home-weather-enable-prompt__icon {
   position: relative;
   z-index: 1;
@@ -2793,12 +2781,33 @@ body.light-mode .app-log-fab {
   animation: homeWeatherCloudFloat 2.8s ease-in-out infinite;
 }
 
+/* body.reduce-motion also carries the in-app Reduce motion setting and low-tier devices. */
 @media (prefers-reduced-motion: reduce) {
+  .home-weather-enable-prompt,
+  .home-weather-enable-prompt__spark,
+  .home-weather-enable-prompt__halo,
+  .home-weather-enable-prompt__icon .home-weather-icon {
+    animation: none !important;
+  }
+
   .home-weather-enable-prompt::before,
   .home-weather-enable-prompt::after {
-    animation: none;
+    animation: none !important;
     opacity: 0;
   }
+}
+
+body.reduce-motion .home-weather-enable-prompt,
+body.reduce-motion .home-weather-enable-prompt__spark,
+body.reduce-motion .home-weather-enable-prompt__halo,
+body.reduce-motion .home-weather-enable-prompt__icon .home-weather-icon {
+  animation: none !important;
+}
+
+body.reduce-motion .home-weather-enable-prompt::before,
+body.reduce-motion .home-weather-enable-prompt::after {
+  animation: none !important;
+  opacity: 0;
 }
 
 body.light-mode .home-weather-enable-prompt {

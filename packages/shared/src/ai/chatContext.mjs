@@ -154,8 +154,12 @@ export function formatHealthChatHistory(turns) {
     .join('\n\n');
 }
 
+/** Small models treat an unlabelled fact list as foreign data and decline to use it. */
+export const HEALTH_CHAT_CONTEXT_LABEL = "Health log context (the user's own data):";
+
 export function buildHealthChatUserPayload({ baseContext, history, userMessage }) {
-  const parts = [String(baseContext || '').trim()];
+  const base = String(baseContext || '').trim();
+  const parts = [base ? `${HEALTH_CHAT_CONTEXT_LABEL}\n${base}` : ''];
   const hist = String(history || '').trim();
   if (hist) parts.push(`Conversation:\n${hist}`);
   parts.push(`User: ${redactUntrustedText(String(userMessage || '').trim())}`);
