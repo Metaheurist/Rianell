@@ -301,6 +301,15 @@ test('an invented week trend is cut from a logging sentence, keeping the logging
   assert.equal(dropUnsupportedComparisons('Your mood dropped this week; keep logging to confirm.', { loggedDays: 1 }), 'Keep logging to confirm.');
 });
 
+const LIVE_TIRED_REPLY_3 =
+  'You have been sleeping poorly this past week, which likely explains your current fatigue and low mood. To help you recover, try taking a walk outside for 20 minutes before bed and keep your screen on during those hours. It may take a few weeks to see significant changes, but consistency will help.';
+
+test('hedged causes and generic "will help" filler leave nothing, so the chat falls back', () => {
+  assert.equal(groundHealthChatReply(LIVE_TIRED_REPLY_3, { loggedDays: 1 }), '');
+  assert.equal(dropUnsupportedCauses('You slept 1/10, which likely explains the low energy.'), 'You slept 1/10.');
+  assert.equal(dropUnsolicitedTips('Your sleep was 1/10. Consistency will help.'), 'Your sleep was 1/10.');
+});
+
 test('groundHealthChatReply returns empty when nothing survives', () => {
   assert.equal(groundHealthChatReply('Your sleep improved lately. Try going to bed earlier.', { loggedDays: 1 }), '');
   assert.equal(groundHealthChatReply('', { loggedDays: 1 }), '');
