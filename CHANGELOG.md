@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ## [Unreleased]
 
 ### Fixed
+- **PWA returning-user boot crash (stuck on "Loading Rianell…"):** the load-time `migrateLogs()` ran halfway through `app.js`, so any stored log missing `food`/`exercise` (e.g. saved with those wizard steps skipped) invalidated caches that were not yet initialised (`_filteredLogsCache`, `_chartResultsCache`). The throw aborted the bundle, so `STRESSOR_GROUPS` and the inline `window.*` handlers never initialised either (`toggleEditWeightUnit is not defined`). It hit once per migration, which matches the intermittent "blank page / too many errors, reload fixes it" reports. The call is now the last top-level statement, after `attachInlineHandlersToWindow()`; guarded by `tests/unit/pwa/app-boot-order.test.mjs`. Found during a fresh-profile walkthrough of rianell.com.
 - **CI gitleaks false positive:** `scripts/models/benchmark-llm-shortlist.mjs` candidate entries use `slug:` instead of `key:` so Gitleaks `generic-api-key` no longer flags model slugs (e.g. `qwen3.5-2b-opt`); no allowlist entry needed.
 
 ## [2.7.0] - 2026-10-02
