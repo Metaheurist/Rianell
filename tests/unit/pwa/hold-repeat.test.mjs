@@ -63,14 +63,22 @@ test('hold-repeat fires once then repeats while held', async () => {
   let count = 0;
   Hold.bind(btn, function () { count += 1; }, { delayMs: 40, intervalMs: 20 });
 
-  dispatchPointer(btn, 'pointerdown', 1);
-  assert.equal(count, 1, 'immediate tick');
+  // A failed assertion while held would leave the repeat interval running and hang the suite.
+  let released = false;
+  try {
+    dispatchPointer(btn, 'pointerdown', 1);
+    assert.equal(count, 1, 'immediate tick');
 
-  await new Promise((r) => setTimeout(r, 110));
-  assert.ok(count >= 3, `expected repeats while held, got ${count}`);
+    await new Promise((r) => setTimeout(r, 110));
+    assert.ok(count >= 3, `expected repeats while held, got ${count}`);
 
-  dispatchPointer(btn, 'pointerup', 1);
-  const afterUp = count;
-  await new Promise((r) => setTimeout(r, 60));
-  assert.equal(count, afterUp, 'stops after pointerup');
+    dispatchPointer(btn, 'pointerup', 1);
+    released = true;
+    const afterUp = count;
+    await new Promise((r) => setTimeout(r, 60));
+    assert.equal(count, afterUp, 'stops after pointerup');
+  } finally {
+    if (!released) dispatchPointer(btn, 'pointerup', 1);
+    window.close();
+  }
 });

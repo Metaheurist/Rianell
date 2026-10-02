@@ -79,7 +79,7 @@ test('chat generation uses a mild repetition penalty and collapses repeated sent
   const health = summaryLlm.slice(summaryLlm.indexOf('async function generateHealthChatWithLLM'));
   assert.match(health, /RianellShared\.enforceHealthChatReply\(reply/);
   const week = summaryLlm.slice(summaryLlm.indexOf('async function generateWeekChatWithLLM'));
-  assert.match(week, /RianellShared\.collapseRepeatedSentences\(weekReply\)/);
+  assert.match(week, /RianellShared\.tidyHealthChatReply\(weekReply\)/);
 });
 
 test('runChatInference loads first, then calls the worker-backed pipeline', () => {

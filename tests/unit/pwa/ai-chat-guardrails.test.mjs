@@ -7,6 +7,8 @@ import {
   isGreeting,
   enforceHealthChatReply,
   collapseRepeatedSentences,
+  addressUserInSecondPerson,
+  tidyHealthChatReply,
 } from '../../../packages/shared/src/ai/chatGuardrails.mjs';
 
 test('health questions are in scope and allowed', () => {
@@ -186,4 +188,32 @@ test('collapseRepeatedSentences keeps distinct sentences and an unterminated tai
 test('enforceHealthChatReply collapses repeats but still blocks NSFW output', () => {
   assert.equal(enforceHealthChatReply('Sleep was low. Sleep was low.', 'blocked'), 'Sleep was low.');
   assert.equal(enforceHealthChatReply('send nudes', 'blocked'), 'blocked');
+});
+
+test('addressUserInSecondPerson rewrites the echoed reply seen on rianell.com', () => {
+  assert.equal(
+    addressUserInSecondPerson('I slept poorly last night, which was why my energy dropped significantly today.'),
+    'You slept poorly last night, which was why your energy dropped significantly today.'
+  );
+});
+
+test('addressUserInSecondPerson keeps case by position and maps was to were', () => {
+  assert.equal(
+    addressUserInSecondPerson('Yes. I was tired, and I felt low. My mood was 3/10.'),
+    'Yes. You were tired, and you felt low. Your mood was 3/10.'
+  );
+  assert.equal(addressUserInSecondPerson("I didn't sleep well."), "You didn't sleep well.");
+});
+
+test("addressUserInSecondPerson leaves the assistant's own voice alone", () => {
+  const assistant = "I can help with that. I had a look at your log and I'd suggest logging water. In my view, rest helps.";
+  assert.equal(addressUserInSecondPerson(assistant), assistant);
+  assert.equal(addressUserInSecondPerson('Ich habe schlecht geschlafen.'), 'Ich habe schlecht geschlafen.');
+  assert.equal(addressUserInSecondPerson(''), '');
+  assert.equal(addressUserInSecondPerson(null), '');
+});
+
+test('tidyHealthChatReply rewrites before collapsing so echoed repeats merge', () => {
+  assert.equal(tidyHealthChatReply('I slept badly. You slept badly. Try logging water.'), 'You slept badly. Try logging water.');
+  assert.equal(enforceHealthChatReply('I slept badly.', 'blocked'), 'You slept badly.');
 });
