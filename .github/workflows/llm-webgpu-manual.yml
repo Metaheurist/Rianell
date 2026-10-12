@@ -8,6 +8,9 @@ on:
         required: true
         default: 'https://rianell.com/'
 
+permissions:
+  contents: read
+
 jobs:
   webgpu-tier5:
     runs-on: ubuntu-latest
