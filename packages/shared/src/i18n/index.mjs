@@ -81,7 +81,6 @@ export {
 export {
   validateRemoteLlmEndpoint,
   isPwaOnDeviceLlmOnly,
-  BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
   BLOCKED_COMMERCIAL_LLM_HOSTS,
   isBlockedCommercialLlmHost,
   ALLOWED_LLM_MODEL_HOSTS,
