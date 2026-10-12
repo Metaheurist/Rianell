@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-10-12T14:08:29.917Z",
+  "generatedAt": "2026-10-12T14:54:46.538Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 5717539,
+    "jsBytes": 5723876,
     "cssBytes": 870800,
-    "jsGzipBytes": 1396054,
+    "jsGzipBytes": 1398067,
     "cssGzipBytes": 147240
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1114319,
-      "gzipBytes": 241252
+      "bytes": 1114546,
+      "gzipBytes": 241292
     },
     {
-      "file": "ci-minified/site/app.a3396bd0dad5.min.js",
-      "bytes": 885598,
-      "gzipBytes": 205422
+      "file": "ci-minified/site/app.7835c6aee094.min.js",
+      "bytes": 887083,
+      "gzipBytes": 205908
     },
     {
       "file": "ci-minified/site/styles.0c513b33c7ed.css",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 424074,
-      "gzipBytes": 96083
+      "bytes": 424765,
+      "gzipBytes": 96292
     },
     {
       "file": "ci-minified/site/vendor/three/three.core.min.js",
@@ -55,13 +55,13 @@
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 106397,
-      "gzipBytes": 22855
+      "bytes": 107420,
+      "gzipBytes": 23199
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 83126,
-      "gzipBytes": 21104
+      "bytes": 83201,
+      "gzipBytes": 21138
     },
     {
       "file": "ci-minified/site/modules/graphics-portfolio.js",
@@ -85,8 +85,8 @@
     },
     {
       "file": "ci-minified/site/modules/log-metric-widgets.js",
-      "bytes": 46211,
-      "gzipBytes": 10212
+      "bytes": 46394,
+      "gzipBytes": 10245
     },
     {
       "file": "ci-minified/site/modules/mood-tab.js",
@@ -105,8 +105,8 @@
     },
     {
       "file": "ci-minified/site/guided-onboarding.js",
-      "bytes": 35851,
-      "gzipBytes": 7194
+      "bytes": 35933,
+      "gzipBytes": 7213
     },
     {
       "file": "ci-minified/site/modules/ai-chat.js",
@@ -126,7 +126,7 @@
     {
       "file": "ci-minified/site/performance-utils.js",
       "bytes": 27605,
-      "gzipBytes": 6799
+      "gzipBytes": 6802
     },
     {
       "file": "ci-minified/site/modules/advanced-vitals-widgets.js",
@@ -209,6 +209,11 @@
       "gzipBytes": 2730
     },
     {
+      "file": "ci-minified/site/modules/app/modal-host.js",
+      "bytes": 10971,
+      "gzipBytes": 2907
+    },
+    {
       "file": "ci-minified/site/modules/goals-progress-3d.js",
       "bytes": 10570,
       "gzipBytes": 3515
@@ -217,11 +222,6 @@
       "file": "ci-minified/site/modules/app/donate.js",
       "bytes": 9970,
       "gzipBytes": 2708
-    },
-    {
-      "file": "ci-minified/site/modules/app/modal-host.js",
-      "bytes": 9565,
-      "gzipBytes": 2381
     },
     {
       "file": "ci-minified/site/modules/goals-carousel.js",
@@ -250,8 +250,8 @@
     },
     {
       "file": "ci-minified/site/sw.js",
-      "bytes": 8405,
-      "gzipBytes": 3000
+      "bytes": 8454,
+      "gzipBytes": 3007
     },
     {
       "file": "ci-minified/site/modules/app/voice-input.js",
@@ -264,6 +264,11 @@
       "gzipBytes": 2131
     },
     {
+      "file": "ci-minified/site/workers/llm-worker.js",
+      "bytes": 7864,
+      "gzipBytes": 2808
+    },
+    {
       "file": "ci-minified/site/modules/drum-picker-scroll.js",
       "bytes": 7469,
       "gzipBytes": 2074
@@ -274,19 +279,14 @@
       "gzipBytes": 3070
     },
     {
-      "file": "ci-minified/site/workers/llm-worker.js",
-      "bytes": 7234,
-      "gzipBytes": 2611
+      "file": "ci-minified/site/print-utils.js",
+      "bytes": 7274,
+      "gzipBytes": 2205
     },
     {
       "file": "ci-minified/site/device-module.js",
       "bytes": 6920,
       "gzipBytes": 2015
-    },
-    {
-      "file": "ci-minified/site/print-utils.js",
-      "bytes": 6849,
-      "gzipBytes": 2113
     },
     {
       "file": "ci-minified/site/modules/app/pwa-install-guide.js",
@@ -430,8 +430,8 @@
     },
     {
       "file": "ci-minified/site/workers/io-worker.js",
-      "bytes": 849,
-      "gzipBytes": 384
+      "bytes": 910,
+      "gzipBytes": 407
     },
     {
       "file": "ci-minified/site/llm-tier-benchmark-sync.js",
