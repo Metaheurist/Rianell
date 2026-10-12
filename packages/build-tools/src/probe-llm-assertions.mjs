@@ -1,10 +1,13 @@
 export function isHuggingFaceModelsRequest(url) {
-  const u = String(url || '');
-  return (
-    u.includes('https://huggingface.co/') ||
-    /https:\/\/[^/]+\.hf\.co\//i.test(u) ||
-    /https:\/\/[^/]*xethub\.hf\.co\//i.test(u)
-  );
+  let parsed;
+  try {
+    parsed = new URL(String(url || ''));
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== 'https:') return false;
+  const host = parsed.hostname.toLowerCase();
+  return host === 'huggingface.co' || host.endsWith('.hf.co');
 }
 
 export function isSupabaseLlmModelsRequest(url) {

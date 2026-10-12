@@ -16,7 +16,7 @@ const SCREENING_VALUE_RE =
   /\b(phq[- ]?[29]|gad[- ]?[27]|screening\s+score|suicidal\s+ideation)\b/i;
 
 const URL_RE = /https?:\/\/[^\s]+/gi;
-const SCRIPTISH_RE = /<\s*script|javascript:|on\w+\s*=/gi;
+const SCRIPTISH_RE = /<\s*script|javascript:|vbscript:|data:[a-z]+\/|on\w+\s*=/gi;
 
 function sanitizeNoteForContext(note) {
   let raw = redactUntrustedText(String(note || '').trim());

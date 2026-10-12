@@ -30,6 +30,7 @@ var RianellShared = (() => {
     APPOINTMENT_RANGE_DAYS: () => APPOINTMENT_RANGE_DAYS,
     AVATAR_NAME_PREFIXES: () => AVATAR_NAME_PREFIXES,
     AVATAR_NAME_SUFFIXES: () => AVATAR_NAME_SUFFIXES,
+    BLOCKED_COMMERCIAL_LLM_HOSTS: () => BLOCKED_COMMERCIAL_LLM_HOSTS,
     BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     COHORT_MIN_K: () => COHORT_MIN_K,
@@ -413,6 +414,7 @@ var RianellShared = (() => {
     invokeDeliverWebhook: () => invokeDeliverWebhook,
     isAchievementToastShowing: () => isAchievementToastShowing,
     isAllowedAppearanceMode: () => isAllowedAppearanceMode,
+    isBlockedCommercialLlmHost: () => isBlockedCommercialLlmHost,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isConfiguredVapidPublicKey: () => isConfiguredVapidPublicKey,
     isCustomMetricField: () => isCustomMetricField,
@@ -1077,9 +1079,22 @@ var RianellShared = (() => {
   // packages/shared/src/charts/customMetrics.mjs
   var MAX_CUSTOM = 8;
   var LABEL_MAX = 40;
+  function stripTags(text) {
+    let out = "";
+    let i = 0;
+    while (i < text.length) {
+      const lt = text.indexOf("<", i);
+      if (lt === -1) break;
+      const gt = text.indexOf(">", lt + 1);
+      if (gt === -1) break;
+      out += text.slice(i, lt);
+      i = gt + 1;
+    }
+    return out + text.slice(i);
+  }
   function sanitizeCustomMetricLabel(raw) {
     if (typeof raw !== "string") return "";
-    return raw.replace(/<[^>]*>/g, "").replace(/[<>"'&`]/g, "").trim().slice(0, LABEL_MAX);
+    return stripTags(raw).replace(/[<>"'&`]/g, "").trim().slice(0, LABEL_MAX);
   }
   function customMetricFieldKey(id) {
     return `custom_${id}`;
@@ -3303,8 +3318,8 @@ var RianellShared = (() => {
   }
   function parseTopListItem(item) {
     const raw = String(item || "").trim();
-    const m = raw.match(/^(.+?)\s*\((\d+)\)$/);
-    return m ? { name: m[1].trim(), count: Number(m[2]) } : { name: raw, count: 0 };
+    const m = raw.match(/\((\d+)\)$/);
+    return m && m.index > 0 ? { name: raw.slice(0, m.index).trim(), count: Number(m[1]) } : { name: raw, count: 0 };
   }
   function metricTrend(logs, field) {
     const sorted = [...logs].sort((a2, b2) => String(a2.date).localeCompare(String(b2.date)));
@@ -3877,8 +3892,9 @@ ${raw}
     let parsed;
     try {
       const trimmed = raw.trim();
-      const match = trimmed.match(/\{[\s\S]*\}/);
-      const jsonStr = match ? match[0] : trimmed;
+      const start = trimmed.indexOf("{");
+      const end = trimmed.lastIndexOf("}");
+      const jsonStr = start !== -1 && end > start ? trimmed.slice(start, end + 1) : trimmed;
       parsed = JSON.parse(jsonStr);
     } catch {
       return null;
@@ -3916,7 +3932,7 @@ ${raw}
   var SCREENING_KEY_RE = /^(phq|gad|screening|mentalHealthScreening|phq2|phq9|gad2|gad7)/i;
   var SCREENING_VALUE_RE = /\b(phq[- ]?[29]|gad[- ]?[27]|screening\s+score|suicidal\s+ideation)\b/i;
   var URL_RE = /https?:\/\/[^\s]+/gi;
-  var SCRIPTISH_RE = /<\s*script|javascript:|on\w+\s*=/gi;
+  var SCRIPTISH_RE = /<\s*script|javascript:|vbscript:|data:[a-z]+\/|on\w+\s*=/gi;
   function sanitizeNoteForContext(note) {
     let raw = redactUntrustedText(String(note || "").trim());
     raw = raw.replace(/---\s*(USER_NOTE|END_USER_NOTE|SYSTEM)\s*---/gi, "[removed]");
@@ -4120,17 +4136,25 @@ ${hist}`);
   }
 
   // packages/shared/src/ai/llmOnDevicePolicy.mjs
-  var BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = [
-    /api\.openai\.com/i,
-    /api\.anthropic\.com/i,
-    /generativelanguage\.googleapis\.com/i,
-    /api\.cohere\.ai/i,
-    /api\.mistral\.ai/i,
-    /api\.groq\.com/i,
-    /api\.together\.xyz/i,
-    /openrouter\.ai/i,
-    /api\.perplexity\.ai/i
+  var BLOCKED_COMMERCIAL_LLM_HOSTS = [
+    "api.openai.com",
+    "api.anthropic.com",
+    "generativelanguage.googleapis.com",
+    "api.cohere.ai",
+    "api.mistral.ai",
+    "api.groq.com",
+    "api.together.xyz",
+    "openrouter.ai",
+    "api.perplexity.ai"
   ];
+  var BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = /* @__PURE__ */ BLOCKED_COMMERCIAL_LLM_HOSTS.map(
+    (host) => new RegExp(host.replace(/\./g, "\\."), "i")
+  );
+  function isBlockedCommercialLlmHost(hostname) {
+    const host = String(hostname || "").toLowerCase().replace(/\.$/, "");
+    if (!host) return false;
+    return BLOCKED_COMMERCIAL_LLM_HOSTS.some((domain) => host === domain || host.endsWith(`.${domain}`));
+  }
   var ALLOWED_LLM_MODEL_HOSTS = [
     "huggingface.co",
     "cdn.jsdelivr.net"
@@ -4144,7 +4168,7 @@ ${hist}`);
     } catch {
       return { allowed: false, ok: false, reason: "invalid_url" };
     }
-    if (BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS.some((re) => re.test(host))) {
+    if (isBlockedCommercialLlmHost(host)) {
       return { allowed: false, ok: false, reason: "commercial_api_blocked" };
     }
     return { allowed: true, ok: true };
@@ -5090,7 +5114,7 @@ ${hist}`);
   }
   function parseServingGrams(serving) {
     if (typeof serving !== "string" || !serving.trim()) return null;
-    const gMatch = serving.match(/(\d+(?:[.,]\d+)?)\s*g\b/i);
+    const gMatch = serving.match(/(?:^|\D)(\d+(?:[.,]\d+)?)\s*g\b/i);
     if (gMatch) {
       const n = Number(String(gMatch[1]).replace(",", "."));
       if (Number.isFinite(n) && n > 0) return Math.min(500, Math.round(n * 10) / 10);
