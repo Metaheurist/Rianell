@@ -4,10 +4,10 @@
  * Uses rule-based MT first, then MyMemory/DeepL when credentials are set.
  */
 import fs from 'node:fs';
-import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { applyRuleBasedMt, shouldKeepEnglish } from '../lib/rule-based-mt.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
+import { localeJsonPath, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const ENGAGEMENT_KEYS = {
   'home.welcome.title': 'Welcome to Rianell',
@@ -101,7 +101,7 @@ const delayMs = Number(process.env.MT_DELAY_MS || '200');
 const useApi = hasTranslateCredentials();
 
 for (const locale of TIER_A) {
-  const filePath = path.join(dir, `${locale}.json`);
+  const filePath = localeJsonPath(dir, locale);
   const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const strings = { ...(pack.strings || {}) };
   let changed = 0;
@@ -114,7 +114,7 @@ for (const locale of TIER_A) {
     let next = applyRuleBasedMt(enVal, locale);
     if (next.trim() === enVal.trim() && useApi) {
       try {
-        next = await translateText(enVal, locale);
+        next = sanitizeTranslation(enVal, await translateText(enVal, locale)) ?? next;
       } catch (e) {
         console.warn(`translate-engagement-tier-a: ${locale} ${key}: ${e.message}`);
       }
@@ -126,7 +126,7 @@ for (const locale of TIER_A) {
   }
 
   if (changed > 0) {
-    fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, strings, machineTranslatedUi: true }, null, 2)}\n`, 'utf8');
+    writeJson(filePath, { ...pack, strings, machineTranslatedUi: true });
   }
   console.log(`translate-engagement-tier-a: ${locale}, ${changed} key(s) updated`);
 }

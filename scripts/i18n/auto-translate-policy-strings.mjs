@@ -11,6 +11,7 @@ import { SHIPPED_LOCALES } from '../../packages/shared/src/i18n/locales.mjs';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
 import { applyRuleBasedMt } from '../lib/rule-based-mt.mjs';
+import { localeJsonPath, readJsonIfExists, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -28,9 +29,9 @@ let totalUpdates = 0;
 
 for (const locale of SHIPPED_LOCALES) {
   if (locale === 'en-GB') continue;
-  const filePath = path.join(dir, `${locale}.json`);
-  if (!fs.existsSync(filePath)) continue;
-  const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const filePath = localeJsonPath(dir, locale);
+  const pack = readJsonIfExists(filePath);
+  if (!pack) continue;
   const strings = { ...(pack.strings || {}) };
   let changed = 0;
 
@@ -43,7 +44,7 @@ for (const locale of SHIPPED_LOCALES) {
     let next = enVal;
     if (doTranslate && hasTranslateCredentials()) {
       try {
-        next = await translateText(enVal, locale);
+        next = sanitizeTranslation(enVal, await translateText(enVal, locale)) ?? next;
         if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
       } catch (e) {
         console.warn(`auto-translate-policy-strings: ${locale} ${key}: ${e.message}`);
@@ -61,7 +62,10 @@ for (const locale of SHIPPED_LOCALES) {
     if (TIER_A.has(locale)) notice = applyRuleBasedMt(notice, locale);
     if (doTranslate && hasTranslateCredentials()) {
       try {
-        notice = await translateText(canonical.strings[noticeKey], locale);
+        notice = sanitizeTranslation(
+          canonical.strings[noticeKey],
+          await translateText(canonical.strings[noticeKey], locale),
+        ) ?? notice;
       } catch (_) {}
     }
     if (strings[noticeKey] !== notice) {
@@ -72,7 +76,7 @@ for (const locale of SHIPPED_LOCALES) {
   if (changed === 0) continue;
   totalUpdates += changed;
   if (!dryRun) {
-    fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, strings }, null, 2)}\n`, 'utf8');
+    writeJson(filePath, { ...pack, strings });
   }
   console.log(`auto-translate-policy-strings: ${locale} — ${changed} policy key(s)`);
 }

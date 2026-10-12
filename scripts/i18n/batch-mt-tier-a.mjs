@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
+import { localeJsonPath, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -37,7 +38,7 @@ for (const loc of locales) {
 }
 
 for (const locale of locales) {
-  const filePath = path.join(dir, `${locale}.json`);
+  const filePath = localeJsonPath(dir, locale);
   const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const strings = { ...(pack.strings || {}) };
   let updated = 0;
@@ -54,7 +55,7 @@ for (const locale of locales) {
       continue;
     }
     try {
-      const translated = await translateText(enVal, locale);
+      const translated = sanitizeTranslation(enVal, await translateText(enVal, locale));
       if (translated && translated.trim() !== enVal.trim()) {
         if (!dryRun) strings[key] = translated;
         updated++;
@@ -70,7 +71,7 @@ for (const locale of locales) {
 
   if (!dryRun && updated > 0) {
     const out = { ...pack, strings, machineTranslatedUi: true };
-    fs.writeFileSync(filePath, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+    writeJson(filePath, out);
   }
   console.log(`batch-mt-tier-a: ${locale} done — ${updated} translated, ${skipped} already differ`);
 }

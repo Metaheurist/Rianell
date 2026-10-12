@@ -122,8 +122,23 @@ export function buildPrompt(src, meta, { strictScript = false } = {}) {
   );
 }
 
+/** Parse an Ollama base URL, allowing only http(s) without embedded credentials. */
+export function ollamaEndpoint(host, apiPath) {
+  let base;
+  try {
+    base = new URL(String(host));
+  } catch {
+    throw new Error(`Ollama: invalid host ${JSON.stringify(host)}`);
+  }
+  if (base.protocol !== 'http:' && base.protocol !== 'https:') {
+    throw new Error(`Ollama: host must use http or https, got ${base.protocol}`);
+  }
+  if (base.username || base.password) throw new Error('Ollama: host must not contain credentials');
+  return new URL(`${base.pathname.replace(/\/+$/, '')}${apiPath}`, base.origin);
+}
+
 export async function ollamaGenerate({ host, model, prompt, temperature = 0, numPredict = 512 }) {
-  const res = await fetch(`${host}/api/generate`, {
+  const res = await fetch(ollamaEndpoint(host, '/api/generate'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

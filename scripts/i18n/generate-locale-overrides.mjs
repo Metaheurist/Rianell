@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
+import { readJsonIfExists } from './lib/safe-pack-io.mjs';
 import { EXACT_OVERRIDES } from '../lib/tier-a-exact-overrides.mjs';
 import { MIXED_FIXES } from '../lib/lc20-mixed-fixes.mjs';
 import { applyRuleBasedMt, shouldKeepEnglish } from '../lib/rule-based-mt.mjs';
@@ -297,9 +298,7 @@ const OVERRIDES = {
 
 for (const [locale, meta] of Object.entries(OVERRIDES)) {
   const filePath = path.join(dir, `${locale}.json`);
-  const existing = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
-    : { strings: {} };
+  const existing = readJsonIfExists(filePath, { strings: {} });
   let strings = { ...canonical.strings, ...(existing.strings || {}), ...(meta.strings || {}) };
   if (TIER_A.includes(locale)) {
     strings = applyTierATranslations(strings, locale);
@@ -334,9 +333,7 @@ const RTL_LOCALES = {
 };
 for (const [locale, meta] of Object.entries(RTL_LOCALES)) {
   const filePath = path.join(dir, `${locale}.json`);
-  const existing = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
-    : { strings: {} };
+  const existing = readJsonIfExists(filePath, { strings: {} });
   const strings = { ...canonical.strings, ...(existing.strings || {}) };
   for (const [key, val] of Object.entries(canonical.strings || {})) {
     if (strings[key] === undefined || strings[key] === '') strings[key] = val;

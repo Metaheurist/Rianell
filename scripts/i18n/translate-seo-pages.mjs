@@ -21,7 +21,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LOCALE_TO_TG, translateOne } from './lib/ollama-translate.mjs';
+import { LOCALE_TO_TG, ollamaEndpoint, translateOne } from './lib/ollama-translate.mjs';
+import { localeJsonPath, readJsonIfExists, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(scriptDir, '..', '..');
@@ -64,7 +65,7 @@ function isTranslatable(key, val) {
 
 async function ollamaReachable() {
   try {
-    const res = await fetch(`${HOST}/api/tags`, { method: 'GET' });
+    const res = await fetch(ollamaEndpoint(HOST, '/api/tags'), { method: 'GET' });
     return res.ok;
   } catch {
     return false;
@@ -73,9 +74,6 @@ async function ollamaReachable() {
 
 function readJson(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
-}
-function writeJson(p, obj) {
-  fs.writeFileSync(p, `${JSON.stringify(obj, null, 2)}\n`, 'utf8');
 }
 
 function main() {
@@ -90,12 +88,12 @@ function main() {
     }
 
     for (const locale of LOCALES) {
-      const tg = LOCALE_TO_TG[locale];
+      const tg = Object.hasOwn(LOCALE_TO_TG, locale) ? LOCALE_TO_TG[locale] : null;
       if (!tg) { console.warn(`[seo:translate] no TranslateGemma metadata for ${locale}, skipping`); continue; }
       meta[locale] = tg;
 
-      const outPath = path.join(CONTENT_DIR, `${locale}.json`);
-      const existing = !FORCE && fs.existsSync(outPath) ? readJson(outPath) : null;
+      const outPath = localeJsonPath(CONTENT_DIR, locale);
+      const existing = FORCE ? null : readJsonIfExists(outPath);
       const outCatalog = { _comment: `Machine-translated (${MODEL}) SEO copy for ${locale}. Regenerate with: npm run seo:translate -- --locales=${locale}. Structure mirrors seo-content/en.json.` };
 
       const stats = { ok: 0, soft: 0, failed: 0, skipped: 0 };
@@ -129,10 +127,11 @@ function main() {
           stats.failed += 1;
           return enNode;
         }
+        const value = sanitizeTranslation(enNode, result.value);
+        if (!value) { stats.failed += 1; return enNode; }
         if (result.status === 'ok') stats.ok += 1;
-        else if (result.status === 'kept-soft') { stats.soft += 1; }
-        else { stats.failed += 1; }
-        return result.value || enNode;
+        else { stats.soft += 1; }
+        return value;
       }
 
       console.log(`\n[seo:translate] ${locale} (${tg.name})`);

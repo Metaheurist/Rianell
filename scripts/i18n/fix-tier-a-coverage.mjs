@@ -6,6 +6,7 @@ import { GLOSSARY_TERMS } from '@rianell/build-tools/i18n-glossary';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { applyRuleBasedMt, shouldKeepEnglish } from '../lib/rule-based-mt.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
+import { localeJsonPath, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -42,7 +43,7 @@ function countIdentical(strings) {
 }
 
 for (const locale of locales) {
-  const filePath = path.join(dir, `${locale}.json`);
+  const filePath = localeJsonPath(dir, locale);
   const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const strings = { ...(pack.strings || {}) };
   let { comparable, identical } = countIdentical(strings);
@@ -67,7 +68,7 @@ for (const locale of locales) {
     let next = applyRuleBasedMt(enVal, locale);
     if (next.trim() === enVal.trim() && useApi) {
       try {
-        next = await translateText(enVal, locale);
+        next = sanitizeTranslation(enVal, await translateText(enVal, locale)) ?? enVal;
       } catch (e) {
         console.warn(`fix-tier-a-coverage: ${locale} ${key}: ${e.message}`);
         continue;
@@ -80,7 +81,7 @@ for (const locale of locales) {
     changed++;
   }
 
-  fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, strings, machineTranslatedUi: true }, null, 2)}\n`, 'utf8');
+  writeJson(filePath, { ...pack, strings, machineTranslatedUi: true });
   const after = countIdentical(strings);
   console.log(
     `fix-tier-a-coverage: ${locale} — ${changed} key(s); now ${after.identical}/${after.comparable} (${((after.identical / after.comparable) * 100).toFixed(1)}%)`,

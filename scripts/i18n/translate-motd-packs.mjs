@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalMotdPacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
+import { localeJsonPath, readJsonIfExists, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalMotdPacksDir(root);
@@ -274,14 +275,12 @@ const TIER_A = ['pt-BR', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'nl-NL', 'pl-PL', '
 for (const locale of TIER_A) {
   const translated = MOTD_30[locale];
   if (!translated) continue;
-  const filePath = path.join(dir, `${locale}.json`);
-  const pack = fs.existsSync(filePath)
-    ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
-    : { locale, label: locale, version: 2, messages: [] };
+  const filePath = localeJsonPath(dir, locale);
+  const pack = readJsonIfExists(filePath, { locale, label: locale, version: 2, messages: [] });
   const rest = (pack.messages || []).slice(30);
   const messages = [...translated, ...rest.length ? rest : en.messages.slice(30)];
   const out = { ...pack, locale, messages: messages.slice(0, Math.max(30, messages.length)) };
-  fs.writeFileSync(filePath, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+  writeJson(filePath, out);
   console.log(`translate-motd-packs: ${locale} (${translated.length} translated quotes)`);
 }
 
@@ -292,17 +291,15 @@ const RTL_MOTD = ['ar', 'he'];
 if (hasTranslateCredentials()) {
   const delayMs = Number(process.env.MT_DELAY_MS || '400');
   for (const locale of RTL_MOTD) {
-    const filePath = path.join(dir, `${locale}.json`);
-    const pack = fs.existsSync(filePath)
-      ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
-      : { locale, label: locale, version: 2, messages: [...en.messages] };
+    const filePath = localeJsonPath(dir, locale);
+    const pack = readJsonIfExists(filePath, { locale, label: locale, version: 2, messages: [...en.messages] });
     const messages = [...(pack.messages || en.messages)];
     while (messages.length < en.messages.length) messages.push(en.messages[messages.length]);
     let updated = 0;
     for (let i = 0; i < 30; i++) {
       if (messages[i] && messages[i] !== en.messages[i]) continue;
       try {
-        const tr = await translateText(en.messages[i], locale);
+        const tr = sanitizeTranslation(en.messages[i], await translateText(en.messages[i], locale));
         if (tr && tr !== en.messages[i]) {
           messages[i] = tr;
           updated++;
@@ -313,7 +310,7 @@ if (hasTranslateCredentials()) {
       if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
     }
     if (updated > 0) {
-      fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, locale, messages }, null, 2)}\n`, 'utf8');
+      writeJson(filePath, { ...pack, locale, messages });
       console.log(`translate-motd-packs: ${locale} — MT ${updated} headline message(s)`);
     }
   }
@@ -329,15 +326,15 @@ if (translateAll) {
   const delayMs = Number(process.env.MT_DELAY_MS || '400');
   const allLocales = [...TIER_A, 'ga', 'ar', 'he'];
   for (const locale of allLocales) {
-    const filePath = path.join(dir, `${locale}.json`);
-    if (!fs.existsSync(filePath)) continue;
-    const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const filePath = localeJsonPath(dir, locale);
+    const pack = readJsonIfExists(filePath);
+    if (!pack) continue;
     const messages = [...(pack.messages || [])];
     let updated = 0;
     for (let i = 30; i < en.messages.length; i++) {
       if (messages[i] && messages[i] !== en.messages[i]) continue;
       try {
-        const tr = await translateText(en.messages[i], locale);
+        const tr = sanitizeTranslation(en.messages[i], await translateText(en.messages[i], locale));
         if (tr && tr !== en.messages[i]) {
           messages[i] = tr;
           updated++;
@@ -348,7 +345,7 @@ if (translateAll) {
       if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
     }
     if (updated > 0) {
-      fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, messages }, null, 2)}\n`, 'utf8');
+      writeJson(filePath, { ...pack, messages });
       console.log(`translate-motd-packs: ${locale} — MT ${updated} tail message(s)`);
     }
   }

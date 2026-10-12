@@ -22,6 +22,7 @@ import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPath
 import { SHIPPED_LOCALES } from '../../packages/shared/src/i18n/locales.mjs';
 import { GLOSSARY_TERMS } from '@rianell/build-tools/i18n-glossary';
 import { LOCALE_TO_TG, FRAGMENT_CHECK, ENG_FRAG, PLACEHOLDER_RE, translateOne } from './lib/ollama-translate.mjs';
+import { localeJsonPath, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -74,14 +75,14 @@ function isGlossaryOnlyValue(text) {
 }
 
 function loadPack(locale) {
-  const filePath = path.join(dir, `${locale}.json`);
+  const filePath = localeJsonPath(dir, locale);
   const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   pack.strings = pack.strings || {};
   return { filePath, pack };
 }
 
 function writePack(filePath, pack) {
-  fs.writeFileSync(filePath, `${JSON.stringify(pack, null, 2)}\n`, 'utf8');
+  writeJson(filePath, pack);
 }
 
 function writeProgress(partial) {
@@ -89,9 +90,7 @@ function writeProgress(partial) {
   try {
     fs.mkdirSync(path.dirname(PROGRESS_FILE), { recursive: true });
     let prev = {};
-    if (fs.existsSync(PROGRESS_FILE)) {
-      try { prev = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8')); } catch { prev = {}; }
-    }
+    try { prev = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8')); } catch { prev = {}; }
     fs.writeFileSync(PROGRESS_FILE, `${JSON.stringify({
       ...prev,
       ...partial,
@@ -114,7 +113,7 @@ async function main() {
 
   const summary = [];
   for (const locale of TARGET_LOCALES) {
-    const meta = LOCALE_TO_TG[locale];
+    const meta = Object.hasOwn(LOCALE_TO_TG, locale) ? LOCALE_TO_TG[locale] : null;
     if (!meta) {
       console.warn(`ollama-translate-gaps: no language mapping for ${locale} — skipping`);
       continue;
@@ -157,7 +156,7 @@ async function main() {
         status: 'pending',
       }]),
     );
-    const proposePath = PROPOSE_ONLY ? path.join(PROPOSE_DIR, `${locale}.json`) : null;
+    const proposePath = PROPOSE_ONLY ? localeJsonPath(PROPOSE_DIR, locale) : null;
     const flushPropose = () => {
       if (!proposePath) return;
       fs.writeFileSync(
@@ -195,7 +194,8 @@ async function main() {
         }
         continue;
       }
-      if (result.status === 'failed' || !result.value) {
+      const value = result.status === 'failed' ? null : sanitizeTranslation(enVal, result.value);
+      if (!value) {
         failed += 1;
         console.warn(`  x ${key} [${result.reason}] en: ${enVal.slice(0, 70)}`);
         if (PROPOSE_ONLY) {
@@ -211,17 +211,17 @@ async function main() {
       const rate = done / Math.max(0.001, (Date.now() - t0) / 1000);
       writeProgress({
         locale, done, total: todo.length, rate: Number(rate.toFixed(2)),
-        phase: 'filling', lastKey: key, sampleTranslation: String(result.value).slice(0, 120),
+        phase: 'filling', lastKey: key, sampleTranslation: value.slice(0, 120),
         pendingKeys: todo.map(([k]) => k).slice(0, 200),
         gapsTotal: gaps.length,
       });
       if (DRY_RUN && !PROPOSE_ONLY) {
-        console.log(`  ${key}\n    en: ${enVal}\n    ${locale}: ${result.value}${result.status === 'kept-soft' ? '  [soft]' : ''}`);
+        console.log(`  ${key}\n    en: ${enVal}\n    ${locale}: ${value}${result.status === 'kept-soft' ? '  [soft]' : ''}`);
       } else if (PROPOSE_ONLY) {
         entryByKey.set(key, {
           key,
           sourceEn: enVal,
-          proposed: result.value,
+          proposed: value,
           status: result.status,
           softAccept: result.status === 'kept-soft',
         });
@@ -235,7 +235,7 @@ async function main() {
           }
         }
       } else {
-        strings[key] = result.value;
+        strings[key] = value;
         sinceCheckpoint += 1;
         if (sinceCheckpoint >= CHECKPOINT) {
           writePack(filePath, pack);

@@ -11,6 +11,7 @@ import path from 'node:path';
 import { SHIPPED_LOCALES } from '../../packages/shared/src/i18n/locales.mjs';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
+import { localeJsonPath, readJsonIfExists, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -29,12 +30,12 @@ if (doTranslate && !hasTranslateCredentials()) {
 let total = 0;
 for (const locale of SHIPPED_LOCALES) {
   if (locale === 'en-GB') continue;
-  const filePath = path.join(dir, `${locale}.json`);
-  if (!fs.existsSync(filePath)) {
+  const filePath = localeJsonPath(dir, locale);
+  const pack = readJsonIfExists(filePath);
+  if (!pack) {
     console.warn(`auto-translate-ui-strings: skip missing ${locale}.json`);
     continue;
   }
-  const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const strings = { ...(pack.strings || {}) };
   let changed = 0;
   for (const [key, value] of Object.entries(canonicalStrings)) {
@@ -51,7 +52,7 @@ for (const locale of SHIPPED_LOCALES) {
     let next = value;
     if (doTranslate && hasTranslateCredentials() && TIER_A.has(locale)) {
       try {
-        next = await translateText(value, locale);
+        next = sanitizeTranslation(value, await translateText(value, locale)) ?? value;
       } catch (e) {
         console.warn(`auto-translate-ui-strings: MT failed ${locale} ${key}: ${e.message}`);
         next = value;
@@ -68,7 +69,7 @@ for (const locale of SHIPPED_LOCALES) {
     continue;
   }
   const out = { ...pack, strings, machineTranslatedUi: true };
-  fs.writeFileSync(filePath, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+  writeJson(filePath, out);
   console.log(`auto-translate-ui-strings: updated ${changed} key(s) in ${locale}.json`);
 }
 
