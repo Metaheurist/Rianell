@@ -19,7 +19,6 @@ function stripQuotes(v) {
 }
 
 function readEnvFile(filePath) {
-  if (!fs.existsSync(filePath)) return '';
   try {
     return fs.readFileSync(filePath, 'utf8');
   } catch {

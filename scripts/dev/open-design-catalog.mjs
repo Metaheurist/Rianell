@@ -4,7 +4,18 @@
  */
 import { spawnSync } from 'node:child_process';
 
-const url = process.env.RIANELL_DESIGN_CATALOG_URL || 'http://127.0.0.1:8765/design-catalog/';
+const DEFAULT_URL = 'http://127.0.0.1:8765/design-catalog/';
+
+function resolveCatalogUrl(raw) {
+  try {
+    const u = new URL(String(raw || DEFAULT_URL).trim());
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+  } catch { /* fall through */ }
+  console.warn(`  Ignoring invalid RIANELL_DESIGN_CATALOG_URL; using ${DEFAULT_URL}`);
+  return DEFAULT_URL;
+}
+
+const url = resolveCatalogUrl(process.env.RIANELL_DESIGN_CATALOG_URL);
 
 console.log('Rianell design catalog (dev-only)');
 console.log('  URL:', url);
@@ -12,9 +23,9 @@ console.log('  Start server first: npm run dev:web');
 console.log('  Static files: apps/pwa-webapp/design-catalog/');
 
 if (process.platform === 'win32') {
-  spawnSync('cmd', ['/c', 'start', '', url], { stdio: 'ignore' });
+  spawnSync('explorer.exe', [url], { stdio: 'ignore', shell: false });
 } else if (process.platform === 'darwin') {
-  spawnSync('open', [url], { stdio: 'ignore' });
+  spawnSync('open', [url], { stdio: 'ignore', shell: false });
 } else {
-  spawnSync('xdg-open', [url], { stdio: 'ignore' });
+  spawnSync('xdg-open', [url], { stdio: 'ignore', shell: false });
 }

@@ -43,6 +43,7 @@ import {
   keyframesFromSources,
 } from './visual-gallery-shared.mjs';
 import { deriveQaStatus } from './visual-polish-qa-status.mjs';
+import { resolveOllamaHost } from './agentic-pipeline/endpoints.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../..');
@@ -51,7 +52,7 @@ const polishCpPath = path.join(artRoot, 'polish-checkpoint.json');
 const genCpPath = path.join(artRoot, 'checkpoint.json');
 const registerPath = path.join(root, 'apps/pwa-webapp/assets/visual-register.json');
 
-const OLLAMA_HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
+const OLLAMA_HOST = resolveOllamaHost();
 const POLISH_MODEL_ENV = process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL || null;
 const POLISH_NUM_CTX = Number(process.env.VISUAL_POLISH_NUM_CTX || 32768);
 const MODEL_PREF_PATH = path.join(artRoot, 'polish-model-preference.json');
@@ -77,7 +78,6 @@ function loadPolishModelCatalog() {
 
 function readModelPreference() {
   try {
-    if (!fs.existsSync(MODEL_PREF_PATH)) return null;
     const j = JSON.parse(fs.readFileSync(MODEL_PREF_PATH, 'utf8'));
     return j?.polishModel || null;
   } catch {
@@ -130,7 +130,7 @@ async function probeOllama(modelName) {
   } catch {
     /* offline */
   }
-  if (modelName && out.reachable) {
+  if (modelName && out.reachable && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$/.test(String(modelName))) {
     try {
       const showRes = await fetch(`${OLLAMA_HOST}/api/show`, {
         method: 'POST',
@@ -458,8 +458,9 @@ const server = http.createServer(async (req, res) => {
         note: 'Preference saved. Restart visual:polish queue to use the new model.',
       }));
     } catch (err) {
+      console.error('[live-preview] /api/model failed:', err);
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
+      res.end(JSON.stringify({ ok: false, error: 'failed to save model preference' }));
     }
     return;
   }
@@ -472,14 +473,18 @@ const server = http.createServer(async (req, res) => {
       });
       res.end(body);
     } catch (err) {
+      console.error('[live-preview] /api/gallery failed:', err);
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ error: String(err?.message || err) }));
+      res.end(JSON.stringify({ error: 'failed to build gallery' }));
     }
     return;
   }
   if (url.pathname === '/visual-gallery-skin.css') {
     const cssPath = path.join(__dirname, 'visual-gallery-skin.css');
-    if (!fs.existsSync(cssPath)) {
+    let css;
+    try {
+      css = fs.readFileSync(cssPath, 'utf8');
+    } catch {
       res.writeHead(404).end('not found');
       return;
     }
@@ -487,7 +492,7 @@ const server = http.createServer(async (req, res) => {
       'Content-Type': 'text/css; charset=utf-8',
       'Cache-Control': 'no-store',
     });
-    res.end(fs.readFileSync(cssPath, 'utf8'));
+    res.end(css);
     return;
   }
   if (url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '/live') {
@@ -496,8 +501,9 @@ const server = http.createServer(async (req, res) => {
     const htmlPath = path.join(__dirname, 'visual-polish-live-preview.html');
     const cssPath = path.join(__dirname, 'visual-gallery-skin.css');
     let page = fs.readFileSync(htmlPath, 'utf8');
-    if (fs.existsSync(cssPath)) {
-      const css = fs.readFileSync(cssPath, 'utf8');
+    let css = null;
+    try { css = fs.readFileSync(cssPath, 'utf8'); } catch { /* skin optional */ }
+    if (css != null) {
       const style = `<style id="visual-gallery-skin">\n${css}\n</style>`;
       if (/<style\s+id=["']visual-gallery-skin["'][\s\S]*?<\/style>/i.test(page)) {
         page = page.replace(

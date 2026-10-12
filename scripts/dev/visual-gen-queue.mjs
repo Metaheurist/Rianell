@@ -17,6 +17,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { Agent, setGlobalDispatcher } from 'undici';
 import { THEME_FX_TOKENS } from '@rianell/tokens';
+import { resolveOllamaHost } from './agentic-pipeline/endpoints.mjs';
 
 // MoE first-load + long SVG gens need generous undici timeouts
 setGlobalDispatcher(new Agent({
@@ -31,7 +32,7 @@ const registerPath = path.join(root, 'apps/pwa-webapp/assets/visual-register.jso
 const artRoot = path.join(root, 'artifacts/visual-gen');
 const checkpointPath = path.join(artRoot, 'checkpoint.json');
 
-const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
+const HOST = resolveOllamaHost();
 const MODEL = process.env.OLLAMA_MODEL || 'qwen3.6:35b';
 const CONCURRENCY = Math.max(1, Number(process.env.VISUAL_GEN_CONCURRENCY || 1));
 
@@ -47,14 +48,17 @@ const KIND_FILTER = kindsArg
   : null;
 
 function loadRegister() {
-  if (!fs.existsSync(registerPath)) {
-    throw new Error('visual-register.json missing — run npm run visual:register first');
+  let raw;
+  try {
+    raw = fs.readFileSync(registerPath, 'utf8');
+  } catch (err) {
+    if (err?.code === 'ENOENT') throw new Error('visual-register.json missing — run npm run visual:register first');
+    throw err;
   }
-  return JSON.parse(fs.readFileSync(registerPath, 'utf8'));
+  return JSON.parse(raw);
 }
 
 function loadCheckpoint() {
-  if (!fs.existsSync(checkpointPath)) return { completed: {}, failed: {}, updatedAt: null };
   try {
     return JSON.parse(fs.readFileSync(checkpointPath, 'utf8'));
   } catch {
@@ -170,8 +174,24 @@ async function ollamaGenerate(prompt, numPredict) {
   return String(data.response || '').trim() || String(data.thinking || '').trim();
 }
 
+function resolveOutputPath(rel) {
+  const abs = path.resolve(root, String(rel || ''));
+  const inside = path.relative(artRoot, abs);
+  if (!inside || inside.startsWith('..') || path.isAbsolute(inside)) {
+    throw new Error(`outputPath must be under artifacts/visual-gen: ${rel}`);
+  }
+  return abs;
+}
+
 async function processEntry(entry, cp) {
-  const outAbs = path.join(root, entry.outputPath);
+  let outAbs;
+  try {
+    outAbs = resolveOutputPath(entry.outputPath);
+  } catch (err) {
+    cp.failed[entry.id] = { at: new Date().toISOString(), reason: err.message };
+    saveCheckpoint(cp);
+    return { ok: false, reason: err.message };
+  }
   fs.mkdirSync(path.dirname(outAbs), { recursive: true });
   const prompt = buildPrompt(entry);
   const numPredict = entry.promptMode === 'single-anim' ? 1200 : 900;

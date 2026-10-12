@@ -49,6 +49,7 @@ import {
   extractCssKeyframes,
 } from './visual-polish-queue.mjs';
 import { writeQaProgress } from './visual-polish-qa-status.mjs';
+import { resolveOllamaHost } from './agentic-pipeline/endpoints.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../..');
@@ -60,7 +61,7 @@ const polishCpPath = path.join(artRoot, 'polish-checkpoint.json');
 const registerPath = path.join(root, 'apps/pwa-webapp/assets/visual-register.json');
 const userFocusPath = path.join(root, 'scripts/dev/visual-polish-qa-user-focus.json');
 
-const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
+const HOST = resolveOllamaHost();
 const MODEL = process.env.VISUAL_POLISH_MODEL || 'gemma4:31b-it-qat';
 
 const args = process.argv.slice(2);
@@ -157,8 +158,16 @@ export function analyzeNonTextContrast(cSvg, entry = {}) {
   return [...new Set(reasons)].slice(0, 4);
 }
 
+function readBinaryOrNull(p) {
+  if (!p) return null;
+  try {
+    return fs.readFileSync(p);
+  } catch {
+    return null;
+  }
+}
+
 function loadJson(p, fallback) {
-  if (!fs.existsSync(p)) return fallback;
   try {
     return JSON.parse(fs.readFileSync(p, 'utf8'));
   } catch {
@@ -779,15 +788,13 @@ async function waitForPreviewReady() {
  * actually reviews pixels, not only SVG source.
  */
 async function runGemmaScreenshotReview(item, { attempt = 1 } = {}) {
-  const shotAbs = item.screenshotAbs;
-  if (!shotAbs || !fs.existsSync(shotAbs)) {
+  const shot = readBinaryOrNull(item.screenshotAbs);
+  if (!shot) {
     return { id: item.id, verdict: 'INCONCLUSIVE', reasons: ['missing screenshot for gemma review'] };
   }
-  const images = [fs.readFileSync(shotAbs).toString('base64')];
-  const cCrop = item.cScreenshotAbs;
-  if (cCrop && fs.existsSync(cCrop)) {
-    images.push(fs.readFileSync(cCrop).toString('base64'));
-  }
+  const images = [shot.toString('base64')];
+  const cCrop = readBinaryOrNull(item.cScreenshotAbs);
+  if (cCrop) images.push(cCrop.toString('base64'));
 
   const contracts = loadSubjectContracts();
   const hay = `${item.id || ''} ${item.context || ''}`;
@@ -856,7 +863,8 @@ async function runGemmaScreenshotReview(item, { attempt = 1 } = {}) {
 
 /** Stem contact-sheet vision check (theme pack cohesion across teams). */
 async function runGemmaStemSheetReview(stem, sheetAbs, siblingIds) {
-  if (!sheetAbs || !fs.existsSync(sheetAbs)) {
+  const sheet = readBinaryOrNull(sheetAbs);
+  if (!sheet) {
     return { stem, verdict: 'FAIL', reasons: ['missing stem contact sheet'] };
   }
   const prompt = [
@@ -873,7 +881,7 @@ async function runGemmaStemSheetReview(stem, sheetAbs, siblingIds) {
       body: JSON.stringify({
         model: MODEL,
         prompt,
-        images: [fs.readFileSync(sheetAbs).toString('base64')],
+        images: [sheet.toString('base64')],
         stream: false,
         think: false,
         options: { num_predict: 400, temperature: 0.1 },
@@ -972,7 +980,11 @@ async function main() {
     const meta = polishCp.completed?.[it.id];
     if (meta?.outputPath) {
       const abs = path.isAbsolute(meta.outputPath) ? meta.outputPath : path.join(root, meta.outputPath);
-      it._cRaw = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
+      try {
+        it._cRaw = fs.readFileSync(abs, 'utf8');
+      } catch {
+        it._cRaw = '';
+      }
     } else {
       it._cRaw = '';
     }

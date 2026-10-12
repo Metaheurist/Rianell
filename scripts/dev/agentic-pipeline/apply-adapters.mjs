@@ -76,8 +76,14 @@ function applyI18nFill(packId, items) {
   }
   for (const [locale, list] of byLocale) {
     const filePath = path.join(packsDir, `${locale}.json`);
-    if (!fs.existsSync(filePath)) continue;
-    const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    let raw;
+    try {
+      raw = fs.readFileSync(filePath, 'utf8');
+    } catch (err) {
+      if (err?.code === 'ENOENT') continue;
+      throw err;
+    }
+    const pack = JSON.parse(raw);
     pack.strings = pack.strings || {};
     for (const it of list) {
       pack.strings[it.key] = it.proposed;
@@ -112,7 +118,13 @@ function applyChangelog(items, confirm) {
     });
   if (!bullets.length) return { ok: false, error: 'no changelog bullets selected' };
   const file = path.join(ROOT, 'CHANGELOG.md');
-  let prev = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# Changelog\n\n## [Unreleased]\n\n### Added\n';
+  let prev;
+  try {
+    prev = fs.readFileSync(file, 'utf8');
+  } catch (err) {
+    if (err?.code !== 'ENOENT') throw err;
+    prev = '# Changelog\n\n## [Unreleased]\n\n### Added\n';
+  }
   // Strip legacy meta draft blocks if present.
   prev = prev.replace(/\n## Agentic draft \(approved\)\n[\s\S]*?(?=\n## |\nAll notable|\nFormat follows|$)/, '\n');
 
@@ -151,9 +163,7 @@ function applyVisual(confirm) {
   if (!confirm) return { ok: false, error: 'confirmProductWrite required for visual:apply' };
   const brokenPath = path.join(ROOT, 'artifacts/visual-gen/qa/broken.json');
   let broken = [];
-  if (fs.existsSync(brokenPath)) {
-    try { broken = JSON.parse(fs.readFileSync(brokenPath, 'utf8')); } catch { broken = []; }
-  }
+  try { broken = JSON.parse(fs.readFileSync(brokenPath, 'utf8')); } catch { broken = []; }
   if (Array.isArray(broken) && broken.length > 0) {
     return { ok: false, error: `visual QA broken.length=${broken.length}; refuse apply` };
   }
