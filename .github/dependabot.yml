@@ -24,6 +24,14 @@ updates:
       # TypeScript 6+/7 is a separate toolchain upgrade.
       - dependency-name: "typescript"
         versions: [">=6.0.0"]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
   - package-ecosystem: pip
     # Python server deps live at repo root (requirements.txt), not under server/
     directory: "/"
