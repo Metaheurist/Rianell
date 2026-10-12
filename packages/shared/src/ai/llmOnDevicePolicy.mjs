@@ -12,11 +12,6 @@ export const BLOCKED_COMMERCIAL_LLM_HOSTS = [
   'api.perplexity.ai',
 ];
 
-/** Text-search patterns (e.g. scanning source for hard-coded hosts); use isBlockedCommercialLlmHost for URLs. */
-export const BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = /* @__PURE__ */ BLOCKED_COMMERCIAL_LLM_HOSTS.map(
-  (host) => new RegExp(host.replace(/\./g, '\\.'), 'i'),
-);
-
 /**
  * @param {string} hostname
  * @returns {boolean}

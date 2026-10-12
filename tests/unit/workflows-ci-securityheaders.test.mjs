@@ -20,7 +20,7 @@ test('CI includes Security Headers report job after deploy and boot audit', () =
     urls.some((u) => u.hostname === 'securityheaders.com' && u.searchParams.get('q') === 'rianell.com'),
     'CI must scan securityheaders.com with q=rianell.com',
   );
-  assert.match(ciYml, /security\/securityheaders-rianell\.com\.md/);
+  assert.ok(ciYml.includes('security/securityheaders-rianell.com.md'));
   assert.match(ciYml, /security\/securityheaders-runs\/run-/);
   assert.match(ciYml, /SECURITY_HEADERS_FALLBACK_SITE:\s*https:\/\/rianell\.com/);
   assert.match(ciYml, /SECURITY_HEADERS_LIVE_URLS:/);

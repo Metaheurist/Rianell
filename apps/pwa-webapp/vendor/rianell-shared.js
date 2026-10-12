@@ -31,7 +31,6 @@ var RianellShared = (() => {
     AVATAR_NAME_PREFIXES: () => AVATAR_NAME_PREFIXES,
     AVATAR_NAME_SUFFIXES: () => AVATAR_NAME_SUFFIXES,
     BLOCKED_COMMERCIAL_LLM_HOSTS: () => BLOCKED_COMMERCIAL_LLM_HOSTS,
-    BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     COHORT_MIN_K: () => COHORT_MIN_K,
     COMMON_SUPPLEMENTS: () => COMMON_SUPPLEMENTS,
@@ -4147,9 +4146,6 @@ ${hist}`);
     "openrouter.ai",
     "api.perplexity.ai"
   ];
-  var BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = /* @__PURE__ */ BLOCKED_COMMERCIAL_LLM_HOSTS.map(
-    (host) => new RegExp(host.replace(/\./g, "\\."), "i")
-  );
   function isBlockedCommercialLlmHost(hostname) {
     const host = String(hostname || "").toLowerCase().replace(/\.$/, "");
     if (!host) return false;

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   validateRemoteLlmEndpoint,
   isPwaOnDeviceLlmOnly,
-  BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
+  BLOCKED_COMMERCIAL_LLM_HOSTS,
 } from '../../packages/shared/src/ai/llmOnDevicePolicy.mjs';
 import {
   GOLDEN_LLM_INTENTS,
@@ -54,7 +54,7 @@ test('summary-llm blocks commercial LLM hosts and respects local-only mode', () 
   assert.ok(src.includes('localOnlyMode'));
   assert.ok(!referencesHost(src, 'api.openai.com'));
   assert.ok(src.includes('isPwaOnDeviceLlmOnly'));
-  for (const re of BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS) {
-    assert.ok(!re.test(src), `summary-llm must not reference ${re}`);
+  for (const host of BLOCKED_COMMERCIAL_LLM_HOSTS) {
+    assert.ok(!referencesHost(src, host), `summary-llm must not reference ${host}`);
   }
 });
