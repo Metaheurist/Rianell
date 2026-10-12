@@ -23,6 +23,28 @@ function withModePrefs(patch, fn) {
   }
 }
 
+function readIfExists(p) {
+  try {
+    return fs.readFileSync(p, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  }
+}
+
+function unlinkIfExists(p) {
+  try {
+    fs.unlinkSync(p);
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
+}
+
+function restoreFile(p, prev) {
+  if (prev != null) fs.writeFileSync(p, prev);
+  else unlinkIfExists(p);
+}
+
 test('loadBrokenList reads { ids, reasons } shape', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'rianell-broken-'));
   const p = path.join(tmp, 'broken.json');
@@ -41,11 +63,8 @@ test('buildVisualPolishProposal creates visual_repolish items', () => {
   fs.mkdirSync(qaRoot, { recursive: true });
   const backup = path.join(qaRoot, `broken.test-backup-${Date.now()}.json`);
   const brokenPath = path.join(qaRoot, 'broken.json');
-  let prev = null;
-  if (fs.existsSync(brokenPath)) {
-    prev = fs.readFileSync(brokenPath, 'utf8');
-    fs.writeFileSync(backup, prev);
-  }
+  const prev = readIfExists(brokenPath);
+  if (prev != null) fs.writeFileSync(backup, prev);
   try {
     fs.writeFileSync(brokenPath, JSON.stringify({
       at: new Date().toISOString(),
@@ -61,9 +80,8 @@ test('buildVisualPolishProposal creates visual_repolish items', () => {
     assert.equal(it.applyAdapter, 'visual-repolish');
     assert.equal(it.id, itemIdForVisualBroken('sprite:test-visual-a'));
   } finally {
-    if (prev != null) fs.writeFileSync(brokenPath, prev);
-    else if (fs.existsSync(brokenPath)) fs.unlinkSync(brokenPath);
-    if (fs.existsSync(backup)) fs.unlinkSync(backup);
+    restoreFile(brokenPath, prev);
+    unlinkIfExists(backup);
   }
 });
 
@@ -71,8 +89,7 @@ test('buildVisualPolishProposal acks when no broken ids', () => {
   const qaRoot = path.join(process.cwd(), 'artifacts/visual-gen/qa');
   fs.mkdirSync(qaRoot, { recursive: true });
   const brokenPath = path.join(qaRoot, 'broken.json');
-  let prev = null;
-  if (fs.existsSync(brokenPath)) prev = fs.readFileSync(brokenPath, 'utf8');
+  const prev = readIfExists(brokenPath);
   try {
     fs.writeFileSync(brokenPath, JSON.stringify({ ids: [], reasons: {} }));
     withModePrefs({ visualApplyAfterPolish: false, confirmProductWrite: false }, () => {
@@ -89,8 +106,7 @@ test('buildVisualPolishProposal offers visual_apply when amend prefs on and QA g
   const qaRoot = path.join(process.cwd(), 'artifacts/visual-gen/qa');
   fs.mkdirSync(qaRoot, { recursive: true });
   const brokenPath = path.join(qaRoot, 'broken.json');
-  let prev = null;
-  if (fs.existsSync(brokenPath)) prev = fs.readFileSync(brokenPath, 'utf8');
+  const prev = readIfExists(brokenPath);
   try {
     fs.writeFileSync(brokenPath, JSON.stringify({ ids: [], reasons: {} }));
     withModePrefs({ visualApplyAfterPolish: true, confirmProductWrite: true }, () => {
@@ -109,10 +125,8 @@ test('applyVisualRepolish writes approved-repolish-ids (spawn detached)', () => 
   fs.mkdirSync(qaRoot, { recursive: true });
   const brokenPath = path.join(qaRoot, 'broken.json');
   const approvedPath = path.join(qaRoot, 'approved-repolish-ids.json');
-  let prevBroken = null;
-  let prevApproved = null;
-  if (fs.existsSync(brokenPath)) prevBroken = fs.readFileSync(brokenPath, 'utf8');
-  if (fs.existsSync(approvedPath)) prevApproved = fs.readFileSync(approvedPath, 'utf8');
+  const prevBroken = readIfExists(brokenPath);
+  const prevApproved = readIfExists(approvedPath);
   const prevEnv = process.env.AGENTIC_VISUAL_TEST_NO_SPAWN;
   process.env.AGENTIC_VISUAL_TEST_NO_SPAWN = '1';
   try {
@@ -131,9 +145,7 @@ test('applyVisualRepolish writes approved-repolish-ids (spawn detached)', () => 
   } finally {
     if (prevEnv == null) delete process.env.AGENTIC_VISUAL_TEST_NO_SPAWN;
     else process.env.AGENTIC_VISUAL_TEST_NO_SPAWN = prevEnv;
-    if (prevBroken != null) fs.writeFileSync(brokenPath, prevBroken);
-    else if (fs.existsSync(brokenPath)) fs.unlinkSync(brokenPath);
-    if (prevApproved != null) fs.writeFileSync(approvedPath, prevApproved);
-    else if (fs.existsSync(approvedPath)) fs.unlinkSync(approvedPath);
+    restoreFile(brokenPath, prevBroken);
+    restoreFile(approvedPath, prevApproved);
   }
 });
