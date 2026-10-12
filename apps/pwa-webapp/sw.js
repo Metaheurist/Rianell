@@ -123,6 +123,7 @@ self.addEventListener('activate', function (e) {
 });
 
 self.addEventListener('message', function (e) {
+  if (e.origin !== self.location.origin) return;
   if (e.data && e.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
