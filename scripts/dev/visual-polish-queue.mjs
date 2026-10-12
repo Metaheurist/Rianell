@@ -31,6 +31,7 @@ import { fileURLToPath } from 'url';
 import { Agent, setGlobalDispatcher } from 'undici';
 import { THEME_FX_TOKENS } from '@rianell/tokens';
 import { writeQaProgress, QA_PROGRESS_PATH } from './visual-polish-qa-status.mjs';
+import { resolveOllamaHost } from './agentic-pipeline/endpoints.mjs';
 
 setGlobalDispatcher(new Agent({
   headersTimeout: 30 * 60 * 1000,
@@ -47,7 +48,7 @@ const polishCpPath = path.join(artRoot, 'polish-checkpoint.json');
 const polishedRoot = path.join(artRoot, 'polished');
 const qaBrokenPath = path.join(artRoot, 'qa', 'broken.json');
 
-const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
+const HOST = resolveOllamaHost();
 const MODEL_PREF_PATH = path.join(artRoot, 'polish-model-preference.json');
 function resolvePolishModel() {
   if (process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL) {
@@ -213,7 +214,6 @@ OUTPUT FORMAT (unless a pass explicitly asks for SUBJECT_LOCK text):
 Return ONLY the raw, polished <svg>...</svg> (or inner SVG unit / CSS keyframes for anim). No conversational filler. No markdown.`;
 
 function loadJson(p, fallback) {
-  if (!fs.existsSync(p)) return fallback;
   try {
     return JSON.parse(fs.readFileSync(p, 'utf8'));
   } catch {
@@ -263,10 +263,19 @@ export function scanProjectStylingContract(repoRoot = root, track = 'all') {
   function addAbs(abs) {
     const resolved = path.resolve(abs);
     if (seen.has(resolved)) return;
-    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) return;
+    let text;
+    let fd;
+    try {
+      fd = fs.openSync(resolved, 'r');
+      if (!fs.fstatSync(fd).isFile()) return;
+      text = fs.readFileSync(fd, 'utf8');
+    } catch {
+      return;
+    } finally {
+      if (fd !== undefined) fs.closeSync(fd);
+    }
     seen.add(resolved);
     const rel = path.relative(repoRoot, resolved).replace(/\\/g, '/');
-    const text = fs.readFileSync(resolved, 'utf8');
     files.push({ path: rel, bytes: Buffer.byteLength(text, 'utf8'), text });
   }
 
@@ -402,7 +411,12 @@ function validatePolish(entry, raw) {
 
 function polishedPathFor(entry) {
   const rel = String(entry.outputPath || '').replace(/^artifacts\/visual-gen\//, '');
-  return path.join(polishedRoot, rel);
+  const abs = path.resolve(polishedRoot, rel);
+  const inside = path.relative(polishedRoot, abs);
+  if (!inside || inside.startsWith('..') || path.isAbsolute(inside)) {
+    throw new Error(`polished output escapes ${polishedRoot}: ${entry.outputPath}`);
+  }
+  return abs;
 }
 
 function extractModelText(data) {
@@ -1301,10 +1315,16 @@ async function runSvgPass(entry, prompt, numPredict, chat, label) {
 
 async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
   const rawAbs = path.join(root, entry.outputPath);
-  if (!fs.existsSync(rawAbs)) {
-    cp.failed[entry.id] = { at: new Date().toISOString(), reason: 'missing raw' };
+  let qwenRaw;
+  let outAbs;
+  try {
+    qwenRaw = fs.readFileSync(rawAbs, 'utf8');
+    outAbs = polishedPathFor(entry);
+  } catch (err) {
+    const reason = err?.code === 'ENOENT' ? 'missing raw' : String(err?.message || err);
+    cp.failed[entry.id] = { at: new Date().toISOString(), reason };
     savePolishCp(cp);
-    return { ok: false, reason: 'missing raw' };
+    return { ok: false, reason };
   }
   const stemInfo = resolveStemCanonical(entry, stemIndex || buildStemIndex([entry]));
   const resolvedOrig = resolveRegisterPayload(entry);
@@ -1313,7 +1333,6 @@ async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
     : (entry.currentPayload || '');
   // Geometry lock = plain sprite ORIGINAL for the stem (shared by fancy styles)
   const geometryLock = stemInfo.canonicalGlyph || originalText;
-  const qwenRaw = fs.readFileSync(rawAbs, 'utf8');
   const stageB = resolveStageB(qwenRaw, geometryLock);
   const qwenText = stageB.source === 'qwen'
     ? stageB.text
@@ -1323,7 +1342,6 @@ async function processPolish(entry, cp, systemPrompt, stemIndex = null) {
       '',
       stageB.text,
     ].join('\n');
-  const outAbs = polishedPathFor(entry);
   fs.mkdirSync(path.dirname(outAbs), { recursive: true });
   const numPredict = entry.promptMode === 'single-anim' ? 1600 : 1200;
   let lastErr = '';
@@ -1544,8 +1562,13 @@ export function enforceStemConsistency(svgText, canonicalGlyph, entry = {}) {
 
 /** Normalize SVG markup for equality checks (ignore comments/whitespace/case). */
 export function normalizeForCompare(text) {
-  return String(text || '')
-    .replace(/<!--[\s\S]*?-->/g, '')
+  let s = String(text || '');
+  let prev;
+  do {
+    prev = s;
+    s = s.replace(/<!--[\s\S]*?-->/g, '').replace(/<!--/g, '');
+  } while (s !== prev);
+  return s
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
@@ -1642,13 +1665,19 @@ async function runStemQa(register, genCp, polishCp, systemPrompt) {
     for (const e of list) {
       const pAbs = polishedPathFor(e);
       const rawAbs = path.join(root, e.outputPath);
-      const src = fs.existsSync(pAbs) ? pAbs : rawAbs;
-      if (!fs.existsSync(src)) continue;
+      let srcText = null;
+      for (const src of [pAbs, rawAbs]) {
+        try {
+          srcText = fs.readFileSync(src, 'utf8');
+          break;
+        } catch { /* try next */ }
+      }
+      if (srcText == null) continue;
       payloads.push({
         id: e.id,
         team: e.team || 'plain',
         original: String(e.currentPayload || '').slice(0, 400),
-        text: fs.readFileSync(src, 'utf8').slice(0, 1500),
+        text: srcText.slice(0, 1500),
       });
     }
     if (payloads.length < 2) continue;

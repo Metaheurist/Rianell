@@ -212,7 +212,7 @@ export async function runPack(packId, opts = {}) {
       // can still open a proposal instead of hard-breaking the run-all.
       let partial = '';
       try {
-        if (fs.existsSync(partialPath)) partial = fs.readFileSync(partialPath, 'utf8');
+        partial = fs.readFileSync(partialPath, 'utf8');
       } catch { /* ignore */ }
       const salvaged = sanitizeAgentContext(partial).text.slice(0, 12000);
       const usable = salvaged.length >= 280 && /##\s*Proposed|^\s*\d+\.\s+/m.test(salvaged);

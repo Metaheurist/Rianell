@@ -17,19 +17,21 @@
  * Resume NEVER re-runs --repolish-from-qa (that deletes completed[id]).
  * It restores via --ids= and --start-round=N.
  */
-import { spawn, execSync } from 'child_process';
+import { spawn, execSync, execFileSync } from 'child_process';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { writeQaProgress, QA_PROGRESS_PATH, QA_BROKEN_PATH } from './visual-polish-qa-status.mjs';
+import { resolveOllamaHost } from './agentic-pipeline/endpoints.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '../..');
 const artRoot = path.join(root, 'artifacts/visual-gen');
 const STATE_PATH = path.join(artRoot, 'pipeline-state.json');
 const polishCpPath = path.join(artRoot, 'polish-checkpoint.json');
-const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
+const HOST = resolveOllamaHost();
+const OLLAMA_MODEL_RE = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$/;
 const DEFAULT_MODEL = process.env.VISUAL_POLISH_MODEL || process.env.OLLAMA_MODEL || 'gemma4:31b-it-qat';
 
 const args = process.argv.slice(2);
@@ -227,7 +229,8 @@ async function stopOllamaModels(models) {
   if (!names.length) names.push(DEFAULT_MODEL);
   for (const name of names) {
     try {
-      execSync(`ollama stop ${JSON.stringify(name).slice(1, -1)}`, {
+      if (!OLLAMA_MODEL_RE.test(name)) throw new Error(`unsafe model name ${name}`);
+      execFileSync('ollama', ['stop', name], {
         stdio: 'ignore',
         windowsHide: true,
         timeout: 60000,
@@ -313,12 +316,15 @@ async function resume() {
   }
 
   const model = state.ollama?.model || DEFAULT_MODEL;
+  if (!OLLAMA_MODEL_RE.test(String(model))) {
+    console.error(`[pipeline-state] refusing unsafe model name in state: ${model}`);
+    process.exit(1);
+  }
   console.log(`[pipeline-state] ensuring model ${model}`);
   const ensureCode = await new Promise((resolve) => {
-    const child = spawn('node', [path.join(__dirname, 'ensure-ollama.mjs'), model], {
+    const child = spawn(process.execPath, [path.join(__dirname, 'ensure-ollama.mjs'), model], {
       cwd: root,
       stdio: 'inherit',
-      shell: process.platform === 'win32',
     });
     child.on('exit', (code) => resolve(code ?? 1));
   });

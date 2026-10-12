@@ -85,18 +85,32 @@ export function applyResearchFileWrite(items, confirm) {
     if (!content && it.kind === 'file_create') {
       return { ok: false, error: `empty content for ${rel}`, paths: written };
     }
-    if (it.kind === 'file_create' && fs.existsSync(abs)) {
-      return { ok: false, error: `file already exists: ${rel}`, paths: written };
-    }
-    if (it.kind === 'file_write' && !fs.existsSync(abs) && content === '') {
-      return { ok: false, error: `missing file and empty patch: ${rel}`, paths: written };
+    const body = content.endsWith('\n') ? content : `${content}\n`;
+    if (it.kind === 'file_write' && content === '') {
+      let fd;
+      try {
+        fd = fs.openSync(abs, 'r+');
+        fs.ftruncateSync(fd, 0);
+        fs.writeSync(fd, body, 0, 'utf8');
+      } catch (err) {
+        if (err?.code === 'ENOENT') {
+          return { ok: false, error: `missing file and empty patch: ${rel}`, paths: written };
+        }
+        throw err;
+      } finally {
+        if (fd !== undefined) fs.closeSync(fd);
+      }
+      written.push(rel);
+      continue;
     }
     ensureDir(path.dirname(abs));
-    if (it.kind === 'file_write' && fs.existsSync(abs) && it.replace == null && it.content == null && it.proposed) {
-      // Propose as full-file replacement when content provided via proposed
-      fs.writeFileSync(abs, content.endsWith('\n') ? content : `${content}\n`, 'utf8');
-    } else {
-      fs.writeFileSync(abs, content.endsWith('\n') ? content : `${content}\n`, 'utf8');
+    try {
+      fs.writeFileSync(abs, body, { encoding: 'utf8', flag: it.kind === 'file_create' ? 'wx' : 'w' });
+    } catch (err) {
+      if (err?.code === 'EEXIST') {
+        return { ok: false, error: `file already exists: ${rel}`, paths: written };
+      }
+      throw err;
     }
     written.push(rel);
   }
@@ -160,11 +174,9 @@ export function applyResearchTidy(items, confirm) {
   const agenticRoot = path.dirname(packDir('design'));
   let dirs = [];
   try {
-    if (fs.existsSync(agenticRoot)) {
-      dirs = fs.readdirSync(agenticRoot, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => path.join(agenticRoot, d.name));
-    }
+    dirs = fs.readdirSync(agenticRoot, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => path.join(agenticRoot, d.name));
   } catch {
     dirs = [];
   }
@@ -174,10 +186,13 @@ export function applyResearchTidy(items, confirm) {
   for (const dir of dirs) {
     for (const name of removeNames) {
       const p = path.join(dir, name);
-      if (fs.existsSync(p)) {
+      try {
         fs.unlinkSync(p);
-        removed.push(path.relative(ROOT, p).replace(/\\/g, '/'));
+      } catch (err) {
+        if (err?.code === 'ENOENT') continue;
+        throw err;
       }
+      removed.push(path.relative(ROOT, p).replace(/\\/g, '/'));
     }
   }
   return { ok: true, paths: removed };
@@ -238,11 +253,15 @@ export function applySafePatch(items, confirm) {
       ? String(it.content)
       : (it.proposed != null ? String(it.proposed) : '');
 
+    let appendIfExists = false;
+    let oversizedCreate = false;
     if (!mode) {
       if (find != null && replace != null) mode = 'search_replace';
       else if (it.kind === 'file_create') mode = 'create';
-      else if (content) mode = fs.existsSync(abs) ? 'append' : 'create';
-      else mode = 'append';
+      else if (content) {
+        mode = 'create';
+        appendIfExists = true;
+      } else mode = 'append';
     }
 
     if (mode === 'search_replace') {
@@ -265,10 +284,15 @@ export function applySafePatch(items, confirm) {
       if (find == null || replace == null) {
         return { ok: false, error: `search_replace needs find+replace for ${rel}`, paths: written };
       }
-      if (!fs.existsSync(abs)) {
-        return { ok: false, error: `missing file for search_replace: ${rel}`, paths: written };
+      let prev;
+      try {
+        prev = fs.readFileSync(abs, 'utf8');
+      } catch (err) {
+        if (err?.code === 'ENOENT') {
+          return { ok: false, error: `missing file for search_replace: ${rel}`, paths: written };
+        }
+        throw err;
       }
-      const prev = fs.readFileSync(abs, 'utf8');
       const count = prev.split(find).length - 1;
       if (count === 0) {
         return { ok: false, error: `find string not found in ${rel}`, paths: written };
@@ -281,36 +305,53 @@ export function applySafePatch(items, confirm) {
       continue;
     }
 
+    if (mode === 'create') {
+      if (!content) {
+        return { ok: false, error: `empty content for create ${rel}`, paths: written };
+      }
+      if (Buffer.byteLength(content, 'utf8') > MAX_FULL_REPLACE_BYTES) {
+        if (!appendIfExists) {
+          return { ok: false, error: `create payload too large for ${rel}`, paths: written };
+        }
+        mode = 'append';
+        oversizedCreate = true;
+      } else {
+        ensureDir(path.dirname(abs));
+        try {
+          fs.writeFileSync(abs, content.endsWith('\n') ? content : `${content}\n`, { encoding: 'utf8', flag: 'wx' });
+          written.push(rel);
+          continue;
+        } catch (err) {
+          if (err?.code !== 'EEXIST') throw err;
+          if (!appendIfExists) {
+            return { ok: false, error: `file already exists: ${rel}`, paths: written };
+          }
+          mode = 'append';
+        }
+      }
+    }
+
     if (mode === 'append') {
-      ensureDir(path.dirname(abs));
-      const prev = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
+      let prev = '';
+      try {
+        prev = fs.readFileSync(abs, 'utf8');
+      } catch (err) {
+        if (err?.code !== 'ENOENT') throw err;
+        if (oversizedCreate) {
+          return { ok: false, error: `create payload too large for ${rel}`, paths: written };
+        }
+      }
       const chunk = content || String(it.detail || it.title || '').trim();
       if (!chunk) {
         return { ok: false, error: `empty append for ${rel}`, paths: written };
       }
       const sep = prev && !prev.endsWith('\n') ? '\n' : '';
       const body = chunk.endsWith('\n') ? chunk : `${chunk}\n`;
+      ensureDir(path.dirname(abs));
       fs.writeFileSync(abs, `${prev}${sep}${body}`, 'utf8');
       written.push(rel);
       continue;
     }
-
-    if (mode === 'create') {
-      if (fs.existsSync(abs)) {
-        return { ok: false, error: `file already exists: ${rel}`, paths: written };
-      }
-      if (!content) {
-        return { ok: false, error: `empty content for create ${rel}`, paths: written };
-      }
-      if (Buffer.byteLength(content, 'utf8') > MAX_FULL_REPLACE_BYTES) {
-        return { ok: false, error: `create payload too large for ${rel}`, paths: written };
-      }
-      ensureDir(path.dirname(abs));
-      fs.writeFileSync(abs, content.endsWith('\n') ? content : `${content}\n`, 'utf8');
-      written.push(rel);
-      continue;
-    }
-
     if (mode === 'replace') {
       if (!content) {
         return { ok: false, error: `empty replace for ${rel}`, paths: written };

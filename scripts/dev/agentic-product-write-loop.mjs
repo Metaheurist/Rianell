@@ -54,7 +54,9 @@ function restoreBaseline(baseline) {
     throw new Error('failed to restore baseline working tree');
   }
   const loopPath = path.join(ROOT, 'scripts/dev/agentic-product-write-loop.mjs');
-  if (!fs.existsSync(loopPath)) {
+  try {
+    fs.accessSync(loopPath, fs.constants.R_OK);
+  } catch {
     throw new Error('baseline missing agentic-product-write-loop.mjs — refresh stash baseline');
   }
 }
@@ -121,10 +123,13 @@ async function main() {
   process.env.AGENTIC_SKIP_GIT_PUSH = '1';
   process.env.AGENTIC_SKIP_COMMIT_LLM = '1';
 
-  if (!fs.existsSync(BASELINE_FILE)) {
-    throw new Error(`missing baseline ref file: ${BASELINE_FILE}`);
+  let baseline;
+  try {
+    baseline = fs.readFileSync(BASELINE_FILE, 'utf8').trim();
+  } catch (err) {
+    if (err?.code === 'ENOENT') throw new Error(`missing baseline ref file: ${BASELINE_FILE}`);
+    throw err;
   }
-  let baseline = fs.readFileSync(BASELINE_FILE, 'utf8').trim();
   if (!/^[0-9a-f]{7,40}$/i.test(baseline)) {
     throw new Error(`bad baseline ref: ${baseline}`);
   }

@@ -252,8 +252,17 @@ function relPosix(abs) {
 }
 
 function readTextCapped(abs, maxChars = MAX_DOC_CHARS) {
-  if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return null;
-  const raw = fs.readFileSync(abs, 'utf8');
+  let raw;
+  let fd;
+  try {
+    fd = fs.openSync(abs, 'r');
+    if (!fs.fstatSync(fd).isFile()) return null;
+    raw = fs.readFileSync(fd, 'utf8');
+  } catch {
+    return null;
+  } finally {
+    if (fd !== undefined) fs.closeSync(fd);
+  }
   const slice = raw.length > maxChars ? `${raw.slice(0, maxChars)}\n…[truncated]` : raw;
   const clean = sanitizeAgentContext(slice, { sourcePath: relPosix(abs) });
   if (clean.blocked) return null;

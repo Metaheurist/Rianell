@@ -1,4 +1,6 @@
-const HOST = (process.env.OLLAMA_HOST || 'http://localhost:11434').replace(/\/$/, '');
+import { resolveOllamaHost } from './endpoints.mjs';
+
+const HOST = resolveOllamaHost();
 
 export async function ollamaTags() {
   const res = await fetch(`${HOST}/api/tags`, { signal: AbortSignal.timeout(5000) });

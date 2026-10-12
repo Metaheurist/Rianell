@@ -2,14 +2,16 @@
  * Minimal Firecrawl REST client (search + scrape). Uses key from firecrawl-config.
  */
 import { getFirecrawlApiKey, getFirecrawlApiUrl } from './firecrawl-config.mjs';
+import { validateFirecrawlApiUrl } from './endpoints.mjs';
 
 async function firecrawlFetch(pathname, body, { timeoutMs = 60000 } = {}) {
   const { key } = getFirecrawlApiKey();
   if (!key) {
     throw new Error('FIRECRAWL_API_KEY missing — set in Settings or security/.env');
   }
-  const base = getFirecrawlApiUrl();
-  const url = `${base}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
+  const base = validateFirecrawlApiUrl(getFirecrawlApiUrl());
+  if (!base.ok) throw new Error(base.error);
+  const url = `${base.url}${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -58,6 +60,9 @@ export async function firecrawlSearch(query, opts = {}) {
  * @param {string} pageUrl
  */
 export async function firecrawlScrape(pageUrl) {
+  if (!/^https?:\/\//i.test(String(pageUrl || '').trim())) {
+    throw new Error('Firecrawl scrape requires an http(s) URL');
+  }
   const json = await firecrawlFetch('/v1/scrape', {
     url: String(pageUrl || '').slice(0, 2000),
     formats: ['markdown'],
