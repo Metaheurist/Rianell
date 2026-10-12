@@ -1,6 +1,7 @@
 /* Large JSON.parse / stringify offload (main thread stays responsive).
  * Keep postMessage payloads modest - WebView bridges are slower than desktop; avoid megabyte-scale strings. */
 self.onmessage = function (e) {
+  if (e.origin && e.origin !== self.location.origin) return;
   var d = e.data;
   if (!d || !d.type) return;
   if (d.type === 'parseJson') {

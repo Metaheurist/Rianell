@@ -14,7 +14,9 @@
 
 const ALLOWED_REMOTE_HOST = 'https://huggingface.co/';
 const CDN_RUNTIME_PREFIX = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@';
+const ALLOWED_REMOTE_ORIGIN = 'https://huggingface.co';
 const COMMIT_SHA_RE = /^[0-9a-f]{40}$/;
+const MODEL_ID_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/;
 const NOISY_WARNINGS = [
   'dtype not specified',
   'Unable to determine content-length from response headers',
@@ -68,7 +70,11 @@ function pinModelRevision(mod, modelId, revision) {
   const pinned = ALLOWED_REMOTE_HOST + modelId + '/resolve/' + revision + '/';
   mod.env.fetch = function (input, init) {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
-    if (url.startsWith(unpinned)) return baseFetch(pinned + url.slice(unpinned.length), init);
+    if (url.startsWith(unpinned)) {
+      const target = new URL(pinned + url.slice(unpinned.length));
+      if (target.origin !== ALLOWED_REMOTE_ORIGIN) return Promise.reject(new Error('Model host is not allowed'));
+      return baseFetch(target.href, init);
+    }
     return baseFetch(input, init);
   };
 }
@@ -115,6 +121,9 @@ function isValidDtype(dtype) {
 async function load(id, config) {
   if (!config || typeof config.modelId !== 'string' || !config.modelId) {
     throw new Error('Model id is required');
+  }
+  if (!MODEL_ID_RE.test(config.modelId) || config.modelId.includes('..')) {
+    throw new Error('Model id is not valid');
   }
   if (!COMMIT_SHA_RE.test(String(config.revision || ''))) {
     throw new Error('Model revision must be a pinned commit SHA');
@@ -179,7 +188,8 @@ async function handle(msg) {
 }
 
 self.addEventListener('message', async (event) => {
-  const msg = event && event.data;
+  if (!event || (event.origin && event.origin !== self.location.origin)) return;
+  const msg = event.data;
   if (!msg || typeof msg.id !== 'number') return;
   try {
     const value = await handle(msg);
