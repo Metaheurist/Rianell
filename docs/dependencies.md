@@ -27,15 +27,15 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | Package | Version |
 |---------|---------|
 | `@babel/core` | 7.29.7 |
-| `@babel/generator` | ^7.26.5 |
+| `@babel/generator` | ^7.29.8 |
 | `@babel/parser` | ^7.26.7 |
-| `@babel/traverse` | ^7.26.7 |
+| `@babel/traverse` | ^7.29.8 |
 | `@babel/types` | ^7.26.7 |
 | `@eslint/js` | ^10.0.1 |
 | `@huggingface/transformers` | 4.3.0 |
 | `@opentelemetry/core` | ^2.10.0 |
 | `@sentry/node` | ^10.68.0 |
-| `esbuild` | 0.28.1 |
+| `esbuild` | 0.28.2 |
 | `eslint` | ^10.11.0 |
 | `globals` | ^17.13.0 |
 | `jsdom` | ^30.0.1 |
@@ -85,8 +85,8 @@ Workspace **`@rianell/benchmark-runner`**.
 
 | Package | Version |
 |---------|---------|
-| `@playwright/test` | ^1.61.1 |
-| `chrome-launcher` | ^1.1.2 |
+| `@playwright/test` | ^1.62.1 |
+| `chrome-launcher` | ^1.2.2 |
 | `lighthouse` | ^13.4.1 |
 | `playwright` | ^1.62.0 |
 | `serve-handler` | ^6.1.6 |
@@ -98,13 +98,13 @@ Workspace **`@rianell/benchmark-runner`**.
 | Package | Constraint | Role |
 |---------|------------|------|
 | `supabase` | >=2.31.0 | Supabase client |
-| `pydantic` | >=2.13.4,<3 | — |
+| `pydantic` | >=2.13.5,<3 | — |
 | `websockets` | >=15.0.1,<16 | — |
 | `watchdog` | >=6.0.0 | File watching / auto-reload (recommended) |
-| `python-dotenv` | >=1.2.2 | `.env` loading |
-| `cryptography` | >=49.0.0 | Encryption for anonymised data |
-| `psycopg[binary]` | >=3.3.4 | PostgreSQL driver (optional path for direct SQL) |
-| `psycopg2-binary` | >=2.9.12 | Alternate PostgreSQL driver |
+| `python-dotenv` | >=1.2.3 | `.env` loading |
+| `cryptography` | >=50.0.1 | Encryption for anonymised data |
+| `psycopg[binary]` | >=3.3.5 | PostgreSQL driver (optional path for direct SQL) |
+| `psycopg2-binary` | >=2.9.13 | Alternate PostgreSQL driver |
 
 Install: `pip install -r requirements.txt` (Python **3.8+** per file header).
 
