@@ -479,6 +479,16 @@ function getChartTitleFromId(chartId) {
   return key ? tUi(key) : chartId;
 }
 
+function stripHtmlTagsForShare(text) {
+  var out = String(text == null ? '' : text);
+  var prev;
+  do {
+    prev = out;
+    out = out.replace(/<[^>]*>/g, '');
+  } while (out !== prev);
+  return out;
+}
+
 // Build shareable AI analysis as plain text from currentAIAnalysis (no emoji, clean format)
 function buildAIAnalysisShareText(dateRangeText) {
   var analysis = currentAIAnalysis;
@@ -498,10 +508,7 @@ function buildAIAnalysisShareText(dateRangeText) {
     ? generateComprehensiveInsights(analysis, logs, dayCount)
     : '';
   if (insightsText) {
-    var plainInsights = insightsText
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/<[^>]+>/g, '')
-      .trim();
+    var plainInsights = stripHtmlTagsForShare(insightsText.replace(/\*\*(.*?)\*\*/g, '$1')).trim();
     lines.push('WHAT WE FOUND');
     lines.push(plainInsights.split(/\n\n+/).join('\n\n'));
     lines.push('');
@@ -601,7 +608,7 @@ function buildAIAnalysisShareText(dateRangeText) {
   if (analysis.anomalies && analysis.anomalies.length > 0) {
     lines.push('THINGS TO WATCH');
     analysis.anomalies.forEach(function(a) {
-      var plain = anomalyToPlainText(a).replace(/\*\*(.*?)\*\*/g, '$1').replace(/<[^>]+>/g, '');
+      var plain = stripHtmlTagsForShare(anomalyToPlainText(a).replace(/\*\*(.*?)\*\*/g, '$1'));
       lines.push('  ' + plain);
     });
     lines.push('');
@@ -3299,7 +3306,7 @@ if (notesField) notesField.addEventListener('input', updateNotesCounter);
       if (contextStr && contextStr.length >= 30 && typeof window.generateSuggestNoteWithLLM !== 'function'
           && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
         try {
-          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=9');
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=10');
         } catch (e) {}
       }
 
@@ -6081,7 +6088,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
     if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
       try {
-        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=9');
+        await window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=10');
       } catch (e) {}
     }
   }
@@ -8772,7 +8779,7 @@ function formatFoodLogForView(log) {
       const cal = typeof item === 'object' && item.calories !== undefined ? item.calories : null;
       const pro = typeof item === 'object' && item.protein !== undefined ? item.protein : null;
       let s = escapeHTML(name);
-      if (cal != null || pro != null) s += ' <span class="metric-detail">(' + [cal != null ? cal + ' cal' : '', pro != null ? pro + 'g P' : ''].filter(Boolean).join(', ') + ')</span>';
+      if (cal != null || pro != null) s += ' <span class="metric-detail">(' + escapeHTML([cal != null ? cal + ' cal' : '', pro != null ? pro + 'g P' : ''].filter(Boolean).join(', ')) + ')</span>';
       return s;
     });
     return `<div class="metric-item"><span class="metric-label">${m.label}</span><span class="metric-value metric-value-list">${itemStrs.join('; ')}</span></div>`;
@@ -8956,15 +8963,18 @@ function recordFrequentOptionsFromEntry(entry) {
     });
   }
   if (entry.food && typeof entry.food === 'object') {
+    var unescapeFoodName = function(s) {
+      return String(s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    };
     var unescapeForKey = function(s) {
-      return String(s).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim().toLowerCase();
+      return unescapeFoodName(s).trim().toLowerCase();
     };
     ['breakfast', 'lunch', 'dinner', 'snack'].forEach(function(cat) {
       var items = entry.food[cat];
       if (!Array.isArray(items)) return;
       items.forEach(function(f) {
         var name = (typeof f === 'string' ? f : (f && f.name) || '').trim();
-        if (name) recordFrequentOption('foods', unescapeForKey(name), name.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), { category: cat });
+        if (name) recordFrequentOption('foods', unescapeForKey(name), unescapeFoodName(name), { category: cat });
       });
     });
   }
@@ -11966,9 +11976,10 @@ function renderEditFoodCategoryList(category) {
   const listId = 'editFood' + category.charAt(0).toUpperCase() + category.slice(1) + 'List';
   const container = document.getElementById(listId);
   if (!container) return;
+  if (['breakfast', 'lunch', 'dinner', 'snack'].indexOf(category) === -1) return;
   const items = editFoodByCategory[category] || [];
   container.innerHTML = items.length === 0
-    ? '<p class="empty-items">' + tUi('common.none') + '</p>'
+    ? '<p class="empty-items">' + escapeHTML(tUi('common.none')) + '</p>'
     : items.map((item, index) => {
         const name = typeof item === 'string' ? item : (item.name || '');
         const calories = typeof item === 'object' && item.calories !== undefined ? item.calories : undefined;
@@ -11978,9 +11989,9 @@ function renderEditFoodCategoryList(category) {
           const parts = [];
           if (calories !== undefined) parts.push(calories + ' cal');
           if (protein !== undefined) parts.push(protein + 'g P');
-          details = '<span class="item-detail">(' + parts.join(', ') + ')</span>';
+          details = '<span class="item-detail">(' + escapeHTML(parts.join(', ')) + ')</span>';
         }
-        return `<div class="item-entry"><div style="flex:1;"><span class="item-text">${escapeHTML(name)}</span>${details}</div><button type="button" class="remove-item-btn" onclick="removeEditFoodItem('${category}', ${index})" title="${tUi('common.remove')}">×</button></div>`;
+        return `<div class="item-entry"><div style="flex:1;"><span class="item-text">${escapeHTML(name)}</span>${details}</div><button type="button" class="remove-item-btn" onclick="removeEditFoodItem('${category}', ${index})" title="${escapeAttr(tUi('common.remove'))}">×</button></div>`;
       }).join('');
   var cap = category.charAt(0).toUpperCase() + category.slice(1);
   syncFoodChipsInContainer('editFood' + cap + 'Chips', category, true);
@@ -13202,6 +13213,14 @@ function saveEditedEntry() {
 
 
 // Helper function to generate log entry HTML
+function escLogHtml(value) {
+  return escapeAttr(String(value));
+}
+
+function escLogJsArg(value) {
+  return escapeAttr(JSON.stringify(String(value)).slice(1, -1).replace(/'/g, "\\'"));
+}
+
 function generateLogEntryHTML(log) {
   const isEditing = inlineEditingDate === log.date;
   const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
@@ -13219,31 +13238,31 @@ function generateLogEntryHTML(log) {
   const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
   const summaryLine = buildLogEntrySummaryLine(log);
   
-  const safeDate = escapeHTML(log.date);
+  const safeDate = escLogJsArg(log.date);
   const editButton = isEditing 
     ? `<button class="edit-btn save-btn" onclick="event.stopPropagation(); saveInlineEdit('${safeDate}')" title="Save changes">${svgIcon('save', 'ui-svg-icon', 'Save changes')}</button>`
     : `<button class="edit-btn" onclick="event.stopPropagation(); enableInlineEdit('${safeDate}')" title="Edit this entry">${svgIcon('edit', 'ui-svg-icon', 'Edit this entry')}</button>`;
   
   return `
-    <div class="log-entry-actions" onclick="if(!event.target.closest('button')) toggleLogEntry('${escapeHTML(log.date)}')">
+    <div class="log-entry-actions" onclick="if(!event.target.closest('button')) toggleLogEntry('${safeDate}')">
       <div class="log-entry-actions-left">
-        <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${escapeHTML(log.date)}')" title="${tUi('common.delete.this.entry')}">&times;</button>
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${safeDate}')" title="${tUi('common.delete.this.entry')}">&times;</button>
         ${editButton}
       </div>
       <button class="share-btn" onclick="event.stopPropagation(); openShareModalForLog('${safeDate}')" title="${tUi('common.share.this.entry')}" aria-label="${tUi('common.share.this.entry')}">${svgIcon('share', 'ui-svg-icon', tUi('common.share.this.entry'))}</button>
     </div>
-    <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${escapeHTML(log.date)}')">
+    <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${safeDate}')">
       <div class="log-entry-header-content">
         ${isEditing 
-          ? `<input type="date" class="inline-edit-date inline-edit-field inline-edit-field--date" value="${log.date}" onclick="event.stopPropagation();" />`
-          : `<h3 class="log-date">${formattedDate}</h3>`
+          ? `<input type="date" class="inline-edit-date inline-edit-field inline-edit-field--date" value="${escLogHtml(log.date)}" onclick="event.stopPropagation();" />`
+          : `<h3 class="log-date">${escLogHtml(formattedDate)}</h3>`
         }
         ${summaryLine}
         <div class="header-badges">
-          <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); if(window.openFoodModal) window.openFoodModal('${escapeHTML(log.date)}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
+          <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); if(window.openFoodModal) window.openFoodModal('${safeDate}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
             ${svgIcon('food', 'ui-svg-icon', 'Food log')}${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
           </button>
-          <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); if(window.openExerciseModal) window.openExerciseModal('${escapeHTML(log.date)}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
+          <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); if(window.openExerciseModal) window.openExerciseModal('${safeDate}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
             ${svgIcon('run', 'ui-svg-icon', 'Exercise log')}${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
           </button>
           ${isEditing 
@@ -13273,8 +13292,8 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('activity', 'metric-svg-icon', 'Heart rate')} Heart Rate</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-bpm inline-edit-field" value="${log.bpm}" min="30" max="120" /><span class="inline-edit-suffix">BPM</span></span>`
-            : `<span class="metric-value">${log.bpm != null && log.bpm !== '' ? log.bpm + ' BPM' : '-'}</span>`
+            ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-bpm inline-edit-field" value="${escLogHtml(log.bpm)}" min="30" max="120" /><span class="inline-edit-suffix">BPM</span></span>`
+            : `<span class="metric-value">${log.bpm != null && log.bpm !== '' ? escLogHtml(log.bpm) + ' BPM' : '-'}</span>`
           }
         </div>
         <div class="metric-item">
@@ -13287,27 +13306,27 @@ function generateLogEntryHTML(log) {
         ${(log.bloodPressureSystolic && log.bloodPressureDiastolic) ? `
         <div class="metric-item">
           <span class="metric-label">${svgIcon('stethoscope', 'metric-svg-icon', 'Blood pressure')} Blood Pressure</span>
-          <span class="metric-value">${log.bloodPressureSystolic}/${log.bloodPressureDiastolic} mmHg</span>
+          <span class="metric-value">${escLogHtml(log.bloodPressureSystolic)}/${escLogHtml(log.bloodPressureDiastolic)} mmHg</span>
         </div>` : ''}
         ${log.bloodGlucose != null && log.bloodGlucose !== '' ? `
         <div class="metric-item">
           <span class="metric-label">${svgIcon('zap', 'metric-svg-icon', 'Blood glucose')} Blood Glucose</span>
-          <span class="metric-value">${log.bloodGlucose} ${log.bloodGlucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L'}</span>
+          <span class="metric-value">${escLogHtml(log.bloodGlucose)} ${log.bloodGlucoseUnit === 'mgdl' ? 'mg/dL' : 'mmol/L'}</span>
         </div>` : ''}
         ${log.spO2 != null && log.spO2 !== '' ? `
         <div class="metric-item">
           <span class="metric-label">${svgIcon('run', 'metric-svg-icon', 'Oxygen saturation')} SpO₂</span>
-          <span class="metric-value">${log.spO2}%</span>
+          <span class="metric-value">${escLogHtml(log.spO2)}%</span>
         </div>` : ''}
         ${log.hrv != null && log.hrv !== '' ? `
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'HRV')} HRV (RMSSD)</span>
-          <span class="metric-value">${log.hrv} ms</span>
+          <span class="metric-value">${escLogHtml(log.hrv)} ms</span>
         </div>` : ''}
         ${log.bodyWeight != null && log.bodyWeight !== '' ? `
         <div class="metric-item">
           <span class="metric-label">${svgIcon('balance', 'metric-svg-icon', 'Body weight')} Body Weight</span>
-          <span class="metric-value">${log.bodyWeight} ${log.bodyWeightUnit || 'kg'}</span>
+          <span class="metric-value">${escLogHtml(log.bodyWeight)} ${escLogHtml(log.bodyWeightUnit || 'kg')}</span>
         </div>` : ''}
       </div>
       <div class="metric-group symptoms" data-log-pane="physical">
@@ -13315,36 +13334,36 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Fatigue')} Fatigue</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-fatigue inline-edit-field" value="${log.fatigue}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.fatigue}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-fatigue inline-edit-field" value="${escLogHtml(log.fatigue)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.fatigue)}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('lock', 'metric-svg-icon', 'Stiffness')} Stiffness</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-stiffness inline-edit-field" value="${log.stiffness}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.stiffness}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-stiffness inline-edit-field" value="${escLogHtml(log.stiffness)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.stiffness)}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Back pain')} Back Pain</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-backPain inline-edit-field" value="${log.backPain}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.backPain}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-backPain inline-edit-field" value="${escLogHtml(log.backPain)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.backPain)}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Joint pain')} Joint Pain</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-jointPain inline-edit-field" value="${log.jointPain}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.jointPain}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-jointPain inline-edit-field" value="${escLogHtml(log.jointPain)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.jointPain)}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Swelling')} Swelling</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-swelling inline-edit-field" value="${log.swelling}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.swelling}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-swelling inline-edit-field" value="${escLogHtml(log.swelling)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.swelling)}/10</span>`
           }
         </div>
       </div>
@@ -13353,15 +13372,15 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Mobility')} Mobility</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mobility inline-edit-field" value="${log.mobility}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.mobility}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mobility inline-edit-field" value="${escLogHtml(log.mobility)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.mobility)}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('document', 'metric-svg-icon', 'Daily activities')} ${typeof tUi === 'function' ? tUi('common.daily.activities') : 'Daily activities'}</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${log.dailyFunction}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.dailyFunction}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${escLogHtml(log.dailyFunction)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.dailyFunction)}/10</span>`
           }
         </div>
       </div>
@@ -13394,15 +13413,15 @@ function generateLogEntryHTML(log) {
           ${log.steps ? `<div class="metric-item">
             <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Steps')} Steps</span>
             ${isEditing 
-              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-steps inline-edit-field" value="${log.steps}" min="0" max="50000" /></span>`
-              : `<span class="metric-value">${log.steps.toLocaleString()}</span>`
+              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-steps inline-edit-field" value="${escLogHtml(log.steps)}" min="0" max="50000" /></span>`
+              : `<span class="metric-value">${escLogHtml(log.steps.toLocaleString())}</span>`
             }
           </div>` : ''}
           ${log.hydration ? `<div class="metric-item">
             <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Hydration')} Hydration</span>
             ${isEditing 
-              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-hydration inline-edit-field" value="${log.hydration}" min="0" max="20" step="0.5" /><span class="inline-edit-suffix">${tUi('common.glasses')}</span></span>`
-              : `<span class="metric-value">${log.hydration} glasses</span>`
+              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-hydration inline-edit-field" value="${escLogHtml(log.hydration)}" min="0" max="20" step="0.5" /><span class="inline-edit-suffix">${tUi('common.glasses')}</span></span>`
+              : `<span class="metric-value">${escLogHtml(log.hydration)} glasses</span>`
             }
           </div>` : ''}
         </div>` : ''
@@ -13426,7 +13445,7 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${tUi('common.items')}</span>
           ${(log.medications && log.medications.length > 0)
-            ? `<span class="metric-value metric-value-list">${log.medications.map(m => escapeHTML(m.name) + (m.times && m.times.length ? ' (' + m.times.join(', ') + ')' : '') + ' - ' + (m.taken ? 'Taken' : 'Not taken')).join('; ')}</span>`
+            ? `<span class="metric-value metric-value-list">${log.medications.map(m => escapeHTML(m.name) + (m.times && m.times.length ? ' (' + escLogHtml(m.times.join(', ')) + ')' : '') + ' - ' + (m.taken ? 'Taken' : 'Not taken')).join('; ')}</span>`
             : `<span class="metric-value metric-value-muted">${tUi('common.none.logged')}</span>`
           }
         </div>
@@ -13445,22 +13464,22 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Sleep')} Sleep</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${log.sleep}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.sleep}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${escLogHtml(log.sleep)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.sleep)}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Mood')} Mood</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${log.mood}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.mood}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${escLogHtml(log.mood)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.mood)}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Irritability')} Irritability</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${log.irritability}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.irritability}/10</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${escLogHtml(log.irritability)}" min="1" max="10" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${escLogHtml(log.irritability)}/10</span>`
           }
         </div>
       </div>
@@ -13476,8 +13495,8 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Weather sensitivity')} Weather Sensitivity</span>
           ${isEditing 
-            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${log.weatherSensitivity || ''}" min="1" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
-            : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '-'}</span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${escLogHtml(log.weatherSensitivity || '')}" min="1" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
+            : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? escLogHtml(log.weatherSensitivity) + '/10' : '-'}</span>`
           }
         </div>
       </div>
@@ -16528,7 +16547,7 @@ function ensureSummaryLlmLoadedForSettings() {
     return Promise.resolve();
   }
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=9');
+    return window.PerformanceUtils.lazyLoadScript('summary-llm.js?v=10');
   }
   return Promise.resolve();
 }
@@ -17017,7 +17036,7 @@ function __rianellTtsGetElementLabel(el) {
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
       var id = el.getAttribute('id');
       if (id) {
-        var lab = document.querySelector('label[for="' + id.replace(/"/g, '\\"') + '"]');
+        var lab = document.querySelector('label[for="' + id.replace(/["\\]/g, '\\$&') + '"]');
         if (lab && lab.textContent) return lab.textContent.trim();
       }
       var ph = el.getAttribute('placeholder');
@@ -18287,7 +18306,8 @@ async function saveSheetsConfig() {
 }
 
 function handleConnectorOAuthMessage(event) {
-  if (!event || !event.data || event.data.type !== 'connector-oauth-success') return;
+  if (!event || event.origin !== window.location.origin) return;
+  if (!event.data || event.data.type !== 'connector-oauth-success') return;
   var provider = event.data.provider;
   loadConnectorStatuses().then(function () {
     if (provider) syncConnector(provider, { force: true });
@@ -18352,13 +18372,14 @@ async function renderCommunityTipsPane(conditionTags) {
   el.hidden = false;
 }
 
+var communityTriggerRowsCache = null;
+
 async function fetchCommunityTriggerRows(conditionTag) {
-  try {
-    var cached = JSON.parse(localStorage.getItem('rianellCommunityTriggers') || 'null');
-    if (cached && Array.isArray(cached.rows) && cached.condition === conditionTag && (Date.now() - (cached.at || 0)) < 3600000) {
-      return cached.rows;
-    }
-  } catch (e) {}
+  try { localStorage.removeItem('rianellCommunityTriggers'); } catch (e) {}
+  var cached = communityTriggerRowsCache;
+  if (cached && Array.isArray(cached.rows) && cached.condition === conditionTag && (Date.now() - (cached.at || 0)) < 3600000) {
+    return cached.rows;
+  }
   if (typeof window === 'undefined' || !window.fetchPoolInsights) return [];
   try {
     var client = typeof window.getSupabaseClient === 'function' ? window.getSupabaseClient() : null;
@@ -18367,7 +18388,7 @@ async function fetchCommunityTriggerRows(conditionTag) {
     if (conditionTag) q = q.eq('condition_tag', conditionTag);
     var result = await q.limit(20);
     var rows = (result && result.data) || [];
-    try { localStorage.setItem('rianellCommunityTriggers', JSON.stringify({ rows: rows, condition: conditionTag, at: Date.now() })); } catch(e) {}
+    communityTriggerRowsCache = { rows: rows, condition: conditionTag, at: Date.now() };
     return rows;
   } catch (e) { return []; }
 }
@@ -19136,14 +19157,8 @@ async function toggleContributeAnonData(optionalToggleId) {
       const condition = appSettings.medicalCondition;
       if (condition) {
         // Clear both synced keys and dates for this condition
-        const syncedKeysJson = localStorage.getItem('anonymizedDataSyncedKeys');
-        if (syncedKeysJson) {
-          const syncedKeys = JSON.parse(syncedKeysJson);
-          const beforeCount = syncedKeys.length;
-          // Remove all keys for this condition
-          const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
-          localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
-          console.log(`[toggleContributeAnonData] Cleared ${beforeCount - filteredKeys.length} synced key(s) for condition: ${condition}`);
+        if (typeof window.clearSyncedKeys === 'function') {
+          await window.clearSyncedKeys(condition);
         }
         // Also clear synced dates to ensure fresh sync
         localStorage.removeItem('anonymizedDataSyncedDates');
@@ -20740,15 +20755,10 @@ function updateMedicalCondition(condition = null) {
   // Sync anonymized data if contribution is enabled (but not in demo mode)
   if (appSettings.contributeAnonData && !appSettings.demoMode && typeof syncAnonymizedData === 'function') {
     // Clear synced keys for this condition to allow re-syncing with new condition
-    const syncedKeysJson = localStorage.getItem('anonymizedDataSyncedKeys');
-    if (syncedKeysJson) {
-      const syncedKeys = JSON.parse(syncedKeysJson);
-      const condition = appSettings.medicalCondition;
-      // Remove all keys for this condition
-      const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
-      localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
-    }
-    Promise.resolve(syncAnonymizedData()).catch(function(error) {
+    const clearKeys = typeof window.clearSyncedKeys === 'function'
+      ? window.clearSyncedKeys(appSettings.medicalCondition)
+      : null;
+    Promise.resolve(clearKeys).then(() => syncAnonymizedData()).catch(function(error) {
       Logger.warn('Failed to sync anonymized data after condition update', { error: String(error) });
     });
   }

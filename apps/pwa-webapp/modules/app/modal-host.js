@@ -51,6 +51,45 @@ function closeSettingsModalIfOpen() {
 // ============================================
 // Custom Alert Modal
 // ============================================
+const ALERT_HTML_ALLOWED_TAGS = new Set([
+  'section', 'div', 'p', 'span', 'h3', 'h4', 'h5', 'strong', 'em', 'b', 'i', 'small', 'br', 'ul', 'ol', 'li'
+]);
+const ALERT_HTML_ALLOWED_ATTRS = new Set(['class', 'style', 'role']);
+
+function parseInertHtml(html) {
+  return new DOMParser().parseFromString(String(html == null ? '' : html), 'text/html');
+}
+
+function copyAllowedAlertNodes(source, target) {
+  source.childNodes.forEach(function(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      target.appendChild(document.createTextNode(node.nodeValue));
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = node.tagName.toLowerCase();
+    if (!ALERT_HTML_ALLOWED_TAGS.has(tag)) {
+      if (tag !== 'script' && tag !== 'style' && tag !== 'template') copyAllowedAlertNodes(node, target);
+      return;
+    }
+    const el = document.createElement(tag);
+    Array.from(node.attributes).forEach(function(attr) {
+      const name = attr.name.toLowerCase();
+      if (ALERT_HTML_ALLOWED_ATTRS.has(name) || /^aria-[a-z-]+$/.test(name)) {
+        el.setAttribute(name, attr.value);
+      }
+    });
+    copyAllowedAlertNodes(node, el);
+    target.appendChild(el);
+  });
+}
+
+function sanitizeAlertHtml(html) {
+  const fragment = document.createDocumentFragment();
+  copyAllowedAlertNodes(parseInertHtml(html).body, fragment);
+  return fragment;
+}
+
 function showAlertModal(message, title, onClose, options) {
   if (title === undefined || title === 'Alert') title = tUi('common.alert');
   const overlay = document.getElementById('alertModalOverlay');
@@ -63,7 +102,7 @@ function showAlertModal(message, title, onClose, options) {
   if (!overlay || !titleEl || !messageEl) {
     // Fallback to native alert if modal elements not found
     Logger.warn('Alert modal elements not found, using native alert');
-    alert(useHtml ? message.replace(/<[^>]+>/g, '') : message);
+    alert(useHtml ? parseInertHtml(message).body.textContent : message);
     if (typeof onClose === 'function') onClose();
     return;
   }
@@ -86,7 +125,7 @@ function showAlertModal(message, title, onClose, options) {
   } else if (useHtml) {
     // Invariant: opts.html is only for app-authored markup (e.g. formatReviewMetric bars).
     // Never pass user-derived or i18n strings here without escapeHTML first.
-    messageEl.innerHTML = message;
+    messageEl.replaceChildren(sanitizeAlertHtml(message));
   } else {
     messageEl.textContent = message;
   }

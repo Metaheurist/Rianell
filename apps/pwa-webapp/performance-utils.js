@@ -412,7 +412,7 @@ function ensurePrintUtilsLoaded() {
   if (_printUtilsPromise) {
     return _printUtilsPromise;
   }
-  _printUtilsPromise = lazyLoadScript('print-utils.js?v=1').catch(function (e) {
+  _printUtilsPromise = lazyLoadScript('print-utils.js?v=2').catch(function (e) {
     _printUtilsPromise = null;
     throw e;
   });

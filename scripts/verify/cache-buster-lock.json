@@ -12,8 +12,8 @@
     "sha256": "b5c2183aed70225e70aa1c4f88f6e56a599b5d8108ff42b57c089715b3141039"
   },
   "cloud-sync.js": {
-    "v": 2,
-    "sha256": "9e6099d247811ad3cf5446ee28744a865d83bd8d935d9bcdb4f880ee6ba4a297"
+    "v": 3,
+    "sha256": "5fb3c05b18c885163f67c6b257327342fadaf2efd802993dcc0f9bb97b9d8855"
   },
   "css/graphics-portfolio.css": {
     "v": 3,
@@ -40,8 +40,8 @@
     "sha256": "593a78b2fd8f983205d3154a1dfe232aed80627992022243cf813556a4ce971d"
   },
   "guided-onboarding.js": {
-    "v": 6,
-    "sha256": "15d201d07295b87b50a081b3c0443601250cb52d627bd644b23a0ac2be6b8904"
+    "v": 7,
+    "sha256": "3b73a3ad17295df182a9960e7df32b62ec37a9ce710ae689f0951e4668d5c651"
   },
   "i18n-pwa.js": {
     "v": 4,
@@ -104,8 +104,8 @@
     "sha256": "12d2eae17783c82ae5a9216ed25019a9861ca5da2cccd4db3fc3835bcf7cb498"
   },
   "modules/log-metric-widgets.js": {
-    "v": 16,
-    "sha256": "386ddf487ab32c4e3b07dfb6d2f50b784e8297e86994965419a7f5296f1477e3"
+    "v": 17,
+    "sha256": "cc369429e5002e7603482626d7d701836f8da43f3758ad2a5814696a78ec8beb"
   },
   "modules/main-thread-governor.js": {
     "v": 1,
@@ -140,8 +140,8 @@
     "sha256": "7942634f547ffcb2758d0adea659fdb3516dbc9b9ebf07fcddd1c85340084b8e"
   },
   "print-utils.js": {
-    "v": 1,
-    "sha256": "5894eb97a68661a4885b4b5ba12e829f9a74d9fb299334d035bf048a75a86468"
+    "v": 2,
+    "sha256": "4a5f320caebc503dfe0c3fb9f43ea85df3086555fc426cb9e02683e54079068f"
   },
   "privacy-region.js": {
     "v": 10,
@@ -168,8 +168,8 @@
     "sha256": "f380619b65199bfa8465204faf75e56598b667d09df5f42f1719f9ffa74c0115"
   },
   "summary-llm.js": {
-    "v": 9,
-    "sha256": "7d6aaa360aaf5408397d1c27397a551ca43217814cbd364b640a1c40060c5170"
+    "v": 10,
+    "sha256": "9a7e02cbf75b80ab753d948feb7828c963cc3229c3502825e1668b9f5a86507f"
   },
   "trace-runtime.js": {
     "v": 1,
@@ -184,7 +184,7 @@
     "sha256": "cc0cf594822b9a4bb2d77ccba6a380a160fb84f7002caaa84f228748afe7eccb"
   },
   "vendor/rianell-shared.js": {
-    "v": 17,
-    "sha256": "6750622f1d30b14a3383173b310e5988df308c9db6e0bdf77b4f3b3cd2261417"
+    "v": 18,
+    "sha256": "a8d52487ce32419e732617e2e4689501cecc7c276152af6fca78beff2da4d4b7"
   }
 }

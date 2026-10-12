@@ -769,12 +769,18 @@
     drumShell.className = 'vital-drum-shell vital-drum-shell--compact metric-drum-shell';
     var labelText = label && label.textContent ? label.textContent.trim() : id;
     drumShell.innerHTML =
-      '<button type="button" class="vital-drum-nudge metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="-1" aria-label="Decrease">−</button>' +
+      '<button type="button" class="vital-drum-nudge metric-stepper-btn" data-delta="-1" aria-label="Decrease">−</button>' +
       '<div class="vital-drum-window">' +
       '<div class="vital-drum-highlight" aria-hidden="true"></div>' +
-      '<div class="vital-drum-scroll" id="' + id + 'Drum" role="listbox" aria-label="' + labelText + ' scale" tabindex="0"></div>' +
+      '<div class="vital-drum-scroll" role="listbox" tabindex="0"></div>' +
       '</div>' +
-      '<button type="button" class="vital-drum-nudge metric-stepper-btn" data-metric-nudge="' + id + '" data-delta="1" aria-label="Increase">+</button>';
+      '<button type="button" class="vital-drum-nudge metric-stepper-btn" data-delta="1" aria-label="Increase">+</button>';
+    drumShell.querySelectorAll('.metric-stepper-btn').forEach(function (btn) {
+      btn.setAttribute('data-metric-nudge', id);
+    });
+    var drumScroll = drumShell.querySelector('.vital-drum-scroll');
+    drumScroll.id = id + 'Drum';
+    drumScroll.setAttribute('aria-label', labelText + ' scale');
     controls.appendChild(drumShell);
 
     if (goodBad) {
