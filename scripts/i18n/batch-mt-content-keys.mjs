@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
+import { localeJsonPath, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -26,7 +27,7 @@ const contentKeys = Object.keys(canonical.strings || {}).filter((k) => k.startsW
 const locales = onlyLocale ? [onlyLocale] : TIER_A;
 
 for (const locale of locales) {
-  const filePath = path.join(dir, `${locale}.json`);
+  const filePath = localeJsonPath(dir, locale);
   const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const strings = { ...(pack.strings || {}) };
   let updated = 0;
@@ -37,7 +38,7 @@ for (const locale of locales) {
     const cur = strings[key];
     if (typeof cur === 'string' && cur.trim() !== enVal.trim()) continue;
     try {
-      const translated = await translateText(enVal, locale);
+      const translated = sanitizeTranslation(enVal, await translateText(enVal, locale));
       if (translated && translated.trim() !== enVal.trim()) {
         if (!dryRun) strings[key] = translated;
         updated++;
@@ -49,7 +50,7 @@ for (const locale of locales) {
     if ((i + 1) % 40 === 0) console.log(`batch-mt-content-keys: ${locale} ${i + 1}/${contentKeys.length}`);
   }
   if (!dryRun && updated > 0) {
-    fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, strings, machineTranslatedUi: true }, null, 2)}\n`, 'utf8');
+    writeJson(filePath, { ...pack, strings, machineTranslatedUi: true });
   }
   console.log(`batch-mt-content-keys: ${locale} — ${updated} content key(s) translated`);
 }

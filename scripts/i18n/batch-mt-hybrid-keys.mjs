@@ -8,6 +8,7 @@ import path from 'node:path';
 import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPaths.mjs';
 import { hasTranslateCredentials, translateText } from '../lib/machine-translate.mjs';
 import { GLOSSARY_TERMS } from '../lib/i18n-glossary.mjs';
+import { localeJsonPath, sanitizeTranslation, writeJson } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -37,7 +38,7 @@ function isHybrid(key, locVal, enVal) {
 
 const locales = onlyLocale ? [onlyLocale] : TIER_A;
 for (const locale of locales) {
-  const filePath = path.join(dir, `${locale}.json`);
+  const filePath = localeJsonPath(dir, locale);
   const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const strings = { ...(pack.strings || {}) };
   let updated = 0;
@@ -47,7 +48,7 @@ for (const locale of locales) {
     const key = keys[i];
     const enVal = enStrings[key];
     try {
-      const translated = await translateText(enVal, locale);
+      const translated = sanitizeTranslation(enVal, await translateText(enVal, locale));
       if (translated && translated.trim() !== strings[key].trim()) {
         if (!dryRun) strings[key] = translated;
         updated++;
@@ -58,7 +59,7 @@ for (const locale of locales) {
     if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
   }
   if (!dryRun && updated > 0) {
-    fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, strings, machineTranslatedUi: true }, null, 2)}\n`, 'utf8');
+    writeJson(filePath, { ...pack, strings, machineTranslatedUi: true });
   }
   console.log(`batch-mt-hybrid-keys: ${locale} — ${updated} updated`);
 }

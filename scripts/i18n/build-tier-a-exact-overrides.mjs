@@ -9,6 +9,7 @@ import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPath
 import { GLOSSARY_TERMS, protectGlossary, restoreGlossary } from '../lib/i18n-glossary.mjs';
 import { shouldKeepEnglish } from '../lib/rule-based-mt.mjs';
 import { EXACT_OVERRIDES as EXISTING_OVERRIDES } from '../lib/tier-a-exact-overrides.mjs';
+import { localeJsonPath, sanitizeTranslation } from './lib/safe-pack-io.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -58,12 +59,14 @@ function restorePlaceholders(text, placeholders) {
 async function googleTranslate(text, targetLocale) {
   const tl = GOOGLE_TL[targetLocale];
   if (!tl) return text;
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${tl}&dt=t&q=${encodeURIComponent(text.slice(0, 4500))}`;
+  const url = new URL('https://translate.googleapis.com/translate_a/single');
+  url.search = new URLSearchParams({ client: 'gtx', sl: 'en', tl, dt: 't', q: text.slice(0, 4500) }).toString();
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Google Translate HTTP ${res.status}`);
   const data = await res.json();
   const parts = data?.[0];
   if (!Array.isArray(parts) || !parts.length) throw new Error('empty response');
+  if (!parts.every((p) => Array.isArray(p) && typeof p[0] === 'string')) throw new Error('unexpected response shape');
   return parts.map((p) => p[0]).join('');
 }
 
@@ -94,7 +97,8 @@ const EXACT_OVERRIDES = Object.fromEntries(
   TIER_A.map((l) => [l, { ...(EXISTING_OVERRIDES[l] || {}) }]),
 );
 
-for (const locale of locales) {  const pack = JSON.parse(fs.readFileSync(path.join(dir, `${locale}.json`), 'utf8'));
+for (const locale of locales) {
+  const pack = JSON.parse(fs.readFileSync(localeJsonPath(dir, locale), 'utf8'));
   const strings = pack.strings || {};
   const keys = Object.keys(en).filter((k) => !k.startsWith('policy.'));
   let count = 0;
@@ -108,7 +112,7 @@ for (const locale of locales) {  const pack = JSON.parse(fs.readFileSync(path.jo
     if (typeof cur !== 'string' || cur.trim() !== enVal.trim()) continue;
 
     try {
-      const translated = await translateForLocale(enVal, locale);
+      const translated = sanitizeTranslation(enVal, await translateForLocale(enVal, locale));
       if (translated && translated.trim() !== enVal.trim()) {
         EXACT_OVERRIDES[locale][key] = translated;
         count++;
