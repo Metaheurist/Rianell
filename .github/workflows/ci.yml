@@ -827,7 +827,8 @@ jobs:
           command: |
             docker run --rm -v ${{ github.workspace }}:/zap/wrk:rw \
               -t ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
-              -t https://rianell.com/ -J /zap/wrk/zap-results.sarif -m 5 -I || true
+              -t https://rianell.com/ -J /zap/wrk/zap-results.sarif -m 5 -T 5 -I \
+              -z "-config scanner.maxScanDurationInMins=12 -config scanner.maxRuleDurationInMins=2" || true
       - name: Upload ZAP SARIF
         if: always() && hashFiles('zap-results.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
