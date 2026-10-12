@@ -66,8 +66,9 @@ function useSelfHostedWasm(mod, wasmBase) {
  */
 function pinModelRevision(mod, modelId, revision) {
   if (!baseFetch) baseFetch = mod.env.fetch || ((input, init) => fetch(input, init));
+  if (!/^[A-Za-z0-9._-]{1,64}$/.test(String(revision || ''))) throw new Error('Invalid model revision');
   const unpinned = ALLOWED_REMOTE_HOST + modelId + '/resolve/main/';
-  const pinned = ALLOWED_REMOTE_HOST + modelId + '/resolve/' + revision + '/';
+  const pinned = ALLOWED_REMOTE_HOST + modelId + '/resolve/' + encodeURIComponent(revision) + '/';
   mod.env.fetch = function (input, init) {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
     if (url.startsWith(unpinned)) {

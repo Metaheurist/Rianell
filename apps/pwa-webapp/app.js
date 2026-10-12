@@ -2834,7 +2834,7 @@ function getWeightInDisplayUnit(weightKg) {
 }
 
 function getWeightUnitSuffix() {
-  return appSettings.weightUnit;
+  return appSettings.weightUnit === 'lb' ? 'lb' : 'kg';
 }
 
 function toggleGlucoseUnit() {
