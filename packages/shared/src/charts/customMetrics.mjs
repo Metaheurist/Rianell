@@ -3,11 +3,24 @@
 const MAX_CUSTOM = 8;
 const LABEL_MAX = 40;
 
+function stripTags(text) {
+  let out = '';
+  let i = 0;
+  while (i < text.length) {
+    const lt = text.indexOf('<', i);
+    if (lt === -1) break;
+    const gt = text.indexOf('>', lt + 1);
+    if (gt === -1) break;
+    out += text.slice(i, lt);
+    i = gt + 1;
+  }
+  return out + text.slice(i);
+}
+
 /** Strip HTML/script chars from user-supplied metric labels (XSS guard for ApexCharts). */
 export function sanitizeCustomMetricLabel(raw) {
   if (typeof raw !== 'string') return '';
-  return raw
-    .replace(/<[^>]*>/g, '')
+  return stripTags(raw)
     .replace(/[<>"'&`]/g, '')
     .trim()
     .slice(0, LABEL_MAX);

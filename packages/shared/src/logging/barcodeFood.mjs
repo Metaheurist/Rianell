@@ -93,7 +93,7 @@ export function formatBarcodeFoodLabel(product) {
 
 function parseServingGrams(serving) {
   if (typeof serving !== 'string' || !serving.trim()) return null;
-  const gMatch = serving.match(/(\d+(?:[.,]\d+)?)\s*g\b/i);
+  const gMatch = serving.match(/(?:^|\D)(\d+(?:[.,]\d+)?)\s*g\b/i);
   if (gMatch) {
     const n = Number(String(gMatch[1]).replace(',', '.'));
     if (Number.isFinite(n) && n > 0) return Math.min(500, Math.round(n * 10) / 10);

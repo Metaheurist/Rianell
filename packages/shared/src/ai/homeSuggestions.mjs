@@ -100,8 +100,10 @@ function topStressorName(logs) {
 
 function parseTopListItem(item) {
   const raw = String(item || '').trim();
-  const m = raw.match(/^(.+?)\s*\((\d+)\)$/);
-  return m ? { name: m[1].trim(), count: Number(m[2]) } : { name: raw, count: 0 };
+  const m = raw.match(/\((\d+)\)$/);
+  return m && m.index > 0
+    ? { name: raw.slice(0, m.index).trim(), count: Number(m[1]) }
+    : { name: raw, count: 0 };
 }
 
 function metricTrend(logs, field) {

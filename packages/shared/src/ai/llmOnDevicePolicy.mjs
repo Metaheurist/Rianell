@@ -1,16 +1,31 @@
 /** N11 - PWA/RN on-device LLM policy; no user-supplied commercial inference endpoints. */
 
-export const BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = [
-  /api\.openai\.com/i,
-  /api\.anthropic\.com/i,
-  /generativelanguage\.googleapis\.com/i,
-  /api\.cohere\.ai/i,
-  /api\.mistral\.ai/i,
-  /api\.groq\.com/i,
-  /api\.together\.xyz/i,
-  /openrouter\.ai/i,
-  /api\.perplexity\.ai/i,
+export const BLOCKED_COMMERCIAL_LLM_HOSTS = [
+  'api.openai.com',
+  'api.anthropic.com',
+  'generativelanguage.googleapis.com',
+  'api.cohere.ai',
+  'api.mistral.ai',
+  'api.groq.com',
+  'api.together.xyz',
+  'openrouter.ai',
+  'api.perplexity.ai',
 ];
+
+/** Text-search patterns (e.g. scanning source for hard-coded hosts); use isBlockedCommercialLlmHost for URLs. */
+export const BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = /* @__PURE__ */ BLOCKED_COMMERCIAL_LLM_HOSTS.map(
+  (host) => new RegExp(host.replace(/\./g, '\\.'), 'i'),
+);
+
+/**
+ * @param {string} hostname
+ * @returns {boolean}
+ */
+export function isBlockedCommercialLlmHost(hostname) {
+  const host = String(hostname || '').toLowerCase().replace(/\.$/, '');
+  if (!host) return false;
+  return BLOCKED_COMMERCIAL_LLM_HOSTS.some((domain) => host === domain || host.endsWith(`.${domain}`));
+}
 
 /** Hugging Face Hub is allowed for on-device model weights only (not chat API). */
 export const ALLOWED_LLM_MODEL_HOSTS = [
@@ -31,7 +46,7 @@ export function validateRemoteLlmEndpoint(endpoint) {
   } catch {
     return { allowed: false, ok: false, reason: 'invalid_url' };
   }
-  if (BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS.some((re) => re.test(host))) {
+  if (isBlockedCommercialLlmHost(host)) {
     return { allowed: false, ok: false, reason: 'commercial_api_blocked' };
   }
   return { allowed: true, ok: true };

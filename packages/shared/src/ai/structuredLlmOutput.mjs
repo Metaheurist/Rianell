@@ -4,8 +4,9 @@ export function parseStructuredLlmOutput(raw) {
   let parsed;
   try {
     const trimmed = raw.trim();
-    const match = trimmed.match(/\{[\s\S]*\}/);
-    const jsonStr = match ? match[0] : trimmed;
+    const start = trimmed.indexOf('{');
+    const end = trimmed.lastIndexOf('}');
+    const jsonStr = start !== -1 && end > start ? trimmed.slice(start, end + 1) : trimmed;
     parsed = JSON.parse(jsonStr);
   } catch {
     return null;
