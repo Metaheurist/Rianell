@@ -24,11 +24,11 @@ jobs:
       security-events: write
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Restore Gitleaks binary
         id: gitleaks-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: gitleaks
           key: gitleaks-8.28.0-${{ runner.os }}-x64
@@ -76,7 +76,7 @@ jobs:
 
       - name: Restore OSV-Scanner binary
         id: osv-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: osv-scanner
           key: osv-scanner-2.3.5-${{ runner.os }}-amd64
@@ -107,7 +107,7 @@ jobs:
           category: osv-scanner
 
       - name: Cache npx downloads
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.npm/_npx
           key: npx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -145,7 +145,7 @@ jobs:
 
       - name: Cancel workflow on failure
         if: failure() && (steps.gitleaks.outcome == 'failure' || steps.npm-audit-prod.outcome == 'failure' || steps.pip-audit.outcome == 'failure')
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             core.info('Gate job failed — cancelling workflow run.');

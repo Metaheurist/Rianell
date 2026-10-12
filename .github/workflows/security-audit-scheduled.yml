@@ -15,13 +15,13 @@ jobs:
     name: Gitleaks history scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Restore Gitleaks binary
         id: gitleaks-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: gitleaks
           key: gitleaks-8.28.0-${{ runner.os }}-x64
@@ -41,7 +41,7 @@ jobs:
     name: npm audit (full tree, report only)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - name: npm audit (dev included)
         continue-on-error: true
@@ -51,7 +51,7 @@ jobs:
     name: Live CSP drift (non-blocking)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - name: Live CSP connect-src check
         continue-on-error: true

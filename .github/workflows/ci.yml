@@ -60,7 +60,7 @@ jobs:
     outputs:
       release_build: ${{ steps.out.outputs.release_build }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -101,7 +101,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-node-ci
 
@@ -184,7 +184,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - name: Agentic unit tests
         run: node --test --test-concurrency=1 --test-force-exit tests/unit/agentic-*.test.mjs
@@ -202,7 +202,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - name: Validate model catalog + run-all order
         run: |
@@ -225,7 +225,7 @@ jobs:
       AGENTIC_SMOKE_MODEL: smollm:135m
       OLLAMA_HOST: http://127.0.0.1:11434
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - name: Install Ollama
         run: |
@@ -261,7 +261,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - name: Agentic pipeline dry-run (16 packs)
         run: npm run agentic:run-all -- --dry-run
@@ -278,7 +278,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           lfs: true
@@ -431,7 +431,7 @@ jobs:
     # Lighthouse against the PWA can stall on network-quiet; fail the job instead of hanging the workflow.
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-node-ci
 
@@ -482,7 +482,7 @@ jobs:
       id-token: write
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           lfs: true
 
@@ -537,12 +537,12 @@ jobs:
       matrix:
         arch: [x64, x86]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           architecture: ${{ matrix.arch }}
@@ -553,7 +553,7 @@ jobs:
             .github/ci-pip-audit-tools.txt
 
       - name: Cache PyInstaller build cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~\AppData\Local\pyinstaller
@@ -567,7 +567,7 @@ jobs:
           python -m pip install -r .github/ci-pip-extras.txt
 
       - name: Cache UPX (Chocolatey)
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: upx-cache
         with:
           path: |
@@ -653,7 +653,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -685,7 +685,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -725,7 +725,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - uses: ./.github/actions/install-playwright-chromium
       - uses: ./.github/actions/setup-python-ci
@@ -761,7 +761,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
       - uses: ./.github/actions/install-playwright-chromium
       - uses: ./.github/actions/setup-python-ci
@@ -818,7 +818,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: ZAP full scan (retry on cold cache)
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         with:
@@ -847,7 +847,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-node-ci
 
@@ -931,7 +931,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-node-ci
 
@@ -1023,7 +1023,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -1063,7 +1063,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -1129,7 +1129,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Download Server EXE binaries
         uses: actions/download-artifact@v8
@@ -1225,7 +1225,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -1269,7 +1269,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
