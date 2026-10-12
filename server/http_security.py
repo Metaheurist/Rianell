@@ -22,6 +22,9 @@ _HEALTH_TERM_RE = re.compile(
 )
 _LONG_NUMBER_RE = re.compile(r'\b\d{4,}\b')
 
+# scheme://host[:port] only, so an echoed Origin can never carry CR/LF or a path.
+_ORIGIN_RE = re.compile(r'https?://[A-Za-z0-9.\-]+(?::\d{1,5})?|https?://\[[0-9A-Fa-f:]+\](?::\d{1,5})?')
+
 
 def scrub_health_terms(text: str) -> str:
     """Redact likely health/screening values from a free-text error string."""
@@ -92,6 +95,8 @@ def cors_allow_origin_value(
     """
     if not origin:
         return None
+    if not _ORIGIN_RE.fullmatch(origin):
+        return "null"
     allowed = (
         f"http://localhost:{port}",
         f"http://127.0.0.1:{port}",

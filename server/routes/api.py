@@ -449,7 +449,7 @@ class ApiRoutesMixin:
 
                 parts = [p for p in rel.split('/') if p]
                 if len(parts) >= 1 and parts[0] in agentic_console.PACK_IDS:
-                    pack = parts[0]
+                    pack = agentic_console.PACK_IDS[agentic_console.PACK_IDS.index(parts[0])]
                     action = parts[1] if len(parts) > 1 else 'status'
                     if method == 'GET' and pack == 'visual' and action == 'live':
                         self._agentic_json(200, agentic_console.envelope(
@@ -469,7 +469,11 @@ class ApiRoutesMixin:
                         ))
                         return
                     if method == 'GET' and action == 'report':
-                        rp = Path(agentic_console.REPO_ROOT) / 'artifacts' / 'agentic' / pack / 'report.json'
+                        reports_root = (Path(agentic_console.REPO_ROOT) / 'artifacts' / 'agentic').resolve()
+                        rp = (reports_root / pack / 'report.json').resolve()
+                        if not rp.is_relative_to(reports_root):
+                            self._agentic_json(400, agentic_console.envelope(False, None, 'invalid pack', pack))
+                            return
                         data = json.loads(rp.read_text(encoding='utf-8')) if rp.is_file() else None
                         self._agentic_json(200, agentic_console.envelope(True, data, None, pack))
                         return
