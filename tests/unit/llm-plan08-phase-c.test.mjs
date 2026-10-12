@@ -17,6 +17,13 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
+function referencesHost(src, host) {
+  return src
+    .split(/[^A-Za-z0-9.-]+/)
+    .map((token) => token.replace(/^\.+|\.+$/g, '').toLowerCase())
+    .some((token) => token === host || token.endsWith(`.${host}`));
+}
+
 test('validateRemoteLlmEndpoint blocks commercial APIs', () => {
   assert.equal(validateRemoteLlmEndpoint('').allowed, true);
   assert.equal(validateRemoteLlmEndpoint('https://api.openai.com/v1/chat/completions').allowed, false);
@@ -45,7 +52,7 @@ test('summary-llm blocks commercial LLM hosts and respects local-only mode', () 
   const src = readFileSync(join(root, 'apps/pwa-webapp/summary-llm.js'), 'utf8');
   assert.ok(src.includes('isLlmNetworkAllowed'));
   assert.ok(src.includes('localOnlyMode'));
-  assert.ok(!src.includes('api.openai.com'));
+  assert.ok(!referencesHost(src, 'api.openai.com'));
   assert.ok(src.includes('isPwaOnDeviceLlmOnly'));
   for (const re of BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS) {
     assert.ok(!re.test(src), `summary-llm must not reference ${re}`);

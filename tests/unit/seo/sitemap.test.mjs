@@ -89,5 +89,9 @@ test('committed sitemap.xml is up to date (ignoring lastmod dates)', () => {
 
 test('robots.txt references the sitemap URL', () => {
   const robots = fs.readFileSync(path.join(webRoot, 'robots.txt'), 'utf8');
-  assert.match(robots, /Sitemap:\s*https:\/\/rianell\.com\/sitemap\.xml/);
+  const sitemapUrls = [...robots.matchAll(/^Sitemap:[ \t]*(\S+)[ \t]*$/gim)].map((m) => new URL(m[1]));
+  assert.ok(
+    sitemapUrls.some((u) => u.protocol === 'https:' && u.hostname === 'rianell.com' && u.pathname === '/sitemap.xml'),
+    'robots.txt must reference https://rianell.com/sitemap.xml',
+  );
 });

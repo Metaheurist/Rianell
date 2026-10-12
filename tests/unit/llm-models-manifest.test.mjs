@@ -9,6 +9,8 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const manifestPath = path.join(__dirname, '..', '..', 'apps', 'pwa-webapp', 'models', 'manifest.json');
 
+const escapeRegExp = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 test('llm models manifest lists the small, large and wasm packages at pinned revisions', () => {
   assert.ok(fs.existsSync(manifestPath), 'manifest.json must exist');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -18,7 +20,7 @@ test('llm models manifest lists the small, large and wasm packages at pinned rev
     assert.ok(model.sourceRepo, `${model.id} needs sourceRepo`);
     assert.match(model.revision, /^[0-9a-f]{40}$/, `${model.id} revision must be a commit SHA`);
     assert.ok(
-      new RegExp(`id:\\s*'${model.id.replace(/[.]/g, '\\.')}',\\s*revision:\\s*'${model.revision}'`).test(summaryLlm),
+      new RegExp(`id:\\s*'${escapeRegExp(model.id)}',\\s*revision:\\s*'${escapeRegExp(model.revision)}'`).test(summaryLlm),
       `${model.id}@${model.revision} must match LLM_PACKAGES in summary-llm.js`,
     );
     assert.ok(Array.isArray(model.files) && model.files.length > 0, `${model.id} needs files`);

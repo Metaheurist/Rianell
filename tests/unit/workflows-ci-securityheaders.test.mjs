@@ -9,7 +9,17 @@ test('CI includes Security Headers report job after deploy and boot audit', () =
   assert.match(ciYml, /needs:\s*\[[^\]]*deploy-pages[^\]]*\]/m);
   assert.match(ciYml, /needs:\s*\[[^\]]*audit-boot-post-deploy[^\]]*\]/m);
   assert.match(ciYml, /fetch-securityheaders-report\.mjs/);
-  assert.match(ciYml, /securityheaders\.com\/\?q=rianell\.com/);
+  const urls = [...ciYml.matchAll(/https?:\/\/[^\s'"]+/g)].flatMap((m) => {
+    try {
+      return [new URL(m[0])];
+    } catch {
+      return [];
+    }
+  });
+  assert.ok(
+    urls.some((u) => u.hostname === 'securityheaders.com' && u.searchParams.get('q') === 'rianell.com'),
+    'CI must scan securityheaders.com with q=rianell.com',
+  );
   assert.match(ciYml, /security\/securityheaders-rianell\.com\.md/);
   assert.match(ciYml, /security\/securityheaders-runs\/run-/);
   assert.match(ciYml, /SECURITY_HEADERS_FALLBACK_SITE:\s*https:\/\/rianell\.com/);

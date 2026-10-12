@@ -17,23 +17,17 @@ async function loadStatusModuleWithTempQa(tmpQa) {
     path.join('scripts/dev/visual-polish-qa-status.mjs'),
     'utf8',
   );
-  const patched = src
-    .replace(
-      /export const QA_ROOT = path\.join\(root, 'artifacts\/visual-gen\/qa'\);/,
-      `export const QA_ROOT = ${JSON.stringify(tmpQa)};`,
-    )
-    .replace(
-      /export const QA_PROGRESS_PATH = path\.join\(QA_ROOT, 'progress\.json'\);/,
-      'export const QA_PROGRESS_PATH = path.join(QA_ROOT, \'progress.json\');',
-    )
-    .replace(
-      /export const QA_REPORT_PATH = path\.join\(QA_ROOT, 'report\.json'\);/,
-      'export const QA_REPORT_PATH = path.join(QA_ROOT, \'report.json\');',
-    )
-    .replace(
-      /export const QA_BROKEN_PATH = path\.join\(QA_ROOT, 'broken\.json'\);/,
-      'export const QA_BROKEN_PATH = path.join(QA_ROOT, \'broken.json\');',
+  const patched = src.replace(
+    /export const QA_ROOT = path\.join\(root, 'artifacts\/visual-gen\/qa'\);/,
+    `export const QA_ROOT = ${JSON.stringify(tmpQa)};`,
+  );
+  assert.notEqual(patched, src, 'QA_ROOT declaration not found in visual-polish-qa-status.mjs');
+  for (const name of ['progress', 'report', 'broken']) {
+    assert.ok(
+      patched.includes(`path.join(QA_ROOT, '${name}.json')`),
+      `QA ${name}.json path must derive from QA_ROOT so the temp root applies`,
     );
+  }
   const modPath = path.join(tmpQa, `_qa-status-${Date.now()}.mjs`);
   fs.mkdirSync(tmpQa, { recursive: true });
   fs.writeFileSync(modPath, patched);
