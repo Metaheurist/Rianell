@@ -439,8 +439,10 @@
           if (!href) continue;
           var isLocal = href.startsWith(window.location.origin) || href.startsWith('/') || href.startsWith('data:');
           if (isLocal) continue;
+          var host = '';
+          try { host = new URL(href, window.location.href).hostname.toLowerCase(); } catch (e) {}
           if (
-            href.indexOf('rokt.com') !== -1 ||
+            host === 'rokt.com' || host.endsWith('.rokt.com') ||
             href.indexOf('extension://') !== -1 ||
             href.indexOf('chrome-extension://') !== -1 ||
             href.indexOf('moz-extension://') !== -1
@@ -5210,7 +5212,7 @@
   <script defer src="performance-utils.js"></script>
   <script defer src="modules/hold-repeat.js?v=1"></script>
   <script defer src="modules/segmented-scale-input.js?v=1"></script>
-  <script defer src="modules/log-metric-widgets.js?v=16"></script>
+  <script defer src="modules/log-metric-widgets.js?v=17"></script>
   <script defer src="modules/main-thread-governor.js?v=1"></script>
   <script defer src="ui-feedback.js?v=5"></script>
   <script defer src="modules/oasis-canvas.js"></script>
@@ -5224,7 +5226,7 @@
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
       function loadSummaryLlm() {
-        Perf.lazyLoadScript('summary-llm.js?v=9').catch(function () {});
+        Perf.lazyLoadScript('summary-llm.js?v=10').catch(function () {});
       }
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(loadSummaryLlm, { timeout: 2800 });
@@ -5244,7 +5246,7 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=17"></script>
+  <script defer src="vendor/rianell-shared.js?v=18"></script>
   <script defer src="modules/graphics-portfolio.js?v=7"></script>
   <script defer src="modules/app-lock.js?v=5"></script>
   <script defer src="modules/cycle-tracking-ui.js?v=5"></script>
@@ -5259,7 +5261,7 @@
   <script defer src="modules/share-modal.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=4"></script>
   <script defer src="privacy-region.js?v=10"></script>
-  <script defer src="guided-onboarding.js?v=6"></script>
+  <script defer src="guided-onboarding.js?v=7"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
   <script type="module" defer src="app.js?v=72"></script>
@@ -5267,7 +5269,7 @@
   <script defer src="encryption-utils.js"></script>
   <script defer src="modules/goals-carousel.js?v=8"></script>
   <script defer src="achievements-sync.js?v=1"></script>
-  <script defer src="cloud-sync.js?v=2"></script>
+  <script defer src="cloud-sync.js?v=3"></script>
   <script>
     (function() {
       function loadFontAwesome() {

@@ -39,7 +39,7 @@
   var WEBGPU_CACHE_TTL_MS = 86400000;
   var GPU_PIPELINE_FAIL_KEY = 'rianell.llm.gpuPipelineFail';
   // Cache Storage / IndexedDB names of the removed WebLLM (MLC) engine.
-  var LEGACY_ENGINE_STORE_RE = /^webllm\/|tvmjs/i;
+  var LEGACY_ENGINE_STORE_RE = /^(?:webllm\/|.*tvmjs)/i;
   var LEGACY_PURGE_KEY = 'rianell.llm.legacyPurge';
   var LEGACY_PURGE_VERSION = '2026-10-models';
   var MAX_SUMMARY_CACHE = 8;
@@ -664,9 +664,10 @@
   function getAppOriginBase() {
     if (typeof window === 'undefined' || !window.location) return '/';
     var origin = window.location.origin || '';
+    var hostname = String(window.location.hostname || '').toLowerCase();
     var pathname = window.location.pathname || '/';
     var base = '';
-    if (origin.indexOf('.github.io') !== -1) {
+    if (hostname.endsWith('.github.io')) {
       var parts = pathname.split('/').filter(Boolean);
       if (parts.length > 0 && parts[0].indexOf('.') === -1) {
         base = '/' + parts[0];

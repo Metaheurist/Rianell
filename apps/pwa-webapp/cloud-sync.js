@@ -83,6 +83,16 @@ async function poolConditionStorageKey(plainCondition) {
   return text;
 }
 
+/** Condition component of local sync keys: a SHA-256 hex digest, never the plain label. */
+async function syncKeyConditionToken(plainCondition) {
+  const pooled = await poolConditionStorageKey(plainCondition);
+  if (/^[0-9a-f]{64}$/.test(pooled)) return pooled;
+  const text = String(plainCondition || '').trim().toLowerCase();
+  if (!text) return '';
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`rianell-sync-key:${text}`));
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 /**
  * Sync anonymized health logs to Supabase
  * Only syncs logs that haven't been synced yet
@@ -180,6 +190,7 @@ async function syncAnonymizedData() {
     
     console.log(`[syncAnonymizedData] Medical condition: ${medicalCondition}`);
     const conditionStorageKey = await poolConditionStorageKey(medicalCondition);
+    const conditionKeyToken = await syncKeyConditionToken(medicalCondition);
     console.log(`[syncAnonymizedData] Synced dates count: ${syncedDates.length}`);
     console.log(`[syncAnonymizedData] Synced keys count: ${syncedKeys.length}`);
     if (syncedKeys.length > 0) {
@@ -265,19 +276,21 @@ async function syncAnonymizedData() {
     const keysToRemove = [];
     const keysToKeep = [];
     const staleDates = new Set(); // Dates that were synced but deleted from Supabase
+    let migratedLegacyKeys = false;
     
     for (const syncKey of syncedKeys) {
-      // Extract date from sync key (format: "YYYY-MM-DD_condition")
+      // Extract date from sync key (format: "YYYY-MM-DD_<condition token>"; legacy keys used the plain label)
       const parts = syncKey.split('_');
       if (parts.length >= 2) {
         const date = parts.slice(0, -1).join('_'); // Handle dates with underscores
         const keyCondition = parts[parts.length - 1];
         
         // Only check keys for the current condition
-        if (keyCondition === medicalCondition) {
+        if (keyCondition === conditionKeyToken || keyCondition === medicalCondition) {
+          if (keyCondition !== conditionKeyToken) migratedLegacyKeys = true;
           if (existingDatesInSupabase.has(date)) {
             // Date exists in Supabase, keep the key
-            keysToKeep.push(syncKey);
+            keysToKeep.push(`${date}_${conditionKeyToken}`);
           } else {
             // Date is marked as synced but doesn't exist in Supabase - remove it and mark as stale
             console.log(`[syncAnonymizedData] Removing stale sync key for date ${date} (not found in Supabase)`);
@@ -306,7 +319,7 @@ async function syncAnonymizedData() {
     }
     
     // Update localStorage with cleaned sync keys and dates
-    if (keysToRemove.length > 0 || datesToKeep.length !== syncedDates.length) {
+    if (keysToRemove.length > 0 || migratedLegacyKeys || datesToKeep.length !== syncedDates.length) {
       localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(keysToKeep));
       localStorage.setItem('anonymizedDataSyncedDates', JSON.stringify(datesToKeep));
       console.log(`[syncAnonymizedData] Cleaned up ${keysToRemove.length} stale sync key(s) and ${syncedDates.length - datesToKeep.length} stale date(s)`);
@@ -332,7 +345,7 @@ async function syncAnonymizedData() {
         // Date exists in Supabase, mark as synced locally if not already
         // CRITICAL: Only mark as synced if this log actually exists in localStorage
         // This prevents ghost entries from Supabase being marked as synced
-        const syncKey = `${log.date}_${medicalCondition}`;
+        const syncKey = `${log.date}_${conditionKeyToken}`;
         if (!syncedKeysSet.has(syncKey) && !syncedDatesSet.has(log.date)) {
           // Verify this date is actually in localStorage before marking as synced
           if (logDatesInLocalStorage.has(log.date)) {
@@ -356,7 +369,7 @@ async function syncAnonymizedData() {
       }
       
       // Check if it's currently marked as synced locally (shouldn't happen after cleanup, but check anyway)
-      const syncKey = `${log.date}_${medicalCondition}`;
+      const syncKey = `${log.date}_${conditionKeyToken}`;
       const wasSyncedLocally = syncedKeysSet.has(syncKey) || syncedDatesSet.has(log.date);
       
       if (wasSyncedLocally) {
@@ -479,7 +492,7 @@ async function syncAnonymizedData() {
           
           // Track dates and keys for this batch (will only be added if insert succeeds)
           batchDates.push(log.date);
-          batchKeys.push(`${log.date}_${medicalCondition}`);
+          batchKeys.push(`${log.date}_${conditionKeyToken}`);
         } catch (error) {
           // Use safe error logging to prevent information leakage
           if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
@@ -2734,14 +2747,17 @@ async function submitBugReportToSupabase(payload) {
  * Clear synced keys for a condition (for debugging/re-syncing)
  * @param {string} condition - Medical condition to clear keys for (optional, clears all if not provided)
  */
-function clearSyncedKeys(condition = null) {
+async function clearSyncedKeys(condition = null) {
   if (condition) {
     const syncedKeysJson = localStorage.getItem('anonymizedDataSyncedKeys');
     if (syncedKeysJson) {
+      const token = await syncKeyConditionToken(condition);
       const syncedKeys = JSON.parse(syncedKeysJson);
-      const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
+      const filteredKeys = syncedKeys.filter(
+        key => !(token && key.endsWith(`_${token}`)) && !key.endsWith(`_${condition}`),
+      );
       localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
-      console.log(`[clearSyncedKeys] Cleared synced keys for condition: ${condition}`);
+      console.log(`[clearSyncedKeys] Cleared ${syncedKeys.length - filteredKeys.length} synced key(s)`);
     }
   } else {
     localStorage.removeItem('anonymizedDataSyncedKeys');

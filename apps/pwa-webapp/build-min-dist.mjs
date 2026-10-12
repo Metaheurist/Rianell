@@ -14,7 +14,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, '..', '..');
 
 function rmrf(dir) {
-  if (!fs.existsSync(dir)) return;
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
@@ -35,7 +34,6 @@ function isPreMinifiedJs(name) {
 
 function loadManifestMainJs(webRoot) {
   const p = path.join(webRoot, 'asset-manifest.json');
-  if (!fs.existsSync(p)) return 'app.min.js';
   try {
     const m = JSON.parse(fs.readFileSync(p, 'utf8'));
     if (m.mainJs && typeof m.mainJs === 'string') return m.mainJs;
@@ -59,9 +57,14 @@ export async function buildMinDistBundle(webRoot) {
 
   let stylesPrepared = null;
   const stylesPath = path.join(webRoot, 'styles.css');
-  if (fs.existsSync(stylesPath)) {
-    const code = fs.readFileSync(stylesPath, 'utf8');
-    const r = await esbuild.transform(code, {
+  let stylesCode = null;
+  try {
+    stylesCode = fs.readFileSync(stylesPath, 'utf8');
+  } catch (e) {
+    if (!e || e.code !== 'ENOENT') throw e;
+  }
+  if (stylesCode !== null) {
+    const r = await esbuild.transform(stylesCode, {
       loader: 'css',
       minify: true,
     });
@@ -102,15 +105,20 @@ export async function buildMinDistBundle(webRoot) {
 
   async function walk(rel = '') {
     const dir = path.join(webRoot, rel);
-    if (!fs.existsSync(dir)) return;
-    const names = fs.readdirSync(dir);
-    for (const name of names) {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (e) {
+      if (e && e.code === 'ENOENT') return;
+      throw e;
+    }
+    for (const entry of entries) {
+      const name = entry.name;
       if (SKIP_DIRS.has(name)) continue;
       if (SKIP_FILES.has(name)) continue;
       const abs = path.join(dir, name);
-      const st = fs.statSync(abs);
       const relP = rel ? path.join(rel, name) : name;
-      if (st.isDirectory()) {
+      if (entry.isDirectory()) {
         await walk(relP);
         continue;
       }
