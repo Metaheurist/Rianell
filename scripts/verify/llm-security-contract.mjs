@@ -205,11 +205,36 @@ for (const key of ['ai.chat.blockedOffTopic', 'ai.chat.blockedUnsafe']) {
   }
 }
 
-const csp = read('apps/pwa-webapp/index.html');
-if (!/connect-src[^;]*huggingface\.co/i.test(csp)) {
+function metaCspDirectives(html) {
+  const directives = new Map();
+  const tag = html.match(/<meta\b[^>]*http-equiv\s*=\s*["']Content-Security-Policy["'][^>]*>/i);
+  const content = tag && tag[0].match(/\bcontent\s*=\s*"([^"]*)"/i);
+  if (!content) return directives;
+  for (const part of content[1].split(';')) {
+    const [name, ...sources] = part.trim().split(/\s+/);
+    if (name) directives.set(name.toLowerCase(), sources);
+  }
+  return directives;
+}
+
+function cspSourceAllowsHost(source, host) {
+  try {
+    return new URL(source).hostname.toLowerCase() === host;
+  } catch {
+    return false;
+  }
+}
+
+function cspAllowsHost(directives, host, directiveName) {
+  const lists = directiveName ? [directives.get(directiveName) || []] : [...directives.values()];
+  return lists.some((sources) => sources.some((src) => cspSourceAllowsHost(src, host)));
+}
+
+const cspDirectives = metaCspDirectives(read('apps/pwa-webapp/index.html'));
+if (!cspAllowsHost(cspDirectives, 'huggingface.co', 'connect-src')) {
   errors.push('index.html CSP connect-src must allow huggingface.co');
 }
-if (!/cdn\.jsdelivr\.net/i.test(csp)) {
+if (!cspAllowsHost(cspDirectives, 'cdn.jsdelivr.net')) {
   errors.push('index.html CSP must allow cdn.jsdelivr.net for Transformers.js CDN fallback');
 }
 

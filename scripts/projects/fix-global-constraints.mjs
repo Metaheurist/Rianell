@@ -8,8 +8,13 @@ const correctMobile = `- **Mobile + desktop** — PWA + RN parity, responsive, m
 
 for (const dir of fs.readdirSync(projects)) {
   const planPath = path.join(projects, dir, 'plan.md');
-  if (!fs.existsSync(planPath)) continue;
-  let text = fs.readFileSync(planPath, 'utf8');
+  let text;
+  try {
+    text = fs.readFileSync(planPath, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT' || e.code === 'ENOTDIR') continue;
+    throw e;
+  }
   let fixed = text.replace(
     /- \*\*Free tier only\*\* [\u2014\uFFFD?] no paid APIs\. See \[FREE-TIER-POLICY\.md\]\(\.\.\/FREE-TIER-POLICY\.md\)\./g,
     correctFree

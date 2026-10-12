@@ -1,13 +1,17 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const runId = process.argv[2] || process.env.GH_RUN_ID;
 if (!runId) {
   console.error('Usage: node scripts/ci/watch-deploy-cancel-rest.mjs <run-id>');
   process.exit(1);
 }
+if (!/^\d+$/.test(runId)) {
+  console.error(`Invalid run id: ${runId} (expected a numeric GitHub Actions run id)`);
+  process.exit(1);
+}
 
 function ghJson(args) {
-  const out = execSync(`gh ${args}`, { encoding: 'utf8' });
+  const out = execFileSync('gh', args, { encoding: 'utf8' });
   return JSON.parse(out);
 }
 
@@ -21,14 +25,14 @@ function jobLine(jobs) {
 console.log(`Watching run ${runId} for Deploy to GitHub Pages...`);
 
 for (let i = 0; i < 80; i++) {
-  const data = ghJson(`run view ${runId} --json jobs,status,conclusion`);
+  const data = ghJson(['run', 'view', runId, '--json', 'jobs,status,conclusion']);
   const deploy = data.jobs.find((j) => j.name === 'Deploy to GitHub Pages');
   console.log(new Date().toISOString().slice(11, 19), jobLine(data.jobs));
 
   if (deploy?.conclusion === 'success') {
     console.log('Deploy succeeded — cancelling remaining jobs to save credits.');
     try {
-      execSync(`gh run cancel ${runId}`, { stdio: 'inherit' });
+      execFileSync('gh', ['run', 'cancel', runId], { stdio: 'inherit' });
       console.log('Run cancelled.');
     } catch (e) {
       console.log('Cancel returned non-zero (run may already be finishing):', e.message);

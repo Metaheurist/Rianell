@@ -19,14 +19,29 @@ function gzipSize(buf) {
   return zlib.gzipSync(buf).length;
 }
 
+function readFileIfExists(file, encoding) {
+  try {
+    return fs.readFileSync(file, encoding);
+  } catch (e) {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  }
+}
+
 function scanDir(dir, exts, out) {
-  if (!fs.existsSync(dir)) return;
-  for (const name of fs.readdirSync(dir)) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (e) {
+    if (e.code === 'ENOENT') return;
+    throw e;
+  }
+  for (const entry of entries) {
+    const name = entry.name;
     const full = path.join(dir, name);
-    const st = fs.statSync(full);
-    if (st.isDirectory()) {
+    if (entry.isDirectory()) {
       scanDir(full, exts, out);
-    } else if (exts.some((e) => name.endsWith(e))) {
+    } else if (entry.isFile() && exts.some((e) => name.endsWith(e))) {
       const raw = fs.readFileSync(full);
       out.push({
         file: path.relative(root, full).replace(/\\/g, '/'),
@@ -77,13 +92,14 @@ console.log('  JS gzip total:', report.totals.jsGzipBytes, 'CSS gzip total:', re
 if (enforceBudget) {
   let failed = false;
   const manifestPath = path.join(distDir, 'asset-manifest.json');
-  if (fs.existsSync(manifestPath)) {
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const manifestRaw = readFileIfExists(manifestPath, 'utf8');
+  if (manifestRaw !== null) {
+    const manifest = JSON.parse(manifestRaw);
     const mainJs = manifest.mainJs;
     if (mainJs) {
-      const mainPath = path.join(distDir, mainJs);
-      if (fs.existsSync(mainPath)) {
-        const gz = gzipSize(fs.readFileSync(mainPath));
+      const mainBuf = readFileIfExists(path.join(distDir, mainJs));
+      if (mainBuf !== null) {
+        const gz = gzipSize(mainBuf);
         if (gz > MAIN_JS_GZIP_MAX) {
           console.error(`bundle-sizes: ${mainJs} gzip ${gz} exceeds budget ${MAIN_JS_GZIP_MAX}`);
           failed = true;
@@ -91,9 +107,9 @@ if (enforceBudget) {
       }
     }
   }
-  const vendorPath = path.join(distDir, 'vendor', 'rianell-ai-engine.js');
-  if (fs.existsSync(vendorPath)) {
-    const gz = gzipSize(fs.readFileSync(vendorPath));
+  const vendorBuf = readFileIfExists(path.join(distDir, 'vendor', 'rianell-ai-engine.js'));
+  if (vendorBuf !== null) {
+    const gz = gzipSize(vendorBuf);
     if (gz > VENDOR_JS_GZIP_MAX) {
       console.error(`bundle-sizes: vendor gzip ${gz} exceeds budget ${VENDOR_JS_GZIP_MAX}`);
       failed = true;

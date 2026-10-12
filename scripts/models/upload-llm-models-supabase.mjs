@@ -17,6 +17,7 @@ import {
   planFileChunks,
   normalizeModelFileEntries,
 } from '../../packages/llm/src/chunks.mjs';
+import { assertBucketName, assertModelFilePath, assertModelRef, assertStorageBaseUrl } from './model-ref.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '../..');
@@ -46,8 +47,13 @@ function parseArgs(argv) {
 
 function loadSecurityEnv() {
   const envPath = path.join(ROOT, 'security', '.env');
-  if (!fs.existsSync(envPath)) return;
-  const text = fs.readFileSync(envPath, 'utf8');
+  let text;
+  try {
+    text = fs.readFileSync(envPath, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') return;
+    throw e;
+  }
   for (const line of text.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
@@ -70,7 +76,7 @@ function filterModels(models, arg) {
 }
 
 function storagePath(modelId, revision, file) {
-  return `models/${modelId}/resolve/${revision}/${file.replace(/\\/g, '/')}`;
+  return `models/${modelId}/resolve/${revision}/${assertModelFilePath(file.replace(/\\/g, '/'))}`;
 }
 
 function guessContentType(file) {
@@ -105,37 +111,37 @@ async function uploadBuffer(client, bucket, objectPath, buffer) {
   return buffer.byteLength;
 }
 
-async function uploadFile(client, bucket, objectPath, localPath) {
-  const buffer = fs.readFileSync(localPath);
-  return uploadBuffer(client, bucket, objectPath, buffer);
-}
-
 async function uploadLogicalFile(client, bucket, modelId, revision, logicalPath, publicBase, chunkByteLimit, force, opaqueChunks, packIndex) {
   const local = localModelPath(modelId, revision, logicalPath);
-  if (!fs.existsSync(local)) {
-    throw new Error(`Missing local file ${local}`);
-  }
-  const size = fs.statSync(local).size;
-  const plan = planFileChunks(size, chunkByteLimit);
-  const objectPath = storagePath(modelId, revision, logicalPath);
-
-  if (!plan.chunks) {
-    if (!force) {
-      const remote = await remoteObjectSize(publicBase, objectPath);
-      if (remote === size) {
-        console.log(`  skip ${objectPath} (${(size / (1024 * 1024)).toFixed(1)} MB)`);
-        return { path: logicalPath, sizeBytes: size, chunks: null };
-      }
-    }
-    process.stdout.write(`  ${objectPath} (${(size / (1024 * 1024)).toFixed(1)} MB) … `);
-    await uploadFile(client, bucket, objectPath, local);
-    console.log('ok');
-    return { path: logicalPath, sizeBytes: size, chunks: null };
-  }
-
-  const chunkRelPaths = [];
-  const fd = fs.openSync(local, 'r');
+  let fd;
   try {
+    fd = fs.openSync(local, 'r');
+  } catch (e) {
+    if (e.code === 'ENOENT') throw new Error(`Missing local file ${local}`);
+    throw e;
+  }
+  try {
+    const size = fs.fstatSync(fd).size;
+    const plan = planFileChunks(size, chunkByteLimit);
+    const objectPath = storagePath(modelId, revision, logicalPath);
+
+    if (!plan.chunks) {
+      if (!force) {
+        const remote = await remoteObjectSize(publicBase, objectPath);
+        if (remote === size) {
+          console.log(`  skip ${objectPath} (${(size / (1024 * 1024)).toFixed(1)} MB)`);
+          return { path: logicalPath, sizeBytes: size, chunks: null };
+        }
+      }
+      process.stdout.write(`  ${objectPath} (${(size / (1024 * 1024)).toFixed(1)} MB) … `);
+      const buffer = Buffer.alloc(size);
+      fs.readSync(fd, buffer, 0, size, 0);
+      await uploadBuffer(client, bucket, objectPath, buffer);
+      console.log('ok');
+      return { path: logicalPath, sizeBytes: size, chunks: null };
+    }
+
+    const chunkRelPaths = [];
     for (const part of plan.chunks) {
       const chunkRel = chunkPartPath(logicalPath, part.index, opaqueChunks ? { opaque: true, packIndex } : {});
       const chunkObjectPath = storagePath(modelId, revision, chunkRel);
@@ -155,11 +161,11 @@ async function uploadLogicalFile(client, bucket, modelId, revision, logicalPath,
       await uploadBuffer(client, bucket, chunkObjectPath, buffer);
       console.log('ok');
     }
+
+    return { path: logicalPath, sizeBytes: size, chunks: chunkRelPaths };
   } finally {
     fs.closeSync(fd);
   }
-
-  return { path: logicalPath, sizeBytes: size, chunks: chunkRelPaths };
 }
 
 function buildManifestFileEntry(entry) {
@@ -169,27 +175,28 @@ function buildManifestFileEntry(entry) {
   return entry.path;
 }
 
+function unlinkIfExists(p) {
+  try {
+    fs.unlinkSync(p);
+    return true;
+  } catch (e) {
+    if (e.code === 'ENOENT') return false;
+    throw e;
+  }
+}
+
 function purgeLocalModelWeights(models) {
   let removed = 0;
   for (const model of models) {
     for (const entry of normalizeModelFileEntries(model)) {
-      const local = localModelPath(model.id, model.revision, entry.path);
-      if (fs.existsSync(local)) {
-        fs.unlinkSync(local);
-        removed += 1;
-      }
+      if (unlinkIfExists(localModelPath(model.id, model.revision, entry.path))) removed += 1;
       if (entry.chunks) {
         for (const chunk of entry.chunks) {
-          const chunkLocal = localModelPath(model.id, model.revision, chunk);
-          if (fs.existsSync(chunkLocal)) {
-            fs.unlinkSync(chunkLocal);
-            removed += 1;
-          }
+          if (unlinkIfExists(localModelPath(model.id, model.revision, chunk))) removed += 1;
         }
       }
     }
-    const checksums = path.join(MODELS_ROOT, 'checksums.json');
-    if (fs.existsSync(checksums)) fs.unlinkSync(checksums);
+    unlinkIfExists(path.join(MODELS_ROOT, 'checksums.json'));
   }
   console.log(`[models:upload] Purged ${removed} local weight file(s) from ${MODELS_ROOT}`);
 }
@@ -208,14 +215,23 @@ async function main() {
       'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in security/.env (service role only — never ship to clients)'
     );
   }
-  if (!fs.existsSync(MANIFEST_PATH)) {
-    throw new Error(`Missing ${MANIFEST_PATH} — run npm run models:download first`);
+  const storageBase = assertStorageBaseUrl(url);
+  const bucketName = assertBucketName(args.bucket);
+  let manifestRaw;
+  try {
+    manifestRaw = fs.readFileSync(MANIFEST_PATH, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') throw new Error(`Missing ${MANIFEST_PATH} — run npm run models:download first`);
+    throw e;
   }
 
-  const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+  const manifest = JSON.parse(manifestRaw);
   const models = filterModels(manifest.models || [], args.model);
-  const client = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const publicBase = `${url.replace(/\/$/, '')}/storage/v1/object/public/${args.bucket}/`;
+  for (const model of models) {
+    assertModelRef(model, normalizeModelFileEntries(model).map((e) => e.path));
+  }
+  const client = createClient(storageBase, serviceKey, { auth: { persistSession: false } });
+  const publicBase = `${storageBase}/storage/v1/object/public/${bucketName}/`;
 
   console.log(`[models:upload] Bucket ${args.bucket} @ ${url}`);
   console.log(`[models:upload] Chunk limit ${(DEFAULT_CHUNK_BYTE_LIMIT / (1024 * 1024)).toFixed(0)} MB (Supabase free tier max 50 MB/object)`);
@@ -230,7 +246,7 @@ async function main() {
     for (const entry of fileEntries) {
       const result = await uploadLogicalFile(
         client,
-        args.bucket,
+        bucketName,
         model.id,
         model.revision,
         entry.path,
@@ -259,8 +275,9 @@ async function main() {
     models: [...otherModels, ...updatedModels],
   };
 
-  fs.writeFileSync(MANIFEST_PATH, `${JSON.stringify(nextManifest, null, 2)}\n`);
-  await uploadFile(client, args.bucket, 'models/manifest.json', MANIFEST_PATH);
+  const manifestText = `${JSON.stringify(nextManifest, null, 2)}\n`;
+  fs.writeFileSync(MANIFEST_PATH, manifestText);
+  await uploadBuffer(client, bucketName, 'models/manifest.json', Buffer.from(manifestText, 'utf8'));
   console.log('\n  uploaded models/manifest.json (with chunk metadata)');
 
   if (args.purgeLocal) {
