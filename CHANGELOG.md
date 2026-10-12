@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ## [Unreleased]
 
 ### Security
+- **Removed the deleted Supabase project from `index.html`:** the page preconnected to `tcoynycktablxankyriw.supabase.co` and listed it in the CSP `connect-src`. That project no longer exists in public DNS, so every visit spent a failed DNS lookup on it. The live backend comes from `supabase-config.js` at deploy time, and `https://*.supabase.co` in `connect-src` already allows any project. `docs/security-inventory.md` and `security/cloudflare-headers-recommended.md` updated to match.
 - **Dependency updates (Dependabot #89, #93–#96, #99, #105–#109 in one change):** `npm audit` goes from 4 high and 1 moderate to 0.
   - npm dev dependencies: `@playwright/test` ^1.62.1 (resolves 1.64.0), `esbuild` 0.28.2, `@babel/generator` / `@babel/traverse` ^7.29.8, `brace-expansion` ^5.0.12, `chrome-launcher` ^1.2.2.
   - Lockfile-only: `undici` 8.11.2, `browserslist` 4.29.3, `baseline-browser-mapping` 2.11.28, and `source-map-js` 1.2.2 (the remaining high finding, not in any PR).

@@ -23,7 +23,6 @@ See `requirements.txt` (scanned by pip-audit in CI).
 - https://rianell.com/he/
 - https://fonts.googleapis.com
 - https://fonts.gstatic.com
-- https://tcoynycktablxankyriw.supabase.co
 - https://cdn.jsdelivr.net
 - https://api.open-meteo.com
 - https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap
