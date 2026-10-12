@@ -47,7 +47,7 @@ if (hits.length) {
 // Supply-chain: third-party actions must use SHA pin OR approved major tag
 const ALLOW_TAG = /^@[vV]?\d+(\.\d+)?(\.\d+)?$/;
 const ALLOW_LOCAL = /^\.\//;
-const ALLOW_SHA = /@sha256:[0-9a-f]{64}$/i;
+const ALLOW_SHA = /@(?:sha256:[0-9a-f]{64}|[0-9a-f]{40})$/i;
 const pinHits = [];
 const usesRe = /uses:\s*([^\s#]+)/g;
 
