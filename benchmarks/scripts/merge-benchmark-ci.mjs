@@ -27,13 +27,11 @@ function runDedupeKey(run) {
 function mergeHistoryForSlug(slug, newRun) {
   const histPath = path.join(repoRoot, 'benchmarks', slug, 'history.json');
   let prev = [];
-  if (fs.existsSync(histPath)) {
-    try {
-      prev = JSON.parse(fs.readFileSync(histPath, 'utf8'));
-      if (!Array.isArray(prev)) prev = [];
-    } catch {
-      prev = [];
-    }
+  try {
+    prev = JSON.parse(fs.readFileSync(histPath, 'utf8'));
+    if (!Array.isArray(prev)) prev = [];
+  } catch {
+    prev = [];
   }
   const combined = [newRun, ...prev];
   const seen = new Set();
@@ -68,12 +66,16 @@ for (const name of ['web-pwa', 'github-pages']) {
 const SLUGS = ['web-pwa', 'github-pages'];
 for (const slug of SLUGS) {
   const latestRun = path.join(out, slug, 'latest.run.json');
-  if (!fs.existsSync(latestRun)) {
-    console.warn('merge-benchmark-ci: skipping history — no', latestRun);
+  let latestRaw;
+  try {
+    latestRaw = fs.readFileSync(latestRun, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') console.warn('merge-benchmark-ci: skipping history — no', latestRun);
+    else console.warn('merge-benchmark-ci: failed to merge history for', slug, e.message);
     continue;
   }
   try {
-    const newRun = JSON.parse(fs.readFileSync(latestRun, 'utf8'));
+    const newRun = JSON.parse(latestRaw);
     mergeHistoryForSlug(slug, newRun);
   } catch (e) {
     console.warn('merge-benchmark-ci: failed to merge history for', slug, e.message);

@@ -230,11 +230,9 @@ async function main() {
 
   let previousHash = null;
   const prevPath = PREVIOUS_REPORT;
-  if (fs.existsSync(prevPath)) {
-    try {
-      previousHash = JSON.parse(fs.readFileSync(prevPath, 'utf8')).deploy?.appHash;
-    } catch (_) {}
-  }
+  try {
+    previousHash = JSON.parse(fs.readFileSync(prevPath, 'utf8')).deploy?.appHash;
+  } catch (_) {}
 
   const deploy = await fetchDeployMeta(PROBE_URL);
   if (process.env.REQUIRE_DEPLOY_CHANGE === '1' && previousHash && deploy.appHash === previousHash) {

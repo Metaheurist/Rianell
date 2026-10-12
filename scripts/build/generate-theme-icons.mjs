@@ -72,9 +72,17 @@ function contentHash(buf, len = 10) {
 }
 
 /** Light SVGO-less minify */
+function stripComments(svg) {
+  let prev;
+  do {
+    prev = svg;
+    svg = svg.replace(/<!--[\s\S]*?-->/g, '');
+  } while (svg !== prev);
+  return svg;
+}
+
 function minifySvg(svg) {
-  return svg
-    .replace(/<!--[\s\S]*?-->/g, '')
+  return stripComments(svg)
     .replace(/>\s+</g, '><')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -290,12 +298,10 @@ fs.writeFileSync(path.join(assetsDir, 'icon-sprite-budget.json'), JSON.stringify
 
 const manifestPath = path.join(pwa, 'asset-manifest.json');
 let manifest = {};
-if (fs.existsSync(manifestPath)) {
-  try {
-    manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  } catch {
-    manifest = {};
-  }
+try {
+  manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+} catch {
+  manifest = {};
 }
 manifest.plainIconSprite = 'assets/icon-sprite-plain.svg';
 manifest.plainIconSpriteHash = plainHash;

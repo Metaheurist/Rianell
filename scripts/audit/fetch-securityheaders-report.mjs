@@ -53,22 +53,39 @@ const outLatest =
   path.join(process.cwd(), 'security', 'securityheaders-rianell.com.md');
 const outRun = process.env.OUT_RUN || '';
 
+function replaceUntilStable(s, re, replacement) {
+  let prev;
+  do {
+    prev = s;
+    s = s.replace(re, replacement);
+  } while (s !== prev);
+  return s;
+}
+
+function removeMarkup(html) {
+  const noTags = replaceUntilStable(html, /<[^<>]*>/g, '');
+  return noTags.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const ENTITY_KEEP = new Set(['&', '<', '>']);
+
+function decodeEntities(s) {
+  return s.replace(/&(nbsp|#\d+|#x[0-9a-f]+);/gi, (m, e) => {
+    if (e.toLowerCase() === 'nbsp') return ' ';
+    const code = e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : Number(e.slice(1));
+    const ch = String.fromCharCode(code);
+    return ENTITY_KEEP.has(ch) ? m : ch;
+  });
+}
+
 function stripTags(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
+  let s = replaceUntilStable(html, /<script\b[^>]*>[\s\S]*?<\/script\b[^>]*>/gi, '');
+  s = replaceUntilStable(s, /<style\b[^>]*>[\s\S]*?<\/style\b[^>]*>/gi, '');
+  s = s
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/p>/gi, '\n\n')
-    .replace(/<\/div>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) =>
-      String.fromCharCode(parseInt(h, 16))
-    )
+    .replace(/<\/div>/gi, '\n');
+  return decodeEntities(removeMarkup(s))
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -84,8 +101,7 @@ function anchorToMd(html) {
 }
 
 function cellToMd(cellHtml) {
-  let s = anchorToMd(cellHtml);
-  s = s.replace(/<[^>]+>/g, '');
+  let s = removeMarkup(anchorToMd(cellHtml));
   s = s.replace(/\s+/g, ' ').trim();
   return s;
 }
@@ -329,7 +345,7 @@ function headersMarkdownTable(headers) {
   const entries = [];
   headers.forEach((value, key) => entries.push([key, String(value)]));
   entries.sort((a, b) => a[0].localeCompare(b[0]));
-  const esc = (s) => String(s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  const esc = (s) => String(s).replace(/\\/g, '\\\\').replace(/\|/g, '\\|').replace(/\n/g, ' ');
   let out = '| Header | Value |\n| --- | --- |\n';
   for (const [k, v] of entries) {
     out += `| ${esc(k)} | ${esc(v)} |\n`;

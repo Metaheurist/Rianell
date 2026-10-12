@@ -14,8 +14,13 @@ const replacements = [
 
 for (const dir of fs.readdirSync(projects)) {
   const planPath = path.join(projects, dir, 'plan.md');
-  if (!fs.existsSync(planPath)) continue;
-  let text = fs.readFileSync(planPath, 'utf8');
+  let text;
+  try {
+    text = fs.readFileSync(planPath, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT' || e.code === 'ENOTDIR') continue;
+    throw e;
+  }
   let changed = false;
   for (const [from, to] of replacements) {
     if (text.includes(from)) {

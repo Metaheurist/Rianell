@@ -6,16 +6,36 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { normalizeModelFileEntries } from '../../packages/llm/src/chunks.mjs';
+import { assertBucketName, assertModelFilePath, assertModelRef, assertStorageBaseUrl } from './model-ref.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '../..');
 const MODELS_ROOT = path.join(ROOT, 'apps', 'pwa-webapp', 'models');
 const MANIFEST_PATH = path.join(MODELS_ROOT, 'manifest.json');
 
+function readIfExists(p) {
+  try {
+    return fs.readFileSync(p, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  }
+}
+
+function localFileSize(p) {
+  try {
+    return fs.statSync(p).size;
+  } catch (e) {
+    if (e.code === 'ENOENT') return 0;
+    throw e;
+  }
+}
+
 function loadSecurityEnv() {
   const envPath = path.join(ROOT, 'security', '.env');
-  if (!fs.existsSync(envPath)) return;
-  for (const line of fs.readFileSync(envPath, 'utf8').split(/\r?\n/)) {
+  const text = readIfExists(envPath);
+  if (text === null) return;
+  for (const line of text.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('#')) continue;
     const eq = trimmed.indexOf('=');
@@ -41,29 +61,33 @@ async function remoteHead(url) {
 }
 
 async function main() {
-  if (!fs.existsSync(MANIFEST_PATH)) {
+  const manifestRaw = readIfExists(MANIFEST_PATH);
+  if (manifestRaw === null) {
     console.error('[verify-llm-models] Missing manifest.json');
     process.exit(1);
   }
-  const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+  const manifest = JSON.parse(manifestRaw);
   loadSecurityEnv();
   const supabaseUrl = process.env.SUPABASE_URL || '';
-  const bucket = process.env.MODELS_STORAGE_BUCKET || 'llm-models';
+  const bucket = assertBucketName(process.env.MODELS_STORAGE_BUCKET || 'llm-models');
   const publicBase = supabaseUrl
-    ? `${supabaseUrl.replace(/\/$/, '')}/storage/v1/object/public/${bucket}/`
+    ? `${assertStorageBaseUrl(supabaseUrl)}/storage/v1/object/public/${bucket}/`
     : '';
 
   let missingLocal = 0;
   let missingRemote = 0;
 
   for (const model of manifest.models || []) {
-    for (const entry of normalizeModelFileEntries(model)) {
+    const entries = normalizeModelFileEntries(model);
+    assertModelRef(model, entries.map((e) => e.path));
+    for (const entry of entries) {
+      if (entry.chunks) entry.chunks.forEach(assertModelFilePath);
       const local = destPath(model.id, model.revision, entry.path);
-      const localOk = fs.existsSync(local) && fs.statSync(local).size > 0;
+      const size = localFileSize(local);
+      const localOk = size > 0;
 
       if (entry.chunks && entry.chunks.length) {
         if (localOk) {
-          const size = fs.statSync(local).size;
           if (entry.sizeBytes && size !== entry.sizeBytes) {
             console.error(`[verify-llm-models] size mismatch ${model.id}/${entry.path}`);
             missingLocal += 1;

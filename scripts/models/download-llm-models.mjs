@@ -12,6 +12,9 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { assertModelRef } from './model-ref.mjs';
+
+const HF_ORIGIN = 'https://huggingface.co';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '../..');
@@ -37,7 +40,9 @@ function hfHeaders() {
 }
 
 function resolveUrl(sourceRepo, revision, file) {
-  return `https://huggingface.co/${sourceRepo}/resolve/${revision}/${file}`;
+  const url = new URL(`/${sourceRepo}/resolve/${revision}/${file}`, HF_ORIGIN);
+  if (url.origin !== HF_ORIGIN) throw new Error(`Refusing non-Hugging Face URL: ${url.href}`);
+  return url.href;
 }
 
 function destPath(modelId, revision, file) {
@@ -76,10 +81,22 @@ async function downloadFile(url, dest, headers) {
   return written;
 }
 
+function sha256Buffer(buf) {
+  return crypto.createHash('sha256').update(buf).digest('hex');
+}
+
 function sha256File(filePath) {
-  const hash = crypto.createHash('sha256');
-  hash.update(fs.readFileSync(filePath));
-  return hash.digest('hex');
+  return sha256Buffer(fs.readFileSync(filePath));
+}
+
+function readNonEmptyFile(filePath) {
+  try {
+    const buf = fs.readFileSync(filePath);
+    return buf.length > 0 ? buf : null;
+  } catch (e) {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  }
 }
 
 function filterModels(models, arg) {
@@ -91,11 +108,19 @@ function filterModels(models, arg) {
 
 async function main() {
   const args = parseArgs(process.argv);
-  if (!fs.existsSync(MANIFEST_PATH)) {
-    throw new Error(`Missing manifest: ${MANIFEST_PATH}`);
+  let manifestRaw;
+  try {
+    manifestRaw = fs.readFileSync(MANIFEST_PATH, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') throw new Error(`Missing manifest: ${MANIFEST_PATH}`);
+    throw e;
   }
-  const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
+  const manifest = JSON.parse(manifestRaw);
   const models = filterModels(manifest.models || [], args.model);
+  for (const model of models) {
+    if (!Array.isArray(model.files)) throw new Error(`Model ${model.id}: files must be an array`);
+    assertModelRef(model, model.files);
+  }
   const headers = hfHeaders();
   const checksums = {};
 
@@ -108,9 +133,10 @@ async function main() {
     for (const file of model.files) {
       const url = resolveUrl(model.sourceRepo, model.revision, file);
       const dest = destPath(model.id, model.revision, file);
-      if (fs.existsSync(dest) && fs.statSync(dest).size > 0) {
+      const existing = readNonEmptyFile(dest);
+      if (existing) {
         console.log(`  skip (exists) ${file}`);
-        checksums[model.id].files[file] = sha256File(dest);
+        checksums[model.id].files[file] = sha256Buffer(existing);
         continue;
       }
       process.stdout.write(`  fetch ${file} … `);

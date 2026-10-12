@@ -60,6 +60,15 @@ function merge(base, override) {
   return override === null || override === undefined ? base : override;
 }
 
+function readIfExists(p) {
+  try {
+    return fs.readFileSync(p, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  }
+}
+
 function loadEnglish() {
   const p = path.join(CONTENT_DIR, 'en.json');
   return JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -67,8 +76,9 @@ function loadEnglish() {
 
 function loadLocale(locale, en) {
   const p = path.join(CONTENT_DIR, `${locale}.json`);
-  if (!fs.existsSync(p)) return en;
-  const loc = JSON.parse(fs.readFileSync(p, 'utf8'));
+  const raw = readIfExists(p);
+  if (raw === null) return en;
+  const loc = JSON.parse(raw);
   return { site: merge(en.site, loc.site), pages: merge(en.pages, loc.pages) };
 }
 
@@ -118,16 +128,14 @@ function main() {
   const indexPath = path.join(webRoot, 'index.html');
   let indexBefore = null;
   let indexAfter = null;
-  if (fs.existsSync(indexPath)) {
-    indexBefore = fs.readFileSync(indexPath, 'utf8');
-    indexAfter = injectCluster(indexBefore);
-  }
+  indexBefore = readIfExists(indexPath);
+  if (indexBefore !== null) indexAfter = injectCluster(indexBefore);
 
   if (check) {
     const stale = [];
     for (const [rel, html] of outputs) {
       const abs = path.join(webRoot, rel);
-      const current = fs.existsSync(abs) ? fs.readFileSync(abs, 'utf8') : '';
+      const current = readIfExists(abs) ?? '';
       if (stripEol(current) !== stripEol(html)) stale.push(rel);
     }
     if (indexBefore !== null && stripEol(indexBefore) !== stripEol(indexAfter)) stale.push('index.html (hreflang cluster)');

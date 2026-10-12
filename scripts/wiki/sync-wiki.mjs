@@ -27,22 +27,29 @@ const root = process.cwd();
 const wikiSource = path.join(root, 'wiki');
 const wikiClone = path.join(root, '.wiki-sync');
 
-function run(cmd, opts = {}) {
-  const result = spawnSync(cmd, {
-    shell: true,
+function redact(text) {
+  return ciToken ? String(text).split(ciToken).join('***') : String(text);
+}
+
+function run(file, cmdArgs, opts = {}) {
+  const result = spawnSync(file, cmdArgs, {
     cwd: opts.cwd || root,
     encoding: 'utf8',
     stdio: opts.quiet ? 'pipe' : 'inherit',
   });
   if (result.status !== 0) {
-    const detail = result.stderr?.trim() || result.stdout?.trim() || `exit ${result.status}`;
-    throw new Error(`Command failed: ${cmd}\n${detail}`);
+    const detail = result.error?.message || result.stderr?.trim() || result.stdout?.trim() || `exit ${result.status}`;
+    throw new Error(redact(`Command failed: ${[file, ...cmdArgs].join(' ')}\n${detail}`));
   }
   return result.stdout?.trim() ?? '';
 }
 
-function runQuiet(cmd, cwd) {
-  return run(cmd, { cwd, quiet: true });
+function git(cmdArgs, opts) {
+  return run('git', ['-C', wikiClone, ...cmdArgs], opts);
+}
+
+function gitQuiet(cmdArgs) {
+  return git(cmdArgs, { quiet: true });
 }
 
 function copyWikiSources() {
@@ -65,14 +72,14 @@ function copyWikiSources() {
 function detectDefaultBranch() {
   for (const branch of ['master', 'main']) {
     try {
-      runQuiet(`git -C "${wikiClone}" rev-parse --verify origin/${branch}`);
+      gitQuiet(['rev-parse', '--verify', `origin/${branch}`]);
       return branch;
     } catch {
       /* try next */
     }
   }
   try {
-    const sym = runQuiet(`git -C "${wikiClone}" symbolic-ref refs/remotes/origin/HEAD`);
+    const sym = gitQuiet(['symbolic-ref', 'refs/remotes/origin/HEAD']);
     return sym.replace('refs/remotes/origin/', '');
   } catch {
     return 'master';
@@ -82,19 +89,19 @@ function detectDefaultBranch() {
 function ensureClone() {
   if (!fs.existsSync(wikiClone)) {
     console.log(`Cloning ${WIKI_REMOTE} → .wiki-sync/`);
-    run(`git clone "${WIKI_REMOTE}" "${wikiClone}"`);
+    run('git', ['clone', WIKI_REMOTE, wikiClone]);
     return;
   }
-  run(`git -C "${wikiClone}" fetch origin`);
+  git(['fetch', 'origin']);
   const branch = detectDefaultBranch();
-  run(`git -C "${wikiClone}" checkout ${branch}`);
-  run(`git -C "${wikiClone}" reset --hard origin/${branch}`);
+  git(['checkout', branch]);
+  git(['reset', '--hard', `origin/${branch}`]);
 }
 
 function configureCiRemote() {
   if (!ciToken) return;
-  const authed = `https://x-access-token:${ciToken}@github.com/Metaheurist/Rianell.wiki.git`;
-  run(`git -C "${wikiClone}" remote set-url origin "${authed}"`);
+  const authed = `https://x-access-token:${encodeURIComponent(ciToken)}@github.com/Metaheurist/Rianell.wiki.git`;
+  git(['remote', 'set-url', 'origin', authed]);
 }
 
 function configureGitIdentity() {
@@ -103,8 +110,8 @@ function configureGitIdentity() {
     process.env.GIT_COMMITTER_EMAIL ||
     process.env.GIT_AUTHOR_EMAIL ||
     'Onceuponablock@hotmail.com';
-  run(`git -C "${wikiClone}" config user.name "${name.replace(/"/g, '\\"')}"`);
-  run(`git -C "${wikiClone}" config user.email "${email.replace(/"/g, '\\"')}"`);
+  git(['config', 'user.name', name]);
+  git(['config', 'user.email', email]);
 }
 
 function main() {
@@ -115,7 +122,7 @@ function main() {
 
   if (!skipVerify) {
     console.log('Running verify-wiki…');
-    run('node scripts/wiki/verify-wiki.mjs');
+    run(process.execPath, ['scripts/wiki/verify-wiki.mjs']);
   }
 
   ensureClone();
@@ -124,9 +131,9 @@ function main() {
   const copied = copyWikiSources();
   console.log(`Copied ${copied.length} markdown file(s) to .wiki-sync/`);
 
-  run(`git -C "${wikiClone}" add -A`);
+  git(['add', '-A']);
 
-  const diff = runQuiet(`git -C "${wikiClone}" diff --staged --name-only`);
+  const diff = gitQuiet(['diff', '--staged', '--name-only']);
   if (!diff) {
     console.log('Wiki already up to date — nothing to push.');
     process.exit(0);
@@ -141,9 +148,9 @@ function main() {
   }
 
   configureGitIdentity();
-  run(`git -C "${wikiClone}" commit -m "${commitMessage.replace(/"/g, '\\"')}"`);
-  const hash = runQuiet(`git -C "${wikiClone}" rev-parse --short HEAD`);
-  run(`git -C "${wikiClone}" push origin HEAD`);
+  git(['commit', '-m', commitMessage]);
+  const hash = gitQuiet(['rev-parse', '--short', 'HEAD']);
+  git(['push', 'origin', 'HEAD']);
 
   console.log(`Pushed wiki commit ${hash}`);
   console.log(`Live: ${WIKI_LIVE_URL}/Home`);

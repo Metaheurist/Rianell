@@ -71,14 +71,32 @@ if (!perf.includes('script.integrity = SUPABASE_UMD_INTEGRITY')) {
   fail('ensureSupabaseLoaded must assign script.integrity');
 }
 
+function isCdnUrl(url) {
+  try {
+    return new URL(url).hostname.toLowerCase() === CDN_HOST;
+  } catch {
+    return false;
+  }
+}
+
+function readOptional(file) {
+  try {
+    return fs.readFileSync(file, 'utf8');
+  } catch (e) {
+    if (e.code === 'ENOENT') return null;
+    throw e;
+  }
+}
+
 // cdn-manifest.json — no placeholders
-if (fs.existsSync(manifestPath)) {
-  const manifest = JSON.parse(read(manifestPath));
+const manifestRaw = readOptional(manifestPath);
+if (manifestRaw !== null) {
+  const manifest = JSON.parse(manifestRaw);
   for (const pkg of manifest.packages || []) {
     if (pkg.integrity && String(pkg.integrity).includes('PLACEHOLDER')) {
       fail(`cdn-manifest.json placeholder integrity for ${pkg.name}`);
     }
-    if (pkg.url && pkg.url.includes(CDN_HOST) && pkg.integrity) {
+    if (pkg.url && isCdnUrl(pkg.url) && pkg.integrity) {
       const urlEsc = pkg.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       if (!new RegExp(urlEsc).test(html) && !html.includes(pkg.url.split('@')[0])) {
         // ua-parser is in HTML; supabase is dynamic — only warn if manifest requires HTML presence
