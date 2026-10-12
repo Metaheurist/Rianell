@@ -8,6 +8,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ## [Unreleased]
 
+### Fixed
+- **"Sync wiki to GitHub Wiki" CI job randomly cancelled:** it shared the `ci-bot-push` concurrency group with five jobs that push to this branch. GitHub keeps only one pending job per group, so a newer bot job queuing displaced it, and it was cancelled in 3 of the last 15 `main` runs. It pushes only to the wiki repo, so it now has its own `ci-wiki-sync` group.
+
 ### Security
 - **Removed the deleted Supabase project from `index.html`:** the page preconnected to `tcoynycktablxankyriw.supabase.co` and listed it in the CSP `connect-src`. That project no longer exists in public DNS, so every visit spent a failed DNS lookup on it. The live backend comes from `supabase-config.js` at deploy time, and `https://*.supabase.co` in `connect-src` already allows any project. `docs/security-inventory.md` and `security/cloudflare-headers-recommended.md` updated to match.
 - **Dependency updates (Dependabot #89, #93–#96, #99, #105–#109 in one change):** `npm audit` goes from 4 high and 1 moderate to 0.

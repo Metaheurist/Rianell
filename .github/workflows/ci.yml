@@ -679,8 +679,10 @@ jobs:
     needs: [unit-tests]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
+    # Own group: it pushes to the wiki repo, not this branch. Sharing ci-bot-push let a
+    # newer pending bot job displace it (GitHub keeps one pending job per group).
     concurrency:
-      group: ci-bot-push-${{ github.ref }}
+      group: ci-wiki-sync-${{ github.ref }}
       cancel-in-progress: false
     permissions:
       contents: read
