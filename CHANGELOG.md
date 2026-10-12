@@ -8,6 +8,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 
 ## [Unreleased]
 
+### Security
+- **Dependency updates (Dependabot #89, #93–#96, #99, #105–#109 in one change):** `npm audit` goes from 4 high and 1 moderate to 0.
+  - npm dev dependencies: `@playwright/test` ^1.62.1 (resolves 1.64.0), `esbuild` 0.28.2, `@babel/generator` / `@babel/traverse` ^7.29.8, `brace-expansion` ^5.0.12, `chrome-launcher` ^1.2.2.
+  - Lockfile-only: `undici` 8.11.2, `browserslist` 4.29.3, `baseline-browser-mapping` 2.11.28, and `source-map-js` 1.2.2 (the remaining high finding, not in any PR).
+  - Python floors: `cryptography>=50.0.1`, `pydantic>=2.13.5,<3`, `python-dotenv>=1.2.3`, `psycopg[binary]>=3.3.5`, `psycopg2-binary>=2.9.13`. The server's AES-GCM encrypt/decrypt round-trip was checked on cryptography 50.0.2.
+
+  The Dependabot PRs had shown red because their CI runs were cancelled, not failed. `tests/unit/server-requirements.test.mjs` pinned every Python floor exactly, so any floor bump would have failed it. It now checks each floor is at or above its safe minimum and keeps the `pydantic<3` and `websockets<16` caps.
+
 ### Added
 - **`npm run dev:reset-playwright-mcp`:** unsticks hanging Playwright MCP browser checks. `scripts/dev/reset-playwright-mcp.mjs` kills only the browser whose `--user-data-dir` is an MCP profile (`ms-playwright-mcp\mcp-chrome-*`), that is not a `--type=` child, and whose parent is `@playwright/mcp`. Your own Chrome, other Playwright runs and the MCP server stay up, and the next MCP call starts a fresh browser. Use `-- --dry-run` to list matches without killing anything. It reads processes with `Get-CimInstance` on Windows and `ps` elsewhere. `docs/development/agentic-pipeline-harness.md` also notes to keep MCP calls under about 60 s (`tests/unit/reset-playwright-mcp.test.mjs` covers the filter with decoy processes).
 - **Cache-buster guard for hand-versioned PWA assets:** `scripts/verify/cache-buster-lock.json` records the `?v=` and a line-ending-normalised SHA-256 of every asset referenced with `?v=N` in `index.html` or first-party JS (vendored bundles, `summary-llm.js`, `AIEngine.js`, classic modules). `app.js` and `styles.css` are excluded because the build fingerprints them. `tests/unit/cache-buster-lock.test.mjs` fails when a file changes without a bump, or when two references to one file disagree. `node scripts/verify/cache-buster-lock.mjs --bump <asset>` bumps every reference and refreshes the lock. Its first run caught `summary-llm.js`, `modules/ai-chat.js`, `AIEngine.js` and `guided-onboarding.js` changed in this release without a bump.
