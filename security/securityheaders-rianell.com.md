@@ -1,81 +1,57 @@
 ---
 source: securityheaders.com
 scan_url: "https://securityheaders.com/?q=rianell.com&followRedirects=on"
-generated_utc: 2026-10-12T21:34:18.362Z
-github_run_number: 913
-github_sha: 3ef1bfd
-github_run_id: 38310568817
-securityheaders_http_status: 200
-securityheaders_scan_relay: allorigins
+generated_utc: 2026-10-13T09:54:06.111Z
+github_run_number: 914
+github_sha: a5ef00b
+github_run_id: 38379104979
+securityheaders_http_status: 403
+securityheaders_scan_relay: direct
+securityheaders_scan: blocked_or_unavailable
 ---
 
-# Scan results for rianell.com
+# Security headers report (CI)
 
-**Fetched:** https://securityheaders.com/?q=rianell.com&followRedirects=on
-  
-**Scan HTML relay:** `allorigins` (third party retrieved the scan page HTML for parsing.)
+The **[securityheaders.com](https://securityheaders.com/)** scan page was not usable after **direct** fetch and optional **relay** attempts (`allorigins`, `corsproxy.io`). Datacenter IPs are often blocked. Browser-only proxy homepages (e.g. Proxyium) are not used — they have no stable API for CI.
 
-### Scan your site now
+Below: **response headers** from the live site URL(s) (`SECURITY_HEADERS_LIVE_URLS` / `SECURITY_HEADERS_FALLBACK_SITE`), fetched with a **browser-like** User-Agent. **HTTP 403** may still include useful `Content-Security-Policy`, `Strict-Transport-Security`, etc., when Cloudflare serves a challenge page.
 
-| Site: | [https://rianell.com/](https://rianell.com/) |  |
-| --- | --- | --- |
-| IP Address: | 172.67.156.107 |  |
-| Report Time: | 12 Oct 2026 21:34:17 UTC |  |
-| Headers: | Permissions-Policy Content-Security-Policy Strict-Transport-Security X-Content-Type-Options Referrer-Policy X-Frame-Options |  |
-| Advanced: | Wow, amazing grade! Perform a deeper security analysis of your website and APIs: | [](https://probely.com/sh?utm_campaign=Security%20Headers&utm_source=Security%20Headers&utm_medium=Display&utm_content=A+) |
+## Live site response headers
 
-| HTTP/2 | 200 |
+**URLs tried (in order):** `https://rianell.com`, `https://www.rianell.com`
+
+**Chosen URL:** https://rianell.com  
+**HTTP status:** 403  
+**Final URL:** https://rianell.com/  
+**Response body length (bytes):** 5838
+
+| Header | Value |
 | --- | --- |
-| date | Mon, 12 Oct 2026 21:34:17 GMT |
-| content-type | text/html; charset=utf-8 |
-| server | cloudflare |
-| last-modified | Mon, 12 Oct 2026 21:32:29 GMT |
-| access-control-allow-origin | * |
-| x-xss-protection | 1; mode=block |
-| expires | Mon, 12 Oct 2026 21:44:17 GMT |
-| cache-control | max-age=600 |
-| permissions-policy | microphone=(self), geolocation=(self), camera=(), interest-cohort=() |
-| x-proxy-cache | MISS |
-| x-github-request-id | F52C:2A492E:132D6:28EB6:6ACD5258 |
-| x-github-edge-region | northeurope |
-| content-security-policy | frame-ancestors &#039;self&#039; |
-| age | 0 |
-| via | 1.1 varnish |
-| x-served-by | cache-dub4356-DUB |
-| x-cache | MISS |
-| x-cache-hits | 0 |
-| x-timer | S1791840857.032791,VS0,VE262 |
-| vary | Accept-Encoding |
-| x-fastly-request-id | 9f44fb0cf97e7ca23ebb1e0a229d25866465177f |
-| cf-cache-status | DYNAMIC |
-| strict-transport-security | max-age=31536000; includeSubDomains; preload |
-| x-content-type-options | nosniff |
-| speculation-rules | &quot;/cdn-cgi/speculation&quot; |
-| report-to | {&quot;group&quot;:&quot;cf-nel&quot;,&quot;max_age&quot;:604800,&quot;endpoints&quot;:[{&quot;url&quot;:&quot;https://a.nel.cloudflare.com/report/v4?s=H623HEjomGJrVoxdw5S1HhZ0EDGIpygrSH3cK7BUA9091ZDHNyx5rcjasg%2FZv0Se4uOaMo3rudsVc35evb%2FIyxP5Zlj9ywMiKsN0oJ5bV3qCCUJz1YLL73lBFMmgXw%3D%3D&quot;}]} |
-| nel | {&quot;report_to&quot;:&quot;cf-nel&quot;,&quot;success_fraction&quot;:0.0,&quot;max_age&quot;:604800} |
+| accept-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
+| alt-svc | h3=":443"; ma=86400 |
+| cf-mitigated | challenge |
+| cf-ray | a49d76048a38778a-IAD |
+| connection | close |
+| content-encoding | br |
+| content-security-policy | default-src 'none'; script-src 'nonce-HpNMWOFXUxWVxZCd6eFVlo' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self' |
+| content-type | text/html; charset=UTF-8 |
+| critical-ch | Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA |
+| cross-origin-embedder-policy | require-corp |
+| cross-origin-opener-policy | same-origin |
+| cross-origin-resource-policy | same-origin |
+| date | Tue, 13 Oct 2026 09:54:06 GMT |
 | expect-ct | max-age=86400, enforce |
-| referrer-policy | strict-origin-when-cross-origin |
+| nel | {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800} |
+| origin-agent-cluster | ?1 |
+| permissions-policy | accelerometer=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=(),xr-spatial-tracking=* |
+| referrer-policy | same-origin |
+| report-to | {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=GA9Wi48v87nkvs1elKezPEF4ExuakEpTmjid%2Bo%2Bw0RUcsXexzvAL%2FQaEHxZTY4qngARDpR%2BfofEEf5WR7bg2l0ERwNZ4%2BdHSnZVuObdp3r1abIhvV7Yc06uyk3GLGg%3D%3D"}]} |
+| server | cloudflare |
+| server-timing | chlray;desc="a49d76048a38778a" |
+| speculation-rules | "/cdn-cgi/speculation" |
+| strict-transport-security | max-age=31536000; includeSubDomains; preload |
+| transfer-encoding | chunked |
+| x-content-type-options | nosniff |
 | x-frame-options | SAMEORIGIN |
-| content-encoding | gzip |
-| cf-ray | a4993a4c580bae98-DUB |
-| alt-svc | h3=&quot;:443&quot;; ma=86400 |
-
-| Cross-Origin-Embedder-Policy | [Cross-Origin Embedder Policy](https://scotthelme.co.uk/coop-and-coep/) allows a site to prevent assets being loaded that do not grant permission to load them via CORS or CORP. |
-| --- | --- |
-| Cross-Origin-Opener-Policy | [Cross-Origin Opener Policy](https://scotthelme.co.uk/coop-and-coep/) allows a site to opt-in to Cross-Origin Isolation in the browser. |
-| Cross-Origin-Resource-Policy | [Cross-Origin Resource Policy](https://scotthelme.co.uk/coop-and-coep/) allows a resource owner to specify who can load the resource. |
-
-| server | [Server](https://scotthelme.co.uk/hardening-your-http-response-headers/#server) value has been changed. Typically you will see values like "Microsoft-IIS/8.0" or "nginx 1.7.2". |
-| --- | --- |
-| access-control-allow-origin | This is a very lax CORS policy. Such a policy should only be used on a public CDN. |
-| x-xss-protection | [X-XSS-Protection](https://scotthelme.co.uk/hardening-your-http-response-headers/#x-xss-protection) sets the configuration for the XSS Auditor built into older browsers. The recommended value was "X-XSS-Protection: 1; mode=block" but you should now look at [Content Security Policy](https://scotthelme.co.uk/content-security-policy-an-introduction/) instead. |
-| permissions-policy | [Permissions Policy](https://scotthelme.co.uk/goodbye-feature-policy-and-hello-permissions-policy/) is a new header that allows a site to control which features and APIs can be used in the browser. |
-| content-security-policy | [Content Security Policy](https://scotthelme.co.uk/content-security-policy-an-introduction/) is an effective measure to protect your site from XSS attacks. By whitelisting sources of approved content, you can prevent the browser from loading malicious assets. [Analyse](https://report-uri.com/home/analyse/https%3A%2F%2Frianell.com%2F) this policy in more detail. You can sign up for a free account on [Report URI](https://report-uri.com) to collect reports about problems on your site. |
-| strict-transport-security | [HTTP Strict Transport Security](https://scotthelme.co.uk/hsts-the-missing-link-in-tls/) is an excellent feature to support on your site and strengthens your implementation of TLS by getting the User Agent to enforce the use of HTTPS. |
-| x-content-type-options | [X-Content-Type-Options](https://scotthelme.co.uk/hardening-your-http-response-headers/#x-content-type-options) stops a browser from trying to MIME-sniff the content type and forces it to stick with the declared content-type. The only valid value for this header is "X-Content-Type-Options: nosniff". |
-| report-to | [Report-To](https://scotthelme.co.uk/introducing-the-reporting-api-nel-other-major-changes-to-report-uri/) enables the Reporting API. This allows a website to collect reports from the browser about various errors that may occur. You can sign up for a free account on [Report URI](https://report-uri.com) to collect these reports. |
-| nel | [Network Error Logging](https://scotthelme.co.uk/network-error-logging-deep-dive/) is a new header that instructs the browser to send reports during various network or application errors. You can sign up for a free account on [Report URI](https://report-uri.com) to collect these reports. |
-| expect-ct | [Expect-CT](https://scotthelme.co.uk/a-new-security-header-expect-ct/) will soon be deprecated and can be removed. |
-| referrer-policy | [Referrer Policy](https://scotthelme.co.uk/a-new-security-header-referrer-policy/) is a new header that allows a site to control how much information the browser includes with navigations away from a document and should be set by all sites. |
-| x-frame-options | [X-Frame-Options](https://scotthelme.co.uk/hardening-your-http-response-headers/#x-frame-options) tells the browser whether you want to allow your site to be framed or not. By preventing a browser from framing your site you can defend against attacks like clickjacking. |
+| x-xss-protection | 1; mode=block |
 
