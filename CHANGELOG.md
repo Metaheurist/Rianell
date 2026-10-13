@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Version
 ## [Unreleased]
 
 ### Fixed
+- **`npm run docs:master-sync` could not run:** the doc comment in `scripts/ci/sync-master-plans.mjs` contained the path `plan-*/plan.md`, and its `*/` closed the comment early, so the file was a syntax error. CodeQL reported it as "Could not process some files due to syntax errors" on the JavaScript/TypeScript scan.
 - **"Sync wiki to GitHub Wiki" CI job randomly cancelled:** it shared the `ci-bot-push` concurrency group with five jobs that push to this branch. GitHub keeps only one pending job per group, so a newer bot job queuing displaced it, and it was cancelled in 3 of the last 15 `main` runs. It pushes only to the wiki repo, so it now has its own `ci-wiki-sync` group.
 
 ### Security

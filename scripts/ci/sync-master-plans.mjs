@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Plan 24 — sync MASTER.md plan status rows from docs/plans/plan-*/plan.md frontmatter. */
+/** Plan 24 — sync MASTER.md plan status rows from docs/plans/plan-NN/plan.md frontmatter. */
 import fs from 'node:fs';
 import path from 'node:path';
 
