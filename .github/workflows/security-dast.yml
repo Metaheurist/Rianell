@@ -13,7 +13,7 @@ jobs:
       contents: read
       actions: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
         with:
           install: true
@@ -42,7 +42,7 @@ jobs:
   axe-accessibility:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-node-ci
         with:
           install: true
