@@ -5,7 +5,7 @@
 # pydantic manually so versions stay aligned (launch-server.ps1 does this automatically).
 
 # Supabase client library (required for database operations)
-supabase>=2.31.0
+supabase>=2.33.0
 
 # Pydantic stack — keeps pydantic-core in sync with postgrest/supabase-auth (avoids SystemError on import)
 pydantic>=2.14.0,<3
