@@ -34,13 +34,13 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@eslint/js` | ^10.0.1 |
 | `@huggingface/transformers` | 4.3.0 |
 | `@opentelemetry/core` | ^2.12.0 |
-| `@sentry/node` | ^11.6.0 |
+| `@sentry/node` | ^11.9.0 |
 | `esbuild` | 0.28.2 |
-| `eslint` | ^10.11.0 |
+| `eslint` | ^10.13.0 |
 | `globals` | ^17.13.0 |
-| `jsdom` | ^30.1.2 |
+| `jsdom` | ^30.1.3 |
 | `sharp` | ^0.35.4 |
-| `turbo` | ^2.10.7 |
+| `turbo` | ^2.11.10 |
 
 **`overrides`** — 26 pin(s): `@babel/core`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@tootallnate/once`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `minimatch`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `sharp`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
@@ -85,10 +85,10 @@ Workspace **`@rianell/benchmark-runner`**.
 
 | Package | Version |
 |---------|---------|
-| `@playwright/test` | ^1.62.1 |
+| `@playwright/test` | ^1.64.1 |
 | `chrome-launcher` | ^1.2.2 |
 | `lighthouse` | ^13.5.0 |
-| `playwright` | ^1.62.0 |
+| `playwright` | ^1.64.1 |
 | `serve-handler` | ^6.1.6 |
 
 ---
@@ -97,8 +97,8 @@ Workspace **`@rianell/benchmark-runner`**.
 
 | Package | Constraint | Role |
 |---------|------------|------|
-| `supabase` | >=2.31.0 | Supabase client |
-| `pydantic` | >=2.14.0,<3 | — |
+| `supabase` | >=2.33.0 | Supabase client |
+| `pydantic` | >=2.14.1,<3 | — |
 | `websockets` | >=15.0.1,<16 | — |
 | `watchdog` | >=6.0.0 | File watching / auto-reload (recommended) |
 | `python-dotenv` | >=1.2.4 | `.env` loading |
