@@ -26,7 +26,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 
 | Package | Version |
 |---------|---------|
-| `@babel/core` | 7.29.7 |
+| `@babel/core` | 7.29.13 |
 | `@babel/generator` | ^7.29.8 |
 | `@babel/parser` | ^7.26.7 |
 | `@babel/traverse` | ^7.29.8 |
@@ -34,13 +34,13 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@eslint/js` | ^10.0.1 |
 | `@huggingface/transformers` | 4.3.0 |
 | `@opentelemetry/core` | ^2.12.0 |
-| `@sentry/node` | ^11.9.0 |
+| `@sentry/node` | ^11.10.0 |
 | `esbuild` | 0.28.2 |
 | `eslint` | ^10.13.0 |
 | `globals` | ^17.13.0 |
 | `jsdom` | ^30.1.3 |
 | `sharp` | ^0.35.4 |
-| `turbo` | ^2.11.10 |
+| `turbo` | ^2.11.11 |
 
 **`overrides`** — 26 pin(s): `@babel/core`, `@huggingface/transformers`, `@istanbuljs/load-nyc-config → js-yaml`, `@opentelemetry/core`, `@tootallnate/once`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `minimatch`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `sharp`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
@@ -86,10 +86,10 @@ Workspace **`@rianell/benchmark-runner`**.
 | Package | Version |
 |---------|---------|
 | `@playwright/test` | ^1.64.1 |
-| `chrome-launcher` | ^1.2.2 |
+| `chrome-launcher` | ^1.2.3 |
 | `lighthouse` | ^13.5.0 |
 | `playwright` | ^1.64.1 |
-| `serve-handler` | ^6.1.6 |
+| `serve-handler` | ^6.1.8 |
 
 ---
 
@@ -97,13 +97,13 @@ Workspace **`@rianell/benchmark-runner`**.
 
 | Package | Constraint | Role |
 |---------|------------|------|
-| `supabase` | >=2.33.0 | Supabase client |
-| `pydantic` | >=2.14.1,<3 | — |
+| `supabase` | >=2.34.1 | Supabase client |
+| `pydantic` | >=2.14.3,<3 | — |
 | `websockets` | >=15.0.1,<16 | — |
-| `watchdog` | >=6.0.0 | File watching / auto-reload (recommended) |
+| `watchdog` | >=7.1.0 | File watching / auto-reload (recommended) |
 | `python-dotenv` | >=1.2.4 | `.env` loading |
 | `cryptography` | >=50.0.2 | Encryption for anonymised data |
-| `psycopg[binary]` | >=3.3.6 | PostgreSQL driver (optional path for direct SQL) |
+| `psycopg[binary]` | >=3.3.9 | PostgreSQL driver (optional path for direct SQL) |
 | `psycopg2-binary` | >=2.9.13 | Alternate PostgreSQL driver |
 
 Install: `pip install -r requirements.txt` (Python **3.8+** per file header).
