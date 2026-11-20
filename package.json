@@ -197,7 +197,7 @@
     "tmp": "^0.2.7",
     "handlebars": "^4.7.9",
     "http-proxy-agent": "^7.0.2",
-    "minimatch": "^10.0.3",
+    "minimatch": "11.0.1",
     "replace": {
       "minimatch": "^10.0.3"
     },
